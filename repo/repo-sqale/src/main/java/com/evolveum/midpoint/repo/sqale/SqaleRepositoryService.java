@@ -17,13 +17,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Consumer;
+
 import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.*;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.SQLQuery;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -2084,4 +2085,46 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     public boolean supports(@NotNull Class<? extends ObjectType> type) {
         return true;
     }
+
+    // region Aggregate functions
+
+    @Override
+    public @NotNull SearchResultList<PrismContainerValue<?>> searchAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
+        var result = parentResult.createSubresult(OP_SEARCH_AGGREGATE);
+        try {
+            return aggregateQueryHandler(query, result).search();
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, result);
+        } catch (Throwable t) {
+            recordFatalError(result, t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public int countAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
+        var result = parentResult.createSubresult(OP_COUNT_AGGREGATE);
+        try {
+            return aggregateQueryHandler(query, result).count();
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, result);
+        } catch (Throwable t) {
+            recordFatalError(result, t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    private AggregateSearchContext aggregateQueryHandler(AggregateQuery<?> query, OperationResult result) throws SchemaException {
+        var type = query.getRoot();
+        var queryContext = SqaleQueryContext.from(type, sqlRepoContext);
+        if (queryContext == null) {
+            throw new SchemaException("Aggregate search not supported for " + type.getSimpleName());
+        }
+        return new AggregateSearchContext(query, queryContext, result);
+    }
+
 }

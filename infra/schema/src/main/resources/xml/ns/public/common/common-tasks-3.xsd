@@ -581,6 +581,20 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="affectedObjects" type="tns:TaskAffectedObjectsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Searchable set of object set coordinates (eg. resource + kind + intent for resource objects,
+                                or type for objects) for objects which are directly affected by execution of task.
+
+                                NOTE: This data are only for task indexing and searching purposes derived from activity definitions.
+                                This data are not cannonical and for some edge-cases they may not be computed.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.8</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -6725,14 +6739,16 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ObjectSetType">
+
+
+    <xsd:complexType name="BasicObjectSetType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies a set of repository objects to be processed.
+
             </xsd:documentation>
             <xsd:appinfo>
+                <a:since>4.8</a:since>
                 <a:container>true</a:container>
-                <a:since>4.4</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -6743,47 +6759,76 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="query" type="q:QueryType" minOccurs="0">
+            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0" >
                 <xsd:annotation>
                     <xsd:documentation>
-                        Query specifying objects to be processed.
+                        Archetype of objects to be processed.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Options to be used when searching for objects.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="useRepositoryDirectly" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether to use repository directly when searching for objects.
-                        (There's usually no need to specify this.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Selects objects that were failed to be processed in previous activity run(s).
-                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="objectSet" type="tns:ObjectSetType"/>
 
-    <xsd:complexType name="ResourceObjectSetType">
+    <xsd:complexType name="ObjectSetType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies a set of resource objects to be processed.
+                Specifies a set of repository objects to be processed.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:BasicObjectSetType">
+                <xsd:sequence>
+                    <xsd:element name="query" type="q:QueryType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Query specifying objects to be processed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options to be used when searching for objects.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="useRepositoryDirectly" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether to use repository directly when searching for objects.
+                                (There's usually no need to specify this.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Selects objects that were failed to be processed in previous activity run(s).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectSet" type="tns:ObjectSetType"/>
+
+
+    <xsd:complexType name="BasicResourceObjectSetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a set of resource objects to be processed with only basic identifiers.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.8</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -6855,36 +6900,54 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="query" type="q:QueryType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Explicit object query used to refine/replace the default query stemming from resourceRef, kind, intent,
-                        and/or objectclass.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="queryApplication" type="tns:ResourceObjectSetQueryApplicationModeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How should be the explicit query applied to the default query.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Options to be used when searching for objects.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Selects objects that were failed to be processed in previous activity run(s).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResourceObjectSetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a set of resource objects to be processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:BasicResourceObjectSetType">
+                <xsd:sequence>
+                    <xsd:element name="query" type="q:QueryType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Explicit object query used to refine/replace the default query stemming from resourceRef, kind, intent,
+                                and/or objectclass.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="queryApplication" type="tns:ResourceObjectSetQueryApplicationModeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How should be the explicit query applied to the default query.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options to be used when searching for objects.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="failedObjectsSelector" type="tns:FailedObjectsSelectorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Selects objects that were failed to be processed in previous activity run(s).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="resourceObjectSet" type="tns:ResourceObjectSetType"/>
 
@@ -8908,4 +8971,37 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="TaskAffectedObjectsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Searchable computed indexes, which tries to capture common parameters used to identify objects (and resource objects),
+                which are affected by execution of the tasks.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resourceObjects" type="tns:BasicResourceObjectSetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource objects (defined by their object class, intent/kind), which are affected by task. Does not contain
+                        explicit enumeration of affected resource objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objects" type="tns:BasicObjectSetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Objects (defined by their type and archetype), which are affected by task. Does not contain explicit
+                        enumeration of affected resource objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
 </xsd:schema>

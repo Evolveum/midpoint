@@ -28,7 +28,7 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
     FocusValidityScanWorkDefinition(@NotNull WorkDefinitionBean source) {
         var typedDefinition = (FocusValidityScanWorkDefinitionType) source.getBean();
 
-        objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+        objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
         // We allow user to use types above FocusType if he needs to check e.g. assignments validity
         // on AssignmentHolderType objects.
         ObjectSetUtil.applyDefaultObjectType(objects, FocusType.COMPLEX_TYPE);
@@ -38,7 +38,7 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
     }
 
     @Override
-    public ObjectSetType getObjectSetSpecification() {
+    public @NotNull ObjectSetType getObjectSetSpecification() {
         return objects;
     }
 

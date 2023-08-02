@@ -1,0 +1,95 @@
+/*
+ * Copyright (C) 2023 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.repo.sqale.qmodel.task;
+
+import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.delta.item.SinglePathItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.TypeQNameItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType;
+
+
+import com.querydsl.core.types.dsl.EnumPath;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Function;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType.F_TYPE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType.*;
+
+public class QAffectedObjectsMapping extends QContainerMapping<BasicObjectSetType, QAffectedObjects, MAffectedObjects, MTask> {
+
+    public static final String DEFAULT_ALIAS_NAME = "tao";
+
+    private static QAffectedObjectsMapping instance;
+
+
+    // Explanation in class Javadoc for SqaleTableMapping
+    public static QAffectedObjectsMapping init(@NotNull SqaleRepoContext repositoryContext) {
+        if (needsInitialization(instance, repositoryContext)) {
+            instance = new QAffectedObjectsMapping(repositoryContext);
+        }
+        return instance;
+    }
+
+    protected QAffectedObjectsMapping(@NotNull SqaleRepoContext repositoryContext) {
+        super(QAffectedObjects.TABLE_NAME, DEFAULT_ALIAS_NAME, BasicObjectSetType.class, QAffectedObjects.class, repositoryContext);
+
+        Function<QAffectedObjects, EnumPath<MObjectType>> objectTypePath = q -> q.type;
+        addItemMapping(F_TYPE, new SqaleItemSqlMapper<>(
+                ctx -> new TypeQNameItemFilterProcessor(ctx, objectTypePath),
+                ctx -> new SinglePathItemDeltaProcessor<>(ctx, objectTypePath),
+                objectTypePath
+        ));
+        addRefMapping(F_ARCHETYPE_REF,
+                q -> q.archetypeRefTargetOid,
+                q -> q.archetypeRefTargetType,
+                q -> q.archetypeRefRelationId,
+                QArchetypeMapping::getArchetypeMapping);
+    }
+
+    public static QAffectedObjectsMapping get() {
+        return instance;
+    }
+
+    @Override
+    public MAffectedObjects newRowObject() {
+        return new MAffectedObjects();
+    }
+
+    @Override
+    public MAffectedObjects newRowObject(MTask ownerRow) {
+        var row = newRowObject();
+        row.ownerOid = ownerRow.oid;
+        return row;
+    }
+
+    @Override
+    protected QAffectedObjects newAliasInstance(String alias) {
+        return new QAffectedObjects(alias);
+    }
+
+    @Override
+    public MAffectedObjects insert(BasicObjectSetType object, MTask ownerRow, JdbcSession jdbcSession) throws SchemaException {
+        var row = initRowObject(object, ownerRow);
+        setReference(object.getArchetypeRef(),
+                o -> row.archetypeRefTargetOid = o ,
+                t -> row.archetypeRefTargetType = t,
+                r -> row.archetypeRefRelationId = r
+                );
+        if (object.getType() != null) {
+            row.type = MObjectType.fromTypeQName(object.getType());
+        }
+        insert(row, jdbcSession);
+        return  row;
+    }
+}

@@ -120,12 +120,12 @@ public class IterativeScriptingActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-        private final ObjectSetType objects;
-        private final ExecuteScriptType scriptExecutionRequest;
+        @NotNull private final ObjectSetType objects;
+        @NotNull private final ExecuteScriptType scriptExecutionRequest;
 
         MyWorkDefinition(@NotNull WorkDefinitionBean source) {
             var typedDefinition = (IterativeScriptingWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
             argCheck(scriptExecutionRequest.getScriptingExpression() != null, "No scripting expression provided");
@@ -135,11 +135,11 @@ public class IterativeScriptingActivityHandler
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 
-        public ExecuteScriptType getScriptExecutionRequest() {
+        public @NotNull ExecuteScriptType getScriptExecutionRequest() {
             return scriptExecutionRequest;
         }
 

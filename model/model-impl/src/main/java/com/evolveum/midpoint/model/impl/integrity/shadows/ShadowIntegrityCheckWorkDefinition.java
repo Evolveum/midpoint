@@ -46,7 +46,7 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
 
     ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source) {
         var typedDefinition = (ShadowIntegrityCheckWorkDefinitionType) source.getBean();
-        shadows = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
+        shadows = ObjectSetUtil.emptyIfNull(typedDefinition.getShadows());
         ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);
         aspectsToDiagnose = new HashSet<>(typedDefinition.getDiagnose());
         aspectsToFix = new HashSet<>(typedDefinition.getFix());
@@ -57,7 +57,7 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
     }
 
     @Override
-    public ObjectSetType getObjectSetSpecification() {
+    public @NotNull ObjectSetType getObjectSetSpecification() {
         return shadows;
     }
 

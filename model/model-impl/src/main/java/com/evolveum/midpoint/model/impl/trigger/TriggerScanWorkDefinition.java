@@ -24,11 +24,11 @@ public class TriggerScanWorkDefinition extends AbstractWorkDefinition implements
 
     TriggerScanWorkDefinition(@NotNull WorkDefinitionBean source) {
         var typedDefinition = (TriggerScanWorkDefinitionType) source.getBean();
-        objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+        objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
     }
 
     @Override
-    public ObjectSetType getObjectSetSpecification() {
+    public @NotNull ObjectSetType getObjectSetSpecification() {
         return objects;
     }
 

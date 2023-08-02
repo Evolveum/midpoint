@@ -4,6 +4,9 @@ import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.Action;
 
+/**
+ * TODO think this through - how to format different messages
+ */
 public final class ConsoleFormat {
 
     public enum Level {
@@ -29,7 +32,7 @@ public final class ConsoleFormat {
     }
 
     public static void setBatchMode(boolean batchMode) {
-        Ansi.setEnabled(batchMode);
+        Ansi.setEnabled(!batchMode);
     }
 
     public static String formatActionStartMessage(Action action) {

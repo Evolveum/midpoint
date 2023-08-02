@@ -13,6 +13,7 @@ import java.util.Collections;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -131,28 +132,28 @@ public class IterativeChangeExecutionActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-        private final ObjectSetType objects;
-        private final ObjectDeltaType delta;
-        private final ModelExecuteOptions executionOptions;
+        @NotNull private final ObjectSetType objects;
+        @NotNull private final ObjectDeltaType delta;
+        @Nullable private final ModelExecuteOptions executionOptions;
 
         MyWorkDefinition(@NotNull WorkDefinitionBean source) {
             var typedDefinition = (IterativeChangeExecutionWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             delta = typedDefinition.getDelta();
             argCheck(delta != null, "No delta specified");
             executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 
-        public ObjectDeltaType getDelta() {
+        public @NotNull ObjectDeltaType getDelta() {
             return delta;
         }
 
-        ModelExecuteOptions getExecutionOptions() {
+        @Nullable ModelExecuteOptions getExecutionOptions() {
             return executionOptions;
         }
 

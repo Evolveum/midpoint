@@ -256,7 +256,7 @@ public class DeletionActivityHandler
 
         MyWorkDefinition(@NotNull WorkDefinitionBean source) {
             var typedDefinition = (DeletionWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects()); // Can contain search options.
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects()); // Can contain search options.
             executionOptions = Objects.requireNonNullElseGet(
                     fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
                     ModelExecuteOptions::create);
@@ -265,7 +265,7 @@ public class DeletionActivityHandler
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 

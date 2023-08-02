@@ -16,6 +16,11 @@
 
     <schemaHandling>
         <objectType id="1">
+            <auxiliaryObjectClass>AuxClass</auxiliaryObjectClass>
+            <baseContext>
+                <objectClass>BaseClass</objectClass>
+            </baseContext>
+            <searchHierarchyScope>sub</searchHierarchyScope>
             <correlation>
                 <correlators>
                     <idMatch id="5">
@@ -47,4 +52,11 @@
             </synchronization>
         </objectType>
     </schemaHandling>
+    <synchronization>
+        <objectSynchronization id="8">
+            <reaction id="7">
+                <situation>deleted</situation>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </resource>

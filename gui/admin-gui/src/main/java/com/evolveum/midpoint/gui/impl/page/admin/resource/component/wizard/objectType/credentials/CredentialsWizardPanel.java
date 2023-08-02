@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -86,12 +87,14 @@ public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new InboundCredentialsMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.INBOUND);
             }
         });
         steps.add(new InboundCredentialsMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.INBOUND);
             }
         });
@@ -111,12 +114,14 @@ public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new OutboundCredentialsMappingMainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.OUTBOUND);
             }
         });
         steps.add(new OutboundCredentialsMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showCredentialsTablePanel(target, MappingDirection.OUTBOUND);
             }
         });

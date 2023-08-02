@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.api.util;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
@@ -27,17 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
-
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
-
-import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -100,6 +88,7 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
@@ -121,14 +110,19 @@ import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemp
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
 import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
@@ -144,10 +138,7 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -192,6 +183,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -214,6 +206,7 @@ import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -5783,6 +5776,26 @@ public final class WebComponentUtil {
 
     public static <O extends ObjectType> String getLabelForType(Class<O> type, boolean startsWithUppercase) {
         return translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type.getSimpleName(), startsWithUppercase));
+    }
+
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismContainerValueWrapper value) {
+        Collection<ItemDelta> deltas = List.of();
+        try {
+            deltas = value.getDeltas();
+        } catch (SchemaException e) {
+            //couldn't get deltas of items
+        }
+
+        if (!deltas.isEmpty()) {
+            new Toast()
+                    .warning()
+                    .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
+                    .icon("fa fa-exclamation")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.body").getString())
+                    .show(target);
+        }
     }
 
     /**

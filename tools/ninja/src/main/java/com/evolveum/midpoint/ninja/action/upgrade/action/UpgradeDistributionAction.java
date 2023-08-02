@@ -49,11 +49,15 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
             VerifyAction verifyAction = new VerifyAction();
             verifyAction.init(context, verifyOptions);
-            VerifyResult verifyresult = executeAction(verifyAction);
-            if (!verifyresult.hasCriticalItems()) {
+            VerifyResult verifyResult = executeAction(verifyAction);
+            if (!verifyResult.hasCriticalItems()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade verification succeeded.").reset().toString());
             } else {
-                log.error(Ansi.ansi().fgRed().a("Pre-upgrade verification failed with critical items.").reset().toString());
+                log.error(Ansi.ansi().fgRed().a("Pre-upgrade verification failed with {} critical items.").reset().toString(), verifyResult.getCriticalCount());
+                log.error("To get rid of critical items, please run 'verify' command, review the results and then run 'upgrade-objects' before upgrading the distribution.");
+                log.error("Example commands:\n\n"
+                        + "\tninja.sh verify --report-style csv --output verify-output.csv\n"
+                        + "\tninja.sh upgrade-objects --verification-file verify-output.csv\n");
                 return null;
             }
         } else {

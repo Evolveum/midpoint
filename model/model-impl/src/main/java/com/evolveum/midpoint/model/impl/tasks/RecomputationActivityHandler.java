@@ -123,7 +123,7 @@ public class RecomputationActivityHandler
 
         MyWorkDefinition(WorkDefinitionBean source) {
             var typedDefinition = (RecomputationWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);
             executionOptions = java.util.Objects.requireNonNullElseGet(
                     fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
@@ -131,7 +131,7 @@ public class RecomputationActivityHandler
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 
