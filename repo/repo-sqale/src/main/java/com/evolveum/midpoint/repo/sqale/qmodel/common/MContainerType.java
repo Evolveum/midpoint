@@ -13,6 +13,9 @@ package com.evolveum.midpoint.repo.sqale.qmodel.common;
 public enum MContainerType {
     ACCESS_CERTIFICATION_CASE,
     ACCESS_CERTIFICATION_WORK_ITEM,
+
+    AFFECTED_RESOURCE_OBJECTS,
+    AFFECTED_OBJECTS,
     ASSIGNMENT,
     CASE_WORK_ITEM,
     FOCUS_IDENTITY,
@@ -20,5 +23,5 @@ public enum MContainerType {
     LOOKUP_TABLE_ROW,
     OPERATION_EXECUTION,
     SIMULATION_RESULT_PROCESSED_OBJECT,
-    TRIGGER
+    TRIGGER,
 }

@@ -166,4 +166,12 @@ public class PolyStringItemFilterProcessor<T>
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }
     }
+
+    public StringPath getOrigPath() {
+        return origPath;
+    }
+
+    public StringPath getNormPath() {
+        return normPath;
+    }
 }

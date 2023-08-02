@@ -188,7 +188,7 @@ public abstract class SearchBasedActivityRun<
      */
     private @NotNull SearchSpecification<C> createSearchSpecificationFromObjectSetSpec(
             @NotNull ObjectSetSpecification objectSetSpecification, OperationResult result)
-            throws SchemaException, ActivityRunException {
+            throws SchemaException, ActivityRunException, ConfigurationException {
         if (objectSetSpecification instanceof ResourceObjectSetSpecificationImpl) {
             //noinspection unchecked
             return (SearchSpecification<C>)

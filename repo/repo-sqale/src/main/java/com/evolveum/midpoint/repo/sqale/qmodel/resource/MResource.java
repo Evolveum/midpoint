@@ -30,4 +30,8 @@ public class MResource extends MObject {
     public Boolean template;
     // column and item are both called "abstract" which is a Java keyword
     public Boolean abstractValue;
+
+    public UUID superRefTargetOid;
+    public MObjectType superRefTargetType;
+    public Integer superRefRelationId;
 }

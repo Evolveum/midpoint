@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.config;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +35,8 @@ public class ExpressionParameterConfigItem
     }
 
     public @Nullable ExpressionConfigItem getExpression() {
-        return ExpressionConfigItem.of(value().getExpression(), origin());
+        ExpressionType bean = value().getExpression();
+        return bean != null ? ExpressionConfigItem.of(bean, origin()) : null;
     }
 
     public @NotNull String getName() throws ConfigurationException {

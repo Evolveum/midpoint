@@ -131,12 +131,12 @@ public class ShadowRefreshActivityHandler
 
         MyWorkDefinition(@NotNull WorkDefinitionBean source) {
             var typedDefinition = (ShadowRefreshWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getShadows());
             ObjectSetUtil.assumeObjectType(objects, ShadowType.COMPLEX_TYPE);
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 
