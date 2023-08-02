@@ -5,9 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.login;
+package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
+
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -44,7 +47,12 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author lskublik
+ * Umbrella class for each page created for any authentication module.
+ *
+ * If new module is added, page should be created extending this class.
+ * This class do the common stuff such as preparing form with CSRF field,
+ * adding links to actions such as self-registration, password reset,
+ * username recovery.
  */
 public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthentication> extends AbstractPageLogin {
     @Serial private static final long serialVersionUID = 1L;

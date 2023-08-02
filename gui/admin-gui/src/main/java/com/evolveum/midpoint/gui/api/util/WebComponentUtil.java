@@ -35,7 +35,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 

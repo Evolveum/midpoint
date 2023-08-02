@@ -37,19 +37,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationUseType;
 @PageDescriptor(urls = {
 @Url(mountUrl = "/correlation", matchUrlForSecurity = "/correlation")},
         permitAll = true,  loginPage = true, authModule = AuthenticationModuleNameConstants.CORRELATION)   //todo remove permit all later : [KV] why?
-public class PageCorrelationFocusIdentification extends PageAbstractAttributeVerification<CorrelationModuleAuthentication> {
+public class PageCorrelation extends PageAbstractAttributeVerification<CorrelationModuleAuthentication> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageCorrelationFocusIdentification.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(PageCorrelationFocusIdentification.class);
+    private static final String DOT_CLASS = PageCorrelation.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(PageCorrelation.class);
     private static final String OPERATION_DETERMINE_CORRELATOR_SETTINGS = DOT_CLASS + "determineCorrelatorSettings";
 
     private static final String ID_CORRELATOR_NAME = "correlatorName";
 
     private LoadableModel<CorrelatorConfigDto> correlatorModel;
 
-    public PageCorrelationFocusIdentification() {
+    public PageCorrelation() {
         super();
     }
 
@@ -108,11 +108,11 @@ public class PageCorrelationFocusIdentification extends PageAbstractAttributeVer
 
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
-        return createStringResource("PageCorrelationFocusIdentification.title");
+        return createStringResource("PageCorrelation.title");
     }
 
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
-        return createStringResource("PageCorrelationFocusIdentification.title.description");
+        return createStringResource("PageCorrelation.title.description");
     }
 }

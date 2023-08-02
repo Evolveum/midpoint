@@ -8,6 +8,19 @@
 package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
+import java.util.List;
+
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+
+import com.evolveum.midpoint.schema.SearchResultList;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,13 +59,16 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 /**
  * @author lskublik
  */
 @PageDescriptor(urls = {
         @Url(mountUrl = "/emailNonce", matchUrlForSecurity = "/emailNonce")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
-public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthentication> {
+public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialModuleAuthentication> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageEmailNonce.class);
@@ -62,8 +78,22 @@ public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthe
     private static final String ID_MAIN_FORM = "form";
     private static final String ID_SUBMIT_IDENTIFIER = "submitIdentifier";
 
+
+    private static final String DOT_CLASS = PageEmailNonce.class.getName() + ".";
+    protected static final String OPERATION_LOAD_DYNAMIC_FORM = DOT_CLASS + "loadDynamicForm";
+
+
+    protected static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
+    protected static final String ID_DYNAMIC_FORM = "dynamicForm";
+
+
+    private ObjectReferenceType formRef;
+
+
     private boolean submited;
     private UserType user = null;
+
+
     public PageEmailNonce() {
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal != null) {
@@ -71,6 +101,16 @@ public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthe
             submited = true;
         }
     }
+
+    private void initFormRef() {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(null);
+
+        if (securityPolicy.getCredentialsReset() != null) {
+            this.formRef = securityPolicy.getCredentialsReset().getFormRef();
+        }
+
+    }
+
 
 
     @Override
@@ -82,7 +122,39 @@ public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthe
         initDynamicLayout(form, PageEmailNonce.this);
 
         initButtons(form);
+
     }
+
+    protected void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm, PageAdminLTE parentPage) {
+        WebMarkupContainer dynamicLayout = new WebMarkupContainer(ID_DYNAMIC_LAYOUT);
+        dynamicLayout.setOutputMarkupId(true);
+        mainForm.add(dynamicLayout);
+
+        dynamicLayout.add(new VisibleBehaviour(this::isDynamicFormVisible));
+
+        DynamicFormPanel<FocusType> searchAttributesForm = runPrivileged(
+                () -> {
+                    ObjectReferenceType formRef = getFormRef();
+                    if (formRef == null) {
+                        return null;
+                    }
+                    Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
+                    return new DynamicFormPanel<>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
+                            formRef.getOid(), mainForm, task, parentPage, true);
+                });
+
+        if (searchAttributesForm != null) {
+            dynamicLayout.add(searchAttributesForm);
+        }
+    }
+
+    public ObjectReferenceType getFormRef() {
+        if (formRef == null) {
+            initFormRef();
+        }
+        return formRef;
+    }
+
 
     private void initButtons(MidpointForm form) {
         AjaxSubmitButton submitUserIdentifier = new AjaxSubmitButton(ID_SUBMIT_IDENTIFIER, createStringResource("PageBase.button.submit")) {
@@ -104,10 +176,10 @@ public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthe
         form.add(submitUserIdentifier);
     }
 
-    @Override
-    protected String getModuleTypeName() {
-        return AuthenticationModuleNameConstants.MAIL_NONCE;
-    }
+//    @Override
+//    protected String getModuleTypeName() {
+//        return AuthenticationModuleNameConstants.MAIL_NONCE;
+//    }
 
     private void userIdentifierSubmitPerformed(AjaxRequestTarget target) {
         if (user == null) {
@@ -118,6 +190,31 @@ public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthe
 
         continuePasswordReset(target);
     }
+
+    protected UserType searchUser() {
+
+        GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
+        if (principal != null) {
+            FocusType focus = principal.getFocus();
+            return (UserType) focus;
+        }
+
+        ObjectQuery query;
+
+        if (isDynamicForm()) {
+            query = createDynamicFormQuery();
+        } else {
+            query = createStaticFormQuery();
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Searching for user with query:\n{}", query.debugDump(1));
+        }
+
+        return searchUserPrivileged(query);
+
+    }
+
 
     private void continuePasswordReset(AjaxRequestTarget target) {
         validateUserNotNullOrFail();
@@ -206,17 +303,47 @@ public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthe
         staticLayout.add(visibleUsername);
     }
 
+    protected boolean isDynamicFormVisible() {
+        return isDynamicForm();
+    }
+
+    protected boolean isDynamicForm() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            AuthenticationChannel channel = ((MidpointAuthentication) authentication).getAuthenticationChannel();
+            if (channel != null && !SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(channel.getChannelId())) {
+                return false;
+            }
+        }
+        return getFormRef() != null;
+    }
+
+    protected ObjectQuery createDynamicFormQuery() {
+        DynamicFormPanel<UserType> userDynamicPanel = getDynamicForm();
+        List<ItemPath> filledItems = userDynamicPanel.getChangedItems();
+        PrismObject<UserType> user;
+        try {
+            user = userDynamicPanel.getObject();
+        } catch (SchemaException e1) {
+            getSession().error(getString("pageForgetPassword.message.usernotfound"));
+            throw new RestartResponseException(getClass());
+        }
+
+        S_FilterExit filter = QueryBuilder.queryFor(UserType.class, PrismContext.get()).all();
+        for (ItemPath path : filledItems) {
+            PrismProperty<?> property = user.findProperty(path);
+            filter = filter.and().item(path).eq(property.getAnyValue().clone());
+        }
+        return filter.build();
+    }
+
 
     public PageBase getPageBase() {
         return (PageBase) getPage();
     }
 
-    @Override
-    protected boolean isDynamicFormVisible() {
-        return super.isDynamicFormVisible();
-    }
 
-    @Override
+//    @Override
     protected ObjectQuery createStaticFormQuery() {
         RequiredTextField<String> emailTextFiled = getEmail();
         String email = emailTextFiled != null ? emailTextFiled.getModelObject() : null;
@@ -313,6 +440,39 @@ public class PageEmailNonce extends PageAuthenticationBase<CredentialModuleAuthe
             }
         };
     }
+
+    protected UserType searchUserPrivileged(ObjectQuery query) {
+        return runPrivileged((Producer<UserType>) () -> {
+
+            Task task = createAnonymousTask("load user");
+            OperationResult result = new OperationResult("search user");
+
+            SearchResultList<PrismObject<UserType>> users;
+            try {
+                users = getModelService().searchObjects(UserType.class, query, null, task, result);
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                    | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                LoggingUtils.logException(LOGGER, "failed to search user", e);
+                return null;
+            }
+
+            if ((users == null) || (users.isEmpty())) {
+                LOGGER.trace("Empty user list while user authentication");
+                return null;
+            }
+
+            if (users.size() > 1) {
+                LOGGER.trace("Problem while seeking for user");
+                return null;
+            }
+
+            UserType user = users.iterator().next().asObjectable();
+            LOGGER.trace("User found for authentication: {}", user);
+
+            return user;
+        });
+    }
+
 
 }
 

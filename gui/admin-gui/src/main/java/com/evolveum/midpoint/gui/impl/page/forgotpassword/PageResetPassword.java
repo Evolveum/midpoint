@@ -19,7 +19,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.credentials.ChangePasswordPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

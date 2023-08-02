@@ -11,8 +11,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,13 +51,24 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
         return passwordAuthenticationEvaluator;
     }
 
+    private String getEnteredUsername(Authentication authentication) {
+        String enteredUsername = (String) authentication.getPrincipal();
+        if (StringUtils.isNotBlank(enteredUsername)) {
+            return enteredUsername;
+        }
+        LOGGER.trace("No username entered, trying current midPoint authentication if the identification was already done.");
+        MidPointPrincipal principal = AuthUtil.getMidpointPrincipal();
+        return principal.getUsername();
+    }
+
+
     @Override
     protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
-        String enteredUsername = (String) authentication.getPrincipal();
+        String enteredUsername = getEnteredUsername(authentication);
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel, authentication);

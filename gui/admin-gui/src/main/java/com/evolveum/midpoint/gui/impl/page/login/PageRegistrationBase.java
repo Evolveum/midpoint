@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
 

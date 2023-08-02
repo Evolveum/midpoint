@@ -5,10 +5,18 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.login;
+package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,8 +36,9 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/login", matchUrlForSecurity = "/login")
 }, permitAll = true, loginPage = true)
-public class PageLogin extends PageAbstractAuthenticationModule<CredentialModuleAuthentication>  {
+public class PageLogin extends PageAbstractAuthenticationModule<CredentialModuleAuthentication> {
     @Serial private static final long serialVersionUID = 1L;
+    private static final String ID_USERNAME = "username";
 
     public PageLogin() {
         super(null);
@@ -37,8 +46,13 @@ public class PageLogin extends PageAbstractAuthenticationModule<CredentialModule
 
     @Override
     protected void initModuleLayout(MidpointForm form) {
+        TextField<String> username = new TextField<>(ID_USERNAME);
+        username.add(AttributeAppender.append("value", WebComponentUtil.getName(searchUser())));
+        username.add(new EnableBehaviour(() -> searchUser() == null));
+        form.add(username);
 
     }
+
     protected String getUrlProcessingLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {

@@ -33,7 +33,6 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.gui.impl.page.login.PageAbstractAuthenticationModule;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

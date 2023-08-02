@@ -41,7 +41,17 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
- * @author lskublik
+ * Umbrella class for each page that should have the look and feel of login page.
+ *
+ * It is used as a base for:
+ *
+ * . self-management pages, such as self-registration, password reset, invitation,
+ * . authentication module pages
+ *
+ * This abstract page should not contain methods which are not used for both cases.
+ *
+ * Basic intention is to provide common layout, such as a styles and title and
+ * description of the page. Possibility to change locale and implementation for back button.
  */
 public abstract class AbstractPageLogin extends PageAdminLTE {
     @Serial private static final long serialVersionUID = 1L;

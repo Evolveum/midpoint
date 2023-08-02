@@ -29,7 +29,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.login.PageAbstractAuthenticationModule;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;

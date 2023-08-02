@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.login.module.PageAbstractAuthenticationModule;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+@Deprecated
+//used only by PageEmilNonce, should be refactored
 public abstract class PageAuthenticationBase<MA extends ModuleAuthentication> extends PageAbstractAuthenticationModule<MA> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -91,28 +95,6 @@ public abstract class PageAuthenticationBase<MA extends ModuleAuthentication> ex
         return formRef;
     }
 
-    protected void initDynamicLayout(final org.apache.wicket.markup.html.form.Form<?> mainForm, PageAdminLTE parentPage) {
-        WebMarkupContainer dynamicLayout = new WebMarkupContainer(ID_DYNAMIC_LAYOUT);
-        dynamicLayout.setOutputMarkupId(true);
-        mainForm.add(dynamicLayout);
-
-        dynamicLayout.add(new VisibleBehaviour(this::isDynamicFormVisible));
-
-        DynamicFormPanel<FocusType> searchAttributesForm = runPrivileged(
-                () -> {
-                    ObjectReferenceType formRef = getFormRef();
-                    if (formRef == null) {
-                        return null;
-                    }
-                    Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
-                    return new DynamicFormPanel<>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
-                            formRef.getOid(), mainForm, task, parentPage, true);
-                });
-
-        if (searchAttributesForm != null) {
-            dynamicLayout.add(searchAttributesForm);
-        }
-    }
 
     protected boolean isDynamicFormVisible() {
         return isDynamicForm();
