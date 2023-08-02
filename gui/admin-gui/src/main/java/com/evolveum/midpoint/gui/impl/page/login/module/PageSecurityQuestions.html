@@ -12,28 +12,28 @@
 <body>
 <wicket:extend>
     <form class="form-horizontal" action="ignore" wicket:id="form">
-        <wicket:enclosure child="username">
-            <label class="control-label">
-                <wicket:message key="PageLogin.username"/>
-            </label>
+<!--        <wicket:enclosure child="username">-->
+<!--            <label class="control-label">-->
+<!--                <wicket:message key="PageLogin.username"/>-->
+<!--            </label>-->
 
-            <input name="username" type="text" class="form-control form-control-sm focus-username login-panel-control"
-                        wicket:message="placeholder:PageLogin.username" wicket:id="username">
+<!--&lt;!&ndash;            <input name="username" type="text" class="form-control form-control-sm focus-username login-panel-control"&ndash;&gt;-->
+<!--&lt;!&ndash;                        wicket:message="placeholder:PageLogin.username" wicket:id="username">&ndash;&gt;-->
 
-            <div wicket:id="dynamicLayout">
-                <div wicket:id="dynamicForm"/>
-            </div>
+<!--&lt;!&ndash;            <div wicket:id="dynamicLayout">&ndash;&gt;-->
+<!--&lt;!&ndash;                <div wicket:id="dynamicForm"/>&ndash;&gt;-->
+<!--&lt;!&ndash;            </div>&ndash;&gt;-->
 
-            <div wicket:id="firstLevelButtons">
-                <a class="btn btn-primary login-panel-control mt-2" wicket:id="showQuestions">
-                    <wicket:message key="PageSecurityQuestions.showQuestions"/>
-                </a>
-                <a class="text-center login-panel-control mt-2" style="display: inline-block;"  wicket:id="back1">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    <wicket:message key="PageEmailNonce.backButtonLabel"/>
-                </a>
-            </div>
-        </wicket:enclosure>
+<!--&lt;!&ndash;            <div wicket:id="firstLevelButtons">&ndash;&gt;-->
+<!--&lt;!&ndash;                <a class="btn btn-primary login-panel-control mt-2" wicket:id="showQuestions">&ndash;&gt;-->
+<!--&lt;!&ndash;                    <wicket:message key="PageSecurityQuestions.showQuestions"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                </a>&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <a class="text-center login-panel-control mt-2" style="display: inline-block;"  wicket:id="back1">&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <i class="fas fa-arrow-left mr-2"></i>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <wicket:message key="PageEmailNonce.backButtonLabel"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                </a>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;            </div>&ndash;&gt;-->
+<!--        </wicket:enclosure>-->
 
         <div wicket:id="csrfField"/>
         <input type="hidden" wicket:id="answer"/>

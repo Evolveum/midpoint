@@ -72,7 +72,7 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
 
     private IModel<String> answerModel;
     private LoadableModel<List<SecurityQuestionDto>> questionsModel;
-    private LoadableDetachableModel<UserType> userModel;
+//    private LoadableDetachableModel<UserType> userModel;
 
 
     public PageSecurityQuestions() {
@@ -82,13 +82,13 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
 //    @Override
     protected void initModels() {
         answerModel = Model.of();
-        userModel = new LoadableDetachableModel<>() {
-            @Override
-            protected UserType load() {
-                MidPointPrincipal principal = AuthUtil.getPrincipalUser();
-                return principal != null ? (UserType) principal.getFocus() : PageSecurityQuestions.this.searchUser();
-            }
-        };
+//        userModel = new LoadableDetachableModel<>() {
+//            @Override
+//            protected UserType load() {
+//                MidPointPrincipal principal = AuthUtil.getPrincipalUser();
+//                return principal != null ? (UserType) principal.getFocus() : PageSecurityQuestions.this.searchUser();
+//            }
+//        };
         questionsModel = new LoadableModel<>(false) {
             @Override
             protected List<SecurityQuestionDto> load() {
@@ -103,19 +103,19 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
         };
     }
 
-    @Override
-    protected UserType searchUser() {
-        if (StringUtils.isEmpty(getUsernameFieldValue())) {
-            return null;
-        }
-        return super.searchUser();
-    }
+//    @Override
+//    protected UserType searchUser() {
+//        if (StringUtils.isEmpty(getUsernameFieldValue())) {
+//            return null;
+//        }
+//        return super.searchUser();
+//    }
 
     @Override
     protected void initModuleLayout(MidpointForm form) {
-        initStaticLayout(form);
+//        initStaticLayout(form);
 
-        initButtons(form);
+//        initButtons(form);
 
         initQuestionsSection(form);
 
@@ -137,7 +137,7 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
     private void initQuestionsSection(MidpointForm<?> form) {
         WebMarkupContainer questionsContainer = new WebMarkupContainer(ID_INSIDE_FORM);
         questionsContainer.setOutputMarkupId(true);
-        questionsContainer.add(new VisibleBehaviour(() -> userModel.getObject() != null));
+        questionsContainer.add(new VisibleBehaviour(() -> searchUser() != null));
         form.add(questionsContainer);
 
         ListView<SecurityQuestionDto> questionsView = new ListView<>(ID_QUESTIONS, questionsModel) {
@@ -207,16 +207,16 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
     }
 
     private void showQuestions(AjaxRequestTarget target) {
-        userModel.detach();
-        UserType user = userModel.getObject();
-
+//        userModel.detach();
+//        UserType user = userModel.getObject();
+        UserType user = searchUser();
         if (user == null) {
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
             throw new RestartResponseException(PageSecurityQuestions.class);
         }
         LOGGER.trace("Reset Password user: {}", user);
         getHiddenUsername().getModel().setObject(user.getName().getOrig());
-        target.add(getMainForm());
+        target.add(getForm());
     }
 
     private List<SecurityQuestionDto> createUsersSecurityQuestionsList() throws BadCredentialsException {
@@ -292,20 +292,20 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
         return usernameTextFiled != null ? usernameTextFiled.getModelObject() : null;
     }
 
-    private MidpointForm<?> getMainForm() {
-        return (MidpointForm) get(ID_MAIN_FORM);
-    }
+//    private MidpointForm<?> getMainForm() {
+//        return (MidpointForm) get(ID_MAIN_FORM);
+//    }
 
     private HiddenField<String> getHiddenUsername(){
-        return (HiddenField) getMainForm().get(ID_USER);
+        return (HiddenField) getForm().get(ID_USER);
     }
 
     private HiddenField<String> getHiddenAnswer(){
-        return (HiddenField) getMainForm().get(ID_ANSWER_FIELD);
+        return (HiddenField) getForm().get(ID_ANSWER_FIELD);
     }
 
     private RequiredTextField getVisibleUsername(){
-        return (RequiredTextField) getMainForm().get(ID_USERNAME);
+        return (RequiredTextField) getForm().get(ID_USERNAME);
     }
 
     @Override
