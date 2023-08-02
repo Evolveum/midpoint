@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3"
+        oid="a5a5966e-cca5-4ce5-8353-7c41dff16dff">
+
+    <name>non-iterative</name>
+
+    <activity>
+        <work>
+            <explicitChangeExecution>
+                <delta>
+                    <changeType>add</changeType>
+                    <objectType>UserType</objectType>
+                </delta>
+            </explicitChangeExecution>
+        </work>
+    </activity>
+</task>

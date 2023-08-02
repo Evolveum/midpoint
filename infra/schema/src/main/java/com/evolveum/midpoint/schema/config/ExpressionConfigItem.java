@@ -22,7 +22,7 @@ public class ExpressionConfigItem
         super(original);
     }
 
-    private ExpressionConfigItem(@NotNull ExpressionType value, @NotNull ConfigurationItemOrigin origin) {
+    protected ExpressionConfigItem(@NotNull ExpressionType value, @NotNull ConfigurationItemOrigin origin) {
         super(value, origin);
     }
 
