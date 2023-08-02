@@ -20,19 +20,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class MultiPropagationWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-    private final ObjectSetType resources;
+    @NotNull private final ObjectSetType resources;
 
     MultiPropagationWorkDefinition(@NotNull WorkDefinitionBean source) {
-        resources = ((MultiPropagationWorkDefinitionType) source.getBean()).getResources();
+        resources = ObjectSetUtil.emptyIfNull(
+                ((MultiPropagationWorkDefinitionType) source.getBean()).getResources());
         ObjectSetUtil.assumeObjectType(resources, ResourceType.COMPLEX_TYPE);
     }
 
-    public ObjectSetType getResources() {
-        return resources;
-    }
-
     @Override
-    public ObjectSetType getObjectSetSpecification() {
+    public @NotNull ObjectSetType getObjectSetSpecification() {
         return resources;
     }
 

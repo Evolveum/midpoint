@@ -170,12 +170,12 @@ public class ObjectIntegrityCheckActivityHandler
 
         MyWorkDefinition(@NotNull WorkDefinitionBean source) {
             var typedDefinition = (ObjectIntegrityCheckWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 

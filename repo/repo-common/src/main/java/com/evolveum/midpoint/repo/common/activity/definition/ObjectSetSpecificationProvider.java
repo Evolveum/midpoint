@@ -10,16 +10,17 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedObjectsSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Work definition that can provide object set specification.
  */
 public interface ObjectSetSpecificationProvider extends FailedObjectsSelectorProvider {
 
-    ObjectSetType getObjectSetSpecification();
+    @NotNull ObjectSetType getObjectSetSpecification();
 
     @Override
     default FailedObjectsSelectorType getFailedObjectsSelector() {
-        ObjectSetType set = getObjectSetSpecification();
-        return set != null ? set.getFailedObjectsSelector() : null;
+        return getObjectSetSpecification().getFailedObjectsSelector();
     }
 }
