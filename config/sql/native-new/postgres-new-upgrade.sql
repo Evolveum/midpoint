@@ -357,6 +357,15 @@ CREATE TABLE m_task_affected_objects (
 ) INHERITS(m_container);
 
 $aa$)
+
+
+-- Resource/super/resourceRef Indexing (tables)
+call apply_change(18, $aa$
+ALTER TABLE m_resource
+ADD COLUMN superRefTargetOid UUID,
+ADD COLUMN superRefTargetType ObjectType,
+ADD COLUMN superRefRelationId INTEGER REFERENCES m_uri(id);
+$aa$)
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

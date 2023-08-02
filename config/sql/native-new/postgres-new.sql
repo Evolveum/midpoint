@@ -873,7 +873,10 @@ CREATE TABLE m_resource (
     connectorRefTargetType ObjectType,
     connectorRefRelationId INTEGER REFERENCES m_uri(id),
     template BOOLEAN,
-    abstract BOOLEAN
+    abstract BOOLEAN,
+    superRefTargetOid UUID,
+    superRefTargetType ObjectType,
+    superRefRelationId INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_assignment_holder);
 
@@ -2112,4 +2115,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(17, $$ SELECT 1 $$, true);
+call apply_change(18, $$ SELECT 1 $$, true);

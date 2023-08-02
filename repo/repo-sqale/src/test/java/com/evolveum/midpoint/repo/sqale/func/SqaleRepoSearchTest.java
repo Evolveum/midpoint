@@ -95,6 +95,9 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
     private final String resourceOid = UUID.randomUUID().toString();
+
+    private String resource2Oid;
+
     private final String connectorHostOid = UUID.randomUUID().toString();
 
     private final String archetypeOid = UUID.randomUUID().toString();
@@ -478,6 +481,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .connectorVersion("1.2.3")
                         .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
                         .asPrismObject(), null, result);
+
+
+        resource2Oid = repositoryService.addObject(
+                new ResourceType()
+                        .name("derived-resource")
+                        ._super(new SuperResourceDeclarationType().resourceRef(resourceOid, ResourceType.COMPLEX_TYPE))
+                .asPrismObject(), null, result);
 
         // objects for OID range tests
         List.of("00000000-1000-0000-0000-000000000000",
@@ -1308,6 +1318,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .endBlock()
                 , task1Oid);
 
+    }
+
+    @Test
+    public void test370DerivedResource() throws SchemaException {
+        searchObjectTest("matching resource based on super resource",
+                ResourceType.class,
+                f -> f.item(ResourceType.F_SUPER, SuperResourceDeclarationType.F_RESOURCE_REF).ref(resourceOid),
+                resource2Oid);
     }
 
     // endregion
