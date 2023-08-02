@@ -7,32 +7,29 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.DetectedPattern;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
-
-import java.util.HashSet;
 import java.util.Set;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 public class ExtractPatternUtils {
 
     public static DetectedPattern addDetectedObjectJaccard(Set<String> properties, Set<String> members,
-            Integer allPropertiesOccupation) {
+            Set<String> allPropertiesOccupation) {
         return new DetectedPattern(
                 properties,
                 members,
                 members.size() * properties.size(),
-                properties.size(),
                 allPropertiesOccupation,
                 RoleAnalysisSearchModeType.JACCARD);
     }
 
-    public static DetectedPattern addDetectedObjectIntersection(int propertiesCount, Set<String> members,
-            Integer allPropertiesOccupation) {
+    public static DetectedPattern addDetectedObjectIntersection(Set<String> properties, Set<String> members,
+            Set<String> allPropertiesOccupation) {
         return new DetectedPattern(
-                new HashSet<>(),
+                properties,
                 members,
-                members.size() * propertiesCount,
-                propertiesCount,
+                members.size() * properties.size(),
                 allPropertiesOccupation,
                 RoleAnalysisSearchModeType.INTERSECTION);
     }

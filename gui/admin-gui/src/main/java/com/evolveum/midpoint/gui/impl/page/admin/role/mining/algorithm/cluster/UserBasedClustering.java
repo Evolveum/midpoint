@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.endTimer;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.startTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
 
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -35,8 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class UserBasedClustering implements Clusterable {
 
-    OperationResult operationResult = new OperationResult("Map UserType object for clustering");
-
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions) {
 
@@ -50,6 +51,7 @@ public class UserBasedClustering implements Clusterable {
 
         PageBase pageBase = clusterOptions.getPageBase();
         //roles //users
+        OperationResult operationResult = new OperationResult("ExecuteUserBasedClustering");
         ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
                 threshold, maxProperties, clusterOptions.getQuery());
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
@@ -60,7 +62,7 @@ public class UserBasedClustering implements Clusterable {
 
         //TODO
         if (eps == 0.0) {
-            return new ClusterAlgorithmUtils().processIdenticalGroup(pageBase, dataPoints, clusterOptions);
+            return new ClusterAlgorithmUtils().processExactMatch(pageBase, dataPoints, clusterOptions);
         }
         start = startTimer("clustering");
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minIntersections);
@@ -72,18 +74,18 @@ public class UserBasedClustering implements Clusterable {
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, PageBase pageBase,
-            int threshold, int maxProperties, ObjectFilter userQuery) {
+            int minProperties, int maxProperties, ObjectFilter userQuery) {
 
         //role //user
-        ListMultimap<List<String>, String> userTypeMap = ArrayListMultimap.create();
+        ListMultimap<List<String>, String> roleToUserMap = ArrayListMultimap.create();
 
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {
             try {
-                List<String> element = ClusterObjectUtils.getRolesOid(object.asObjectable());
-                int propertiesCount = element.size();
-                if (threshold <= propertiesCount && maxProperties >= propertiesCount) {
-                    Collections.sort(element);
-                    userTypeMap.putAll(element, Collections.singletonList(object.asObjectable().getOid()));
+                List<String> members = ClusterObjectUtils.getRolesOid(object.asObjectable());
+                int propertiesCount = members.size();
+                if (minProperties <= propertiesCount && maxProperties >= propertiesCount) {
+                    Collections.sort(members);
+                    roleToUserMap.putAll(members, Collections.singletonList(object.asObjectable().getOid()));
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -102,6 +104,6 @@ public class UserBasedClustering implements Clusterable {
             throw new RuntimeException(e);
         }
 
-        return userTypeMap;
+        return roleToUserMap;
     }
 }

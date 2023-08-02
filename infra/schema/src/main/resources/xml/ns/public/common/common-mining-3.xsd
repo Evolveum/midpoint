@@ -71,16 +71,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="detection" type="c:RoleAnalysisClusterDetectionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                It consists of a sheet of reference objects and their specifications in which matches are found
-                                based on the set parameters. These objects are subsequently processed as proposals for
-                                implementing changes in the system (Business role).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="clusterStatistic" type="c:RoleAnalysisClusterStatisticType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -91,6 +81,29 @@
                             <xsd:appinfo>
                                 <a:displayName>RoleAnalysisClusterStatisticType.clusterStatistic</a:displayName>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="detection" type="c:RoleAnalysisDetectionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                It consists of a sheet of reference objects and their specifications in which matches are found
+                                based on the set parameters. These objects are subsequently processed as proposals for
+                                implementing changes in the system (Business role).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="detectionOption" type="c:RoleAnalysisDetectionOptionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Options for Detecting Business Roles
+
+                                    These parameters serve as key specifications for performing searches
+                                    and analyzes aimed at discovering different business roles.
+                                </p>
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -226,7 +239,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="RoleAnalysisClusterDetectionType">
+    <xsd:complexType name="RoleAnalysisDetectionType">
         <xsd:annotation>
             <xsd:documentation>
                 Default business roles detection options.
@@ -236,7 +249,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="member" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="memberOccupation" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         The main object that was analyzed. In the case of ROLE MODE, the list of roles (members) object
@@ -245,13 +258,35 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="properties" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="memberTypeObjectOccupation" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All members objects (not only from clustered objects).
+                        USER MODE (member) - user.
+                        ROLE MODE (member) - role.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="propertiesOccupation" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Properties used for comparison.
                         USER MODE (properties) - role assign.
                         ROLE MODE (properties) - members count.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="clusterMetric" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It expresses the range of reduced values when applying the business role design.
+                            (Included in the group (cluster))
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionType.clusterMetric</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="searchMode" type="tns:RoleAnalysisSearchModeType" minOccurs="0">
@@ -268,48 +303,9 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="clusterRelatedPropertiesOccupation" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            It expresses the number of objects included in the group (cluster) to which
-                            the found business role can be applied.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisClusterDetectionType.clusterRelatedPropertiesOccupation</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="fullPropertiesOccupation" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            It expresses the number of all objects to which the found business role can be applied.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisClusterDetectionType.allPropertiesOccupation</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="clusterMetric" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            It expresses the range of reduced values when applying the business role design.
-                            (Included in the group (cluster))
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisClusterDetectionType.clusterMetric</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-
 
     <xsd:complexType name="RoleAnalysisSessionType">
         <xsd:annotation>
@@ -340,7 +336,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="clusterOptions" type="c:RoleAnalysisSessionClusterOptionType" minOccurs="0">
+                    <xsd:element name="clusterOptions" type="c:RoleAnalysisSessionOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -355,25 +351,6 @@
                                     If there is a need to modify or refine the cluster options during the analysis process, the values
                                     associated with the keys can be updated accordingly. This flexibility enables fine-tuning of the
                                     role analysis based on changing requirements or new insights gained during the analysis phase.
-                                </p>
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="patternDetectionOption" type="c:RoleAnalysisSessionDetectionOptionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Options for Detecting Business Roles
-
-                                    These parameters serve as key specifications for performing searches
-                                    and analyzes aimed at discovering different business roles.
-
-                                    Furthermore, the role analysis session allows for the possibility of updating these values.
-                                    If there is a need to modify or refine the cluster options during the analysis process,
-                                    the values associated with the keys can be updated accordingly. This flexibility enables
-                                    modification of the role analysis based on changing requirements or new insights gained
-                                    during the analysis phase.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>
@@ -399,7 +376,7 @@
 
     <xsd:element name="roleAnalysisSession" type="tns:RoleAnalysisSessionType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="RoleAnalysisSessionClusterOptionType">
+    <xsd:complexType name="RoleAnalysisSessionOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 Object clustering options.
@@ -427,7 +404,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionClusterOptionType.axiomFilter</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.axiomFilter</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -468,7 +445,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionClusterOptionType.similarityThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.similarityThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -485,7 +462,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionClusterOptionType.minUniqueGroupSize</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.minUniqueGroupSize</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -499,7 +476,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertiesCount</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.minPropertiesCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -513,7 +490,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertiesCount</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.minPropertiesCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -529,7 +506,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionClusterOptionType.minPropertiesOverlap</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.minPropertiesOverlap</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -537,7 +514,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="RoleAnalysisSessionDetectionOptionType">
+    <xsd:complexType name="RoleAnalysisDetectionOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 Options for Detecting Business Roles
@@ -567,7 +544,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minPropertiesOverlap</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionOptionType.minPropertiesOverlap</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -581,7 +558,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minOccupancy</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionOptionType.minOccupancy</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -598,7 +575,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOptionType.minFrequencyThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionOptionType.minFrequencyThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -615,7 +592,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOptionType.maxFrequencyThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionOptionType.maxFrequencyThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -628,7 +605,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionDetectionOptionType.jaccardSimilarityThreshold</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionOptionType.jaccardSimilarityThreshold</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -642,7 +619,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSearchModeType.searchMode</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionOptionType.searchMode</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -704,7 +681,6 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-
 
     <xsd:simpleType name="RoleAnalysisProcessModeType">
         <xsd:annotation>

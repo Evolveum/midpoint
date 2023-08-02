@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.PageClusters;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -13,7 +15,6 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.PageClusters;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;

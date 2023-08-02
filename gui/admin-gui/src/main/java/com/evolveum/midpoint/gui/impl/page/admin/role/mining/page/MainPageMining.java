@@ -7,16 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getColorClass;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.deleteAllRoleAnalysisObjects;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.deleteRoleAnalysisObjects;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.deleteSingleRoleAnalysisSession;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getColorClass;
 
 import java.io.Serial;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,8 +39,8 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.details.objects.ParentClusterBasicDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.perform.ExecuteClusteringPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.ExecuteClusteringPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ParentClusterBasicDetailsPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,8 +55,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PageDescriptor(
         urls = {
@@ -104,20 +102,28 @@ public class MainPageMining extends PageAdmin {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<ArchetypeType>>() {
+                return new ColumnMenuAction<SelectableBean<RoleAnalysisSessionType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
                         List<SelectableBean<RoleAnalysisSessionType>> selectedObjects = getTable().getSelectedObjects();
-                        OperationResult result = new OperationResult("Delete clusters objects");
-                        if (selectedObjects == null || selectedObjects.size() == 0) {
+                        OperationResult result = new OperationResult("Delete session objects");
+                        if (selectedObjects.size() == 1 && getRowModel() == null) {
                             try {
-                                deleteAllRoleAnalysisObjects(result, ((PageBase) getPage()));
+                                SelectableBean<RoleAnalysisSessionType> roleAnalysisSessionTypeSelectableBean = selectedObjects.get(0);
+                                deleteSingleRoleAnalysisSession(result, roleAnalysisSessionTypeSelectableBean.getValue(),
+                                        (PageBase) getPage());
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        } else if (getRowModel() != null) {
+                            try {
+                                IModel<SelectableBean<RoleAnalysisSessionType>> rowModel = getRowModel();
+                                deleteSingleRoleAnalysisSession(result, rowModel.getObject().getValue(), (PageBase) getPage());
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
                         } else {
-
                             for (SelectableBean<RoleAnalysisSessionType> selectedObject : selectedObjects) {
                                 try {
                                     String parentOid = selectedObject.getValue().asPrismObject().getOid();
@@ -246,8 +252,8 @@ public class MainPageMining extends PageAdmin {
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         RoleAnalysisSessionType value = model.getObject().getValue();
                         cellItem.add(new Label(componentId,
-                                value.getClusterOptions().getMinPropertiesCount()
-                                        + " - "
+                                "from " + value.getClusterOptions().getMinPropertiesCount()
+                                        + " to "
                                         + value.getClusterOptions().getMaxPropertiesCount()));
                     }
 
@@ -276,6 +282,24 @@ public class MainPageMining extends PageAdmin {
                 };
                 columns.add(column);
 
+                column = new AbstractExportableColumn<>(getHeaderTitle("consist")) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                        cellItem.add(new Label(componentId,
+                                model.getObject().getValue() != null && model.getObject().getValue().getSessionStatistic().getProcessedObjectCount() != null ?
+                                        model.getObject().getValue().getSessionStatistic().getProcessedObjectCount() : null));
+                    }
+
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                        return Model.of("");
+                    }
+
+                };
+                columns.add(column);
+
                 column = new AbstractExportableColumn<>(getHeaderTitle("density")) {
 
                     @Override
@@ -287,31 +311,13 @@ public class MainPageMining extends PageAdmin {
 
                         String colorClass = getColorClass(meanDensity);
 
-                        Label label = new Label(componentId, meanDensity);
+                        Label label = new Label(componentId, meanDensity + "(%)");
                         label.setOutputMarkupId(true);
                         label.add(new AttributeModifier("class", colorClass));
                         label.add(AttributeModifier.append("style", "width: 100px;"));
 
                         cellItem.add(label);
 
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return Model.of("");
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(getHeaderTitle("consist")) {
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId,
-                                model.getObject().getValue() != null && model.getObject().getValue().getSessionStatistic().getProcessedObjectCount() != null ?
-                                        model.getObject().getValue().getSessionStatistic().getProcessedObjectCount() : null));
                     }
 
                     @Override
@@ -331,7 +337,7 @@ public class MainPageMining extends PageAdmin {
                         if (model.getObject().getValue() != null && model.getObject().getValue().getName() != null) {
 
                             AjaxButton ajaxButton = new AjaxButton(componentId,
-                                    Model.of(String.valueOf(model.getObject().getValue().getName()))) {
+                                    createStringResource("RoleMining.cluster.table.load.operation.panel")) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     PageParameters params = new PageParameters();
@@ -344,7 +350,7 @@ public class MainPageMining extends PageAdmin {
 
                             ajaxButton.add(AttributeAppender.replace("class", " btn btn-primary btn-sm d-flex "
                                     + "justify-content-center align-items-center"));
-                            ajaxButton.add(new AttributeAppender("style", " width:100px; height:20px"));
+                            ajaxButton.add(new AttributeAppender("style", " width:100px; "));
                             ajaxButton.setOutputMarkupId(true);
 
                             cellItem.add(ajaxButton);

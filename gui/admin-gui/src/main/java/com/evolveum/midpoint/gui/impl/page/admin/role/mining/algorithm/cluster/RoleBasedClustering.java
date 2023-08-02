@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.endTimer;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.startTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
 
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -36,8 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class RoleBasedClustering implements Clusterable {
 
-    OperationResult operationResult = new OperationResult("Map UserType object for clustering");
-
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions) {
         long start = startTimer(" prepare clustering object");
@@ -48,6 +49,7 @@ public class RoleBasedClustering implements Clusterable {
 
         PageBase pageBase = clusterOptions.getPageBase();
         ObjectFilter query = clusterOptions.getQuery();
+        OperationResult operationResult = new OperationResult("ExecuteRoleBasedClustering");
         ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
                 threshold, maxProperties, query);
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
@@ -59,7 +61,7 @@ public class RoleBasedClustering implements Clusterable {
 
         //TODO
         if (eps == 0.0) {
-            return new ClusterAlgorithmUtils().processIdenticalGroup(pageBase, dataPoints, clusterOptions);
+            return new ClusterAlgorithmUtils().processExactMatch(pageBase, dataPoints, clusterOptions);
         }
 
         int minGroupSize = clusterOptions.getMinGroupSize();
@@ -71,17 +73,17 @@ public class RoleBasedClustering implements Clusterable {
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull PageBase pageBase,
-            int threshold, int maxProperties, ObjectFilter roleQuery) {
+            int minProperties, int maxProperties, ObjectFilter userQuery) {
 
         //role //user
-        ListMultimap<String, String> userTypeMap = ArrayListMultimap.create();
+        ListMultimap<String, String> roleToUserMap = ArrayListMultimap.create();
 
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {
             try {
-                UserType user = object.asObjectable();
-                List<String> element = ClusterObjectUtils.getRolesOid(user);
-                for (String roleId : element) {
-                    userTypeMap.putAll(roleId, Collections.singletonList(user.getOid()));
+                UserType properties = object.asObjectable();
+                List<String> members = ClusterObjectUtils.getRolesOid(properties);
+                for (String roleId : members) {
+                    roleToUserMap.putAll(roleId, Collections.singletonList(properties.getOid()));
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -91,7 +93,7 @@ public class RoleBasedClustering implements Clusterable {
 
         GetOperationOptionsBuilder optionsBuilder = pageBase.getSchemaService().getOperationOptionsBuilder();
         RepositoryService repositoryService = pageBase.getRepositoryService();
-        ObjectQuery objectQuery = pageBase.getPrismContext().queryFactory().createQuery(roleQuery);
+        ObjectQuery objectQuery = pageBase.getPrismContext().queryFactory().createQuery(userQuery);
 
         try {
             repositoryService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, optionsBuilder.build(),
@@ -101,16 +103,16 @@ public class RoleBasedClustering implements Clusterable {
         }
 
         //user //role
-        ListMultimap<List<String>, String> flippedMap = ArrayListMultimap.create();
-        for (String key : userTypeMap.keySet()) {
-            List<String> values = userTypeMap.get(key);
-            int propertiesCount = values.size();
-            if (threshold <= propertiesCount && maxProperties >= propertiesCount) {
-                flippedMap.put(values, key);
+        ListMultimap<List<String>, String> userToRoleMap = ArrayListMultimap.create();
+        for (String member : roleToUserMap.keySet()) {
+            List<String> properties = roleToUserMap.get(member);
+            int propertiesCount = properties.size();
+            if (minProperties <= propertiesCount && maxProperties >= propertiesCount) {
+                userToRoleMap.put(properties, member);
             }
         }
 
-        return flippedMap;
+        return userToRoleMap;
     }
 
 }

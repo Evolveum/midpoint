@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 

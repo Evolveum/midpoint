@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.group
 import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.grouper.Preparer.prepareMiningSetIntersected;
 import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.sortUserSets;
 import static com.evolveum.midpoint.gui.api.component.mining.analyse.tools.jaccard.JacquardSorter.sortUserSetsJc;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.Tools.getScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getScaleScript;
 
 import java.util.ArrayList;
 import java.util.Arrays;
