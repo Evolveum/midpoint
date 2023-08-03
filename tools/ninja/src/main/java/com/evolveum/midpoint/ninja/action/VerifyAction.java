@@ -6,6 +6,19 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -14,18 +27,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
-import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
-import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -67,8 +68,10 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         }
 
         log.info(
-                "Verification finished, {} critical, {} necessary, {} optional issues found",
-                result.getCriticalCount(), result.getNecessaryCount(), result.getOptionalCount());
+                "Verification finished. {}, {}, {} optional issues found",
+                ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
+                ConsoleFormat.formatMessageWithWarningParameters("{} necessary", result.getNecessaryCount()),
+                result.getOptionalCount());
 
         if (options.getOutput() != null) {
             log.info("Verification report saved to '{}'", options.getOutput().getPath());

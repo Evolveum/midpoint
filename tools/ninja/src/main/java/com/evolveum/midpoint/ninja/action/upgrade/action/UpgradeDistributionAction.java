@@ -38,7 +38,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
                 return new ActionResult<>(null, shouldContinue.exitCode());
             }
         } else {
-            log.info("Pre-upgrade checks skipped.");
+            log.warn("Pre-upgrade checks skipped.");
         }
 
         // verification
@@ -54,14 +54,17 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade verification succeeded.").reset().toString());
             } else {
                 log.error(Ansi.ansi().fgRed().a("Pre-upgrade verification failed with {} critical items.").reset().toString(), verifyResult.getCriticalCount());
-                log.error("To get rid of critical items, please run 'verify' command, review the results and then run 'upgrade-objects' before upgrading the distribution.");
-                log.error("Example commands:\n\n"
-                        + "\tninja.sh verify --report-style csv --output verify-output.csv\n"
-                        + "\tninja.sh upgrade-objects --verification-file verify-output.csv\n");
+                log.error("To get rid of critical items, please run 'verify' command, review the results and then run 'upgrade-objects' before upgrading the distribution.\n");
+                log.error("Example commands:");
+                log.error("To verify all objects and save report to CSV file:");
+                log.error("ninja.sh verify --report-style csv --output verify-output.csv");
+                log.error("To update all objects");
+                log.error("ninja.sh upgrade-objects --verification-file verify-output.csv");
+
                 return null;
             }
         } else {
-            log.info("Verification skipped.");
+            log.warn("Verification skipped.");
         }
 
         // download distribution
