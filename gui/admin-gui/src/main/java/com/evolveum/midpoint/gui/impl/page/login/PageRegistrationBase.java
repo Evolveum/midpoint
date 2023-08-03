@@ -55,9 +55,6 @@ public class PageRegistrationBase extends PageAdminLTE {
     private static final String ID_DESCRIPTION = "formDescription";
     private static final String ID_BACK = "back";
 
-    @SpringBean(name = "nonceAuthenticationEvaluator")
-    private AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> authenticationEvaluator;
-
     private SelfRegistrationDto selfRegistrationDto;
     private SelfRegistrationDto postAuthenticationDto;
 
@@ -194,10 +191,6 @@ public class PageRegistrationBase extends PageAdminLTE {
 
         return postAuthenticationDto;
 
-    }
-
-    public AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> getAuthenticationEvaluator() {
-        return authenticationEvaluator;
     }
 
 }
