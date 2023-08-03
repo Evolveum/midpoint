@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -58,7 +60,10 @@ public class ImagePanel extends BasePanel<DisplayType> {
     private void initLayout() {
         Label image = new Label(ID_IMAGE);
         image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), "icon.cssClass")));
-        image.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "tooltip.orig")));
+        DisplayType displayBean = getModelObject();
+        if (displayBean != null) {
+            image.add(AttributeModifier.replace("title", LocalizationUtil.translatePolyString(displayBean.getTooltip())));
+        }
         image.add(AttributeAppender.append("style", () -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : ""));
         image.setOutputMarkupId(true);
         image.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
