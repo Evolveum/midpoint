@@ -57,7 +57,7 @@ public class DistributionManager {
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response);
+                throw new IOException("Unexpected code " + response.code() + ", message: " + response.message());
             }
 
             try (InputStream is = response.body().byteStream()) {
