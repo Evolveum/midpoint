@@ -2,7 +2,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 
 public class DetectionOption implements Serializable {
 
@@ -12,7 +12,7 @@ public class DetectionOption implements Serializable {
     Integer minOccupancy;
     double maxFrequencyThreshold;
     Integer minPropertiesOverlap;
-    RoleAnalysisSearchModeType searchMode;
+    RoleAnalysisDetectionModeType searchMode;
 
     public double getMinFrequencyThreshold() {
         return minFrequencyThreshold;
@@ -46,11 +46,11 @@ public class DetectionOption implements Serializable {
         this.minPropertiesOverlap = minPropertiesOverlap;
     }
 
-    public RoleAnalysisSearchModeType getSearchMode() {
+    public RoleAnalysisDetectionModeType getSearchMode() {
         return searchMode;
     }
 
-    public void setSearchMode(RoleAnalysisSearchModeType searchMode) {
+    public void setSearchMode(RoleAnalysisDetectionModeType searchMode) {
         this.searchMode = searchMode;
     }
 
@@ -64,7 +64,7 @@ public class DetectionOption implements Serializable {
 
     Double jaccardSimilarityThreshold;
 
-    public DetectionOption(double minFrequencyThreshold, double maxFrequencyThreshold, Integer minOccupancy, Integer minPropertiesOverlap, RoleAnalysisSearchModeType searchMode, Double jaccardSimilarityThreshold) {
+    public DetectionOption(double minFrequencyThreshold, double maxFrequencyThreshold, Integer minOccupancy, Integer minPropertiesOverlap, RoleAnalysisDetectionModeType searchMode, Double jaccardSimilarityThreshold) {
         this.minFrequencyThreshold = minFrequencyThreshold;
         this.minOccupancy = minOccupancy;
         this.maxFrequencyThreshold = maxFrequencyThreshold;

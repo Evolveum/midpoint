@@ -11,8 +11,8 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 public class ClusterOptions implements Serializable {
     private PageBase pageBase;
@@ -23,7 +23,7 @@ public class ClusterOptions implements Serializable {
     private int minProperties;
     private int maxProperties;
     RoleAnalysisProcessModeType mode;
-    RoleAnalysisSearchModeType searchMode;
+    RoleAnalysisDetectionModeType searchMode;
     String name;
     int defaultIntersectionSearch = 10;
     int defaultOccupancySearch = 5;
@@ -31,7 +31,7 @@ public class ClusterOptions implements Serializable {
     double defaultMaxFrequency = 1;
     double defaultJaccardThreshold = 0.8;
 
-    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessModeType mode, RoleAnalysisSearchModeType searchMode) {
+    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessModeType mode, RoleAnalysisDetectionModeType searchMode) {
         this.pageBase = pageBase;
         this.mode = mode;
         this.searchMode = searchMode;
@@ -149,11 +149,11 @@ public class ClusterOptions implements Serializable {
         this.defaultMaxFrequency = defaultMaxFrequency;
     }
 
-    public RoleAnalysisSearchModeType getSearchMode() {
+    public RoleAnalysisDetectionModeType getSearchMode() {
         return searchMode;
     }
 
-    public void setSearchMode(RoleAnalysisSearchModeType searchMode) {
+    public void setSearchMode(RoleAnalysisDetectionModeType searchMode) {
         this.searchMode = searchMode;
     }
 

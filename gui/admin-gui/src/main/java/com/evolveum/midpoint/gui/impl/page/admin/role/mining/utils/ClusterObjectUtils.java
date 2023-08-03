@@ -414,8 +414,8 @@ public class ClusterObjectUtils {
         roleAnalysisClusterStatisticType.setPropertiesCount(clusterStatistic.getPropertiesCount());
         roleAnalysisClusterStatisticType.setPropertiesMean(clusterStatistic.getPropertiesMean());
         roleAnalysisClusterStatisticType.setPropertiesDensity(clusterStatistic.getPropertiesDensity());
-        roleAnalysisClusterStatisticType.setPropertiesMinOccupation(clusterStatistic.getMinVectorPoint());
-        roleAnalysisClusterStatisticType.setPropertiesMaxOccupation(clusterStatistic.getMaxVectorPoint());
+        roleAnalysisClusterStatisticType.setPropertiesMinOccupancy(clusterStatistic.getMinVectorPoint());
+        roleAnalysisClusterStatisticType.setPropertiesMaxOccupancy(clusterStatistic.getMaxVectorPoint());
 
         return roleAnalysisClusterStatisticType;
     }
@@ -473,7 +473,7 @@ public class ClusterObjectUtils {
                 clusterOptions.getMaxFrequencyThreshold(),
                 clusterOptions.getMinOccupancy(),
                 clusterOptions.getMinPropertiesOverlap(),
-                clusterOptions.getSearchMode(),
+                clusterOptions.getDetectionMode(),
                 clusterOptions.getJaccardSimilarityThreshold()
         );
     }
@@ -495,7 +495,7 @@ public class ClusterObjectUtils {
         roleAnalysisDetectionOptionType.setJaccardSimilarityThreshold(detectionOption.getJaccardSimilarityThreshold());
         roleAnalysisDetectionOptionType.setMinFrequencyThreshold(detectionOption.getMinFrequencyThreshold());
         roleAnalysisDetectionOptionType.setMaxFrequencyThreshold(detectionOption.getMaxFrequencyThreshold());
-        roleAnalysisDetectionOptionType.setSearchMode(detectionOption.getSearchMode());
+        roleAnalysisDetectionOptionType.setDetectionMode(detectionOption.getSearchMode());
         roleAnalysisDetectionOptionType.setMinOccupancy(detectionOption.getMinOccupancy());
         roleAnalysisDetectionOptionType.setMinPropertiesOverlap(detectionOption.getMinPropertiesOverlap());
 
@@ -518,7 +518,7 @@ public class ClusterObjectUtils {
         roleAnalysisDetectionOptionType.setJaccardSimilarityThreshold(detectionOption.getJaccardSimilarityThreshold());
         roleAnalysisDetectionOptionType.setMinFrequencyThreshold(detectionOption.getMinFrequencyThreshold());
         roleAnalysisDetectionOptionType.setMaxFrequencyThreshold(detectionOption.getMaxFrequencyThreshold());
-        roleAnalysisDetectionOptionType.setSearchMode(detectionOption.getSearchMode());
+        roleAnalysisDetectionOptionType.setDetectionMode(detectionOption.getSearchMode());
         roleAnalysisDetectionOptionType.setMinOccupancy(detectionOption.getMinOccupancy());
         roleAnalysisDetectionOptionType.setMinPropertiesOverlap(detectionOption.getMinPropertiesOverlap());
 
@@ -548,11 +548,11 @@ public class ClusterObjectUtils {
             propertiesComplexType = UserType.COMPLEX_TYPE;
         }
 
-        List<RoleAnalysisDetectionType> roleAnalysisClusterDetectionTypes = loadIntersections(detectedPatterns,
+        List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypes = loadIntersections(detectedPatterns,
                 detectionOption.getSearchMode(), processedObjectComplexType, propertiesComplexType);
 
         Collection<PrismContainerValue<?>> collection = new ArrayList<>();
-        for (RoleAnalysisDetectionType clusterDetectionType : roleAnalysisClusterDetectionTypes) {
+        for (RoleAnalysisDetectionPatternType clusterDetectionType : roleAnalysisClusterDetectionTypes) {
             collection.add(clusterDetectionType.asPrismContainerValue());
         }
 
@@ -560,7 +560,7 @@ public class ClusterObjectUtils {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
             modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
-                    .item(RoleAnalysisClusterType.F_DETECTION).replace(collection)
+                    .item(RoleAnalysisClusterType.F_DETECTION_PATTERN).replace(collection)
                     .asItemDelta());
 
             pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, roleAnalysisClusterOid, modifications, result);

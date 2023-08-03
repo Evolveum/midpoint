@@ -13,8 +13,8 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 public class DetectionAction implements Serializable {
     private DetectionOperation detectionType;
@@ -23,7 +23,7 @@ public class DetectionAction implements Serializable {
 
     public DetectionAction(DetectionOption detectionOption) {
         this.detectionOption = detectionOption;
-        if (detectionOption.getSearchMode().equals(RoleAnalysisSearchModeType.JACCARD)) {
+        if (detectionOption.getSearchMode().equals(RoleAnalysisDetectionModeType.JACCARD)) {
             detectionType = new ExtractJaccard();
         } else {
             detectionType = new ExtractIntersections();

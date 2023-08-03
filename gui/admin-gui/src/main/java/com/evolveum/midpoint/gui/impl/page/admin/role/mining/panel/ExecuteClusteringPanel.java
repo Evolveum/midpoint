@@ -87,7 +87,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         super.onInitialize();
         this.clusterOptions = new ClusterOptions((PageBase) getPage(),
                 RoleAnalysisProcessModeType.USER,
-                RoleAnalysisSearchModeType.INTERSECTION);
+                RoleAnalysisDetectionModeType.INTERSECTION);
 
         Form<?> cluseterForm = clusterForm();
         add(cluseterForm);
@@ -118,7 +118,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             @NotNull
             private RoleAnalysisDetectionOptionType getRoleAnalysisSessionDetectionOption() {
                 RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = new RoleAnalysisDetectionOptionType();
-                roleAnalysisSessionDetectionOption.setSearchMode(clusterOptions.getSearchMode());
+                roleAnalysisSessionDetectionOption.setDetectionMode(clusterOptions.getSearchMode());
                 roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
                 roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
                 roleAnalysisSessionDetectionOption.setMinOccupancy(clusterOptions.getDefaultOccupancySearch());
@@ -336,15 +336,15 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         maxFrequencyField.setOutputMarkupPlaceholderTag(true);
         form.add(maxFrequencyLabel);
 
-        ChoiceRenderer<RoleAnalysisSearchModeType> renderer = new ChoiceRenderer<>("value");
+        ChoiceRenderer<RoleAnalysisDetectionModeType> renderer = new ChoiceRenderer<>("value");
 
-        DropDownChoice<RoleAnalysisSearchModeType> modeSelector = new DropDownChoice<>(
+        DropDownChoice<RoleAnalysisDetectionModeType> modeSelector = new DropDownChoice<>(
                 "searchModeSelector", Model.of(clusterOptions.getSearchMode()),
-                new ArrayList<>(EnumSet.allOf(RoleAnalysisSearchModeType.class)), renderer);
+                new ArrayList<>(EnumSet.allOf(RoleAnalysisDetectionModeType.class)), renderer);
         modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                RoleAnalysisSearchModeType modelObject = modeSelector.getModelObject();
+                RoleAnalysisDetectionModeType modelObject = modeSelector.getModelObject();
                 clusterOptions.setSearchMode(modelObject);
             }
         });
@@ -364,7 +364,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                     clusterOptions.setDefaultMinFrequency(minFrequencyField.getModelObject());
                     clusterOptions.setDefaultMaxFrequency(maxFrequencyField.getModelObject());
 
-                    if (clusterOptions.getSearchMode().equals(RoleAnalysisSearchModeType.JACCARD)) {
+                    if (clusterOptions.getSearchMode().equals(RoleAnalysisDetectionModeType.JACCARD)) {
                         clusterOptions.setDefaultJaccardThreshold(thresholdField.getModelObject());
                     }
 
@@ -785,7 +785,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     }
 
     private boolean isEditMiningOptionAndJaccardMode() {
-        return editMiningOption && clusterOptions.getSearchMode().equals(RoleAnalysisSearchModeType.JACCARD);
+        return editMiningOption && clusterOptions.getSearchMode().equals(RoleAnalysisDetectionModeType.JACCARD);
     }
 
     private void setEditMiningOption(boolean editMiningOption) {

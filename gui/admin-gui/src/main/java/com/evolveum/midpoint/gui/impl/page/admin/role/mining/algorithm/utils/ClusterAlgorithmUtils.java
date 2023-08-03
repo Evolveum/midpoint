@@ -290,23 +290,23 @@ public class ClusterAlgorithmUtils {
             DefaultPatternResolver defaultPatternResolver = new DefaultPatternResolver(mode);
 
             OperationResult operationResult = new OperationResult("loadPattern");
-            List<RoleAnalysisDetectionType> roleAnalysisClusterDetectionTypeList = defaultPatternResolver
+            List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = defaultPatternResolver
                     .loadPattern(clusterOptions, clusterStatistic, clusterType, pageBase, operationResult);
 
-            clusterType.getDetection().addAll(roleAnalysisClusterDetectionTypeList);
+            clusterType.getDetectionPattern().addAll(roleAnalysisClusterDetectionTypeList);
         }
 
         return clusterTypePrismObject;
     }
 
     public static List<DetectedPattern> transformDefaultPattern(RoleAnalysisClusterType clusterType) {
-        List<RoleAnalysisDetectionType> defaultDetection = clusterType.getDetection();
+        List<RoleAnalysisDetectionPatternType> defaultDetection = clusterType.getDetectionPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
-        for (RoleAnalysisDetectionType roleAnalysisClusterDetectionType : defaultDetection) {
-            RoleAnalysisSearchModeType searchMode = roleAnalysisClusterDetectionType.getSearchMode();
+        for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
+            RoleAnalysisDetectionModeType searchMode = roleAnalysisClusterDetectionType.getDetectionMode();
 
-            List<ObjectReferenceType> propertiesRef = roleAnalysisClusterDetectionType.getPropertiesOccupation();
-            List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getMemberOccupation();
+            List<ObjectReferenceType> propertiesRef = roleAnalysisClusterDetectionType.getPropertiesOccupancy();
+            List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getMemberOccupancy();
 
             Set<String> members = new HashSet<>();
             for (ObjectReferenceType objectReferenceType : membersObject) {
@@ -318,7 +318,7 @@ public class ClusterAlgorithmUtils {
                 properties.add(objectReferenceType.getOid());
             }
 
-            if (searchMode.equals(RoleAnalysisSearchModeType.JACCARD)) {
+            if (searchMode.equals(RoleAnalysisDetectionModeType.JACCARD)) {
                 mergedIntersection.add(addDetectedObjectJaccard(properties, members, null));
             } else {
                 mergedIntersection.add(addDetectedObjectIntersection(properties,
@@ -329,11 +329,11 @@ public class ClusterAlgorithmUtils {
         return mergedIntersection;
     }
 
-    public static List<RoleAnalysisDetectionType> loadIntersections(List<DetectedPattern> possibleBusinessRole,
-            RoleAnalysisSearchModeType searchMode, QName processedObjectComplexType, QName propertiesComplexType) {
-        List<RoleAnalysisDetectionType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
+    public static List<RoleAnalysisDetectionPatternType> loadIntersections(List<DetectedPattern> possibleBusinessRole,
+            RoleAnalysisDetectionModeType searchMode, QName processedObjectComplexType, QName propertiesComplexType) {
+        List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
 
-        if (searchMode.equals(RoleAnalysisSearchModeType.JACCARD)) {
+        if (searchMode.equals(RoleAnalysisDetectionModeType.JACCARD)) {
             loadJaccardIntersection(possibleBusinessRole,
                     searchMode, roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
         } else {
@@ -343,13 +343,13 @@ public class ClusterAlgorithmUtils {
         return roleAnalysisClusterDetectionTypeList;
     }
 
-    private static void loadJaccardIntersection(List<DetectedPattern> possibleBusinessRole, RoleAnalysisSearchModeType searchMode,
-            List<RoleAnalysisDetectionType> roleAnalysisClusterDetectionTypeList,
+    private static void loadJaccardIntersection(List<DetectedPattern> possibleBusinessRole, RoleAnalysisDetectionModeType searchMode,
+            List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList,
             QName processedObjectComplexType, QName propertiesComplexType) {
-        RoleAnalysisDetectionType roleAnalysisClusterDetectionType;
+        RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType;
         for (DetectedPattern detectedPattern : possibleBusinessRole) {
-            roleAnalysisClusterDetectionType = new RoleAnalysisDetectionType();
-            roleAnalysisClusterDetectionType.setSearchMode(searchMode);
+            roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
+            roleAnalysisClusterDetectionType.setDetectionMode(searchMode);
 
             ObjectReferenceType objectReferenceType;
             Set<String> members = detectedPattern.getMembers();
@@ -357,7 +357,7 @@ public class ClusterAlgorithmUtils {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef);
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMemberOccupation().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getMemberOccupancy().add(objectReferenceType);
 
             }
 
@@ -366,7 +366,7 @@ public class ClusterAlgorithmUtils {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef);
                 objectReferenceType.setType(propertiesComplexType);
-                roleAnalysisClusterDetectionType.getPropertiesOccupation().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getPropertiesOccupancy().add(objectReferenceType);
 
             }
 
@@ -376,12 +376,12 @@ public class ClusterAlgorithmUtils {
     }
 
     private static void loadSimpleIntersection(List<DetectedPattern> possibleBusinessRole,
-            RoleAnalysisSearchModeType searchMode, List<RoleAnalysisDetectionType> roleAnalysisClusterDetectionTypeList,
+            RoleAnalysisDetectionModeType searchMode, List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList,
             QName processedObjectComplexType, QName propertiesComplexType) {
-        RoleAnalysisDetectionType roleAnalysisClusterDetectionType;
+        RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType;
         for (DetectedPattern detectedPattern : possibleBusinessRole) {
-            roleAnalysisClusterDetectionType = new RoleAnalysisDetectionType();
-            roleAnalysisClusterDetectionType.setSearchMode(searchMode);
+            roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
+            roleAnalysisClusterDetectionType.setDetectionMode(searchMode);
 
             ObjectReferenceType objectReferenceType;
             Set<String> members = detectedPattern.getMembers();
@@ -389,7 +389,7 @@ public class ClusterAlgorithmUtils {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(memberRef);
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMemberOccupation().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getMemberOccupancy().add(objectReferenceType);
 
             }
 
@@ -398,7 +398,7 @@ public class ClusterAlgorithmUtils {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef);
                 objectReferenceType.setType(propertiesComplexType);
-                roleAnalysisClusterDetectionType.getPropertiesOccupation().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getPropertiesOccupancy().add(objectReferenceType);
             }
 
             roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getClusterMetric());

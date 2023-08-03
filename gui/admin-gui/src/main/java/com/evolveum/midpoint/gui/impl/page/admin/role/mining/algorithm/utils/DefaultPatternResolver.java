@@ -52,18 +52,18 @@ public class DefaultPatternResolver {
         }
     }
 
-    public List<RoleAnalysisDetectionType> loadPattern(
+    public List<RoleAnalysisDetectionPatternType> loadPattern(
             @NotNull ClusterOptions clusterOptions,
             @NotNull ClusterStatistic clusterStatistic,
             @NotNull RoleAnalysisClusterType clusterType,
             @NotNull PageBase pageBase,
             @NotNull OperationResult result) {
 
-        List<RoleAnalysisDetectionType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
+        List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
         if (clusterOptions.getSimilarity() == 1) {
 
-            RoleAnalysisDetectionType roleAnalysisClusterDetectionType = new RoleAnalysisDetectionType();
-            roleAnalysisClusterDetectionType.setSearchMode(clusterOptions.getSearchMode());
+            RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
+            roleAnalysisClusterDetectionType.setDetectionMode(clusterOptions.getSearchMode());
 
             ObjectReferenceType objectReferenceType;
             Set<ObjectReferenceType> properties = clusterStatistic.getPropertiesRef();
@@ -71,7 +71,7 @@ public class DefaultPatternResolver {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef.getOid());
                 objectReferenceType.setType(propertiesComplexType);
-                roleAnalysisClusterDetectionType.getPropertiesOccupation().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getPropertiesOccupancy().add(objectReferenceType);
             }
 
             Set<ObjectReferenceType> members = clusterStatistic.getMembersRef();
@@ -79,7 +79,7 @@ public class DefaultPatternResolver {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(processedObjectOid.getOid());
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMemberOccupation().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getMemberOccupancy().add(objectReferenceType);
             }
 
             int propertiesCount = properties.size();
@@ -88,7 +88,7 @@ public class DefaultPatternResolver {
             roleAnalysisClusterDetectionType.setClusterMetric((double) propertiesCount * membersCount);
             roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType);
         } else {
-            List<RoleAnalysisDetectionType> clusterDetectionTypeList = resolveDefaultIntersection(clusterOptions,
+            List<RoleAnalysisDetectionPatternType> clusterDetectionTypeList = resolveDefaultIntersection(clusterOptions,
                     clusterType, pageBase, result);
             roleAnalysisClusterDetectionTypeList.addAll(clusterDetectionTypeList);
 
@@ -99,14 +99,14 @@ public class DefaultPatternResolver {
 
     String state = "START";
 
-    private List<RoleAnalysisDetectionType> resolveDefaultIntersection(
+    private List<RoleAnalysisDetectionPatternType> resolveDefaultIntersection(
             @NotNull ClusterOptions clusterOptions,
             @NotNull RoleAnalysisClusterType clusterType,
             @NotNull PageBase pageBase, @NotNull OperationResult operationResult) {
 
         List<DetectedPattern> possibleBusinessRole;
         RoleAnalysisProcessModeType mode = clusterOptions.getMode();
-        RoleAnalysisSearchModeType searchMode = clusterOptions.getSearchMode();
+        RoleAnalysisDetectionModeType searchMode = clusterOptions.getSearchMode();
 
         MiningOperationChunk miningOperationChunk = new PrepareChunkStructure().executeOperation(clusterType, false,
                 roleAnalysisProcessModeType,

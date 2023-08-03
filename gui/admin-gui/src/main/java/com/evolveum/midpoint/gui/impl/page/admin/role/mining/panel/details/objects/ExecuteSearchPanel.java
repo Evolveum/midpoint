@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -23,7 +25,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSearchModeType;
 
 public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
 
@@ -39,7 +40,7 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     double similarity = 0.8;
     Integer minIntersection = 10;
     Integer minOccupancy = 5;
-    RoleAnalysisSearchModeType searchModeSelected = RoleAnalysisSearchModeType.INTERSECTION;
+    RoleAnalysisDetectionModeType searchModeSelected = RoleAnalysisDetectionModeType.INTERSECTION;
 
     public boolean isJaccardSearchMode() {
         return searchMode;
@@ -72,10 +73,10 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
             public void onClick(AjaxRequestTarget target) {
                 if (searchMode) {
                     searchMode = false;
-                    searchModeSelected = RoleAnalysisSearchModeType.INTERSECTION;
+                    searchModeSelected = RoleAnalysisDetectionModeType.INTERSECTION;
                 } else {
                     searchMode = true;
-                    searchModeSelected = RoleAnalysisSearchModeType.JACCARD;
+                    searchModeSelected = RoleAnalysisDetectionModeType.JACCARD;
                 }
                 target.add(components);
                 target.add(this);
@@ -208,7 +209,7 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
         return similarity;
     }
 
-    public RoleAnalysisSearchModeType getSearchModeSelected() {
+    public RoleAnalysisDetectionModeType getSearchModeSelected() {
         return searchModeSelected;
     }
 

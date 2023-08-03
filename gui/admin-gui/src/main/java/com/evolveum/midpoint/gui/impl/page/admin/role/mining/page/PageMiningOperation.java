@@ -77,7 +77,7 @@ public class PageMiningOperation extends PageAdmin {
     double maxFrequency = 1.0;
     Integer minIntersection = 10;
 
-    RoleAnalysisSearchModeType searchMode = RoleAnalysisSearchModeType.INTERSECTION;
+    RoleAnalysisDetectionModeType searchMode = RoleAnalysisDetectionModeType.INTERSECTION;
     RoleAnalysisProcessModeType processMode;
 
     DetectionOption defaultDetectionOptions;
@@ -130,8 +130,8 @@ public class PageMiningOperation extends PageAdmin {
                 getPageParameterParentOid(), new OperationResult("getParent"));
         assert getParent != null;
         String processModeValue = getParent.asObjectable().getClusterOptions().getProcessMode().value();
-        String searchModeValue = cluster.getDetectionOption().getSearchMode().value();
-        searchMode = RoleAnalysisSearchModeType.fromValue(searchModeValue);
+        String searchModeValue = cluster.getDetectionOption().getDetectionMode().value();
+        searchMode = RoleAnalysisDetectionModeType.fromValue(searchModeValue);
         processMode = RoleAnalysisProcessModeType.fromValue(processModeValue);
 
         Integer elementsCount = cluster.getClusterStatistic().getMemberCount();
@@ -290,7 +290,7 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     private void loadMiningTable(List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
-            RoleAnalysisSearchModeType searchMode) {
+            RoleAnalysisDetectionModeType searchMode) {
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
                     miningUserTypeChunks, false, minFrequency, null, maxFrequency, searchMode);
@@ -305,7 +305,7 @@ public class PageMiningOperation extends PageAdmin {
 
     }
 
-    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, RoleAnalysisSearchModeType searchMode,
+    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, RoleAnalysisDetectionModeType searchMode,
             List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks) {
 
         if (resetStatus) {
@@ -368,7 +368,7 @@ public class PageMiningOperation extends PageAdmin {
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisSearchModeType searchMode) {
+            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
         return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
             @Override
             public void resetTable(AjaxRequestTarget target) {

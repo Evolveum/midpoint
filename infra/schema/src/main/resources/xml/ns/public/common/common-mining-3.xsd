@@ -37,7 +37,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 A set of grouped object based on density and similarity. An object defines a group of objects that are similar
-                according to the specified conditions or fall into one category based on the specified conditions.
+                or fall into one category based on the specified conditions.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:object/>
@@ -84,7 +84,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="detection" type="c:RoleAnalysisDetectionType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="detectionPattern" type="c:RoleAnalysisDetectionPatternType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 It consists of a sheet of reference objects and their specifications in which matches are found
@@ -98,7 +98,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Options for Detecting Business Roles
+                                    Options for detecting Business Roles
 
                                     These parameters serve as key specifications for performing searches
                                     and analyzes aimed at discovering different business roles.
@@ -189,7 +189,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="propertiesMinOccupation" type="xsd:int" minOccurs="0">
+            <xsd:element name="propertiesMinOccupancy" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -200,12 +200,12 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesMinOccupation</a:displayName>
+                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesMinOccupancy</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="propertiesMaxOccupation" type="xsd:int" minOccurs="0">
+            <xsd:element name="propertiesMaxOccupancy" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -216,7 +216,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesMaxOccupation</a:displayName>
+                        <a:displayName>RoleAnalysisClusterStatisticType.propertiesMaxOccupancy</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -239,17 +239,17 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="RoleAnalysisDetectionType">
+    <xsd:complexType name="RoleAnalysisDetectionPatternType">
         <xsd:annotation>
             <xsd:documentation>
-                Default business roles detection options.
+                The remains of the detected or found patterns and information about them.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="memberOccupation" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="memberOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         The main object that was analyzed. In the case of ROLE MODE, the list of roles (members) object
@@ -258,16 +258,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="memberTypeObjectOccupation" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="memberTypeObjectOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        All members objects (not only from clustered objects).
+                        All objects of member type (not only from clustered objects).
                         USER MODE (member) - user.
                         ROLE MODE (member) - role.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="propertiesOccupation" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="propertiesOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Properties used for comparison.
@@ -289,7 +289,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="searchMode" type="tns:RoleAnalysisSearchModeType" minOccurs="0">
+            <xsd:element name="detectionMode" type="tns:RoleAnalysisDetectionModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -299,7 +299,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSearchModeType.searchMode</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionModeType.detectionMode</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -609,7 +609,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="searchMode" type="tns:RoleAnalysisSearchModeType" minOccurs="0">
+            <xsd:element name="detectionMode" type="tns:RoleAnalysisDetectionModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -716,7 +716,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="RoleAnalysisSearchModeType">
+    <xsd:simpleType name="RoleAnalysisDetectionModeType">
         <xsd:annotation>
             <xsd:documentation>
                 Enum value for search mode.

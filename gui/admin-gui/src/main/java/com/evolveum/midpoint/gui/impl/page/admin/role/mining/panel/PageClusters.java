@@ -197,9 +197,9 @@ public class PageClusters extends Panel {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue()
-                                .getClusterStatistic().getPropertiesMinOccupation() != null) {
+                                .getClusterStatistic().getPropertiesMinOccupancy() != null) {
                             cellItem.add(new Label(componentId, model.getObject().getValue()
-                                    .getClusterStatistic().getPropertiesMinOccupation()));
+                                    .getClusterStatistic().getPropertiesMinOccupancy()));
 
                         } else {
                             cellItem.add(new Label(componentId,
@@ -226,9 +226,9 @@ public class PageClusters extends Panel {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue()
-                                .getClusterStatistic().getPropertiesMaxOccupation() != null) {
+                                .getClusterStatistic().getPropertiesMaxOccupancy() != null) {
                             cellItem.add(new Label(componentId, model.getObject().getValue()
-                                    .getClusterStatistic().getPropertiesMaxOccupation()));
+                                    .getClusterStatistic().getPropertiesMaxOccupancy()));
 
                         } else {
                             cellItem.add(new Label(componentId,
@@ -284,10 +284,10 @@ public class PageClusters extends Panel {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-                        List<RoleAnalysisDetectionType> detection = model.getObject().getValue().getDetection();
+                        List<RoleAnalysisDetectionPatternType> detection = model.getObject().getValue().getDetectionPattern();
                         double maxMetric = 0;
                         if (detection != null) {
-                            for (RoleAnalysisDetectionType roleAnalysisDetectionType : detection) {
+                            for (RoleAnalysisDetectionPatternType roleAnalysisDetectionType : detection) {
                                 maxMetric = Math.max(maxMetric, roleAnalysisDetectionType.getClusterMetric());
                             }
                         }

@@ -64,7 +64,7 @@ public class MiningUserBasedTable extends Panel {
 
     public MiningUserBasedTable(String id, List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisSearchModeType searchMode) {
+            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
         super(id);
 
         fromCol = 1;
@@ -101,7 +101,7 @@ public class MiningUserBasedTable extends Panel {
 
     public SpecialBoxedTablePanel<MiningRoleTypeChunk> generateTable(RoleMiningProvider<MiningRoleTypeChunk> provider,
             List<MiningUserTypeChunk> users, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisSearchModeType searchMode) {
+            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
 
         SpecialBoxedTablePanel<MiningRoleTypeChunk> table = new SpecialBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns(users, frequency, intersection, maxFrequency, searchMode),
@@ -151,7 +151,7 @@ public class MiningUserBasedTable extends Panel {
     }
 
     public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users, double minFrequency,
-            DetectedPattern intersection, double maxFrequency, RoleAnalysisSearchModeType searchMode) {
+            DetectedPattern intersection, double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
 
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
 
