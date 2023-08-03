@@ -224,6 +224,8 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                     }
 
                     stmt.close();
+
+                    log.info(ConsoleFormat.formatSuccessMessage("Script executed successfully."));
                 }
             } finally {
                 connection.setAutoCommit(autocommit);

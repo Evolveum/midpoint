@@ -157,7 +157,7 @@ public class TestMain {
 //        }
 //        System.out.println(Ansi.ansi().fgRed().a("Complete").reset());
 
-        for (ConsoleFormat.Level level : ConsoleFormat.Level.values()) {
+        for (ConsoleFormat.Color level : ConsoleFormat.Color.values()) {
             System.out.println(Ansi.ansi().fg(level.color).a(level.name()).reset());
             System.out.println(Ansi.ansi().fgBright(level.color).a(level.name() + "-bright").reset());
         }

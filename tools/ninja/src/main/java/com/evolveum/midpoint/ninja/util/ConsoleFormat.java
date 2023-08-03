@@ -10,7 +10,7 @@ import com.evolveum.midpoint.ninja.impl.LogLevel;
  */
 public final class ConsoleFormat {
 
-    public enum Level {
+    public enum Color {
 
         DEFAULT(Ansi.Color.DEFAULT),
 
@@ -24,7 +24,7 @@ public final class ConsoleFormat {
 
         public final Ansi.Color color;
 
-        Level(Ansi.Color color) {
+        Color(Ansi.Color color) {
             this.color = color;
         }
     }
@@ -42,24 +42,32 @@ public final class ConsoleFormat {
     }
 
     public static String formatMessageWithErrorParameters(String message, Object... parameters) {
-        return formatMessageWithParameter(message, parameters, Level.ERROR);
+        return formatMessageWithParameter(message, parameters, Color.ERROR);
     }
 
     public static String formatMessageWithWarningParameters(String message, Object... parameters) {
-        return formatMessageWithParameter(message, parameters, Level.WARN);
+        return formatMessageWithParameter(message, parameters, Color.WARN);
     }
 
     public static String formatMessageWithInfoParameters(String message, Object... parameters) {
-        return formatMessageWithParameter(message, parameters, Level.INFO);
+        return formatMessageWithParameter(message, parameters, Color.INFO);
     }
 
-    public static String formatMessageWithParameter(String message, Object[] parameters, Level level) {
+    public static String formatMessageWithParameter(String message, Object[] parameters, Color level) {
         String[] formatted = new String[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             formatted[i] = Ansi.ansi().fgBright(level.color).a(parameters[i]).reset().toString();
         }
 
         return NinjaUtils.printFormatted(message, formatted);
+    }
+
+    public static String formatSuccessMessage(String message) {
+        return formatMessage(message, Color.SUCCESS);
+    }
+
+    public static String formatMessage(String message, Color color) {
+        return Ansi.ansi().fgBright(color.color).a(message).reset().toString();
     }
 
     public static String formatLogMessage(LogLevel level, String msg) {
