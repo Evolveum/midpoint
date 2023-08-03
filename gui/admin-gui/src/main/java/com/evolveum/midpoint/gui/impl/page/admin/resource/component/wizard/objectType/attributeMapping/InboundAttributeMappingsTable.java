@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
@@ -16,12 +15,12 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -52,6 +51,38 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
         return "InboundAttributeMappingsTable.newObject";
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn() {
+        return new IconColumn<>(Model.of()) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+                cellItem.add(AttributeAppender.append("class", "text-center"));
+            }
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                PrismContainerValueWrapper<MappingType> mapping = rowModel.getObject();
+                MappingType mappingBean = mapping.getRealValue();
+                if (mappingBean instanceof InboundMappingType
+                        && InboundMappingUseType.CORRELATION.equals(((InboundMappingType) mappingBean).getUse())) {
+                    return new DisplayType()
+                            .tooltip("InboundAttributeMappingsTable.usedForCorrelation")
+                            .beginIcon()
+                            .cssClass("text-warning fa fa-code-branch")
+                            .end();
+                }
+                return new DisplayType();
+            }
+
+            @Override
+            public String getCssClass() {
+                return "px-0";
+            }
+        };
     }
 
     @Override
