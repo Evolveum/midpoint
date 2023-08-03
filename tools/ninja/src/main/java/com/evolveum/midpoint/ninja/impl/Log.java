@@ -11,7 +11,6 @@ import java.io.PrintStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
@@ -23,23 +22,6 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 public class Log {
 
     private static final Pattern PATTERN = Pattern.compile("\\{}");
-
-    private enum Level {
-        ERROR, INFO, DEBUG;
-
-        public ConsoleFormat.Level toConsoleFormatLevel() {
-            switch (this) {
-                case ERROR:
-                    return ConsoleFormat.Level.ERROR;
-                case INFO:
-                    return ConsoleFormat.Level.INFO;
-                case DEBUG:
-                    return ConsoleFormat.Level.DEFAULT;
-                default:
-                    throw new IllegalStateException("Unknown log level: " + this);
-            }
-        }
-    }
 
     private final LogVerbosity level;
 
@@ -59,27 +41,31 @@ public class Log {
             message = message + ". Reason: " + ex.getMessage();
         }
 
-        log(Level.ERROR, message, args);
+        log(LogLevel.ERROR, message, args);
 
         if (ex != null && level == LogVerbosity.VERBOSE) {
-            log(Level.DEBUG, "Exception details:\n{}", ex);
+            log(LogLevel.DEBUG, "Exception details:\n{}", ex);
         }
     }
 
+    public void warn(String message, Object... args) {
+        log(LogLevel.WARNING, message, args);
+    }
+
     public void debug(String message, Object... args) {
-        log(Level.DEBUG, message, args);
+        log(LogLevel.DEBUG, message, args);
     }
 
     public void info(String message, Object... args) {
-        log(Level.INFO, message, args);
+        log(LogLevel.INFO, message, args);
     }
 
-    public void log(Level level, String message, Object... args) {
+    public void log(LogLevel level, String message, Object... args) {
         switch (this.level) {
             case SILENT:
                 return;
             case DEFAULT:
-                if (level == Level.DEBUG) {
+                if (level == LogLevel.DEBUG) {
                     return;
                 }
             case VERBOSE:
@@ -93,7 +79,7 @@ public class Log {
         int i = 0;
         while (matcher.find()) {
             Object arg = args[i++];
-            if (arg instanceof Exception && level == Level.DEBUG) {
+            if (arg instanceof Exception && level == LogLevel.DEBUG) {
                 arg = NinjaUtils.printStackToString((Exception) arg);
             }
 
@@ -101,8 +87,6 @@ public class Log {
         }
         matcher.appendTail(sb);
 
-        ConsoleFormat.formatMessageWithParameter(level + ": ", sb.toString(), level.toConsoleFormatLevel());
-
-        stream.println(level + ": " + sb);
+        stream.println(ConsoleFormat.formatLogMessage(level, sb.toString()));
     }
 }
