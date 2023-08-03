@@ -69,10 +69,10 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
                 String correlatorName = module.getCurrentCorrelatorIdentifier();
 
                 String archetypeOid = null;
-                        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                        if (authentication instanceof MidpointAuthentication mpAuthentication) {
-                            archetypeOid = mpAuthentication.getArchetypeOid();
-                        }
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication instanceof MidpointAuthentication mpAuthentication) {
+                    archetypeOid = mpAuthentication.getArchetypeOid();
+                }
 
                 return new CorrelatorConfigDto(correlatorName, archetypeOid, getCorrelationAttributePaths(correlatorName, archetypeOid));
             }

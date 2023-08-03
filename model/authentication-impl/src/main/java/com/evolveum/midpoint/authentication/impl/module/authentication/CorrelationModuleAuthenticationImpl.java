@@ -14,7 +14,8 @@ import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
 import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurationType;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -48,6 +49,9 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     @Override
     public String getCurrentCorrelatorIdentifier() {
+        if (isEmptyCorrelatorsList()) {
+            return null;    //todo what if correlator identifier isn't specified?
+        }
         return correlators.get(currentProcessingCorrelator).getCorrelatorIdentifier();
     }
 
@@ -57,6 +61,10 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     public void setNextCorrelator() {
         currentProcessingCorrelator++;
+    }
+
+    public boolean isEmptyCorrelatorsList() {
+        return CollectionUtils.isEmpty(correlators);
     }
 
     public void addCandidateOwners(CandidateOwnersMap map) {
