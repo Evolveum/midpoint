@@ -38,12 +38,15 @@ public interface ResourceObjectSetSpecificationProvider
         QName qualifiedClassName = rawClassName != null ? QNameUtil.qualifyIfNeeded(rawClassName, NS_RI) : null;
 
         return new TaskAffectedObjectsType()
-                .resourceObjects(new ActivityAffectedResourceObjectsType()
+                .activity(new ActivityAffectedObjectsType()
                         .activityType(getActivityTypeName())
-                        .resourceRef(CloneUtil.cloneCloneable(set.getResourceRef())) // Consider keeping only the OID
-                        .kind(set.getKind())
-                        .intent(set.getIntent())
-                        .objectclass(qualifiedClassName));
+                        .resourceObjects(new BasicResourceObjectSetType()
+                                .resourceRef(CloneUtil.cloneCloneable(set.getResourceRef())) // Consider keeping only the OID
+                                .kind(set.getKind())
+                                .intent(set.getIntent())
+                                .objectclass(qualifiedClassName)
+                        )
+                );
     }
 
     @Override

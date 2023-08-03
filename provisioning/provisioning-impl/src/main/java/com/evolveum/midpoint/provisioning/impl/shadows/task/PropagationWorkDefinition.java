@@ -38,9 +38,11 @@ public class PropagationWorkDefinition extends AbstractWorkDefinition {
     @Override
     public @Nullable TaskAffectedObjectsType getAffectedObjects() {
         return new TaskAffectedObjectsType()
-                .resourceObjects(new ActivityAffectedResourceObjectsType()
+                .activity(new ActivityAffectedObjectsType()
                         .activityType(getActivityTypeName())
-                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE));
+                        .resourceObjects(new BasicResourceObjectSetType()
+                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE))
+                );
     }
 
     @Override

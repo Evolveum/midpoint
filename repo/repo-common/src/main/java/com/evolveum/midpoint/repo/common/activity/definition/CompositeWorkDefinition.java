@@ -47,21 +47,15 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
     public @Nullable TaskAffectedObjectsType getAffectedObjects() throws SchemaException, ConfigurationException {
 
         // We rely on the duplicate filtering provided by sets; it should be adequate here.
-        Set<ActivityAffectedObjectsType> repoSet = new HashSet<>();
-        Set<ActivityAffectedResourceObjectsType> resourceSet = new HashSet<>();
+        Set<ActivityAffectedObjectsType> objectsByActivityType = new HashSet<>();
 
         for (ActivityDefinitionType activityDefinitionBean : composition.getActivity()) {
-            var child = CommonTaskBeans.get().activityManager.computeAffectedObjects(activityDefinitionBean);
-            if (child != null) {
-                repoSet.addAll(child.getObjects());
-                resourceSet.addAll(child.getResourceObjects());
-            }
+            var forChild = CommonTaskBeans.get().activityManager.computeAffectedObjects(activityDefinitionBean);
+            objectsByActivityType.addAll(forChild.getActivity());
         }
         var result = new TaskAffectedObjectsType();
-        result.getObjects().addAll(
-                CloneUtil.cloneCollectionMembers(repoSet));
-        result.getResourceObjects().addAll(
-                CloneUtil.cloneCollectionMembers(resourceSet));
+        result.getActivity().addAll(
+                CloneUtil.cloneCollectionMembers(objectsByActivityType));
         return result;
     }
 }

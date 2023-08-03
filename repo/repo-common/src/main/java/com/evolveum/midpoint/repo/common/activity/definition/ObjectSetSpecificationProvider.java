@@ -38,11 +38,14 @@ public interface ObjectSetSpecificationProvider
         QName qualifiedType = rawType != null ? QNameUtil.qualifyIfNeeded(rawType, NS_C) : null;
 
         return new TaskAffectedObjectsType()
-                .objects(new ActivityAffectedObjectsType()
+                .activity(new ActivityAffectedObjectsType()
                         .activityType(getActivityTypeName())
-                        .type(qualifiedType)
-                        .archetypeRef( // Consider keeping only the OID
-                                CloneUtil.cloneCloneable(set.getArchetypeRef())));
+                        .objects(new BasicObjectSetType()
+                                .type(qualifiedType)
+                                .archetypeRef( // Consider keeping only the OID
+                                        CloneUtil.cloneCloneable(set.getArchetypeRef()))
+                        )
+                );
     }
 
     @Override

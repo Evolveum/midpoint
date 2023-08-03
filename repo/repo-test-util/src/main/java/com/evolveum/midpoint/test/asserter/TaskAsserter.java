@@ -585,35 +585,37 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<RA> assertAffectedObjects(QName activityTypeName, QName objectType, @Nullable String archetypeOid) {
-        var affected = getObjectable().getAffectedObjects();
-        assertThat(affected).as("affected objects").isNotNull();
-        assertThat(affected.getResourceObjects()).as("resource objects").isEmpty();
-        var objects = affected.getObjects();
-        assertThat(objects).as("objects").hasSize(1);
-        ActivityAffectedObjectsType activityAffectedObjects = objects.get(0);
-        assertThat(activityAffectedObjects.getActivityType()).as("activity").isEqualTo(activityTypeName);
-        assertThat(activityAffectedObjects.getType()).as("objects type").isEqualTo(objectType);
-        assertThat(Referencable.getOid(activityAffectedObjects.getArchetypeRef()))
+        ActivityAffectedObjectsType activityAffected = getSingleActivityAffectedObjects();
+        assertThat(activityAffected.getResourceObjects()).as("resource objects").isNull();
+        BasicObjectSetType objects = activityAffected.getObjects();
+        assertThat(activityAffected.getActivityType()).as("activity").isEqualTo(activityTypeName);
+        assertThat(objects).as("objects").isNotNull();
+        assertThat(objects.getType()).as("objects type").isEqualTo(objectType);
+        assertThat(Referencable.getOid(objects.getArchetypeRef()))
                 .as("archetype OID")
                 .isEqualTo(archetypeOid);
         return this;
     }
 
+    private ActivityAffectedObjectsType getSingleActivityAffectedObjects() {
+        var affected = getObjectable().getAffectedObjects();
+        assertThat(affected).as("task-affected objects").isNotNull();
+        assertThat(affected.getActivity()).as("activity-affected records").hasSize(1);
+        return affected.getActivity().get(0);
+    }
+
     public TaskAsserter<RA> assertAffectedObjects(
             QName activityTypeName, String resourceOid, ShadowKindType kind, String intent, QName objectClassName) {
-        var affected = getObjectable().getAffectedObjects();
-        assertThat(affected).as("affected objects").isNotNull();
-        assertThat(affected.getObjects()).as("repo objects").isEmpty();
-        var objects = affected.getResourceObjects();
-        assertThat(objects).as("resource objects").hasSize(1);
-        var activityAffectedObjects = objects.get(0);
-        assertThat(activityAffectedObjects.getActivityType()).as("activity").isEqualTo(activityTypeName);
-        assertThat(Referencable.getOid(activityAffectedObjects.getResourceRef()))
+        ActivityAffectedObjectsType activityAffected = getSingleActivityAffectedObjects();
+        assertThat(activityAffected.getObjects()).as("objects").isNull();
+        var resourceObjects = activityAffected.getResourceObjects();
+        assertThat(activityAffected.getActivityType()).as("activity").isEqualTo(activityTypeName);
+        assertThat(Referencable.getOid(resourceObjects.getResourceRef()))
                 .as("resource OID")
                 .isEqualTo(resourceOid);
-        assertThat(activityAffectedObjects.getKind()).as("kind").isEqualTo(kind);
-        assertThat(activityAffectedObjects.getIntent()).as("intent").isEqualTo(intent);
-        assertThat(activityAffectedObjects.getObjectclass()).as("OC name").isEqualTo(objectClassName);
+        assertThat(resourceObjects.getKind()).as("kind").isEqualTo(kind);
+        assertThat(resourceObjects.getIntent()).as("intent").isEqualTo(intent);
+        assertThat(resourceObjects.getObjectclass()).as("OC name").isEqualTo(objectClassName);
         return this;
     }
 
