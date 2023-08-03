@@ -35,19 +35,24 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
         final RepositoryService repository = context.getRepository();
 
         if (!repository.isNative()) {
-            log.error("Repository implementation is not using native PostgreSQL");
+            log.error("Repository is not using native implementation for PostgreSQL (sqale)");
             return new ActionResult<>(false, 1);
         }
 
         if (!options.isSkipNodesVersionCheck() && !checkNodesVersion(repository)) {
             return new ActionResult<>(false, 2);
+        } else {
+            log.warn("Skipping nodes version check");
         }
 
         if (!options.isSkipDatabaseVersionCheck() && !checkDatabaseSchemaVersion(repository)) {
             return new ActionResult<>(false, 3);
+        } else {
+            log.warn("Skipping database schema version check");
         }
 
         log.info("Pre-upgrade checks finished successfully");
+
         return new ActionResult<>(true);
     }
 
@@ -72,11 +77,11 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
         boolean equals = Objects.equals(number, Integer.toString(expected));
 
         if (!equals) {
-            log.error(ConsoleFormat.formatError(
-                    "Database schema change number (" + number + ") doesn't match supported one (" + expected + ") for label "
-                            + label + "."));
+            log.error(
+                    "Database schema change number ({}) doesn't match supported one ({}) for label {}.",
+                    number, expected, label);
         } else {
-            log.info("Database schema change number matches supported one (" + expected + ") for label " + label + ".");
+            log.info("Database schema change number matches supported one ({}) for label {}.", expected, label);
         }
 
         return equals;
@@ -107,23 +112,24 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
         });
 
         if (versions.isEmpty()) {
-            log.info(ConsoleFormat.formatWarn("There are zero nodes in cluster to validate current midPoint version."));
+            log.warn("There are zero nodes in cluster to validate current midPoint version.");
 
             return true;
         } else if (versions.size() > 1) {
-            log.error(ConsoleFormat.formatError(
-                    "There are nodes with different versions of midPoint. Please remove incorrect nodes from cluster."));
+            log.error("There are nodes with different versions of midPoint.");
+            log.error("Please remove incorrect nodes from cluster and related Node objects from repository.");
             return false;
         }
 
-        log.info(ConsoleFormat.formatInfoMessageWithParameter(
-                "Node versions in cluster: ", Arrays.toString(versions.toArray())));
+        log.info(ConsoleFormat.formatMessageWithInfoParameters("Nodes version in cluster: {}", versions.toArray()[0]));
 
         String version = versions.iterator().next();
         if (!Objects.equals(version, UpgradeConstants.SUPPORTED_VERSION)) {
             log.error(
                     "There are midPoint nodes with versions " + Arrays.toString(versions.toArray())
                             + " that doesn't match supported version for upgrade (" + UpgradeConstants.SUPPORTED_VERSION + ")");
+            log.error("Make sure that all nodes in midPoint cluster are running same and supported version of midPoint, "
+                    + "remove all obsolete Node objects from repository.");
             return false;
         }
 

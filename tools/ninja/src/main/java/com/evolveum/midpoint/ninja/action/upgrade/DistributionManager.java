@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * URL format: https://download.evolveum.com/midpoint/<VERSION>/midpoint-<VERSION_NUMBER>-dist.zip
@@ -57,7 +57,8 @@ public class DistributionManager {
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new IOException("Unexpected code " + response);
+                throw new IOException("Couldn't download distribution with version " + version
+                        + ". Unexpected code " + response.code() + ", message: " + response.message() + " for url " + url);
             }
 
             try (InputStream is = response.body().byteStream()) {
