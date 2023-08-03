@@ -5,9 +5,6 @@ import org.fusesource.jansi.Ansi;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.LogLevel;
 
-/**
- * TODO think this through - how to format different messages
- */
 public final class ConsoleFormat {
 
     public enum Color {
