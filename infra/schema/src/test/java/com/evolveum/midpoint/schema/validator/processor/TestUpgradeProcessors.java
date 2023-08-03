@@ -103,7 +103,8 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
 
             String msg = "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
                     "\nUPDATED:\n" + PrismTestUtil.serializeObjectToString(updated) +
-                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original);
+                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original) +
+                    "\nDELTA:\n" + updated.diff(expected).debugDump();
 
             LOGGER.info(msg);
 
