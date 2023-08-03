@@ -142,6 +142,14 @@
                     </target>
                 </action>
             </widget>
+            <widget>
+                <identifier>123</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+            <widget>
+                <identifier>456</identifier>
+                <visibility>vacant</visibility>
+            </widget>
         </homePage>
         <objectForms>
             <objectForm>
