@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 public class PageRegistrationBase extends PageAdminLTE {
 
     private static final long serialVersionUID = 1L;
@@ -54,7 +56,7 @@ public class PageRegistrationBase extends PageAdminLTE {
     private static final String ID_BACK = "back";
 
     @SpringBean(name = "nonceAuthenticationEvaluator")
-    private AuthenticationEvaluator<NonceAuthenticationContext> authenticationEvaluator;
+    private AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> authenticationEvaluator;
 
     private SelfRegistrationDto selfRegistrationDto;
     private SelfRegistrationDto postAuthenticationDto;
@@ -194,7 +196,7 @@ public class PageRegistrationBase extends PageAdminLTE {
 
     }
 
-    public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
+    public AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> getAuthenticationEvaluator() {
         return authenticationEvaluator;
     }
 

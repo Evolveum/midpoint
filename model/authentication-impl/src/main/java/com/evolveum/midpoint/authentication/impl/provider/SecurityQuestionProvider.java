@@ -41,10 +41,10 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
     private static final Trace LOGGER = TraceManager.getTrace(SecurityQuestionProvider.class);
 
     @Autowired
-    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> questionAuthenticationEvaluator;
+    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext, UsernamePasswordAuthenticationToken> questionAuthenticationEvaluator;
 
     @Override
-    protected AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getEvaluator() {
+    protected AuthenticationEvaluator<SecurityQuestionsAuthenticationContext, UsernamePasswordAuthenticationToken> getEvaluator() {
         return questionAuthenticationEvaluator;
     }
 

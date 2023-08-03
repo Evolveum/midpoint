@@ -10,6 +10,7 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.evaluator.PreAuthenticatedEvaluatorImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.authentication.api.evaluator.context.FocusIdentificationAuthenticationContext;
@@ -38,7 +39,7 @@ public class FocusIdentificationProvider extends MidpointAbstractAuthenticationP
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusIdentificationProvider.class);
 
-    @Autowired private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    @Autowired private PreAuthenticatedEvaluatorImpl<FocusIdentificationAuthenticationContext> evaluator;
 
 
     @Override
@@ -71,7 +72,7 @@ public class FocusIdentificationProvider extends MidpointAbstractAuthenticationP
                     focusType,
                     itemsConfig,
                     channel);
-            token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, ctx);
+            token = evaluator.authenticate(connEnv, ctx);
             UsernamePasswordAuthenticationToken pwdToken = new UsernamePasswordAuthenticationToken(token.getPrincipal(), token.getCredentials());
             pwdToken.setAuthenticated(false);
             return pwdToken;

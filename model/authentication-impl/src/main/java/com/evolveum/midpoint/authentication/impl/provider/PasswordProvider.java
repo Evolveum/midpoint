@@ -42,10 +42,12 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordProvider.class);
 
-    @Autowired private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    @Autowired private AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> passwordAuthenticationEvaluator;
+
+    @Autowired private AuthenticationEvaluator<PreAuthenticationContext, PreAuthenticatedAuthenticationToken> preAuthenticatedEvaluator;
 
     @Override
-    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
+    protected AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> getEvaluator() {
         return passwordAuthenticationEvaluator;
     }
 
@@ -81,7 +83,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
                     channel);
             token = getEvaluator().authenticate(connEnv, authContext);
         } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-            token = getEvaluator().authenticateUserPreAuthenticated(connEnv, new
+            token = preAuthenticatedEvaluator.authenticate(connEnv, new
                     PreAuthenticationContext(enteredUsername, focusType, requireAssignment, channel));
         } else {
             LOGGER.error("Unsupported authentication {}", authentication);

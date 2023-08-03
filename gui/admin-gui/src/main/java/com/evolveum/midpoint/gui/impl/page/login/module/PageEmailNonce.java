@@ -95,6 +95,11 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
 
     public PageEmailNonce() {
+
+        // TODO do not generate nonce when page was refreshed.
+        // TODO button send again
+        // TODO improve message with the time when the mail was sent (saved in nonce)
+
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal != null) {
             userIdentifierSubmitPerformed(null);

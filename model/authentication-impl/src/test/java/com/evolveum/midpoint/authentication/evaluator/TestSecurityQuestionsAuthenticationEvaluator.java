@@ -23,7 +23,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<Map<String, String>, SecurityQuestionsAuthenticationContext, AuthenticationEvaluator<SecurityQuestionsAuthenticationContext>>{
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
+public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<Map<String, String>, SecurityQuestionsAuthenticationContext, AuthenticationEvaluator<SecurityQuestionsAuthenticationContext, UsernamePasswordAuthenticationToken>>{
 
     private static final String SECURITY_QUESTION_ID = "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001";
     private static final String SECURITY_QUESTION_GOOD_ANSWER_JACK = "Some generic answer";
@@ -31,10 +33,10 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     private static final String SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH = "Some some generic answer";
 
     @Autowired
-    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> securityQuestionsAuthenticationEvaluator;
+    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext, UsernamePasswordAuthenticationToken> securityQuestionsAuthenticationEvaluator;
 
     @Override
-    public AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getAuthenticationEvaluator() {
+    public AuthenticationEvaluator<SecurityQuestionsAuthenticationContext, UsernamePasswordAuthenticationToken> getAuthenticationEvaluator() {
         return securityQuestionsAuthenticationEvaluator;
     }
 

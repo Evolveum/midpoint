@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -48,7 +49,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     private static final Trace LOGGER = TraceManager.getTrace(MailNonceProvider.class);
 
     @Autowired
-    private AuthenticationEvaluator<NonceAuthenticationContext> nonceAuthenticationEvaluator;
+    private AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> nonceAuthenticationEvaluator;
 
     @Autowired
     private SecurityContextManager securityContextManager;
@@ -66,7 +67,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     private ModelInteractionService modelInteractionService;
 
     @Override
-    protected AuthenticationEvaluator<NonceAuthenticationContext> getEvaluator() {
+    protected AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> getEvaluator() {
         return nonceAuthenticationEvaluator;
     }
 
@@ -119,9 +120,10 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
             return null;
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        ModuleAuthentication moduleAuth = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
+        ModuleAuthentication moduleAuth = authentication.getProcessingModuleAuthentication();
         String nameOfCredential = ((MailNonceModuleAuthenticationImpl) moduleAuth).getCredentialName();
+
         for (NonceCredentialsPolicyType noncePolicy : securityPolicy.getCredentials().getNonce()) {
             if (noncePolicy != null && nameOfCredential.equals(noncePolicy.getName())) {
                 return noncePolicy;

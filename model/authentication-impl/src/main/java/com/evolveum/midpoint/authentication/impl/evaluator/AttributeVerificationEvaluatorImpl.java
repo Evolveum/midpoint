@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component("attributeVerificationEvaluator")
-public class AttributeVerificationEvaluatorImpl extends AuthenticationEvaluatorImpl<AttributeVerificationCredentialsType, AttributeVerificationAuthenticationContext> {
+public class AttributeVerificationEvaluatorImpl extends CredentialsAuthenticationEvaluatorImpl<AttributeVerificationCredentialsType, AttributeVerificationAuthenticationContext> {
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,

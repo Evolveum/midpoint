@@ -6,17 +6,15 @@
  */
 package com.evolveum.midpoint.authentication.api;
 
-import jakarta.annotation.PostConstruct;
+import java.util.List;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.List;
 
 /**
  * @author skublik

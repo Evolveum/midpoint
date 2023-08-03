@@ -24,14 +24,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 @Component("nonceAuthenticationEvaluator")
-public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<NonceType, NonceAuthenticationContext> {
+public class NonceAuthenticationEvaluatorImpl extends CredentialsAuthenticationEvaluatorImpl<NonceType, NonceAuthenticationContext> {
 
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
             NonceAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getNonce())) {
-            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty nonce provided");
+            auditAuthenticationFailure(authCtx.getUsername(), connEnv, "empty nonce provided");
             throw new BadCredentialsException("web.security.provider.nonce.bad");
         }
     }

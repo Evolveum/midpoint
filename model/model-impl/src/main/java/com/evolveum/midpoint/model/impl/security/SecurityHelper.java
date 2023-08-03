@@ -64,12 +64,12 @@ public class SecurityHelper implements ModelAuditRecorder {
 
 
     @Override
-    public void auditLoginSuccess(@NotNull FocusType user, @NotNull ConnectionEnvironment connEnv) {
-        auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);
-    }
-
-    public void auditLoginSuccess(@NotNull NodeType node, @NotNull ConnectionEnvironment connEnv) {
-        auditLogin(node.getName().getOrig(), null, connEnv, OperationResultStatus.SUCCESS, null);
+    public void auditLoginSuccess(@NotNull ObjectType object, @NotNull ConnectionEnvironment connEnv) {
+        FocusType focus = null;
+        if (object instanceof FocusType){
+            focus = (FocusType) object;
+        }
+        auditLogin(object.getName().getOrig(), focus, connEnv, OperationResultStatus.SUCCESS, null);
     }
 
     @Override

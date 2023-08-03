@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component("securityQuestionsAuthenticationEvaluator")
 public class SecurityQuestionAuthenticationEvaluatorImpl
-        extends AuthenticationEvaluatorImpl<SecurityQuestionsCredentialsType, SecurityQuestionsAuthenticationContext> {
+        extends CredentialsAuthenticationEvaluatorImpl<SecurityQuestionsCredentialsType, SecurityQuestionsAuthenticationContext> {
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, SecurityQuestionsAuthenticationContext authCtx) {

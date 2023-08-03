@@ -17,6 +17,7 @@ import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -44,8 +45,8 @@ public class MidpointPrincipalContextMapper implements UserDetailsContextMapper 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointPrincipalContextMapper.class);
 
     @Autowired
-    @Qualifier("passwordAuthenticationEvaluator")
-    private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
+    @Qualifier("preAuthenticatedEvaluator")
+    private AuthenticationEvaluator<PreAuthenticationContext, PreAuthenticatedAuthenticationToken> preAuthenticatedEvaluator;
 
     public MidpointPrincipalContextMapper() {
     }
@@ -76,7 +77,7 @@ public class MidpointPrincipalContextMapper implements UserDetailsContextMapper 
         PreAuthenticationContext authContext = new PreAuthenticationContext(userNameEffective, focusType, requireAssignment, channel);
 
         try {
-            PreAuthenticatedAuthenticationToken token = authenticationEvaluator.authenticateUserPreAuthenticated(
+            PreAuthenticatedAuthenticationToken token = preAuthenticatedEvaluator.authenticate(
                     connEnv, authContext);
             return (UserDetails) token.getPrincipal();
         } catch (DisabledException | AuthenticationServiceException | UsernameNotFoundException e) {

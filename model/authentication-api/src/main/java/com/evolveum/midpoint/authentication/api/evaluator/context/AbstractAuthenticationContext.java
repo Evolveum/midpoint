@@ -6,18 +6,17 @@
  */
 package com.evolveum.midpoint.authentication.api.evaluator.context;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
 
 public abstract class AbstractAuthenticationContext {
 

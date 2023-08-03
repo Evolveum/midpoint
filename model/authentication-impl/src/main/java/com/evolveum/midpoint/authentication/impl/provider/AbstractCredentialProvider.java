@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CredentialModuleAuthenticationImpl;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
@@ -23,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType
 
 public abstract class AbstractCredentialProvider<T extends AbstractAuthenticationContext> extends MidpointAbstractAuthenticationProvider {
 
-    protected abstract AuthenticationEvaluator<T> getEvaluator();
+    protected abstract AuthenticationEvaluator<T, UsernamePasswordAuthenticationToken> getEvaluator();
 
     public abstract Class<? extends CredentialPolicyType> getTypeOfCredential();
 

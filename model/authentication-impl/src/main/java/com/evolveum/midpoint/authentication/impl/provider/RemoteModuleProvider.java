@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.provider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.impl.evaluator.PreAuthenticatedEvaluatorImpl;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
@@ -35,8 +36,8 @@ import java.util.List;
 public abstract class RemoteModuleProvider extends AbstractAuthenticationProvider {
 
     @Autowired
-    @Qualifier("passwordAuthenticationEvaluator")
-    private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
+    @Qualifier("preAuthenticatedEvaluator")
+    private PreAuthenticatedEvaluatorImpl<PreAuthenticationContext> authenticationEvaluator;
 
     @Autowired
     private ModelAuditRecorder auditProvider;
@@ -69,7 +70,7 @@ public abstract class RemoteModuleProvider extends AbstractAuthenticationProvide
             AuthenticationChannel channel){
         ConnectionEnvironment connEnv = createEnvironment(channel);
         PreAuthenticationContext authContext = new PreAuthenticationContext(enteredUsername, focusType, requireAssignment, channel);
-        return authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, authContext);
+        return authenticationEvaluator.authenticate(connEnv, authContext);
     }
 
     @Override

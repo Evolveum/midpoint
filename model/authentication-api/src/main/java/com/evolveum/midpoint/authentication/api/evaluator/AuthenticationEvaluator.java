@@ -6,22 +6,20 @@
  */
 package com.evolveum.midpoint.authentication.api.evaluator;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Evaluator which checks credentials of identity and return authenticated data about authenticated identity.
  *
  * @author semancik
  */
-public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext> {
+public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext, A extends Authentication> {
 
     /**
      * Checks credentials of identity and create token with {@link com.evolveum.midpoint.security.api.MidPointPrincipal}
@@ -41,21 +39,21 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
      * @throws AccessDeniedException when object found by authentication identifier is unauthorized
      * @throws UsernameNotFoundException when object not found by authentication identifier
      */
-    UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx)
+    A authenticate(ConnectionEnvironment connEnv, T authnCtx)
             throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
-    /**
-     * Only one part of authentication - check credentials
-     *
-     * @param connEnv
-     * @param authnCtx
-     * @return focus identify by authentication context, after successfully checking
-     */
-    @NotNull
-    FocusType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
-            throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
-            CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
+//    /**
+//     * Only one part of authentication - check credentials
+//     *
+//     * @param connEnv
+//     * @param authnCtx
+//     * @return focus identify by authentication context, after successfully checking
+//     */
+//    @NotNull
+//    FocusType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
+//            throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
+//            CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
     /**
      * create authentication token for identity, but without checking credentials only find identity, check authorization
@@ -68,8 +66,8 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
      * @throws AuthenticationServiceException when occur some internal server error during authentication
      * @throws UsernameNotFoundException when object not found by authentication identifier
      */
-    <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(
-            ConnectionEnvironment connEnv, AC authnCtx)
-            throws DisabledException, AuthenticationServiceException, UsernameNotFoundException;
+//    <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(
+//            ConnectionEnvironment connEnv, AC authnCtx)
+//            throws DisabledException, AuthenticationServiceException, UsernameNotFoundException;
 
 }

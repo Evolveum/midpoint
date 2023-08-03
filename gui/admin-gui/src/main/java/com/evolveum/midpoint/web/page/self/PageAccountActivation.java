@@ -80,7 +80,7 @@ public class PageAccountActivation extends PageBase {
     private boolean activated = false;
 
     @SpringBean(name = "passwordAuthenticationEvaluator")
-    private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
+    private AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> authenticationEvaluator;
 
     public PageAccountActivation(PageParameters params) {
 

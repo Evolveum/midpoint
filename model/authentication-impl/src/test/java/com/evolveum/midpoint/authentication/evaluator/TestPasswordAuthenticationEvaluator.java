@@ -23,15 +23,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 import java.util.List;
 
-public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, PasswordAuthenticationContext, AuthenticationEvaluator<PasswordAuthenticationContext>> {
+public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, PasswordAuthenticationContext, AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken>> {
 
     @Autowired
-    private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    private AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> passwordAuthenticationEvaluator;
 
     @Override
-    public AuthenticationEvaluator<PasswordAuthenticationContext> getAuthenticationEvaluator() {
+    public AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> getAuthenticationEvaluator() {
         return passwordAuthenticationEvaluator;
     }
 

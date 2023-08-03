@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -99,7 +101,9 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
         Validate.notEmpty(tokenValue.toString());
 
         try {
-            UserType user = checkUserCredentials(userNameValue.toString(), tokenValue.toString(), result);
+            //TODO
+            UserType user = (UserType) SecurityUtil.getPrincipal().getFocus();
+//            UserType user = checkUserCredentials(userNameValue.toString(), tokenValue.toString(), result);
             PrismObject<UserType> administrator = getAdministratorPrivileged(result);
 
             assignDefaultRoles(user.getOid(), administrator, result);
@@ -119,29 +123,29 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
         }
     }
 
-    private UserType checkUserCredentials(String username, String nonce, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
-        try {
-            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
-            return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(
-                    username,
-                    UserType.class,
-                    nonce,
-                    getSelfRegistrationConfiguration().getNoncePolicy()));
-        } catch (AuthenticationException ex) {
-            getSession().error(getString(ex.getMessage()));
-            result.recordFatalError(getString("PageRegistrationConfirmation.message.failedValidUser.fatalError"), ex);
-            LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
-            throw ex;
-        } catch (Exception ex) {
-            getSession().error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
-            result.recordFatalError(getString("PageRegistrationConfirmation.message.failedconfirmRegistration.fatalError"), ex);
-            LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
-            throw ex;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-    }
+//    private UserType checkUserCredentials(String username, String nonce, OperationResult parentResult) {
+//        OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
+//        try {
+//            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
+//            return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(
+//                    username,
+//                    UserType.class,
+//                    nonce,
+//                    getSelfRegistrationConfiguration().getNoncePolicy()));
+//        } catch (AuthenticationException ex) {
+//            getSession().error(getString(ex.getMessage()));
+//            result.recordFatalError(getString("PageRegistrationConfirmation.message.failedValidUser.fatalError"), ex);
+//            LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
+//            throw ex;
+//        } catch (Exception ex) {
+//            getSession().error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+//            result.recordFatalError(getString("PageRegistrationConfirmation.message.failedconfirmRegistration.fatalError"), ex);
+//            LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
+//            throw ex;
+//        } finally {
+//            result.computeStatusIfUnknown();
+//        }
+//    }
 
     private void assignDefaultRoles(String userOid, PrismObject<UserType> administrator, OperationResult parentResult) throws CommonException {
         List<ObjectReferenceType> rolesToAssign = getSelfRegistrationConfiguration().getDefaultRoles();

@@ -9,16 +9,17 @@ package com.evolveum.midpoint.authentication.impl.provider;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.evaluator.NodeAuthenticationEvaluatorImpl;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.ClusterAuthenticationToken;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.evaluator.context.NodeAuthenticationContext;
+import com.evolveum.midpoint.authentication.impl.evaluator.NodeAuthenticationEvaluatorImpl;
+import com.evolveum.midpoint.authentication.impl.module.authentication.token.ClusterAuthenticationToken;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -73,14 +74,12 @@ public class ClusterProvider extends MidpointAbstractAuthenticationProvider {
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
         Authentication token;
         if (authentication instanceof ClusterAuthenticationToken) {
             String enteredPassword = (String) authentication.getCredentials();
-            if (!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "node authentication")) {
-                throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.null");
-            } else {
-                token = SecurityContextHolder.getContext().getAuthentication();
-            }
+            NodeAuthenticationContext nodeCtx = new NodeAuthenticationContext(null, enteredUsername, enteredPassword);
+            token = nodeAuthenticator.authenticate(connEnv, nodeCtx);
         } else {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");

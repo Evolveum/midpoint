@@ -19,20 +19,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import javax.xml.namespace.QName;
 import java.util.List;
 
-public class TestNonceAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, NonceAuthenticationContext, AuthenticationEvaluator<NonceAuthenticationContext>> {
+public class TestNonceAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, NonceAuthenticationContext, AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken>> {
 
     private static final String USER_JACK_NONCE = "asdfghjkl123456";
     private static final String USER_GUYBRUSH_NONCE = "asdfghjkl654321";
 
     @Autowired
-    private AuthenticationEvaluator<NonceAuthenticationContext> nonceAuthenticationEvaluator;
+    private AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> nonceAuthenticationEvaluator;
 
     @Override
-    public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
+    public AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> getAuthenticationEvaluator() {
         return nonceAuthenticationEvaluator;
     }
 
