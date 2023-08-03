@@ -7,30 +7,33 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import java.io.PrintStream;
 import java.text.DecimalFormat;
 
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
+import com.evolveum.midpoint.ninja.impl.Log;
+import com.evolveum.midpoint.ninja.impl.LogLevel;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+
 public class ConsoleProgressListener implements ProgressListener {
 
     private static final DecimalFormat FORMAT = new DecimalFormat("###");
 
-    private PrintStream stream;
+    private final Log log;
 
-    boolean firstUpdate = true;
+    private boolean firstUpdate = true;
 
-    double progress = 0;
+    private double progress = 0;
 
-    public ConsoleProgressListener(PrintStream stream) {
-        this.stream = stream;
+    public ConsoleProgressListener(Log log) {
+        this.log = log;
     }
 
     @Override
     public void update(long bytesRead, long contentLength, boolean done) {
         if (done) {
-            stream.println(Ansi.ansi().cursorUpLine().eraseLine().fgGreen().a("Download complete").reset());
+            log.info(ConsoleFormat.formatSuccessMessage("Download complete"));
             return;
         }
 
@@ -39,16 +42,27 @@ public class ConsoleProgressListener implements ProgressListener {
 
             String size = contentLength == -1 ? "unknown" : FileUtils.byteCountToDisplaySize(contentLength);
 
-            stream.println(Ansi.ansi().fgBlack().a("Download size: " + size).reset());
-            // this empy line will be removed with progress update
-            stream.println();
+            log.info(ConsoleFormat.formatMessageWithInfoParameters("Download size: {}", size));
+
+            // this empty line will be removed with progress update
+            log.info("");
         }
 
         double newProgress = (double) (100 * bytesRead) / contentLength;
         if (newProgress - progress > 1) {
-            stream.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).a("Progress: ").fgBlue().a(FORMAT.format(newProgress)).a("%").reset());
+            logProgress(newProgress);
 
             progress = newProgress;
         }
+    }
+
+    private void logProgress(double newProgress) {
+        log.info(Ansi.ansi()
+                .cursorToColumn(1)
+                .cursorUpLine().eraseLine(Ansi.Erase.ALL)
+                .a(
+                        ConsoleFormat.formatLogMessage(LogLevel.INFO,
+                                ConsoleFormat.formatMessageWithInfoParameters("Progress: {}%", FORMAT.format(newProgress)))
+                ).toString());
     }
 }
