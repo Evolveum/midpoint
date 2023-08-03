@@ -6,10 +6,7 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardLayoutType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HomePageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 
@@ -23,7 +20,7 @@ public class UserDashboardProcessor implements UpgradeObjectProcessor<ObjectType
 
     @Override
     public UpgradeType getType() {
-        return UpgradeType.SEAMLESS;
+        return UpgradeType.PREVIEW;
     }
 
     @Override
@@ -39,12 +36,34 @@ public class UserDashboardProcessor implements UpgradeObjectProcessor<ObjectType
     @Override
     public boolean process(PrismObject<ObjectType> object, ItemPath path) {
         AdminGuiConfigurationType adminGuiConfig = getItemParent(object, path);
-        DashboardLayoutType dashboard = adminGuiConfig.getUserDashboard();
 
         List<HomePageType> homePages = adminGuiConfig.getHomePage();
+        HomePageType userHome = homePages.stream()
+                .filter(hp -> UserType.COMPLEX_TYPE.equals(hp.getType()))
+                .findFirst().orElse(null);
 
-        // todo implement, no idea how
+        if (userHome == null) {
+            userHome = new HomePageType();
+            userHome.setType(UserType.COMPLEX_TYPE);
+            userHome.setIdentifier("user");
+            homePages.add(userHome);
+        }
 
-        return false;
+        DashboardLayoutType dashboard = adminGuiConfig.getUserDashboard();
+        List<DashboardWidgetType> dashboardWidgets = dashboard.getWidget();
+
+        for (DashboardWidgetType dw : dashboardWidgets) {
+            PreviewContainerPanelConfigurationType widget = new PreviewContainerPanelConfigurationType();
+            userHome.getWidget().add(widget);
+
+            copyUserInterfaceFeature(dw, widget);
+
+            dw.getData();
+            dw.getPresentation();
+        }
+
+        adminGuiConfig.setUserDashboard(null);
+
+        return true;
     }
 }

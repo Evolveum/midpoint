@@ -114,8 +114,26 @@
     </roleManagement>
 
     <adminGuiConfiguration>
-        <userDashboardLink>
+        <userDashboard>
+            <widget id="14">
+                <identifier>123</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+            <widget id="15">
+                <identifier>456</identifier>
+                <visibility>vacant</visibility>
+            </widget>
+        </userDashboard>
+        <userDashboardLink id="12">
             <targetUrl>https://google.com</targetUrl>
+            <color>red</color>
+            <icon>
+                <cssClass>black</cssClass>
+            </icon>
+        </userDashboardLink>
+        <userDashboardLink id="13">
+            <targetUrl>https://sample.com</targetUrl>
+            <label>Sample</label>
         </userDashboardLink>
         <objectForms>
             <objectForm>

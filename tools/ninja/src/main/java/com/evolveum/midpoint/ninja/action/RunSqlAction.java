@@ -224,6 +224,8 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                     }
 
                     stmt.close();
+
+                    log.info(ConsoleFormat.formatSuccessMessage("Script executed successfully."));
                 }
             } finally {
                 connection.setAutoCommit(autocommit);
@@ -232,7 +234,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
     }
 
     private void printStatementResults(Statement stmt, boolean hasResult, int index) throws SQLException {
-        String resultHeader = ConsoleFormat.formatInfoMessageWithParameter("Result #", index) + ": ";
+        String resultHeader = ConsoleFormat.formatMessageWithInfoParameters("Result #{}", index) + ": ";
         if (!hasResult) {
             int updateCount = stmt.getUpdateCount();
             if (updateCount != -1) {

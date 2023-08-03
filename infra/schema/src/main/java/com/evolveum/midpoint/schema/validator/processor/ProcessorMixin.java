@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -14,8 +16,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 public interface ProcessorMixin {
 
@@ -113,5 +113,15 @@ public interface ProcessorMixin {
         to.getWhiteList().addAll(from.getWhiteList());
         to.getBlackList().addAll(from.getBlackList());
         to.setRecipientFilterExpression(from.getRecipientFilterExpression());
+    }
+
+    default void copyUserInterfaceFeature(UserInterfaceFeatureType from, UserInterfaceFeatureType to) {
+        to.setIdentifier(from.getIdentifier());
+        to.setDocumentation(from.getDocumentation());
+        to.setDisplay(from.getDisplay());
+        to.setDescription(from.getDescription());
+        to.setDisplayOrder(from.getDisplayOrder());
+        to.setVisibility(from.getVisibility());
+        to.setApplicableForOperation(from.getApplicableForOperation());
     }
 }
