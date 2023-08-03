@@ -132,6 +132,11 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     protected abstract String getPanelType();
 
+    @Override
+    public String getStepId() {
+        return getPanelType();
+    }
+
     protected ItemVisibilityHandler getVisibilityHandler() {
         return null;
     }

@@ -82,6 +82,11 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
 
     protected abstract String getPanelType();
 
+    @Override
+    public String getStepId() {
+        return getPanelType();
+    }
+
     protected TileTablePanel<TemplateTile<SelectableBean<O>>, SelectableBean<O>> getTable() {
         return (TileTablePanel) get(ID_TABLE);
     }
