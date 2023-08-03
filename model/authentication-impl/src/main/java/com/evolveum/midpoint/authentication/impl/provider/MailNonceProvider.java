@@ -11,6 +11,11 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -21,6 +26,10 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.token.Mai
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.MailNonceModuleAuthenticationImpl;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -28,7 +37,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
@@ -55,7 +63,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
     private SecurityContextManager securityContextManager;
 
     @Autowired
-    private TaskManager manager;
+    private TaskManager taskManager;
 
     @Autowired
     private ModelService modelService;
@@ -84,9 +92,13 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
         Authentication token;
         if (authentication instanceof MailNonceAuthenticationToken) {
             String nonce = (String) authentication.getCredentials();
+
+            UserType user = searchUser(enteredUsername);
+            NonceCredentialsPolicyType noncePolicy = getNoncePolicy(user);
             NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
-                    focusType, nonce, getNoncePolicy(enteredUsername), requireAssignment, channel);
+                    focusType, nonce, noncePolicy, requireAssignment, channel);
             token = getEvaluator().authenticate(connEnv, authContext);
+            removeNonceAfterSuccessullAuthentication(user);
         } else {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
@@ -100,23 +112,43 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
 
     }
 
-    private NonceCredentialsPolicyType getNoncePolicy(String username) {
-        if (StringUtils.isBlank(username)) {
+    private UserType searchUser(String enteredUsername) {
+        if (StringUtils.isBlank(enteredUsername)) {
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
-
-        if (illegalAuthentication()){
-            return null;
-        }
-
-        UserType user = AuthSequenceUtil.searchUserPrivileged(username, securityContextManager, manager,
+        UserType user = AuthSequenceUtil.searchUserPrivileged(enteredUsername, securityContextManager, taskManager,
                 modelService, prismContext);
         if (user == null) {
             throw new UsernameNotFoundException("web.security.provider.invalid.credentials");
         }
+        return user;
+    }
 
-        SecurityPolicyType securityPolicy = AuthSequenceUtil.resolveSecurityPolicy(user.asPrismObject(), securityContextManager, manager, modelInteractionService);
-        if (illegalPolicy(securityPolicy)){
+    private void removeNonceAfterSuccessullAuthentication(UserType user) {
+        securityContextManager.runPrivileged((Producer<Void>) () -> removeNonce(user));
+    }
+
+    private Void removeNonce(UserType user) {
+        try {
+            NonceType nonce = user.getCredentials().getNonce();
+            ObjectDelta<UserType> deleteNonce = PrismContext.get().deltaFactory()
+                    .object()
+                    .createModificationDeleteContainer(UserType.class, user.getOid(),
+                            ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
+                            nonce.clone());
+
+            Task task = taskManager.createTaskInstance("Remove nonce from user");
+            modelService.executeChanges(MiscSchemaUtil.createCollection(deleteNonce), null, task, task.getResult());
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't remove nonce from user {}", user, e);
+        }
+        return null;
+    }
+
+    private NonceCredentialsPolicyType getNoncePolicy(UserType user) {
+        if (illegalAuthentication()){
             return null;
         }
 
@@ -124,39 +156,13 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
         ModuleAuthentication moduleAuth = authentication.getProcessingModuleAuthentication();
         String nameOfCredential = ((MailNonceModuleAuthenticationImpl) moduleAuth).getCredentialName();
 
-        for (NonceCredentialsPolicyType noncePolicy : securityPolicy.getCredentials().getNonce()) {
-            if (noncePolicy != null && nameOfCredential.equals(noncePolicy.getName())) {
-                return noncePolicy;
-            }
-        }
-        LOGGER.debug("Couldn't find nonce credential by name " + nameOfCredential);
-        return null;
-    }
-
-    private boolean illegalPolicy(SecurityPolicyType securityPolicy) {
-        if (securityPolicy == null) {
-            LOGGER.debug("Security policy from principal is null");
-            return true;
-        }
-        if (securityPolicy.getCredentials() == null) {
-            LOGGER.debug("Credentials in security policy from principal is null");
-            return true;
-        }
-        if (securityPolicy.getCredentials().getNonce() == null) {
-            LOGGER.debug("Nonce credentials in security policy from principal is null");
-            return true;
-        }
-        return false;
+        return AuthSequenceUtil.determineNoncePolicy(user.asPrismObject(), nameOfCredential, taskManager, modelInteractionService);
     }
 
     private boolean illegalAuthentication() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
 
-        if (!(authentication instanceof MidpointAuthentication)) {
-            LOGGER.debug("Actual authentication isn't MidpointAuthentication");
-            return true;
-        }
-        ModuleAuthentication moduleAuth = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
+        ModuleAuthentication moduleAuth = authentication.getProcessingModuleAuthentication();
         if (!(moduleAuth instanceof MailNonceModuleAuthenticationImpl)) {
             LOGGER.debug("Actual processing authentication module isn't MailNonceModuleAuthentication");
             return true;

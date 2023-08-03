@@ -27,6 +27,7 @@ public class AttributeVerificationModuleAuthenticationImpl extends CredentialMod
     public ModuleAuthenticationImpl clone() {
         AttributeVerificationModuleAuthenticationImpl module = new AttributeVerificationModuleAuthenticationImpl(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
+        module.setPathsToVerify(this.paths);
         super.clone(module);
         return module;
     }

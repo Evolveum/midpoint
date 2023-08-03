@@ -363,60 +363,51 @@ public class AuthSequenceUtil {
 
     public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
             ModelService modelService, PrismContext prismContext) {
-        return securityContextManager.runPrivileged(new Producer<>() {
-            final ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(UserType.F_NAME).eqPoly(username).matchingNorm()
-                    .build();
+        return securityContextManager.runPrivileged((Producer<UserType>) () -> {
+            Task task = createAnonymousTask("load user", manager);
+            OperationResult result = new OperationResult("search user");
 
-            @Override
-            public UserType run() {
-                Task task = createAnonymousTask("load user", manager);
-                OperationResult result = new OperationResult("search user");
+            SearchResultList<PrismObject<UserType>> users;
+            try {
+                final ObjectQuery query = prismContext.queryFor(UserType.class)
+                        .item(UserType.F_NAME).eqPoly(username).matchingNorm()
+                        .build();
 
-                SearchResultList<PrismObject<UserType>> users;
-                try {
-                    users = modelService.searchObjects(UserType.class, query, null, task, result);
-                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                        | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                    LoggingUtils.logException(LOGGER, "failed to search user", e);
-                    return null;
-                }
-
-                if ((users == null) || (users.isEmpty())) {
-                    LOGGER.trace("Empty user list in ForgetPassword");
-                    return null;
-                }
-                if (users.size() > 1) {
-                    LOGGER.trace("Problem while seeking for user");
-                    return null;
-                }
-
-                UserType user = users.iterator().next().asObjectable();
-                LOGGER.trace("User found for ForgetPassword: {}", user);
-                return user;
+                users = modelService.searchObjects(UserType.class, query, null, task, result);
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                    | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                LoggingUtils.logException(LOGGER, "failed to search user", e);
+                return null;
             }
+
+            if ((users == null) || (users.isEmpty())) {
+                LOGGER.trace("Empty user list in ForgetPassword");
+                return null;
+            }
+            if (users.size() > 1) {
+                LOGGER.trace("Problem while seeking for user");
+                return null;
+            }
+
+            UserType user = users.iterator().next().asObjectable();
+            LOGGER.trace("User found for ForgetPassword: {}", user);
+            return user;
         });
     }
 
-    public static SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user, SecurityContextManager securityContextManager, TaskManager manager,
+    public static NonceCredentialsPolicyType determineNoncePolicy(PrismObject<UserType> user,
+            String nonceName, TaskManager manager,
             ModelInteractionService modelInteractionService) {
 
-        return securityContextManager.runPrivileged(new Producer<>() {
-            @Serial private static final long serialVersionUID = 1L;
+            Task task = createAnonymousTask("get security policy", manager);
+            OperationResult result = new OperationResult("get security policy");
 
-            @Override
-            public SecurityPolicyType run() {
-                Task task = createAnonymousTask("get security policy", manager);
-                OperationResult result = new OperationResult("get security policy");
-
-                try {
-                    return modelInteractionService.getSecurityPolicy(user, task, result);
-                } catch (CommonException e) {
-                    LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
-                    return null;
-                }
+            try {
+                return modelInteractionService.determineNonceCredentialsPolicy(user, nonceName, task, result);
+            } catch (CommonException e) {
+                LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
+                return null;
             }
-        });
     }
 
     public static boolean isBasePathForSequence(HttpServletRequest httpRequest, AuthenticationSequenceType sequence) {

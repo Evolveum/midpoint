@@ -647,6 +647,36 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return containerValue.asContainerable();
     }
 
+    public <F extends FocusType> NonceCredentialsPolicyType determineNonceCredentialsPolicy(
+            PrismObject<F> focus,
+            String nonceCredentialName,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException {
+
+        SecurityPolicyType securityPolicy = getSecurityPolicy(focus, task, parentResult);
+
+        if (securityPolicy == null) {
+            LOGGER.warn("No security policy, cannot process nonce credential"); //TODO correct level?
+            return null;
+        }
+        if (securityPolicy.getCredentials() == null) {
+            LOGGER.warn("No credential for security policy, cannot process nonce credential");
+            return null;
+        }
+        List<NonceCredentialsPolicyType> noncePolicies = securityPolicy.getCredentials().getNonce();
+        if (noncePolicies.isEmpty()) {
+            LOGGER.warn("No nonce credential for security policy, cannot process nonce credential");
+            return null;
+        }
+        for (NonceCredentialsPolicyType credential : securityPolicy.getCredentials().getNonce()) {
+            if (nonceCredentialName.equals(credential.getName())) {
+                return credential;
+            }
+        }
+        return null;
+    }
+
     @Override
     public <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, Task task, OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
