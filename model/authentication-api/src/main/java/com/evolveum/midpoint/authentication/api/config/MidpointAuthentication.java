@@ -37,7 +37,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 /**
- * wrapper for all authentication modules, basic authentication token
+ * Authentication token on top of hierarchy.
+ * Wrapper for all authentication modules.
+ * Contains method and variables for finding out the current status of authentication.
+ * Also contains method and variables for easy recovery of authentication flow.
  *
  * @author skublik
  */

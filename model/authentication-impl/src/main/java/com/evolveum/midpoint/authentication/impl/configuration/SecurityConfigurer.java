@@ -59,13 +59,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Class with basic components for authentication filters.
+ * Also this class contains configuration for path which ignore authentication.
+ *
  * @author skublik
  */
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
 @Configuration
 @EnableWebSecurity
 @DependsOn("initialSecurityConfiguration")
-public class MidpointWebSecurityConfigurerAdapter {//extends WebSecurityConfigurerAdapter {
+public class SecurityConfigurer {
 
     @Autowired
     private AuthChannelRegistryImpl authChannelRegistry;
@@ -79,20 +82,14 @@ public class MidpointWebSecurityConfigurerAdapter {//extends WebSecurityConfigur
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
     private ContentNegotiationStrategy contentNegotiationStrategy = new HeaderContentNegotiationStrategy();
 
-//    public MidpointWebSecurityConfigurerAdapter() {
-//        super(true);
-//    }
-
     @Autowired(required = false)
     void setContentNegotiationStrategy(ContentNegotiationStrategy contentNegotiationStrategy) {
         this.contentNegotiationStrategy = contentNegotiationStrategy;
     }
 
-//    @Override
     @Autowired
     public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
         this.objectObjectPostProcessor = objectPostProcessor;
-//        super.setObjectPostProcessor(objectPostProcessor);
     }
 
     @Bean
@@ -130,7 +127,6 @@ public class MidpointWebSecurityConfigurerAdapter {//extends WebSecurityConfigur
     }
 
 
-//    @Override
     @Bean
     @SessionAndRequestScope
     protected MidpointProviderManager authenticationManager() throws Exception {
@@ -160,29 +156,6 @@ public class MidpointWebSecurityConfigurerAdapter {//extends WebSecurityConfigur
             web.ignoring().requestMatchers(new AntPathRequestMatcher("/favicon.ico"));
         };
     }
-
-//    @Override
-//    public void configure(WebSecurity web) throws Exception {
-//        super.configure(web);
-//        // Web (SOAP) services
-//        web.ignoring().antMatchers("/model/**");
-//
-//        // Special intra-cluster service to download and delete report outputs
-//        web.ignoring().antMatchers("/report");
-//
-//        web.ignoring().antMatchers("/js/**");
-//        web.ignoring().antMatchers("/css/**");
-//        web.ignoring().antMatchers("/img/**");
-//        web.ignoring().antMatchers("/fonts/**");
-//
-//        web.ignoring().antMatchers("/static/**");
-//        web.ignoring().antMatchers("/static-web/**");
-//        web.ignoring().antMatchers("/less/**");
-//
-//        web.ignoring().antMatchers("/wicket/resource/**");
-//
-//        web.ignoring().antMatchers("/favicon.ico");
-//    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -216,22 +189,6 @@ public class MidpointWebSecurityConfigurerAdapter {//extends WebSecurityConfigur
         sharedObjects.put(ContentNegotiationStrategy.class, this.contentNegotiationStrategy);
         return sharedObjects;
     }
-
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
-//        http.addFilter(new WebAsyncManagerIntegrationFilter())
-//                .sessionManagement().and()
-//                .securityContext();
-//        http.apply(new AuthFilterConfigurer());
-//
-//        createSessionContextRepository(http);
-//
-//        http.sessionManagement()
-//                .maximumSessions(-1)
-//                .sessionRegistry(sessionRegistry)
-//                .maxSessionsPreventsLogin(true);
-//    }
 
     private void createSessionContextRepository(HttpSecurity http) {
         HttpSessionSecurityContextRepository httpSecurityRepository = new HttpSessionSecurityContextRepository() {
