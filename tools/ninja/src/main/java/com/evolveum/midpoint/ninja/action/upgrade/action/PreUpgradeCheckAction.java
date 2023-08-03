@@ -72,11 +72,9 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
         boolean equals = Objects.equals(number, Integer.toString(expected));
 
         if (!equals) {
-            log.error(ConsoleFormat.formatError(
-                    "Database schema change number (" + number + ") doesn't match supported one (" + expected + ") for label "
-                            + label + "."));
+            log.error("Database schema change number ({}) doesn't match supported one ({}) for label {}.", number, expected, label);
         } else {
-            log.info("Database schema change number matches supported one (" + expected + ") for label " + label + ".");
+            log.info("Database schema change number matches supported one ({}) for label {}.", expected, label);
         }
 
         return equals;
@@ -107,12 +105,11 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
         });
 
         if (versions.isEmpty()) {
-            log.info(ConsoleFormat.formatWarn("There are zero nodes in cluster to validate current midPoint version."));
+            log.warn("There are zero nodes in cluster to validate current midPoint version.");
 
             return true;
         } else if (versions.size() > 1) {
-            log.error(ConsoleFormat.formatError(
-                    "There are nodes with different versions of midPoint. Please remove incorrect nodes from cluster."));
+            log.error("There are nodes with different versions of midPoint. Please remove incorrect nodes from cluster.");
             return false;
         }
 

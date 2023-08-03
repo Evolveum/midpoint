@@ -1,17 +1,9 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
-import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
-import com.evolveum.midpoint.ninja.action.upgrade.SkipUpgradeItem;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
-import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
-import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -20,10 +12,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
+import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
+import com.evolveum.midpoint.ninja.action.upgrade.SkipUpgradeItem;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectHandler;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
+import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, Void> {
 
@@ -52,7 +51,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
 
         if (!options.getFiles().isEmpty()) {
             if (!options.isSkipUpgradeWarning()) {
-                log.info(ConsoleFormat.formatWarn("WARNING: File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)"));
+                log.warn("File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)");
                 String result = NinjaUtils.readInput(input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
 
                 if (result.trim().equalsIgnoreCase("n")) {
