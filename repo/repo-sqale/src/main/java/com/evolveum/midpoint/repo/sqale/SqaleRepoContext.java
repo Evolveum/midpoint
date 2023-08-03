@@ -125,10 +125,14 @@ public class SqaleRepoContext extends SqlRepoContext {
     public void initialize() {
         // skip version check if option was defined or option value is "true" (equals ignore case)
         String skipVersionCheck = System.getProperty(MidpointConfiguration.MIDPOINT_SKIP_VERSION_CHECK + "1");
-        if ("".equals(skipVersionCheck) || BooleanUtils.isTrue(Boolean.parseBoolean(skipVersionCheck))) {
-            return;
+        if (BooleanUtils.isNotTrue(Boolean.parseBoolean(skipVersionCheck))) {
+            checkDBSchemaVersion();
         }
 
+        clearCaches();
+    }
+
+    private void checkDBSchemaVersion() {
         LOGGER.debug("Checking DB schema version.");
 
         try (JdbcSession session = this.newJdbcSession().startReadOnlyTransaction()) {
@@ -148,8 +152,6 @@ public class SqaleRepoContext extends SqlRepoContext {
 
             LOGGER.debug("DB schema version check OK.");
         }
-
-        clearCaches();
     }
 
     // This has nothing to do with "repo cache" which is higher than this.
