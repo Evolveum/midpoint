@@ -64,7 +64,6 @@ public class Main {
         this.err = err;
     }
 
-    // todo main doesn't return error code non zero if error occurs, fix this
     protected <T> @NotNull MainResult<?> run(String[] args) {
         AnsiConsole.systemInstall();
 
