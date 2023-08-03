@@ -232,18 +232,6 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
 
         columns.addAll(createCustomColumns());
 
-        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                mappingTypeDef,
-                MappingType.F_ENABLED,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-            @Override
-            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                Component header = super.createHeader(componentId, mainModel);
-                header.add(AttributeAppender.append("class", "d-table-row"));
-                return header;
-            }
-        });
 
         columns.add(new SimulationModeColumn<>(getContainerModel(), getPageBase()));
 
