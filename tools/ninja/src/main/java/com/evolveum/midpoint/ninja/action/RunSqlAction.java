@@ -232,7 +232,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
     }
 
     private void printStatementResults(Statement stmt, boolean hasResult, int index) throws SQLException {
-        String resultHeader = ConsoleFormat.formatInfoMessageWithParameter("Result #", index) + ": ";
+        String resultHeader = ConsoleFormat.formatMessageWithInfoParameters("Result #{}", index) + ": ";
         if (!hasResult) {
             int updateCount = stmt.getUpdateCount();
             if (updateCount != -1) {

@@ -41,12 +41,25 @@ public final class ConsoleFormat {
         return Ansi.ansi().a("Starting ").fgGreen().a(operation).reset().toString();
     }
 
-    public static String formatInfoMessageWithParameter(String message, Object parameter) {
-        return formatMessageWithParameter(message, parameter, Level.INFO);
+    public static String formatMessageWithErrorParameters(String message, Object... parameters) {
+        return formatMessageWithParameter(message, parameters, Level.ERROR);
     }
 
-    public static String formatMessageWithParameter(String message, Object parameter, Level level) {
-        return Ansi.ansi().a(message).fgBright(level.color).a(parameter).reset().toString();
+    public static String formatMessageWithWarningParameters(String message, Object... parameters) {
+        return formatMessageWithParameter(message, parameters, Level.WARN);
+    }
+
+    public static String formatMessageWithInfoParameters(String message, Object... parameters) {
+        return formatMessageWithParameter(message, parameters, Level.INFO);
+    }
+
+    public static String formatMessageWithParameter(String message, Object[] parameters, Level level) {
+        String[] formatted = new String[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            formatted[i] = Ansi.ansi().fgBright(level.color).a(parameters[i]).reset().toString();
+        }
+
+        return NinjaUtils.printFormatted(message, formatted);
     }
 
     public static String formatLogMessage(LogLevel level, String msg) {

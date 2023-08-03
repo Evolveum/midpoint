@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.ninja.impl;
 
 import java.io.PrintStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,8 +18,6 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
  * Created by Viliam Repan (lazyman).
  */
 public class Log {
-
-    private static final Pattern PATTERN = Pattern.compile("\\{}");
 
     private final LogVerbosity level;
 
@@ -72,21 +68,16 @@ public class Log {
                 // all log levels should be printed
         }
 
-        Matcher matcher = PATTERN.matcher(message);
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
 
-        StringBuilder sb = new StringBuilder();
-
-        int i = 0;
-        while (matcher.find()) {
-            Object arg = args[i++];
             if (arg instanceof Exception && level == LogLevel.DEBUG) {
-                arg = NinjaUtils.printStackToString((Exception) arg);
+                args[i] = NinjaUtils.printStackToString((Exception) arg);
             }
-
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(arg.toString()));
         }
-        matcher.appendTail(sb);
 
-        stream.println(ConsoleFormat.formatLogMessage(level, sb.toString()));
+        String formatted = NinjaUtils.printFormatted(message, args);
+
+        stream.println(ConsoleFormat.formatLogMessage(level, formatted));
     }
 }

@@ -86,7 +86,7 @@ public class Main {
 
         if (base.isVerbose() && base.isSilent()) {
             err.println(ConsoleFormat.formatLogMessage(
-                    LogLevel.ERROR, "Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT + " together (verbose and silent)"));
+                    LogLevel.ERROR, "Can't use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT + " together (verbose and silent)"));
 
             printHelp(jc, parsedCommand);
 
