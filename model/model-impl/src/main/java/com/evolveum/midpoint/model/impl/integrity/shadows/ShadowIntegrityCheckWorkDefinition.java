@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityAspec
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityCheckWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import javax.xml.namespace.QName;
+
 public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
     private static final Map<String, ShadowIntegrityAspectType> KNOWN_KEYS = Map.of(
@@ -44,7 +46,8 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
     @NotNull private final String duplicateShadowsResolver;
     private final boolean checkDuplicatesOnPrimaryIdentifiersOnly;
 
-    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source) {
+    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         var typedDefinition = (ShadowIntegrityCheckWorkDefinitionType) source.getBean();
         shadows = ObjectSetUtil.emptyIfNull(typedDefinition.getShadows());
         ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);

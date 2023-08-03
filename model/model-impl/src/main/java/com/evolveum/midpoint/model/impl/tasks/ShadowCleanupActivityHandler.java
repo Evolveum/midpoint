@@ -70,6 +70,11 @@ public class ShadowCleanupActivityHandler
     }
 
     @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_SHADOW_CLEANUP;
+    }
+
+    @Override
     protected @NotNull Class<MyWorkDefinition> getWorkDefinitionClass() {
         return MyWorkDefinition.class;
     }
@@ -186,7 +191,8 @@ public class ShadowCleanupActivityHandler
         private final ResourceObjectSetType shadows;
         @NotNull private final Duration interval;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (ShadowCleanupWorkDefinitionType) source.getBean();
 
             shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());

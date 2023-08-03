@@ -37,19 +37,18 @@ import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
 
 /**
- * @author semancik
+ * Manages metadata (mostly before delta execution), but also some other operational data, namely assignment effective status.
+ * (I am not sure why do we that here. See {@link #setAssignmentEffectiveStatus(AssignmentType)}.)
  *
+ * @author semancik
  */
 @Component
-public class OperationalDataManager {
+public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationalDataManager.class);
 
-    @Autowired(required = false)
-    private ActivationComputer activationComputer;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private ActivationComputer activationComputer;
+    @Autowired private PrismContext prismContext;
 
     /**
      * Stores request metadata in the model context. Because the operation can finish later
@@ -88,8 +87,8 @@ public class OperationalDataManager {
     /**
      * Sets object and assignment metadata on object ADD operation.
      */
-    public <T extends ObjectType, F extends ObjectType> void applyMetadataAdd(LensContext<F> context,
-            PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task) {
+    public <T extends ObjectType, F extends ObjectType> void applyMetadataAdd(
+            LensContext<F> context, PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task) {
 
         MetadataType metadata = getOrCreateMetadata(objectToAdd);
 
@@ -103,27 +102,29 @@ public class OperationalDataManager {
         }
     }
 
-    @NotNull
-    private <T extends ObjectType> MetadataType getOrCreateMetadata(PrismObject<T> objectToAdd) {
+    private <T extends ObjectType> @NotNull MetadataType getOrCreateMetadata(PrismObject<T> objectToAdd) {
         T object = objectToAdd.asObjectable();
         MetadataType metadata = object.getMetadata();
         if (metadata != null) {
             return metadata;
         } else {
-            MetadataType newMetadata = new MetadataType(prismContext);
+            MetadataType newMetadata = new MetadataType();
             object.setMetadata(newMetadata);
             return newMetadata;
         }
     }
 
-    public <T extends ObjectType, F extends ObjectType> void applyMetadataModify(ObjectDelta<T> objectDelta,
-            Class objectTypeClass, LensElementContext<T> elementContext, XMLGregorianCalendar now, Task task,
+    public <T extends ObjectType, F extends ObjectType, AH extends AssignmentHolderType> void applyMetadataModify(
+            ObjectDelta<T> objectDelta,
+            Class<T> objectTypeClass,
+            LensElementContext<T> elementContext,
+            XMLGregorianCalendar now,
+            Task task,
             LensContext<F> context) throws SchemaException {
         assert objectDelta.isModify();
 
         MetadataType currentMetadata = getCurrentMetadata(elementContext);
 
-        //noinspection unchecked
         ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
                 createModifyMetadataDeltas(context, currentMetadata, ObjectType.F_METADATA, objectTypeClass, now, task));
 
@@ -132,7 +133,7 @@ public class OperationalDataManager {
 
         if (AssignmentHolderType.class.isAssignableFrom(objectTypeClass)) {
             //noinspection unchecked
-            applyAssignmentMetadataDelta((LensContext) context, (ObjectDelta) objectDelta, now, task);
+            applyAssignmentMetadataDelta((LensContext<AH>) context, (ObjectDelta<AH>) objectDelta, now, task);
         }
     }
 
@@ -141,8 +142,8 @@ public class OperationalDataManager {
         return objectCurrent != null ? objectCurrent.asObjectable().getMetadata() : null;
     }
 
-    private <AH extends AssignmentHolderType, T extends ObjectType> void applyAssignmentMetadataObject(LensContext<AH> context,
-            PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task) {
+    private <AH extends AssignmentHolderType, T extends ObjectType> void applyAssignmentMetadataObject(
+            LensContext<AH> context, PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task) {
 
         PrismContainer<AssignmentType> assignmentContainer = objectToAdd.findContainer(AssignmentHolderType.F_ASSIGNMENT);
         if (assignmentContainer != null) {
@@ -152,7 +153,8 @@ public class OperationalDataManager {
         }
     }
 
-    private <AH extends AssignmentHolderType> void applyAssignmentMetadataDelta(LensContext<AH> context, ObjectDelta<AH> objectDelta,
+    private <AH extends AssignmentHolderType> void applyAssignmentMetadataDelta(
+            LensContext<AH> context, ObjectDelta<AH> objectDelta,
             XMLGregorianCalendar now, Task task) throws SchemaException {
 
         assert objectDelta.isModify();
@@ -213,8 +215,8 @@ public class OperationalDataManager {
                 asContainerable(metadataContainer.getValue()) : null;
     }
 
-    private <AH extends AssignmentHolderType> void applyAssignmentValueMetadataAdd(LensContext<AH> context,
-            PrismContainerValue<AssignmentType> assignmentContainerValue, String desc,
+    private <AH extends AssignmentHolderType> void applyAssignmentValueMetadataAdd(
+            LensContext<AH> context, PrismContainerValue<AssignmentType> assignmentContainerValue, String desc,
             XMLGregorianCalendar now, Task task) {
 
         AssignmentType assignment = assignmentContainerValue.asContainerable();
@@ -225,7 +227,8 @@ public class OperationalDataManager {
         applyCreateMetadata(context, metadata, now, task);
 
         LOGGER.trace("Adding operational data {} to assignment cval ({}):\nMETADATA:\n{}\nACTIVATION:\n{}",
-                metadata, desc, assignmentContainerValue.debugDumpLazily(1), activation.asPrismContainerValue().debugDumpLazily(1));
+                metadata, desc, assignmentContainerValue.debugDumpLazily(1),
+                activation.asPrismContainerValue().debugDumpLazily(1));
     }
 
     /**
@@ -237,34 +240,35 @@ public class OperationalDataManager {
         // The effectiveStatus of existing assignments is processed in FocusProcessor.processAssignmentActivation()
         // We cannot process that here. Because this code is not even triggered when there is no delta. So recompute will not work.
         ActivationType activation = assignment.getActivation();
-        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(assignment.getLifecycleState(), activation, null);
+        ActivationStatusType effectiveStatus =
+                activationComputer.getEffectiveStatus(assignment.getLifecycleState(), activation, null);
         if (activation == null) {
-            activation = new ActivationType(prismContext);
+            activation = new ActivationType();
             assignment.setActivation(activation);
         }
         activation.setEffectiveStatus(effectiveStatus);
         return activation;
     }
 
-    @NotNull
-    private MetadataType getOrCreateMetadata(AssignmentType assignment) {
+    private @NotNull MetadataType getOrCreateMetadata(AssignmentType assignment) {
         MetadataType metadata = assignment.getMetadata();
         if (metadata != null) {
             return metadata;
         } else {
-            MetadataType newMetadata = new MetadataType(prismContext);
+            MetadataType newMetadata = new MetadataType();
             assignment.setMetadata(newMetadata);
             return newMetadata;
         }
     }
 
     public <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
-        MetadataType metaData = new MetadataType(prismContext);
+        MetadataType metaData = new MetadataType();
         applyCreateMetadata(context, metaData, now, task);
         return metaData;
     }
 
-    private <F extends ObjectType> void applyCreateMetadata(LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
+    private <F extends ObjectType> void applyCreateMetadata(
+            LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
         String channel = LensUtil.getChannel(context, task);
         metaData.setCreateChannel(channel);
         metaData.setCreateTimestamp(now);
@@ -279,12 +283,12 @@ public class OperationalDataManager {
         metadata.getCreateApprovalComment().addAll(context.getOperationApproverComments());
     }
 
-    private <F extends ObjectType> List<ItemDelta<?, ?>> createModifyApprovalMetadataDeltas(Class objectTypeClass, LensContext<F> context) throws SchemaException {
+    private List<ItemDelta<?, ?>> createModifyApprovalMetadataDeltas(
+            Class<? extends ObjectType> objectTypeClass, LensContext<? extends ObjectType> context) throws SchemaException {
         List<PrismReferenceValue> approverReferenceValues = new ArrayList<>();
         for (ObjectReferenceType approverRef : context.getOperationApprovedBy()) {
             approverReferenceValues.add(approverRef.asReferenceValue().clone());
         }
-        //noinspection unchecked
         return prismContext.deltaFor(objectTypeClass)
                 .item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approverReferenceValues)
                 .item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(context.getOperationApproverComments())

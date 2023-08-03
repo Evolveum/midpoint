@@ -64,6 +64,11 @@ public class DeletionActivityHandler
     }
 
     @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_DELETION;
+    }
+
+    @Override
     protected @NotNull Class<MyWorkDefinition> getWorkDefinitionClass() {
         return MyWorkDefinition.class;
     }
@@ -254,7 +259,8 @@ public class DeletionActivityHandler
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (DeletionWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects()); // Can contain search options.
             executionOptions = Objects.requireNonNullElseGet(

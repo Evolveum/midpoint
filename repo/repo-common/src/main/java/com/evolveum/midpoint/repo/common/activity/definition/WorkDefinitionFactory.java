@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RecomputationWorkDefinitionType;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Creates {@link WorkDefinition} instances from their serialized (bean) form. Since 4.8 it is limited to the
  * "new" format, i.e., activity definition bean. The legacy style (task extension) is no longer supported for activity-based
@@ -37,14 +41,32 @@ public class WorkDefinitionFactory {
     @Autowired ActivityBasedTaskHandler activityBasedTaskHandler;
 
     /** Suppliers indexed by work definition type name (e.g. {@link RecomputationWorkDefinitionType}). */
-    private final Map<QName, WorkDefinitionSupplier> byTypeName = new ConcurrentHashMap<>();
+    private final Map<QName, WorkDefinitionTypeInfo> byTypeName = new ConcurrentHashMap<>();
 
-    public void registerSupplier(@NotNull QName typeName, @NotNull WorkDefinitionSupplier supplier) {
-        byTypeName.put(typeName, supplier);
+    /** Maps e.g. `c:reconciliation` to `c:ReconciliationWorkDefinitionType`. Everything is qualified. */
+    private final Map<QName, QName> itemToTypeNameMap = new ConcurrentHashMap<>();
+
+    synchronized public void registerSupplier(
+            @NotNull QName typeName,
+            @NotNull QName itemName,
+            @NotNull WorkDefinitionSupplier supplier) {
+        Preconditions.checkArgument(QNameUtil.isQualified(typeName), "Unqualified type name: %s", typeName);
+        Preconditions.checkArgument(QNameUtil.isQualified(itemName), "Unqualified item name: %s", itemName);
+        stateCheck(
+                byTypeName.put(typeName, new WorkDefinitionTypeInfo(supplier, itemName)) == null,
+                "Work definition type information already registered for type name %s",
+                typeName);
+        stateCheck(
+                itemToTypeNameMap.put(itemName, typeName) == null,
+                "Work definition type already registered for item name %s",
+                itemName);
     }
 
-    public void unregisterSupplier(@NotNull QName typeName) {
-        byTypeName.remove(typeName);
+    synchronized public void unregisterSupplier(@NotNull QName typeName) {
+        var info = MiscUtil.stateNonNull(
+                byTypeName.remove(typeName),
+        "No work definition type information for %s", typeName);
+        itemToTypeNameMap.remove(info.itemName);
     }
 
     /** Transforms configuration bean (user-friendly form) into parsed {@link WorkDefinition} object. */
@@ -53,7 +75,7 @@ public class WorkDefinitionFactory {
         if (beans.isEmpty()) {
             return null;
         } else if (beans.size() > 1) {
-            throw new SchemaException("Ambiguous definition: " + beans);
+            throw new ConfigurationException("Ambiguous definition: " + beans);
         } else {
             return getWorkFromBean(beans.get(0));
         }
@@ -62,14 +84,22 @@ public class WorkDefinitionFactory {
     private WorkDefinition getWorkFromBean(WorkDefinitionBean definitionBean)
             throws SchemaException, ConfigurationException {
         QName typeName = definitionBean.getBeanTypeName();
-        WorkDefinitionSupplier supplier = MiscUtil.requireNonNull(
+        var info = MiscUtil.requireNonNull(
                 byTypeName.get(typeName),
-                () -> new IllegalStateException("No work definition supplier for " + typeName));
-        return supplier.provide(definitionBean);
+                () -> new IllegalStateException("No work definition type information for " + typeName));
+        return info.supplier()
+                .provide(definitionBean, info.itemName());
+    }
+
+    /** Note that itemName is always qualified. */
+    private record WorkDefinitionTypeInfo(
+            @NotNull WorkDefinitionSupplier supplier,
+            @NotNull QName itemName) {
     }
 
     @FunctionalInterface
     public interface WorkDefinitionSupplier {
-        WorkDefinition provide(@NotNull WorkDefinitionBean source) throws SchemaException, ConfigurationException;
+        WorkDefinition provide(@NotNull WorkDefinitionBean source, @NotNull QName activityName)
+                throws SchemaException, ConfigurationException;
     }
 }

@@ -58,6 +58,11 @@ public class IterativeChangeExecutionActivityHandler
     }
 
     @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_ITERATIVE_CHANGE_EXECUTION;
+    }
+
+    @Override
     protected @NotNull Class<MyWorkDefinition> getWorkDefinitionClass() {
         return MyWorkDefinition.class;
     }
@@ -136,7 +141,8 @@ public class IterativeChangeExecutionActivityHandler
         @NotNull private final ObjectDeltaType delta;
         @Nullable private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (IterativeChangeExecutionWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             delta = typedDefinition.getDelta();

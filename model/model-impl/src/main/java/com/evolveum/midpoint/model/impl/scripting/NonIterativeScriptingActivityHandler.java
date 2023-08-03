@@ -10,9 +10,12 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,10 +31,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonIterativeScriptingWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+
+import javax.xml.namespace.QName;
 
 /**
  * This is a handler for "old", non-iterative (single) bulk actions.
@@ -51,7 +53,7 @@ public class NonIterativeScriptingActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE,
+                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_NON_ITERATIVE_SCRIPTING,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
@@ -129,7 +131,8 @@ public class NonIterativeScriptingActivityHandler
 
         private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (NonIterativeScriptingWorkDefinitionType) source.getBean();
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
@@ -138,6 +141,11 @@ public class NonIterativeScriptingActivityHandler
 
         public ExecuteScriptType getScriptExecutionRequest() {
             return scriptExecutionRequest;
+        }
+
+        @Override
+        public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+            return null; // not feasibly describable (only by some kind of "in oid" filter)
         }
 
         @Override

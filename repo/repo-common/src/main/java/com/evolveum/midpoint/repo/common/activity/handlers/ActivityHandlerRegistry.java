@@ -55,9 +55,12 @@ public class ActivityHandlerRegistry {
      * Registers both the work definition factory and the activity handler.
      */
     public void register(
-            QName typeName, Class<? extends WorkDefinition> definitionClass,
-            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler) {
-        workDefinitionFactory.registerSupplier(typeName, supplier);
+            @NotNull QName typeName,
+            @NotNull QName itemName,
+            @NotNull Class<? extends WorkDefinition> definitionClass,
+            @NotNull WorkDefinitionFactory.WorkDefinitionSupplier supplier,
+            @NotNull ActivityHandler<?, ?> activityHandler) {
+        workDefinitionFactory.registerSupplier(typeName, itemName, supplier);
         registerHandler(definitionClass, activityHandler);
     }
 
@@ -107,7 +110,7 @@ public class ActivityHandlerRegistry {
      */
     public @Nullable ActivityHandler<?, ?> getHandler(@NotNull ActivityDefinitionType activityDefinitionBean)
             throws SchemaException, ConfigurationException {
-        AbstractWorkDefinition parsedDefinition = ActivityDefinition.fromBean(activityDefinitionBean);
+        AbstractWorkDefinition parsedDefinition = WorkDefinition.getWorkDefinitionFromBean(activityDefinitionBean);
         if (parsedDefinition == null) {
             return null;
         }

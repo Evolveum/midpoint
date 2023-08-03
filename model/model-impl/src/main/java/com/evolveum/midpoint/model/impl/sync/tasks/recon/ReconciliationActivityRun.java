@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWork
  * (Of course, this works only when the whole activity is executed "locally" within a single task.
  * But it is used in tests, where this condition generally holds.)
  */
-final class ReconciliationActivityRun
+public final class ReconciliationActivityRun
         extends AbstractCompositeActivityRun<
                     ReconciliationWorkDefinition,
                     ReconciliationActivityHandler,

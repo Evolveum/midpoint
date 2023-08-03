@@ -584,11 +584,15 @@
                     <xsd:element name="affectedObjects" type="tns:TaskAffectedObjectsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Searchable set of object set coordinates (eg. resource + kind + intent for resource objects,
-                                or type for objects) for objects which are directly affected by execution of task.
+                                Searchable set of object set coordinates (e.g., resource + kind + intent for resource objects,
+                                or type + archetype for repository objects) for objects which are directly affected
+                                by the execution of this task.
 
                                 NOTE: This data are only for task indexing and searching purposes derived from activity definitions.
-                                This data are not cannonical and for some edge-cases they may not be computed.
+                                This data are not canonical and for some edge-cases they may not be computed.
+
+                                Please never change this information directly, except for in raw mode. It is maintained
+                                by the system automatically, so the result will be unpredictable if you do.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.8</a:since>
@@ -6820,7 +6824,6 @@
     </xsd:complexType>
     <xsd:element name="objectSet" type="tns:ObjectSetType"/>
 
-
     <xsd:complexType name="BasicResourceObjectSetType">
         <xsd:annotation>
             <xsd:documentation>
@@ -8984,24 +8987,78 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="resourceObjects" type="tns:BasicResourceObjectSetType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="resourceObjects" type="tns:ActivityAffectedResourceObjectsType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource objects (defined by their object class, intent/kind), which are affected by task. Does not contain
-                        explicit enumeration of affected resource objects.
+                        Resource objects (defined by their object class, intent/kind), which are affected by task.
+                        Does not contain explicit enumeration of affected resource objects.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objects" type="tns:BasicObjectSetType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="objects" type="tns:ActivityAffectedObjectsType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Objects (defined by their type and archetype), which are affected by task. Does not contain explicit
-                        enumeration of affected resource objects.
+                        Repository objects (defined by their type and archetype), which are affected by task.
+                        Does not contain explicit enumeration of affected objects.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ActivityAffectedResourceObjectsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Resource objects potentially affected by a particular activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:BasicResourceObjectSetType">
+                <xsd:sequence>
+                    <xsd:element name="activityType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of activity (identified by configuration item name) carried out on these resource objects.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ActivityAffectedResourceObjectsType.activity</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
+    <xsd:complexType name="ActivityAffectedObjectsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Objects (presumably in the repository) potentially affected by a particular activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:BasicObjectSetType">
+                <xsd:sequence>
+                    <xsd:element name="activityType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of activity (identified by configuration item name) carried out on these resource objects.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ActivityAffectedObjectsType.activity</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 </xsd:schema>

@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Executes a set of change requests, each consisting of a set of deltas (presenting a single model operation).
  *
@@ -52,7 +55,7 @@ public class ExplicitChangeExecutionActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE,
+                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_EXPLICIT_CHANGE_EXECUTION,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
@@ -138,7 +141,8 @@ public class ExplicitChangeExecutionActivityHandler
 
         @NotNull private final List<ChangeExecutionRequest> requests = new ArrayList<>();
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) throws ConfigurationException {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws ConfigurationException {
+            super(activityTypeName);
             var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) source.getBean();
             Collection<ObjectDeltaType> rootDeltas = typedDefinition.getDelta();
             ModelExecuteOptions rootOptions =
@@ -165,6 +169,11 @@ public class ExplicitChangeExecutionActivityHandler
                                     ModelExecuteOptions.fromModelExecutionOptionsType(requestBean.getExecutionOptions())));
                 }
             }
+        }
+
+        @Override
+        public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+            return null; // not easily determinable
         }
 
         @Override

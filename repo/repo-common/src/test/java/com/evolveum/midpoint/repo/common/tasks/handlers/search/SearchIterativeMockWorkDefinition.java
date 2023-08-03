@@ -35,13 +35,15 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
     private static final ItemName FREEZE_IF_SCAVENGER = new ItemName(NS_EXT, "freezeIfScavenger");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "SearchIterativeMockDefinitionType");
+    static final QName WORK_DEFINITION_ITEM_QNAME = new QName(NS_EXT, "searchIterativeMock");
 
     @NotNull private final ObjectSetType objectSet;
     @Nullable private final String message;
     @Nullable private final SearchFilterType failOn;
     private final boolean freezeIfScavenger;
 
-    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionBean source) {
+    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         PrismContainerValue<?> pcv = source.getValue();
         this.objectSet = getObjectSet(pcv);
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);

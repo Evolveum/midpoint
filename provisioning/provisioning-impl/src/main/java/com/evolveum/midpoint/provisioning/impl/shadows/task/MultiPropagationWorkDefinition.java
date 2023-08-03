@@ -18,11 +18,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 public class MultiPropagationWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
     @NotNull private final ObjectSetType resources;
 
-    MultiPropagationWorkDefinition(@NotNull WorkDefinitionBean source) {
+    MultiPropagationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         resources = ObjectSetUtil.emptyIfNull(
                 ((MultiPropagationWorkDefinitionType) source.getBean()).getResources());
         ObjectSetUtil.assumeObjectType(resources, ResourceType.COMPLEX_TYPE);

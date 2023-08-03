@@ -16,15 +16,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportImportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Work definition for report import activity.
  */
-class ClassicReportImportWorkDefinition extends AbstractReportWorkDefinition {
+public class ClassicReportImportWorkDefinition extends AbstractReportWorkDefinition {
 
     @NotNull private final ObjectReferenceType reportDataRef;
 
-    ClassicReportImportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
-        super(source);
+    ClassicReportImportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws SchemaException {
+        super(source, activityTypeName);
         var typedDefinition = (ClassicReportImportWorkDefinitionType) source.getBean();
         reportDataRef = MiscUtil.requireNonNull(typedDefinition.getReportDataRef(), () -> "No report data object specified");
     }

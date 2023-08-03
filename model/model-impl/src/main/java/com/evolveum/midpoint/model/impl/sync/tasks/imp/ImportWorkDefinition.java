@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetTyp
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.REPLACE;
 
 public class ImportWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
@@ -24,7 +26,8 @@ public class ImportWorkDefinition extends AbstractWorkDefinition implements Reso
     /** Mutable, disconnected from the source. */
     @NotNull private final ResourceObjectSetType resourceObjects;
 
-    ImportWorkDefinition(@NotNull WorkDefinitionBean source) {
+    ImportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         var typedDefinition = (ImportWorkDefinitionType) source.getBean();
         resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, REPLACE);

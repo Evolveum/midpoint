@@ -12,13 +12,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 /**
  * Work definition for multi-node report export.
  */
-class DistributedReportExportWorkDefinition extends AbstractReportWorkDefinition {
+public class DistributedReportExportWorkDefinition extends AbstractReportWorkDefinition {
 
-    DistributedReportExportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
-        super(source);
+    DistributedReportExportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName)
+            throws SchemaException {
+        super(source, activityTypeName);
     }
-
 }

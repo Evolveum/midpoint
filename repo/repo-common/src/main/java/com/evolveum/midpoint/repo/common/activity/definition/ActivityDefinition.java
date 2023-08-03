@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -64,24 +63,21 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     }
 
     /**
-     * Creates a definition for the root activity in the task. It is taken from:
-     *
-     * 1. "activity" bean
-     * 2. handler URI
+     * Creates a definition for the root activity in the task. It is taken from the {@link ActivityDefinitionType}, as legacy
+     * handler URIs are no longer supported (since 4.8).
      */
     public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createRoot(Task rootTask)
             throws SchemaException, ConfigurationException {
-        ActivityDefinitionType bean = rootTask.getRootActivityDefinitionOrClone();
+        ActivityDefinitionType definitionBean = rootTask.getRootActivityDefinitionOrClone();
 
-        WD rootWorkDefinition = createRootWorkDefinition(bean);
+        WD rootWorkDefinition = WorkDefinition.getWorkDefinitionFromBean(definitionBean);
         if (rootWorkDefinition == null) {
             throw new SchemaException(
-                    "Root work definition cannot be obtained for %s: no activity definition is provided. Handler URI = %s"
-                            .formatted(rootTask, rootTask.getHandlerUri()));
+                    "Root work definition cannot be obtained for %s: no activity definition is provided.".formatted(rootTask));
         }
-        assert bean != null;
+        assert definitionBean != null;
 
-        return createActivityDefinition(rootWorkDefinition, bean);
+        return createActivityDefinition(rootWorkDefinition, definitionBean);
     }
 
     private static @NotNull <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createActivityDefinition(
@@ -106,7 +102,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      */
     public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean) {
         try {
-            AbstractWorkDefinition definition = fromBean(bean);
+            AbstractWorkDefinition definition = WorkDefinition.getWorkDefinitionFromBean(bean);
             // TODO enhance with defaultWorkDefinition
             if (definition == null) {
                 throw new SchemaException("Child work definition is not present for " + bean);
@@ -115,27 +111,6 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         } catch (SchemaException | ConfigurationException e) {
             throw new IllegalArgumentException("Couldn't create activity definition from a bean: " + e.getMessage(), e);
         }
-    }
-
-    private static @Nullable <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(
-            @NotNull ActivityDefinitionType activityBean)
-            throws SchemaException, ConfigurationException {
-        return fromBean(activityBean);
-    }
-
-    public static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(ActivityDefinitionType bean)
-            throws SchemaException, ConfigurationException {
-        if (bean.getComposition() != null) {
-            //noinspection unchecked
-            return (WD) new CompositeWorkDefinition(bean.getComposition());
-        }
-
-        if (bean.getWork() != null) {
-            //noinspection unchecked
-            return (WD) CommonTaskBeans.get().workDefinitionFactory.getWorkFromBean(bean.getWork()); // returned value can be null
-        }
-
-        return null;
     }
 
     public @NotNull ExecutionModeType getExecutionMode() {

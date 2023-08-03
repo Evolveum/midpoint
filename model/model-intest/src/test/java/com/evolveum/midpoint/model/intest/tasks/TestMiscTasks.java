@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -13,8 +15,9 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,11 +29,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Tests miscellaneous kinds of tasks that do not deserve their own test class.
+ *
+ * Besides that, checks the "affected objects" management when a task changes.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -269,7 +274,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     /** Tests the "multiple requests" form of "execute changes" task. */
     @Test
-    public void test170ExecuteChangesMulti() throws CommonException, IOException {
+    public void test170ExecuteChangesMulti() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -298,5 +303,217 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                         .assertTotalCounts(2, 0, 1)
                         .assertLastSuccessObjectName("multi-2");
         // @formatter:on
+    }
+
+    /** Manipulates the activity definition and checks whether affected objects are set appropriately. */
+    @Test
+    public void test200TestAffectedObjectsSimple() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("a task is created");
+
+        ShadowKindType kind = ShadowKindType.ACCOUNT;
+        String intent = "funny";
+        QName ocName1 = new QName("oc1");
+        QName ocName1Qualified = QNameUtil.qualifyIfNeeded(ocName1, NS_RI);
+        QName ocName2 = new QName("oc2");
+        QName ocName2Qualified = QNameUtil.qualifyIfNeeded(ocName2, NS_RI);
+
+        TaskType aTask = new TaskType()
+                .name(getTestNameShort())
+                .executionState(TaskExecutionStateType.CLOSED)
+                .activity(new ActivityDefinitionType()
+                        .work(new WorkDefinitionsType()
+                                .reconciliation(new ReconciliationWorkDefinitionType()
+                                        .resourceObjects(new ResourceObjectSetType()
+                                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                                                .kind(kind)
+                                                .intent(intent)
+                                                .objectclass(ocName1)))));
+        addObject(aTask.asPrismObject(), task, result);
+
+        then("affected objects are correct");
+        assertTask(aTask.getOid(), "after creation")
+                .display()
+                .assertAffectedObjects(
+                        WorkDefinitionsType.F_RECONCILIATION,
+                        RESOURCE_DUMMY_OID, kind, intent, ocName1Qualified);
+
+        when("task definition is removed");
+        executeChanges(
+                deltaFor(TaskType.class)
+                        .item(TaskType.F_ACTIVITY)
+                        .replace()
+                        .asObjectDelta(aTask.getOid()),
+                null, task, result);
+
+        then("affected objects are empty");
+        assertTask(aTask.getOid(), "after removal")
+                .display()
+                .assertNoAffectedObjects();
+
+        when("task is changed to import one");
+        executeChanges(
+                deltaFor(TaskType.class)
+                        .item(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK, WorkDefinitionsType.F_IMPORT)
+                        .add(new ImportWorkDefinitionType()
+                                .resourceObjects(new ResourceObjectSetType()
+                                        .objectclass(ocName1Qualified)))
+                        .asObjectDelta(aTask.getOid()),
+                null, task, result);
+
+        then("affected objects are correct");
+        assertTask(aTask.getOid(), "after modification")
+                .display()
+                .assertAffectedObjects(
+                        WorkDefinitionsType.F_IMPORT,
+                        null, null, null, ocName1Qualified);
+
+        when("object class is changed");
+        executeChanges(
+                deltaFor(TaskType.class)
+                        .item(TaskType.F_ACTIVITY,
+                                ActivityDefinitionType.F_WORK,
+                                WorkDefinitionsType.F_IMPORT,
+                                ImportWorkDefinitionType.F_RESOURCE_OBJECTS,
+                                ResourceObjectSetType.F_OBJECTCLASS)
+                        .replace(ocName2)
+                        .asObjectDelta(aTask.getOid()),
+                null, task, result);
+
+        then("affected objects are correct");
+        assertTask(aTask.getOid(), "after modification")
+                .display()
+                .assertAffectedObjects(
+                        WorkDefinitionsType.F_IMPORT,
+                        null, null, null, ocName2Qualified);
+
+        when("the definition is made invalid by addition of conflicting work definition");
+        executeChanges(
+                deltaFor(TaskType.class)
+                        .item(TaskType.F_ACTIVITY,
+                                ActivityDefinitionType.F_WORK,
+                                WorkDefinitionsType.F_RECONCILIATION)
+                        .add(new ReconciliationWorkDefinitionType()
+                                .resourceObjects(new ResourceObjectSetType()))
+                        .asObjectDelta(aTask.getOid()),
+                null, task, result);
+
+        then("affected objects are empty");
+        assertTask(aTask.getOid(), "after modification")
+                .display()
+                .assertNoAffectedObjects();
+
+        and("the operation result is a warning");
+        assertWarning(result);
+        assertThatOperationResult(result)
+                .isWarning()
+                .hasMessageContaining("Couldn't compute affected objects");
+    }
+
+    /** Checks affected objects management for composite activity. */
+    @Test
+    public void test200TestAffectedObjectsComposite() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("a task is created");
+
+        ShadowKindType kind = ShadowKindType.ACCOUNT;
+        String intent = "funny";
+        QName ocName1 = new QName("oc1");
+        QName ocName1Qualified = QNameUtil.qualifyIfNeeded(ocName1, NS_RI);
+        QName ocName2 = new QName("oc2");
+        QName ocName2Qualified = QNameUtil.qualifyIfNeeded(ocName2, NS_RI);
+
+        TaskType aTask = new TaskType()
+                .name(getTestNameShort())
+                .executionState(TaskExecutionStateType.CLOSED)
+                .activity(new ActivityDefinitionType()
+                        .composition(new ActivityCompositionType()
+                                .activity(new ActivityDefinitionType()
+                                        .id(100L)
+                                        .work(new WorkDefinitionsType()
+                                                .reconciliation(new ReconciliationWorkDefinitionType()
+                                                        .resourceObjects(new ResourceObjectSetType()
+                                                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                                                                .kind(kind)
+                                                                .intent(intent)))))
+                                .activity(new ActivityDefinitionType()
+                                        .id(200L)
+                                        .work(new WorkDefinitionsType()
+                                                ._import(new ImportWorkDefinitionType()
+                                                        .resourceObjects(new ResourceObjectSetType()
+                                                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                                                                .objectclass(ocName1)))))
+                                .activity(new ActivityDefinitionType()
+                                        .id(300L)
+                                        .work(new WorkDefinitionsType()
+                                                .recomputation(new RecomputationWorkDefinitionType()
+                                                        .objects(new ObjectSetType()
+                                                                .type(QNameUtil.unqualify(UserType.COMPLEX_TYPE))))))));
+        addObject(aTask.asPrismObject(), task, result);
+
+        then("affected objects are correct");
+        var expectedAffectedObjects = new TaskAffectedObjectsType()
+                .resourceObjects(new ActivityAffectedResourceObjectsType()
+                        .activityType(WorkDefinitionsType.F_RECONCILIATION)
+                        .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                        .kind(kind)
+                        .intent(intent))
+                .resourceObjects(new ActivityAffectedResourceObjectsType()
+                        .activityType(WorkDefinitionsType.F_IMPORT)
+                        .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                        .objectclass(ocName1Qualified))
+                .objects(new ActivityAffectedObjectsType()
+                        .activityType(WorkDefinitionsType.F_RECOMPUTATION)
+                        .type(UserType.COMPLEX_TYPE));
+
+        assertTask(aTask.getOid(), "after creation")
+                .display()
+                .assertAffectedObjects(expectedAffectedObjects);
+
+        when("task definition is changed");
+        executeChanges(
+                deltaFor(TaskType.class)
+                        .item(TaskType.F_ACTIVITY, ActivityDefinitionType.F_COMPOSITION, ActivityCompositionType.F_ACTIVITY)
+                        .add(new ActivityDefinitionType()
+                                .id(400L)
+                                .work(new WorkDefinitionsType()
+                                        .recomputation(new RecomputationWorkDefinitionType()
+                                                .objects(new ObjectSetType()
+                                                        .type(QNameUtil.unqualify(RoleType.COMPLEX_TYPE))))))
+                        .item(TaskType.F_ACTIVITY,
+                                ActivityDefinitionType.F_COMPOSITION,
+                                ActivityCompositionType.F_ACTIVITY, 200L,
+                                ActivityDefinitionType.F_WORK,
+                                WorkDefinitionsType.F_IMPORT,
+                                ImportWorkDefinitionType.F_RESOURCE_OBJECTS,
+                                ResourceObjectSetType.F_OBJECTCLASS)
+                        .replace(ocName2)
+                        .asObjectDelta(aTask.getOid()),
+                null, task, result);
+
+        var expectedAffectedObjects2 = new TaskAffectedObjectsType()
+                .resourceObjects(new ActivityAffectedResourceObjectsType()
+                        .activityType(WorkDefinitionsType.F_RECONCILIATION)
+                        .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                        .kind(kind)
+                        .intent(intent))
+                .resourceObjects(new ActivityAffectedResourceObjectsType()
+                        .activityType(WorkDefinitionsType.F_IMPORT)
+                        .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                        .objectclass(ocName2Qualified))
+                .objects(new ActivityAffectedObjectsType()
+                        .activityType(WorkDefinitionsType.F_RECOMPUTATION)
+                        .type(UserType.COMPLEX_TYPE))
+                .objects(new ActivityAffectedObjectsType()
+                        .activityType(WorkDefinitionsType.F_RECOMPUTATION)
+                        .type(RoleType.COMPLEX_TYPE));
+
+        assertTask(aTask.getOid(), "after modification")
+                .display()
+                .assertAffectedObjects(expectedAffectedObjects2);
     }
 }

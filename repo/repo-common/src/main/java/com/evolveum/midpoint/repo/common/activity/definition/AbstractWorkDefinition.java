@@ -13,10 +13,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionTy
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 /**
  * IMPLEMENTATION NOTE: The fields in sub-classes should be immutable! (TODO: why?)
  */
 public abstract class AbstractWorkDefinition implements WorkDefinition {
+
+    /** Type of the activity identified by the work definition item name e.g. `c:reconciliation` or `c:composite`. */
+    @NotNull private final QName activityTypeName;
 
     /**
      * *TODO* decide if the tailoring should be here or in {@link ActivityDefinition}.
@@ -25,6 +30,15 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
      *   just like distribution, flow control, etc does.
      */
     @NotNull private ActivityTailoring activityTailoring = new ActivityTailoring();
+
+    protected AbstractWorkDefinition(@NotNull QName activityTypeName) {
+        this.activityTypeName = activityTypeName;
+    }
+
+    @Override
+    public @NotNull QName getActivityTypeName() {
+        return activityTypeName;
+    }
 
     @Override
     public @NotNull ActivityTailoring getActivityTailoring() {
