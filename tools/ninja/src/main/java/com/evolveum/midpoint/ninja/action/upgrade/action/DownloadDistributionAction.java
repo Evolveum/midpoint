@@ -39,8 +39,7 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
             log.info("Downloading version: {}", version);
 
             DistributionManager manager = new DistributionManager(tempDirectory);
-            ProgressListener listener = new ConsoleProgressListener(context.out);
-            // todo handle if distribution doesn't exist (http 404)
+            ProgressListener listener = new ConsoleProgressListener(log);
             distributionZipFile = manager.downloadDistribution(version, listener);
         } else {
             log.info("Distribution zip already downloaded.");
