@@ -32,25 +32,10 @@ import java.util.List;
  */
 public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, ResourceDetailsModel> {
 
-//    private static final String ID_FRAGMENT = "fragment";
-//    private static final String ID_TEMPLATE_FRAGMENT = "templateFragment";
-//    private static final String ID_TEMPLATE = "template";
-//    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-//    private static final String ID_MAIN_FORM = "mainForm";
-//    private static final String ID_WIZARD = "wizard";
-
-//    private final ResourceDetailsModel resourceModel;
-
     public BasicResourceWizardPanel(String id, WizardPanelHelper<ResourceType, ResourceDetailsModel> helper) {
         super(id, helper);
-//        this.resourceModel = model;
     }
 
-//    @Override
-//    protected void onInitialize() {
-//        super.onInitialize();
-//        initLayout();
-//    }
 
     protected void initLayout() {
         add(createChoiceFragment(createTemplatePanel()));

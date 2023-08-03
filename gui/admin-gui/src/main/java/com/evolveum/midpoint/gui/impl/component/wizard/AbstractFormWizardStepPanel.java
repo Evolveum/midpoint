@@ -80,6 +80,11 @@ public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModel
         return getContainerConfiguration(getPanelType());
     }
 
+    @Override
+    public String getStepId() {
+        return getPanelType();
+    }
+
     protected abstract String getPanelType();
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
