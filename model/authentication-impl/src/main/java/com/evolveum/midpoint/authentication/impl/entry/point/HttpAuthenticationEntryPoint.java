@@ -52,7 +52,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private String getRealmForHeader(ModuleAuthentication moduleAuthentication, AuthenticationException authException) {
         if (moduleAuthentication instanceof HttpModuleAuthentication) {
-            return ((HttpModuleAuthentication) moduleAuthentication).getRealmFroHeader(authException);
+            return ((HttpModuleAuthentication) moduleAuthentication).getRealmFromHeader(authException);
         }
         return moduleAuthentication.getModuleTypeName() +" realm=\"" + DEFAULT_REALM + "\"";
     }

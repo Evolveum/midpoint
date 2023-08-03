@@ -51,6 +51,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 
 /**
+ * Configurer uses {@link ModuleWebSecurityConfiguration} for direct or indirect creation of authentication filter.
+ * Indirectly, because contains method {@link ModuleWebSecurityConfigurer#configure(HttpSecurity)} that,
+ * in addition to creating filters directly, create configurers for creating filter during building of {@link HttpSecurity}.
+ *
  * @author skublik
  */
 
