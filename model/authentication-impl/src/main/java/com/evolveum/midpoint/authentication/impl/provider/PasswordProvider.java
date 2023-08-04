@@ -44,51 +44,36 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
     @Autowired private AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> passwordAuthenticationEvaluator;
 
-    @Autowired private AuthenticationEvaluator<PreAuthenticationContext, PreAuthenticatedAuthenticationToken> preAuthenticatedEvaluator;
 
     @Override
     protected AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> getEvaluator() {
         return passwordAuthenticationEvaluator;
     }
 
-    private String getEnteredUsername(Authentication authentication) {
-        String enteredUsername = (String) authentication.getPrincipal();
-        if (StringUtils.isNotBlank(enteredUsername)) {
-            return enteredUsername;
-        }
-        LOGGER.trace("No username entered, trying current midPoint authentication if the identification was already done.");
-        MidPointPrincipal principal = AuthUtil.getMidpointPrincipal();
-        return principal.getUsername();
-    }
-
-
     @Override
-    protected Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    protected Authentication doAuthenticate(Authentication authentication, String enteredUsername, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
-        String enteredUsername = getEnteredUsername(authentication);
+//        String enteredUsername = getEnteredUsername(authentication);
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        Authentication token;
-        if (authentication instanceof UsernamePasswordAuthenticationToken) {
-            String enteredPassword = (String) authentication.getCredentials();
-
-            PasswordAuthenticationContext authContext = new PasswordAuthenticationContext(
-                    enteredUsername,
-                    enteredPassword,
-                    focusType,
-                    requireAssignment,
-                    channel);
-            token = getEvaluator().authenticate(connEnv, authContext);
-        } else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-            token = preAuthenticatedEvaluator.authenticate(connEnv, new
-                    PreAuthenticationContext(enteredUsername, focusType, requireAssignment, channel));
-        } else {
+        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
+
         }
+
+        String enteredPassword = (String) authentication.getCredentials();
+
+        PasswordAuthenticationContext authContext = new PasswordAuthenticationContext(
+                enteredUsername,
+                enteredPassword,
+                focusType,
+                requireAssignment,
+                channel);
+        Authentication token = getEvaluator().authenticate(connEnv, authContext);
 
         MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 
@@ -102,8 +87,6 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
     protected Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities) {
         if (actualAuthentication instanceof UsernamePasswordAuthenticationToken) {
             return new UsernamePasswordAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
-        } else if (actualAuthentication instanceof PreAuthenticatedAuthenticationToken) {
-            return new PreAuthenticatedAuthenticationToken(actualAuthentication.getPrincipal(), actualAuthentication.getCredentials(), newAuthorities);
         } else {
             return actualAuthentication;
         }
@@ -111,10 +94,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
     @Override
     public boolean supports(Class<?> authentication) {
-        if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-        return PreAuthenticatedAuthenticationToken.class.equals(authentication);
+        return UsernamePasswordAuthenticationToken.class.equals(authentication);
     }
 
     @Override

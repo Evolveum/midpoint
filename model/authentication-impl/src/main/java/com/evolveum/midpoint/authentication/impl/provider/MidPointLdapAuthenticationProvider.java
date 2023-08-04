@@ -156,21 +156,22 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
     }
 
     @Override
-    protected Authentication doAuthenticate(Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType) throws AuthenticationException {
+    protected Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List requireAssignment, AuthenticationChannel channel, Class focusType) throws AuthenticationException {
 
-        String enteredUsername = (String) authentication.getPrincipal();
+//        String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'",
                 enteredUsername);
         try {
-            Authentication token;
-            if (authentication instanceof LdapAuthenticationToken) {
-                token = this.authenticatorProvider.authenticate(authentication);
-            } else {
+            if (!(authentication instanceof LdapAuthenticationToken)) {
                 LOGGER.debug("Unsupported authentication {}", authentication);
                 recordPasswordAuthenticationFailure(authentication.getName(), "unavailable provider");
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
+            Authentication token = this.authenticatorProvider.authenticate(authentication);
             MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
 
             LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),

@@ -49,25 +49,26 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
     }
 
     @Override
-    protected Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    protected Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
-        String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        Authentication token;
-        if (authentication instanceof SecurityQuestionsAuthenticationToken) {
-            Map<String, String> answers = (Map<String, String>) authentication.getCredentials();
-            SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername,
-                    focusType, answers, requireAssignment, channel);
-
-            token = getEvaluator().authenticate(connEnv, authContext);
-        } else {
+        if (!(authentication instanceof SecurityQuestionsAuthenticationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        Map<String, String> answers = (Map<String, String>) authentication.getCredentials();
+        SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername,
+                focusType, answers, requireAssignment, channel);
+
+        Authentication token = getEvaluator().authenticate(connEnv, authContext);
 
         MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
         LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),

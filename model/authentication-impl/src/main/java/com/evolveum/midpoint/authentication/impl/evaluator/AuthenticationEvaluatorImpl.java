@@ -101,8 +101,7 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         return true;
     }
 
-    protected void recordModuleAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            boolean audit) {
+    protected void recordModuleAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
         authenticationRecorder.recordModuleAuthenticationAttemptSuccess(principal, connEnv);
     }
 

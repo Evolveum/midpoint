@@ -70,20 +70,22 @@ public class ClusterProvider extends MidpointAbstractAuthenticationProvider {
     }
 
     @Override
-    protected Authentication doAuthenticate(Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType) {
-        String enteredUsername = (String) authentication.getPrincipal();
+    protected Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List requireAssignment, AuthenticationChannel channel, Class focusType) {
+//        String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
-        Authentication token;
-        if (authentication instanceof ClusterAuthenticationToken) {
-            String enteredPassword = (String) authentication.getCredentials();
-            NodeAuthenticationContext nodeCtx = new NodeAuthenticationContext(null, enteredUsername, enteredPassword);
-            token = nodeAuthenticator.authenticate(connEnv, nodeCtx);
-        } else {
+        if (!(authentication instanceof ClusterAuthenticationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        String enteredPassword = (String) authentication.getCredentials();
+        NodeAuthenticationContext nodeCtx = new NodeAuthenticationContext(null, enteredUsername, enteredPassword);
+        Authentication token = nodeAuthenticator.authenticate(connEnv, nodeCtx);
 
         LOGGER.debug("Node '{}' authenticated}", authentication.getPrincipal());
         token.setAuthenticated(true);

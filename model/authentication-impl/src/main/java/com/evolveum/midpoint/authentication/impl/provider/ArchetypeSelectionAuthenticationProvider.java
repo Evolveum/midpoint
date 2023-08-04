@@ -31,31 +31,34 @@ public class ArchetypeSelectionAuthenticationProvider extends MidpointAbstractAu
     private static final Trace LOGGER = TraceManager.getTrace(ArchetypeSelectionAuthenticationProvider.class);
 
     @Override
-    protected Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel, Class<? extends FocusType> focusType) {
+    protected Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel, Class<? extends FocusType> focusType) {
 
-        if (authentication instanceof ArchetypeSelectionAuthenticationToken) {
-            //todo process the case when no archetype oid is defined
-            var archetypeOid = ((ArchetypeSelectionAuthenticationToken) authentication).getArchetypeOid();
-            var allowUndefinedArchetype = ((ArchetypeSelectionAuthenticationToken) authentication).isAllowUndefinedArchetype();
-            if (StringUtils.isEmpty(archetypeOid) && !allowUndefinedArchetype) {
-                LOGGER.debug("No details provided: {}", authentication);
-                throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
-            }
-            authentication.setAuthenticated(true);
-            saveArchetypeToMidpointAuthentication(archetypeOid);
-            return authentication;
-
-        } else {
+        //TODO do we want to check entered username? e.g. it probably doesn't have any sense to check archetype selection
+        // when the user was already identified?
+        if (!(authentication instanceof ArchetypeSelectionAuthenticationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        //todo process the case when no archetype oid is defined
+        var archetypeOid = ((ArchetypeSelectionAuthenticationToken) authentication).getArchetypeOid();
+        var allowUndefinedArchetype = ((ArchetypeSelectionAuthenticationToken) authentication).isAllowUndefinedArchetype();
+        if (StringUtils.isEmpty(archetypeOid) && !allowUndefinedArchetype) {
+            LOGGER.debug("No details provided: {}", authentication);
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
+        }
+        authentication.setAuthenticated(true);
+        saveArchetypeToMidpointAuthentication(archetypeOid);
+        return authentication;
+
     }
 
     private void saveArchetypeToMidpointAuthentication(String archetypeOid) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            ((MidpointAuthentication) authentication).setArchetypeOid(archetypeOid);
-        }
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
+        authentication.setArchetypeOid(archetypeOid);
     }
 
     @Override

@@ -64,7 +64,8 @@ public abstract class RemoteModuleProvider extends AbstractAuthenticationProvide
         mpAuthentication.setToken(token);
     }
 
-    protected PreAuthenticatedAuthenticationToken getPreAuthenticationToken(String enteredUsername,
+    protected PreAuthenticatedAuthenticationToken getPreAuthenticationToken(
+            String enteredUsername,
             Class<? extends FocusType> focusType,
             List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel){

@@ -81,28 +81,29 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
 
     @Override
     protected Authentication doAuthenticate(
-            Authentication authentication, List<ObjectReferenceType> requireAssignment,
+            Authentication authentication,
+            String enteredUsername,
+            List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
-        String enteredUsername = (String) authentication.getPrincipal();
+//        String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        Authentication token;
-        if (authentication instanceof MailNonceAuthenticationToken) {
-            String nonce = (String) authentication.getCredentials();
-
-            UserType user = searchUser(enteredUsername);
-            NonceCredentialsPolicyType noncePolicy = getNoncePolicy(user);
-            NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
-                    focusType, nonce, noncePolicy, requireAssignment, channel);
-            token = getEvaluator().authenticate(connEnv, authContext);
-            removeNonceAfterSuccessullAuthentication(user);
-        } else {
+        if (!(authentication instanceof MailNonceAuthenticationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        String nonce = (String) authentication.getCredentials();
+
+        UserType user = searchUser(enteredUsername);
+        NonceCredentialsPolicyType noncePolicy = getNoncePolicy(user);
+        NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
+                focusType, nonce, noncePolicy, requireAssignment, channel);
+        Authentication token = getEvaluator().authenticate(connEnv, authContext);
+        removeNonceAfterSuccessullAuthentication(user);
 
         MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 

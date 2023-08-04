@@ -24,7 +24,6 @@ import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluato
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.authentication.api.evaluator.context.PreAuthenticationContext;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
@@ -94,7 +93,7 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         }
 
         checkAuthorizations(principal, connEnv, authnCtx);
-        recordModuleAuthenticationSuccess(principal, connEnv, false);
+        recordModuleAuthenticationSuccess(principal, connEnv);
         return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
     }
 

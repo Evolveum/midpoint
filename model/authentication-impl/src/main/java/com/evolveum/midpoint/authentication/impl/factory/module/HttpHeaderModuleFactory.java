@@ -15,7 +15,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.HttpHeade
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.HttpHeaderModuleWebSecurityConfigurer;
-import com.evolveum.midpoint.authentication.impl.provider.PasswordProvider;
+import com.evolveum.midpoint.authentication.impl.provider.PreAuthenticatedProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpHeaderAuthenticationModuleType;
@@ -39,7 +39,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory<
     protected HttpHeaderModuleWebSecurityConfigurer createModuleConfigurer(HttpHeaderAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
         return new HttpHeaderModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
                 objectPostProcessor, request,
-                new PasswordProvider());
+                new PreAuthenticatedProvider());
     }
 
     @Override

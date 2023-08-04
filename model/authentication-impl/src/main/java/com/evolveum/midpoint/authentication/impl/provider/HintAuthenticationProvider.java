@@ -31,7 +31,10 @@ public class HintAuthenticationProvider extends MidpointAbstractAuthenticationPr
     }
 
     @Override
-    protected Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    protected Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
         //TODO do we want to do something else here?

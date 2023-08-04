@@ -93,8 +93,7 @@ public class Saml2Provider extends RemoteModuleProvider {
             Authentication authentication, List requireAssignment, AuthenticationChannel channel, Class focusType)
             throws AuthenticationException {
         Authentication token;
-        if (authentication instanceof Saml2AuthenticationToken) {
-            Saml2AuthenticationToken samlAuthenticationToken = (Saml2AuthenticationToken) authentication;
+        if (authentication instanceof Saml2AuthenticationToken samlAuthenticationToken) {
             Saml2Authentication samlAuthentication;
             try {
                 samlAuthentication = (Saml2Authentication) openSamlProvider.authenticate(samlAuthenticationToken);
@@ -108,10 +107,9 @@ public class Saml2Provider extends RemoteModuleProvider {
                 DefaultSaml2AuthenticatedPrincipal principal = (DefaultSaml2AuthenticatedPrincipal) samlAuthentication.getPrincipal();
                 samlAuthenticationToken.setDetails(principal);
                 Map<String, List<Object>> attributes = principal.getAttributes();
-                String enteredUsername;
                 SamlAdditionalConfiguration config = samlModule.getAdditionalConfiguration().get(samlAuthenticationToken.getRelyingPartyRegistration().getRegistrationId());
                 String nameOfSamlAttribute = config.getNameOfUsernameAttribute();
-                enteredUsername = defineEnteredUsername(attributes, nameOfSamlAttribute);
+                String enteredUsername = defineEnteredUsername(attributes, nameOfSamlAttribute);
 
                 token = getPreAuthenticationToken(enteredUsername, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {

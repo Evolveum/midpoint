@@ -56,7 +56,7 @@ public class PreAuthenticatedEvaluatorImpl<C extends AbstractAuthenticationConte
 
         if (AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(principal.getFocus(), authnCtx.getRequireAssignments())) {
             PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
-            recordModuleAuthenticationSuccess(principal, connEnv, true);
+            recordModuleAuthenticationSuccess(principal, connEnv);
             return token;
         } else {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "not contains required assignment");

@@ -54,38 +54,41 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
     }
 
     @Override
-    public Authentication doAuthenticate(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    public Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
-        if (authentication instanceof CorrelationVerificationToken correlationVerificationToken) {
-            try {
-                ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
-                if (!(moduleAuthentication instanceof CorrelationModuleAuthenticationImpl correlationModuleAuthentication)) {
-                    LOGGER.error("Correlation module authentication is not set");
-                    throw new AuthenticationServiceException("web.security.provider.unavailable");
-                }
+        //TODO what if the user was already authenticated?
+        if (!(authentication instanceof CorrelationVerificationToken correlationVerificationToken)) {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
+        }
 
-                CompleteCorrelationResult correlationResult = correlate(correlationVerificationToken,
-                        determineArchetypeOid(),
-                        correlationModuleAuthentication.getCandidateOids(),
-                        focusType);
-                ObjectType owner = correlationResult.getOwner();
-
-                if (owner != null) {
-                    return createAuthenticationToken(owner, focusType);
-                }
-
-                CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
-                correlationModuleAuthentication.addCandidateOwners(ownersMap);
-
-                return authentication;
-            } catch (Exception e) {
-                LOGGER.error("Cannot correlate user, {}", e.getMessage(), e);
+        try {
+            ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
+            if (!(moduleAuthentication instanceof CorrelationModuleAuthenticationImpl correlationModuleAuthentication)) {
+                LOGGER.error("Correlation module authentication is not set");
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
-        } else {
-            LOGGER.error("Unsupported authentication {}", authentication);
+            CompleteCorrelationResult correlationResult = correlate(correlationVerificationToken,
+                    determineArchetypeOid(),
+                    correlationModuleAuthentication.getCandidateOids(),
+                    focusType);
+            ObjectType owner = correlationResult.getOwner();
+
+            if (owner != null) {
+                return createAuthenticationToken(owner, focusType);
+            }
+
+            CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
+            correlationModuleAuthentication.addCandidateOwners(ownersMap);
+
+            return authentication;
+        } catch (Exception e) {
+            LOGGER.error("Cannot correlate user, {}", e.getMessage(), e);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
