@@ -182,7 +182,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         try {
             scriptExpression =
                     scriptExpressionFactory.createScriptExpression(
-                            script, outputDefinition, expressionProfile, expressionFactory, "script", globalResult);
+                            script, outputDefinition, expressionProfile, "script", globalResult);
         } catch (ExpressionSyntaxException | SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
         }

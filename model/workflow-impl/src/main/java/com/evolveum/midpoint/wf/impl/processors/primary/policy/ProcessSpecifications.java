@@ -76,11 +76,11 @@ public class ProcessSpecifications implements DebugDumpable {
         // Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
         LinkedHashMap<WfProcessSpecificationType, List<ApprovalActionWithRule>> collectedSpecifications = new LinkedHashMap<>();
         for (AssociatedPolicyRule rule : rules) {
-            for (ApprovalPolicyActionType approvalAction : rule.getEnabledActions(ApprovalPolicyActionType.class)) {
-                WfProcessSpecificationType spec = approvalAction.getProcessSpecification();
+            for (var approvalAction : rule.getEnabledActions(ApprovalPolicyActionType.class)) {
+                WfProcessSpecificationType spec = approvalAction.value().getProcessSpecification();
                 collectedSpecifications
                         .computeIfAbsent(spec, s -> new ArrayList<>())
-                        .add(new ApprovalActionWithRule(approvalAction, rule));
+                        .add(new ApprovalActionWithRule(approvalAction.value(), rule));
             }
         }
         // Step 2: resolve references

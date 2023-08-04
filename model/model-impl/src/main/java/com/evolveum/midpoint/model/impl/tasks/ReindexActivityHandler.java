@@ -10,6 +10,7 @@ import static java.util.Collections.emptyList;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
@@ -118,7 +119,8 @@ public class ReindexActivityHandler
 
         @NotNull private final ObjectSetType objects;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+            super(origin);
             var typedDefinition = (ReindexingWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
         }

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
-public interface PrivilegesMixin<T extends Serializable> extends ConfigurationItemable<T> {
+public interface PrivilegesMixin<T extends Serializable & Cloneable> extends ConfigurationItemable<T> {
 
     default @Nullable ExecutionPrivilegesSpecificationType getPrivileges(
             @Nullable ObjectReferenceType legacyRunAsRef,

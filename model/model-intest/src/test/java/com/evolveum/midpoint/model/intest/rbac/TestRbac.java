@@ -1636,7 +1636,7 @@ public class TestRbac extends AbstractRbacTest {
 
         try {
             // WHEN
-            assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
+            traced( () -> assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result) );
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {

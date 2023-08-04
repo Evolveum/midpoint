@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.util.HeteroEqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -31,7 +32,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 public class PolicyRuleTypeUtil {
 
@@ -106,7 +106,7 @@ public class PolicyRuleTypeUtil {
             toShortString(sb, constraint, join);
         }
         for (PolicyConstraintReferenceType ref : constraints.getRef()) {
-            if (sb.length() > 0) {
+            if (!sb.isEmpty()) {
                 sb.append(join);
             }
             sb.append("ref:").append(ref.getName());
@@ -117,7 +117,7 @@ public class PolicyRuleTypeUtil {
     private static void toShortString(StringBuilder sb, JAXBElement<? extends AbstractPolicyConstraintType> constraint, char join) {
         QName name = constraint.getName();
         String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
-        if (sb.length() > 0) {
+        if (!sb.isEmpty()) {
             sb.append(join);
         }
         if (QNameUtil.match(name, PolicyConstraintsType.F_AND)) {
@@ -160,7 +160,7 @@ public class PolicyRuleTypeUtil {
     /**
      * @param enabledActions if null we don't consider action enabled/disabled state
      */
-    public static String toShortString(PolicyActionsType actions, List<PolicyActionType> enabledActions) {
+    public static String toShortString(PolicyActionsType actions, List<PolicyActionConfigItem<?>> enabledActions) {
         if (actions == null) {
             return "";
         }
@@ -258,8 +258,7 @@ public class PolicyRuleTypeUtil {
     public static void visit(List<EvaluatedPolicyRuleTriggerType> triggers, Consumer<EvaluatedPolicyRuleTriggerType> visitor) {
         for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
             visitor.accept(trigger);
-            if (trigger instanceof EvaluatedSituationTriggerType) {
-                EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+            if (trigger instanceof EvaluatedSituationTriggerType situationTrigger) {
                 for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
                     visit(sourceRule.getTrigger(), visitor);
                 }
@@ -270,11 +269,9 @@ public class PolicyRuleTypeUtil {
     public static boolean triggerCollectionsEqual(Collection<EvaluatedPolicyRuleTriggerType> triggers,
             Collection<EvaluatedPolicyRuleTriggerType> currentTriggersUnpacked) {
         HeteroEqualsChecker<EvaluatedPolicyRuleTriggerType, EvaluatedPolicyRuleTriggerType> equalsChecker = (t1, t2) -> {
-            if (!(t1 instanceof EvaluatedSituationTriggerType) || !(t2 instanceof EvaluatedSituationTriggerType)) {
+            if (!(t1 instanceof EvaluatedSituationTriggerType st1) || !(t2 instanceof EvaluatedSituationTriggerType st2)) {
                 return Objects.equals(t1, t2);
             }
-            EvaluatedSituationTriggerType st1 = (EvaluatedSituationTriggerType) t1;
-            EvaluatedSituationTriggerType st2 = (EvaluatedSituationTriggerType) t2;
             // TODO deduplicate this (against standard equals) somehow
             // Until that is done, update after each change to triggers beans structure
             return Objects.equals(st1.getRef(), st2.getRef())
@@ -290,39 +287,13 @@ public class PolicyRuleTypeUtil {
         return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, equalsChecker);
     }
 
-    public static List<PolicyActionType> getAllActions(PolicyActionsType actions) {
-        List<PolicyActionType> rv = new ArrayList<>();
-        if (actions == null) {
-            return rv;
-        }
-        addIgnoreNull(rv, actions.getEnforcement());
-        rv.addAll(actions.getApproval());
-        addIgnoreNull(rv, actions.getRecord());
-        rv.addAll(actions.getNotification());
-        rv.addAll(actions.getScriptExecution());
-        addIgnoreNull(rv, actions.getCertification());
-        addIgnoreNull(rv, actions.getPrune());
-        addIgnoreNull(rv, actions.getRemediation());
-        addIgnoreNull(rv, actions.getSuspendTask());
-        return rv;
-    }
-
-    public static <T extends PolicyActionType> List<T> filterActions(List<PolicyActionType> actions, Class<T> clazz) {
+    public static <T extends PolicyActionType> List<PolicyActionConfigItem<T>> filterActions(
+            @NotNull List<? extends PolicyActionConfigItem<?>> actions, @NotNull Class<T> clazz) {
         //noinspection unchecked
         return actions.stream()
-                .filter(a -> clazz.isAssignableFrom(a.getClass()))
-                .map(a -> (T) a)
+                .filter(a -> clazz.isAssignableFrom(a.value().getClass()))
+                .map(a -> (PolicyActionConfigItem<T>) a)
                 .collect(Collectors.toList());
-    }
-
-    public static @NotNull List<TimeValidityPolicyConstraintType> getTimeValidityConstraints(PolicyRuleType policyRule) {
-        return policyRule != null && policyRule.getPolicyConstraints() != null ?
-                policyRule.getPolicyConstraints().getObjectTimeValidity() : List.of();
-    }
-
-    public static boolean hasNotificationActions(PolicyRuleType policyRule) {
-        return policyRule != null && policyRule.getPolicyActions() != null &&
-                !policyRule.getPolicyActions().getNotification().isEmpty();
     }
 
     @FunctionalInterface
@@ -614,9 +585,7 @@ public class PolicyRuleTypeUtil {
     @SuppressWarnings("unchecked")
     private static void computePathToRoot(List<String> path, PrismContainerValue<? extends AbstractPolicyConstraintType> pc) {
         path.add(pc.asContainerable().getName());
-        if (pc.getParent() instanceof PrismContainer) {
-            PrismContainer<? extends AbstractPolicyConstraintType> container =
-                    (PrismContainer<? extends AbstractPolicyConstraintType>) pc.getParent();
+        if (pc.getParent() instanceof PrismContainer<? extends AbstractPolicyConstraintType> container) {
             PrismValue containerParentValue = container.getParent();
             if (containerParentValue != null &&
                     ((PrismContainerValue) containerParentValue).asContainerable() instanceof AbstractPolicyConstraintType) {

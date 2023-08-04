@@ -133,7 +133,7 @@ public class ExecutionContext {
         }
     }
 
-    public void computeResults() {
+    void computeResults() {
         if (finalOutput != null) {
             finalOutput.getData().forEach(i -> i.computeResult());
         }

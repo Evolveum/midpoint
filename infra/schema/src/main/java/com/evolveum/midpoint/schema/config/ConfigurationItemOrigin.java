@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.config;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -24,7 +25,15 @@ import java.util.Objects;
  * Description of an origin of a configuration item (expression, mapping, and so on).
  * Necessary e.g. for the derivation of an {@link ExpressionProfile}.
  *
- * TODO make this class a kind-of immutable
+ * == Open questions
+ *
+ * We implicitly assume that the prism objects (of which configuration items are parts) come from the repository, where they
+ * were stored according to the respective authorizations. (It is, after all, a necessary condition to use the origin as a basis
+ * for expression profile determination!)
+ *
+ * But, then, what about (full) objects coming not from the repository but from external sources?
+ *
+ * TODO make this class a kind-of immutable (currently, we do have full objects here)
  */
 @Experimental
 public abstract class ConfigurationItemOrigin implements Serializable {
@@ -43,8 +52,16 @@ public abstract class ConfigurationItemOrigin implements Serializable {
     }
 
     /** Use with care! Careless use of this origin may render expression profiles ineffective. */
-    public static ConfigurationItemOrigin detached() {
-        return new ConfigurationItemOrigin.Detached();
+    public static ConfigurationItemOrigin external(@NotNull String channelUri) {
+        return new External(channelUri);
+    }
+
+    public static ConfigurationItemOrigin rest() {
+        return external(SchemaConstants.CHANNEL_REST_URI);
+    }
+
+    public static ConfigurationItemOrigin user() {
+        return external(SchemaConstants.CHANNEL_USER_URI);
     }
 
     /** Use with care! Careless use of this origin may render expression profiles ineffective. */
@@ -93,7 +110,12 @@ public abstract class ConfigurationItemOrigin implements Serializable {
 
     public static ConfigurationItemOrigin inObject(
             @NotNull ObjectType originatingObject, @NotNull ItemPath path) {
-        return new InObject(originatingObject, path);
+        return new InObject(originatingObject, path, true);
+    }
+
+    public static ConfigurationItemOrigin inObjectApproximate(
+            @NotNull ObjectType originatingObject, @NotNull ItemPath knownPath) {
+        return new InObject(originatingObject, knownPath, false);
     }
 
     public static ConfigurationItemOrigin inDelta(
@@ -129,10 +151,16 @@ public abstract class ConfigurationItemOrigin implements Serializable {
     }
 
     /** Represents an item that was defined out of context of any prism object. */
-    public static class Detached extends ConfigurationItemOrigin {
+    public static class External extends ConfigurationItemOrigin {
+        @NotNull private final String channelUri;
+
+        public External(@NotNull String channelUri) {
+            this.channelUri = channelUri;
+        }
+
         @Override
         public String toString() {
-            return "detached";
+            return "detached(" + channelUri + ")";
         }
 
         @Override
@@ -142,7 +170,7 @@ public abstract class ConfigurationItemOrigin implements Serializable {
 
         @Override
         public @NotNull String fullDescription() {
-            return "(detached piece of configuration)";
+            return "(external piece of configuration; from channel " + channelUri + ")";
         }
     }
 
@@ -170,10 +198,18 @@ public abstract class ConfigurationItemOrigin implements Serializable {
         private final @NotNull ObjectType originatingObject;
         private final @NotNull ItemPath path;
 
-        private InObject(@NotNull ObjectType originatingObject, @NotNull ItemPath path) {
+        /**
+         * If `false`, we know the position only approximately. The {@link #path} is then all that we know;
+         * the value can be anywhere in that subtree.
+         */
+        private final boolean precise;
+
+        private InObject(
+                @NotNull ObjectType originatingObject, @NotNull ItemPath path, boolean precise) {
             // explicit nullity check is here for additional safety
             this.originatingObject = Objects.requireNonNull(originatingObject);
             this.path = path;
+            this.precise = precise;
         }
 
         public @NotNull ObjectType getOriginatingObject() {
@@ -192,14 +228,20 @@ public abstract class ConfigurationItemOrigin implements Serializable {
             return path;
         }
 
+        public boolean isPrecise() {
+            return precise;
+        }
+
         @Override
         public ConfigurationItemOrigin child(@NotNull ItemPath path) {
-            return new InObject(originatingObject, this.path.append(path));
+            return precise ?
+                    new InObject(originatingObject, this.path.append(path), true) :
+                    this;
         }
 
         @Override
         public String toString() {
-            return "in " + originatingObject + " @" + path;
+            return "in " + originatingObject + " @" + path + (precise ? "" : " (approximate)");
         }
 
         @Override

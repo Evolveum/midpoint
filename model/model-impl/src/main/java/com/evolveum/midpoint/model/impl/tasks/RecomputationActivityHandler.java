@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -121,7 +123,8 @@ public class RecomputationActivityHandler
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(WorkDefinitionBean source) {
+        MyWorkDefinition(WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+            super(origin);
             var typedDefinition = (RecomputationWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             ObjectSetUtil.applyDefaultObjectType(objects, DEFAULT_OBJECT_TYPE_FOR_NEW_SPEC);

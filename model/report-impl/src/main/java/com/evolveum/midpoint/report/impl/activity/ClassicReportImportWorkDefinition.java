@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
@@ -23,8 +25,9 @@ class ClassicReportImportWorkDefinition extends AbstractReportWorkDefinition {
 
     @NotNull private final ObjectReferenceType reportDataRef;
 
-    ClassicReportImportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
-        super(source);
+    ClassicReportImportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin)
+            throws SchemaException {
+        super(source, origin);
         var typedDefinition = (ClassicReportImportWorkDefinitionType) source.getBean();
         reportDataRef = MiscUtil.requireNonNull(typedDefinition.getReportDataRef(), () -> "No report data object specified");
     }

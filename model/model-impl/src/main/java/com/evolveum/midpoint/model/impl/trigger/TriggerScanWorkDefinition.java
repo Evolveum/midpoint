@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.trigger;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,8 @@ public class TriggerScanWorkDefinition extends AbstractWorkDefinition implements
 
     @NotNull private final ObjectSetType objects;
 
-    TriggerScanWorkDefinition(@NotNull WorkDefinitionBean source) {
+    TriggerScanWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         var typedDefinition = (TriggerScanWorkDefinitionType) source.getBean();
         objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
     }

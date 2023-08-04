@@ -8,14 +8,13 @@ package com.evolveum.midpoint.model.impl.scripting.expressions;
 
 import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import jakarta.xml.bind.JAXBElement;
 
+import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,12 +28,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -59,11 +56,14 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 
     private static final String PARAM_NO_FETCH = "noFetch";
 
-    public <T extends ObjectType> PipelineData evaluate(SearchExpressionType searchExpression, PipelineData input,
+    public <T extends ObjectType> PipelineData evaluate(
+            SearchExpressionType searchExpression, PipelineData input,
             ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notNull(searchExpression.getType());
 
+        // FIXME
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
         List<PipelineItem> data = input.getData();
@@ -81,13 +81,15 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 
             // TODO variables from current item
             // TODO operation result handling (global vs local)
-            boolean noFetch = expressionHelper.getArgumentAsBoolean(searchExpression.getParameter(), PARAM_NO_FETCH, input, context, false, "search", globalResult);
+            boolean noFetch = expressionHelper.getArgumentAsBoolean(
+                    searchExpression.getParameter(), PARAM_NO_FETCH, input, context, false,
+                    "search", globalResult);
 
             Class<T> objectClass =
                     ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType())
                             .getClassDefinition();
 
-            ObjectQuery unresolvedObjectQuery = null;
+            ObjectQuery unresolvedObjectQuery;
             if (searchExpression.getQuery() != null) {
                 try {
                     unresolvedObjectQuery = context.getQueryConverter().createObjectQuery(objectClass, searchExpression.getQuery());
@@ -97,11 +99,14 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             } else if (searchExpression.getSearchFilter() != null) {
                 unresolvedObjectQuery = prismContext.queryFactory().createQuery();
                 try {
-                    ObjectFilter filter = prismContext.getQueryConverter().parseFilter(searchExpression.getSearchFilter(), objectClass);
+                    ObjectFilter filter =
+                            prismContext.getQueryConverter().parseFilter(searchExpression.getSearchFilter(), objectClass);
                     unresolvedObjectQuery.setFilter(filter);
                 } catch (SchemaException e) {
                     throw new ScriptExecutionException("Couldn't parse object query. Reason: " + e.getMessage(), e);
                 }
+            } else {
+                unresolvedObjectQuery = null;
             }
             ObjectQuery objectQuery;
             if (unresolvedObjectQuery != null) {
@@ -138,10 +143,12 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                         }
                         globalResult.setSummarizeSuccesses(true);
                         globalResult.summarize();
-                    } catch (ScriptExecutionException | SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
+                    } catch (ScriptExecutionException | SchemaException | ConfigurationException | ObjectNotFoundException |
+                            CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
                         // todo think about this
                         if (context.isContinueOnAnyError()) {
-                            LoggingUtils.logUnexpectedException(LOGGER, "Exception when evaluating item from search result list.", e);
+                            LoggingUtils.logUnexpectedException(
+                                    LOGGER, "Exception when evaluating item from search result list.", e);
                         } else {
                             throw new SystemException(e);
                         }
@@ -153,18 +160,19 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             };
 
             try {
-                Collection<SelectorOptions<GetOperationOptions>> options = operationsHelper.createGetOptions(searchExpression.getOptions(), noFetch);
-                modelService.searchObjectsIterative(objectClass, objectQuery, handler, options, context.getTask(), globalResult);
-            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                var options = operationsHelper.createGetOptions(searchExpression.getOptions(), noFetch);
+                modelService.searchObjectsIterative(
+                        objectClass, objectQuery, handler, options, context.getTask(), globalResult);
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+                    ConfigurationException | ExpressionEvaluationException e) {
                 // TODO continue on any error?
                 throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
             }
         }
 
         if (atLeastOne.isFalse()) {
-            context.println("Warning: no matching object found");          // temporary hack, this will be configurable
+            context.println("Warning: no matching object found"); // this will be maybe configurable
         }
         return outputData;
     }
-
 }

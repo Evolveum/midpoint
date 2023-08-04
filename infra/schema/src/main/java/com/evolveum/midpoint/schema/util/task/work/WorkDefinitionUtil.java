@@ -22,10 +22,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class WorkDefinitionUtil {
 
-    public static @NotNull List<WorkDefinitionBean> getWorkDefinitionBeans(WorkDefinitionsType definitions) {
+    public static @NotNull List<WorkDefinitionBean> getWorkDefinitionBeans(@Nullable WorkDefinitionsType definitions) {
         List<WorkDefinitionBean> values = new ArrayList<>();
         if (definitions == null) {
             return values;

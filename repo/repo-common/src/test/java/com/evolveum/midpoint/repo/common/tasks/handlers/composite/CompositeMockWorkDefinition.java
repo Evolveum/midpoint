@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -39,7 +40,8 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     private final Boolean opening;
     private final Boolean closing;
 
-    CompositeMockWorkDefinition(@NotNull WorkDefinitionBean source) {
+    CompositeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         PrismContainerValue<?> pcv = source.getValue();
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);
         this.delay = or0(pcv.getPropertyRealValue(DELAY_NAME, Long.class));

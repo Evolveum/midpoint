@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
@@ -21,7 +22,8 @@ public class CleanupWorkDefinition extends AbstractWorkDefinition {
     @Nullable
     private final CleanupPoliciesType cleanupPolicies;
 
-    CleanupWorkDefinition(@NotNull WorkDefinitionBean source) {
+    CleanupWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         var typedDefinition = (CleanupWorkDefinitionType) source.getBean();
         cleanupPolicies = typedDefinition.getPolicies();
     }

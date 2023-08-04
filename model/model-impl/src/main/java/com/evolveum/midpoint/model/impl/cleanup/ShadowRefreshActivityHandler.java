@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -129,7 +131,8 @@ public class ShadowRefreshActivityHandler
 
         @NotNull private final ObjectSetType objects;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+            super(origin);
             var typedDefinition = (ShadowRefreshWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getShadows());
             ObjectSetUtil.assumeObjectType(objects, ShadowType.COMPLEX_TYPE);

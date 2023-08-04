@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -65,7 +66,7 @@ public class CertificationHook implements ChangeHook {
         if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
             return HookOperationMode.FOREGROUND;
         }
-        List<CertificationPolicyActionType> actions = new ArrayList<>();
+        List<PolicyActionConfigItem<CertificationPolicyActionType>> actions = new ArrayList<>();
         actions.addAll(getFocusCertificationActions(context));
         actions.addAll(getAssignmentCertificationActions(context));
         try {
@@ -76,17 +77,20 @@ public class CertificationHook implements ChangeHook {
         return HookOperationMode.FOREGROUND;
     }
 
-    private Collection<CertificationPolicyActionType> getFocusCertificationActions(ModelContext<?> context) {
+    private Collection<PolicyActionConfigItem<CertificationPolicyActionType>> getFocusCertificationActions(
+            ModelContext<?> context) {
         return getCertificationActions(context.getFocusContext().getObjectPolicyRules());
     }
 
-    private Collection<CertificationPolicyActionType> getAssignmentCertificationActions(ModelContext<?> context) {
+    private Collection<PolicyActionConfigItem<CertificationPolicyActionType>> getAssignmentCertificationActions(
+            ModelContext<?> context) {
         return context.getEvaluatedAssignmentsStream()
                 .flatMap(ea -> getCertificationActions(ea.getAllTargetsPolicyRules()).stream())
                 .collect(Collectors.toList());
     }
 
-    private Collection<CertificationPolicyActionType> getCertificationActions(Collection<? extends EvaluatedPolicyRule> policyRules) {
+    private Collection<PolicyActionConfigItem<CertificationPolicyActionType>> getCertificationActions(
+            Collection<? extends EvaluatedPolicyRule> policyRules) {
         return policyRules.stream()
                 .filter(r -> r.isTriggered() && r.containsEnabledAction(CertificationPolicyActionType.class))
                 .map(r -> r.getEnabledAction(CertificationPolicyActionType.class))

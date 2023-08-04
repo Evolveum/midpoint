@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
@@ -25,6 +26,18 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
      *   just like distribution, flow control, etc does.
      */
     @NotNull private ActivityTailoring activityTailoring = new ActivityTailoring();
+
+    /** Origin of the work definition. Usually the path is not known exactly. TODO what to do with tailoring? */
+    @NotNull private final ConfigurationItemOrigin origin;
+
+    protected AbstractWorkDefinition(@NotNull ConfigurationItemOrigin origin) {
+        this.origin = origin;
+    }
+
+    @Override
+    public @NotNull ConfigurationItemOrigin getOrigin() {
+        return origin;
+    }
 
     @Override
     public @NotNull ActivityTailoring getActivityTailoring() {
@@ -45,6 +58,8 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
         debugDumpContent(sb, indent);
+        sb.append("\n"); // eventually remove
+        DebugUtil.debugDumpWithLabel(sb, "origin", String.valueOf(origin), indent + 1);
         if (!activityTailoring.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "activity tailoring", String.valueOf(activityTailoring), indent + 1);

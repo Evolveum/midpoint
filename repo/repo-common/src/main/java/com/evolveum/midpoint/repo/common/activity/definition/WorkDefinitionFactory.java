@@ -12,9 +12,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RecomputationWorkDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,28 +50,30 @@ public class WorkDefinitionFactory {
     }
 
     /** Transforms configuration bean (user-friendly form) into parsed {@link WorkDefinition} object. */
-    WorkDefinition getWorkFromBean(WorkDefinitionsType definitions) throws SchemaException, ConfigurationException {
+    WorkDefinition getWorkFromBean(@Nullable WorkDefinitionsType definitions, @NotNull ConfigurationItemOrigin origin)
+            throws SchemaException, ConfigurationException {
         List<WorkDefinitionBean> beans = WorkDefinitionUtil.getWorkDefinitionBeans(definitions);
         if (beans.isEmpty()) {
             return null;
         } else if (beans.size() > 1) {
             throw new SchemaException("Ambiguous definition: " + beans);
         } else {
-            return getWorkFromBean(beans.get(0));
+            return getWorkFromBean(beans.get(0), origin);
         }
     }
 
-    private WorkDefinition getWorkFromBean(WorkDefinitionBean definitionBean)
+    private WorkDefinition getWorkFromBean(@NotNull WorkDefinitionBean definitionBean, @NotNull ConfigurationItemOrigin origin)
             throws SchemaException, ConfigurationException {
         QName typeName = definitionBean.getBeanTypeName();
         WorkDefinitionSupplier supplier = MiscUtil.requireNonNull(
                 byTypeName.get(typeName),
                 () -> new IllegalStateException("No work definition supplier for " + typeName));
-        return supplier.provide(definitionBean);
+        return supplier.provide(definitionBean, origin);
     }
 
     @FunctionalInterface
     public interface WorkDefinitionSupplier {
-        WorkDefinition provide(@NotNull WorkDefinitionBean source) throws SchemaException, ConfigurationException;
+        WorkDefinition provide(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin)
+                throws SchemaException, ConfigurationException;
     }
 }

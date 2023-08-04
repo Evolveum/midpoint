@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.CHANNEL_TEST_URI;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -46,6 +48,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.net.ssl.TrustManager;
@@ -4506,5 +4511,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         for (TestObject<?> object : objects) {
             object.initRaw(this, result);
         }
+    }
+
+    public ConfigurationItemOrigin testOrigin() {
+        return ConfigurationItemOrigin.external(CHANNEL_TEST_URI);
     }
 }

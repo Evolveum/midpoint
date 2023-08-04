@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.expression;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareProducer;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -25,10 +26,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -244,12 +241,14 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             return null; // everything is allowed
         }
 
-        ExpressionEvaluatorProfile evaluatorProfile = expressionProfile.getEvaluatorProfile(evaluator.getElementName());
+        ExpressionEvaluatorsProfile evaluatorsProfile = expressionProfile.getEvaluatorsProfile();
+
+        ExpressionEvaluatorProfile evaluatorProfile = evaluatorsProfile.getEvaluatorProfile(evaluator.getElementName());
         if (evaluatorProfile != null) {
             return evaluatorProfile; // evaluator profile will sort everything out, no need to decide here
         }
 
-        if (expressionProfile.getDefaultDecision() == AccessDecision.ALLOW) {
+        if (evaluatorsProfile.getDefaultDecision() == AccessDecision.ALLOW) {
             return null; // no evaluator profile, but we are allowed at the expression level
         } else {
             throw new SecurityViolationException(

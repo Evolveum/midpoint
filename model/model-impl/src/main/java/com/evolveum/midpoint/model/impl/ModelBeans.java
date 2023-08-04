@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
@@ -142,6 +143,7 @@ public class ModelBeans {
     @Autowired public SynchronizationActionFactory synchronizationActionFactory;
     @Autowired public ProjectionContextKeyFactory projectionContextKeyFactory;
     @Autowired public ArchetypeManager archetypeManager;
+    @Autowired public ExpressionProfileManager expressionProfileManager;
     @Autowired public AuditHelper auditHelper;
     @Autowired public ModelController modelController;
     @Autowired public SimulationResultManagerImpl simulationResultManager;

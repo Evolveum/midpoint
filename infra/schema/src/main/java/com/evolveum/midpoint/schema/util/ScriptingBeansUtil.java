@@ -29,16 +29,18 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.util.MiscUtil.castSafely;
 
 /**
- * Utility methods related to ScriptingExpressionType beans.
+ * Utility methods related to {@link ScriptingExpressionType} beans.
  */
 public class ScriptingBeansUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptingBeansUtil.class);
 
+    /** Map of types to corresponding element names. We assume there are no conflicts. */
     private static final Map<Class<? extends ScriptingExpressionType>, QName> ELEMENTS = new HashMap<>();
 
     static {
@@ -57,31 +59,33 @@ public class ScriptingBeansUtil {
                 QName elementName = jaxbElement.getName();
                 Class<? extends ScriptingExpressionType> elementType = jaxbElement.getDeclaredType();
                 if (ELEMENTS.containsKey(elementType)) {
-                    throw new IllegalStateException("More than one JAXBElement for " + elementType + ": " +
-                            elementName + ", " + ELEMENTS.get(elementType));
+                    throw new IllegalStateException(
+                            "More than one JAXBElement for %s: %s, %s".formatted(
+                                    elementType, elementName, ELEMENTS.get(elementType)));
                 } else {
                     ELEMENTS.put(elementType, elementName);
                 }
             }
         }
-        LOGGER.trace("Map: {}", ELEMENTS);
+        LOGGER.trace("Elements map: {}", ELEMENTS);
     }
 
     /**
-     * Sometimes we have to convert "bare" ScriptingExpressionType instance to the JAXBElement version,
+     * Sometimes we have to convert "bare" {@link ScriptingExpressionType} instance to the {@link JAXBElement} version,
      * with the correct element name.
      */
-    private static <T extends ScriptingExpressionType> JAXBElement<T> toJaxbElement(T expression) {
-        QName qname = ELEMENTS.get(expression.getClass());
-        if (qname != null) {
-            //noinspection unchecked
-            return new JAXBElement<>(qname, (Class<T>) expression.getClass(), expression);
-        } else {
-            throw new IllegalArgumentException("Unsupported expression type: " + expression.getClass());
-        }
+    private static <T extends ScriptingExpressionType> JAXBElement<T> toJaxbElement(@NotNull T expression) {
+        Class<? extends ScriptingExpressionType> clazz = expression.getClass();
+        //noinspection unchecked
+        return new JAXBElement<>(
+                MiscUtil.argNonNull(
+                        ELEMENTS.get(clazz),
+                        "Unsupported expression type: %s", clazz),
+                (Class<T>) clazz,
+                expression);
     }
 
-    public static String getActionType(ActionExpressionType action) {
+    public static @NotNull String getActionType(@NotNull ActionExpressionType action) {
         if (action.getType() != null) {
             return action.getType();
         } else {
@@ -89,7 +93,8 @@ public class ScriptingBeansUtil {
         }
     }
 
-    public static <T> T getBeanPropertyValue(ActionExpressionType action, String propertyName, Class<T> clazz) throws SchemaException {
+    public static <T> T getBeanPropertyValue(ActionExpressionType action, String propertyName, Class<T> clazz)
+            throws SchemaException {
         try {
             try {
                 Object rawValue = PropertyUtils.getSimpleProperty(action, propertyName);
@@ -121,9 +126,19 @@ public class ScriptingBeansUtil {
         }
     }
 
-    public static ExecuteScriptType createExecuteScriptCommand(ScriptingExpressionType expression) {
-        ExecuteScriptType executeScriptCommand = new ExecuteScriptType();
-        executeScriptCommand.setScriptingExpression(toJaxbElement(expression));
-        return executeScriptCommand;
+    public static @NotNull ExecuteScriptType createExecuteScriptCommand(@NotNull ScriptingExpressionType expression) {
+        return new ExecuteScriptType()
+                .scriptingExpression(
+                        toJaxbElement(expression));
+    }
+
+    public static @NotNull ExecuteScriptType asExecuteScriptCommand(@NotNull Object object) {
+        if (object instanceof ExecuteScriptType executeScript) {
+            return executeScript;
+        } else if (object instanceof ScriptingExpressionType scriptingExpression) {
+            return createExecuteScriptCommand(scriptingExpression);
+        } else {
+            throw new IllegalArgumentException("Expected ExecuteScriptType or ScriptingExpressionType, got " + object);
+        }
     }
 }

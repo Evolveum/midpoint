@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -17,8 +18,8 @@ import org.jetbrains.annotations.NotNull;
  */
 class DistributedReportExportWorkDefinition extends AbstractReportWorkDefinition {
 
-    DistributedReportExportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
-        super(source);
+    DistributedReportExportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin)
+            throws SchemaException {
+        super(source, origin);
     }
-
 }

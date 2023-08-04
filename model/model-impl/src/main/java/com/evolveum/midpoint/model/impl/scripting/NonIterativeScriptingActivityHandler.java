@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import jakarta.annotation.PostConstruct;
@@ -98,7 +100,6 @@ public class NonIterativeScriptingActivityHandler
         @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult parentResult) throws CommonException {
             RunningTask runningTask = getRunningTask();
-            ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
             runningTask.setExecutionSupport(this);
 
             // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
@@ -107,7 +108,7 @@ public class NonIterativeScriptingActivityHandler
                 ScriptExecutionResult executionResult =
                         getActivityHandler().scriptingService
                                 .evaluateExpression(
-                                        executeScriptRequest,
+                                        getWorkDefinition().getScriptExecutionRequest(),
                                         VariablesMap.emptyMap(),
                                         true,
                                         runningTask,
@@ -127,17 +128,21 @@ public class NonIterativeScriptingActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition {
 
-        private final ExecuteScriptType scriptExecutionRequest;
+        @NotNull private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+            super(origin);
             var typedDefinition = (NonIterativeScriptingWorkDefinitionType) source.getBean();
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
             argCheck(scriptExecutionRequest.getScriptingExpression() != null, "No scripting expression provided");
         }
 
-        public ExecuteScriptType getScriptExecutionRequest() {
-            return scriptExecutionRequest;
+        public @NotNull ExecuteScriptConfigItem getScriptExecutionRequest() {
+            // note that the origin is usually only approximate here, so the "child" call is more or less useless for now
+            return ExecuteScriptConfigItem.of(
+                    scriptExecutionRequest,
+                    getOrigin().child(NonIterativeScriptingWorkDefinitionType.F_SCRIPT_EXECUTION_REQUEST));
         }
 
         @Override

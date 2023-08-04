@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,8 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
     @NotNull private final String duplicateShadowsResolver;
     private final boolean checkDuplicatesOnPrimaryIdentifiersOnly;
 
-    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source) {
+    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         var typedDefinition = (ShadowIntegrityCheckWorkDefinitionType) source.getBean();
         shadows = ObjectSetUtil.emptyIfNull(typedDefinition.getShadows());
         ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);

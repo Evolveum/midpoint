@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,8 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
     private final boolean updateLiveSyncTokenInDryRun;
     private final boolean updateLiveSyncTokenInPreviewMode;
 
-    LiveSyncWorkDefinition(WorkDefinitionBean source) {
+    LiveSyncWorkDefinition(WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         var typedDefinition = (LiveSyncWorkDefinitionType) source.getBean();
         resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         batchSize = typedDefinition.getBatchSize();

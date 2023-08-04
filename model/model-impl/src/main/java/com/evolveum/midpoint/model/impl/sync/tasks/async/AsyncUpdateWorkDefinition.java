@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -21,7 +22,8 @@ public class AsyncUpdateWorkDefinition extends AbstractWorkDefinition implements
 
     @NotNull private final ResourceObjectSetType resourceObjects;
 
-    AsyncUpdateWorkDefinition(@NotNull WorkDefinitionBean source) {
+    AsyncUpdateWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         var typedDefinition = (AsyncUpdateWorkDefinitionType) source.getBean();
         resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getUpdatedResourceObjects());
         ResourceObjectSetUtil.removeQuery(resourceObjects);

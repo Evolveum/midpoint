@@ -4,6 +4,8 @@ package com.evolveum.midpoint.model.impl.integrity.objects;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -168,7 +170,8 @@ public class ObjectIntegrityCheckActivityHandler
         @NotNull private final ObjectSetType objects;
         private final int histogramColumns;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+            super(origin);
             var typedDefinition = (ObjectIntegrityCheckWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);

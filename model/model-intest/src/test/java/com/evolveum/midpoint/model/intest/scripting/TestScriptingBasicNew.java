@@ -64,11 +64,11 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         ScriptingExpressionType expression = parseScriptingExpression(RECOMPUTE_JACK_NEW_TRIGGER_DIRECT_FILE);
 
         when();
-        evaluator.evaluateExpression(expression, task, result);
+        evaluateExpression(expression, task, result);
         Thread.sleep(20);
-        evaluator.evaluateExpression(expression, task, result);
+        evaluateExpression(expression, task, result);
         Thread.sleep(20);
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -98,11 +98,11 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
                 .assertTriggers(0);
 
         when();
-        evaluator.evaluateExpression(expression, task, result);
+        evaluateExpression(expression, task, result);
         Thread.sleep(20);
-        evaluator.evaluateExpression(expression, task, result);
+        evaluateExpression(expression, task, result);
         Thread.sleep(20);
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -123,7 +123,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         ScriptingExpressionType expression = parseScriptingExpression(UNASSIGN_CAPTAIN_FROM_JACK_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -145,7 +145,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_CAPTAIN_BY_NAME_TO_JACK_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -174,7 +174,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         ScriptingExpressionType expression = parseScriptingExpression(UNASSIGN_ALL_FROM_JACK_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -197,7 +197,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         unassignAllRoles(USER_JACK_OID);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output = evaluateExpression(executeScript, task, result);
 
         then();
         dumpOutput(output, result);

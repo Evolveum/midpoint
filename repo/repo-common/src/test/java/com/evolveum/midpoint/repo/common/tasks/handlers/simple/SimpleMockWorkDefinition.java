@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -30,7 +31,8 @@ public class SimpleMockWorkDefinition extends AbstractWorkDefinition {
     private final String message;
     private final int initialFailures;
 
-    SimpleMockWorkDefinition(@NotNull WorkDefinitionBean source) {
+    SimpleMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         PrismContainerValue<?> pcv = source.getValue();
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);
         this.initialFailures = or0(pcv.getPropertyRealValue(INITIAL_FAILURES_NAME, Integer.class));

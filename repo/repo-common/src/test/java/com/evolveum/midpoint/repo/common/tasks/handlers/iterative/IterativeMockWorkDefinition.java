@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import com.google.common.base.MoreObjects;
@@ -43,7 +44,8 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
     private final long delay;
 
-    IterativeMockWorkDefinition(@NotNull WorkDefinitionBean source) {
+    IterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         PrismContainerValue<?> pcv = source.getValue();
         this.from = MoreObjects.firstNonNull(pcv.getPropertyRealValue(FROM_NAME, Integer.class), 0);
         this.to = MoreObjects.firstNonNull(pcv.getPropertyRealValue(TO_NAME, Integer.class), from);

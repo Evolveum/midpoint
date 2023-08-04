@@ -57,7 +57,9 @@ public class PruningOperation<F extends AssignmentHolderType> {
      */
     private boolean enforcementOverrideGenerated;
 
-    public PruningOperation(LensContext<F> context, DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
+    PruningOperation(
+            LensContext<F> context,
+            DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
             ModelBeans beans) {
         this.context = context;
         this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
@@ -90,6 +92,10 @@ public class PruningOperation<F extends AssignmentHolderType> {
     private void pruneNewAssignment(EvaluatedAssignmentImpl<F> newAssignment) {
         LOGGER.trace("Checking for pruning of new assignment: {}", newAssignment);
         for (AssociatedPolicyRule newAssignmentRule : newAssignment.getAllAssociatedPolicyRules()) {
+            if (!newAssignmentRule.isEvaluated()) {
+                // TODO what to do here? Maybe this is harmless but maybe not. Should be researched.
+                continue;
+            }
             if (newAssignmentRule.containsEnabledAction(PrunePolicyActionType.class)) {
                 LOGGER.trace("Found rule with enabled pruning action: {}", newAssignmentRule);
                 Collection<EvaluatedExclusionTrigger> exclusionTriggers = newAssignmentRule.getRelevantExclusionTriggers();

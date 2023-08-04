@@ -45,7 +45,7 @@ public record ActivitySubmissionOptions(
     }
 
     /**
-     * If present, the new task will have this (single) archetype OID, regardless of any other options.
+     * If present, the new task will have specified archetype OID(s), regardless of any other options.
      */
     public ActivitySubmissionOptions withArchetypes(@NotNull String... oids) {
         Arrays.stream(oids)

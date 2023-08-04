@@ -54,7 +54,6 @@ public class NotificationHook implements ChangeHook {
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private NotificationManager notificationManager;
-    @Autowired private NotificationFunctions notificationsUtil;
 
     @PostConstruct
     public void init() {
@@ -114,8 +113,8 @@ public class NotificationHook implements ChangeHook {
 
     private void emitPolicyEventIfPresent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
         if (rule.isTriggered()) {
-            for (NotificationPolicyActionType notificationAction : rule.getEnabledActions(NotificationPolicyActionType.class)) {
-                emitPolicyEvent(notificationAction, rule, context, task, result);
+            for (var notificationAction : rule.getEnabledActions(NotificationPolicyActionType.class)) {
+                emitPolicyEvent(notificationAction.value(), rule, context, task, result);
             }
         }
     }

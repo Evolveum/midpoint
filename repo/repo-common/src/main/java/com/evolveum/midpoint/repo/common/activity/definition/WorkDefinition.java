@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -20,4 +22,6 @@ public interface WorkDefinition extends DebugDumpable, Cloneable {
     @NotNull ActivityTailoring getActivityTailoring();
 
     WorkDefinition clone();
+
+    @NotNull ConfigurationItemOrigin getOrigin();
 }

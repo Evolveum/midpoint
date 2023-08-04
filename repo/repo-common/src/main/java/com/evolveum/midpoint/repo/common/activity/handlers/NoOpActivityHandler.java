@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.handlers;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import com.google.common.base.MoreObjects;
@@ -162,7 +163,8 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         private final int steps;
         @NotNull private final NoOpActivityStepInterruptibilityType stepInterruptibility;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+            super(origin);
             var bean = (NoOpWorkDefinitionType) source.getBean();
             delay = MoreObjects.firstNonNull(bean.getDelay(), 0);
             steps = MoreObjects.firstNonNull(bean.getSteps(), 1);

@@ -905,12 +905,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @Override
     @NotNull
-    public Collection<String> getMatchingEventMarks() {
-        return policyRulesContext.getTriggeredEventMarks();
+    public Collection<String> getMatchingEventMarksOids() {
+        return policyRulesContext.getTriggeredEventMarksOids();
     }
 
-    public @NotNull Collection<String> getAllConsideredEventMarks() {
-        return policyRulesContext.getAllConsideredEventMarks();
+    public @NotNull Collection<String> getAllConsideredEventMarksOids() {
+        return policyRulesContext.getAllConsideredEventMarksOids();
     }
 
     public @NotNull ItemChangeApplicationModeConfiguration getItemChangeApplicationModeConfiguration()

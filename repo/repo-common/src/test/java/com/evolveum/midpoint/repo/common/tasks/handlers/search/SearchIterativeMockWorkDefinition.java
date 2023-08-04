@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -41,7 +42,8 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
     @Nullable private final SearchFilterType failOn;
     private final boolean freezeIfScavenger;
 
-    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionBean source) {
+    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         PrismContainerValue<?> pcv = source.getValue();
         this.objectSet = getObjectSet(pcv);
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);

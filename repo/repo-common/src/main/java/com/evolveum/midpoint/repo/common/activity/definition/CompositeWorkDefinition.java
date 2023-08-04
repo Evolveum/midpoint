@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
 
@@ -19,7 +20,8 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
 
     @NotNull private final ActivityCompositionType composition;
 
-    CompositeWorkDefinition(@NotNull ActivityCompositionType composition) {
+    CompositeWorkDefinition(@NotNull ActivityCompositionType composition, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         this.composition = composition;
     }
 

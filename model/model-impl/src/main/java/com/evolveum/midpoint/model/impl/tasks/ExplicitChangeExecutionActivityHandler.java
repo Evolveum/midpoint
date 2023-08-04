@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -138,7 +140,9 @@ public class ExplicitChangeExecutionActivityHandler
 
         @NotNull private final List<ChangeExecutionRequest> requests = new ArrayList<>();
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) throws ConfigurationException {
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin)
+                throws ConfigurationException {
+            super(origin);
             var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) source.getBean();
             Collection<ObjectDeltaType> rootDeltas = typedDefinition.getDelta();
             ModelExecuteOptions rootOptions =
@@ -174,7 +178,7 @@ public class ExplicitChangeExecutionActivityHandler
     }
 
     /** Semi-parsed and ordered change execution request (deltas + options). */
-    private record ChangeExecutionRequest(
+    record ChangeExecutionRequest(
             int number,
             String name,
             @NotNull Collection<ObjectDeltaType> deltas,

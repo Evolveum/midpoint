@@ -7,13 +7,17 @@
 package com.evolveum.midpoint.test.util;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_CHANNEL;
 
 import java.io.File;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
 
 public class MidPointTestConstants {
 
@@ -47,4 +51,7 @@ public class MidPointTestConstants {
     public static final ItemPath PATH_MAIL = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_MAIL);
 
     public static final ItemName QNAME_UID_NUMBER = new ItemName(NS_RI, "uidNumber");
+
+    public static final QName CHANNEL_TEST = new QName(NS_CHANNEL, "test");
+    public static final String CHANNEL_TEST_URI = QNameUtil.qNameToUri(CHANNEL_TEST);
 }

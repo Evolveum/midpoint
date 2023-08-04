@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.tasks.cluster;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -27,7 +28,8 @@ public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements
     private final Duration maxReconciliationInterval;
     private final boolean skipInitialReconciliation;
 
-    AutoScalingWorkDefinition(@NotNull WorkDefinitionBean source) {
+    AutoScalingWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
+        super(origin);
         var typedDefinition = (ActivityAutoScalingWorkDefinitionType) source.getBean();
 
         tasks = ObjectSetUtil.emptyIfNull(typedDefinition.getTasks());

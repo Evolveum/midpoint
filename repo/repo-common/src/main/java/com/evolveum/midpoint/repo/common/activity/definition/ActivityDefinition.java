@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,8 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Definition of an activity.
  *
  * It is analogous to (and primarily filled-in from) {@link ActivityDefinitionType}, but contains
- * the complete information about particular activity in the context of given task, e.g. legacy definition data filled-in
- * from task extension items.
+ * the complete information about particular activity in the context of given task, e.g. various defaults resolved.
  *
  * Should not contain any data related to the execution of the activity.
  */
@@ -32,7 +33,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /**
      * This is how the user want to identify the activity. If not provided, the identifier is generated automatically.
      */
-    private final String explicitlyDefinedIdentifier;
+    @Nullable private final String explicitlyDefinedIdentifier;
 
     /** The work definition. Currently not tailorable. */
     @NotNull private final WD workDefinition;
@@ -49,7 +50,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /** Definition for execution mode. Currently only partially tailorable (setting the mode) but that may change. */
     @NotNull private final ActivityExecutionModeDefinition executionModeDefinition;
 
-    private ActivityDefinition(String explicitlyDefinedIdentifier,
+    private ActivityDefinition(
+            @Nullable String explicitlyDefinedIdentifier,
             @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
@@ -73,7 +75,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             throws SchemaException, ConfigurationException {
         ActivityDefinitionType bean = rootTask.getRootActivityDefinitionOrClone();
 
-        WD rootWorkDefinition = createRootWorkDefinition(bean);
+        WD rootWorkDefinition = createRootWorkDefinition(
+                bean,
+                ConfigurationItemOrigin.inObjectApproximate(
+                        rootTask.getRawTaskObjectClonedIfNecessary().asObjectable(), TaskType.F_ACTIVITY));
         if (rootWorkDefinition == null) {
             throw new SchemaException(
                     "Root work definition cannot be obtained for %s: no activity definition is provided. Handler URI = %s"
@@ -104,9 +109,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * It is taken from the "activity" bean, combined with (compatible) information from "defaultWorkDefinition"
      * beans all the way up.
      */
-    public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean) {
+    public static ActivityDefinition<?> createChild(
+            @NotNull ActivityDefinitionType bean, @NotNull ConfigurationItemOrigin origin) {
         try {
-            AbstractWorkDefinition definition = fromBean(bean);
+            AbstractWorkDefinition definition = fromBean(bean, origin);
             // TODO enhance with defaultWorkDefinition
             if (definition == null) {
                 throw new SchemaException("Child work definition is not present for " + bean);
@@ -118,21 +124,23 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     }
 
     private static @Nullable <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(
-            @NotNull ActivityDefinitionType activityBean)
+            @NotNull ActivityDefinitionType activityBean, @NotNull ConfigurationItemOrigin origin)
             throws SchemaException, ConfigurationException {
-        return fromBean(activityBean);
+        return fromBean(activityBean, origin);
     }
 
-    public static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(ActivityDefinitionType bean)
+    public static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(
+            @NotNull ActivityDefinitionType bean, @NotNull ConfigurationItemOrigin origin)
             throws SchemaException, ConfigurationException {
         if (bean.getComposition() != null) {
             //noinspection unchecked
-            return (WD) new CompositeWorkDefinition(bean.getComposition());
+            return (WD) new CompositeWorkDefinition(bean.getComposition(), origin);
         }
 
         if (bean.getWork() != null) {
             //noinspection unchecked
-            return (WD) CommonTaskBeans.get().workDefinitionFactory.getWorkFromBean(bean.getWork()); // returned value can be null
+            return (WD) CommonTaskBeans.get().workDefinitionFactory.getWorkFromBean(bean.getWork(), origin);
+            // returned value can be null
         }
 
         return null;
@@ -189,7 +197,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return sb.toString();
     }
 
-    public String getExplicitlyDefinedIdentifier() {
+    public @Nullable String getExplicitlyDefinedIdentifier() {
         return explicitlyDefinedIdentifier;
     }
 
