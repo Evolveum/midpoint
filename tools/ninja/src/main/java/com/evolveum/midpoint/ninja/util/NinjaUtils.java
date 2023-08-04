@@ -58,7 +58,7 @@ public class NinjaUtils {
 
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
 
-    public static final long COUNT_STATUS_LOG_INTERVAL = 2 * 1000; // two seconds
+    public static final long COUNT_STATUS_LOG_INTERVAL = 500;
 
     public static final long WAIT_FOR_EXECUTOR_FINISH = 365;
 

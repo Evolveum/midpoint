@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.ninja.action;
 
+import static com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants.SCRIPTS_DIRECTORY;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,8 +15,6 @@ import com.evolveum.midpoint.ninja.util.RunModeConverterValidator;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "runSql")
 public class RunSqlOptions {
-
-    public static final File SCRIPTS_DIRECTORY = new File("./doc/config/sql/native-new");
 
     public enum Mode {
 
