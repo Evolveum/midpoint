@@ -9,6 +9,7 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.util.*;
 
+import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.ActionResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -51,24 +53,31 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
             log.warn("Skipping database schema version check");
         }
 
-        log.info("Pre-upgrade checks finished successfully");
+        log.info(ConsoleFormat.formatSuccessMessage("Pre-upgrade checks finished successfully"));
 
         return new ActionResult<>(true);
     }
 
     private boolean checkDatabaseSchemaVersion(RepositoryService repository) {
-        RepositoryDiag diag = repository.getRepositoryDiag();
+        RepositoryDiag repositoryInfo = repository.getRepositoryDiag();
 
         boolean result = validateChangeNumber(
-                diag.getAdditionalDetails(), SqaleUtils.SCHEMA_CHANGE_NUMBER,
+                repositoryInfo.getAdditionalDetails(), SqaleUtils.SCHEMA_CHANGE_NUMBER,
                 SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER);
         if (!result) {
             return false;
         }
 
-        // todo this will not work if audit was not configured or is in different database!
+        AuditServiceProxy auditServiceProxy = context.getApplicationContext().getBean(AuditServiceProxy.class);
+        SqaleAuditService audit = auditServiceProxy.getImplementation(SqaleAuditService.class);
+        if (audit == null) {
+            log.info("Audit service is not configured, skipping audit schema version check");
+            return true;
+        }
+
+        RepositoryDiag auditInfo = audit.getRepositoryDiag();
         return validateChangeNumber(
-                diag.getAdditionalDetails(), SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER,
+                auditInfo.getAdditionalDetails(), SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER,
                 SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER);
     }
 

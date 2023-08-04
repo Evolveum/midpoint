@@ -74,6 +74,7 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
             log.info("Running scripts in raw mode using custom JDBC url/username/password options.");
 
             if (options.getScripts().isEmpty()) {
+                log.warn("No scripts to run.");
                 return null;
             }
 
@@ -81,11 +82,10 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
             try (HikariDataSource dataSource = setupCustomDataSource()) {
                 executeScripts(dataSource, options.getScripts());
             }
-
             return null;
         }
 
-        log.info("Running scripts against midpoint {}.", mode.name().toLowerCase());
+        log.info(ConsoleFormat.formatMessageWithInfoParameters("Running scripts against midpoint {}.", mode.name().toLowerCase()));
 
         final ApplicationContext applicationContext = context.getApplicationContext();
         final MidpointConfiguration midpointConfiguration = applicationContext.getBean(MidpointConfiguration.class);
@@ -97,7 +97,6 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
             repositoryDataSource = createDataSource(configuration, "ninja-repository");
             if (mode == RunSqlOptions.Mode.REPOSITORY) {
                 executeScripts(repositoryDataSource, options.getScripts());
-
                 return null;
             }
 
@@ -224,9 +223,9 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                     }
 
                     stmt.close();
-
-                    log.info(ConsoleFormat.formatSuccessMessage("Script executed successfully."));
                 }
+
+                log.info(ConsoleFormat.formatSuccessMessage("Scripts executed successfully."));
             } finally {
                 connection.setAutoCommit(autocommit);
             }
