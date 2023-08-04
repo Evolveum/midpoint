@@ -447,7 +447,7 @@
                     <xsd:element name="correlator" type="tns:CorrelationModuleConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                "name" attribute of the correlator as set in object template.
+                                Correlator configuration.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -468,7 +468,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="correlatorIdentifier" type="xsd:string"/>
+            <xsd:element name="correlatorIdentifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "name" attribute of the correlator as set in object template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="order" type="xsd:int"/>
             <!-- TODO thresholds-->
         </xsd:sequence>

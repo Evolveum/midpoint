@@ -6,11 +6,8 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.Arrays;
-import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.axiom.concepts.Path;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -424,6 +421,8 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_SELF_REGISTRATION_FINISH_QNAME = new QName(NS_AUTHORIZATION_UI, "selfRegistFinish");
     public static final String AUTZ_UI_SELF_REGISTRATION_FINISH_URL = NS_AUTHORIZATION_UI + "#selfRegistFinish";
+    public static final QName AUTZ_UI_LOGIN_RECOVERY_FINISH_QNAME = new QName(NS_AUTHORIZATION_UI, "loginRecovery");
+    public static final String AUTZ_UI_LOGIN_RECOVERY_FINISH_URL = NS_AUTHORIZATION_UI + "#loginRecovery";
     public static final String AUTZ_UI_INVITATION_URL = NS_AUTHORIZATION_UI + "#invitation";
 
     public static final QName AUTZ_UI_PREVIEW_CHANGES_QNAME = new QName(NS_AUTHORIZATION_UI, "previewChanges");

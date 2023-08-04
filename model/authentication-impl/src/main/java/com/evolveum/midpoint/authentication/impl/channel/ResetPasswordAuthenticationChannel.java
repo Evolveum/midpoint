@@ -37,16 +37,16 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
         return "/resetPassword";
     }
 
-    public Collection<Authorization> resolveAuthorities(@NotNull Collection<Authorization> authorities) {
-        ArrayList<Authorization> newAuthorities = new ArrayList<>();
+    @Override
+    public Collection<Authorization> cleanupAuthorities(@NotNull Collection<Authorization> authorities) {
         for (Authorization authzI : authorities) {
             authzI.getAction().removeIf(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
         }
-        AuthorizationType authorizationBean = new AuthorizationType();
-        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL);
-        Authorization selfServiceCredentialsAuthz = new Authorization(authorizationBean);
-        newAuthorities.add(selfServiceCredentialsAuthz);
-        newAuthorities.addAll(authorities);
-        return Collections.unmodifiableList(newAuthorities);
+        return authorities;
+    }
+
+    @Override
+    protected Collection<String> getAdditionalAuthoritiesList() {
+        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL);
     }
 }

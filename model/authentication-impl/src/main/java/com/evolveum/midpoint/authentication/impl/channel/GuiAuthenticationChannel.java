@@ -51,13 +51,10 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     @Override
-    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
+    protected Collection<String> getAdditionalAuthoritiesList() {
         if (isPostAuthenticationEnabled()) {
-            AuthorizationType authorizationBean = new AuthorizationType();
-            authorizationBean.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_POST_AUTHENTICATION_URL);
-            Authorization postAuthenticationAuthz = new Authorization(authorizationBean);
-            return Collections.singletonList(postAuthenticationAuthz);
+            return Collections.singletonList(AuthorizationConstants.AUTZ_UI_SELF_POST_AUTHENTICATION_URL);
         }
-        return super.resolveAuthorities(authorities);
+        return super.getAdditionalAuthoritiesList();
     }
 }
