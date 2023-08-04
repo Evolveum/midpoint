@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationUseType;
 
 @PageDescriptor(urls = {
 @Url(mountUrl = "/correlation", matchUrlForSecurity = "/correlation")},
-        permitAll = true,  loginPage = true, authModule = AuthenticationModuleNameConstants.CORRELATION)   //todo remove permit all later : [KV] why?
+        permitAll = true,  loginPage = true, authModule = AuthenticationModuleNameConstants.CORRELATION)
 public class PageCorrelation extends PageAbstractAttributeVerification<CorrelationModuleAuthentication> {
 
     @Serial private static final long serialVersionUID = 1L;

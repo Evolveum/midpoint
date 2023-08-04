@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.authentication.impl.channel;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -14,6 +16,8 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -87,8 +91,37 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
         return Boolean.TRUE.equals(this.channel.isDefault());
     }
 
+    /**
+     * This method cares about removing some undesirable authorities and adding some additional authorities
+     * (e.g. an authority for the password reset page should be added to the list in case of successful user authentication)
+     *
+     * @param authorities
+     * @return
+     */
     public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
+        var cleanedUpAuthorities = cleanupAuthorities(authorities);
+        var newAuthorities = new ArrayList<>(cleanedUpAuthorities);
+        addAdditionalAuthorities(authorities);
+        return Collections.unmodifiableList(newAuthorities);
+    }
+
+    protected Collection<Authorization> cleanupAuthorities(Collection<Authorization> authorities) {
         return authorities;
+    }
+
+    private void addAdditionalAuthorities(Collection<Authorization> authorities) {
+        getAdditionalAuthoritiesList()
+                .forEach(a -> authorities.add(createAuthorization(a)));
+    }
+
+    protected Collection<String> getAdditionalAuthoritiesList() {
+        return Collections.emptyList();
+    }
+
+    private Authorization createAuthorization(String authUrl) {
+        var authorizationType = new AuthorizationType();
+        authorizationType.getAction().add(authUrl);
+        return new Authorization(authorizationType);
     }
 
     @Override

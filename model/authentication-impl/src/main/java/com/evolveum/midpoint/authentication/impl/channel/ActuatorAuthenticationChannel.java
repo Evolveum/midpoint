@@ -33,7 +33,8 @@ public class ActuatorAuthenticationChannel extends AuthenticationChannelImpl {
         return "/actuator";
     }
 
-    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
+    @Override
+    public Collection<Authorization> cleanupAuthorities(Collection<Authorization> authorities) {
         ArrayList<Authorization> newAuthorities = new ArrayList<>();
         for (Authorization authority : authorities) {
             Authorization clone = authority.clone();
