@@ -8,6 +8,8 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+
 import org.apache.commons.io.FileUtils;
 
 import com.evolveum.midpoint.ninja.action.Action;
@@ -34,6 +36,8 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
             throw new NinjaException("Undefined midpoint installation directory");
         }
 
+        log.info(ConsoleFormat.formatMessageWithInfoParameters("Midpoint installation directory: " + midpointInstallation.getPath()));
+
         File backupDirectory = null;
         if (backupFiles) {
             backupDirectory = new File(midpointInstallation, ".backup-" + System.currentTimeMillis());
@@ -45,6 +49,8 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
         for (File file : emptyIfNull(distributionDirectory.listFiles())) {
             backupAndCopyFiles(file, new File(midpointInstallation, file.getName()), backupFiles, backupDirectory);
         }
+
+        log.info(ConsoleFormat.formatSuccessMessage("Installation upgraded successfully"));
 
         return null;
     }

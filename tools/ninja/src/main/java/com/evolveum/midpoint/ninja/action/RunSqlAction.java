@@ -223,8 +223,6 @@ public class RunSqlAction extends Action<RunSqlOptions, Void> {
                     }
 
                     stmt.close();
-
-                    log.info("Script executed successfully");
                 }
 
                 log.info(ConsoleFormat.formatSuccessMessage("Scripts executed successfully."));
