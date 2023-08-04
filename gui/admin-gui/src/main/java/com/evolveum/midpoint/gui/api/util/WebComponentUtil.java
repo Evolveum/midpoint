@@ -5318,7 +5318,7 @@ public final class WebComponentUtil {
 
             String target = "";
             VariableBindingDefinitionType targetv = mappingType.getTarget();
-            if (targetv != null) {
+            if (targetv != null && targetv.getPath() != null) {
                 target += targetv.getPath().toString();
             }
 
