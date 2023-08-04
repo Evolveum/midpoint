@@ -13,20 +13,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityAspectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIntegrityCheckWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import javax.xml.namespace.QName;
 
 public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
@@ -46,9 +43,9 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
     @NotNull private final String duplicateShadowsResolver;
     private final boolean checkDuplicatesOnPrimaryIdentifiersOnly;
 
-    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
-        super(activityTypeName);
-        var typedDefinition = (ShadowIntegrityCheckWorkDefinitionType) source.getBean();
+    ShadowIntegrityCheckWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        var typedDefinition = (ShadowIntegrityCheckWorkDefinitionType) info.getBean();
         shadows = ObjectSetUtil.emptyIfNull(typedDefinition.getShadows());
         ObjectSetUtil.assumeObjectType(shadows, ShadowType.COMPLEX_TYPE);
         aspectsToDiagnose = new HashSet<>(typedDefinition.getDiagnose());

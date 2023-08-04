@@ -72,10 +72,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             throws SchemaException, ConfigurationException {
         ActivityDefinitionType definitionBean = rootTask.getRootActivityDefinitionOrClone();
 
-        WD rootWorkDefinition = createRootWorkDefinition(
-                bean,
-                ConfigurationItemOrigin.inObjectApproximate(
-                        rootTask.getRawTaskObjectClonedIfNecessary().asObjectable(), TaskType.F_ACTIVITY));
+        ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObjectApproximate(
+                rootTask.getRawTaskObjectClonedIfNecessary().asObjectable(), TaskType.F_ACTIVITY);
+
+        WD rootWorkDefinition = WorkDefinition.fromBean(definitionBean, origin);
         if (rootWorkDefinition == null) {
             throw new SchemaException(
                     "Root work definition cannot be obtained for %s: no activity definition is provided.".formatted(rootTask));
@@ -108,7 +108,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     public static ActivityDefinition<?> createChild(
             @NotNull ActivityDefinitionType bean, @NotNull ConfigurationItemOrigin origin) {
         try {
-            AbstractWorkDefinition definition = WorkDefinition.getWorkDefinitionFromBean(bean, origin);
+            AbstractWorkDefinition definition = WorkDefinition.fromBean(bean, origin);
             // TODO enhance with defaultWorkDefinition
             if (definition == null) {
                 throw new SchemaException("Child work definition is not present for " + bean);
@@ -117,29 +117,6 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         } catch (SchemaException | ConfigurationException e) {
             throw new IllegalArgumentException("Couldn't create activity definition from a bean: " + e.getMessage(), e);
         }
-    }
-
-    private static @Nullable <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(
-            @NotNull ActivityDefinitionType activityBean, @NotNull ConfigurationItemOrigin origin)
-            throws SchemaException, ConfigurationException {
-        return fromBean(activityBean, origin);
-    }
-
-    public static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(
-            @NotNull ActivityDefinitionType bean, @NotNull ConfigurationItemOrigin origin)
-            throws SchemaException, ConfigurationException {
-        if (bean.getComposition() != null) {
-            //noinspection unchecked
-            return (WD) new CompositeWorkDefinition(bean.getComposition(), origin);
-        }
-
-        if (bean.getWork() != null) {
-            //noinspection unchecked
-            return (WD) CommonTaskBeans.get().workDefinitionFactory.getWorkFromBean(bean.getWork(), origin);
-            // returned value can be null
-        }
-
-        return null;
     }
 
     public @NotNull ExecutionModeType getExecutionMode() {

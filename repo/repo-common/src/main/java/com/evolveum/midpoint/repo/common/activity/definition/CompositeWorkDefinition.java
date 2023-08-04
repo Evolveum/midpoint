@@ -30,8 +30,11 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
 
     @NotNull private final ActivityCompositionType composition;
 
-    CompositeWorkDefinition(@NotNull ActivityCompositionType composition, @NotNull QName activityTypeName) {
-        super(activityTypeName);
+    CompositeWorkDefinition(
+            @NotNull ActivityCompositionType composition,
+            @NotNull QName activityTypeName,
+            @NotNull ConfigurationItemOrigin origin) {
+        super(activityTypeName, origin);
         this.composition = composition;
     }
 
@@ -52,7 +55,9 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
 
         for (ActivityDefinitionType activityDefinitionBean : composition.getActivity()) {
             var forChild = CommonTaskBeans.get().activityManager.computeAffectedObjects(activityDefinitionBean);
-            objectsByActivityType.addAll(forChild.getActivity());
+            if (forChild != null) {
+                objectsByActivityType.addAll(forChild.getActivity());
+            }
         }
         var result = new TaskAffectedObjectsType();
         result.getActivity().addAll(

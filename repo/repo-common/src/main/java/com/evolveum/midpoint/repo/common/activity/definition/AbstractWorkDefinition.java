@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -24,6 +25,9 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
     /** Type of the activity identified by the work definition item name e.g. `c:reconciliation` or `c:composite`. */
     @NotNull private final QName activityTypeName;
 
+    /** Origin of the work definition. Usually the path is not known exactly. TODO what to do with tailoring? */
+    @NotNull private final ConfigurationItemOrigin origin;
+
     /**
      * *TODO* decide if the tailoring should be here or in {@link ActivityDefinition}.
      *   The argument for being here is that it can add new sub-activities. The argument
@@ -32,20 +36,19 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
      */
     @NotNull private ActivityTailoring activityTailoring = new ActivityTailoring();
 
-    protected AbstractWorkDefinition(@NotNull QName activityTypeName) {
+    protected AbstractWorkDefinition(@NotNull WorkDefinitionInfo info) {
+        this.activityTypeName = info.activityTypeName();
+        this.origin = info.origin();
+    }
+
+    public AbstractWorkDefinition(@NotNull QName activityTypeName, @NotNull ConfigurationItemOrigin origin) {
         this.activityTypeName = activityTypeName;
+        this.origin = origin;
     }
 
     @Override
     public @NotNull QName getActivityTypeName() {
         return activityTypeName;
-    }
-
-    /** Origin of the work definition. Usually the path is not known exactly. TODO what to do with tailoring? */
-    @NotNull private final ConfigurationItemOrigin origin;
-
-    protected AbstractWorkDefinition(@NotNull ConfigurationItemOrigin origin) {
-        this.origin = origin;
     }
 
     @Override

@@ -7,20 +7,17 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 /**
  * Work definition for classic report export.
  */
 public class ClassicReportExportWorkDefinition extends AbstractReportWorkDefinition {
 
-    ClassicReportExportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws SchemaException {
-        super(source, activityTypeName);
+    ClassicReportExportWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) throws ConfigurationException {
+        super(info);
     }
 }

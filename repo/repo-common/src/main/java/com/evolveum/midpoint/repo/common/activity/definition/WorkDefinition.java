@@ -25,18 +25,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 public interface WorkDefinition extends ActivityTypeNameAware, AffectedObjectsProvider, DebugDumpable, Cloneable {
 
     /** Creates "parsed" work definition from the activity definition bean. */
-    static @Nullable <WD extends AbstractWorkDefinition> WD getWorkDefinitionFromBean(@NotNull ActivityDefinitionType bean)
+    static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(
+            @NotNull ActivityDefinitionType bean, @NotNull ConfigurationItemOrigin origin)
             throws SchemaException, ConfigurationException {
         ActivityCompositionType compositionBean = bean.getComposition();
         if (compositionBean != null) {
             //noinspection unchecked
-            return (WD) new CompositeWorkDefinition(compositionBean, ActivityDefinitionType.F_COMPOSITION);
+            return (WD) new CompositeWorkDefinition(compositionBean, ActivityDefinitionType.F_COMPOSITION, origin);
         }
 
         WorkDefinitionsType singleWorkBean = bean.getWork();
         if (singleWorkBean != null) {
             //noinspection unchecked
-            return (WD) CommonTaskBeans.get().workDefinitionFactory.getWorkFromBean(singleWorkBean); // returned value can be null
+            return (WD) CommonTaskBeans.get().workDefinitionFactory.getWorkFromBean(singleWorkBean, origin);
+            // returned value can be null
         }
 
         return null;

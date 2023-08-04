@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -26,13 +24,13 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -40,8 +38,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Executes a set of change requests, each consisting of a set of deltas (presenting a single model operation).
@@ -143,9 +139,9 @@ public class ExplicitChangeExecutionActivityHandler
 
         @NotNull private final List<ChangeExecutionRequest> requests = new ArrayList<>();
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws ConfigurationException {
-            super(activityTypeName);
-            var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) source.getBean();
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) throws ConfigurationException {
+            super(info);
+            var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) info.getBean();
             Collection<ObjectDeltaType> rootDeltas = typedDefinition.getDelta();
             ModelExecuteOptions rootOptions =
                     ModelExecuteOptions.fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());

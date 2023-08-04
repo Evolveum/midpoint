@@ -9,17 +9,14 @@ package com.evolveum.midpoint.model.impl.tasks.scanner;
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
 
 public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
@@ -27,9 +24,9 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
     @NotNull private final ValidityScanQueryStyleType queryStyle;
     private final TimeValidityPolicyConstraintType validityConstraint;
 
-    FocusValidityScanWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
-        super(activityTypeName);
-        var typedDefinition = (FocusValidityScanWorkDefinitionType) source.getBean();
+    FocusValidityScanWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        var typedDefinition = (FocusValidityScanWorkDefinitionType) info.getBean();
 
         objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
         // We allow user to use types above FocusType if he needs to check e.g. assignments validity

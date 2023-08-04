@@ -7,25 +7,23 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-import com.evolveum.midpoint.util.DebugUtil;
+import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityRun.NS_EXT;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityRun.NS_EXT;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
@@ -42,9 +40,9 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
     @Nullable private final SearchFilterType failOn;
     private final boolean freezeIfScavenger;
 
-    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
-        super(activityTypeName);
-        PrismContainerValue<?> pcv = source.getValue();
+    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        PrismContainerValue<?> pcv = info.source().getValue();
         this.objectSet = getObjectSet(pcv);
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);
         this.failOn = pcv.getPropertyRealValue(FAIL_ON_NAME, SearchFilterType.class);

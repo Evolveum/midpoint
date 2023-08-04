@@ -9,27 +9,24 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
-
-import javax.xml.namespace.QName;
 
 public class ReconciliationWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
     /** Mutable, disconnected from the source. */
     @NotNull private final ResourceObjectSetType resourceObjects;
 
-    ReconciliationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
-        super(activityTypeName);
-        var typedDefinition = (ReconciliationWorkDefinitionType) source.getBean();
+    ReconciliationWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        var typedDefinition = (ReconciliationWorkDefinitionType) info.getBean();
         resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, APPEND);
     }

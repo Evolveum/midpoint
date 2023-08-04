@@ -7,24 +7,19 @@
 
 package com.evolveum.midpoint.report.impl.activity;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
+import static com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractReportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
 
 /**
  * Work definition for report export and imports.
@@ -34,10 +29,10 @@ public class AbstractReportWorkDefinition extends AbstractWorkDefinition {
     @NotNull private final ObjectReferenceType reportRef;
     private final ReportParameterType reportParams;
 
-    AbstractReportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws SchemaException {
-        super(activityTypeName);
-        var typedDefinition = (AbstractReportWorkDefinitionType) source.getBean();
-        reportRef = MiscUtil.requireNonNull(typedDefinition.getReportRef(), () -> "No report definition");
+    AbstractReportWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
+        super(info);
+        var typedDefinition = (AbstractReportWorkDefinitionType) info.getBean();
+        reportRef = MiscUtil.configNonNull(typedDefinition.getReportRef(), () -> "No report definition");
         reportParams = typedDefinition.getReportParam();
     }
 

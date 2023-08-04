@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconc
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -346,13 +346,13 @@ public class TaskActivityManager {
      * If not null, the returned value is always parent-less, i.e. embeddable into any other prism object, and freely modifiable
      * by the client.
      */
-    @Contract("null -> null; !null -> !null")
     public @Nullable TaskAffectedObjectsType computeAffectedObjects(@Nullable ActivityDefinitionType activityDefinitionBean)
             throws SchemaException, ConfigurationException {
         if (activityDefinitionBean == null) {
             return null;
         }
-        var workDefinition = WorkDefinition.getWorkDefinitionFromBean(activityDefinitionBean);
+        // The origin has no use here; but we need to provide any.
+        var workDefinition = WorkDefinition.fromBean(activityDefinitionBean, ConfigurationItemOrigin.undetermined());
         if (workDefinition == null) {
             return null;
         }

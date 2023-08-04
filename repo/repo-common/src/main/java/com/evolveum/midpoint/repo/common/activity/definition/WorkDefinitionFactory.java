@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RecomputationWorkDefinitionType;
 
 import com.google.common.base.Preconditions;
@@ -91,7 +92,8 @@ public class WorkDefinitionFactory {
                 byTypeName.get(typeName),
                 () -> new IllegalStateException("No work definition type information for " + typeName));
         return info.supplier()
-                .provide(definitionBean, info.itemName());
+                .provide(
+                        new WorkDefinitionInfo(definitionBean, info.itemName(), origin));
     }
 
     /** Note that itemName is always qualified. */
@@ -100,9 +102,22 @@ public class WorkDefinitionFactory {
             @NotNull QName itemName) {
     }
 
+    /**
+     * These parameters will be probably modified in the future, so let's avoid reworking all the constructors,
+     * and centralize the knowledge here.
+     */
+    public record WorkDefinitionInfo(
+            @NotNull WorkDefinitionBean source,
+            @NotNull QName activityTypeName,
+            @NotNull ConfigurationItemOrigin origin) {
+
+        public @NotNull AbstractWorkDefinitionType getBean() {
+            return source.getBean();
+        }
+    }
+
     @FunctionalInterface
     public interface WorkDefinitionSupplier {
-        WorkDefinition provide(@NotNull WorkDefinitionBean source, @NotNull QName activityName)
-                throws SchemaException, ConfigurationException;
+        WorkDefinition provide(@NotNull WorkDefinitionInfo info) throws SchemaException, ConfigurationException;
     }
 }

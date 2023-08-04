@@ -7,26 +7,24 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-
 public class PropagationWorkDefinition extends AbstractWorkDefinition {
 
     @NotNull private final String resourceOid;
 
-    PropagationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws ConfigurationException {
-        super(activityTypeName);
-        ObjectReferenceType resourceRef = ((PropagationWorkDefinitionType) source.getBean()).getResourceRef();
+    PropagationWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) throws ConfigurationException {
+        super(info);
+        var typedDefinition = (PropagationWorkDefinitionType) info.getBean();
+        ObjectReferenceType resourceRef = typedDefinition.getResourceRef();
         resourceOid = MiscUtil.configNonNull(
                 resourceRef != null ? resourceRef.getOid() : null,
                 "No resource OID specified");
