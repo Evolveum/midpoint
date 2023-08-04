@@ -14,27 +14,44 @@
 <wicket:extend>
     <wicket:child/>
 
-    <div class="d-flex " style="width:1500px" ;>
 
-        <input class="btn btn-default" type="submit" value="Business role mining"
-                wicket:id="business_role_mining"/>
+    <div class="row">
+        <div class="col-lg-12" wicket:id="summary"></div>
+    </div>
 
-        <input class="mr-4 btn btn-warning" type="submit" value="Sort table data by Jaccard (TODO: Needs to optimize and progress bar. Current listing in the console)"
-                wicket:id="jaccard_sort"/>
+    <div class="row">
+        <div class="col-lg-12" wicket:id="operation_panel"></div>
+    </div>
 
+    <div
+            wicket:id="container">
+        <div wicket:id="panel">
 
-        <div>
-            <div class="ml-4 btn btn-default"
-                    wicket:id="process_selections_id"></div>
         </div>
     </div>
 
 
-    <div style="width:100%; max-height:800px;"
-            wicket:id="datatable_extra"></div>
+<!--    <div class="d-flex " style="width:1500px" ;>-->
 
-    <div style="width:100%;"
-            wicket:id="table_intersection"></div>
+<!--        <input class="btn btn-default" type="submit" value="Business role mining"-->
+<!--                wicket:id="business_role_mining"/>-->
+
+<!--        <input class="mr-4 btn btn-warning" type="submit" value="Sort table data by Jaccard (TODO: Needs to optimize and progress bar. Current listing in the console)"-->
+<!--                wicket:id="jaccard_sort"/>-->
+
+
+<!--        <div>-->
+<!--            <div class="ml-4 btn btn-default"-->
+<!--                    wicket:id="process_selections_id"></div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+
+<!--    <div style="width:100%; max-height:800px;"-->
+<!--            wicket:id="datatable_extra"></div>-->
+
+<!--    <div style="width:100%;"-->
+<!--            wicket:id="table_intersection"></div>-->
 
 </wicket:extend>
 

@@ -240,75 +240,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="RoleAnalysisDetectionPatternType">
-        <xsd:annotation>
-            <xsd:documentation>
-                The remains of the detected or found patterns and information about them.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="memberOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Set of objects that was analyzed and determined to be part of this group.
-                        In the case of ROLE MODE, the list of roles (members) objects
-                        that make up the given group. In the case of USER MODE,
-                        the list of users (members) objects that make up the given group.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="memberTypeObjectOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        All objects of member type (not only from clustered objects).
-                        USER MODE (member) - user.
-                        ROLE MODE (member) - role.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="propertiesOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Properties used for comparison.
-                        USER MODE (properties) - role assign.
-                        ROLE MODE (properties) - members count.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="clusterMetric" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            It expresses the range of reduced values when applying the business role design.
-                            (Included in the group (cluster))
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionType.clusterMetric</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="detectionMode" type="tns:RoleAnalysisDetectionModeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Business role pattern detection mode.
-                            JACCARD - search by Jaccard index.
-                            INTERSECTION - exact search by overlapping properties.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionModeType.detectionMode</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
     <xsd:complexType name="RoleAnalysisSessionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -456,7 +387,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies the minimum size of a group (unique objects).
+                            Specifies the minimum required cluster size (unique objects).
                             We consider a unique object to be a separate unique object with unique properties
                             or a group of objects consisting of the same properties.
 
@@ -473,7 +404,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Minimum count of relation with compared object.
+                            Specifies the minimum required number of properties.
+                            If the condition is not met, the object is excluded.
                             USER MODE - min role assign.
                             ROLE MODE - min members count.
                         </p>
@@ -487,7 +419,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Maximum count of relation with compared object.
+                            Specifies the maximum required number of properties.
+                            If the condition is not met, the object is excluded.
                             USER MODE - min role assign.
                             ROLE MODE - min members count.
                         </p>
@@ -501,128 +434,16 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Minimum property overlap size.
-                            In the case of USER MODE, the user is included in the analysis, if there are other user(s) who have
+                            Minimum property overlap size between cluster members.
+
+                            In the case of USER MODE, the user (member) is included in the cluster, if there are other user(s) who have
                             at least "minOverlapCondition" equal roles.
-                            In the case of ROLE MODE, the role is included in the analysis, if there are other role(s) who have
+                            In the case of ROLE MODE, the role (member) is included in the cluster, if there are other role(s) who have
                             at least "minOverlapCondition" equal users.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisSessionOptionType.minPropertiesOverlap</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="RoleAnalysisDetectionOptionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Options for Detecting Business Roles
-
-                These parameters serve as key specifications for performing searches
-                and analyzes aimed at discovering different business roles.
-
-                Furthermore, the role analysis session allows for the possibility of updating these values.
-                If there is a need to modify or refine the cluster options during the analysis process, the values
-                associated with the keys can be updated accordingly. This flexibility enables fine-tuning of the
-                role analysis based on changing requirements or new insights gained during the analysis phase.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="minPropertiesOverlap" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Minimum property overlap size.
-                            In the case of USER MODE, the user is included in the analysis, if there are other user(s) who have
-                            at least "minOverlapCondition" equal roles.
-                            In the case of ROLE MODE, the role is included in the analysis, if there are other role(s) who have
-                            at least "minOverlapCondition" equal users.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.minPropertiesOverlap</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="minOccupancy" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            The minimum number of objects covered by the found business role.
-                            In the case of USER MODE - the number of roles of which the business role consists.
-                            In the case of ROLE MODE - the number of users to which the business role can be applied.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.minOccupancy</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="minFrequencyThreshold" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Minimum required frequency. If the condition is not met, the objects are not included in the
-                            detection (search).
-                            In the case of USER MODE - frequency of application of roles (properties)
-                            due to processed members(users)
-                            In the case of ROLE MODE - frequency of disposition of users (properties)
-                            due to processed members(roles)
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.minFrequencyThreshold</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="maxFrequencyThreshold" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Maximum required frequency. If the condition is not met, the objects are not included in the
-                            detection (search).
-                            In the case of USER MODE - frequency of application of roles (properties)
-                            due to processed members (users)
-                            In the case of ROLE MODE - frequency of disposition of users (properties)
-                            due to processed members (roles)
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.maxFrequencyThreshold</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="jaccardSimilarityThreshold" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            A similarity threshold used to find similar objects based on their properties.
-                            Only allowed in JACCARD search mode.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.jaccardSimilarityThreshold</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="detectionMode" type="tns:RoleAnalysisDetectionModeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Business role search or detection mode.
-                            JACCARD - search by jaccard index.
-                            INTERSECTION - exact search by overlapping properties.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.searchMode</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -680,6 +501,177 @@
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisSessionStatisticType.riskLevel</a:displayName>
                         <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RoleAnalysisDetectionPatternType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about detected or found patterns.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="memberOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Set of objects that was analyzed and determined to be part of this group.
+                        In the case of ROLE MODE, the list of roles (members) objects
+                        that make up the given group. In the case of USER MODE,
+                        the list of users (members) objects that make up the given group.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="memberTypeObjectOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All objects of member type (not only from clustered objects).
+                        USER MODE (member) - user.
+                        ROLE MODE (member) - role.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="propertiesOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Properties used for comparison.
+                        USER MODE (properties) - role assign.
+                        ROLE MODE (properties) - members count.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="clusterMetric" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It expresses the range of reduced values when applying the business role design.
+                            (Included in the group (cluster))
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionType.clusterMetric</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RoleAnalysisDetectionOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options for Detecting Business Roles
+
+                These parameters serve as key specifications for performing searches
+                and analyzes aimed at discovering different business roles.
+
+                Furthermore, the role analysis session allows for the possibility of updating these values.
+                If there is a need to modify or refine the cluster options during the analysis process, the values
+                associated with the keys can be updated accordingly. This flexibility enables fine-tuning of the
+                role analysis based on changing requirements or new insights gained during the analysis phase.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="minPropertiesOccupancy" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Define the minimum required count of properties occupancy for detected patterns.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.minPropertiesOccupancy</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minMembersOccupancy" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Define the minimum required count of members occupancy for detected patterns.
+                            The minimum number of objects covered by the found business role.
+                            In the case of USER MODE - the number of roles of which the business role consists.
+                            In the case of ROLE MODE - the number of users to which the business role can be applied.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.minMembersOccupancy</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minFrequencyThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimum required frequency. If the condition is not met, the objects are not included in the
+                            detection (search).
+                            In the case of USER MODE - frequency of application of roles (properties)
+                            due to processed members(users)
+                            In the case of ROLE MODE - frequency of disposition of users (properties)
+                            due to processed members(roles)
+
+                            Frequency expresses the percentage value of occupancy.
+                            It refers to the number of occurrences of properties over cluster members.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.minFrequencyThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxFrequencyThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximum required frequency. If the condition is not met, the objects are not included in the
+                            detection (search).
+                            In the case of USER MODE - frequency of application of roles (properties)
+                            due to processed members (users)
+                            In the case of ROLE MODE - frequency of disposition of users (properties)
+                            due to processed members (roles)
+
+                            Frequency expresses the percentage value of occupancy.
+                            It refers to the number of occurrences of properties over cluster members.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.maxFrequencyThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="jaccardSimilarityThreshold" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            A similarity threshold used to find similar objects based on their properties.
+                            Only allowed in JACCARD search mode.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.jaccardSimilarityThreshold</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="detectionMode" type="tns:RoleAnalysisDetectionModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Business role search or detection mode.
+                            JACCARD - search by jaccard index.
+                            INTERSECTION - exact search by overlapping properties.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionOptionType.searchMode</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

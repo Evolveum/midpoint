@@ -21,7 +21,7 @@ public class ExtractPatternUtils {
                 members,
                 members.size() * properties.size(),
                 allPropertiesOccupation,
-                RoleAnalysisDetectionModeType.JACCARD);
+                RoleAnalysisDetectionModeType.JACCARD,null);
     }
 
     public static DetectedPattern addDetectedObjectIntersection(Set<String> properties, Set<String> members,
@@ -31,6 +31,6 @@ public class ExtractPatternUtils {
                 members,
                 members.size() * properties.size(),
                 allPropertiesOccupation,
-                RoleAnalysisDetectionModeType.INTERSECTION);
+                RoleAnalysisDetectionModeType.INTERSECTION,null);
     }
 }

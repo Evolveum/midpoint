@@ -20,9 +20,7 @@ import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 
@@ -70,6 +68,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
         List<ObjectReferenceType> members = cluster.getMember();
 
+        //roles
         int membersCount = members.size();
         for (int i = 0; i < members.size(); i++) {
             String membersOid = members.get(i).getOid();
@@ -157,6 +156,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
         ListMultimap<List<String>, String> userChunk = ArrayListMultimap.create();
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
         List<ObjectReferenceType> members = cluster.getMember();
+
         int membersCount = members.size();
         for (int i = 0; i < membersCount; i++) {
             String membersOid = members.get(i).getOid();
@@ -194,7 +194,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
         for (List<String> key : userChunk.keySet()) {
             List<String> usersElements = userChunk.get(key);
             int size = key.size();
-            double frequency = Math.min(size / (double) usersCount, 1);
+            double frequency = Math.min(size / (double) membersCount, 1);
             int usersSize = usersElements.size();
             String chunkName = "Group (" + usersSize + " Users)";
             if (usersSize == 1) {
@@ -216,7 +216,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
         for (List<String> key : roleChunk.keySet()) {
             List<String> roles = roleChunk.get(key);
             int size = key.size();
-            double frequency = Math.min(size / (double) usersCount, 1);
+            double frequency = Math.min(size / (double) membersCount, 1);
             int rolesSize = roles.size();
             String chunkName = "Group (" + rolesSize + " Roles)";
             if (rolesSize == 1) {
@@ -240,12 +240,12 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
             PageBase pageBase, OperationResult result, String state) {
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
-        List<ObjectReferenceType> rolesElements = cluster.getMember();
+        List<ObjectReferenceType> members = cluster.getMember();
 
         ListMultimap<List<String>, String> userChunk = ArrayListMultimap.create();
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
 
-        for (ObjectReferenceType objectReferenceType : rolesElements) {
+        for (ObjectReferenceType objectReferenceType : members) {
             String oid = objectReferenceType.getOid();
 
             List<PrismObject<UserType>> userMembers = extractRoleMembers(result, pageBase, oid);
@@ -258,7 +258,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
             }
         }
 
-        int rolesCount = rolesElements.size();
+        int membersCount = members.size();
 
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
@@ -270,7 +270,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
         for (List<String> key : roleChunk.keySet()) {
             List<String> users = roleChunk.get(key);
             int size = key.size();
-            double frequency = Math.min(size / (double) rolesCount, 1);
+            double frequency = Math.min(size / (double) membersCount, 1);
             int userSize = users.size();
             String chunkName = "Group (" + userSize + " Users)";
             if (userSize == 1) {
@@ -309,7 +309,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
             }
         }
 
-        int usersCount = members.size();
+        int membersCount = members.size();
 
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
@@ -321,7 +321,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
         for (List<String> key : roleChunk.keySet()) {
             List<String> roles = roleChunk.get(key);
             int size = key.size();
-            double frequency = Math.min(size / (double) usersCount, 1);
+            double frequency = Math.min(size / (double) membersCount, 1);
             int rolesSize = roles.size();
             String chunkName = "Group (" + rolesSize + " Roles)";
             if (rolesSize == 1) {

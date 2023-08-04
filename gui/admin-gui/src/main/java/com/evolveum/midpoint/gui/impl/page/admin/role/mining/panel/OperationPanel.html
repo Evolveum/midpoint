@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-3">
+                <fieldset class="objectButtons d-flex flex-wrap gap-1 align-items-start">
+                    <legend><wicket:message key="OperationalButtonsPanel.mining.buttons.main"/></legend>
+                    <a class="btn" wicket:id="buttons"/>
+                </fieldset>
+
+                <fieldset class="objectButtons d-flex gap-1 ">
+                    <legend><wicket:message key="OperationalButtonsPanel.mining.buttons.display"/></legend>
+                    <a class="btn" wicket:id="panelButtons"/>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

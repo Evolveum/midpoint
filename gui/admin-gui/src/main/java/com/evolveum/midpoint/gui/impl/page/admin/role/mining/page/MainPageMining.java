@@ -45,7 +45,7 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -135,6 +135,7 @@ public class MainPageMining extends PageAdmin {
                             }
                         }
 
+                        getTable().refreshTable(target);
                     }
                 };
             }
@@ -311,7 +312,7 @@ public class MainPageMining extends PageAdmin {
 
                         String colorClass = getColorClass(meanDensity);
 
-                        Label label = new Label(componentId, meanDensity + "(%)");
+                        Label label = new Label(componentId, meanDensity + " (%)");
                         label.setOutputMarkupId(true);
                         label.add(new AttributeModifier("class", colorClass));
                         label.add(AttributeModifier.append("style", "width: 100px;"));
@@ -336,7 +337,7 @@ public class MainPageMining extends PageAdmin {
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         if (model.getObject().getValue() != null && model.getObject().getValue().getName() != null) {
 
-                            AjaxButton ajaxButton = new AjaxButton(componentId,
+                            AjaxIconButton ajaxButton = new AjaxIconButton(componentId, Model.of("fa fa-bars"),
                                     createStringResource("RoleMining.cluster.table.load.operation.panel")) {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -348,9 +349,9 @@ public class MainPageMining extends PageAdmin {
                                 }
                             };
 
-                            ajaxButton.add(AttributeAppender.replace("class", " btn btn-primary btn-sm d-flex "
+                            ajaxButton.add(AttributeAppender.replace("class", " btn btn-default btn-sm d-flex "
                                     + "justify-content-center align-items-center"));
-                            ajaxButton.add(new AttributeAppender("style", " width:100px; "));
+                            ajaxButton.add(new AttributeAppender("style", " width:40px; "));
                             ajaxButton.setOutputMarkupId(true);
 
                             cellItem.add(ajaxButton);
@@ -363,7 +364,7 @@ public class MainPageMining extends PageAdmin {
 
                     @Override
                     public boolean isSortable() {
-                        return true;
+                        return false;
                     }
 
                     @Override

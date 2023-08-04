@@ -20,11 +20,11 @@ public class Tools {
         double densityValue = Double.parseDouble(density);
 
         if (densityValue >= 80) {
-            return "btn btn-danger btn-sm";
+            return "bg-danger text-center";
         } else if (densityValue > 40) {
-            return "btn btn-warning btn-sm";
+            return "bg-warning text-center";
         } else {
-            return "btn btn-info btn-sm";
+            return "bg-info text-center";
         }
 
     }

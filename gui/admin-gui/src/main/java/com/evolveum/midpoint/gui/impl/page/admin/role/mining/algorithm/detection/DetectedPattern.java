@@ -23,16 +23,26 @@ public class DetectedPattern implements Serializable {
     Set<String> memberTypeObjectOccupation;
     Double clusterMetric;
     RoleAnalysisDetectionModeType searchMode;
+    Long id;
 
     public DetectedPattern(Set<String> properties, Set<String> members,
             double clusterMetric,
             Set<String> memberTypeObjectOccupation,
-            RoleAnalysisDetectionModeType searchMode) {
+            RoleAnalysisDetectionModeType searchMode, Long id) {
         this.properties = properties;
         this.members = members;
         this.clusterMetric = clusterMetric;
         this.memberTypeObjectOccupation = memberTypeObjectOccupation;
         this.searchMode = searchMode;
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Set<String> getProperties() {

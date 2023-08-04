@@ -63,7 +63,6 @@ public class DefaultPatternResolver {
         if (clusterOptions.getSimilarity() == 1) {
 
             RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
-            roleAnalysisClusterDetectionType.setDetectionMode(clusterOptions.getSearchMode());
 
             ObjectReferenceType objectReferenceType;
             Set<ObjectReferenceType> properties = clusterStatistic.getPropertiesRef();

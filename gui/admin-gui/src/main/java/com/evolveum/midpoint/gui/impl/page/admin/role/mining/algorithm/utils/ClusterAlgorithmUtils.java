@@ -302,8 +302,9 @@ public class ClusterAlgorithmUtils {
     public static List<DetectedPattern> transformDefaultPattern(RoleAnalysisClusterType clusterType) {
         List<RoleAnalysisDetectionPatternType> defaultDetection = clusterType.getDetectionPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
+        RoleAnalysisDetectionModeType searchMode = clusterType.getDetectionOption().getDetectionMode();
+
         for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
-            RoleAnalysisDetectionModeType searchMode = roleAnalysisClusterDetectionType.getDetectionMode();
 
             List<ObjectReferenceType> propertiesRef = roleAnalysisClusterDetectionType.getPropertiesOccupancy();
             List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getMemberOccupancy();
@@ -335,21 +336,20 @@ public class ClusterAlgorithmUtils {
 
         if (searchMode.equals(RoleAnalysisDetectionModeType.JACCARD)) {
             loadJaccardIntersection(possibleBusinessRole,
-                    searchMode, roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
+                    roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
         } else {
             loadSimpleIntersection(possibleBusinessRole,
-                    searchMode, roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
+                    roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
         }
         return roleAnalysisClusterDetectionTypeList;
     }
 
-    private static void loadJaccardIntersection(List<DetectedPattern> possibleBusinessRole, RoleAnalysisDetectionModeType searchMode,
+    private static void loadJaccardIntersection(List<DetectedPattern> possibleBusinessRole,
             List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList,
             QName processedObjectComplexType, QName propertiesComplexType) {
         RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType;
         for (DetectedPattern detectedPattern : possibleBusinessRole) {
             roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
-            roleAnalysisClusterDetectionType.setDetectionMode(searchMode);
 
             ObjectReferenceType objectReferenceType;
             Set<String> members = detectedPattern.getMembers();
@@ -376,12 +376,11 @@ public class ClusterAlgorithmUtils {
     }
 
     private static void loadSimpleIntersection(List<DetectedPattern> possibleBusinessRole,
-            RoleAnalysisDetectionModeType searchMode, List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList,
+            List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList,
             QName processedObjectComplexType, QName propertiesComplexType) {
         RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType;
         for (DetectedPattern detectedPattern : possibleBusinessRole) {
             roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
-            roleAnalysisClusterDetectionType.setDetectionMode(searchMode);
 
             ObjectReferenceType objectReferenceType;
             Set<String> members = detectedPattern.getMembers();

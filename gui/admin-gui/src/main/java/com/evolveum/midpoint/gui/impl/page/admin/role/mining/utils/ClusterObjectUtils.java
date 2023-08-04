@@ -9,37 +9,40 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.loadIntersections;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterStatistic;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultHandler;
-
-import com.evolveum.midpoint.util.exception.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
 
 public class ClusterObjectUtils {
 
@@ -78,18 +81,15 @@ public class ClusterObjectUtils {
     }
 
     public static void importRoleAnalysisClusterObject(OperationResult result, Task task, @NotNull PageBase pageBase,
-            @NotNull PrismObject<RoleAnalysisClusterType> cluster, ObjectReferenceType parentRef, RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption) {
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster, ObjectReferenceType parentRef,
+            RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption) {
         cluster.asObjectable().setRoleAnalysisSessionRef(parentRef);
         cluster.asObjectable().setDetectionOption(roleAnalysisSessionDetectionOption);
         pageBase.getModelService().importObject(cluster, null, task, result);
     }
 
-    public static void deleteAllRoleAnalysisObjects(OperationResult result, @NotNull PageBase pageBase) {
-        deleteAllRoleAnalysisCluster(result, pageBase);
-        deleteAllRoleAnalysisSession(result, pageBase);
-    }
-
-    public static void deleteSingleRoleAnalysisSession(OperationResult result, RoleAnalysisSessionType roleAnalysisSessionType, @NotNull PageBase pageBase) {
+    public static void deleteSingleRoleAnalysisSession(OperationResult result, RoleAnalysisSessionType roleAnalysisSessionType,
+            @NotNull PageBase pageBase) {
 
         List<ObjectReferenceType> roleAnalysisClusterRef = roleAnalysisSessionType.getRoleAnalysisClusterRef();
 
@@ -109,65 +109,82 @@ public class ClusterObjectUtils {
         }
     }
 
-    public static void deleteSingleRoleAnalysisCluster(OperationResult result, String oid, @NotNull PageBase pageBase) {
+    public static void deleteSingleRoleAnalysisCluster(OperationResult result,
+            @NotNull RoleAnalysisClusterType roleAnalysisClusterType, @NotNull PageBase pageBase) {
         try {
-            pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, oid, result);
-        } catch (ObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    public static void deleteAllRoleAnalysisCluster(OperationResult result, @NotNull PageBase pageBase) {
-        ResultHandler<AssignmentHolderType> handler = (object, parentResult) -> {
+            String clusterOid = roleAnalysisClusterType.getOid();
+            PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, roleAnalysisClusterType.getRoleAnalysisSessionRef().getOid());
 
-            try {
-                pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, object.getOid(), result);
-            } catch (ObjectNotFoundException e) {
-                throw new RuntimeException(e);
+            List<ObjectReferenceType> roleAnalysisClusterRef = sessionTypeObject.asObjectable().getRoleAnalysisClusterRef();
+
+            List<PrismReferenceValue> recompute = new ArrayList<>();
+            for (ObjectReferenceType referenceType : roleAnalysisClusterRef) {
+                if (referenceType.getOid().equals(clusterOid)) {
+                    continue;
+                }
+
+                ObjectReferenceType objectReferenceType1 = new ObjectReferenceType();
+                objectReferenceType1.setOid(referenceType.getOid());
+                objectReferenceType1.setTargetName(referenceType.getTargetName());
+                objectReferenceType1.setType(referenceType.getType());
+                recompute.add(objectReferenceType1.asReferenceValue());
             }
 
-            return true;
-        };
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
-        ModelService service = pageBase.getModelService();
-        ObjectQuery queryType = pageBase.getPrismContext().queryFor(AssignmentHolderType.class)
-                .type(RoleAnalysisClusterType.class).build();
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_ROLE_ANALYSIS_CLUSTER_REF).replace(recompute)
+                    .asItemDelta());
 
-        try {
-            service.searchObjectsIterative(AssignmentHolderType.class, queryType, handler, null,
-                    pageBase.createSimpleTask("Search iterative ClusterType objects"), result);
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException e) {
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
+                    .asItemDelta());
+
+            pageBase.getRepositoryService().modifyObject(RoleAnalysisSessionType.class, sessionTypeObject.getOid(), modifications, result);
+
+            pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, clusterOid, result);
+
+            recomputeSessionStatic(result, sessionTypeObject.getOid(), pageBase);
+        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void deleteAllRoleAnalysisSession(OperationResult result, @NotNull PageBase pageBase) {
-        ResultHandler<AssignmentHolderType> handler = (object, parentResult) -> {
+    public static void recomputeSessionStatic(OperationResult result, String sessionOid, @NotNull PageBase pageBase) {
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, sessionOid);
 
-            try {
-                pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, object.getOid(), result);
-            } catch (ObjectNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+        List<ObjectReferenceType> roleAnalysisClusterRef = sessionTypeObject.asObjectable().getRoleAnalysisClusterRef();
 
-            return true;
-        };
+        int sessionClustersCount = roleAnalysisClusterRef.size();
 
-        ModelService service = pageBase.getModelService();
-        ObjectQuery queryType = pageBase.getPrismContext().queryFor(AssignmentHolderType.class)
-                .type(RoleAnalysisSessionType.class).build();
+        double recomputeMeanDensity = 0;
+        int recomputeProcessedObjectCount = 0;
+        for (ObjectReferenceType referenceType : roleAnalysisClusterRef) {
+            RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject(pageBase, referenceType.getOid()).asObjectable();
+            recomputeMeanDensity += clusterTypeObject.getClusterStatistic().getPropertiesDensity();
+            recomputeProcessedObjectCount += clusterTypeObject.getClusterStatistic().getMemberCount();
+        }
+
+        RoleAnalysisSessionStatisticType recomputeSessionStatistic = new RoleAnalysisSessionStatisticType();
+        recomputeSessionStatistic.setMeanDensity(recomputeMeanDensity / sessionClustersCount);
+        recomputeSessionStatistic.setProcessedObjectCount(recomputeProcessedObjectCount);
+
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
         try {
-            service.searchObjectsIterative(AssignmentHolderType.class, queryType, handler, null,
-                    pageBase.createSimpleTask("Search iterative ClusterType objects"), result);
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException e) {
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_SESSION_STATISTIC).replace(recomputeSessionStatistic.asPrismContainerValue())
+                    .asItemDelta());
+            pageBase.getRepositoryService().modifyObject(RoleAnalysisSessionType.class, sessionOid, modifications, result);
+
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
             throw new RuntimeException(e);
         }
+
     }
 
-    public static ObjectReferenceType importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
+    public static @NotNull ObjectReferenceType importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
             RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption,
             RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType,
             List<ObjectReferenceType> roleAnalysisClusterRef,
@@ -212,35 +229,6 @@ public class ClusterObjectUtils {
         return roleAnalysisSessionPrismObject;
     }
 
-//    public static PrismObject<RoleAnalysisSession> generateParentClusterObject(PageBase pageBase, double density, int consist,
-//            List<String> childRef, JSONObject options) {
-//
-//        PrismObject<RoleAnalysisSession> parentClusterObject = null;
-//        try {
-//            parentClusterObject = pageBase.getPrismContext()
-//                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleAnalysisSession.class).instantiate();
-//        } catch (SchemaException e) {
-//            LOGGER.error("Error while generating ParentClusterType object: {}", e.getMessage(), e);
-//        }
-//        assert parentClusterObject != null;
-//
-//        RoleAnalysisSessionType clusterType = parentClusterObject.asObjectable();
-//        String name = options.getString("name");
-//        if (name == null) {
-//            clusterType.setName(PolyStringType.fromOrig(options.getString("identifier")));
-//        } else {
-//            clusterType.setName(PolyStringType.fromOrig(name));
-//        }
-//
-//        clusterType.getRoleAnalysisClusterRef().addAll(childRef);
-//        clusterType.setMeanDensity(String.format("%.3f", density));
-//        clusterType.setElementConsist(consist);
-//        clusterType.setProcessMode(options.getString("mode"));
-//        clusterType.setOptions(String.valueOf(options));
-//
-//        return parentClusterObject;
-//    }
-
     public static void deleteRoleAnalysisObjects(OperationResult result, @NotNull PageBase pageBase, String parentClusterOid,
             List<ObjectReferenceType> roleAnalysisClusterRef) {
         try {
@@ -270,22 +258,6 @@ public class ClusterObjectUtils {
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(objectId)
-                .endBlock().build();
-        try {
-            return pageBase.getMidpointApplication().getRepositoryService()
-                    .searchObjects(UserType.class, query, null, result);
-        } catch (CommonException e) {
-            throw new RuntimeException("Failed to search role member objects: " + e);
-        }
-    }
-
-    public static List<PrismObject<UserType>> extractRoleMembers2(OperationResult result, PageBase pageBase, String[] stringArray) {
-
-        ObjectQuery query = pageBase.getPrismContext().queryFor(UserType.class)
-                .exists(AssignmentHolderType.F_ASSIGNMENT)
-                .block()
-                .item(AssignmentType.F_TARGET_REF)
-                .ref(stringArray)
                 .endBlock().build();
         try {
             return pageBase.getMidpointApplication().getRepositoryService()
@@ -384,7 +356,7 @@ public class ClusterObjectUtils {
         for (String item : objects) {
 
             try {
-                PrismObject<FocusType> object = repositoryService.getObject(FocusType.class, item, null, operationResult);
+                repositoryService.getObject(FocusType.class, item, null, operationResult);
                 existingObjectOid.add(item);
             } catch (ObjectNotFoundException e) {
                 LOGGER.warn("Object not found" + e);
@@ -394,18 +366,6 @@ public class ClusterObjectUtils {
 
         }
         return existingObjectOid;
-    }
-
-    public static @NotNull Set<ObjectReferenceType> createObjectReferences(Set<String> objects, QName complexType) {
-
-        Set<ObjectReferenceType> objectReferenceList = new HashSet<>();
-        for (String item : objects) {
-            ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-            objectReferenceType.setType(complexType);
-            objectReferenceType.setOid(item);
-            objectReferenceList.add(objectReferenceType);
-        }
-        return objectReferenceList;
     }
 
     public static RoleAnalysisClusterStatisticType createClusterStatisticType(ClusterStatistic clusterStatistic) {
@@ -441,6 +401,15 @@ public class ClusterObjectUtils {
         }
     }
 
+    public static @NotNull PrismObject<RoleAnalysisSessionType> getSessionTypeObject(@NotNull PageBase pageBase, String oid) {
+        OperationResult operationResult = new OperationResult("GetSession");
+        try {
+            return pageBase.getRepositoryService().getObject(RoleAnalysisSessionType.class, oid, null, operationResult);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static int countParentClusterTypeObjects(@NotNull PageBase pageBase) {
         OperationResult operationResult = new OperationResult("countClusters");
         try {
@@ -471,8 +440,8 @@ public class ClusterObjectUtils {
         return new DetectionOption(
                 clusterOptions.getMinFrequencyThreshold(),
                 clusterOptions.getMaxFrequencyThreshold(),
-                clusterOptions.getMinOccupancy(),
-                clusterOptions.getMinPropertiesOverlap(),
+                clusterOptions.getMinMembersOccupancy(),
+                clusterOptions.getMinPropertiesOccupancy(),
                 clusterOptions.getDetectionMode(),
                 clusterOptions.getJaccardSimilarityThreshold()
         );
@@ -488,7 +457,7 @@ public class ClusterObjectUtils {
         return oidList;
     }
 
-    public static void replaceRoleAnalysisClusterDetectionOption(String roleAnalysisClusterOid, PageBase pageBase,
+    public static void recomputeRoleAnalysisClusterDetectionOptions(String clusterOid, PageBase pageBase,
             DetectionOption detectionOption, OperationResult result) {
 
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
@@ -496,45 +465,22 @@ public class ClusterObjectUtils {
         roleAnalysisDetectionOptionType.setMinFrequencyThreshold(detectionOption.getMinFrequencyThreshold());
         roleAnalysisDetectionOptionType.setMaxFrequencyThreshold(detectionOption.getMaxFrequencyThreshold());
         roleAnalysisDetectionOptionType.setDetectionMode(detectionOption.getSearchMode());
-        roleAnalysisDetectionOptionType.setMinOccupancy(detectionOption.getMinOccupancy());
-        roleAnalysisDetectionOptionType.setMinPropertiesOverlap(detectionOption.getMinPropertiesOverlap());
+        roleAnalysisDetectionOptionType.setMinMembersOccupancy(detectionOption.getMinOccupancy());
+        roleAnalysisDetectionOptionType.setMinPropertiesOccupancy(detectionOption.getMinPropertiesOverlap());
 
         try {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_DETECTION_OPTION)
-                    .replace(roleAnalysisDetectionOptionType)
+                    .replace(roleAnalysisDetectionOptionType.asPrismContainerValue())
                     .asItemDeltas());
-            pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, roleAnalysisClusterOid, modifications, result);
+            pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, clusterOid, modifications, result);
         } catch (Throwable e) {
-            LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", roleAnalysisClusterOid, e.getMessage(), e);
+            LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", clusterOid, e.getMessage(), e);
         }
 
     }
 
-    public static void replaceRoleAnalysisSessionDetectionOption(String roleAnalysisSessionOid, PageBase pageBase,
-            DetectionOption detectionOption, OperationResult result) {
-
-        RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
-        roleAnalysisDetectionOptionType.setJaccardSimilarityThreshold(detectionOption.getJaccardSimilarityThreshold());
-        roleAnalysisDetectionOptionType.setMinFrequencyThreshold(detectionOption.getMinFrequencyThreshold());
-        roleAnalysisDetectionOptionType.setMaxFrequencyThreshold(detectionOption.getMaxFrequencyThreshold());
-        roleAnalysisDetectionOptionType.setDetectionMode(detectionOption.getSearchMode());
-        roleAnalysisDetectionOptionType.setMinOccupancy(detectionOption.getMinOccupancy());
-        roleAnalysisDetectionOptionType.setMinPropertiesOverlap(detectionOption.getMinPropertiesOverlap());
-
-        try {
-            List<ItemDelta<?, ?>> modifications = new ArrayList<>(pageBase.getPrismContext().deltaFor(RoleAnalysisSessionType.class)
-                    .item(RoleAnalysisClusterType.F_DETECTION_OPTION)
-                    .replace(roleAnalysisDetectionOptionType)
-                    .asItemDeltas());
-            pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, roleAnalysisSessionOid, modifications, result);
-        } catch (Throwable e) {
-            LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", roleAnalysisSessionOid, e.getMessage(), e);
-        }
-
-    }
-
-    public static void replaceRoleAnalysisClusterDetection(String roleAnalysisClusterOid,
+    public static void replaceRoleAnalysisClusterDetection(String clusterOid,
             PageBase pageBase, OperationResult result, List<DetectedPattern> detectedPatterns,
             RoleAnalysisProcessModeType processMode, DetectionOption detectionOption) {
 
@@ -563,12 +509,50 @@ public class ClusterObjectUtils {
                     .item(RoleAnalysisClusterType.F_DETECTION_PATTERN).replace(collection)
                     .asItemDelta());
 
-            pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, roleAnalysisClusterOid, modifications, result);
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
+                    .asItemDelta());
+
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
+                    .asItemDelta());
+
+            pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, clusterOid, modifications, result);
         } catch (Throwable e) {
-            LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", roleAnalysisClusterOid, e.getMessage(), e);
+            LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", clusterOid, e.getMessage(), e);
         }
 
-        replaceRoleAnalysisSessionDetectionOption(roleAnalysisClusterOid, pageBase, detectionOption, result);
+        recomputeRoleAnalysisClusterDetectionOptions(clusterOid, pageBase, detectionOption, result);
     }
 
+    private static XMLGregorianCalendar getCurrentXMLGregorianCalendar() {
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        DatatypeFactory datatypeFactory;
+        try {
+            datatypeFactory = DatatypeFactory.newInstance();
+        } catch (DatatypeConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+        return datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
+    }
+
+    public static String resolveDateAndTime(XMLGregorianCalendar xmlGregorianCalendar) {
+
+        int year = xmlGregorianCalendar.getYear();
+        int month = xmlGregorianCalendar.getMonth();
+        int day = xmlGregorianCalendar.getDay();
+        int hours = xmlGregorianCalendar.getHour();
+        int minutes = xmlGregorianCalendar.getMinute();
+
+        String dateString = String.format("%04d:%02d:%02d", year, month, day);
+
+        String amPm = (hours < 12) ? "AM" : "PM";
+        hours = hours % 12;
+        if (hours == 0) {
+            hours = 12;
+        }
+        String timeString = String.format("%02d:%02d %s", hours, minutes, amPm);
+
+        return dateString + ", " + timeString;
+    }
 }

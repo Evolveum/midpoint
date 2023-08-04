@@ -35,29 +35,35 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     private static final String ID_FREQUENCY_THRESHOLD_ITR = "threshold_intersection";
     private static final String ID_OCCUPANCY_THRESHOLD = "threshold_occupancy";
     private static final String ID_SIMILARITY_THRESHOLD = "threshold_similarity";
-    double minFrequency = 0.3;
-    double maxFrequency = 1.0;
-    double similarity = 0.8;
-    Integer minIntersection = 10;
-    Integer minOccupancy = 5;
+
     RoleAnalysisDetectionModeType searchModeSelected = RoleAnalysisDetectionModeType.INTERSECTION;
 
     public boolean isJaccardSearchMode() {
-        return searchMode;
+        return isJaccardDetection;
     }
 
-    boolean searchMode = false;
+    boolean isJaccardDetection = false;
 
     RoleAnalysisProcessModeType roleAnalysisProcessModeType;
 
-    public ExecuteSearchPanel(String id, IModel<String> messageModel, RoleAnalysisProcessModeType roleAnalysisProcessModeType) {
+    DetectionOption detectionOption;
+    ;
+
+    public ExecuteSearchPanel(String id, IModel<String> messageModel, RoleAnalysisProcessModeType roleAnalysisProcessModeType, DetectionOption defaultDetectionOptions) {
         super(id, messageModel);
         this.roleAnalysisProcessModeType = roleAnalysisProcessModeType;
+        this.detectionOption = defaultDetectionOptions;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        searchModeSelected = detectionOption.getSearchMode();
+
+        if (searchModeSelected.equals(RoleAnalysisDetectionModeType.JACCARD)) {
+            isJaccardDetection = true;
+        }
 
         Form<?> components = frequencyForm();
         components.setOutputMarkupId(true);
@@ -71,11 +77,11 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
         }) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (searchMode) {
-                    searchMode = false;
+                if (isJaccardDetection) {
+                    isJaccardDetection = false;
                     searchModeSelected = RoleAnalysisDetectionModeType.INTERSECTION;
                 } else {
-                    searchMode = true;
+                    isJaccardDetection = true;
                     searchModeSelected = RoleAnalysisDetectionModeType.JACCARD;
                 }
                 target.add(components);
@@ -92,38 +98,38 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
         Form<?> form = new Form<Void>(ID_FREQUENCY_FORM);
 
         TextFieldLabelPanel minFreqField = generateFieldPanel(ID_FREQUENCY_THRESHOLD_MIN_FRQ,
-                Model.of(minFrequency), getMinFrequencyHeaderTitle());
+                Model.of(detectionOption.getMinFrequencyThreshold()), getMinFrequencyHeaderTitle());
         form.add(minFreqField);
 
         TextFieldLabelPanel maxFreqField = generateFieldPanel(ID_FREQUENCY_THRESHOLD_MAX_FRQ,
-                Model.of(maxFrequency), getMaxFrequencyHeaderTitle());
+                Model.of(detectionOption.getMaxFrequencyThreshold()), getMaxFrequencyHeaderTitle());
         form.add(maxFreqField);
 
         TextFieldLabelPanel minIntersectionField = generateFieldPanel(ID_FREQUENCY_THRESHOLD_ITR,
-                Model.of(minIntersection), getIntersectionHeaderTitle());
+                Model.of(detectionOption.getMinPropertiesOverlap()), getIntersectionHeaderTitle());
         form.add(minIntersectionField);
 
         TextFieldLabelPanel minOccupancyField = generateFieldPanel(ID_OCCUPANCY_THRESHOLD,
-                Model.of(minOccupancy), getOccupancyHeaderTitle());
+                Model.of(detectionOption.getMinOccupancy()), getOccupancyHeaderTitle());
         form.add(minOccupancyField);
 
         TextFieldLabelPanel jaccardField = generateFieldPanel(ID_SIMILARITY_THRESHOLD,
-                Model.of(similarity), getString("RoleMining.frequency.max.title"));
+                Model.of(detectionOption.getJaccardSimilarityThreshold()), getString("RoleMining.frequency.max.title"));
         jaccardField.add(new VisibleEnableBehaviour(this::isJaccardSearchMode));
         form.add(jaccardField);
 
         AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink(ID_FREQUENCY_SUBMIT, form) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                minFrequency = (double) minFreqField.getBaseFormComponent().getModelObject();
-                maxFrequency = (double) maxFreqField.getBaseFormComponent().getModelObject();
-                minIntersection = (Integer) minIntersectionField.getBaseFormComponent().getModelObject();
-                minOccupancy = (Integer) minOccupancyField.getBaseFormComponent().getModelObject();
-                if (isJaccardSearchMode()) {
-                    similarity = (Double) jaccardField.getBaseFormComponent().getModelObject();
-                }
 
-                DetectionOption detectionOption = new DetectionOption(minFrequency, maxFrequency, minOccupancy, minIntersection, searchModeSelected, similarity);
+                detectionOption.setSearchMode(searchModeSelected);
+                detectionOption.setMinFrequencyThreshold((double) minFreqField.getBaseFormComponent().getModelObject());
+                detectionOption.setMaxFrequencyThreshold((double) maxFreqField.getBaseFormComponent().getModelObject());
+                detectionOption.setMinPropertiesOverlap((Integer) minIntersectionField.getBaseFormComponent().getModelObject());
+                detectionOption.setMinOccupancy((Integer) minOccupancyField.getBaseFormComponent().getModelObject());
+                if (isJaccardSearchMode()) {
+                    detectionOption.setJaccardSimilarityThreshold((Double) jaccardField.getBaseFormComponent().getModelObject());
+                }
 
                 performAction(target, detectionOption);
 
@@ -187,26 +193,6 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     @Override
     public StringResourceModel getTitle() {
         return new StringResourceModel("RoleMining.members.execute.search.panel.title");
-    }
-
-    public double getMinFrequency() {
-        return minFrequency;
-    }
-
-    public double getMaxFrequency() {
-        return maxFrequency;
-    }
-
-    public Integer getMinIntersection() {
-        return minIntersection;
-    }
-
-    public Integer getMinOccupancy() {
-        return minOccupancy;
-    }
-
-    public double getSimilarity() {
-        return similarity;
     }
 
     public RoleAnalysisDetectionModeType getSearchModeSelected() {

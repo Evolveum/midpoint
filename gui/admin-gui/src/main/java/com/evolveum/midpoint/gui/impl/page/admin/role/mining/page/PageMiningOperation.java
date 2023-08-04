@@ -6,24 +6,26 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getScaleScript;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serial;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionAction;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareChunkStructure;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareExpandStructure;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.LineFieldPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.ClusterSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.FormSessionPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.OperationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -33,21 +35,15 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteSearchPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ProcessBusinessRolePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningIntersectionTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningRoleBasedTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningUserBasedTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.PageOperationsPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 @PageDescriptor(
         urls = {
@@ -65,37 +61,25 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 public class PageMiningOperation extends PageAdmin {
 
-    private static final String ID_DATATABLE = "datatable_extra";
-    private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
-    private static final String ID_PROCESS_BUTTON = "process_selections_id";
-
     public static final String CHILD_PARAMETER_OID = "child_oid";
     public static final String PARENT_PARAMETER_OID = "parent_oid";
 
-    double minFrequency = 0.3;
-    Integer minOccupancy = 5;
-    double maxFrequency = 1.0;
-    Integer minIntersection = 10;
+    private static final String ID_PANEL = "panel";
 
-    RoleAnalysisDetectionModeType searchMode = RoleAnalysisDetectionModeType.INTERSECTION;
-    RoleAnalysisProcessModeType processMode;
+    private static final String ID_CONTAINER = "container";
 
-    DetectionOption defaultDetectionOptions;
+    boolean sessionCluster = true;
+    boolean sessionOption = false;
+    boolean sessionStatistic = false;
 
-    List<DetectedPattern> mergedIntersection = new ArrayList<>();
-    AjaxButton processButton;
-    DetectedPattern intersection = null;
-    boolean compress = true;
+    AjaxIconButton clusters;
+    AjaxIconButton options;
+    AjaxIconButton statistic;
 
-    String compressMode = "COMPRESS MODE";
+    WebMarkupContainer panel;
+    WebMarkupContainer webMarkupContainer;
 
-    OperationResult result = new OperationResult("GetObject");
-
-    MiningOperationChunk miningOperationChunk;
-
-    List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
-    List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
-    ClusterObjectUtils.SORT sortMode;
+    OperationResult operationResult = new OperationResult("deleteSingleClusterObject");
 
     String getPageParameterChildOid() {
         PageParameters params = getPageParameters();
@@ -121,292 +105,207 @@ public class PageMiningOperation extends PageAdmin {
     protected void onInitialize() {
         super.onInitialize();
 
-        miningRoleTypeChunks = new ArrayList<>();
-        miningUserTypeChunks = new ArrayList<>();
+        webMarkupContainer = new WebMarkupContainer(ID_CONTAINER);
+        webMarkupContainer.setOutputMarkupId(true);
+        add(webMarkupContainer);
 
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterChildOid()).asObjectable();
+        add(initSummaryPanel());
 
-        PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid((PageBase) getPage(),
-                getPageParameterParentOid(), new OperationResult("getParent"));
-        assert getParent != null;
-        String processModeValue = getParent.asObjectable().getClusterOptions().getProcessMode().value();
-        String searchModeValue = cluster.getDetectionOption().getDetectionMode().value();
-        searchMode = RoleAnalysisDetectionModeType.fromValue(searchModeValue);
-        processMode = RoleAnalysisProcessModeType.fromValue(processModeValue);
+        OperationPanel operationPanel = new OperationPanel("operation_panel") {
 
-        Integer elementsCount = cluster.getClusterStatistic().getMemberCount();
-        Integer pointsCount = cluster.getClusterStatistic().getPropertiesCount();
-        int max = Math.max(elementsCount, pointsCount);
-
-        if (max <= 500) {
-            sortMode = ClusterObjectUtils.SORT.JACCARD;
-        } else {
-            sortMode = ClusterObjectUtils.SORT.NONE;
-        }
-        if (cluster.getDetectionOption() != null) {
-            defaultDetectionOptions = loadDetectionOption(cluster.getDetectionOption());
-        } else {
-            defaultDetectionOptions = new DetectionOption(0.3, 1, 5, 10, searchMode, 0.8);
-        }
-
-        searchMode = defaultDetectionOptions.getSearchMode();
-        minFrequency = defaultDetectionOptions.getMinFrequencyThreshold();
-        minOccupancy = defaultDetectionOptions.getMinOccupancy();
-        maxFrequency = defaultDetectionOptions.getMaxFrequencyThreshold();
-        minIntersection = defaultDetectionOptions.getMinPropertiesOverlap();
-
-        long start = startTimer("LOAD DATA");
-        mergedIntersection = transformDefaultPattern(cluster);
-        loadMiningTableData(sortMode);
-        endTimer(start, "LOAD DATA");
-
-        start = startTimer("LOAD TABLE");
-        loadMiningTable(miningRoleTypeChunks, miningUserTypeChunks, defaultDetectionOptions.getSearchMode());
-        endTimer(start, "LOAD TABLE");
-
-        add(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, mergedIntersection).setOutputMarkupId(true));
-
-        AjaxButton ajaxButton = executeBusinessSearchPanel();
-        add(ajaxButton);
-
-        AjaxButton sortButton = executeJaccardSorting();
-        add(sortButton);
-
-        initProcessButton();
-
-        add(processButton);
-
-    }
-
-    private void initProcessButton() {
-        processButton = new AjaxButton(ID_PROCESS_BUTTON, createStringResource("RoleMining.button.title.process")) {
             @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+            protected void addPanelButton(RepeatingView repeatingView) {
 
-                ProcessBusinessRolePanel detailsPanel = new ProcessBusinessRolePanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("TO DO: details"), miningRoleTypeChunks, miningUserTypeChunks, processMode) {
+                statistic = new AjaxIconButton(repeatingView.newChildId(), Model.of("fa fa-bar-chart"),
+                        getPageBase().createStringResource("role.mining.cluster.statistic.panel")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
                     @Override
-                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                        super.onClose(ajaxRequestTarget);
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+                        if (!sessionStatistic) {
+                            sessionStatistic = true;
+                            sessionCluster = false;
+                            sessionOption = false;
+
+                            ajaxRequestTarget.add(getPanel().replaceWith(createClusterStatisticPanel().setOutputMarkupId(true)));
+                            ajaxRequestTarget.add(webMarkupContainer);
+
+                            options.add(new AttributeModifier("class", "btn btn-default btn-sm"));
+                            clusters.add(new AttributeModifier("class", "btn btn-default btn-sm"));
+                            statistic.add(new AttributeModifier("class", "btn btn-primary btn-sm"));
+                            ajaxRequestTarget.add(statistic);
+                            ajaxRequestTarget.add(options);
+                            ajaxRequestTarget.add(clusters);
+                        }
+
                     }
                 };
-                ((PageBase) getPage()).showMainPopup(detailsPanel, ajaxRequestTarget);
 
-            }
+                statistic.showTitleAsLabel(true);
+                statistic.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                repeatingView.add(statistic);
 
-        };
-
-        processButton.setOutputMarkupId(true);
-        processButton.setOutputMarkupPlaceholderTag(true);
-        processButton.setVisible(false);
-    }
-
-    @NotNull
-    private AjaxButton executeBusinessSearchPanel() {
-        AjaxButton ajaxButton = new AjaxButton("business_role_mining") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-
-                ExecuteSearchPanel detailsPanel = new ExecuteSearchPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("Analyzed members details panel"), processMode) {
-                    @Override
-                    public void performAction(AjaxRequestTarget target, DetectionOption detectionOption) {
-                        intersection = null;
-
-                        mergedIntersection = new DetectionAction(detectionOption).executeDetection(miningRoleTypeChunks,
-                                miningUserTypeChunks, processMode);
-
-                        searchMode = detectionOption.getSearchMode();
-                        minFrequency = detectionOption.getMinFrequencyThreshold();
-                        maxFrequency = detectionOption.getMaxFrequencyThreshold();
-                        minIntersection = detectionOption.getMinPropertiesOverlap();
-                        minOccupancy = detectionOption.getMinOccupancy();
-                        defaultDetectionOptions = detectionOption;
-                        getIntersectionTable().replaceWith(generateTableIntersection(ID_DATATABLE_INTERSECTIONS,
-                                mergedIntersection));
-                        target.add(getIntersectionTable().setOutputMarkupId(true));
-
-                        updateMiningTable(target, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
-
-//                        replaceRoleAnalysisClusterDetectionOption(getPageParameterChildOid(),(PageBase) getPage(),detectionOption,result);
-                        replaceRoleAnalysisClusterDetection(getPageParameterChildOid(), (PageBase) getPage(), result,
-                                mergedIntersection, processMode, detectionOption);
-                    }
+                clusters = new AjaxIconButton(repeatingView.newChildId(), Model.of("fa fa-database"),
+                        getPageBase().createStringResource("role.mining.cluster.clusters.panel")) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                        super.onClose(ajaxRequestTarget);
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+                        if (!sessionCluster) {
+                            sessionStatistic = false;
+                            sessionCluster = true;
+                            sessionOption = false;
+
+                            ajaxRequestTarget.add(getPanel().replaceWith(new PageOperationsPanel(ID_PANEL,
+                                    getPageParameterParentOid(), getPageParameterChildOid()).setOutputMarkupId(true)));
+                            ajaxRequestTarget.add(webMarkupContainer);
+
+                            options.add(new AttributeModifier("class", "btn btn-default btn-sm"));
+                            clusters.add(new AttributeModifier("class", "btn btn-primary btn-sm"));
+                            statistic.add(new AttributeModifier("class", "btn btn-default btn-sm"));
+                            ajaxRequestTarget.add(statistic);
+                            ajaxRequestTarget.add(options);
+                            ajaxRequestTarget.add(clusters);
+                        }
+
                     }
                 };
-                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                clusters.showTitleAsLabel(true);
+                clusters.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+                repeatingView.add(clusters);
+
+                options = new AjaxIconButton(repeatingView.newChildId(), Model.of("fa fa-cog"),
+                        getPageBase().createStringResource("role.mining.cluster.option.panel")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+                        if (!sessionOption) {
+                            sessionStatistic = false;
+                            sessionCluster = false;
+                            sessionOption = true;
+
+                            ajaxRequestTarget.add(getPanel().replaceWith(createClusterOptionsPanel()));
+                            ajaxRequestTarget.add(webMarkupContainer);
+
+                            options.add(new AttributeModifier("class", "btn btn-primary btn-sm"));
+                            clusters.add(new AttributeModifier("class", "btn btn-default btn-sm"));
+                            statistic.add(new AttributeModifier("class", "btn btn-default btn-sm"));
+                            ajaxRequestTarget.add(statistic);
+                            ajaxRequestTarget.add(options);
+                            ajaxRequestTarget.add(clusters);
+                        }
+                    }
+                };
+
+                options.showTitleAsLabel(true);
+                options.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                repeatingView.add(options);
+
+            }
+
+            @Override
+            protected void executeDelete(AjaxRequestTarget target) {
+                PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject((PageBase) getPage(), getPageParameterChildOid());
+                deleteSingleRoleAnalysisCluster(operationResult, clusterTypeObject.asObjectable(),
+                        (PageBase) getPage());
+                getPageBase().redirectBack();
             }
         };
-        ajaxButton.setOutputMarkupId(true);
-        return ajaxButton;
-    }
+        operationPanel.setOutputMarkupId(true);
+        add(operationPanel);
 
-    private AjaxButton executeJaccardSorting() {
-
-        AjaxButton ajaxButton = new AjaxButton("jaccard_sort") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                sortMode = ClusterObjectUtils.SORT.JACCARD;
-
-                miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
-                miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(sortMode);
-
-                updateMiningTable(target, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
-                target.add(this.setVisible(false));
-            }
-        };
-
-        ajaxButton.setOutputMarkupId(true);
-        ajaxButton.setVisible(sortMode.equals(ClusterObjectUtils.SORT.NONE));
-        return ajaxButton;
-    }
-
-    String state = "START";
-
-    private void loadMiningTableData(SORT sortMode) {
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), getPageParameterChildOid()).asObjectable();
-
-        //TODO should only be used on a gui request?
-        // In the case of large datasets, Jaccard sorting is
-        // time-consuming. Or progress (loading) bar?
-
-        if (compress) {
-
-            miningOperationChunk = new PrepareChunkStructure().executeOperation(cluster, true,
-                    processMode, (PageBase) getPage(), new OperationResult("loadData"), state);
-
-        } else {
-            miningOperationChunk = new PrepareExpandStructure().executeOperation(cluster, true,
-                    processMode, (PageBase) getPage(), new OperationResult("loadData"), state);
-        }
-        this.miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
-        this.miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(sortMode);
+        panel = new PageOperationsPanel(ID_PANEL, getPageParameterParentOid(), getPageParameterChildOid());
+        webMarkupContainer.add(panel);
 
     }
 
-    private void loadMiningTable(List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
-            RoleAnalysisDetectionModeType searchMode) {
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, null, maxFrequency, searchMode);
-            boxedTablePanel.setOutputMarkupId(true);
-            add(boxedTablePanel);
-        } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-            MiningUserBasedTable boxedTablePanel = generateMiningUserBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, null, maxFrequency);
-            boxedTablePanel.setOutputMarkupId(true);
-            add(boxedTablePanel);
-        }
-
-    }
-
-    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, RoleAnalysisDetectionModeType searchMode,
-            List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks) {
-
-        if (resetStatus) {
-            for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
-                miningRoleTypeChunk.setStatus(ClusterObjectUtils.Status.NEUTRAL);
-            }
-            for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
-                miningUserTypeChunk.setStatus(ClusterObjectUtils.Status.NEUTRAL);
-            }
-        }
-
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, intersection, maxFrequency, searchMode);
-            boxedTablePanel.setOutputMarkupId(true);
-            getMiningRoleBasedTable().replaceWith(boxedTablePanel);
-            target.appendJavaScript(getScaleScript());
-            target.add(getMiningRoleBasedTable().setOutputMarkupId(true));
-
-        } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-
-            MiningUserBasedTable boxedTablePanel = generateMiningUserBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, intersection, maxFrequency);
-            boxedTablePanel.setOutputMarkupId(true);
-            getMiningUserBasedTable().replaceWith(boxedTablePanel);
-            target.appendJavaScript(getScaleScript());
-            target.add(getMiningUserBasedTable().setOutputMarkupId(true));
-        }
-
-    }
-
-    public MiningUserBasedTable generateMiningUserBasedTable(List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection, double maxFrequency) {
-        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
+    private Component createClusterOptionsPanel() {
+        FormSessionPanel components = new FormSessionPanel(ID_PANEL, Model.of("Options")) {
             @Override
-            public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
-            }
+            protected void addPanelButton(RepeatingView repeatingView) {
 
-            @Override
-            protected String getCompressStatus() {
-                return compressMode;
-            }
+                @NotNull RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject((PageBase) getPage(),
+                        getPageParameterChildOid()).asObjectable();
 
-            @Override
-            protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
-                if (compress) {
-                    compress = false;
-                    compressMode = "EXPAND MODE";
-                } else {
-                    compress = true;
-                    compressMode = "COMPRESS MODE";
-                }
-                loadMiningTableData(sortMode);
-                updateMiningTable(ajaxRequestTarget, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
-                ajaxRequestTarget.add(this);
-            }
-        };
-    }
+                RoleAnalysisDetectionOptionType clusterOptions = clusterTypeObject.getDetectionOption();
 
-    public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
-        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
-            @Override
-            public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
-            }
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Name")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(String.valueOf(clusterTypeObject.getName()));
+                    }
 
-            @Override
-            protected String getCompressStatus() {
-                return compressMode;
-            }
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.option.name");
+                    }
+                }.setOutputMarkupId(true));
 
-            @Override
-            protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
-                if (compress) {
-                    compress = false;
-                    compressMode = "EXPAND MODE";
-                } else {
-                    compress = true;
-                    compressMode = "COMPRESS MODE";
-                }
-                loadMiningTableData(sortMode);
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Jaccard similarity")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(String.valueOf(clusterOptions.getJaccardSimilarityThreshold()));
+                    }
 
-                updateMiningTable(ajaxRequestTarget, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
-                ajaxRequestTarget.add(this);
-            }
-        };
-    }
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.option.similarity");
+                    }
+                }.setOutputMarkupId(true));
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Detection mode")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(clusterOptions.getDetectionMode().value().toUpperCase());
+                    }
 
-    public Component generateTableIntersection(String id, List<DetectedPattern> miningSets) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.option.detection.mode");
+                    }
+                }.setOutputMarkupId(true));
 
-        MiningIntersectionTable components = new MiningIntersectionTable(id, miningSets, processMode) {
-            @Override
-            protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-                intersection = rowModel.getObject();
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Min members occupancy")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(String.valueOf(clusterOptions.getMinMembersOccupancy()));
+                    }
 
-                updateMiningTable(ajaxRequestTarget, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
-                processButton.setVisible(true);
-                ajaxRequestTarget.add(processButton);
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.option.min.members.occupancy");
+                    }
+                }.setOutputMarkupId(true));
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Min properties occupancy")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(String.valueOf(clusterOptions.getMinPropertiesOccupancy()));
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.option.min.properties.occupancy");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Frequency range")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of("from "
+                                + (clusterOptions.getMinFrequencyThreshold() * 100)
+                                + " to "
+                                + (clusterOptions.getMaxFrequencyThreshold() * 100) + " % ");
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.option.frequency.range");
+                    }
+                }.setOutputMarkupId(true));
             }
         };
 
@@ -414,25 +313,162 @@ public class PageMiningOperation extends PageAdmin {
         return components;
     }
 
-    protected Component getIntersectionTable() {
-        return get(((PageBase) getPage()).createComponentPath(ID_DATATABLE_INTERSECTIONS));
+    private Component createClusterStatisticPanel() {
+        FormSessionPanel components = new FormSessionPanel(ID_PANEL, Model.of("Statistic")) {
+            @Override
+            protected void addPanelButton(RepeatingView repeatingView) {
+
+                @NotNull RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject((PageBase) getPage(),
+                        getPageParameterChildOid()).asObjectable();
+
+                RoleAnalysisClusterStatisticType clusterStatistic = clusterTypeObject.getClusterStatistic();
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Name")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(String.valueOf(clusterTypeObject.getName()));
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.option.name");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Creation time")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        XMLGregorianCalendar createTimestamp = clusterTypeObject.getMetadata().getCreateTimestamp();
+
+                        if (createTimestamp != null) {
+                            return Model.of(resolveDateAndTime(createTimestamp));
+
+                        }
+                        return Model.of("Unknown");
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.creation.time");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Last modify")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        XMLGregorianCalendar modifyTimestamp = clusterTypeObject.getMetadata().getModifyTimestamp();
+
+                        if (modifyTimestamp != null) {
+                            return Model.of(resolveDateAndTime(modifyTimestamp));
+
+                        }
+                        return Model.of(resolveDateAndTime(clusterTypeObject.getMetadata().getCreateTimestamp()));
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.modify.time");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Members count")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(String.valueOf(clusterStatistic.getMemberCount()));
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.member.count");
+                    }
+                }.setOutputMarkupId(true));
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Properties count")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(clusterStatistic.getPropertiesCount().toString());
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.properties.count");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Properties range")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(clusterStatistic.getPropertiesMinOccupancy() + " - " + clusterStatistic.getPropertiesMaxOccupancy());
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.properties.range");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Properties mean")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+
+                        String mean = String.format("%.3f", clusterStatistic.getPropertiesMean());
+                        return Model.of(String.valueOf(mean));
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.properties.mean");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Properties density")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        String density = String.format("%.3f", clusterStatistic.getPropertiesDensity());
+                        return Model.of(density + " (%)");
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.members.density");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Risk level")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+
+                        if (clusterStatistic.getRiskLevel() == null) {
+                            return Model.of(" ");
+
+                        }
+                        return Model.of(String.valueOf(clusterStatistic.getRiskLevel()));
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.statistic.risk.level");
+                    }
+                }.setOutputMarkupId(true));
+
+            }
+        };
+
+        components.setOutputMarkupId(true);
+        return components;
+    }
+
+    private Component getPanel() {
+        return get(createComponentPath(ID_CONTAINER, ID_PANEL));
+    }
+
+    private Panel initSummaryPanel() {
+        PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject((PageBase) getPage(), getPageParameterChildOid());
+        return new ClusterSummaryPanel("summary", Model.of(clusterTypeObject.asObjectable()), null);
     }
 
     @Override
     protected IModel<String> createPageTitleModel() {
         return createStringResource("PageMiningOperation.title");
-    }
-
-    protected MiningRoleBasedTable getMiningRoleBasedTable() {
-        return (MiningRoleBasedTable) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE));
-    }
-
-    protected MiningUserBasedTable getMiningUserBasedTable() {
-        return (MiningUserBasedTable) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE));
-    }
-
-    public PageBase getPageBase() {
-        return ((PageBase) getPage());
     }
 
 }

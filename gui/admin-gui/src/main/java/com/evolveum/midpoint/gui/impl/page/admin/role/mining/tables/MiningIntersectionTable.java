@@ -57,10 +57,13 @@ public class MiningIntersectionTable extends Panel {
     private static final String ID_DATATABLE = "datatable_extra";
 
     RoleAnalysisProcessModeType roleAnalysisProcessModeType;
+    String clusterOid;
 
-    public MiningIntersectionTable(String id, List<DetectedPattern> miningSets, RoleAnalysisProcessModeType roleAnalysisProcessModeType) {
+    public MiningIntersectionTable(String id, List<DetectedPattern> miningSets,
+            RoleAnalysisProcessModeType roleAnalysisProcessModeType, String clusterOid) {
         super(id);
         this.roleAnalysisProcessModeType = roleAnalysisProcessModeType;
+        this.clusterOid = clusterOid;
         RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(miningSets) {
 
@@ -229,13 +232,15 @@ public class MiningIntersectionTable extends Panel {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                         DetectedPattern rowModelObject = rowModel.getObject();
-
                         Set<String> resolveFullOverlap = resolveTotalOccupancy(roleAnalysisProcessModeType, rowModelObject,
                                 new OperationResult("resolveFullOverlap"), (PageBase) getPage());
 
                         if (resolveFullOverlap.size() > 0) {
                             this.setDefaultModel(Model.of(resolveFullOverlap.size() + " (recompute)"));
                             // TODO replaceMemberTypeObjectOccupation the current implementation is for testing and demonstration purposes
+
+//                            replaceRoleAnalysisClusterDetectionTotal(clusterOid, (PageBase) getPage(),
+//                                    new OperationResult("resolveFullOverlap"), roleAnalysisProcessModeType, rowModelObject,resolveFullOverlap);
                         }
 
                         item.setOutputMarkupId(true);

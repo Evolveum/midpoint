@@ -113,6 +113,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 importRoleAnalysisClusteringResult(importResult, clusters, roleAnalysisSessionClusterOption,
                         roleAnalysisSessionDetectionOption, clusterOptions.getName(), clusterOptions.getMode());
 
+                getPageBase().hideMainPopup(ajaxRequestTarget);
             }
 
             @NotNull
@@ -121,8 +122,8 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 roleAnalysisSessionDetectionOption.setDetectionMode(clusterOptions.getSearchMode());
                 roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
                 roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
-                roleAnalysisSessionDetectionOption.setMinOccupancy(clusterOptions.getDefaultOccupancySearch());
-                roleAnalysisSessionDetectionOption.setMinPropertiesOverlap(clusterOptions.getDefaultIntersectionSearch());
+                roleAnalysisSessionDetectionOption.setMinMembersOccupancy(clusterOptions.getDefaultOccupancySearch());
+                roleAnalysisSessionDetectionOption.setMinPropertiesOccupancy(clusterOptions.getDefaultIntersectionSearch());
                 roleAnalysisSessionDetectionOption.setJaccardSimilarityThreshold(clusterOptions.getDefaultJaccardThreshold());
 
                 return roleAnalysisSessionDetectionOption;
@@ -205,7 +206,6 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     LabelWithHelpPanel intersectionLabel;
     LabelWithHelpPanel occupancyLabel;
     LabelWithHelpPanel minFrequencyLabel;
-    LabelWithHelpPanel maxFrequencyLabel;
 
     public void defaultIntersectionForm() {
 
@@ -219,7 +219,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 Model.of("Search mode")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.search.mode");
+                return createStringResource("RoleMining.cluster.option.detection.mode");
             }
         };
         labelMode.setOutputMarkupId(true);
@@ -237,7 +237,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 Model.of("Similarity")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.similarity");
+                return createStringResource("RoleMining.cluster.option.similarity");
             }
         };
         thresholdLabel.setOutputMarkupId(true);
@@ -259,7 +259,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 }) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.default.intersection");
+                return createStringResource("RoleMining.cluster.option.min.members.occupancy");
             }
         };
         intersectionLabel.setOutputMarkupId(true);
@@ -283,7 +283,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 }) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.default.occupancy");
+                return createStringResource("RoleMining.cluster.option.min.properties.occupancy");
             }
         };
         occupancyLabel.setOutputMarkupId(true);
@@ -306,7 +306,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 }) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.default.min.frequency");
+                return createStringResource("RoleMining.cluster.option.frequency.range");
             }
         };
         minFrequencyLabel.setOutputMarkupId(true);
@@ -320,21 +320,6 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         maxFrequencyField.setVisible(true);
         maxFrequencyField.add(new EnableBehaviour(this::isEditMiningOption));
         form.add(maxFrequencyField);
-        maxFrequencyLabel = new LabelWithHelpPanel("maxFrequency_label",
-                new LoadableModel<>() {
-                    @Override
-                    protected String load() {
-                        return getMaxFrequencyHeaderTitle();
-                    }
-                }) {
-            @Override
-            protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.default.max.frequency");
-            }
-        };
-        maxFrequencyLabel.setOutputMarkupId(true);
-        maxFrequencyField.setOutputMarkupPlaceholderTag(true);
-        form.add(maxFrequencyLabel);
 
         ChoiceRenderer<RoleAnalysisDetectionModeType> renderer = new ChoiceRenderer<>("value");
 
@@ -456,7 +441,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 Model.of("Process mode")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.mode");
+                return createStringResource("RoleMining.session.option.process.mode");
             }
         };
         labelMode.setOutputMarkupId(true);
@@ -494,7 +479,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 Model.of("Similarity")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.similarity");
+                return createStringResource("RoleMining.session.option.similarity");
             }
         };
         thresholdLabel.setOutputMarkupId(true);
@@ -518,7 +503,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 }) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.intersection");
+                return createStringResource("RoleMining.session.option.min.overlap");
             }
         };
         overlapLabel.setOutputMarkupId(true);
@@ -552,7 +537,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 }) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.min.assign");
+                return createStringResource("RoleMining.session.option.properties.range");
             }
         };
         assignmentsLabel.setOutputMarkupId(true);
@@ -571,7 +556,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 Model.of("Min unique members")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.min.members");
+                return createStringResource("RoleMining.session.option.min.unique.members");
             }
         };
         groupLabel.setOutputMarkupId(true);
@@ -595,7 +580,6 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 target.add(intersectionLabel);
                 target.add(occupancyLabel);
                 target.add(minFrequencyLabel);
-                target.add(maxFrequencyLabel);
             }
         });
         modeSelector.setOutputMarkupId(true);
@@ -682,7 +666,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 createStringResource("roleMiningClusterPanel.query.label.title")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleMining.option.filter");
+                return createStringResource("RoleMining.session.option.axiom.query");
             }
         };
         label.setOutputMarkupId(true);
