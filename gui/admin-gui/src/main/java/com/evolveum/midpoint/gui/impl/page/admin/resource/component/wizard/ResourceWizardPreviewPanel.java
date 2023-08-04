@@ -43,21 +43,21 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
-        String name = WebComponentUtil.getDisplayNameOrName(getAssignmentHolderDetailsModel().getObjectWrapper().getObject());
-        if (StringUtils.isEmpty(name)) {
-            return getPageBase().createStringResource("ResourceWizardPreviewPanel.title");
-        }
-        return Model.of(name);
+        return Model.of(getResourceName());
+    }
+
+    private String getResourceName() {
+        return WebComponentUtil.getDisplayNameOrName(getAssignmentHolderDetailsModel().getObjectWrapper().getObject());
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ResourceWizardPreviewPanel.subText");
+        return getPageBase().createStringResource("ResourceWizardPreviewPanel.subText", getResourceName());
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ResourceWizardPreviewPanel.text");
+        return getPageBase().createStringResource("ResourceWizardPreviewPanel.text", getResourceName());
     }
 
 }
