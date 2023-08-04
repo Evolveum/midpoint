@@ -7,17 +7,19 @@
 
 package com.evolveum.midpoint.ninja.impl;
 
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+
 import org.fusesource.jansi.Ansi;
 
 public enum LogLevel {
 
-    ERROR("ERROR", Ansi.Color.RED),
+    ERROR("ERROR", ConsoleFormat.Color.ERROR.color),
 
-    WARNING("WARNING", Ansi.Color.YELLOW),
+    WARNING("WARNING", ConsoleFormat.Color.WARN.color),
 
-    INFO("INFO", Ansi.Color.BLUE),
+    INFO("INFO", ConsoleFormat.Color.INFO.color),
 
-    DEBUG("DEBUG", Ansi.Color.DEFAULT);
+    DEBUG("DEBUG", ConsoleFormat.Color.DEFAULT.color);
 
     private final String label;
 
