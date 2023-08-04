@@ -572,4 +572,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("searchObjectsIterative not supported");
     }
+
+    @Override
+    public @NotNull RepositoryDiag getRepositoryDiag() {
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName(getClass().getSimpleName());
+
+        return diag;
+    }
 }

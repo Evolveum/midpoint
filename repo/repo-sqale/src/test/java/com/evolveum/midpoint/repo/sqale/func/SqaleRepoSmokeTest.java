@@ -14,6 +14,10 @@ import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPath
 import java.sql.SQLException;
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+
+import com.querydsl.core.types.Ops;
+import com.querydsl.core.types.dsl.Expressions;
 import org.testng.Assert;
 import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
@@ -95,7 +99,7 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 .isNotNull()
                 .isNotEmpty();
 
-        LabeledString schemaChangeNumber = details.stream().filter(ls -> "schemaChangeNumber".equals(ls.getLabel())).findFirst().orElse(null);
+        LabeledString schemaChangeNumber = details.stream().filter(ls -> SqaleUtils.SCHEMA_CHANGE_NUMBER.equals(ls.getLabel())).findFirst().orElse(null);
         assertThat(schemaChangeNumber)
                 .isNotNull();
     }

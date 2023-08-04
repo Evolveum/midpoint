@@ -9,10 +9,6 @@ package com.evolveum.midpoint.repo.sqale;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Objects;
 import java.util.*;
 import java.util.function.Consumer;
@@ -46,8 +42,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MGlobalMetadata;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QGlobalMetadata;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -96,13 +90,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Positive flows require explicit {@link JdbcSession#commit()} otherwise the changes are rolled back.
  */
 public class SqaleRepositoryService extends SqaleServiceBase implements RepositoryService {
-
-    /**
-     * Name of the repository implementation, returned by {@link #getRepositoryType()}.
-     * While public, the value is often copied because this service class is implementation
-     * detail for the rest of the midPoint.
-     */
-    public static final String REPOSITORY_IMPL_NAME = "Native";
 
     public static final int INITIAL_VERSION_NUMBER = 0;
     public static final String INITIAL_VERSION_STRING = String.valueOf(INITIAL_VERSION_NUMBER);
@@ -1495,107 +1482,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     @Override
-    public RepositoryDiag getRepositoryDiag() {
-        logger.debug("Getting repository diagnostics.");
-
-        RepositoryDiag diag = new RepositoryDiag();
-        diag.setImplementationShortName(REPOSITORY_IMPL_NAME);
-        diag.setImplementationDescription(
-                "Implementation that stores data in PostgreSQL database using JDBC with Querydsl.");
-
-        JdbcRepositoryConfiguration config = repositoryConfiguration();
-        diag.setDriverShortName(config.getDriverClassName());
-        diag.setRepositoryUrl(config.getJdbcUrl());
-        diag.setEmbedded(config.isEmbedded());
-
-        Enumeration<Driver> drivers = DriverManager.getDrivers();
-        while (drivers.hasMoreElements()) {
-            Driver driver = drivers.nextElement();
-            if (!driver.getClass().getName().equals(config.getDriverClassName())) {
-                continue;
-            }
-
-            diag.setDriverVersion(driver.getMajorVersion() + "." + driver.getMinorVersion());
-        }
-
-        List<LabeledString> details = new ArrayList<>();
-        diag.setAdditionalDetails(details);
-        details.add(new LabeledString("dataSource", config.getDataSource()));
-
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            details.add(new LabeledString("transactionIsolation",
-                    getTransactionIsolation(jdbcSession.connection(), config)));
-
-            try {
-                Properties info = jdbcSession.connection().getClientInfo();
-                if (info != null) {
-                    for (String name : info.stringPropertyNames()) {
-                        details.add(new LabeledString("clientInfo." + name, info.getProperty(name)));
-                    }
-                }
-            } catch (SQLException e) {
-                details.add(new LabeledString("clientInfo-error", e.toString()));
-            }
-
-            long startMs = System.currentTimeMillis();
-            jdbcSession.executeStatement("select 1");
-            details.add(new LabeledString("select-1-round-trip-ms",
-                    String.valueOf(System.currentTimeMillis() - startMs)));
-
-            addGlobalMetadataInfo(jdbcSession, details);
-        }
-
-        details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
-
-        return diag;
-    }
-
-    private void addGlobalMetadataInfo(JdbcSession jdbcSession, List<LabeledString> details) {
-        List<MGlobalMetadata> list = jdbcSession.newQuery()
-                .from(QGlobalMetadata.DEFAULT)
-                .select(QGlobalMetadata.DEFAULT)
-                .fetch();
-
-        for (MGlobalMetadata metadata : list) {
-            details.add(new LabeledString(metadata.name, metadata.value));
-        }
-    }
-
-    @Override
     public @NotNull String getRepositoryType() {
         return REPOSITORY_IMPL_NAME;
-    }
-
-    private String getTransactionIsolation(
-            Connection connection, JdbcRepositoryConfiguration config) {
-        String value = config.getTransactionIsolation() != null ?
-                config.getTransactionIsolation().name() + "(read from repo configuration)" : null;
-
-        try {
-            switch (connection.getTransactionIsolation()) {
-                case Connection.TRANSACTION_NONE:
-                    value = "TRANSACTION_NONE (read from connection)";
-                    break;
-                case Connection.TRANSACTION_READ_COMMITTED:
-                    value = "TRANSACTION_READ_COMMITTED (read from connection)";
-                    break;
-                case Connection.TRANSACTION_READ_UNCOMMITTED:
-                    value = "TRANSACTION_READ_UNCOMMITTED (read from connection)";
-                    break;
-                case Connection.TRANSACTION_REPEATABLE_READ:
-                    value = "TRANSACTION_REPEATABLE_READ (read from connection)";
-                    break;
-                case Connection.TRANSACTION_SERIALIZABLE:
-                    value = "TRANSACTION_SERIALIZABLE (read from connection)";
-                    break;
-                default:
-                    value = "Unknown value in connection.";
-            }
-        } catch (Exception ex) {
-            //nowhere to report error (no operation result available)
-        }
-
-        return value;
     }
 
     @Override

@@ -8,14 +8,12 @@ package com.evolveum.midpoint.audit.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -125,4 +123,6 @@ public interface AuditService {
             @NotNull AuditResultHandler handler,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException;
+
+    @NotNull RepositoryDiag getRepositoryDiag();
 }

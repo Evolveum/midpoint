@@ -19,6 +19,7 @@
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSearchIterativeTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSearchTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleRepoSmokeTest"/>
+            <class name="com.evolveum.midpoint.repo.sqale.func.SqaleAuditSmokeTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.SqaleSearchFullTextTest"/>
             <class name="com.evolveum.midpoint.repo.sqale.func.UriCacheTest"/>
         </classes>
