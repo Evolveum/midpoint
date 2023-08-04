@@ -582,6 +582,14 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         throw new UnsupportedOperationException("searchObjectsIterative not supported");
     }
 
+    @Override
+    public @NotNull RepositoryDiag getRepositoryDiag() {
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName(getClass().getSimpleName());
+
+        return diag;
+    }
+
     public void addEventListener(DummyAuditEventListener listener) {
         listeners.add(listener);
     }

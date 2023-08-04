@@ -8,22 +8,18 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +52,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -84,17 +79,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     // just a safeguard (watchers per thread should be at most 1-2)
     private static final int MAX_CONFLICT_WATCHERS = 10;
     public static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
-    private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
-    private static final String IMPLEMENTATION_DESCRIPTION =
-            "Implementation that stores data in generic relational (SQL) databases."
-                    + " It is using ORM (hibernate) on top of JDBC to access the database.";
-    private static final String DETAILS_TRANSACTION_ISOLATION = "transactionIsolation";
-    private static final String DETAILS_CLIENT_INFO = "clientInfo.";
-    private static final String DETAILS_DATA_SOURCE = "dataSource";
-    private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
-    private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
-    private final BaseHelper baseHelper;
     private final MatchingRuleRegistry matchingRuleRegistry;
     private final PrismContext prismContext;
     private final RelationRegistry relationRegistry;
@@ -116,7 +101,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             MatchingRuleRegistry matchingRuleRegistry,
             PrismContext prismContext,
             RelationRegistry relationRegistry) {
-        this.baseHelper = baseHelper;
+
+        super(baseHelper);
+
         this.matchingRuleRegistry = matchingRuleRegistry;
         this.prismContext = prismContext;
         this.relationRegistry = relationRegistry;
@@ -699,124 +686,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public RepositoryDiag getRepositoryDiag() {
-        LOGGER.debug("Getting repository diagnostics.");
-
-        RepositoryDiag diag = new RepositoryDiag();
-        diag.setImplementationShortName(IMPLEMENTATION_SHORT_NAME);
-        diag.setImplementationDescription(IMPLEMENTATION_DESCRIPTION);
-
-        SqlRepositoryConfiguration config = sqlConfiguration();
-
-        //todo improve, find and use real values (which are used by sessionFactory) MID-1219
-        diag.setDriverShortName(config.getDriverClassName());
-        diag.setRepositoryUrl(config.getJdbcUrl());
-        diag.setEmbedded(config.isEmbedded());
-
-        Enumeration<Driver> drivers = DriverManager.getDrivers();
-        while (drivers.hasMoreElements()) {
-            Driver driver = drivers.nextElement();
-            if (!driver.getClass().getName().equals(config.getDriverClassName())) {
-                continue;
-            }
-
-            diag.setDriverVersion(driver.getMajorVersion() + "." + driver.getMinorVersion());
-        }
-
-        List<LabeledString> details = new ArrayList<>();
-        diag.setAdditionalDetails(details);
-        details.add(new LabeledString(DETAILS_DATA_SOURCE, config.getDataSource()));
-        details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, config.getHibernateDialect()));
-        details.add(new LabeledString(DETAILS_HIBERNATE_HBM_2_DDL, config.getHibernateHbm2ddl()));
-
-        readDetailsFromConnection(diag, config);
-
-        details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
-
-        return diag;
-    }
-
-    @Override
     public @NotNull String getRepositoryType() {
         return IMPLEMENTATION_SHORT_NAME;
-    }
-
-    private void readDetailsFromConnection(RepositoryDiag diag, final SqlRepositoryConfiguration config) {
-        final List<LabeledString> details = diag.getAdditionalDetails();
-
-        Session session = baseHelper.getSessionFactory().openSession();
-        try {
-            session.beginTransaction();
-            session.doWork(connection -> {
-                details.add(new LabeledString(DETAILS_TRANSACTION_ISOLATION,
-                        getTransactionIsolation(connection, config)));
-
-                Properties info = connection.getClientInfo();
-                if (info == null) {
-                    return;
-                }
-
-                for (String name : info.stringPropertyNames()) {
-                    details.add(new LabeledString(DETAILS_CLIENT_INFO + name, info.getProperty(name)));
-                }
-            });
-            session.getTransaction().commit();
-
-            SessionFactory sessionFactory = baseHelper.getSessionFactory();
-            if (!(sessionFactory instanceof SessionFactoryImpl)) {
-                return;
-            }
-            SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
-            // we try to override configuration which was read from sql repo configuration with
-            // real configuration from session factory
-            Dialect dialect = sessionFactoryImpl.getJdbcServices().getDialect();
-            if (dialect != null) {
-                for (int i = 0; i < details.size(); i++) {
-                    if (details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
-                        details.remove(i);
-                        break;
-                    }
-                }
-                String dialectClassName = dialect.getClass().getName();
-                details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialectClassName));
-            }
-        } catch (Throwable th) {
-            //nowhere to report error (no operation result available)
-            session.getTransaction().rollback();
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
-        }
-    }
-
-    private String getTransactionIsolation(Connection connection, SqlRepositoryConfiguration config) {
-        String value = config.getTransactionIsolation() != null ?
-                config.getTransactionIsolation().name() + "(read from repo configuration)" : null;
-
-        try {
-            switch (connection.getTransactionIsolation()) {
-                case Connection.TRANSACTION_NONE:
-                    value = "TRANSACTION_NONE (read from connection)";
-                    break;
-                case Connection.TRANSACTION_READ_COMMITTED:
-                    value = "TRANSACTION_READ_COMMITTED (read from connection)";
-                    break;
-                case Connection.TRANSACTION_READ_UNCOMMITTED:
-                    value = "TRANSACTION_READ_UNCOMMITTED (read from connection)";
-                    break;
-                case Connection.TRANSACTION_REPEATABLE_READ:
-                    value = "TRANSACTION_REPEATABLE_READ (read from connection)";
-                    break;
-                case Connection.TRANSACTION_SERIALIZABLE:
-                    value = "TRANSACTION_SERIALIZABLE (read from connection)";
-                    break;
-                default:
-                    value = "Unknown value in connection.";
-            }
-        } catch (Exception ex) {
-            //nowhere to report error (no operation result available)
-        }
-
-        return value;
     }
 
     /* (non-Javadoc)

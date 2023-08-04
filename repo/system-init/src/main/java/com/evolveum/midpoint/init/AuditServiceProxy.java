@@ -273,6 +273,14 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         return new SearchResultMetadata();
     }
 
+    @Override
+    public @NotNull RepositoryDiag getRepositoryDiag() {
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName(getClass().getSimpleName());
+
+        return diag;
+    }
+
     /** Support public (but non-API) method to obtain concrete implementation of audit service. */
     public <T extends AuditService> T getImplementation(Class<T> implementationType) {
         for (AuditService service : services) {

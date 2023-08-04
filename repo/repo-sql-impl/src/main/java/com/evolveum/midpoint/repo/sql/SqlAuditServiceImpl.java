@@ -88,7 +88,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
-    private final BaseHelper baseHelper; // only for logging/exception handling
     private final SqlRepoContext sqlRepoContext;
     private final SchemaService schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
@@ -99,7 +98,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             BaseHelper baseHelper,
             SqlRepoContext sqlRepoContext,
             SchemaService schemaService) {
-        this.baseHelper = baseHelper;
+
+        super(baseHelper);
+
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
