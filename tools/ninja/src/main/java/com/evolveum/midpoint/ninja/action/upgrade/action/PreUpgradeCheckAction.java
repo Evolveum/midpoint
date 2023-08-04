@@ -53,7 +53,7 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
             log.warn("Skipping database schema version check");
         }
 
-        log.info("Pre-upgrade checks finished successfully");
+        log.info(ConsoleFormat.formatSuccessMessage("Pre-upgrade checks finished successfully"));
 
         return new ActionResult<>(true);
     }

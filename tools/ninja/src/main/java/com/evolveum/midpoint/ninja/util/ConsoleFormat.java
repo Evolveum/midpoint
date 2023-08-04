@@ -74,4 +74,14 @@ public final class ConsoleFormat {
                 .a(msg)
                 .toString();
     }
+
+    /**
+     * Technically removes two lines, since {@Log.info} adds new line at the end of the message
+     */
+    public static String rewriteConsoleLine(String newLine) {
+        return Ansi.ansi()
+                .eraseLine(Ansi.Erase.ALL)
+                .cursorUpLine().eraseLine(Ansi.Erase.ALL)
+                .a(newLine).toString();
+    }
 }
