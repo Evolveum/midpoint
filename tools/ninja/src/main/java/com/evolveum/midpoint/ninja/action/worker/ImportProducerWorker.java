@@ -8,10 +8,12 @@ package com.evolveum.midpoint.ninja.action.worker;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
@@ -22,9 +24,9 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.ninja.action.BasicImportOptions;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,7 +44,7 @@ public class ImportProducerWorker<T extends Containerable>
 
     private final ObjectFilter filter;
     private final boolean stopAfterFound;
-    private boolean continueOnInputError;
+    private final boolean continueOnInputError;
 
     private String currentOid = null;
     private boolean convertMissingType = false;
@@ -60,11 +62,32 @@ public class ImportProducerWorker<T extends Containerable>
 
     @Override
     public void run() {
-        Log log = context.getLog();
-
         operation.start();
 
-        try (InputStream input = openInputStream()) {
+        File inputFile = options.getInput();
+        try {
+            if (!inputFile.exists()) {
+                context.getLog().error("Input file '{}' doesn't exist", inputFile.getPath());
+            } else if (inputFile.isDirectory()) {
+                importDirectory(inputFile);
+            } else {
+                importFile(inputFile);
+            }
+        } finally {
+            markDone();
+
+            if (isWorkersDone()) {
+                if (!operation.isFinished()) {
+                    operation.producerFinish();
+                }
+            }
+        }
+    }
+
+    private void importFile(File inputFile) {
+        Log log = context.getLog();
+
+        try (InputStream input = openInputStream(inputFile)) {
             if (!options.isZip()) {
                 processStream(input);
             } else {
@@ -83,24 +106,26 @@ public class ImportProducerWorker<T extends Containerable>
                     processStream(zis);
                 }
             }
-        } catch (IOException ex) {
-            log.error("Unexpected error occurred, reason: {}", ex, ex.getMessage());
-        } catch (NinjaException ex) {
-            log.error(ex.getMessage(), ex);
-        } finally {
-            markDone();
+        } catch (Exception ex) {
+            log.error("Unexpected error occurred", ex);
+        }
+    }
 
-            if (isWorkersDone()) {
-                if (!operation.isFinished()) {
-                    operation.producerFinish();
-                }
+    private void importDirectory(File inputFile) {
+        Log log = context.getLog();
+
+        Collection<File> files = FileUtils.listFiles(inputFile, new String[] { "xml" }, true);
+        for (File file : files) {
+            try (InputStream is = new FileInputStream(file)) {
+                log.info("Processing file {}", file.getName());
+                processStream(is);
+            } catch (Exception ex) {
+                log.error("Unexpected error occurred", ex);
             }
         }
     }
 
-    private InputStream openInputStream() throws IOException {
-        File input = options.getInput();
-
+    private InputStream openInputStream(File input) throws IOException {
         InputStream is;
         if (input != null) {
             if (!input.exists()) {
@@ -115,7 +140,7 @@ public class ImportProducerWorker<T extends Containerable>
         return is;
     }
 
-    private void processStream(InputStream input) throws IOException {
+    private void processStream(InputStream input) {
         ApplicationContext appContext = context.getApplicationContext();
         PrismContext prismContext = appContext.getBean(PrismContext.class);
         MatchingRuleRegistry matchingRuleRegistry = appContext.getBean(MatchingRuleRegistry.class);

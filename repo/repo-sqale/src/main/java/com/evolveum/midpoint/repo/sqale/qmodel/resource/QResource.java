@@ -45,6 +45,13 @@ public class QResource extends QAssignmentHolder<MResource> {
     public static final ColumnMetadata TEMPLATE = ColumnMetadata.named("template").ofType(Types.BOOLEAN);
     public static final ColumnMetadata ABSTRACT = ColumnMetadata.named("abstract").ofType(Types.BOOLEAN);
 
+    public static final ColumnMetadata SUPER_REF_TARGET_OID =
+            ColumnMetadata.named("superRefTargetOid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata SUPER_REF_TARGET_TYPE =
+            ColumnMetadata.named("superRefTargetType").ofType(Types.OTHER);
+    public static final ColumnMetadata SUPER_REF_RELATION_ID =
+            ColumnMetadata.named("superRefRelationId").ofType(Types.INTEGER);
+
     public final EnumPath<ResourceAdministrativeStateType> businessAdministrativeState =
             createEnum("businessAdministrativeState", ResourceAdministrativeStateType.class,
                     BUSINESS_ADMINISTRATIVE_STATE);
@@ -64,6 +71,14 @@ public class QResource extends QAssignmentHolder<MResource> {
             createInteger("connectorRefRelationId", CONNECTOR_REF_RELATION_ID);
     public final BooleanPath template = createBoolean("template", TEMPLATE);
     public final BooleanPath abstractValue = createBoolean("abstractValue", ABSTRACT);
+
+    public final UuidPath superRefTargetOid =
+            createUuid("superRefTargetOid", SUPER_REF_TARGET_OID);
+    public final EnumPath<MObjectType> superRefTargetType =
+            createEnum("superRefTargetType",
+                    MObjectType.class, SUPER_REF_TARGET_TYPE);
+    public final NumberPath<Integer> superRefRelationId =
+            createInteger("superRefRelationId", SUPER_REF_RELATION_ID);
 
     public QResource(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

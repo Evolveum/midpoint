@@ -88,7 +88,7 @@ public class ScriptingExpressionEvaluator {
 
         // @formatter:off
         task.setRootActivityDefinition(
-                new ActivityDefinitionType(PrismContext.get())
+                new ActivityDefinitionType()
                         .beginWork()
                             .beginNonIterativeScripting()
                                 .scriptExecutionRequest(executeScriptCommand)
@@ -113,10 +113,21 @@ public class ScriptingExpressionEvaluator {
 
     /**
      * Entry point for privileged execution.
-     * Note that privileged execution means
+     *
+     * Note that privileged execution means the `root` authorization is not checked for some sensitive operations like custom
+     * script execution.
+     *
+     * See {@link ExecutionContext#isPrivileged()}.
+     *
+     * TEMPORARY.
      */
-    public ExecutionContext evaluateExpressionPrivileged(@NotNull ExecuteScriptType executeScript, @NotNull VariablesMap initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(executeScript, initialVariables, true, false, task, result);
+    public ExecutionContext evaluateExpressionPrivileged(
+            @NotNull ExecuteScriptType executeScript,
+            @NotNull VariablesMap initialVariables,
+            Task task,
+            OperationResult result) throws ScriptExecutionException {
+        return evaluateExpression(
+                executeScript, initialVariables, true, false, task, result);
     }
 
     /**
@@ -131,7 +142,9 @@ public class ScriptingExpressionEvaluator {
         Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
         try {
-            VariablesMap frozenVariables = VariablesUtil.initialPreparation(initialVariables, executeScript.getVariables(), expressionFactory, modelObjectResolver, prismContext, expressionProfile, task, result);
+            VariablesMap frozenVariables = VariablesUtil.initialPreparation(
+                    initialVariables, executeScript.getVariables(), expressionFactory, modelObjectResolver, prismContext,
+                    expressionProfile, task, result);
             PipelineData pipelineData = PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext);
             ExecutionContext context = new ExecutionContext(executeScript.getOptions(), task, this,
                     privileged, recordProgressAndIterationStatistics, frozenVariables);

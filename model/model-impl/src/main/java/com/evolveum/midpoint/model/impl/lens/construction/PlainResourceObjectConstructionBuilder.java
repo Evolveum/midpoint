@@ -13,7 +13,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 
 @Experimental
 public class PlainResourceObjectConstructionBuilder<AH extends AssignmentHolderType>
-        extends ResourceObjectConstructionBuilder<AH, EvaluatedPlainResourceObjectConstructionImpl<AH>, PlainResourceObjectConstructionBuilder<AH>> {
+        extends ResourceObjectConstructionBuilder<
+            AH,
+            EvaluatedPlainResourceObjectConstructionImpl<AH>,
+            PlainResourceObjectConstructionBuilder<AH>> {
 
     LensProjectionContext projectionContext;
 

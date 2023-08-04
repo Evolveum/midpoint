@@ -7,10 +7,12 @@
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+        xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3"
         oid="979ec101-d36c-49ea-a6c1-5d0c087d9689">
 
     <name>livesync</name>
     <extension>
+        <rext:reportOutputOid>e7df0b0e-48f7-4c32-a4a5-c444a48d08f0</rext:reportOutputOid>
         <mext:liveSyncErrorHandlingStrategy>
             <entry id="1">
                 <order>1</order>
@@ -20,4 +22,16 @@
             </entry>
         </mext:liveSyncErrorHandlingStrategy>
     </extension>
+    <activity>
+        <work>
+            <cleanup>
+                <policies>
+                    <objectResults>
+                        <maxAge>P1D</maxAge>
+                        <maxRecords>10</maxRecords>
+                    </objectResults>
+                </policies>
+            </cleanup>
+        </work>
+    </activity>
 </task>

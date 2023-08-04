@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -49,9 +48,10 @@ public class TestMappingComplex extends AbstractModelCommonTest {
                         MappingTestEvaluator.USER_OLD_OID, UserType.F_ADDITIONAL_NAME, "Jackie");
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
 
-        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                MAPPING_COMPLEX_FILENAME,
-                getTestNameShort(), "title", delta);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(
+                        MAPPING_COMPLEX_FILENAME,
+                        getTestNameShort(), "title", delta);
 
         // WHEN
         mapping.evaluate(createTask(), createOperationResult());
@@ -60,8 +60,8 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Pirate Jackie (#321)"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Pirate null (#null)"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Pirate Jackie (#321)"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Pirate null (#null)"));
     }
 
     @Test
@@ -97,9 +97,10 @@ public class TestMappingComplex extends AbstractModelCommonTest {
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         evaluator.toPath("costCenter"), "X606");
 
-        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-                MAPPING_COMPLEX_FILENAME,
-                getTestNameShort(), "title", delta);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping(
+                        MAPPING_COMPLEX_FILENAME,
+                        getTestNameShort(), "title", delta);
 
         // WHEN
         mapping.evaluate(createTask(), createOperationResult());
@@ -107,7 +108,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Pirate null (#null)"));
+        PrismAsserts.assertTripleZero(outputTriple, PolyString.fromOrig("Pirate null (#null)"));
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }

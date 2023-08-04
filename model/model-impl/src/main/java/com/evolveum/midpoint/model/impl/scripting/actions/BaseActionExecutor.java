@@ -36,9 +36,7 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -164,14 +162,12 @@ public abstract class BaseActionExecutor implements ActionExecutor {
      * Creates variables for script evaluation based on some externally-supplied variables,
      * plus some generic ones (prism context, actor).
      */
-    @NotNull
-    protected VariablesMap createVariables(VariablesMap externalVariables) {
+    @NotNull VariablesMap createVariables(VariablesMap externalVariables) {
         VariablesMap variables = new VariablesMap();
 
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
-        ExpressionUtil.addActorVariable(variables, securityContextManager, prismContext);
+        ExpressionUtil.addActorVariableIfNeeded(variables, securityContextManager);
 
-        //noinspection unchecked
         externalVariables.forEach((k, v) -> variables.put(k, cloneIfNecessary(k, v)));
         variables.registerAliasesFrom(externalVariables);
 

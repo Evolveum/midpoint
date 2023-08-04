@@ -3318,7 +3318,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reaction" type="tns:LegacySynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="reaction" type="tns:LegacySynchronizationReactionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of a synchronization reaction. This is a legacy way how to define synchronization
+                        reactions. It is still supported for backward compatibility.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

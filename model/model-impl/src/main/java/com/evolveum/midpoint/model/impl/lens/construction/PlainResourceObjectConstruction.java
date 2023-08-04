@@ -8,25 +8,24 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
- * Special construction subclass that represents resource object constructions as defined in the schemaHandling
+ * Special construction subclass that represents resource object constructions as defined in the `schemaHandling`
  * section of the resource definition.
  *
  * The main difference from {@link AssignedResourceObjectConstruction} is that here we have the projection context,
- * so resource and definitions resolution is much easier.
+ * so resource and definitions resolution is much easier. It also has no {@link #constructionBean}.
  *
  * TODO consider better name
  *
@@ -46,10 +45,8 @@ public class PlainResourceObjectConstruction<AH extends AssignmentHolderType>
 
     @Override
     protected void resolveResource(Task task, OperationResult result) {
-        if (projectionContext.getResource() == null) {
-            throw new IllegalStateException("No resource in construction in " + source);
-        }
-        setResolvedResource(new ResolvedConstructionResource(projectionContext.getResource()));
+        setResolvedResource(
+                new ResolvedConstructionResource(projectionContext.getResourceRequired()));
     }
 
     protected void initializeDefinitions() throws SchemaException, ConfigurationException {

@@ -55,11 +55,10 @@ public class RepoObjectResolver implements ObjectResolver {
     }
 
     @Override
-    public <O extends ObjectType> O resolve(Referencable ref, Class<O> expectedType,
+    public <O extends ObjectType> @NotNull O resolve(Referencable ref, Class<O> expectedType,
             Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription, Task task,
             OperationResult result) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("not yet implemented");
     }
 
     @Override

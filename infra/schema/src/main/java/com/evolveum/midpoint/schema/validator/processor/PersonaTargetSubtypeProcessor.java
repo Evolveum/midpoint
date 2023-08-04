@@ -51,4 +51,9 @@ public class PersonaTargetSubtypeProcessor implements UpgradeObjectProcessor<Obj
     public boolean process(PrismObject<ObjectType> object, ItemPath path) {
         return false;
     }
+
+    @Override
+    public String upgradeDescription(PrismObject<ObjectType> object, ItemPath path) {
+        return "Matching of personas by subtype values is not supported anymore. Any such use should be migrated to the use of archetypes.";
+    }
 }

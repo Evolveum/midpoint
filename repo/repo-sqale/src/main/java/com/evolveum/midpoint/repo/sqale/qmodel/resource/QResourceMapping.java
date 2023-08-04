@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -18,10 +20,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Mapping between {@link QResource} and {@link ResourceType}.
@@ -69,6 +67,15 @@ public class QResourceMapping
                 QConnectorMapping::get);
         addItemMapping(F_TEMPLATE, booleanMapper(q -> q.template));
         addItemMapping(F_ABSTRACT, booleanMapper(q -> q.abstractValue));
+
+        // Super ref mapping
+        addNestedMapping(F_SUPER, SuperResourceDeclarationType.class)
+            .addRefMapping(SuperResourceDeclarationType.F_RESOURCE_REF,
+                    q -> q.superRefTargetOid,
+                    q -> q.superRefTargetType,
+                    q -> q.superRefRelationId,
+                    QResourceMapping::get);
+
     }
 
     @Override
@@ -106,6 +113,14 @@ public class QResourceMapping
                 o -> row.connectorRefTargetOid = o,
                 t -> row.connectorRefTargetType = t,
                 r -> row.connectorRefRelationId = r);
+
+        var superDecl = schemaObject.getSuper();
+        if (superDecl != null) {
+            setReference(superDecl.getResourceRef(),
+                    o -> row.superRefTargetOid = o,
+                    t -> row.superRefTargetType = t,
+                    r -> row.superRefRelationId = r);
+        }
         row.template = schemaObject.isTemplate();
         row.abstractValue = schemaObject.isAbstract();
 

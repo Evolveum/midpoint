@@ -117,7 +117,9 @@ class MappingTimeConstraintsEvaluation implements Serializable {
         VariableBindingDefinitionType referenceTimeBean = timeBean.getReferenceTime();
         if (referenceTimeBean == null) {
             if (expressionBean == null) {
-                throw new SchemaException("No reference time specified, there is also no default and no expression; in time specification in " + m.getMappingContextDescription());
+                throw new SchemaException(
+                        "No reference time specified, there is also no default and no expression; in time specification in "
+                                + m.getMappingContextDescription());
             } else {
                 referenceTime = null;
             }
@@ -143,8 +145,17 @@ class MappingTimeConstraintsEvaluation implements Serializable {
             timeVariables.addVariableDefinitions(m.variables);
             timeVariables.addVariableDefinition(ExpressionConstants.VAR_REFERENCE_TIME, referenceTime, timeDefinition);
 
-            PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(m.sources, timeVariables, timeDefinition,
-                    expressionBean, m.expressionProfile, ModelCommonBeans.get().expressionFactory, "time expression in " + m.getMappingContextDescription(), m.getTask(), result);
+            PrismPropertyValue<XMLGregorianCalendar> timePropVal =
+                    ExpressionUtil.evaluateExpression(
+                            m.sources,
+                            timeVariables,
+                            timeDefinition,
+                            expressionBean,
+                            m.expressionProfile,
+                            ModelCommonBeans.get().expressionFactory,
+                            "time expression in " + m.getMappingContextDescription(),
+                            m.getTask(),
+                            result);
 
             if (timePropVal == null) {
                 return null;
@@ -181,13 +192,14 @@ class MappingTimeConstraintsEvaluation implements Serializable {
             return null;
         }
         PrismProperty<XMLGregorianCalendar> timeProperty;
-        if (sourceObject instanceof ItemDeltaItem<?, ?>) {
+        if (sourceObject instanceof ItemDeltaItem<?, ?> idi) {
             //noinspection unchecked
-            timeProperty = (PrismProperty<XMLGregorianCalendar>) ((ItemDeltaItem<?, ?>) sourceObject).getItemNew();
+            timeProperty = (PrismProperty<XMLGregorianCalendar>) idi.getItemNew();
         } else if (sourceObject instanceof Item<?, ?>) {
             //noinspection unchecked
             timeProperty = (PrismProperty<XMLGregorianCalendar>) sourceObject;
         } else {
+            // TODO what about ObjectDeltaObject? Can this happen?
             throw new IllegalStateException("Unknown resolve result " + sourceObject);
         }
         return timeProperty != null ? timeProperty.getRealValue() : null;

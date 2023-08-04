@@ -134,9 +134,11 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
     protected Collection<String> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
-        return ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
-                MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                task, task.getResult());
+        return ExpressionUtil.evaluateStringExpression(
+                variablesMap, expression,
+                MiscSchemaUtil.getExpressionProfile(),
+                getPageBase().getExpressionFactory(),
+                "evaluate column expression", task, task.getResult());
     }
 
     @Override

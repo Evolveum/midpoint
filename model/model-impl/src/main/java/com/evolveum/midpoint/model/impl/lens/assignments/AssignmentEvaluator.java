@@ -41,6 +41,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PlusMinusZeroType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * An engine that creates EvaluatedAssignment from an assignment IDI. It collects induced roles, constructions,
  * authorizations, policy rules, and so on.
@@ -122,10 +124,16 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      *                 depending on some strange condition in AssignmentTripleEvaluator
      */
     public EvaluatedAssignmentImpl<AH> evaluate(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            PlusMinusZero primaryAssignmentMode, boolean evaluateOld, AssignmentHolderType source, String sourceDescription,
-            AssignmentOrigin origin, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            PlusMinusZero primaryAssignmentMode,
+            boolean evaluateOld,
+            @NotNull AssignmentHolderType source,
+            @NotNull String sourceDescription,
+            @NotNull AssignmentOrigin origin,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+            SecurityViolationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .addArbitraryObjectAsParam("primaryAssignmentMode", primaryAssignmentMode)
@@ -141,14 +149,14 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .assignmentNew(LensUtil.cloneResolveResource(getAssignmentBean(assignmentIdi, false), lensContext))
                     .primaryAssignmentMode(PlusMinusZeroType.fromValue(primaryAssignmentMode))
                     .evaluateOld(evaluateOld)
-                    .textSource(source != null ? source.asPrismObject().debugDump() : "null")
+                    .textSource(source.asPrismObject().debugDump())
                     .sourceDescription(sourceDescription);
             result.addTrace(trace);
         } else {
             trace = null;
         }
         try {
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, origin, prismContext);
+            var evaluatedAssignment = new EvaluatedAssignmentImpl<AH>(assignmentIdi, evaluateOld, origin);
 
             EvaluationContext<AH> ctx = new EvaluationContext<>(
                     evaluatedAssignment,
@@ -161,6 +169,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .source(source)
                     .sourceDescription(sourceDescription)
                     .assignmentIdi(assignmentIdi)
+                    .assignmentOrigin(origin.getConfigurationItemOrigin())
                     .isAssignment()
                     .evaluateOld(evaluateOld)
                     .evaluationOrder(getInitialEvaluationOrder(evaluatedAssignment.getNormalizedRelation()))

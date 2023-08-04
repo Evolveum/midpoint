@@ -20,6 +20,10 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 public class ScriptCache<I,C> {
 
     private final Map<String, I> interpreterCache = new HashMap<>();
+
+    /**
+     * Profile ID (key; nullable) -> Source code (key) -> Compiled code (value)
+     */
     private final Map<String, Map<String, C>> codeCache = new HashMap<>();
 
     public synchronized I getInterpreter(ExpressionProfile profile) {
@@ -30,22 +34,15 @@ public class ScriptCache<I,C> {
         interpreterCache.put(getProfileKey(profile), interpreter);
     }
 
-    public synchronized C getCode(ExpressionProfile profile, String sourceCodeKey) {
+    synchronized C getCode(ExpressionProfile profile, String sourceCodeKey) {
         String profileKey = getProfileKey(profile);
         Map<String, C> profileCache = codeCache.get(profileKey);
-        if (profileCache == null) {
-            return null;
-        }
-        return profileCache.get(sourceCodeKey);
+        return profileCache != null ? profileCache.get(sourceCodeKey) : null;
     }
 
-    public synchronized void putCode(ExpressionProfile profile, String sourceCodeKey, C compiledCode) {
+    synchronized void putCode(ExpressionProfile profile, String sourceCodeKey, C compiledCode) {
         String profileKey = getProfileKey(profile);
-        Map<String, C> profileCache = codeCache.get(profileKey);
-        if (profileCache == null) {
-            profileCache = new HashMap<>();
-            codeCache.put(profileKey, profileCache);
-        }
+        Map<String, C> profileCache = codeCache.computeIfAbsent(profileKey, k -> new HashMap<>());
         profileCache.put(sourceCodeKey, compiledCode);
     }
 
@@ -60,5 +57,4 @@ public class ScriptCache<I,C> {
     public synchronized void clear() {
         codeCache.clear();
     }
-
 }

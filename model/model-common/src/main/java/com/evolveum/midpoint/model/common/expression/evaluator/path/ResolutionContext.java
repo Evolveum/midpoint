@@ -24,7 +24,7 @@ abstract class ResolutionContext {
     /**
      * Converts resolution context into output triple (if there's nothing more to resolve).
      */
-    abstract <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext)
+    abstract <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple()
             throws SchemaException;
 
     /**

@@ -1,8 +1,5 @@
 package com.evolveum.midpoint.schema.validator.processor;
 
-import java.util.List;
-
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
@@ -11,12 +8,14 @@ import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.List;
+
 @SuppressWarnings("unused")
-public class UserDashboardProcessor implements UpgradeObjectProcessor<Objectable> {
+public class UserDashboardProcessor implements UpgradeObjectProcessor<ObjectType> {
 
     @Override
     public UpgradePriority getPriority() {
-        return UpgradePriority.OPTIONAL;
+        return UpgradePriority.NECESSARY;
     }
 
     @Override
@@ -31,28 +30,40 @@ public class UserDashboardProcessor implements UpgradeObjectProcessor<Objectable
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        AdminGuiConfigurationType configuration = null;
-        if (object.isOfType(SystemConfigurationType.class)) {
-            SystemConfigurationType obj = (SystemConfigurationType) object.asObjectable();
-            configuration = obj.getAdminGuiConfiguration();
-        } else if (object.isOfType(UserType.class)) {
-            UserType obj = (UserType) object.asObjectable();
-            configuration = obj.getAdminGuiConfiguration();
-        } else if (object.isOfType(AbstractRoleType.class)) {
-            AbstractRoleType obj = (AbstractRoleType) object.asObjectable();
-            configuration = obj.getAdminGuiConfiguration();
-        }
-
-        if (configuration == null) {
-            return false;
-        }
-
-        List<RichHyperlinkType> links = configuration.getUserDashboardLink();
-        return !links.isEmpty();
+        return matchParentTypeAndItemName(object, path, AdminGuiConfigurationType.class, AdminGuiConfigurationType.F_USER_DASHBOARD);
     }
 
     @Override
-    public boolean process(PrismObject<Objectable> object, ItemPath path) {
+    public boolean process(PrismObject<ObjectType> object, ItemPath path) {
+        AdminGuiConfigurationType adminGuiConfig = getItemParent(object, path);
+
+        List<HomePageType> homePages = adminGuiConfig.getHomePage();
+        HomePageType userHome = homePages.stream()
+                .filter(hp -> UserType.COMPLEX_TYPE.equals(hp.getType()))
+                .findFirst().orElse(null);
+
+        if (userHome == null) {
+            userHome = new HomePageType();
+            userHome.setType(UserType.COMPLEX_TYPE);
+            userHome.setIdentifier("user");
+            homePages.add(userHome);
+        }
+
+        DashboardLayoutType dashboard = adminGuiConfig.getUserDashboard();
+        List<DashboardWidgetType> dashboardWidgets = dashboard.getWidget();
+
+        for (DashboardWidgetType dw : dashboardWidgets) {
+            PreviewContainerPanelConfigurationType widget = new PreviewContainerPanelConfigurationType();
+            userHome.getWidget().add(widget);
+
+            copyUserInterfaceFeature(dw, widget);
+
+            dw.getData();
+            dw.getPresentation();
+        }
+
+        adminGuiConfig.setUserDashboard(null);
+
         return true;
     }
 }

@@ -10,7 +10,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 
 @ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
 @DirtiesContext
@@ -23,7 +23,7 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         when();
 
-        Boolean result = (Boolean) executeTest(
+        MainResult<Boolean> result = executeTest(
                 list -> {
                     boolean found = list.stream().anyMatch(
                             s -> s.contains("There are zero nodes in cluster to validate current midPoint version"));
@@ -35,7 +35,11 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         then();
 
-        Assertions.assertThat(result)
+        Boolean shouldContinue = result.result();
+        Assertions.assertThat(result.exitCode())
+                .isZero()
+                .withFailMessage("Upgrade pre-check - error code should be zero.");
+        Assertions.assertThat(shouldContinue)
                 .isTrue()
                 .withFailMessage("Upgrade pre-check - should continue (true).");
     }
@@ -48,13 +52,13 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         try (Connection connection = repositoryDataSource.getConnection()) {
             JdbcTemplate template = new JdbcTemplate(new SingleConnectionDataSource(connection, true));
-            template.update("update m_global_metadata set value=? where name = ?", "123456", UpgradeConstants.LABEL_SCHEMA_CHANGE_NUMBER);
-            template.execute("commit");
+            template.update("UPDATE m_global_metadata SET value=? WHERE name = ?", "123456", SqaleUtils.SCHEMA_CHANGE_NUMBER);
+            template.execute("COMMIT");
         }
 
         when();
 
-        Boolean result = (Boolean) executeTest(
+        MainResult<Boolean> result = executeTest(
                 list -> {
                     boolean found = list.stream().anyMatch(
                             s -> s.contains("There are zero nodes in cluster to validate current midPoint version"));
@@ -66,7 +70,11 @@ public class PreUpgradeCheckTest extends NinjaSpringTest {
 
         then();
 
-        Assertions.assertThat(result)
+        Boolean shouldContinue = result.result();
+        Assertions.assertThat(result.exitCode())
+                .isZero()
+                .withFailMessage("Upgrade pre-check - error code should be zero.");
+        Assertions.assertThat(shouldContinue)
                 .isFalse()
                 .withFailMessage("Upgrade pre-check - DB schema version doesn't match.");
     }

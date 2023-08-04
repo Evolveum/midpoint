@@ -33,15 +33,17 @@ public interface MidPointPrincipalManager extends OwnerResolver {
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
+    // TODO add OperationResult here
     MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    // TODO add OperationResult here
     MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
-    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus)
+    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
@@ -50,6 +52,7 @@ public interface MidPointPrincipalManager extends OwnerResolver {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
+    // TODO add OperationResult here
     void updateFocus(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas);
 
 }

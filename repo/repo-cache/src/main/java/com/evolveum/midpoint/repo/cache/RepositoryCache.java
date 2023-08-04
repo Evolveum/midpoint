@@ -12,6 +12,9 @@ import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import jakarta.annotation.PreDestroy;
 
 import org.jetbrains.annotations.NotNull;
@@ -255,6 +258,16 @@ public class RepositoryCache implements RepositoryService, Cache {
     //endregion
 
     //region --- Other methods (delegated directly to repository service) ------------------------------------------
+
+    @Override
+    public int countAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
+        return repositoryService.countAggregate(query, parentResult);
+    }
+
+    @Override
+    public @NotNull SearchResultList<PrismContainerValue<?>> searchAggregate(AggregateQuery<?> query, OperationResult parentResult) throws SchemaException {
+        return repositoryService.searchAggregate(query, parentResult);
+    }
 
     @Override
     public boolean supports(@NotNull Class<? extends ObjectType> type) {

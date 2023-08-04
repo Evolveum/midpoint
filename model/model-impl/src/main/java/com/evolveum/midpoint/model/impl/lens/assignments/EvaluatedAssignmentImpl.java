@@ -156,7 +156,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            boolean evaluatedOld, @NotNull AssignmentOrigin origin, PrismContext prismContext) {
+            boolean evaluatedOld, @NotNull AssignmentOrigin origin) {
+        var prismContext = PrismContext.get();
         this.assignmentIdi = assignmentIdi;
         this.evaluatedOld = evaluatedOld;
         this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();

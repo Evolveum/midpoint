@@ -9,11 +9,15 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.util.*;
 
+import com.evolveum.midpoint.init.AuditServiceProxy;
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.ActionResult;
 import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -21,7 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
-public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolean> {
+public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, ActionResult<Boolean>> {
 
     @Override
     public String getOperationName() {
@@ -29,51 +33,64 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
     }
 
     @Override
-    public Boolean execute() throws Exception {
+    public ActionResult<Boolean> execute() throws Exception {
         final RepositoryService repository = context.getRepository();
 
         if (!repository.isNative()) {
-            log.error("Repository implementation is not using native PostgreSQL");
-            return false;
+            log.error("Repository is not using native implementation for PostgreSQL (sqale)");
+            return new ActionResult<>(false, 1);
         }
 
         if (!options.isSkipNodesVersionCheck() && !checkNodesVersion(repository)) {
-            return false;
+            return new ActionResult<>(false, 2);
+        } else {
+            log.warn("Skipping nodes version check");
         }
 
         if (!options.isSkipDatabaseVersionCheck() && !checkDatabaseSchemaVersion(repository)) {
-            return false;
+            return new ActionResult<>(false, 3);
+        } else {
+            log.warn("Skipping database schema version check");
         }
 
-        return true;
+        log.info(ConsoleFormat.formatSuccessMessage("Pre-upgrade checks finished successfully"));
+
+        return new ActionResult<>(true);
     }
 
     private boolean checkDatabaseSchemaVersion(RepositoryService repository) {
-        RepositoryDiag diag = repository.getRepositoryDiag();
+        RepositoryDiag repositoryInfo = repository.getRepositoryDiag();
 
         boolean result = validateChangeNumber(
-                diag.getAdditionalDetails(), UpgradeConstants.LABEL_SCHEMA_CHANGE_NUMBER,
-                UpgradeConstants.SUPPORTED_SCHEMA_CHANGE_NUMBER);
+                repositoryInfo.getAdditionalDetails(), SqaleUtils.SCHEMA_CHANGE_NUMBER,
+                SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER);
         if (!result) {
             return false;
         }
 
-        // todo this will not work if audit was not configured or is in different database!
+        AuditServiceProxy auditServiceProxy = context.getApplicationContext().getBean(AuditServiceProxy.class);
+        SqaleAuditService audit = auditServiceProxy.getImplementation(SqaleAuditService.class);
+        if (audit == null) {
+            log.info("Audit service is not configured, skipping audit schema version check");
+            return true;
+        }
+
+        RepositoryDiag auditInfo = audit.getRepositoryDiag();
         return validateChangeNumber(
-                diag.getAdditionalDetails(), UpgradeConstants.LABEL_SCHEMA_AUDIT_CHANGE_NUMBER,
-                UpgradeConstants.SUPPORTED_SCHEMA_AUDIT_CHANGE_NUMBER);
+                auditInfo.getAdditionalDetails(), SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER,
+                SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER);
     }
 
-    private boolean validateChangeNumber(List<LabeledString> list, String label, String expected) {
+    private boolean validateChangeNumber(List<LabeledString> list, String label, int expected) {
         String number = getValue(list, label);
-        boolean equals = Objects.equals(number, expected);
+        boolean equals = Objects.equals(number, Integer.toString(expected));
 
         if (!equals) {
-            log.error(ConsoleFormat.formatError(
-                    "Database schema change number (" + number + ") doesn't match supported one (" + expected + ") for label "
-                            + label + "."));
+            log.error(
+                    "Database schema change number ({}) doesn't match supported one ({}) for label {}.",
+                    number, expected, label);
         } else {
-            log.info("Database schema change number matches supported one (" + expected + ") for label " + label + ".");
+            log.info("Database schema change number matches supported one ({}) for label {}.", expected, label);
         }
 
         return equals;
@@ -104,24 +121,24 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Boolea
         });
 
         if (versions.isEmpty()) {
-            log.info(ConsoleFormat.formatWarn("There are zero nodes in cluster to validate current midPoint version."));
+            log.warn("There are zero nodes in cluster to validate current midPoint version.");
 
             return true;
         } else if (versions.size() > 1) {
-            log.error(ConsoleFormat.formatError(
-                    "There are nodes with different versions of midPoint. Please remove incorrect nodes from cluster."));
+            log.error("There are nodes with different versions of midPoint.");
+            log.error("Please remove incorrect nodes from cluster and related Node objects from repository.");
             return false;
         }
 
-        log.info(ConsoleFormat.formatInfoMessageWithParameter(
-                "Node versions in cluster: ", Arrays.toString(versions.toArray())));
+        log.info(ConsoleFormat.formatMessageWithInfoParameters("Nodes version in cluster: {}", versions.toArray()[0]));
 
         String version = versions.iterator().next();
-        boolean match = Arrays.asList(UpgradeConstants.SUPPORTED_VERSIONS).contains(version);
-        if (!match) {
-            log.error(ConsoleFormat.formatErrorMessageWithParameter(
-                    "There are midPoint nodes with versions that doesn't match supported version for upgrade (" +
-                            Arrays.toString(UpgradeConstants.SUPPORTED_VERSIONS) + ")", Arrays.toString(versions.toArray())));
+        if (!Objects.equals(version, UpgradeConstants.SUPPORTED_VERSION)) {
+            log.error(
+                    "There are midPoint nodes with versions " + Arrays.toString(versions.toArray())
+                            + " that doesn't match supported version for upgrade (" + UpgradeConstants.SUPPORTED_VERSION + ")");
+            log.error("Make sure that all nodes in midPoint cluster are running same and supported version of midPoint, "
+                    + "remove all obsolete Node objects from repository.");
             return false;
         }
 

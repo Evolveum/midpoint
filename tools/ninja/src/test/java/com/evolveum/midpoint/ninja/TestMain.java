@@ -9,6 +9,8 @@ package com.evolveum.midpoint.ninja;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+
 /**
  * TODO remove
  * Created by Viliam Repan (lazyman).
@@ -128,8 +130,9 @@ public class TestMain {
 //                + "--scripts ./src/test/resources/upgrade/midpoint-home/select-query.sql "
 //                + "--result";
 
-        cmd = "-h run-sql";
-        execute(cmd);
+//        cmd = "-h run-sql";
+//        execute(cmd);
+        testJANSI();
     }
 
     private static void execute(String args) {
@@ -140,19 +143,24 @@ public class TestMain {
         System.out.println();
     }
 
-    public void testJANSI() throws Exception {
+    public static void testJANSI() throws Exception {
         AnsiConsole.systemInstall();
 
 //        System.out.print(Ansi.ansi().a("vilko\n"));
 //        System.out.print(Ansi.ansi().cursorUpLine().eraseLine());
 //        System.out.print(Ansi.ansi().a("janko\n"));
 
-        System.out.println(Ansi.ansi().fgBlue().a("Start").reset());
-        for (int i = 0; i < 10; i++) {
-            System.out.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).fgGreen().a(i).reset());
-            Thread.sleep(500);
+//        System.out.println(Ansi.ansi().fgBlue().a("Start").reset());
+//        for (int i = 0; i < 10; i++) {
+//            System.out.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).fgGreen().a(i).reset());
+//            Thread.sleep(500);
+//        }
+//        System.out.println(Ansi.ansi().fgRed().a("Complete").reset());
+
+        for (ConsoleFormat.Color level : ConsoleFormat.Color.values()) {
+            System.out.println(Ansi.ansi().fg(level.color).a(level.name()).reset());
+            System.out.println(Ansi.ansi().fgBright(level.color).a(level.name() + "-bright").reset());
         }
-        System.out.println(Ansi.ansi().fgRed().a("Complete").reset());
 
         AnsiConsole.systemUninstall();
     }

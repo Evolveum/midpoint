@@ -148,32 +148,44 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
                 record.setTimestamp(id.getTimestamp());
             }
         }
-        if (record.getTaskIdentifier() == null && task != null) {
-            record.setTaskIdentifier(task.getTaskIdentifier());
-        }
-        if (record.getTaskOid() == null && task != null) {
-            if (task instanceof RunningTask) {
-                record.setTaskOid(((RunningTask) task).getRootTaskOid());
-            } else {
-                record.setTaskOid(task.getOid());
+        if (task != null) {
+            if (record.getTaskIdentifier() == null) {
+                record.setTaskIdentifier(task.getTaskIdentifier());
+            }
+            if (record.getTaskOid() == null) {
+                if (task instanceof RunningTask) {
+                    record.setTaskOid(((RunningTask) task).getRootTaskOid());
+                } else {
+                    record.setTaskOid(task.getOid());
+                }
+            }
+            if (record.getChannel() == null) {
+                record.setChannel(task.getChannel());
+            }
+            if (record.getInitiatorRef() == null) {
+                record.setInitiator(
+                        task.getOwner(result));
             }
         }
-        if (record.getChannel() == null && task != null) {
-            record.setChannel(task.getChannel());
-        }
-        if (record.getInitiatorRef() == null && task != null) {
-            PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
-            record.setInitiator(taskOwner);
+
+        var principal = SecurityUtil.getPrincipalIfExists();
+        if (principal != null) {
+            if (record.getEffectivePrincipalRef() == null) {
+                record.setEffectivePrincipal(principal.getFocusPrismObject());
+            }
+            if (record.isEffectivePrivilegesModified() == null) {
+                record.setEffectivePrivilegesModified(principal.isAuthorizationsModified());
+            }
+            if (record.getAttorneyRef() == null) {
+                record.setAttorney(principal.getAttorneyPrismObject());
+            }
         }
 
         if (record.getNodeIdentifier() == null && taskManager != null) {
             record.setNodeIdentifier(taskManager.getNodeId());
         }
 
-        HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
-        if (connInfo == null && securityContextManager != null) {
-            connInfo = securityContextManager.getStoredConnectionInformation();
-        }
+        HttpConnectionInformation connInfo = determineHttpConnectionInformation();
         if (connInfo != null) {
             if (record.getSessionIdentifier() == null) {
                 record.setSessionIdentifier(connInfo.getSessionId());
@@ -216,6 +228,18 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         }
     }
 
+    @Nullable
+    private HttpConnectionInformation determineHttpConnectionInformation() {
+        HttpConnectionInformation threadLocalConnInfo = SecurityUtil.getCurrentConnectionInformation();
+        if (threadLocalConnInfo != null) {
+            return threadLocalConnInfo;
+        } else if (securityContextManager != null) {
+            return securityContextManager.getStoredConnectionInformation();
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public boolean supportsRetrieval() {
         return services.stream().anyMatch(s -> s.supportsRetrieval());
@@ -235,7 +259,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
                 long c = service.countObjects(query, options, parentResult);
-                count += c;
+                count += (int) c;
             }
         }
         return count;
@@ -271,6 +295,14 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         }
 
         return new SearchResultMetadata();
+    }
+
+    @Override
+    public @NotNull RepositoryDiag getRepositoryDiag() {
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName(getClass().getSimpleName());
+
+        return diag;
     }
 
     /** Support public (but non-API) method to obtain concrete implementation of audit service. */

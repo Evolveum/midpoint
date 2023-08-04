@@ -20,11 +20,11 @@ import com.evolveum.midpoint.cases.api.extensions.AuditingExtension;
 import com.evolveum.midpoint.cases.impl.engine.CaseBeans;
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineOperationImpl;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -108,9 +107,10 @@ public class PendingAuditRecords implements DebugDumpable {
         record.setEventStage(stage);
         record.setOutcome(OperationResultStatus.SUCCESS);
 
-        // set real principal in case of explicitly requested process termination (MID-4263)
-        PrismObject<UserType> requester = beans.miscHelper.getRequesterIfExists(aCase, result);
-        record.setInitiator(requester);
+        // TODO we should set real principal in case of explicitly requested process termination (MID-4263)
+        //  (here we use the case requester)
+        record.setInitiator(
+                beans.miscHelper.getRequesterIfExists(aCase, result));
 
         // TODO we could be more strict and allow non-existence of object only in case of "object add" delta. But we are not.
         ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), true, result);
@@ -155,7 +155,8 @@ public class PendingAuditRecords implements DebugDumpable {
         CaseType aCase = operation.getCurrentCase();
 
         AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, AuditEventStage.REQUEST, result);
-        record.setInitiator(beans.miscHelper.getRequesterIfExists(aCase, result));
+        record.setInitiator(
+                beans.miscHelper.getRequesterIfExists(aCase, result));
         if (operation.doesUseStages()) {
             record.setMessage(ApprovalContextUtil.getCompleteStageInfo(aCase));
         }
@@ -260,10 +261,10 @@ public class PendingAuditRecords implements DebugDumpable {
     //region Common
     private void setInitiatorAndAttorneyFromPrincipal(AuditEventRecord record) {
         MidPointPrincipal principal = operation.getPrincipal();
-        record.setInitiator(principal.getFocus().asPrismObject());
-        if (principal.getAttorney() != null) {
-            record.setAttorney(principal.getAttorney().asPrismObject());
-        }
+        record.setInitiator(
+                principal.getFocusPrismObject());
+        record.setAttorney(
+                principal.getAttorneyPrismObject());
     }
 
     private ObjectReferenceType resolveIfNeeded(ObjectReferenceType ref, boolean optional, OperationResult result) {

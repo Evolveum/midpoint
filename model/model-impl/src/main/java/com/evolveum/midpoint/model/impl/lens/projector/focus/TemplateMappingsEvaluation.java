@@ -355,9 +355,10 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         for (ObjectTemplateItemDefinitionType templateItemDefBean: objectTemplate.getItem()) {
             ItemPathType ref = templateItemDefBean.getRef();
             for (ObjectTemplateMappingType mapping: templateItemDefBean.getMapping()) {
-                mapping = setMappingTarget(mapping, ref);
                 mappings.add(
-                        new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+                        new TemplateMappingEvaluationRequest(
+                                setMappingTarget(mapping, ref),
+                                objectTemplate));
             }
             IdentityItemDefinitionType multiSourceDefBean = templateItemDefBean.getMultiSource();
             if (multiSourceDefBean != null) {
@@ -378,8 +379,8 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private ObjectTemplateMappingType getOrCreateItemSelectionMapping(
-            IdentityItemDefinitionType identityDefBean, ItemPathType ref) {
-        ObjectTemplateMappingType explicitMapping = identityDefBean.getSelection();
+            @NotNull IdentityItemDefinitionType multiSourceDefBean, ItemPathType ref) {
+        ObjectTemplateMappingType explicitMapping = multiSourceDefBean.getSelection();
         ObjectTemplateMappingType selectionMapping;
         if (explicitMapping != null) {
             selectionMapping = explicitMapping.clone();
@@ -418,8 +419,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         }
         for (JAXBElement<?> evaluator : expression.getExpressionEvaluator()) {
             Object evaluatorValue = evaluator.getValue();
-            if (evaluatorValue instanceof TransformExpressionEvaluatorType) {
-                TransformExpressionEvaluatorType transform = (TransformExpressionEvaluatorType) evaluatorValue;
+            if (evaluatorValue instanceof TransformExpressionEvaluatorType transform) {
                 if (transform.getRelativityMode() == null) {
                     transform.setRelativityMode(TransformExpressionRelativityModeType.ABSOLUTE);
                 }

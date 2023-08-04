@@ -6,11 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-  <!-- Safe expression profile is enabled for all reports. -->
+<!-- Safe expression profile is enabled for all reports. -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -18,7 +18,7 @@
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-          </classLogger>
+        </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -92,50 +92,51 @@
             </class>
             <class>
                 <name>java.lang.Object</name>
-                    <description>Basic Java operations.</description>
-                    <decision>deny</decision>
-                    <method>
-                        <name>equals</name>
-                        <decision>allow</decision>
-                    </method><method>
-                        <name>hashCode</name>
-                        <decision>allow</decision>
-                    </method>
+                <description>Basic Java operations.</description>
+                <decision>deny</decision>
+                <method>
+                    <name>equals</name>
+                    <decision>allow</decision>
+                </method>
+                <method>
+                    <name>hashCode</name>
+                    <decision>allow</decision>
+                </method>
             </class>
             <class>
                 <name>java.lang.String</name>
-                    <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.lang.CharSequence</name>
-                    <decision>allow</decision>
+                <decision>allow</decision>
             </class>
             <class>
                 <name>java.lang.Enum</name>
-                    <decision>allow</decision>
+                <decision>allow</decision>
             </class>
             <class>
                 <name>java.util.List</name>
-                    <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision>
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.util.ArrayList</name>
-                    <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
-                    <decision>allow</decision>
-                    <method>
-                        <name>execute</name>
-                        <decision>deny</decision>
-                    </method>
+                <description>List operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
+                <decision>allow</decision>
+                <method>
+                    <name>execute</name>
+                    <decision>deny</decision>
+                </method>
             </class>
             <class>
                 <name>java.util.Map</name>

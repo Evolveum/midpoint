@@ -236,6 +236,61 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         }
     }
 
+    public <CQ extends FlexibleRelationalPathBase<CR>, CR> ResolveResult<CQ, CR> resolvePathWithJoins(ItemPath inputPath) throws RepositoryException {
+        ItemPath path = inputPath;
+        QueryModelMapping<?, CQ, CR> mapping = (QueryModelMapping<?, CQ, CR>) entityPathMapping;
+        SqlQueryContext<?, CQ, CR> context = (SqlQueryContext<?, CQ, CR>) this;
+
+        // We need definition for proper extension support.
+        // For other cases it's safe for this to become null.
+        PrismContainerDefinition<?> containerDefinition =
+                (PrismContainerDefinition<?>) entityPathMapping.itemDefinition();
+
+        while (path.size() > 1) {
+            ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
+            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
+            if (resolution.subquery) {
+                throw new QueryException("Item path '" + inputPath
+                        + "' cannot be used for ordering because subquery is used to resolve it.");
+            }
+            // CQ/CR for the next loop may be actually different from before, but that's OK
+            mapping = (QueryModelMapping<?, CQ, CR>) resolution.mapping;
+            context = (SqlQueryContext<?, CQ, CR>) resolution.context;
+
+            if (containerDefinition != null) {
+                if (ItemPath.isParent(path.first())) {
+                    // Should work if parent is container (almost always)
+                    containerDefinition = (PrismContainerDefinition<?>) mapping.itemDefinition();
+                } else {
+                    containerDefinition = containerDefinition.findLocalItemDefinition(
+                            path.firstToName(), PrismContainerDefinition.class, false);
+                }
+            }
+
+            path = path.rest();
+        }
+
+        QName first = path.firstToQName();
+        ItemDefinition<?> definition = first instanceof ItemName && containerDefinition != null
+                ? containerDefinition.findItemDefinition((ItemName) first)
+                : null;
+
+        ItemSqlMapper<CQ, CR> mapper = mapping.itemMapper(first);
+        return new ResolveResult<CQ,CR>(mapper, context, definition);
+    }
+
+    public static class ResolveResult<CQ extends FlexibleRelationalPathBase<CR>, CR> {
+        public final ItemSqlMapper<CQ, CR> mapper;
+        public final SqlQueryContext<?, CQ, CR> context;
+        public final ItemDefinition<?> definition;
+
+        public ResolveResult(ItemSqlMapper<CQ, CR> mapper, SqlQueryContext<?, CQ, CR> context, ItemDefinition<?> definition) {
+            this.mapper = mapper;
+            this.context = context;
+            this.definition = definition;
+        }
+    }
+
     /**
      * @param <CQ> current entity query path type, can change during multi-segment path resolution
      * @param <CR> row type related to {@link CQ}
@@ -265,8 +320,13 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
             context = (SqlQueryContext<?, CQ, CR>) resolution.context;
 
             if (containerDefinition != null) {
-                containerDefinition = containerDefinition.findLocalItemDefinition(
-                        path.firstToName(), PrismContainerDefinition.class, false);
+                if (ItemPath.isParent(path.first())) {
+                    // Should work if parent is container (almost always)
+                    containerDefinition = (PrismContainerDefinition<?>) mapping.itemDefinition();
+                } else {
+                    containerDefinition = containerDefinition.findLocalItemDefinition(
+                            path.firstToName(), PrismContainerDefinition.class, false);
+                }
             }
 
             path = path.rest();
@@ -373,6 +433,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         if (notFilterUsed) {
             newQueryContext.markNotFilterUsage();
         }
+
+        // FIXME: Should we track joins? probably yes
 
         return newQueryContext;
     }

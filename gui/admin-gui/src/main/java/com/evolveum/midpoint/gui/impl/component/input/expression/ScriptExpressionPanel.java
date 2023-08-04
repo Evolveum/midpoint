@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -18,20 +18,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionPanel.class);
 
+    private static final String ID_VALUE_INPUT = "valueInput";
+    private static final String ID_VALUE_CONTAINER_LABEL = "valueContainerLabel";
+
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
+        if (StringUtils.isEmpty(getEvaluatorValue())) {
+            updateEvaluatorValue("");
+        }
     }
 
     @Override
@@ -39,40 +46,35 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         return getPageBase().createStringResource("ScriptExpressionPanel.label");
     }
 
-    @Override
-    protected void updateEvaluatorValue(ExpressionType expression, List<String> values) {
-        try {
-            if (values.stream().anyMatch(value -> StringUtils.isNotEmpty(value) && value.contains(ExpressionUtil.ELEMENT_SCRIPT))) {
-                getFeedbackMessages().add(
-                        new FeedbackMessage(
-                                getFeedback(),
-                                getPageBase().createStringResource("ScriptExpressionPanel.warning.parse").getString(),
-                                300));
+    public static String getInfoDescription(ExpressionType expression, PageBase pageBase) {
+        return getEvaluatorValue(expression, pageBase);
+    }
+
+    protected void initLayout(MarkupContainer parent) {
+        parent.add(new Label(ID_VALUE_CONTAINER_LABEL, getValueContainerLabelModel()));
+
+        parent.add(createDefaultInputPanel());
+    }
+
+    private WebMarkupContainer createDefaultInputPanel() {
+
+        IModel<String> model = new IModel<>() {
+            @Override
+            public String getObject() {
+                return getEvaluatorValue();
             }
-            ExpressionUtil.updateScriptExpressionValue(expression, values);
-        } catch (SchemaException ex) {
-            LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
-            getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());
-        }
-    }
 
-    @Override
-    protected List<String> getEvaluatorValues() {
-        List<String> literalValueList = new ArrayList<>();
-        try {
-            return ExpressionUtil.getScriptExpressionValues(getModelObject()).stream()
-                    .map(ScriptExpressionEvaluatorType::getCode)
-                    .collect(Collectors.toList());
-        } catch (SchemaException ex) {
-            LOGGER.error("Couldn't get script expression value: {}", ex.getLocalizedMessage());
-            getPageBase().error("Couldn't get script expression value: " + ex.getLocalizedMessage());
-        }
-        return literalValueList;
-    }
+            @Override
+            public void setObject(String value) {
+                updateEvaluatorValue(value);
+            }
 
-    @Override
-    protected InputPanel createTextPanel(String id, IModel<String> model) {
-        SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(id, model, 200){
+            @Override
+            public void detach() {
+            }
+        };
+
+        SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(ID_VALUE_INPUT, model, 200) {
             protected AceEditor createEditor(String id, IModel<String> model, int minSize) {
                 AceEditor editor = new AceEditor(id, model);
                 editor.setReadonly(false);
@@ -83,7 +85,52 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
                 return editor;
             }
         };
+        ((AceEditor) editorPanel.getBaseFormComponent()).setConvertEmptyInputStringToNull(false);
         editorPanel.add(AttributeAppender.append("class", "d-flex flex-column w-100 border rounded"));
+
+        editorPanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                String updatedValue = ((AceEditor) editorPanel.getBaseFormComponent()).getConvertedInput();
+                updateEvaluatorValue(updatedValue);
+                target.add(getFeedback());
+            }
+        });
+
         return editorPanel;
+    }
+
+    private void updateEvaluatorValue(String value) {
+        try {
+            if (StringUtils.isNotEmpty(value) && value.contains(ExpressionUtil.ELEMENT_SCRIPT)) {
+                getFeedbackMessages().add(
+                        new FeedbackMessage(
+                                getFeedback(),
+                                getPageBase().createStringResource("ScriptExpressionPanel.warning.parse").getString(),
+                                300));
+            }
+            ExpressionUtil.updateScriptExpressionValue(getModelObject(), value);
+        } catch (SchemaException ex) {
+            LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
+            getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());
+        }
+    }
+
+    private String getEvaluatorValue() {
+        return getEvaluatorValue(getModelObject(), getPageBase());
+    }
+
+    private static String getEvaluatorValue(ExpressionType expression, PageBase pageBase) {
+        try {
+            ScriptExpressionEvaluatorType evaluator = ExpressionUtil.getScriptExpressionValue(expression);
+            if (evaluator == null) {
+                return "";
+            }
+            return evaluator.getCode();
+        } catch (SchemaException ex) {
+            LOGGER.error("Couldn't get script expression value: {}", ex.getLocalizedMessage());
+            pageBase.error("Couldn't get script expression value: " + ex.getLocalizedMessage());
+        }
+        return "";
     }
 }

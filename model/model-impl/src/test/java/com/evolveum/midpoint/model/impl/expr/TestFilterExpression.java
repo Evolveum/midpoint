@@ -126,7 +126,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-empty-filter.xml",
                 null, EqualFilter.class, task, result);
 
-        EqualFilter equalFilter = (EqualFilter) filter;
+        var equalFilter = (EqualFilter<?>) filter;
         AssertJUnit.assertNull("Expected NO values in filter, but found " + equalFilter.getValues(), equalFilter.getValues());
 
         executeFilter(filter, 4, task, result);
@@ -141,7 +141,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-constant-filter.xml",
                 null, EqualFilter.class, task, result);
 
-        EqualFilter equalFilter = (EqualFilter) filter;
+        var equalFilter = (EqualFilter<?>) filter;
         AssertJUnit.assertNotNull("Expected 1 value in filter", equalFilter.getValues());
 
         executeFilter(filter, 1, task, result);
@@ -156,7 +156,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-filter-defaults.xml",
                 null, EqualFilter.class, task, result);
 
-        EqualFilter equalFilter = (EqualFilter) filter;
+        var equalFilter = (EqualFilter<?>) filter;
         AssertJUnit.assertNull("Expected NO values in filter, but found " + equalFilter.getValues(), equalFilter.getValues());
 
         executeFilter(filter, 4, task, result);
@@ -171,7 +171,8 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-filter-defaults.xml",
                 "CAPTAIN", EqualFilter.class, task, result);
 
-        EqualFilter equalFilter = (EqualFilter) filter;
+        //noinspection unchecked
+        var equalFilter = (EqualFilter<String>) filter;
         PrismAsserts.assertValues("Wrong values in filter", equalFilter.getValues(), "CAPTAIN");
 
         executeFilter(filter, 1, task, result);
@@ -188,7 +189,8 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-name-multivalue-filter.xml",
                 null, EqualFilter.class, task, result);
 
-        EqualFilter equalFilter = (EqualFilter) filter;
+        //noinspection unchecked
+        var equalFilter = (EqualFilter<PolyString>) filter;
         PrismAsserts.assertValues("Wrong values in filter", equalFilter.getValues(),
                 new PolyString("jack", "jack"), new PolyString("barbossa", "barbossa"));
 
@@ -264,7 +266,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-employeeType-filter-defaults.xml",
                 null, EqualFilter.class, task, result);
 
-        EqualFilter equalFilter = (EqualFilter) filter;
+        var equalFilter = (EqualFilter<?>) filter;
         AssertJUnit.assertNull("Expected NO values in filter, but found " + equalFilter.getValues(), equalFilter.getValues());
 
         executeFilter(filter, 4, task, result);
@@ -279,7 +281,8 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-name-value-filter.xml",
                 null, EqualFilter.class, task, result);
 
-        EqualFilter equalFilter = (EqualFilter) filter;
+        //noinspection unchecked
+        var equalFilter = (EqualFilter<PolyString>) filter;
         PrismAsserts.assertValues("Wrong values in filter", equalFilter.getValues(), new PolyString("barbossa", "barbossa"));
 
         executeFilter(filter, 1, task, result);
@@ -318,8 +321,9 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
                 ExpressionConstants.VAR_INPUT, pval, PrimitiveType.STRING);
 
         // WHEN
-        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables,
-                MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext,
+        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
+                filter, variables,
+                MiscSchemaUtil.getExpressionProfile(), expressionFactory,
                 "evaluating filter with null value not allowed", task, result);
 
         // THEN

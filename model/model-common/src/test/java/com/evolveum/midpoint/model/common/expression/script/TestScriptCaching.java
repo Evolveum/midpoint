@@ -26,7 +26,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -58,11 +58,11 @@ public class TestScriptCaching extends AbstractUnitTest
         implements InfraTestMixin {
 
     private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
-    protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
+    private static final File OBJECTS_DIR = new File("src/test/resources/objects");
 
     private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
 
-    protected ScriptExpressionFactory scriptExpressionfactory;
+    private ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
 
     @BeforeSuite
@@ -78,8 +78,8 @@ public class TestScriptCaching extends AbstractUnitTest
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
         Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
         Clock clock = new Clock();
-        Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>();
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         scriptExpressionfactory.registerEvaluator(evaluator);
@@ -130,7 +130,8 @@ public class TestScriptCaching extends AbstractUnitTest
         // GIVEN
         OperationResult result = createOperationResult(desc);
         ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
-        ItemDefinition outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
+        ItemDefinition<?> outputDefinition =
+                getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
         ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition);
 
@@ -164,11 +165,13 @@ public class TestScriptCaching extends AbstractUnitTest
     }
 
     private ScriptExpression createScriptExpression(
-            ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition) {
-        ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
+            ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
+        ScriptExpression expression = new ScriptExpression(
+                scriptExpressionfactory.getEvaluatorSimple(expressionType.getLanguage()),
+                expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));
+        expression.setFunctionLibraryBindings(new ArrayList<>(scriptExpressionfactory.getBuiltInLibraryBindings()));
         return expression;
     }
 

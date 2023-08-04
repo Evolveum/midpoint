@@ -1,5 +1,6 @@
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         oid="5b55729f-8866-442a-b39d-c5a9def5b345">
 
     <name>Invalid resource</name>
@@ -12,4 +13,50 @@
             </cap:update>
         </configured>
     </capabilities>
+
+    <schemaHandling>
+        <objectType id="1">
+            <auxiliaryObjectClass>AuxClass</auxiliaryObjectClass>
+            <baseContext>
+                <objectClass>BaseClass</objectClass>
+            </baseContext>
+            <searchHierarchyScope>sub</searchHierarchyScope>
+            <correlation>
+                <correlators>
+                    <idMatch id="5">
+                        <name>asdf</name>
+                        <followOn>
+                            <none></none>
+                        </followOn>
+                    </idMatch>
+                    <idMatch id="6">
+                        <name>jklo</name>
+                        <followOn>
+                            <filter>
+                                <ownerFilter>
+                                    <q:equal>
+                                        <q:path>extension/referenceId</q:path>
+                                        <expression>
+                                            <path>$correlatorState/referenceId</path>
+                                        </expression>
+                                    </q:equal>
+                                </ownerFilter>
+                            </filter>
+                        </followOn>
+                    </idMatch>
+                </correlators>
+            </correlation>
+            <synchronization>
+                <defaultSettings>
+                </defaultSettings>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization id="8">
+            <reaction id="7">
+                <situation>deleted</situation>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </resource>

@@ -154,71 +154,11 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         }
     }
 
-    private void setStateBeforeSave(AjaxRequestTarget target) {
-        PrismObjectWrapper<TaskType> taskWrapper = getModelObject();
-        try {
-            setTaskInitialState(taskWrapper);
-
-            setupOwner(taskWrapper);
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Error while finishing task settings.", e);
-            target.add(getPageBase().getFeedbackPanel());
-            return;
-        }
-    }
-
     @Override
     protected void savePerformed(AjaxRequestTarget target) {
-        setStateBeforeSave(target);
+
+        WebComponentUtil.setTaskStateBeforeSave(getModelObject(), runEnabled, getPageBase(), target);
         super.savePerformed(target);
-    }
-
-    private void setTaskInitialState(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
-        PrismPropertyWrapper<TaskExecutionStateType> executionState = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATE));
-        PrismPropertyWrapper<TaskSchedulingStateType> schedulingState = taskWrapper.findProperty(ItemPath.create(TaskType.F_SCHEDULING_STATE));
-        if (executionState == null || schedulingState == null) {
-            throw new SchemaException("Task cannot be set as running, no execution status or scheduling status present");
-        }
-
-        if (runEnabled) {
-            setTaskInitiallyRunning(executionState, schedulingState);
-        } else {
-            if (!ItemStatus.ADDED.equals(getModelObject().getStatus())) {
-                return;
-            }
-            setTaskInitiallySuspended(executionState, schedulingState);
-        }
-    }
-
-    private void setupOwner(PrismObjectWrapper<TaskType> taskWrapper) throws SchemaException {
-        PrismReferenceWrapper<Referencable> taskOwner = taskWrapper.findReference(ItemPath.create(TaskType.F_OWNER_REF));
-        if (taskOwner == null) {
-            return;
-        }
-        PrismReferenceValueWrapperImpl<Referencable> taskOwnerValue = taskOwner.getValue();
-        if (taskOwnerValue == null) {
-            return;
-        }
-
-        if (taskOwnerValue.getNewValue() == null || taskOwnerValue.getNewValue().isEmpty()) {
-            GuiProfiledPrincipal guiPrincipal = AuthUtil.getPrincipalUser();
-            if (guiPrincipal == null) {
-                //BTW something very strange must happened
-                return;
-            }
-            FocusType focus = guiPrincipal.getFocus();
-            taskOwnerValue.setRealValue(ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT));
-        }
-    }
-
-    private void setTaskInitiallyRunning(PrismPropertyWrapper<TaskExecutionStateType> executionState, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
-        executionState.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
-        schedulingState.getValue().setRealValue(TaskSchedulingStateType.READY);
-    }
-
-    private void setTaskInitiallySuspended(PrismPropertyWrapper<TaskExecutionStateType> executionState, PrismPropertyWrapper<TaskSchedulingStateType> schedulingState) throws SchemaException {
-        executionState.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
-        schedulingState.getValue().setRealValue(TaskSchedulingStateType.SUSPENDED);
     }
 
     private void initLayout() {

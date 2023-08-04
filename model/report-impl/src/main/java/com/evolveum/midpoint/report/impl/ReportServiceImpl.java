@@ -12,10 +12,14 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.*;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import com.google.common.base.Preconditions;
+import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +36,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
@@ -96,13 +99,21 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public Collection<? extends PrismValue> evaluateScript(
-            PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables,
-            String shortDesc, Task task, OperationResult result)
+            @NotNull PrismObject<ReportType> report,
+            @NotNull ExpressionType expression,
+            VariablesMap variables,
+            String shortDesc,
+            Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        if (expression.getExpressionEvaluator().size() == 1
-                && expression.getExpressionEvaluator().get(0).getValue() instanceof ScriptExpressionEvaluatorType) {
+        Preconditions.checkNotNull(report, "Report must not be null.");
+
+        // TODO why do we circumvent the standard expression evaluation mechanism here (for scripts)?
+        List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
+        if (evaluators.size() == 1
+                && evaluators.get(0).getValue() instanceof ScriptExpressionEvaluatorType scriptExpressionBean) {
             ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
             context.setVariables(variables);
             context.setContextDescription(shortDesc);
@@ -110,23 +121,21 @@ public class ReportServiceImpl implements ReportService {
             context.setResult(result);
             setupExpressionProfiles(context, report);
 
-            ScriptExpressionEvaluatorType expressionType =
-                    (ScriptExpressionEvaluatorType) expression.getExpressionEvaluator().get(0).getValue();
-            if (expressionType.getObjectVariableMode() == null) {
-                ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration =
-                        report.asObjectable().getDefaultScriptConfiguration();
-                expressionType.setObjectVariableMode(defaultScriptConfiguration == null
-                        ? ObjectVariableModeType.OBJECT
-                        : defaultScriptConfiguration.getObjectVariableMode());
+            if (scriptExpressionBean.getObjectVariableMode() == null) {
+                var defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
+                scriptExpressionBean.setObjectVariableMode(
+                        defaultScriptConfiguration == null
+                                ? ObjectVariableModeType.OBJECT
+                                : defaultScriptConfiguration.getObjectVariableMode());
             }
-            context.setExpressionType(expressionType);
+            context.setScriptBean(scriptExpressionBean);
             context.setObjectResolver(objectResolver);
 
             ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                    expressionType, context.getOutputDefinition(), context.getExpressionProfile(),
+                    scriptExpressionBean, context.getOutputDefinition(), context.getExpressionProfile(),
                     expressionFactory, context.getContextDescription(), context.getResult());
 
-            scriptExpression.setFunctions(createFunctionLibraries(scriptExpression.getFunctions()));
+            scriptExpression.setFunctionLibraryBindings(createFunctionLibraries(scriptExpression.getFunctionLibraryBindings()));
 
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                     new ExpressionEnvironment(context.getTask(), context.getResult()));
@@ -141,14 +150,13 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private Collection<FunctionLibrary> createFunctionLibraries(Collection<FunctionLibrary> originalFunctions) {
-        FunctionLibrary midPointLib = new FunctionLibrary();
-        midPointLib.setVariableName("report");
-        midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-        midPointLib.setGenericFunctions(reportFunctions);
+    private Collection<FunctionLibraryBinding> createFunctionLibraries(Collection<FunctionLibraryBinding> originalFunctions) {
+        FunctionLibraryBinding reportLib = new FunctionLibraryBinding(
+                MidPointConstants.FUNCTION_LIBRARY_REPORT_VARIABLE_NAME,
+                reportFunctions);
 
-        Collection<FunctionLibrary> functions = new ArrayList<>(originalFunctions);
-        functions.add(midPointLib);
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>(originalFunctions);
+        functions.add(reportLib);
         return functions;
     }
 
@@ -156,24 +164,23 @@ public class ReportServiceImpl implements ReportService {
         return prismContext;
     }
 
-    public ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result)
+    private ExpressionProfile determineExpressionProfile(
+            @NotNull PrismObject<ReportType> report, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
-        if (report == null) {
-            throw new IllegalArgumentException("No report defined, cannot determine profile");
-        }
         return archetypeManager.determineExpressionProfile(report, result);
     }
 
     private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report)
             throws SchemaException, ConfigurationException {
         ExpressionProfile expressionProfile = determineExpressionProfile(report, context.getResult());
-        LOGGER.trace("Using expression profile '" + (expressionProfile == null ? null : expressionProfile.getIdentifier())
-                + "' for report evaluation, determined from: {}", report);
+        LOGGER.trace("Using expression profile {} for report evaluation, determined from: '{}'",
+                expressionProfile == null ? null : expressionProfile.getIdentifier(), report);
         context.setExpressionProfile(expressionProfile);
-        context.setScriptExpressionProfile(findScriptExpressionProfile(expressionProfile, report));
+        context.setScriptExpressionProfile(
+                findScriptExpressionProfile(expressionProfile, report));
     }
 
-    private ScriptExpressionProfile findScriptExpressionProfile(
+    private @Nullable ScriptExpressionProfile findScriptExpressionProfile(
             ExpressionProfile expressionProfile, PrismObject<ReportType> report) {
         if (expressionProfile == null) {
             return null;
@@ -235,7 +242,7 @@ public class ReportServiceImpl implements ReportService {
         if (collectionRefSpecification != null) {
             @NotNull CompiledObjectCollectionView compiledCollectionRefSpec =
                     getModelInteractionService().compileObjectCollectionView(
-                            collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+                            collectionRefSpecification, compiledCollection.getTargetClass(), task, result);
             getModelInteractionService().applyView(compiledCollectionRefSpec, compiledCollection.toGuiObjectListViewType());
             compiledCollection = compiledCollectionRefSpec;
         }
@@ -280,7 +287,7 @@ public class ReportServiceImpl implements ReportService {
         if (collectionRefSpecification != null) {
             @NotNull CompiledObjectCollectionView compiledCollectionRefSpec =
                     getModelInteractionService().compileObjectCollectionView(
-                            collectionRefSpecification, compiledCollection.getTargetClass(prismContext), task, result);
+                            collectionRefSpecification, compiledCollection.getTargetClass(), task, result);
 
             if (Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
                 compiledCollectionRefSpec.getColumns().clear();

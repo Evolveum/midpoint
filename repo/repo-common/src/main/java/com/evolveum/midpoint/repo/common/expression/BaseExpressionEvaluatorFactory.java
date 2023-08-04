@@ -30,7 +30,7 @@ public abstract class BaseExpressionEvaluatorFactory implements ExpressionEvalua
     protected <T> T getSingleEvaluatorBean(Collection<JAXBElement<?>> evaluatorElements, Class<T> expectedClass,
             String contextDescription) throws SchemaException {
         JAXBElement<?> evaluatorElement = MiscUtil.extractSingleton(evaluatorElements,
-                        () -> new SchemaException("More than one evaluator specified in "+contextDescription));
+                        () -> new SchemaException("More than one evaluator specified in " + contextDescription));
 
         Object evaluatorBean = evaluatorElement != null ? evaluatorElement.getValue() : null;
         if (evaluatorBean != null && !expectedClass.isAssignableFrom(evaluatorBean.getClass())) {

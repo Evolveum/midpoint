@@ -8,10 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -21,20 +19,16 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ResourceObjectClassChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.ResourceObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -57,19 +51,9 @@ import java.util.List;
         display = @PanelDisplay(label = "PageResource.tab.content.others", icon = GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN, order = 80))
 public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectsPanel.class);
-    private static final String DOT_CLASS = ResourceObjectsPanel.class.getName() + ".";
-    private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
-    protected static final String OPERATION_RECLASSIFY_SHADOWS = DOT_CLASS + "reclassifyShadows";
-
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
-    private static final String ID_CONFIGURATION = "configuration";
-    private static final String ID_STATISTICS = "statistics";
-    private static final String ID_SHOW_STATISTICS = "showStatistics";
-    private static final String ID_CREATE_TASK = "createTask";
-    private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
 
     public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
@@ -80,21 +64,23 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
     protected void initLayout() {
         createPanelTitle();
         createObjectTypeChoice();
-//        createConfigureButton();
-//        createTaskCreateButton();
-//
         createShadowTable();
     }
 
     private void createPanelTitle() {
         Label title = new Label(ID_TITLE, createStringResource("ResourceUncategorizedPanel.select.objectClass.title"));
+        title.add(getTitleVisibleBehaviour());
         title.setOutputMarkupId(true);
         add(title);
     }
 
+    protected VisibleEnableBehaviour getTitleVisibleBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
+    }
+
     private void createObjectTypeChoice() {
         var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                Model.of(getObjectDetailsModels().getDefaultObjectClass()),
+                Model.of(getDefaultObjectClass()),
                 () -> getObjectDetailsModels().getResourceObjectClassesDefinitions(),
                 new ResourceObjectClassChoiceRenderer(), false);
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -105,6 +91,10 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
         });
         objectTypes.setOutputMarkupId(true);
         add(objectTypes);
+    }
+
+    protected QName getDefaultObjectClass() {
+        return getObjectDetailsModels().getDefaultObjectClass();
     }
 
     private void createShadowTable() {
@@ -151,15 +141,33 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
 
             @Override
             protected List<Component> createToolbarButtonsList(String buttonId) {
-                List<Component> buttonsList = new ArrayList<>();
-//                buttonsList.add(createReclassifyButton(buttonId));
-                buttonsList.addAll(super.createToolbarButtonsList(buttonId));
-                return buttonsList;
+                return new ArrayList<>(super.createToolbarButtonsList(buttonId));
 
+            }
+
+            @Override
+            protected boolean isShadowDetailsEnabled(IModel<SelectableBean<ShadowType>> rowModel) {
+                return ResourceUncategorizedPanel.this.isShadowDetailsEnabled();
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                if (isEnabledInlineMenu()) {
+                    return super.createInlineMenu();
+                }
+                return List.of();
             }
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    protected boolean isEnabledInlineMenu() {
+        return true;
+    }
+
+    protected boolean isShadowDetailsEnabled() {
+        return true;
     }
 
     private QName getSelectedObjectClass() {

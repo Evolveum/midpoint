@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -177,8 +178,11 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
             ItemPath targetPathOverride = source.determineTargetPathOverride(declaredTargetPath);
             LOGGER.trace("Target path override: {}", targetPathOverride);
 
+            // FIXME Undetermined because of resource/object type inheritance
+            var origin = ConfigurationItemOrigin.undetermined();
+
             MappingBuilder<V, D> builder = beans.mappingFactory.<V, D>createMappingBuilder()
-                    .mappingBean(mappingBean)
+                    .mappingBean(mappingBean, origin)
                     .mappingKind(MappingKindType.INBOUND)
                     .implicitSourcePath(implicitSourcePath)
                     .targetPathOverride(targetPathOverride)
@@ -217,6 +221,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                                 context.result));
             }
 
+            builder.computeExpressionProfile(context.result);
             MappingImpl<V, D> mapping = builder.build();
 
             ItemPath realTargetPath = mapping.getOutputPath();

@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpr
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -57,7 +58,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator
 
     private static final String OP_EVALUATE = AbstractValueTransformationExpressionEvaluator.class.getName() + ".evaluate";
 
-    protected final SecurityContextManager securityContextManager;
+    /** May be `null` in some low-level tests where {@link ModelCommonBeans} are initialized manually. */
+    protected final SecurityContextManager securityContextManager = ModelCommonBeans.get().securityContextManager;
+
     protected final LocalizationService localizationService;
 
     protected AbstractValueTransformationExpressionEvaluator(
@@ -65,10 +68,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator
             E expressionEvaluatorType,
             D outputDefinition,
             Protector protector,
-            SecurityContextManager securityContextManager,
             LocalizationService localizationService) {
         super(elementName, expressionEvaluatorType, outputDefinition, protector);
-        this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
     }
 
@@ -89,12 +90,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator
             String contextDescription = context.getContextDescription();
             TransformExpressionRelativityModeType relativityMode = defaultIfNull(expressionEvaluatorBean.getRelativityMode(), RELATIVE);
             switch (relativityMode) {
-                case ABSOLUTE:
+                case ABSOLUTE -> {
                     outputTriple = new SingleShotEvaluation<>(context, result, this).evaluate();
                     LOGGER.trace("Evaluated absolute expression {}, output triple:\n{}",
                             contextDescription, debugDumpLazily(outputTriple, 1));
-                    break;
-                case RELATIVE:
+                }
+                case RELATIVE -> {
                     if (context.getSources().isEmpty()) {
                         // Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
                         outputTriple = new SingleShotEvaluation<>(context, result, this).evaluate();
@@ -105,9 +106,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator
                         LOGGER.trace("Evaluated relative expression {}, output triple:\n{}",
                                 contextDescription, debugDumpLazily(outputTriple, 1));
                     }
-                    break;
-                default:
-                    throw new AssertionError(relativityMode);
+                }
+                default -> throw new AssertionError(relativityMode);
             }
             return outputTriple;
 

@@ -731,4 +731,13 @@ public class ObjectQueryUtil {
         query.setFilter(filter);
         return query;
     }
+
+    @SuppressWarnings("ReplaceNullCheck")
+    public static @NotNull ObjectQuery emptyIfNull(ObjectQuery objectQuery) {
+        if (objectQuery != null) {
+            return objectQuery;
+        } else {
+            return PrismContext.get().queryFactory().createQuery();
+        }
+    }
 }

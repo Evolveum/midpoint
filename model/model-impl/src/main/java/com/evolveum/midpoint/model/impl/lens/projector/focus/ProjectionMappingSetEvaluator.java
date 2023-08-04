@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -90,12 +91,13 @@ public class ProjectionMappingSetEvaluator {
         Map<UniformItemPath, MappingOutputStruct<V>> outputTripleMap = new HashMap<>();
         XMLGregorianCalendar nextRecomputeTime = null;
         String triggerOriginDescription = null;
-        Collection<MappingType> mappingBeans = params.getMappingTypes();
+        Collection<ConfigurationItem<MappingType>> mappingBeans = params.getMappingBeans();
         Collection<MappingImpl<V, D>> mappings = new ArrayList<>(mappingBeans.size());
 
-        for (MappingType mappingBean : mappingBeans) {
+        for (ConfigurationItem<MappingType> mappingBeanWithOrigin : mappingBeans) {
 
-            MappingBuilder<V, D> mappingBuilder = mappingFactory.createMappingBuilder(mappingBean, mappingDesc);
+            MappingType mappingBean = mappingBeanWithOrigin.value();
+            MappingBuilder<V, D> mappingBuilder = mappingFactory.createMappingBuilder(mappingBeanWithOrigin, mappingDesc);
             String mappingName = mappingBean.getName();
 
             if (!mappingBuilder.isApplicableToChannel(params.getContext().getChannel())) {
@@ -121,6 +123,7 @@ public class ProjectionMappingSetEvaluator {
             // Initialize mapping (using Inversion of Control)
             MappingBuilder<V, D> initializedMappingBuilder = params.getInitializer().initialize(mappingBuilder);
 
+            initializedMappingBuilder.computeExpressionProfile(result);
             MappingImpl<V, D> mapping = initializedMappingBuilder.build();
 
             mapping.evaluateTimeValidity(task, result);

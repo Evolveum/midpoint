@@ -31,6 +31,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -170,7 +172,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
 
         boolean evaluateWeak = getEvaluateWeak(projCtx);
 
-        ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> focusPasswordIdi = objectDeltaObject.findIdi(SchemaConstants.PATH_PASSWORD_VALUE); // TODO wave
+        ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> focusPasswordIdi =
+                objectDeltaObject.findIdi(SchemaConstants.PATH_PASSWORD_VALUE); // TODO wave
 
         ConfigurableValuePolicySupplier valuePolicySupplier = (result1) -> SecurityUtil.getPasswordPolicy(securityPolicy);
 
@@ -267,8 +270,11 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                     return builder;
                 };
 
+        // FIXME Undetermined because of resource/object type inheritance
+        var originProvider = OriginProvider.undetermined();
+
         MappingEvaluatorParams<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>, ShadowType, F> params = new MappingEvaluatorParams<>();
-        params.setMappingTypes(outboundMappingBeans);
+        params.setMappingBeans(ConfigurationItem.ofList(outboundMappingBeans, originProvider));
         params.setMappingDesc("password mapping" + " in projection " + projCtxDesc);
         params.setNow(now);
         params.setInitializer(internalInitializer);

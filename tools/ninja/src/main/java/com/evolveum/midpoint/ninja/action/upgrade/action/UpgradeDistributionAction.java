@@ -3,15 +3,14 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 import java.io.File;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
-
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 
-public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, Void> {
+public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, ActionResult<Void>> {
 
     @Override
     public String getOperationName() {
@@ -19,7 +18,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
     }
 
     @Override
-    public Void execute() throws Exception {
+    public ActionResult<Void> execute() throws Exception {
         File tempDirectory = options.getTempDirectory() != null ?
                 options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
 
@@ -31,15 +30,15 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
             PreUpgradeCheckAction preUpgradeCheckAction = new PreUpgradeCheckAction();
             preUpgradeCheckAction.init(context, preUpgradeCheckOptions);
-            boolean shouldContinue = executeAction(preUpgradeCheckAction);
-            if (shouldContinue) {
+            ActionResult<Boolean> shouldContinue = executeAction(preUpgradeCheckAction);
+            if (shouldContinue.result()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade check succeeded.").reset().toString());
             } else {
                 log.error(Ansi.ansi().fgRed().a("Pre-upgrade check failed.").reset().toString());
-                return null;
+                return new ActionResult<>(null, shouldContinue.exitCode());
             }
         } else {
-            log.info("Pre-upgrade checks skipped.");
+            log.warn("Pre-upgrade checks skipped.");
         }
 
         // verification
@@ -50,21 +49,29 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
             VerifyAction verifyAction = new VerifyAction();
             verifyAction.init(context, verifyOptions);
-            VerifyResult verifyresult = executeAction(verifyAction);
-            if (!verifyresult.hasCriticalItems()) {
+            VerifyResult verifyResult = executeAction(verifyAction);
+            if (!verifyResult.hasCriticalItems()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade verification succeeded.").reset().toString());
             } else {
-                log.error(Ansi.ansi().fgRed().a("Pre-upgrade verification failed with critical items.").reset().toString());
+                log.error(Ansi.ansi().fgRed().a("Pre-upgrade verification failed with {} critical items.").reset().toString(), verifyResult.getCriticalCount());
+                log.error("To get rid of critical items, please run 'verify' command, review the results and then run 'upgrade-objects' before upgrading the distribution.\n");
+                log.error("Example commands:");
+                log.error("To verify all objects and save report to CSV file:");
+                log.error("ninja.sh verify --report-style csv --output verify-output.csv");
+                log.error("To update all objects");
+                log.error("ninja.sh upgrade-objects --verification-file verify-output.csv");
+
                 return null;
             }
         } else {
-            log.info("Verification skipped.");
+            log.warn("Verification skipped.");
         }
 
         // download distribution
         DownloadDistributionOptions downloadOpts = new DownloadDistributionOptions();
         downloadOpts.setTempDirectory(tempDirectory);
         downloadOpts.setDistributionArchive(options.getDistributionArchive());
+        downloadOpts.setDistributionVersion(options.getDistributionVersion());
 
         DownloadDistributionAction downloadAction = new DownloadDistributionAction();
         downloadAction.init(context, downloadOpts);

@@ -85,8 +85,8 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     @Override
-    public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context,
-            OperationResult result)
+    public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(
+            ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
@@ -98,8 +98,8 @@ public class AssociationFromLinkExpressionEvaluator
         LOGGER.trace("Evaluating association from link {} on: {}", expressionEvaluatorBean.getDescription(), thisRole);
 
         //noinspection unchecked
-        TypedValue<ResourceObjectDefinition> rAssocTargetDefTypedValue = context.getVariables()
-                .get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+        var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectDefinition>)
+                        context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
         if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
             throw new ExpressionEvaluationException("No association target object definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
@@ -148,7 +148,8 @@ public class AssociationFromLinkExpressionEvaluator
     private AbstractRoleType getLegacyRole(ExpressionEvaluationContext context)
             throws ExpressionEvaluationException {
         @SuppressWarnings("unchecked")
-        TypedValue<AbstractRoleType> orderOneObjectTypedValue = context.getVariables().get(ExpressionConstants.VAR_THIS_OBJECT);
+        var orderOneObjectTypedValue = (TypedValue<AbstractRoleType>)
+                context.getVariables().get(ExpressionConstants.VAR_THIS_OBJECT);
         if (orderOneObjectTypedValue == null || orderOneObjectTypedValue.getValue() == null) {
             throw new ExpressionEvaluationException("No order one object variable in " + context.getContextDescription() +
                     "; the expression may be used in a wrong place. It is only supposed to work in a role.");
@@ -167,7 +168,8 @@ public class AssociationFromLinkExpressionEvaluator
             throws ExpressionEvaluationException {
 
         @SuppressWarnings("unchecked")
-        TypedValue<AssignmentPath> assignmentPathTypedValue = context.getVariables().get(ExpressionConstants.VAR_ASSIGNMENT_PATH);
+        var assignmentPathTypedValue = (TypedValue<AssignmentPath>)
+                context.getVariables().get(ExpressionConstants.VAR_ASSIGNMENT_PATH);
         if (assignmentPathTypedValue == null || assignmentPathTypedValue.getValue() == null) {
             throw new ExpressionEvaluationException("No assignment path variable in " + context.getContextDescription() +
                     "; the expression may be used in a wrong place. It is only supposed to work in a role.");

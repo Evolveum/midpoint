@@ -31,15 +31,15 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 public interface ObjectSetSpecification {
 
     static @NotNull ObjectSetSpecification fromWorkDefinition(WorkDefinition workDefinition) {
-        if (workDefinition instanceof ObjectSetSpecificationProvider) {
+        if (workDefinition instanceof ObjectSetSpecificationProvider objectSetProvider) {
             return new RepositoryObjectSetSpecificationImpl(
-                    ((ObjectSetSpecificationProvider) workDefinition).getObjectSetSpecification());
-        } else if (workDefinition instanceof ResourceObjectSetSpecificationProvider) {
+                    objectSetProvider.getObjectSetSpecification());
+        } else if (workDefinition instanceof ResourceObjectSetSpecificationProvider resourceObjectSetProvider) {
             return new ResourceObjectSetSpecificationImpl(
-                    ((ResourceObjectSetSpecificationProvider) workDefinition).getResourceObjectSetSpecification());
+                    resourceObjectSetProvider.getResourceObjectSetSpecification());
         } else {
-            throw new IllegalArgumentException("Work definition contains neither object set nor resource object set: " +
-                    workDefinition);
+            throw new IllegalArgumentException(
+                    "Work definition contains neither object set nor resource object set: " + workDefinition);
         }
     }
 

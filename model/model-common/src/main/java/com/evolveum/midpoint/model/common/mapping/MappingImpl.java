@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetad
 import com.evolveum.midpoint.model.common.mapping.metadata.ItemValueMetadataProcessingSpec;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.TransformationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -80,9 +81,15 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
         ItemValueMetadataProcessingSpec processingSpec = ItemValueMetadataProcessingSpec.forScope(TRANSFORMATION);
         processingSpec.addPathsToIgnore(mappingBean.getIgnoreMetadataProcessing());
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
-        processingSpec.populateFromCurrentFocusTemplate(parser.getOutputPath(), ModelCommonBeans.get().objectResolver,
-                getMappingContextDescription(), task, result);
-        processingSpec.addMetadataMappings(mappingBean.getMetadataMapping());
+        ItemPath outputPath = parser.getOutputPath();
+        if (outputPath != null) { // can it ever be null?
+            processingSpec.populateFromCurrentFocusTemplate(
+                    outputPath, ModelCommonBeans.get().objectResolver,
+                    getMappingContextDescription(), task, result);
+        }
+        processingSpec.addMetadataMappings(
+                mappingBean.getMetadataMapping(),
+                mappingConfigItem.originProviderFor(MappingType.F_METADATA_MAPPING));
         return processingSpec;
     }
 

@@ -49,7 +49,7 @@ public class UpgradeProcessor {
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    private <T extends ObjectType> UpgradeValidationItem process(PrismObject<T> object, ValidationItem item) {
+    private <T extends ObjectType> UpgradeValidationItem process(PrismObject<T> object, ValidationItem item) throws Exception {
         ItemPath path = item.getItemPath();
 
         PrismObject<T> cloned = object.clone();
@@ -62,18 +62,20 @@ public class UpgradeProcessor {
             }
         }
 
+        UpgradeValidationItem result = new UpgradeValidationItem(item);
         if (processor == null) {
-            return null;
+            return result;
         }
 
-        boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
+        String description = processor.upgradeDescription((PrismObject) cloned, path);
 
-        UpgradeValidationItem result = new UpgradeValidationItem(item);
+        boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
         result.setChanged(changed);
         result.setIdentifier(processor.getIdentifier());
         result.setPhase(processor.getPhase());
         result.setType(processor.getType());
         result.setPriority(processor.getPriority());
+        result.setDescription(description);
 
         ObjectDelta<?> delta = object.diff(cloned);
         result.setDelta(delta);
@@ -81,7 +83,9 @@ public class UpgradeProcessor {
         return result;
     }
 
-    public <T extends ObjectType> UpgradeValidationResult process(PrismObject<T> object, ValidationResult result) {
+    public <T extends ObjectType> UpgradeValidationResult process(PrismObject<T> object, ValidationResult result)
+            throws Exception {
+
         UpgradeValidationResult verificationResult = new UpgradeValidationResult(result);
 
         for (ValidationItem item : result.getItems()) {

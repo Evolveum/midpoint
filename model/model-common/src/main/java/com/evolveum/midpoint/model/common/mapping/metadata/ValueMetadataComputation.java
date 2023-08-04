@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +96,7 @@ abstract public class ValueMetadataComputation {
                 beans.prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class),
                 "No definition of value metadata container");
         //noinspection unchecked
-        this.outputMetadata = new ValueMetadataType(beans.prismContext).asPrismContainerValue();
+        this.outputMetadata = new ValueMetadataType().asPrismContainerValue();
     }
 
     @NotNull
@@ -141,12 +142,12 @@ abstract public class ValueMetadataComputation {
     private void processCustomMappings()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        for (MetadataMappingType mappingBean : processingSpec.getMappings()) {
-            if (!env.task.canSee(mappingBean)) {
-                LOGGER.trace("Mapping {} is not visible for the current task, ignoring", mappingBean);
+        for (ConfigurationItem<MetadataMappingType> mappingWithOrigin : processingSpec.getMappings()) {
+            if (!env.task.canSee(mappingWithOrigin.value())) {
+                LOGGER.trace("Mapping {} is not visible for the current task, ignoring", mappingWithOrigin);
                 continue;
             }
-            MetadataMappingImpl<?, ?> mapping = createMapping(mappingBean);
+            MetadataMappingImpl<?, ?> mapping = createMapping(mappingWithOrigin);
             mapping.evaluate(env.task, result);
             appendValues(mapping.getOutputPath(), mapping.getOutputTriple());
         }
@@ -160,14 +161,17 @@ abstract public class ValueMetadataComputation {
         itemDelta.applyTo(outputMetadata);
     }
 
-    private MetadataMappingImpl<?, ?> createMapping(MetadataMappingType mappingBean) throws SchemaException {
+    private MetadataMappingImpl<?, ?> createMapping(ConfigurationItem<MetadataMappingType> mappingWithOrigin)
+            throws SchemaException, ConfigurationException {
+        MetadataMappingType mappingBean = mappingWithOrigin.value();
         MetadataMappingBuilder<?, ?> builder = beans.metadataMappingEvaluator.mappingFactory
-                .createMappingBuilder(mappingBean, env.contextDescription);
+                .createMappingBuilder(mappingBean, mappingWithOrigin.origin(), env.contextDescription);
         createSources(builder, mappingBean);
         createCustomMappingVariables(builder, mappingBean);
         builder.targetContext(metadataDefinition)
                 .now(env.now)
-                .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
+                .conditionMaskOld(false) // We are not interested in old values (deltas are irrelevant in metadata mappings).
+                .computeExpressionProfile(result);
         return builder.build();
     }
 

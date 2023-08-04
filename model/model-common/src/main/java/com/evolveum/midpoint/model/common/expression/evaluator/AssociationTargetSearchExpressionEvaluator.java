@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -61,7 +60,6 @@ public class AssociationTargetSearchExpressionEvaluator
             PrismContainerDefinition<ShadowAssociationType> outputDefinition,
             Protector protector,
             ObjectResolver objectResolver,
-            SecurityContextManager securityContextManager,
             LocalizationService localizationService) {
         super(
                 elementName,
@@ -69,7 +67,6 @@ public class AssociationTargetSearchExpressionEvaluator
                 outputDefinition,
                 protector,
                 objectResolver,
-                securityContextManager,
                 localizationService);
     }
 
@@ -118,7 +115,7 @@ public class AssociationTargetSearchExpressionEvaluator
             protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
                     throws ExpressionEvaluationException {
                 @SuppressWarnings("unchecked")
-                TypedValue<ResourceObjectTypeDefinition> rAssocTargetDefTypedValue =
+                var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectTypeDefinition>)
                         params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
                 if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
                     throw new ExpressionEvaluationException(

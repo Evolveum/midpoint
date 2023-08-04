@@ -184,7 +184,8 @@
                     <taskCustomizer>
                         <script>
                             <code>
-                                import com.evolveum.midpoint.schema.util.expression.ExpressionUtil
+
+                                import com.evolveum.midpoint.schema.util.expression.ExpressionTypeUtil
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
                                 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariableDefinitionType
                                 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariablesDefinitionType
@@ -193,7 +194,7 @@
                                 req.setVariables(new ScriptingVariablesDefinitionType()
                                         .variable(new ScriptingVariableDefinitionType()
                                                 .name('orgBeingDeleted')
-                                                .expression(ExpressionUtil.forValue(midpoint.focusContextRequired.oid))))
+                                                .expression(ExpressionTypeUtil.forValue(midpoint.focusContextRequired.oid))))
                                 preparedTask
                             </code>
                         </script>

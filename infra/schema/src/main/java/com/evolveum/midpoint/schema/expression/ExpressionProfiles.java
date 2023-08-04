@@ -6,31 +6,41 @@
  */
 package com.evolveum.midpoint.schema.expression;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 /**
- * @author semancik
+ * An indexed set of {@link ExpressionProfile} objects.
  *
+ * @author semancik
  */
 public class ExpressionProfiles {
 
-    private final Map<String,ExpressionProfile> profiles = new ConcurrentHashMap<>();
+    @NotNull private final Map<String, ExpressionProfile> profiles;
 
-    public ExpressionProfile getProfile(String identifier) {
-        return profiles.get(identifier);
+    public ExpressionProfiles(List<ExpressionProfile> expressionProfiles) {
+        profiles = expressionProfiles.stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        p -> p.getIdentifier(), p -> p));
     }
 
-    public void add(ExpressionProfile profile) {
-        profiles.put(profile.getIdentifier(), profile);
+    public @NotNull ExpressionProfile getProfile(@NotNull String identifier) throws ConfigurationException {
+        return MiscUtil.configNonNull(
+                profiles.get(identifier),
+                "No expression profile with identifier '%s'", identifier);
     }
 
     public int size() {
         return profiles.size();
     }
 
-    public Map<String, ExpressionProfile> getProfiles() {
-        return Collections.unmodifiableMap(profiles);
+    public @NotNull Map<String, ExpressionProfile> getProfiles() {
+        return profiles;
     }
 }

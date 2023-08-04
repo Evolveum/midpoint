@@ -359,10 +359,7 @@ public class AccCertOpenerHelper {
             throw new IllegalStateException("Unspecified object type (and no default one provided) for campaign " + campaignShortName);
         }
         @SuppressWarnings({ "unchecked", "raw" })
-        Class<F> objectClass = (Class<F>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectType);
-        if (objectClass == null) {
-            throw new IllegalStateException("Object class not found for object type " + objectType + " in campaign " + campaignShortName);
-        }
+        Class<F> objectClass = (Class<F>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
 
         // TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
         // It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.

@@ -188,7 +188,7 @@ public abstract class SearchBasedActivityRun<
      */
     private @NotNull SearchSpecification<C> createSearchSpecificationFromObjectSetSpec(
             @NotNull ObjectSetSpecification objectSetSpecification, OperationResult result)
-            throws SchemaException, ActivityRunException {
+            throws SchemaException, ActivityRunException, ConfigurationException {
         if (objectSetSpecification instanceof ResourceObjectSetSpecificationImpl) {
             //noinspection unchecked
             return (SearchSpecification<C>)
@@ -499,11 +499,6 @@ public abstract class SearchBasedActivityRun<
 
     private boolean advancedSupportAvailable() {
         return beans.getAdvancedActivityRunSupport().isPresent();
-    }
-
-    protected ExpressionProfile getExpressionProfile() {
-        // TODO Determine from task object archetype
-        return MiscSchemaUtil.getExpressionProfile();
     }
 
     public final SchemaService getSchemaService() {

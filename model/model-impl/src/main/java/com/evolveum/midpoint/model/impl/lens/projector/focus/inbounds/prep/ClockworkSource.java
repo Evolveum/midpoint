@@ -85,9 +85,7 @@ class ClockworkSource extends MSource {
 
     @Override
     @NotNull ResourceType getResource() {
-        return Objects.requireNonNull(
-                projectionContext.getResource(),
-                () -> "No resource in " + projectionContext);
+        return projectionContext.getResourceRequired();
     }
 
     @Override

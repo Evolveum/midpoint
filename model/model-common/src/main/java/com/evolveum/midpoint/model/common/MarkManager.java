@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -141,13 +142,15 @@ public class MarkManager {
         for (MarkType mark : getAllMarks(result)) {
             if (isEnabled(mark, task)) {
                 for (GlobalPolicyRuleType rule : mark.getPolicyRule()) {
+                    GlobalPolicyRuleConfigItem ruleCI = GlobalPolicyRuleConfigItem.embedded(rule);
                     if (!Referencable.getOids(rule.getMarkRef()).contains(mark.getOid())) {
-                        rule = rule.clone();
-                        rule.getMarkRef().add(
+                        var ruleClone = rule.clone();
+                        ruleClone.getMarkRef().add(
                                 ObjectTypeUtil.createObjectRef(mark));
+                        ruleCI = GlobalPolicyRuleConfigItem.of(ruleClone, ruleCI.origin());
                     }
                     rules.add(
-                            GlobalRuleWithId.of(rule, mark.getOid()));
+                            GlobalRuleWithId.of(ruleCI, mark.getOid()));
                 }
             }
         }

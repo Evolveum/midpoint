@@ -22,15 +22,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-credentials-mapping-outbound-main",
+@PanelInstance(identifier = "rw-credentials-outbound-main",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.mapping.outbound.main", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.credentials.outbound.main", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
 public class OutboundCredentialsMappingMainConfigurationStepPanel
         extends OutboundMappingMainConfigurationStepPanel {
 
-    public static final String PANEL_TYPE = "rw-credentials-mapping-outbound-main";
+    public static final String PANEL_TYPE = "rw-credentials-outbound-main";
 
     public OutboundCredentialsMappingMainConfigurationStepPanel(ResourceDetailsModel model,
                                                                IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
@@ -44,18 +44,18 @@ public class OutboundCredentialsMappingMainConfigurationStepPanel
     @Override
     public IModel<String> getTitle() {
         return
-                createStringResource("PageResource.wizard.step.credentials.mapping.outbound.main");
+                createStringResource("PageResource.wizard.step.credentials.outbound.main");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.credentials.mapping.outbound.main.text");
+        return createStringResource("PageResource.wizard.step.credentials.outbound.main.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource(
-                "PageResource.wizard.step.credentials.mapping.outbound.main.subText",
+                "PageResource.wizard.step.credentials.outbound.main.subText",
                 GuiDisplayNameUtil.getDisplayName(((PrismContainerValueWrapper)getValueModel().getObject()).getNewValue()));
     }
 

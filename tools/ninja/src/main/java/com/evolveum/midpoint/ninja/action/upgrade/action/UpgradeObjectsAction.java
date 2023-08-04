@@ -19,7 +19,6 @@ import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsConsumerWorker;
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
@@ -52,7 +51,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
 
         if (!options.getFiles().isEmpty()) {
             if (!options.isSkipUpgradeWarning()) {
-                log.info(ConsoleFormat.formatWarn("WARNING: File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)"));
+                log.warn("File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)");
                 String result = NinjaUtils.readInput(input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
 
                 if (result.trim().equalsIgnoreCase("n")) {
@@ -94,17 +93,21 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         try {
             objects = parser.parseObjects();
         } catch (Exception ex) {
-            log.error("Couldn't parse file '{}'", file.getPath(), ex);
+            log.error("Couldn't parse file '{}'", ex, file.getPath());
             return;
         }
 
         boolean changed = false;
-        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeItems);
-        for (PrismObject object : objects) {
-            boolean changedOne = executor.execute(object);
-            if (changedOne) {
-                changed = true;
+        try {
+            UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeItems);
+            for (PrismObject object : objects) {
+                boolean changedOne = executor.execute(object);
+                if (changedOne) {
+                    changed = true;
+                }
             }
+        } catch (Exception ex) {
+            log.error("Couldn't update file '{}'", ex, file.getPath());
         }
 
         if (!changed) {
@@ -122,7 +125,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
             }
             writer.write(xml);
         } catch (Exception ex) {
-            log.error("Couldn't serialize objects to file '{}'", file.getPath(), ex);
+            log.error("Couldn't serialize objects to file '{}'", ex, file.getPath());
         }
     }
 

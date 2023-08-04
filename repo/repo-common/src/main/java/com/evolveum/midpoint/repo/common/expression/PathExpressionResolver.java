@@ -144,8 +144,6 @@ class PathExpressionResolver {
             root = resolveReference(root, objectResolver, null, topVarDesc, shortDesc, task, result);
         }
 
-        String lastPathSegmentName = relativePath.lastName().getLocalPart();
-
         Object rootValue = root.getValue();
         if (rootValue == null) {
             return determineNullTypedValue(root);
@@ -162,7 +160,7 @@ class PathExpressionResolver {
             throw new SchemaException(
                     "Cannot apply path " + relativePath + " to " + root + " in " + shortDesc);
         } else if (rootValue instanceof ObjectDeltaObject<?>) {
-            return determineTypedValueOdo(lastPathSegmentName, root);
+            return determineTypedValueOdo(root);
         } else if (rootValue instanceof ItemDeltaItem<?, ?>) {
             return determineTypedValue((ItemDeltaItem<?,?>) rootValue);
         } else {
@@ -210,17 +208,18 @@ class PathExpressionResolver {
                 if (parentValue instanceof Structured) {
                     value = ((Structured)parentValue).resolve(partiallyResolvedItem.getResidualPath());
                 } else {
-                    throw new SchemaException("No subpath "+partiallyResolvedItem.getResidualPath()+" in "+partiallyResolvedItem.getItem());
+                    throw new SchemaException(
+                            "No sub-path %s in %s".formatted(
+                                    partiallyResolvedItem.getResidualPath(), partiallyResolvedItem.getItem()));
                 }
             }
         }
         if (value instanceof Item && ((Item<?, ?>) value).isIncomplete()) {
             if (objectAlreadyFetched) {
                 LOGGER.warn("Referencing incomplete item {} in {} but it is marked as incomplete even if the object was fully fetched", value, rootContainer);
-            } else if (!(rootContainer instanceof PrismObject)) {
+            } else if (!(rootContainer instanceof PrismObject<?> rootObject)) {
                 LOGGER.warn("Unable to resolve incomplete item {} in {} because the root is not a prism object", value, rootContainer);
             } else {
-                PrismObject<?> rootObject = (PrismObject<?>) rootContainer;
                 LOGGER.debug("Fetching {} because of incomplete item {}", rootObject, value);
                 //noinspection unchecked
                 Class<? extends ObjectType> type = (Class<? extends ObjectType>) rootObject.asObjectable().getClass();
@@ -257,7 +256,7 @@ class PathExpressionResolver {
         return convertToTypedValue(value, rootIdi, () -> (PrismContainerDefinition<?>) rootIdi.getDefinition());
     }
 
-    private <O extends ObjectType> TypedValue<?> determineTypedValueOdo(String name, TypedValue<?> root)
+    private <O extends ObjectType> TypedValue<?> determineTypedValueOdo(TypedValue<?> root)
             throws SchemaException {
         //noinspection unchecked
         ObjectDeltaObject<O> rootOdo = (ObjectDeltaObject<O>) root.getValue();
@@ -280,9 +279,6 @@ class PathExpressionResolver {
             PrismObjectDefinition<O> rootDefinition;
             if (root.getDefinition() == null) {
                 rootDefinition = rootOdo.getDefinition();
-                if (rootDefinition == null) {
-                    throw new IllegalArgumentException("Found ODO without a definition while processing variable '" + name + "': " + rootOdo);
-                }
             } else {
                 rootDefinition = root.getDefinition();
             }
