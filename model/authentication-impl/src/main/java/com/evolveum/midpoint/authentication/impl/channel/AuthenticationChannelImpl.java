@@ -101,7 +101,7 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
         var cleanedUpAuthorities = cleanupAuthorities(authorities);
         var newAuthorities = new ArrayList<>(cleanedUpAuthorities);
-        addAdditionalAuthorities(authorities);
+        addAdditionalAuthorities(newAuthorities);
         return Collections.unmodifiableList(newAuthorities);
     }
 
