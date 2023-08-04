@@ -421,8 +421,6 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_SELF_REGISTRATION_FINISH_QNAME = new QName(NS_AUTHORIZATION_UI, "selfRegistFinish");
     public static final String AUTZ_UI_SELF_REGISTRATION_FINISH_URL = NS_AUTHORIZATION_UI + "#selfRegistFinish";
-    public static final QName AUTZ_UI_LOGIN_RECOVERY_FINISH_QNAME = new QName(NS_AUTHORIZATION_UI, "loginRecovery");
-    public static final String AUTZ_UI_LOGIN_RECOVERY_FINISH_URL = NS_AUTHORIZATION_UI + "#loginRecovery";
     public static final String AUTZ_UI_INVITATION_URL = NS_AUTHORIZATION_UI + "#invitation";
 
     public static final QName AUTZ_UI_PREVIEW_CHANGES_QNAME = new QName(NS_AUTHORIZATION_UI, "previewChanges");

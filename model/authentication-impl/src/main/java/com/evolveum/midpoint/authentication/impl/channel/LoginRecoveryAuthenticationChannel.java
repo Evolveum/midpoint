@@ -29,7 +29,7 @@ public class LoginRecoveryAuthenticationChannel extends AuthenticationChannelImp
 
     @Override
     protected Collection<String> getAdditionalAuthoritiesList() {
-        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_LOGIN_RECOVERY_FINISH_URL);
+        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_USERNAME_RECOVERY_URL);
     }
 
 }
