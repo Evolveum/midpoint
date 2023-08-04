@@ -12,8 +12,6 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.Collections;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -57,6 +55,11 @@ public class IterativeChangeExecutionActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return IterativeChangeExecutionWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_ITERATIVE_CHANGE_EXECUTION;
     }
 
     @Override
@@ -138,8 +141,8 @@ public class IterativeChangeExecutionActivityHandler
         @NotNull private final ObjectDeltaType delta;
         @Nullable private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-            super(origin);
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (IterativeChangeExecutionWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             delta = typedDefinition.getDelta();

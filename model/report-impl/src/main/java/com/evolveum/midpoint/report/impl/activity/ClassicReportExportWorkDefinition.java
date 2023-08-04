@@ -13,13 +13,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 /**
  * Work definition for classic report export.
  */
-class ClassicReportExportWorkDefinition extends AbstractReportWorkDefinition {
+public class ClassicReportExportWorkDefinition extends AbstractReportWorkDefinition {
 
-    ClassicReportExportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin)
-            throws SchemaException {
-        super(source, origin);
+    ClassicReportExportWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws SchemaException {
+        super(source, activityTypeName);
     }
 }

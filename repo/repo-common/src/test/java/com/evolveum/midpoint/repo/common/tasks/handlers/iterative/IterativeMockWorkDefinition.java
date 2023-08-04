@@ -13,8 +13,9 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
 
 import com.google.common.base.MoreObjects;
 
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinit
 import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
@@ -33,6 +35,7 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
     private static final ItemName DELAY_NAME = new ItemName(NS_EXT, "delay");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "IterativeMockDefinitionType");
+    static final QName WORK_DEFINITION_ITEM_QNAME = new QName(NS_EXT, "iterativeMock");
 
     /** Lower bound, inclusive. */
     private final int from;
@@ -44,8 +47,8 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
     private final long delay;
 
-    IterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    IterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         PrismContainerValue<?> pcv = source.getValue();
         this.from = MoreObjects.firstNonNull(pcv.getPropertyRealValue(FROM_NAME, Integer.class), 0);
         this.to = MoreObjects.firstNonNull(pcv.getPropertyRealValue(TO_NAME, Integer.class), from);
@@ -71,6 +74,11 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
 
     public long getDelay() {
         return delay;
+    }
+
+    @Override
+    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+        return null; // not relevant here
     }
 
     @Override

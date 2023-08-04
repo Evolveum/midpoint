@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -19,12 +18,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 public class MultiPropagationWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
     @NotNull private final ObjectSetType resources;
 
-    MultiPropagationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    MultiPropagationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         resources = ObjectSetUtil.emptyIfNull(
                 ((MultiPropagationWorkDefinitionType) source.getBean()).getResources());
         ObjectSetUtil.assumeObjectType(resources, ResourceType.COMPLEX_TYPE);

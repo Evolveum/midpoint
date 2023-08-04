@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -28,7 +30,7 @@ public class ImportActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ImportWorkDefinitionType.COMPLEX_TYPE,
+                ImportWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_IMPORT,
                 ImportWorkDefinition.class, ImportWorkDefinition::new, this);
     }
 

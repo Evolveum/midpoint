@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -36,14 +35,15 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
     private static final ItemName FREEZE_IF_SCAVENGER = new ItemName(NS_EXT, "freezeIfScavenger");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "SearchIterativeMockDefinitionType");
+    static final QName WORK_DEFINITION_ITEM_QNAME = new QName(NS_EXT, "searchIterativeMock");
 
     @NotNull private final ObjectSetType objectSet;
     @Nullable private final String message;
     @Nullable private final SearchFilterType failOn;
     private final boolean freezeIfScavenger;
 
-    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         PrismContainerValue<?> pcv = source.getValue();
         this.objectSet = getObjectSet(pcv);
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);

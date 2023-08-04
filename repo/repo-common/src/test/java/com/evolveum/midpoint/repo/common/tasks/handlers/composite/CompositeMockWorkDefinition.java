@@ -20,7 +20,10 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -33,6 +36,7 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     private static final ItemName CLOSING_NAME = new ItemName(NS_EXT, "closing");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "CompositeMockDefinitionType");
+    static final QName WORK_DEFINITION_ITEM_QNAME = new QName(NS_EXT, "compositeMock");
 
     private final String message;
     private final long delay;
@@ -40,8 +44,8 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     private final Boolean opening;
     private final Boolean closing;
 
-    CompositeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    CompositeMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         PrismContainerValue<?> pcv = source.getValue();
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);
         this.delay = or0(pcv.getPropertyRealValue(DELAY_NAME, Long.class));
@@ -76,6 +80,11 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
 
     boolean isClosingEnabled() {
         return !Boolean.FALSE.equals(isClosing());
+    }
+
+    @Override
+    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+        return null; // not relevant here
     }
 
     @Override

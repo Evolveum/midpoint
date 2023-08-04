@@ -113,17 +113,6 @@ public class ConnIdNameMapper {
         return new QName(MidPointConstants.NS_RI, QNameUtil.escapeElementName(icfAttrName), MidPointConstants.PREFIX_NS_RI);
     }
 
-    public QName convertAttributeNameToQName(String icfAttrName, ResourceAttributeDefinition<?> attrDef) {
-        if (SPECIAL_ATTRIBUTE_MAP_ICF.containsKey(icfAttrName)) {
-            if (icfAttrName.equals(attrDef.getFrameworkAttributeName())) {
-                return attrDef.getItemName();
-            }
-            // fallback, compatibility
-            return SPECIAL_ATTRIBUTE_MAP_ICF.get(icfAttrName);
-        }
-        return attrDef.getItemName();
-    }
-
     public String convertAttributeNameToConnId(PropertyDelta<?> attributeDelta, ResourceObjectDefinition ocDef)
             throws SchemaException {
         PrismPropertyDefinition<?> propDef = attributeDelta.getDefinition();
@@ -141,7 +130,7 @@ public class ConnIdNameMapper {
 
     public String convertAttributeNameToConnId(ResourceAttribute<?> attribute, ResourceObjectDefinition ocDef)
                 throws SchemaException {
-            ResourceAttributeDefinition attrDef = attribute.getDefinition();
+            ResourceAttributeDefinition<?> attrDef = attribute.getDefinition();
             if (attrDef == null) {
                 attrDef = ocDef.findAttributeDefinition(attribute.getElementName());
                 if (attrDef == null) {

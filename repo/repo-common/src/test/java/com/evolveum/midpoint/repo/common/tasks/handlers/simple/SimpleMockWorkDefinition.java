@@ -15,11 +15,13 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SimpleMockWorkDefinition extends AbstractWorkDefinition {
 
@@ -27,12 +29,13 @@ public class SimpleMockWorkDefinition extends AbstractWorkDefinition {
     private static final ItemName INITIAL_FAILURES_NAME = new ItemName(NS_EXT, "initialFailures");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "SimpleMockDefinitionType");
+    static final QName WORK_DEFINITION_ITEM_QNAME = new QName(NS_EXT, "simpleMock");
 
     private final String message;
     private final int initialFailures;
 
-    SimpleMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    SimpleMockWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         PrismContainerValue<?> pcv = source.getValue();
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);
         this.initialFailures = or0(pcv.getPropertyRealValue(INITIAL_FAILURES_NAME, Integer.class));
@@ -44,6 +47,11 @@ public class SimpleMockWorkDefinition extends AbstractWorkDefinition {
 
     int getInitialFailures() {
         return initialFailures;
+    }
+
+    @Override
+    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+        return null; // not relevant here
     }
 
     @Override

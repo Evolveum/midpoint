@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,13 +20,15 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
+import javax.xml.namespace.QName;
+
 public class ReconciliationWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
     /** Mutable, disconnected from the source. */
     @NotNull private final ResourceObjectSetType resourceObjects;
 
-    ReconciliationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    ReconciliationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         var typedDefinition = (ReconciliationWorkDefinitionType) source.getBean();
         resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(resourceObjects, APPEND);

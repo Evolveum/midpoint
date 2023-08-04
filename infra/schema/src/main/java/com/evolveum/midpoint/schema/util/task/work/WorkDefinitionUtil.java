@@ -93,5 +93,4 @@ public class WorkDefinitionUtil {
                 .map(WorkDefinitionBean::getBeanTypeName)
                 .collect(Collectors.toSet());
     }
-
 }

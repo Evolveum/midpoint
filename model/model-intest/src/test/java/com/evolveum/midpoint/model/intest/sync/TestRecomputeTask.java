@@ -14,6 +14,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.test.*;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import jakarta.xml.bind.JAXBElement;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -469,6 +471,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertUsers(7);
     }
 
+    /** Checks `archetypeRef` in object set spec. */
     @Test
     public void test140RecomputeEmployees() throws CommonException {
         var task = getTestTask();
@@ -488,6 +491,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
             TASK_USER_RECOMPUTE_EMPLOYEES.assertAfter()
                     .display()
                     .assertProgress(1)
+                    .assertAffectedObjects(WorkDefinitionsType.F_RECOMPUTATION, UserType.COMPLEX_TYPE, ARCHETYPE_EMPLOYEE.oid)
                     .rootActivityState()
                     .itemProcessingStatistics()
                     .assertLastSuccessObjectName(user.getName().getOrig());

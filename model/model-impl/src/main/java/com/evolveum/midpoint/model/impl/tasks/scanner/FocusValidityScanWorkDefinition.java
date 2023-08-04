@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.tasks.scanner;
 
 import java.util.Objects;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,14 +19,16 @@ import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
     @NotNull private final ObjectSetType objects;
     @NotNull private final ValidityScanQueryStyleType queryStyle;
     private final TimeValidityPolicyConstraintType validityConstraint;
 
-    FocusValidityScanWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    FocusValidityScanWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         var typedDefinition = (FocusValidityScanWorkDefinitionType) source.getBean();
 
         objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());

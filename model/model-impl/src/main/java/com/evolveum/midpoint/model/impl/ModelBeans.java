@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
+import com.evolveum.midpoint.model.impl.lens.tasks.TaskOperationalDataManager;
 import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
@@ -113,6 +114,7 @@ public class ModelBeans {
     @Autowired public SecurityEnforcer securityEnforcer;
     @Autowired public SecurityContextManager securityContextManager;
     @Autowired public OperationalDataManager metadataManager;
+    @Autowired public TaskOperationalDataManager taskOperationalDataManager;
     @Autowired public IdentitiesManager identitiesManager;
     @Autowired public IndexingManager indexingManager;
     @Autowired public TaskManager taskManager;

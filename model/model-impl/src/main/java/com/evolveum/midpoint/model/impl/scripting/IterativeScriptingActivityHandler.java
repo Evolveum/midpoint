@@ -53,6 +53,11 @@ public class IterativeScriptingActivityHandler
     }
 
     @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_ITERATIVE_SCRIPTING;
+    }
+
+    @Override
     protected @NotNull Class<MyWorkDefinition> getWorkDefinitionClass() {
         return MyWorkDefinition.class;
     }
@@ -128,8 +133,8 @@ public class IterativeScriptingActivityHandler
         @NotNull private final ObjectSetType objects;
         @NotNull private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-            super(origin);
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (IterativeScriptingWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();

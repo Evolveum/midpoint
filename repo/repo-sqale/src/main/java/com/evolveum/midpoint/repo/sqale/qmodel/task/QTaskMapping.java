@@ -100,15 +100,16 @@ public class QTaskMapping
         addNestedMapping(F_SCHEDULE, ScheduleType.class)
                 .addItemMapping(ScheduleType.F_RECURRENCE, enumMapper(q -> q.recurrence));
 
-        addNestedMapping(F_AFFECTED_OBJECTS, TaskAffectedObjectsType.class)
-                .addContainerTableMapping(
-                        TaskAffectedObjectsType.F_RESOURCE_OBJECTS,
-                        QAffectedResourceObjectsMapping.init(repositoryContext),
-                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)))
-                .addContainerTableMapping(
-                        TaskAffectedObjectsType.F_OBJECTS,
-                        QAffectedObjectsMapping.init(repositoryContext),
-                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)));
+        // FIXME adapt this to the new structure
+//        addNestedMapping(F_AFFECTED_OBJECTS, TaskAffectedObjectsType.class)
+//                .addContainerTableMapping(
+//                        TaskAffectedObjectsType.F_RESOURCE_OBJECTS,
+//                        QAffectedResourceObjectsMapping.init(repositoryContext),
+//                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)))
+//                .addContainerTableMapping(
+//                        TaskAffectedObjectsType.F_OBJECTS,
+//                        QAffectedObjectsMapping.init(repositoryContext),
+//                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)));
     }
 
     @Override
@@ -224,13 +225,14 @@ public class QTaskMapping
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         var affects = schemaObject.getAffectedObjects();
-        if (affects != null) {
-            for (var resObject : affects.getResourceObjects()) {
-                QAffectedResourceObjectsMapping.get().insert(resObject, row, jdbcSession);
-            }
-            for (var obj : affects.getObjects()) {
-                QAffectedObjectsMapping.get().insert(obj, row, jdbcSession);
-            }
-        }
+        // FIXME adapt this to the new structure
+//        if (affects != null) {
+//            for (var resObject : affects.getResourceObjects()) {
+//                QAffectedResourceObjectsMapping.get().insert(resObject, row, jdbcSession);
+//            }
+//            for (var obj : affects.getObjects()) {
+//                QAffectedObjectsMapping.get().insert(obj, row, jdbcSession);
+//            }
+//        }
     }
 }

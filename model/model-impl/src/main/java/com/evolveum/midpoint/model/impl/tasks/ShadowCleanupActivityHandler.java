@@ -14,7 +14,6 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +67,11 @@ public class ShadowCleanupActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return ShadowCleanupWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_SHADOW_CLEANUP;
     }
 
     @Override
@@ -187,8 +191,8 @@ public class ShadowCleanupActivityHandler
         private final ResourceObjectSetType shadows;
         @NotNull private final Duration interval;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-            super(origin);
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (ShadowCleanupWorkDefinitionType) source.getBean();
 
             shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());

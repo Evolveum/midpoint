@@ -58,6 +58,11 @@ public class ObjectIntegrityCheckActivityHandler
     }
 
     @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_OBJECT_INTEGRITY_CHECK;
+    }
+
+    @Override
     protected @NotNull Class<MyWorkDefinition> getWorkDefinitionClass() {
         return MyWorkDefinition.class;
     }
@@ -165,13 +170,13 @@ public class ObjectIntegrityCheckActivityHandler
         LOGGER.info("Objects processed with errors: {}", objectStatistics.getErrors());
     }
 
-    static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
+    protected static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
         @NotNull private final ObjectSetType objects;
         private final int histogramColumns;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-            super(origin);
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (ObjectIntegrityCheckWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);

@@ -11,23 +11,39 @@ import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinit
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkDefinitionType;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 public class PropagationWorkDefinition extends AbstractWorkDefinition {
 
-    private final String resourceOid;
+    @NotNull private final String resourceOid;
 
-    PropagationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    PropagationWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) throws ConfigurationException {
+        super(activityTypeName);
         ObjectReferenceType resourceRef = ((PropagationWorkDefinitionType) source.getBean()).getResourceRef();
-        resourceOid = resourceRef != null ? resourceRef.getOid() : null;
+        resourceOid = MiscUtil.configNonNull(
+                resourceRef != null ? resourceRef.getOid() : null,
+                "No resource OID specified");
     }
 
-    public String getResourceOid() {
+    public @NotNull String getResourceOid() {
         return resourceOid;
+    }
+
+    @Override
+    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+        return new TaskAffectedObjectsType()
+                .activity(new ActivityAffectedObjectsType()
+                        .activityType(getActivityTypeName())
+                        .resourceObjects(new BasicResourceObjectSetType()
+                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE))
+                );
     }
 
     @Override

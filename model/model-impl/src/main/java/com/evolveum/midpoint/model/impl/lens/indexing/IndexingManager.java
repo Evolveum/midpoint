@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.api.indexing.ValueNormalizer;
+import com.evolveum.midpoint.model.impl.lens.DeltaExecutionPreprocessor;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
@@ -51,7 +52,7 @@ import java.util.Objects;
  * Only `String` and `PolyString` types are supported.
  */
 @Component
-public class IndexingManager {
+public class IndexingManager implements DeltaExecutionPreprocessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(IndexingManager.class);
 
@@ -69,11 +70,10 @@ public class IndexingManager {
             LOGGER.trace("No indexing configuration for {}: index data will not be updated", elementContext);
             return;
         }
-        if (!(objectToAdd instanceof FocusType)) {
+        if (!(objectToAdd instanceof FocusType focusToAdd)) {
             LOGGER.trace("Not a FocusType: {}", objectToAdd);
             return;
         }
-        FocusType focusToAdd = (FocusType) objectToAdd;
         FocusTypeUtil.addOrReplaceNormalizedData(
                 focusToAdd,
                 computeNormalizedData(focusToAdd, configuration, task, result));
@@ -104,13 +104,7 @@ public class IndexingManager {
         if (current == null) {
             throw new IllegalStateException("Current focal object is null: " + elementContext);
         }
-        FocusType expectedNew =
-                (FocusType) Objects.requireNonNull(
-                                elementContext.getObjectNew(),
-                                () -> String.format("Expected 'new' focal object is null: %s "
-                                                + "(it shouldn't be, as we are modifying it)",
-                                        elementContext))
-                        .asObjectable();
+        FocusType expectedNew = (FocusType) elementContext.getObjectNewRequired().asObjectable();
 
         delta.addModifications(
                 computeNormalizedDataDeltas(

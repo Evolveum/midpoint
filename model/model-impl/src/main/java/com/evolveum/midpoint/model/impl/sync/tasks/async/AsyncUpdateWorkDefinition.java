@@ -18,12 +18,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetTyp
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 public class AsyncUpdateWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
     @NotNull private final ResourceObjectSetType resourceObjects;
 
-    AsyncUpdateWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    AsyncUpdateWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         var typedDefinition = (AsyncUpdateWorkDefinitionType) source.getBean();
         resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getUpdatedResourceObjects());
         ResourceObjectSetUtil.removeQuery(resourceObjects);

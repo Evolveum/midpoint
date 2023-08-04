@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
 
 public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
@@ -28,8 +29,8 @@ public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements
     private final Duration maxReconciliationInterval;
     private final boolean skipInitialReconciliation;
 
-    AutoScalingWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    AutoScalingWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         var typedDefinition = (ActivityAutoScalingWorkDefinitionType) source.getBean();
 
         tasks = ObjectSetUtil.emptyIfNull(typedDefinition.getTasks());

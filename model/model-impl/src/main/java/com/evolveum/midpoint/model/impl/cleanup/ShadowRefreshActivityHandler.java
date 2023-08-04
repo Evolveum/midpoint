@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -31,6 +29,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Scanner that looks for pending operations in the shadows and updates the status.
  *
@@ -45,7 +45,7 @@ public class ShadowRefreshActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE,
+                ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_SHADOW_REFRESH,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
@@ -131,8 +131,8 @@ public class ShadowRefreshActivityHandler
 
         @NotNull private final ObjectSetType objects;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-            super(origin);
+        MyWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+            super(activityTypeName);
             var typedDefinition = (ShadowRefreshWorkDefinitionType) source.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getShadows());
             ObjectSetUtil.assumeObjectType(objects, ShadowType.COMPLEX_TYPE);

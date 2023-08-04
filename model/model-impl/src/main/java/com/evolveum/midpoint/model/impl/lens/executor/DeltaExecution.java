@@ -459,6 +459,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
             b.metadataManager.applyMetadataAdd(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
             b.indexingManager.updateIndexDataOnElementAdd(objectBeanToAdd, elementContext, task, result);
+            b.taskOperationalDataManager.updateOnElementAdd(objectBeanToAdd, result);
 
             deltaForExecution = processChangeApplicationMode(result);
             objectToAdd = deltaForExecution.getObjectToAdd();
@@ -593,6 +594,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             }
             b.indexingManager.updateIndexDataOnElementModify(
                     asObjectable(baseObject), delta, objectClass, elementContext, task, result);
+            b.taskOperationalDataManager.updateOnElementModify(
+                    asObjectable(baseObject), delta, objectClass, elementContext, result);
 
             if (delta.isEmpty()) {
                 // Nothing to do

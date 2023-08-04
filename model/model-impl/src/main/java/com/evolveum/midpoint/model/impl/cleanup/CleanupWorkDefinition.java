@@ -14,22 +14,31 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupWorkDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 public class CleanupWorkDefinition extends AbstractWorkDefinition {
 
     @Nullable
     private final CleanupPoliciesType cleanupPolicies;
 
-    CleanupWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull ConfigurationItemOrigin origin) {
-        super(origin);
+    CleanupWorkDefinition(@NotNull WorkDefinitionBean source, @NotNull QName activityTypeName) {
+        super(activityTypeName);
         var typedDefinition = (CleanupWorkDefinitionType) source.getBean();
         cleanupPolicies = typedDefinition.getPolicies();
     }
 
     @Nullable CleanupPoliciesType getCleanupPolicies() {
         return cleanupPolicies;
+    }
+
+    @Override
+    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+        return null; // not easily determinable
     }
 
     @Override

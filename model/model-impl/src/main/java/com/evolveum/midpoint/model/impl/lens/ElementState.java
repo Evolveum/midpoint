@@ -602,7 +602,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     }
 
     /** Creates the delta if needed. */
-    void modifyPrimaryDelta(DeltaModifier<O> modifier) throws SchemaException {
+    void modifyPrimaryDelta(LensElementContext.DeltaModifier<O> modifier) throws SchemaException {
         if (primaryDelta == null) {
             primaryDelta = createEmptyDelta();
         }
