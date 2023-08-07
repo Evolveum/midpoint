@@ -16,9 +16,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 public class MAffectedObjects extends MContainer {
 
+    public Integer activityId;
+
+    // Object container
     public MObjectType type;
     public UUID archetypeRefTargetOid;
     public MObjectType archetypeRefTargetType;
     public Integer archetypeRefRelationId;
+
+    // ResourceObject container
+    public Integer objectClassId;
+    public UUID resourceRefTargetOid;
+    public MObjectType resourceRefTargetType;
+    public Integer resourceRefRelationId;
+    public String intent;
+    public String tag;
+    public ShadowKindType kind;
 
 }

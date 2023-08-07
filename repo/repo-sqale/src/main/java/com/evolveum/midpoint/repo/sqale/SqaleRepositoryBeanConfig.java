@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale;
 import javax.sql.DataSource;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QAffectedObjectsMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.task.QAffectedResourceObjectsMapping;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -196,7 +195,6 @@ public class SqaleRepositoryBeanConfig {
                 .register(SimulationResultType.COMPLEX_TYPE, QSimulationResultMapping.initSimulationResultMapping(repositoryContext))
                 .register(SimulationResultProcessedObjectType.COMPLEX_TYPE, QProcessedObjectMapping.initProcessedResultMapping(repositoryContext))
                 .register(MarkType.COMPLEX_TYPE, QMarkMapping.init(repositoryContext))
-                .register(QAffectedResourceObjectsMapping.init(repositoryContext))
                 .register(QAffectedObjectsMapping.init(repositoryContext))
                 .seal();
 
