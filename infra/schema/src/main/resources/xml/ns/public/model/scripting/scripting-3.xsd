@@ -677,10 +677,10 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="ExecuteScriptActionExpressionType">
+    <xsd:complexType name="AbstractExecuteActionExpressionType">
         <xsd:annotation>
             <xsd:documentation>
-                Statically-typed "execute-script" action.
+                Statically-typed "execute-script" or "evaluate-expression" action.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.2</a:since>
@@ -690,13 +690,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ActionExpressionType">
                 <xsd:sequence>
-                    <xsd:element name="script" type="c:ScriptExpressionEvaluatorType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Script to be executed.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="outputItemName" type="xsd:QName" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -731,7 +724,63 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="ExecuteScriptActionExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statically-typed "execute-script" action.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractExecuteActionExpressionType">
+                <xsd:sequence>
+                    <xsd:element name="script" type="c:ScriptExpressionEvaluatorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Script to be executed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
     <xsd:element name="execute" type="tns:ExecuteScriptActionExpressionType" substitutionGroup="tns:scriptingExpression">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:heterogeneousListItem/>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="EvaluateExpressionActionExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statically-typed "evaluate-expression" action.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractExecuteActionExpressionType">
+                <xsd:sequence>
+                    <xsd:element name="expression" type="c:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression to be evaluated.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluateExpression" type="tns:EvaluateExpressionActionExpressionType" substitutionGroup="tns:scriptingExpression">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:heterogeneousListItem/>

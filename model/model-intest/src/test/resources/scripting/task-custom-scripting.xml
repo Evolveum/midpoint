@@ -18,6 +18,7 @@
             <nonIterativeScripting>
                 <scriptExecutionRequest>
                     <s:execute>
+                        <s:forWholeInput>true</s:forWholeInput>
                         <s:script>
                             <code>
                                 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun
@@ -64,7 +65,6 @@
                                 midpoint.currentResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "custom-error")
                             </code>
                         </s:script>
-                        <s:forWholeInput>true</s:forWholeInput>
                     </s:execute>
                 </scriptExecutionRequest>
             </nonIterativeScripting>

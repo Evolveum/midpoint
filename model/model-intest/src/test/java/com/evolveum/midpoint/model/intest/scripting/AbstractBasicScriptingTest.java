@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 
+import com.evolveum.midpoint.test.TestObject;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -125,6 +127,10 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final String SCRIPTING_USERS_IN_BACKGROUND = "scripting-users-in-background";
     private static final String SCRIPTING_USERS_IN_BACKGROUND_ASSIGN = "scripting-users-in-background-assign";
 
+    private static final String SCRIPTING_USERS_VIA_EXPRESSION = "scripting-users-via-expression";
+    private static final String SCRIPTING_USERS_VIA_EXPRESSION_WITH_LIBRARY_FUNCTION =
+            "scripting-users-via-expression-with-library-function";
+
     private static final String GENERATE_PASSWORDS = "generate-passwords";
     private static final String GENERATE_PASSWORDS_2 = "generate-passwords-2";
     private static final String GENERATE_PASSWORDS_3 = "generate-passwords-3";
@@ -152,6 +158,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final TestTask TASK_CUSTOM_SCRIPTING =
             new TestTask(TEST_DIR, "task-custom-scripting.xml", "f3b3f5e1-b3fb-42d5-9676-fa8ab9e5b58c");
 
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_TEST = TestObject.file(
+            TEST_DIR, "function-library-test.xml", "724f2cce-c2d0-4a95-a67e-c922f9b806ab");
+
     @Autowired ScriptingExpressionEvaluator evaluator;
 
     @Override
@@ -162,7 +171,8 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         initTestObjects(initTask, initResult,
                 CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION,
-                CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION);
+                CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION,
+                FUNCTION_LIBRARY_TEST);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
@@ -177,6 +187,8 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     }
 
     abstract String getSuffix();
+
+    abstract boolean isNew();
 
     @Test
     public void test100EmptySequence() throws Exception {
@@ -1010,6 +1022,26 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
+        assertAfter500(output, result);
+    }
+
+    @Test
+    public void test501ScriptingUsersViaExpression() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        ExecutionContext output = evaluateExpression(
+                parseScriptingExpression(SCRIPTING_USERS_VIA_EXPRESSION),
+                task,
+                result);
+
+        then();
+        assertAfter500(output, result);
+    }
+
+    private void assertAfter500(ExecutionContext output, OperationResult result) throws SchemaException {
         dumpOutput(output, result);
 
         assertSuccess(result);
@@ -1025,8 +1057,37 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
             assertSuccess(item.getResult());
         }
         assertEquals("Unexpected OIDs in output",
-                Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_WILL_OID)),
+                Sets.newHashSet(List.of(
+                        USER_ADMINISTRATOR_OID,
+                        USER_JACK_OID,
+                        USER_BARBOSSA_OID,
+                        USER_GUYBRUSH_OID,
+                        USER_ELAINE_OID,
+                        USER_WILL_OID)),
                 realOids);
+    }
+
+    /** Changes the description of `administrator`. */
+    @Test
+    public void test503ScriptingUsersViaExpressionWithLibraryFunction() throws Exception {
+        skipIfNotNew();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        ExecutionContext output = evaluateExpression(
+                parseScriptingExpression(SCRIPTING_USERS_VIA_EXPRESSION_WITH_LIBRARY_FUNCTION),
+                task,
+                result);
+
+        then();
+        dumpOutput(output, result);
+
+        assertSuccess(result);
+        assertUserAfter(USER_ADMINISTRATOR_OID)
+                .assertDescription("new description of administrator");
     }
 
     @Test
@@ -1575,4 +1636,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         return parseExecuteScript(getFile(name));
     }
 
+    private void skipIfNotNew() {
+        if (!isNew()) {
+            throw new SkipException("This test is only for new scripting expressions");
+        }
+    }
 }

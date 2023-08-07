@@ -55,6 +55,11 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         return "";
     }
 
+    @Override
+    boolean isNew() {
+        return true;
+    }
+
     @Test
     public void test352RecomputeJackTriggerDirect() throws Exception {
         given();
