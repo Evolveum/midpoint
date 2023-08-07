@@ -19,6 +19,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.AnsiConsole;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.ActionResult;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.impl.Command;
+import com.evolveum.midpoint.ninja.impl.LogLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.InputParameterException;
@@ -62,7 +64,6 @@ public class Main {
         this.err = err;
     }
 
-    // todo main doesn't return error code non zero if error occurrs, fix this
     protected <T> @NotNull MainResult<?> run(String[] args) {
         AnsiConsole.systemInstall();
 
@@ -71,7 +72,8 @@ public class Main {
         try {
             jc.parse(args);
         } catch (ParameterException ex) {
-            err.println(ex.getMessage());
+            err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, ex.getMessage()));
+
             return MainResult.EMPTY_ERROR;
         }
 
@@ -82,9 +84,11 @@ public class Main {
         ConsoleFormat.setBatchMode(base.isBatchMode());
 
         if (base.isVerbose() && base.isSilent()) {
-            err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
-                    + " together (verbose and silent)");
+            err.println(ConsoleFormat.formatLogMessage(
+                    LogLevel.ERROR, "Can't use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT + " together (verbose and silent)"));
+
             printHelp(jc, parsedCommand);
+
             return MainResult.EMPTY_ERROR;
         }
 
@@ -103,7 +107,7 @@ public class Main {
             Action<T, ?> action = Command.createAction(parsedCommand);
 
             if (action == null) {
-                err.println("Action for command '" + parsedCommand + "' not found");
+                err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, "Action for command '" + parsedCommand + "' not found"));
                 return MainResult.EMPTY_ERROR;
             }
 
@@ -131,7 +135,7 @@ public class Main {
                 action.destroy();
             }
         } catch (InputParameterException ex) {
-            err.println("ERROR: " + ex.getMessage());
+            err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, ex.getMessage()));
 
             return MainResult.EMPTY_ERROR;
         } catch (Exception ex) {
@@ -151,31 +155,27 @@ public class Main {
                 context.close();
             }
         } catch (Exception ex) {
-            if (opts.isVerbose()) {
-                String stack = NinjaUtils.printStackToString(ex);
-
-                err.println("Unexpected exception occurred (" + ex.getClass()
-                        + ") during destroying context. Exception stack trace:\n" + stack);
-            }
+            printException("Unexpected exception occurred (" + ex.getClass() + ") during destroying context", ex, opts.isVerbose());
         }
     }
 
     private void handleException(BaseOptions opts, Exception ex) {
         if (!opts.isSilent()) {
-            err.println("Unexpected exception occurred (" + ex.getClass() + "), reason: " + ex.getMessage());
+            err.println(ConsoleFormat.formatLogMessage(
+                    LogLevel.ERROR, "Unexpected exception occurred (" + ex.getClass() + "), reason: " + ex.getMessage()));
         }
 
         if (opts.isVerbose()) {
             String stack = NinjaUtils.printStackToString(ex);
 
-            err.println("Exception stack trace:\n" + stack);
+            err.println(ConsoleFormat.formatLogMessage(LogLevel.DEBUG, "Exception stack trace:\n" + stack));
         }
     }
 
     private void printVersion(boolean verbose) {
         URL url = Main.class.getResource("/version");
         if (url == null) {
-            err.println("Couldn't obtain version");
+            err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, "Couldn't obtain version. Version file not available."));
             return;
         }
 
@@ -183,11 +183,19 @@ public class Main {
             String version = IOUtils.toString(is, StandardCharsets.UTF_8).trim();
             out.println(version);
         } catch (Exception ex) {
-            err.println("Couldn't obtains version");
-            if (verbose) {
-                String stack = NinjaUtils.printStackToString(ex);
-                err.println("Exception stack trace:\n" + stack);
-            }
+            printException("Couldn't obtain version", ex, verbose);
+        }
+    }
+
+    private void printException(String message, Exception ex, boolean verbose) {
+        String msg = StringUtils.isNotEmpty(message) ? message + ", reason: " : "";
+        msg += ex.getMessage();
+
+        err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, msg));
+        if (verbose) {
+            String stack = NinjaUtils.printStackToString(ex);
+
+            err.println(ConsoleFormat.formatLogMessage(LogLevel.DEBUG, "Exception stack trace:\n" + stack));
         }
     }
 

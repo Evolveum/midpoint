@@ -257,4 +257,9 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.synchronization.reaction.action.subText");
     }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
 }

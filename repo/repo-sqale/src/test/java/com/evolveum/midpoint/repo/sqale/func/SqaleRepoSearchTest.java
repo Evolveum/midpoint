@@ -1279,50 +1279,68 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     @Test
     public void test360TasksWhichAffectsResourceObjects() throws SchemaException {
         // FIXME adapt this code to the new schema
-//        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
-//                TaskType.class,
-//                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_RESOURCE_OBJECTS)
-//                        .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
-//                , task2Oid);
-//
-//        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
-//                TaskType.class,
-//                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_RESOURCE_OBJECTS)
-//                        .block()
-//                            .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
-//                            .and()
-//                            .item(BasicResourceObjectSetType.F_KIND).eq(ShadowKindType.ACCOUNT)
-//                            .and()
-//                            .item(BasicResourceObjectSetType.F_INTENT).eq("default")
-//                        .endBlock()
-//                , task2Oid);
+        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_RESOURCE_OBJECTS)
+                        .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
+                , task2Oid);
+
+        searchObjectTest( "matching exists filter for affects/activity with activity-2 type and resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY)
+                        .block()
+                            .item(ActivityAffectedObjectsType.F_ACTIVITY_TYPE).eq(new QName(NS_C, "activity-2"))
+                        .and()
+                            .exists(ActivityAffectedObjectsType.F_RESOURCE_OBJECTS)
+                            .block()
+                                .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
+                                .and()
+                                .item(BasicResourceObjectSetType.F_KIND).eq(ShadowKindType.ACCOUNT)
+                                .and()
+                                .item(BasicResourceObjectSetType.F_INTENT).eq("default")
+                            .endBlock()
+                        .endBlock()
+                , task2Oid);
+
+
+        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_RESOURCE_OBJECTS)
+                        .block()
+                        .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
+                        .and()
+                        .item(BasicResourceObjectSetType.F_KIND).eq(ShadowKindType.ACCOUNT)
+                        .and()
+                        .item(BasicResourceObjectSetType.F_INTENT).eq("default")
+                        .endBlock()
+                , task2Oid);
 
     }
 
     @Test
     public void test361TasksWhichAffectsUsersWithArchetype() throws SchemaException {
         // FIXME adapt this code to the new schema
-//        searchObjectTest( "matching exists filter for affects/objects, which references only type",
-//                TaskType.class,
-//                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_OBJECTS)
-//                        .item(BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
-//                , task1Oid);
-//
-//        searchObjectTest( "equal filter for affects/objects/type, which references only type",
-//                TaskType.class,
-//                f -> f.item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
-//                , task1Oid);
-//
-//
-//        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
-//                TaskType.class,
-//                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_OBJECTS)
-//                        .block()
-//                        .item(BasicObjectSetType.F_ARCHETYPE_REF).ref(archetypeOid)
-//                        .and()
-//                        .item(BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
-//                        .endBlock()
-//                , task1Oid);
+        searchObjectTest( "matching exists filter for affects/objects, which references only type",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY)
+                        .item(ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                , task1Oid);
+
+        searchObjectTest( "equal filter for affects/objects/type, which references only type",
+                TaskType.class,
+                f -> f.item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                , task1Oid);
+
+
+        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_OBJECTS)
+                        .block()
+                        .item(BasicObjectSetType.F_ARCHETYPE_REF).ref(archetypeOid)
+                        .and()
+                        .item(BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                        .endBlock()
+                , task1Oid);
 
     }
 

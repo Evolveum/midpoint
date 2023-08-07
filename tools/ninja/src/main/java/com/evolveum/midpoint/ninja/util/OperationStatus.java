@@ -10,6 +10,7 @@ package com.evolveum.midpoint.ninja.util;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.ninja.impl.Log;
+import com.evolveum.midpoint.ninja.impl.LogLevel;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -144,13 +145,15 @@ public class OperationStatus {
                 + errorCount.get()
                 + ", skipped: "
                 + skippedCount.get()
-                + ", avg processed: "
+                + ", avg.: "
                 + NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestPerSecond())
                 + "obj/s";
     }
 
     public void print(Log log) {
-        log.info(print());
+        log.info(
+                ConsoleFormat.rewriteConsoleLine(
+                        ConsoleFormat.formatLogMessage(LogLevel.INFO, print())));
 
         lastPrintoutNow();
     }

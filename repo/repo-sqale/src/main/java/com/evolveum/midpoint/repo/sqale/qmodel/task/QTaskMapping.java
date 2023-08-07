@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.*;
 
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
@@ -100,16 +99,11 @@ public class QTaskMapping
         addNestedMapping(F_SCHEDULE, ScheduleType.class)
                 .addItemMapping(ScheduleType.F_RECURRENCE, enumMapper(q -> q.recurrence));
 
-        // FIXME adapt this to the new structure
-//        addNestedMapping(F_AFFECTED_OBJECTS, TaskAffectedObjectsType.class)
-//                .addContainerTableMapping(
-//                        TaskAffectedObjectsType.F_RESOURCE_OBJECTS,
-//                        QAffectedResourceObjectsMapping.init(repositoryContext),
-//                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)))
-//                .addContainerTableMapping(
-//                        TaskAffectedObjectsType.F_OBJECTS,
-//                        QAffectedObjectsMapping.init(repositoryContext),
-//                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)));
+        addNestedMapping(F_AFFECTED_OBJECTS, TaskAffectedObjectsType.class)
+                .addContainerTableMapping(
+                        TaskAffectedObjectsType.F_ACTIVITY,
+                        QAffectedObjectsMapping.init(repositoryContext),
+                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)));
     }
 
     @Override
@@ -225,14 +219,10 @@ public class QTaskMapping
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
 
         var affects = schemaObject.getAffectedObjects();
-        // FIXME adapt this to the new structure
-//        if (affects != null) {
-//            for (var resObject : affects.getResourceObjects()) {
-//                QAffectedResourceObjectsMapping.get().insert(resObject, row, jdbcSession);
-//            }
-//            for (var obj : affects.getObjects()) {
-//                QAffectedObjectsMapping.get().insert(obj, row, jdbcSession);
-//            }
-//        }
+        if (affects != null) {
+            for (var activity : affects.getActivity()) {
+                QAffectedObjectsMapping.get().insert(activity, row, jdbcSession);
+            }
+        }
     }
 }
