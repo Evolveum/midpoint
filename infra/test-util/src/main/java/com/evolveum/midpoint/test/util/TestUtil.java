@@ -70,7 +70,7 @@ public class TestUtil {
      */
     public static final String NON_EXISTENT_OID = "4e4f4e5f-4558-4953-5445-4e545f4f4944";
 
-    private static boolean checkResults = true;
+    private static final boolean CHECK_RESULTS = true;
 
     private static DatatypeFactory datatypeFactory = null;
 
@@ -161,7 +161,7 @@ public class TestUtil {
     }
 
     public static void assertSuccess(String message, OperationResult result, OperationResult originalResult, int stopLevel, int currentLevel, boolean warningOk) {
-        if (!checkResults) {
+        if (!CHECK_RESULTS) {
             return;
         }
         if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
@@ -223,7 +223,7 @@ public class TestUtil {
     }
 
     private static void assertSuccess(String message, OperationResultType result, int currentLevel, int stopLevel) {
-        if (!checkResults) {
+        if (!CHECK_RESULTS) {
             return;
         }
         if (stopLevel >= 0 && currentLevel > stopLevel) {
@@ -314,7 +314,7 @@ public class TestUtil {
     }
 
     public static void assertWarning(String message, OperationResultType result) {
-        if (!checkResults) {
+        if (!CHECK_RESULTS) {
             return;
         }
         assert hasWarningAssertSuccess(message, result) : message + ": does not have warning";
@@ -439,7 +439,7 @@ public class TestUtil {
     }
 
     public static void assertWarning(String message, OperationResult result, int stopLevel, int currentLevel) {
-        if (!checkResults) {
+        if (!CHECK_RESULTS) {
             return;
         }
         hasWarningAssertSuccess(message, result, result, -1, 0);
