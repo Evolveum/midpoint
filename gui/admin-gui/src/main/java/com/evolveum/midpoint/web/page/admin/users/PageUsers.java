@@ -12,8 +12,6 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageMergeObjects;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -27,11 +25,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -285,7 +281,7 @@ public class PageUsers extends PageAdmin {
     }
 
     private void unlockPerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedUser) {
-        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(target, selectedUser);
+        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(selectedUser);
         if (users.isEmpty()) {
             warn(getString("PageUsers.message.nothingSelected"));
             target.add(getFeedbackPanel());
@@ -323,7 +319,7 @@ public class PageUsers extends PageAdmin {
     }
 
     private void reconcilePerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedUser) {
-        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(target, selectedUser);
+        List<SelectableBean<UserType>> users = getTable().isAnythingSelected(selectedUser);
         if (users.isEmpty()) {
             return;
         }

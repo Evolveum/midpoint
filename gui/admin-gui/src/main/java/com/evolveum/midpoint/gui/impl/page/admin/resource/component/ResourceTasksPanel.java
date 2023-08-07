@@ -18,6 +18,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -124,7 +125,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                     }
 
                     @Override
-                    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
+                    protected @NotNull List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
                         List<CompiledObjectCollectionView> newObjectInfluencesList = super.getNewObjectInfluencesList();
                         List<CompiledObjectCollectionView> filteredInfluencesList = new ArrayList<>();
                         if (newObjectInfluencesList != null) {

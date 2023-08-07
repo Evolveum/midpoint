@@ -187,7 +187,7 @@ public class PageCreatedReports extends PageAdmin {
             }
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ReportDataType object) {
+            protected void objectDetailsPerformed(ReportDataType object) {
             }
 
             @Override

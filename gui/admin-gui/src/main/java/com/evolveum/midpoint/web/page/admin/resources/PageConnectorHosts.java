@@ -110,7 +110,7 @@ public class PageConnectorHosts extends PageAdmin {
 
         MainObjectListPanel<ConnectorHostType> table = new MainObjectListPanel<ConnectorHostType>(ID_TABLE, ConnectorHostType.class) {
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ConnectorHostType host) {
+            protected void objectDetailsPerformed(ConnectorHostType host) {
             }
 
             @Override

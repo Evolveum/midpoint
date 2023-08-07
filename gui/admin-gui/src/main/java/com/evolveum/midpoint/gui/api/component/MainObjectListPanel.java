@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,9 +26,11 @@ import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
@@ -42,8 +45,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -56,9 +57,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -72,7 +73,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author katkav
  */
 public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
@@ -80,8 +81,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
 
-    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
-    
+    private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
+
     public MainObjectListPanel(String id, Class<O> type) {
         super(id, type);
         executeOptionsModel = new LoadableModel<>(false) {
@@ -130,6 +131,29 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
+        @Override
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
+                customColumn, expression, getPageBase()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(IModel<SelectableBean<O>> rowModel) {
+                O object = rowModel.getObject().getValue();
+                MainObjectListPanel.this.objectDetailsPerformed(object);
+            }
+
+            @Override
+            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
+            }
+        };
+    }
+
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
+        return true;
+    }
+
     protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView, AssignmentObjectRelation relation) {
         return ObjectCollectionViewUtil.getArchetypeReferencesList(collectionView);
     }
@@ -142,8 +166,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(display), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(display))
-                .setTitle(WebComponentUtil.getTranslatedPolyString(tooltip));
-//                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                .setTitle(LocalizationUtil.translatePolyString(tooltip));
 
         return builder.build();
     }
@@ -158,7 +181,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         List<Component> buttonsList = new ArrayList<>();
 
         buttonsList.add(createNewObjectButton(buttonId));
-//        buttonsList.add(createCreateNewObjectButton(buttonId));
         buttonsList.add(createImportObjectButton(buttonId));
         buttonsList.add(createDownloadButton(buttonId));
         buttonsList.add(createCreateReportButton(buttonId));
@@ -185,7 +207,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         AjaxCompositedIconButton createNewObjectButton = new AjaxCompositedIconButton(buttonId, builder.build(),
                 createStringResource(StringUtils.isEmpty(iconTitle) ? "MainObjectListPanel.newObject" : iconTitle)) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -204,7 +226,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 }
 
                 NewObjectCreationPopup buttonsPanel = new NewObjectCreationPopup(getPageBase().getMainPopupBodyId(), new PropertyModel<>(loadButtonDescriptions(), MultiFunctinalButtonDto.F_ADDITIONAL_BUTTONS)) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec, CompiledObjectCollectionView collectionViews, Class<? extends WebPage> page) {
@@ -227,7 +249,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected boolean showNewObjectCreationPopup() {
-        return getNewObjectInfluencesList() != null && getNewObjectInfluencesList().size() > 1;
+        return getNewObjectInfluencesList().size() > 1;
     }
 
     protected boolean isViewForObjectCollectionType(CompiledObjectCollectionView collectionView, String oid, QName type) {
@@ -301,7 +323,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         AjaxIconButton importObject = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_UPLOAD),
                 createStringResource("MainObjectListPanel.import")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -335,7 +357,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(buttonId, builder.build(),
                 getPageBase().createStringResource("MainObjectListPanel.createReport")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -351,7 +373,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
                 createStringResource("MainObjectListPanel.refresh")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -369,7 +391,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         AjaxIconButton playPauseIcon = new AjaxIconButton(buttonId, getRefreshPausePlayButtonModel(),
                 getRefreshPausePlayButtonTitleModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -413,8 +435,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 CollectionUtils.isNotEmpty(getNewObjectInfluencesList());
     }
 
-    @NotNull
-    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
+    @NotNull protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
         if (isCollectionViewPanelForCompiledView()) {
             return new ArrayList<>();
         }
@@ -422,7 +443,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     public void deleteConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> objectToDelete) {
-        List<SelectableBean<O>> objects = isAnythingSelected(target, objectToDelete);
+        List<SelectableBean<O>> objects = isAnythingSelected(objectToDelete);
 
         if (objects.isEmpty()) {
             return;
@@ -465,10 +486,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     /**
      * This method check selection in table. If selectedObject != null than it
      * returns only this object.
-     *
-     * @return
      */
-    public List<SelectableBean<O>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<O>> selectedObject) {
+    public List<SelectableBean<O>> isAnythingSelected(IModel<SelectableBean<O>> selectedObject) {
         List<SelectableBean<O>> selectedObjects;
         if (selectedObject != null) {
             selectedObjects = new ArrayList<>();
@@ -503,7 +522,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     public InlineMenuItem createDeleteInlineMenu() {
         return new InlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -523,8 +542,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         };
     }
 
-    @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
+    protected void objectDetailsPerformed(O object) {
         if (WebComponentUtil.hasDetailsPage(object.getClass())) {
             WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
         } else {
