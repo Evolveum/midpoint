@@ -797,9 +797,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (view != null) {
             return view;
         }
-        String collectionName = WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase());
+        String collectionName = getCollectionNameFromPageParameters();
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView
                 (WebComponentUtil.anyClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
+    }
+
+    protected String getCollectionNameFromPageParameters() {
+        return WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase());
     }
 
     private CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration() {

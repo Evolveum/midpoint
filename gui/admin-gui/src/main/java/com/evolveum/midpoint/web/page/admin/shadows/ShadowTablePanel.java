@@ -100,8 +100,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
-        shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
+    protected void objectDetailsPerformed(ShadowType object) {
+        shadowDetailsPerformed(WebComponentUtil.getName(object), object.getOid());
     }
 
     @Override
@@ -431,7 +431,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                         if (object == null) {
                             return;
                         }
-                        objectDetailsPerformed(target, object);
+                        objectDetailsPerformed(object);
                     }
 
                     @Override
@@ -527,11 +527,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         return columns;
     }
 
-    private void shadowDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
+    private void shadowDetailsPerformed(String accountName, String accountOid) {
         if (StringUtils.isEmpty(accountOid)) {
             error(getString("pageContentAccounts.message.cantShowAccountDetails", accountName,
                     accountOid));
-            target.add(getPageBase().getFeedbackPanel());
+//            target.add(getPageBase().getFeedbackPanel()); //TODO when this can happen?
             return;
         }
 

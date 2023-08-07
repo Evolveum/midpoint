@@ -66,7 +66,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
         MainObjectListPanel<F> table = new MainObjectListPanel(ID_TABLE, FocusType.class, null) {
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
+            protected void objectDetailsPerformed(ObjectType object) {
                 if (WebComponentUtil.hasDetailsPage(object.getClass())) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());

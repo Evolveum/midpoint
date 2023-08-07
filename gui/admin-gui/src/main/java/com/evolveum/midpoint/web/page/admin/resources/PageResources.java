@@ -114,9 +114,9 @@ public class PageResources extends PageAdmin {
         MainObjectListPanel<ResourceType> table = new MainObjectListPanel<>(ID_TABLE, ResourceType.class) {
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
+            protected void objectDetailsPerformed(ResourceType object) {
                 clearSessionStorageForResourcePage();
-                super.objectDetailsPerformed(target, object);
+                super.objectDetailsPerformed(object);
             }
 
             @Override
