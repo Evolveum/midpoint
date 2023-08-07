@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -40,7 +39,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -129,25 +128,19 @@ public class PageAuthorizationPlayground extends PageAdminConfiguration {
         additionalAuthorizationsEditor.setResizeToMaxHeight(false);
         mainForm.add(additionalAuthorizationsEditor);
 
-        var supportedObjectTypeList = new ArrayList<>(WebComponentUtil.createObjectTypeList());
-        supportedObjectTypeList.add(AssignmentType.COMPLEX_TYPE);
-        supportedObjectTypeList.add(CaseWorkItemType.COMPLEX_TYPE);
-        supportedObjectTypeList.add(AccessCertificationCaseType.COMPLEX_TYPE);
-        supportedObjectTypeList.add(AccessCertificationWorkItemType.COMPLEX_TYPE);
-        supportedObjectTypeList.add(OperationExecutionType.COMPLEX_TYPE);
-        supportedObjectTypeList.add(SimulationResultProcessedObjectType.COMPLEX_TYPE);
+
 
         mainForm.add(new DropDownChoicePanel<>(
                 ID_TYPE,
                 typeModel,
-                () -> supportedObjectTypeList,
-                new QNameChoiceRenderer()));
+                ObjectTypeListUtil::createSearchableTypeList,
+                new QNameObjectTypeChoiceRenderer()));
 
         var filterEditor = new AceEditor(ID_OBJECT_FILTER, filterModel);
         filterEditor.setHeight(400);
         filterEditor.setResizeToMaxHeight(false);
         mainForm.add(filterEditor);
-        
+
         mainForm.add(new ValueChoosePanel<>(ID_OBJECT_OID, objectModel));
 
         mainForm.add(new CheckBox(ID_SELECTOR_TRACING, selectorTracingModel));

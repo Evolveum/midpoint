@@ -11,6 +11,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -551,7 +552,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     protected List<ObjectTypes> getObjectTypesList() {
-        return WebComponentUtil.createAssignableTypesList();
+        return ObjectTypeListUtil.createAssignableTypesList();
     }
 
     @Override

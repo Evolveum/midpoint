@@ -11,12 +11,12 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsQueryUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -73,7 +73,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected List<QName> getNewMemberObjectTypes() {
-        List<QName> objectTypes = WebComponentUtil.createFocusTypeList();
+        List<QName> objectTypes = ObjectTypeListUtil.createFocusTypeList();
         objectTypes.add(ResourceType.COMPLEX_TYPE);
         return objectTypes;
     }

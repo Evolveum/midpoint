@@ -10,12 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -26,6 +22,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -34,9 +32,11 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class ItemPathPanel extends BasePanel<ItemPathDto> {
@@ -193,7 +193,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
         DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<>(ID_NAMESPACE,
             new PropertyModel<>(getModel(), "objectType"),
-            new ListModel<>(WebComponentUtil.createObjectTypeList()), new QNameChoiceRenderer());
+            new ListModel<>(ObjectTypeListUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer());
         namespacePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             private static final long serialVersionUID = 1L;

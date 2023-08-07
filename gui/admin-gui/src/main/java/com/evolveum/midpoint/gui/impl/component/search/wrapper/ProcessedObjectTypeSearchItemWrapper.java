@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
@@ -25,7 +26,7 @@ public class ProcessedObjectTypeSearchItemWrapper extends ChoicesSearchItemWrapp
 
     public ProcessedObjectTypeSearchItemWrapper() {
         super(SimulationResultProcessedObjectType.F_TYPE,
-                WebComponentUtil.createObjectTypesList().stream()
+                ObjectTypeListUtil.createObjectTypesList().stream()
                         .map(o -> new DisplayableValueImpl<>(o.getTypeQName(), WebComponentUtil.createEnumResourceKey(o)))
                         .collect(Collectors.toList()));
     }

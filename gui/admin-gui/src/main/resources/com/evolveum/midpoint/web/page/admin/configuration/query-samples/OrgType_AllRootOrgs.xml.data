@@ -1,7 +1,5 @@
 <query>
     <filter>
-        <org>
-            <isRoot>true</isRoot>
-        </org>
+        <text>. isRoot</text>
     </filter>
 </query>

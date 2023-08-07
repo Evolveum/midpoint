@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -194,7 +195,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         ObjectFilter filter = createChooseQuery() == null ? null
                 : createChooseQuery().getFilter();
         if (CollectionUtils.isEmpty(supportedTypes)) {
-            supportedTypes = WebComponentUtil.createObjectTypeList();
+            supportedTypes = ObjectTypeListUtil.createObjectTypeList();
         }
         Class<O> defaultType = getDefaultType(supportedTypes);
         ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(
@@ -219,7 +220,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     }
 
     public List<QName> getSupportedTypes() {
-        return WebComponentUtil.createObjectTypeList();
+        return ObjectTypeListUtil.createObjectTypeList();
     }
 
     protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {

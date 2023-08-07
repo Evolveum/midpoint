@@ -10,6 +10,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -20,7 +22,6 @@ import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
@@ -53,14 +54,14 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
                         ResourceObjectTypeDefinitionType.F_FOCUS,
                         ResourceObjectFocusSpecificationType.F_TYPE)
                 .equivalent(panelCtx.unwrapWrapperModel().getPath().namedSegmentsOnly())) {
-            typesList = WebComponentUtil.createFocusTypeList();
+            typesList = ObjectTypeListUtil.createFocusTypeList();
         } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
                 && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
                 (ObjectCollectionType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass())
                         || GuiObjectListViewType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass()))) {
-            typesList = WebComponentUtil.createContainerableTypesQnameList();
+            typesList = ObjectTypeListUtil.createContainerableTypesQnameList();
         } else {
-            typesList = WebComponentUtil.createObjectTypeList();
+            typesList = ObjectTypeListUtil.createObjectTypeList();
         }
 
         DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
