@@ -339,7 +339,7 @@ ALTER TABLE m_resource
 ADD COLUMN superRefTargetOid UUID,
 ADD COLUMN superRefTargetType ObjectType,
 ADD COLUMN superRefRelationId INTEGER REFERENCES m_uri(id);
-$aa$)
+$aa$);
 
 -- Fixed upgrade for task indexing
 -- Drop tables should only affect development machines
