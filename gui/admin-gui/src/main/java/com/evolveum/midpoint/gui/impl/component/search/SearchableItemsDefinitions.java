@@ -50,6 +50,7 @@ public class SearchableItemsDefinitions {
     private ItemDefinition<?> containerDefinition;
 
     private ResourceObjectDefinition resourceObjectDefinition;
+    private boolean history;
 
     public SearchableItemsDefinitions(Class<?> type, ModelServiceLocator modelServiceLocator) {
         this.type = type;
@@ -64,6 +65,7 @@ public class SearchableItemsDefinitions {
         this.containerDefinition = ctx.getDefinitionOverride();
         this.assignmentTargetType = ctx.getAssignmentTargetType();
         this.collectionPanelType = ctx.getPanelType();
+        this.history = ctx.isHistory();
         return this;
     }
 
@@ -170,9 +172,7 @@ public class SearchableItemsDefinitions {
         SEARCHABLE_OBJECTS.put(AuditEventRecordType.class, Arrays.asList(
                 ItemPath.create(AuditEventRecordType.F_TIMESTAMP),
                 ItemPath.create(AuditEventRecordType.F_INITIATOR_REF),
-                ItemPath.create(AuditEventRecordType.F_EVENT_STAGE),
                 ItemPath.create(AuditEventRecordType.F_EVENT_TYPE),
-                ItemPath.create(AuditEventRecordType.F_TARGET_REF),
                 ItemPath.create(AuditEventRecordType.F_TARGET_OWNER_REF),
                 ItemPath.create(AuditEventRecordType.F_CHANGED_ITEM),
                 ItemPath.create(AuditEventRecordType.F_OUTCOME),
@@ -418,6 +418,12 @@ public class SearchableItemsDefinitions {
                 ArrayList<ItemPath> auditItems = new ArrayList<>(items);
                 auditItems.add(ItemPath.create(AuditEventRecordType.F_RESOURCE_OID));
                 items = auditItems;
+            }
+            if (!history) {
+                ArrayList<ItemPath> allSearchableItems = new ArrayList<>(items);
+                allSearchableItems.add(ItemPath.create(AuditEventRecordType.F_EVENT_STAGE));
+                allSearchableItems.add(ItemPath.create(AuditEventRecordType.F_TARGET_REF));
+                items = allSearchableItems;
             }
         }
         return items;
