@@ -9,40 +9,38 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class CleanupActivityHandler
@@ -62,7 +60,7 @@ public class CleanupActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                CleanupWorkDefinitionType.COMPLEX_TYPE,
+                CleanupWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CLEANUP,
                 CleanupWorkDefinition.class, CleanupWorkDefinition::new, this);
     }
 

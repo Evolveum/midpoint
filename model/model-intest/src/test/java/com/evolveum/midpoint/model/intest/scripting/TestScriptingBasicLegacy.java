@@ -16,4 +16,9 @@ public class TestScriptingBasicLegacy extends AbstractBasicScriptingTest {
     String getSuffix() {
         return "-legacy";
     }
+
+    @Override
+    boolean isNew() {
+        return false;
+    }
 }

@@ -16,10 +16,12 @@ import java.io.Serializable;
 /**
  * Specifies limitations (via {@link #permissionProfile}) on execution of a script expression in given {@link #language}.
  *
+ * Part of {@link ExpressionEvaluatorProfile}.
+ *
  * @author semancik
  */
 @SuppressWarnings("ClassCanBeRecord")
-public class ScriptExpressionProfile implements Serializable {
+public class ScriptLanguageExpressionProfile implements Serializable {
 
     /** Language (specified by URI) to which this profile applies. E.g. Groovy, Velocity, ... */
     @NotNull private final String language;
@@ -38,7 +40,7 @@ public class ScriptExpressionProfile implements Serializable {
     /** Details about what packages, classes and methods are allowed to be used in the script. */
     @Nullable private final ExpressionPermissionProfile permissionProfile;
 
-    public ScriptExpressionProfile(
+    public ScriptLanguageExpressionProfile(
             @NotNull String language,
             @NotNull AccessDecision defaultDecision,
             boolean typeChecking,

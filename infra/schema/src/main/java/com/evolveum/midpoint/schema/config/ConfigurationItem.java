@@ -12,6 +12,10 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,19 +26,21 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Helper class that provides complex information about a configuration item (e.g., a mapping).
  * Currently, the most prominent information is the origin of the item value.
  */
 @Experimental
-public class ConfigurationItem<T extends Serializable> implements ConfigurationItemable<T>, Serializable {
+public class ConfigurationItem<T extends Serializable & Cloneable> implements ConfigurationItemable<T>, Serializable, Cloneable {
 
     @Serial private static final long serialVersionUID = 0L;
 
     /** Used as a convenience marker for {@link #fullDescription()} in error messages. */
     public static final Object DESC = new Object();
 
-    /** The value of the item. Usually, it is a {@link Containerable}. */
+    /** The value of the item. Usually, it is a {@link Containerable} but there are exceptions, like {@link ExpressionType}. */
     private final @NotNull T value;
 
     /**
@@ -59,20 +65,20 @@ public class ConfigurationItem<T extends Serializable> implements ConfigurationI
         this.origin = origin;
     }
 
-    public static @NotNull <T extends Serializable> ConfigurationItem<T> of(
+    public static @NotNull <T extends Serializable & Cloneable> ConfigurationItem<T> of(
             @NotNull T value, @NotNull ConfigurationItemOrigin origin) {
         return new ConfigurationItem<>(value, origin);
     }
 
-    public static @NotNull <T extends Serializable> ConfigurationItem<T> embedded(@NotNull T value) {
+    public static @NotNull <T extends Serializable & Cloneable> ConfigurationItem<T> embedded(@NotNull T value) {
         return new ConfigurationItem<>(value, ConfigurationItemOrigin.embedded(value));
     }
 
-    public static @NotNull <T extends Serializable> List<ConfigurationItem<T>> ofListEmbedded(@NotNull List<T> items) {
+    public static @NotNull <T extends Serializable & Cloneable> List<ConfigurationItem<T>> ofListEmbedded(@NotNull List<T> items) {
         return ofList(items, OriginProvider.embedded());
     }
 
-    public static @NotNull <T extends Serializable> List<ConfigurationItem<T>> ofList(
+    public static @NotNull <T extends Serializable & Cloneable> List<ConfigurationItem<T>> ofList(
             @NotNull List<T> items, @NotNull OriginProvider<? super T> originProvider) {
         return items.stream()
                 .map(i -> of(i, originProvider.origin(i)))
@@ -96,6 +102,13 @@ public class ConfigurationItem<T extends Serializable> implements ConfigurationI
         return item -> originFor(path);
     }
 
+    /** Null-safe variant of {@link #as(Class)}. */
+    @Contract("null, _ -> null; !null, _ -> !null")
+    protected static <V extends Serializable & Cloneable, CI extends RAW_CI, RAW_CI extends ConfigurationItem<V>> CI as(
+            @Nullable RAW_CI value, @NotNull Class<CI> clazz) {
+        return value != null ? value.as(clazz) : null;
+    }
+
     @Override
     public <X extends ConfigurationItem<T>> @NotNull X as(@NotNull Class<X> clazz) {
         if (clazz.isAssignableFrom(this.getClass())) {
@@ -110,17 +123,61 @@ public class ConfigurationItem<T extends Serializable> implements ConfigurationI
         }
     }
 
-    protected <X extends Serializable> @NotNull ConfigurationItem<X> child(@NotNull X value, Object... pathSegments) {
-        return of(
-                value,
-                origin().child(pathSegments));
+    @NotNull <C extends Containerable, CI extends ConfigurationItem<C>> List<CI> children(
+            @NotNull List<C> beans, Class<CI> type, Object... pathSegments) {
+        return beans.stream()
+                .map(val ->
+                        childWithOrWithoutId(val, pathSegments)
+                                .as(type))
+                .toList();
     }
 
-    protected <X extends Containerable> @NotNull ConfigurationItem<X> childWithId(@NotNull X value, Object... pathSegments) {
+    @NotNull <X extends Serializable & Cloneable, CI extends ConfigurationItem<X>> List<CI> childrenPlain(
+            @NotNull List<X> beans, Class<CI> type, Object... pathSegments) {
+        return beans.stream()
+                .map(val ->
+                        child(val, pathSegments)
+                                .as(type))
+                .toList();
+    }
+
+    @Contract("null, _, _ -> null; !null, _, _ -> !null")
+    protected <X extends Serializable & Cloneable, CI extends ConfigurationItem<X>> CI child(
+            @Nullable X value, @NotNull Class<CI> clazz, Object... pathSegments) {
+        var ci = child(value, pathSegments);
+        return ci != null ? ci.as(clazz) : null;
+    }
+
+    @Contract("null, _ -> null; !null, _ -> !null")
+    protected <X extends Serializable & Cloneable> ConfigurationItem<X> child(@Nullable X value, Object... pathSegments) {
+        if (value != null) {
+            return of(
+                    value,
+                    origin().child(pathSegments));
+        } else {
+            return null;
+        }
+    }
+
+    private <C extends Containerable> @NotNull ConfigurationItem<C> childWithId(@NotNull C value, Object... pathSegments) {
         return of(
                 value,
                 origin().child(
                         ItemPath.create(pathSegments).append(value.asPrismContainerValue().getId())));
+    }
+
+    /** TODO better name */
+    @Contract("null, _ -> null; !null, _ -> !null")
+    <C extends Containerable> ConfigurationItem<C> childWithOrWithoutId(@Nullable C value, Object... pathSegments) {
+        if (value != null) {
+            if (value.asPrismContainerValue().getId() != null) {
+                return childWithId(value, pathSegments);
+            } else {
+                return child(value, pathSegments);
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -139,6 +196,18 @@ public class ConfigurationItem<T extends Serializable> implements ConfigurationI
     @Override
     public int hashCode() {
         return Objects.hash(value, origin);
+    }
+
+    /**
+     * Intentionally not calling super.clone, as the value is final (and we have to clone it); so we would have
+     * to hack this using reflection turning off the `final` flag.
+     */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public ConfigurationItem<T> clone() {
+        return new ConfigurationItem<>(
+                CloneUtil.cloneCloneable(value),
+                origin);
     }
 
     @Override

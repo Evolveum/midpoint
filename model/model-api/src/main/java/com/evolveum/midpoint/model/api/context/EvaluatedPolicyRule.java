@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.api.context;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +42,8 @@ public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
      */
     <T extends EvaluatedPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type);
 
-    String getName();
+    /** Name of the policy rule, as configured. */
+    @Nullable String getName();
 
     @NotNull PolicyRuleType getPolicyRule();
 
@@ -70,7 +73,8 @@ public interface EvaluatedPolicyRule extends AssociatedPolicyRule {
 
     boolean containsEnabledAction();
 
-    Collection<PolicyActionType> getEnabledActions();
+    /** Returns all enabled actions. Fails if they were not computed yet. */
+    Collection<? extends PolicyActionConfigItem<?>> getEnabledActions();
 
     default boolean hasThreshold() {
         return getPolicyRule().getPolicyThreshold() != null; // refine this if needed

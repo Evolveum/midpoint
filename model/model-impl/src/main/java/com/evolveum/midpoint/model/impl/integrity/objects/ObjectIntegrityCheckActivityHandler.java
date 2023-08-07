@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -53,6 +52,11 @@ public class ObjectIntegrityCheckActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return ObjectIntegrityCheckWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_OBJECT_INTEGRITY_CHECK;
     }
 
     @Override
@@ -163,13 +167,14 @@ public class ObjectIntegrityCheckActivityHandler
         LOGGER.info("Objects processed with errors: {}", objectStatistics.getErrors());
     }
 
-    static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
+    protected static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
         @NotNull private final ObjectSetType objects;
         private final int histogramColumns;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var typedDefinition = (ObjectIntegrityCheckWorkDefinitionType) source.getBean();
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (ObjectIntegrityCheckWorkDefinitionType) info.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             histogramColumns = MoreObjects.firstNonNull(typedDefinition.getHistogramColumns(), DEFAULT_HISTOGRAM_COLUMNS);
         }

@@ -78,18 +78,17 @@ public final class DelegatingActivityRun<
 
         delegationState = determineDelegationState(result);
 
-        switch (delegationState) {
-            case NOT_DELEGATED_YET:
+        return switch (delegationState) {
+            case NOT_DELEGATED_YET -> {
                 delegate(result);
-                return ActivityRunResult.waiting();
-            case DELEGATED_IN_PROGRESS:
-                return ActivityRunResult.waiting();
-            case DELEGATED_COMPLETE:
+                yield ActivityRunResult.waiting();
+            }
+            case DELEGATED_IN_PROGRESS -> ActivityRunResult.waiting();
+            case DELEGATED_COMPLETE -> {
                 assert childTask != null;
-                return ActivityRunResult.finished(childTask.getResultStatus());
-            default:
-                throw new AssertionError(delegationState);
-        }
+                yield ActivityRunResult.finished(childTask.getResultStatus());
+            }
+        };
     }
 
     private @NotNull DelegationState determineDelegationState(OperationResult result) throws ActivityRunException {

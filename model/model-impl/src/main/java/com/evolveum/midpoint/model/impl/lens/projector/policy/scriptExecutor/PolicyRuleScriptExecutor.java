@@ -121,19 +121,19 @@ public class PolicyRuleScriptExecutor {
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPTS_FROM_RULES);
         try (RunAsRunner runAsRunner = runAsRunnerFactory.runner()) {
             for (EvaluatedPolicyRuleImpl rule : rules) {
-                List<ScriptExecutionPolicyActionType> enabledActions =
-                        rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
+                var enabledActions = rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
                 LOGGER.trace("Rule {} has {} enabled script execution actions", rule, enabledActions.size());
-                for (ScriptExecutionPolicyActionType action : enabledActions) {
+                for (var action : enabledActions) {
                     ActionContext actx = new ActionContext(action, rule, context, task, this);
                     try {
                         // We should consider ordering actions to be executed by runAsRef to avoid unnecessary context switches.
                         runAsRunner.runAs(
                                 () -> executeScriptingAction(actx, result),
-                                actx.action.getRunAsRef(),
+                                actx.action.getRunAsRef(), // FIXME privileges!
                                 result);
                     } catch (CommonException e) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute scripting action - continuing with others (if present)", e);
+                        LoggingUtils.logUnexpectedException(
+                                LOGGER, "Couldn't execute scripting action - continuing with others (if present)", e);
                     }
                 }
             }

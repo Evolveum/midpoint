@@ -12,12 +12,14 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliation;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.*;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -190,7 +193,7 @@ public class TaskActivityManager {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile workers for activity path '{}' in {}/{}", e, path,
                     coordinatorTaskBean, rootTask);
             result.recordFatalError(e);
-            return new WorkersReconciliationResultType(prismContext)
+            return new WorkersReconciliationResultType()
                     .status(OperationResultStatusType.FATAL_ERROR);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -334,5 +337,25 @@ public class TaskActivityManager {
         } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete state for activity path '{}' in {}", e, activityPath, task);
         }
+    }
+
+    /**
+     * Computes affected objects for a given activity definition, either simple or composite.
+     *
+     * The returned value may be null if the definition does not contain any interpretable affected objects specification.
+     * If not null, the returned value is always parent-less, i.e. embeddable into any other prism object, and freely modifiable
+     * by the client.
+     */
+    public @Nullable TaskAffectedObjectsType computeAffectedObjects(@Nullable ActivityDefinitionType activityDefinitionBean)
+            throws SchemaException, ConfigurationException {
+        if (activityDefinitionBean == null) {
+            return null;
+        }
+        // The origin has no use here; but we need to provide any.
+        var workDefinition = WorkDefinition.fromBean(activityDefinitionBean, ConfigurationItemOrigin.undetermined());
+        if (workDefinition == null) {
+            return null;
+        }
+        return workDefinition.getAffectedObjects();
     }
 }

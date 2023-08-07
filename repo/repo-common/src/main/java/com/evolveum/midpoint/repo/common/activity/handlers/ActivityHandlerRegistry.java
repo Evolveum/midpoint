@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
@@ -55,9 +56,12 @@ public class ActivityHandlerRegistry {
      * Registers both the work definition factory and the activity handler.
      */
     public void register(
-            QName typeName, Class<? extends WorkDefinition> definitionClass,
-            WorkDefinitionFactory.WorkDefinitionSupplier supplier, ActivityHandler<?, ?> activityHandler) {
-        workDefinitionFactory.registerSupplier(typeName, supplier);
+            @NotNull QName typeName,
+            @NotNull QName itemName,
+            @NotNull Class<? extends WorkDefinition> definitionClass,
+            @NotNull WorkDefinitionFactory.WorkDefinitionSupplier supplier,
+            @NotNull ActivityHandler<?, ?> activityHandler) {
+        workDefinitionFactory.registerSupplier(typeName, itemName, supplier);
         registerHandler(definitionClass, activityHandler);
     }
 
@@ -107,7 +111,9 @@ public class ActivityHandlerRegistry {
      */
     public @Nullable ActivityHandler<?, ?> getHandler(@NotNull ActivityDefinitionType activityDefinitionBean)
             throws SchemaException, ConfigurationException {
-        AbstractWorkDefinition parsedDefinition = ActivityDefinition.fromBean(activityDefinitionBean);
+        // the origin is not important here (bean is used only to get the definition class)
+        AbstractWorkDefinition parsedDefinition =
+                WorkDefinition.fromBean(activityDefinitionBean, ConfigurationItemOrigin.undetermined());
         if (parsedDefinition == null) {
             return null;
         }

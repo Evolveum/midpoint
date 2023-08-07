@@ -2311,4 +2311,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @NotNull SimulationResultManager.SimulatedFunctionCall<X> functionCall) throws CommonException {
         return simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, functionCall);
     }
+
+    @Override
+    public void checkScriptingAuthorization(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
+    }
 }

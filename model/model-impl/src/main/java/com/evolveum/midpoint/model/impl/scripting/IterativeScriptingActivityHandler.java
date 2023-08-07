@@ -10,8 +10,6 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -19,12 +17,13 @@ import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
@@ -49,6 +48,11 @@ public class IterativeScriptingActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return IterativeScriptingWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_ITERATIVE_SCRIPTING;
     }
 
     @Override
@@ -101,20 +105,24 @@ public class IterativeScriptingActivityHandler
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityRunException {
+                throws CommonException {
             executeScriptOnObject(object, workerTask, result);
             return true;
         }
 
         private void executeScriptOnObject(ObjectType object, RunningTask workerTask, OperationResult result)
                 throws CommonException {
-            ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
-            executeScriptRequest.setInput(new ValueListType().value(object));
-            ScriptExecutionResult executionResult = getActivityHandler().scriptingService.evaluateExpression(executeScriptRequest,
-                    VariablesMap.emptyMap(), false, workerTask, result);
+            ExecuteScriptConfigItem requestCloned = getWorkDefinition().getScriptExecutionRequest().clone();
+            requestCloned.value().setInput(new ValueListType().value(object));
+            ScriptExecutionResult executionResult =
+                    getActivityHandler().scriptingService.evaluateExpression(
+                            requestCloned,
+                            VariablesMap.emptyMap(),
+                            false,
+                            workerTask,
+                            result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
-            result.computeStatus();
         }
     }
 
@@ -123,8 +131,9 @@ public class IterativeScriptingActivityHandler
         @NotNull private final ObjectSetType objects;
         @NotNull private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var typedDefinition = (IterativeScriptingWorkDefinitionType) source.getBean();
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (IterativeScriptingWorkDefinitionType) info.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
@@ -139,8 +148,11 @@ public class IterativeScriptingActivityHandler
             return objects;
         }
 
-        public @NotNull ExecuteScriptType getScriptExecutionRequest() {
-            return scriptExecutionRequest;
+        public @NotNull ExecuteScriptConfigItem getScriptExecutionRequest() {
+            // note that the origin is usually only approximate here, so the "child" call is more or less useless for now
+            return ExecuteScriptConfigItem.of(
+                    scriptExecutionRequest,
+                    getOrigin().child(IterativeScriptingWorkDefinitionType.F_SCRIPT_EXECUTION_REQUEST));
         }
 
         @Override

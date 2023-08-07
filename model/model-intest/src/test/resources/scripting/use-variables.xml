@@ -5,14 +5,14 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
-
 <s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <s:execute>
+        <s:outputTypeName>xsd:string</s:outputTypeName>
+        <s:forWholeInput>true</s:forWholeInput>
         <s:script>
             <code>
                 log.info('=== Variables ===')
@@ -36,8 +36,6 @@
                 return 'ok'
             </code>
         </s:script>
-        <s:forWholeInput>true</s:forWholeInput>
-        <s:outputTypeName>xsd:string</s:outputTypeName>
     </s:execute>
     <s:variables>
         <s:variable>

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
+import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
@@ -142,23 +144,23 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     }
 
     private void collectObjectPolicyRule() {
-        PolicyRuleType policyRuleBean = segment.assignment.getPolicyRule();
-        if (policyRuleBean != null) {
-            LOGGER.trace("Collecting object policy rule '{}' in {}", policyRuleBean.getName(), segment.source);
+        var policyRule = segment.assignmentConfigItem.getPolicyRule();
+        if (policyRule != null) {
+            LOGGER.trace("Collecting object policy rule '{}' in {}", policyRule.getName(), segment.source);
             ctx.evalAssignment.addObjectPolicyRule(
-                    createEvaluatedPolicyRule(policyRuleBean, TargetType.OBJECT));
+                    createEvaluatedPolicyRule(policyRule, TargetType.OBJECT));
         }
     }
 
     private void collectTargetPolicyRule() {
-        PolicyRuleType policyRuleBean = segment.assignment.getPolicyRule();
-        if (policyRuleBean != null) {
+        var policyRule = segment.assignmentConfigItem.getPolicyRule();
+        if (policyRule != null) {
             boolean appliesDirectly = appliesDirectly(ctx.assignmentPath);
             LOGGER.trace("Collecting target policy rule '{}' in {} (applies directly = {})",
-                    policyRuleBean.getName(), segment.source, appliesDirectly);
+                    policyRule.getName(), segment.source, appliesDirectly);
             ctx.evalAssignment.addTargetPolicyRule(
                     createEvaluatedPolicyRule(
-                            policyRuleBean,
+                            policyRule,
                             appliesDirectly ? TargetType.DIRECT_ASSIGNMENT_TARGET : TargetType.INDIRECT_ASSIGNMENT_TARGET));
         }
     }
@@ -179,10 +181,9 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         return zeroOrderCount == 1;
     }
 
-    @NotNull
-    private EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleType policyRuleBean, TargetType targetType) {
+    private @NotNull EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleConfigItem policyRuleCI, TargetType targetType) {
         return new EvaluatedPolicyRuleImpl(
-                policyRuleBean.clone(),
+                policyRuleCI.clone(), // TODO why clone?
                 PolicyRuleTypeUtil.createId(segment.getSourceOid(), segment.getAssignmentId()),
                 ctx.assignmentPath.clone(),
                 ctx.evalAssignment,

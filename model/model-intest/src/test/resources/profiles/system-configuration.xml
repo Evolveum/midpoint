@@ -196,5 +196,20 @@
                 <decision>allow</decision>
             </class>
         </permissionProfile>
+        <scriptingProfile>
+            <identifier>restricted</identifier>
+            <description>
+                THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
+                DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
+            </description>
+            <decision>deny</decision>
+            <action>
+                <name>expression</name>
+                <decision>allow</decision>
+            </action>
+        </scriptingProfile>
+        <defaults>
+            <scripting>restricted</scripting>
+        </defaults>
     </expressions>
 </systemConfiguration>

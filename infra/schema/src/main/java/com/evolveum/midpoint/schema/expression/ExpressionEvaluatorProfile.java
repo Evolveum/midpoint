@@ -33,16 +33,16 @@ public class ExpressionEvaluatorProfile implements Serializable {
     @NotNull private final AccessDecision decision;
 
     /** Scripting language profiles, keyed by [full] language URI. Currently applicable only for `script` evaluator. */
-    @NotNull private final Map<String, ScriptExpressionProfile> scriptProfiles;
+    @NotNull private final Map<String, ScriptLanguageExpressionProfile> scriptLanguageProfiles;
 
     public ExpressionEvaluatorProfile(
             @NotNull QName type,
             @NotNull AccessDecision decision,
-            @NotNull List<ScriptExpressionProfile> scriptProfiles) {
+            @NotNull List<ScriptLanguageExpressionProfile> scriptLanguageProfiles) {
         this.type = type;
         this.decision = decision;
-        this.scriptProfiles =
-                scriptProfiles.stream()
+        this.scriptLanguageProfiles =
+                scriptLanguageProfiles.stream()
                         .collect(Collectors.toUnmodifiableMap(p -> p.getLanguage(), p -> p));
     }
 
@@ -54,7 +54,7 @@ public class ExpressionEvaluatorProfile implements Serializable {
         return decision;
     }
 
-    public @Nullable ScriptExpressionProfile getScriptExpressionProfile(@NotNull String language) {
-        return scriptProfiles.get(language);
+    public @Nullable ScriptLanguageExpressionProfile getScriptExpressionProfile(@NotNull String language) {
+        return scriptLanguageProfiles.get(language);
     }
 }

@@ -107,7 +107,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                 LOGGER.trace("Collecting global policy rule '{}' ({})", ruleCI.getName(), ruleWithId.ruleId());
                 rules.add(
                         new EvaluatedPolicyRuleImpl(
-                                ruleCI.value().clone(), ruleWithId.ruleId(), null, TargetType.OBJECT));
+                                ruleCI.clone(), ruleWithId.ruleId(), null, TargetType.OBJECT));
                 globalRulesFound++;
             } else {
                 LOGGER.trace("Skipping global policy rule {} ({}) because the condition evaluated to false: {}",
@@ -164,7 +164,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                             ruleCI.getName(), evaluatedAssignment, target, appliesDirectlyToTarget);
                     evaluatedAssignment.addTargetPolicyRule(
                             new EvaluatedPolicyRuleImpl(
-                                    ruleCI.value().clone(),
+                                    ruleCI.clone(),
                                     ruleWithId.ruleId(),
                                     target.getAssignmentPath().clone(),
                                     evaluatedAssignment,

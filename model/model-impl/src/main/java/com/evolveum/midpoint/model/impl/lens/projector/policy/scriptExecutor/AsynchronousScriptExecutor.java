@@ -42,7 +42,8 @@ class AsynchronousScriptExecutor {
     AsynchronousScriptExecutor(@NotNull ActionContext actx) {
         this.actx = actx;
         AsynchronousScriptExecutionType asynchronousExecution = actx.action.getAsynchronousExecution();
-        AsynchronousScriptExecutionModeType mode = defaultIfNull(asynchronousExecution.getExecutionMode(), AsynchronousScriptExecutionModeType.ITERATIVE);
+        AsynchronousScriptExecutionModeType mode =
+                defaultIfNull(asynchronousExecution.getExecutionMode(), AsynchronousScriptExecutionModeType.ITERATIVE);
         this.taskCreator = createTaskCreator(actx, mode);
     }
 

@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.tasks.cluster;
 
+import javax.xml.datatype.Duration;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAutoScalingWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.Duration;
 
 public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
@@ -27,8 +27,9 @@ public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements
     private final Duration maxReconciliationInterval;
     private final boolean skipInitialReconciliation;
 
-    AutoScalingWorkDefinition(@NotNull WorkDefinitionBean source) {
-        var typedDefinition = (ActivityAutoScalingWorkDefinitionType) source.getBean();
+    AutoScalingWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        var typedDefinition = (ActivityAutoScalingWorkDefinitionType) info.getBean();
 
         tasks = ObjectSetUtil.emptyIfNull(typedDefinition.getTasks());
         ObjectSetUtil.assumeObjectType(tasks, TaskType.COMPLEX_TYPE);

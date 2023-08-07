@@ -10,6 +10,8 @@
         xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:execute>
+        <s:outputItemName>task</s:outputItemName>
+        <s:forWholeInput>true</s:forWholeInput>
         <s:script>
             <code>
                 import javax.xml.namespace.*
@@ -20,7 +22,5 @@
                 return [newTask1, newTask2]
             </code>
         </s:script>
-        <s:forWholeInput>true</s:forWholeInput>
-        <s:outputItemName>task</s:outputItemName>
     </s:execute>
 </s:executeScript>

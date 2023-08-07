@@ -10,6 +10,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -575,5 +577,51 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
                 .filter(op -> operation.equals(op.getName()))
                 .mapToInt(op -> or0(op.getInvocationCount()))
                 .sum();
+    }
+
+    public TaskAsserter<RA> assertNoAffectedObjects() {
+        assertThat(getObjectable().getAffectedObjects()).as("affected objects").isNull();
+        return this;
+    }
+
+    public TaskAsserter<RA> assertAffectedObjects(QName activityTypeName, QName objectType, @Nullable String archetypeOid) {
+        ActivityAffectedObjectsType activityAffected = getSingleActivityAffectedObjects();
+        assertThat(activityAffected.getResourceObjects()).as("resource objects").isNull();
+        BasicObjectSetType objects = activityAffected.getObjects();
+        assertThat(activityAffected.getActivityType()).as("activity").isEqualTo(activityTypeName);
+        assertThat(objects).as("objects").isNotNull();
+        assertThat(objects.getType()).as("objects type").isEqualTo(objectType);
+        assertThat(Referencable.getOid(objects.getArchetypeRef()))
+                .as("archetype OID")
+                .isEqualTo(archetypeOid);
+        return this;
+    }
+
+    private ActivityAffectedObjectsType getSingleActivityAffectedObjects() {
+        var affected = getObjectable().getAffectedObjects();
+        assertThat(affected).as("task-affected objects").isNotNull();
+        assertThat(affected.getActivity()).as("activity-affected records").hasSize(1);
+        return affected.getActivity().get(0);
+    }
+
+    public TaskAsserter<RA> assertAffectedObjects(
+            QName activityTypeName, String resourceOid, ShadowKindType kind, String intent, QName objectClassName) {
+        ActivityAffectedObjectsType activityAffected = getSingleActivityAffectedObjects();
+        assertThat(activityAffected.getObjects()).as("objects").isNull();
+        var resourceObjects = activityAffected.getResourceObjects();
+        assertThat(activityAffected.getActivityType()).as("activity").isEqualTo(activityTypeName);
+        assertThat(Referencable.getOid(resourceObjects.getResourceRef()))
+                .as("resource OID")
+                .isEqualTo(resourceOid);
+        assertThat(resourceObjects.getKind()).as("kind").isEqualTo(kind);
+        assertThat(resourceObjects.getIntent()).as("intent").isEqualTo(intent);
+        assertThat(resourceObjects.getObjectclass()).as("OC name").isEqualTo(objectClassName);
+        return this;
+    }
+
+    public TaskAsserter<RA> assertAffectedObjects(TaskAffectedObjectsType expected) {
+        var affected = getObjectable().getAffectedObjects();
+        assertThat(affected).as("affected objects").isEqualTo(expected);
+        return this;
     }
 }

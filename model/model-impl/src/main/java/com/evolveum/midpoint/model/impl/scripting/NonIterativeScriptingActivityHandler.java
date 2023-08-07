@@ -8,11 +8,10 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +19,9 @@ import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -28,9 +29,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonIterativeScriptingWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
 /**
@@ -51,7 +50,7 @@ public class NonIterativeScriptingActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE,
+                NonIterativeScriptingWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_NON_ITERATIVE_SCRIPTING,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
@@ -98,7 +97,6 @@ public class NonIterativeScriptingActivityHandler
         @Override
         protected @NotNull ActivityRunResult runLocally(OperationResult parentResult) throws CommonException {
             RunningTask runningTask = getRunningTask();
-            ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
             runningTask.setExecutionSupport(this);
 
             // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
@@ -107,7 +105,7 @@ public class NonIterativeScriptingActivityHandler
                 ScriptExecutionResult executionResult =
                         getActivityHandler().scriptingService
                                 .evaluateExpression(
-                                        executeScriptRequest,
+                                        getWorkDefinition().getScriptExecutionRequest(),
                                         VariablesMap.emptyMap(),
                                         true,
                                         runningTask,
@@ -127,17 +125,26 @@ public class NonIterativeScriptingActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition {
 
-        private final ExecuteScriptType scriptExecutionRequest;
+        @NotNull private final ExecuteScriptType scriptExecutionRequest;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var typedDefinition = (NonIterativeScriptingWorkDefinitionType) source.getBean();
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (NonIterativeScriptingWorkDefinitionType) info.getBean();
             scriptExecutionRequest = typedDefinition.getScriptExecutionRequest();
             argCheck(scriptExecutionRequest != null, "No script execution request provided");
             argCheck(scriptExecutionRequest.getScriptingExpression() != null, "No scripting expression provided");
         }
 
-        public ExecuteScriptType getScriptExecutionRequest() {
-            return scriptExecutionRequest;
+        public @NotNull ExecuteScriptConfigItem getScriptExecutionRequest() {
+            // note that the origin is usually only approximate here, so the "child" call is more or less useless for now
+            return ExecuteScriptConfigItem.of(
+                    scriptExecutionRequest,
+                    getOrigin().child(NonIterativeScriptingWorkDefinitionType.F_SCRIPT_EXECUTION_REQUEST));
+        }
+
+        @Override
+        public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+            return null; // not feasibly describable (only by some kind of "in oid" filter)
         }
 
         @Override

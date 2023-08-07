@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType.F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP;
 
 import java.util.ArrayList;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -31,10 +34,6 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReconciliationWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @Component
 public class ReconciliationActivityHandler
@@ -54,7 +53,7 @@ public class ReconciliationActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ReconciliationWorkDefinitionType.COMPLEX_TYPE,
+                ReconciliationWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_RECONCILIATION,
                 ReconciliationWorkDefinition.class, ReconciliationWorkDefinition::new, this);
     }
 

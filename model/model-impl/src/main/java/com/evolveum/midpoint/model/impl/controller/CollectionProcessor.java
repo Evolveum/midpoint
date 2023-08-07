@@ -9,10 +9,14 @@ package com.evolveum.midpoint.model.impl.controller;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.AbstractAssignmentConfigItem;
+import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
+import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
@@ -98,7 +102,11 @@ public class CollectionProcessor {
             PolicyRuleType policyRuleBean = assignmentBean.getPolicyRule();
             if (policyRuleBean != null) {
                 evaluatedPolicyRules.add(
-                        evaluatePolicyRule(collection, collectionView, assignmentBean, policyRuleBean, task, result));
+                        evaluatePolicyRule(
+                                collection,
+                                collectionView,
+                                AssignmentConfigItem.of(assignmentBean, OriginProvider.embedded()),
+                                task, result));
             }
         }
         return evaluatedPolicyRules;
@@ -106,14 +114,13 @@ public class CollectionProcessor {
 
     /**
      * Very simple implementation, needs to be extended later.
-     * !!! Assumes that assignment is physically the part of the collection prism object!!!
+     * Assumes the assignment has a policy rule.
      */
     @NotNull
     private EvaluatedPolicyRule evaluatePolicyRule(
             @NotNull PrismObject<ObjectCollectionType> collection,
             @NotNull CompiledObjectCollectionView collectionView,
-            @NotNull AssignmentType assignmentBean,
-            @NotNull PolicyRuleType policyRuleBean,
+            @NotNull AbstractAssignmentConfigItem assignmentCI,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
@@ -122,8 +129,8 @@ public class CollectionProcessor {
         AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
                 .source(collection.asObjectable())
                 .sourceDescription("object collection " + collection)
-                .assignment(assignmentBean)
-                .assignmentOrigin(ConfigurationItemOrigin.embedded(assignmentBean))
+                .assignment(assignmentCI.value())
+                .assignmentOrigin(assignmentCI.origin())
                 .isAssignment()
                 .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
@@ -135,17 +142,18 @@ public class CollectionProcessor {
         assignmentPath.add(assignmentPathSegment);
 
         // Generated proforma - actually not much needed for now.
-        String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentBean.getId());
+        String ruleId = PolicyRuleTypeUtil.createId(collection.getOid(), assignmentCI.value().getId());
 
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule =
-                new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ruleId, assignmentPath, TargetType.OBJECT);
+        PolicyRuleConfigItem policyRule = Objects.requireNonNull(assignmentCI.getPolicyRule());
+        EvaluatedPolicyRuleImpl evaluatedPolicyRule = // TODO why cloning here?
+                new EvaluatedPolicyRuleImpl(policyRule.clone(), ruleId, assignmentPath, TargetType.OBJECT);
 
-        PolicyConstraintsType policyConstraints = policyRuleBean.getPolicyConstraints();
+        PolicyConstraintsType policyConstraints = policyRule.value().getPolicyConstraints();
         if (policyConstraints == null) {
             return evaluatedPolicyRule;
         }
 
-        PolicyThresholdType policyThreshold = policyRuleBean.getPolicyThreshold();
+        PolicyThresholdType policyThreshold = policyRule.value().getPolicyThreshold();
 
         for (CollectionStatsPolicyConstraintType collectionStatsPolicy : policyConstraints.getCollectionStats()) {
             CollectionStats stats = determineCollectionStats(collectionView, task, result);

@@ -40,7 +40,7 @@ public class FocalAutoassignSpecificationConfigItem extends ConfigurationItem<Fo
         return value().getMapping().stream()
                 .map(val ->
                         new AutoAssignMappingConfigItem(
-                                childWithId(val, FocalAutoassignSpecificationType.F_MAPPING)))
+                                childWithOrWithoutId(val, FocalAutoassignSpecificationType.F_MAPPING)))
                 .toList();
     }
 }
