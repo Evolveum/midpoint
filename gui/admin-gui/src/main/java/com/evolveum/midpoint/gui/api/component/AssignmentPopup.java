@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -517,7 +518,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
     }
 
     protected List<ObjectTypes> getObjectTypesList() {
-        return WebComponentUtil.createAssignableTypesList();
+        return ObjectTypeListUtil.createAssignableTypesList();
     }
 
     protected boolean isEntitlementAssignment() {

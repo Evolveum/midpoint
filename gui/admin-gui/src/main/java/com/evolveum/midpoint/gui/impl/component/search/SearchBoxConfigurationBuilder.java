@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -34,7 +37,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -398,15 +400,15 @@ public class SearchBoxConfigurationBuilder {
             case ORG_MEMBER_GOVERNANCE:
             case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
-                return WebComponentUtil.createFocusTypeList();
+                return ObjectTypeListUtil.createFocusTypeList();
             case ORG_MEMBER_MEMBER:
             case MEMBER_ORGANIZATION:
             case ARCHETYPE_MEMBER_MEMBER:
-                List<QName> supportedObjectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
+                List<QName> supportedObjectTypes = ObjectTypeListUtil.createAssignmentHolderTypeQnamesList();
                 supportedObjectTypes.remove(AssignmentHolderType.COMPLEX_TYPE);
                 return supportedObjectTypes;
             case DEBUG:
-                return WebComponentUtil.createObjectTypesList().stream()
+                return ObjectTypeListUtil.createObjectTypesList().stream()
                         .map(type -> type.getTypeQName()).collect(Collectors.toList());
             case ASSIGNABLE:
                 return Arrays.asList(

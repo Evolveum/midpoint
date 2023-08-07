@@ -1,10 +1,5 @@
 <query>
     <filter>
-        <substring>
-            <matching>stringIgnoreCase</matching> <!-- emailAddress is a plain string (not a PolyString), so we use this matching rule -->
-            <path>emailAddress</path>
-            <value>@example.com</value>
-            <anchorEnd>true</anchorEnd>
-        </substring>
+        <text>emailAddress endsWith[stringIgnoreCase] '@example.com'</text> <!-- emailAddress is a plain string (not a PolyString), so we use this matching rule -->
     </filter>
 </query>

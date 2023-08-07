@@ -217,7 +217,6 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.api.ChangesByState;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -848,155 +847,21 @@ public final class WebComponentUtil {
         return (int) l.longValue();
     }
 
-    // TODO: move to schema component
-    public static List<QName> createObjectTypeList() {
-        return createObjectTypesList().stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
-
-    }
-
-    public static List<ObjectTypes> createObjectTypesList() {
-        List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
-
-        return types.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
-
-            ObjectTypeGuiDescriptor decs1 = ObjectTypeGuiDescriptor.getDescriptor(type1);
-            ObjectTypeGuiDescriptor desc2 = ObjectTypeGuiDescriptor.getDescriptor(type2);
-
-            String localizedType1 = translate(decs1);
-            if (localizedType1 == null) {
-                localizedType1 = decs1.getLocalizationKey();
-            }
-            String localizedType2 = translate(desc2);
-            if (localizedType2 == null) {
-                localizedType2 = desc2.getLocalizationKey();
-            }
-
-            Collator collator = Collator.getInstance(getCurrentLocale());
-            collator.setStrength(Collator.PRIMARY);
-
-            return collator.compare(localizedType1, localizedType2);
-
-        }).collect(Collectors.toList());
-    }
-
-    private static String translate(ObjectTypeGuiDescriptor descriptor) {
-        MidPointApplication app = MidPointApplication.get();
-        String translatedValue = app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
-        return translatedValue != null ? translatedValue : descriptor.getLocalizationKey();
-    }
-
-    public static List<QName> createContainerableTypesQnameList() {
-        List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
-        List<QName> qnameList = types.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
-        //todo create enum for containerable types?
-        qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
-        qnameList.add(AccessCertificationCaseType.COMPLEX_TYPE);
-        qnameList.add(CaseWorkItemType.COMPLEX_TYPE);
-        return qnameList.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
-
-            String key1 = "ObjectType." + type1.getLocalPart();
-            String localizedType1 = createStringResourceStatic(key1).getString();
-            if (StringUtils.isEmpty(localizedType1) || localizedType1.equals(key1)) {
-                localizedType1 = type1.getLocalPart();
-            }
-            String key2 = "ObjectType." + type2.getLocalPart();
-            String localizedType2 = createStringResourceStatic(key2).getString();
-            if (StringUtils.isEmpty(localizedType2) || localizedType1.equals(key2)) {
-                localizedType2 = type2.getLocalPart();
-            }
-
-            Collator collator = Collator.getInstance(getCurrentLocale());
-            collator.setStrength(Collator.PRIMARY);
-
-            return collator.compare(localizedType1, localizedType2);
-
-        }).collect(Collectors.toList());
-    }
-
-    public static List<QName> createAssignmentHolderTypeQnamesList() {
-
-        List<ObjectTypes> objectTypes = createAssignmentHolderTypesList();
-        return objectTypes.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
-    }
-
-    public static List<ObjectTypes> createAssignmentHolderTypesList() {
-        return createObjectTypesList().stream().filter(type -> AssignmentHolderType.class.isAssignableFrom(type.getClassDefinition())).collect(Collectors.toList());
-    }
-
-    // TODO: move to schema component
-    public static List<QName> createFocusTypeList() {
-        return createFocusTypeList(false);
-    }
-
-    public static List<QName> createFocusTypeList(boolean includeAbstractType) {
-        List<QName> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(UserType.COMPLEX_TYPE);
-        focusTypeList.add(OrgType.COMPLEX_TYPE);
-        focusTypeList.add(RoleType.COMPLEX_TYPE);
-        focusTypeList.add(ServiceType.COMPLEX_TYPE);
-
-        if (includeAbstractType) {
-            focusTypeList.add(FocusType.COMPLEX_TYPE);
-        }
-
-        return focusTypeList;
-    }
-
-    // TODO: move to schema component
-    public static List<QName> createAbstractRoleTypeList() {
-        List<QName> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(AbstractRoleType.COMPLEX_TYPE);
-        focusTypeList.add(OrgType.COMPLEX_TYPE);
-        focusTypeList.add(RoleType.COMPLEX_TYPE);
-        focusTypeList.add(ServiceType.COMPLEX_TYPE);
-
-        return focusTypeList;
-    }
-
-    public static List<ObjectTypes> createAssignableTypesList() {
-        List<ObjectTypes> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(ObjectTypes.RESOURCE);
-        focusTypeList.add(ObjectTypes.ORG);
-        focusTypeList.add(ObjectTypes.ROLE);
-        focusTypeList.add(ObjectTypes.SERVICE);
-
-        return focusTypeList;
-    }
-
-    public static List<QName> createAvailableNewObjectsTypesList() {
-        List<QName> objectTypesList = new ArrayList<>();
-
-        OBJECT_DETAILS_PAGE_MAP.keySet().forEach(type -> {
-            if (type.equals(ShadowType.class) || type.equals(ValuePolicyType.class) || type.equals(CaseType.class)) {
-                return;
-            }
-            objectTypesList.add(ObjectTypes.getObjectType(type).getTypeQName());
-        });
-        return objectTypesList;
-    }
-
     public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
         if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createObjectTypeList();
+            return ObjectTypeListUtil.createObjectTypeList();
         }
 
         if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createAbstractRoleTypeList();
+            return ObjectTypeListUtil.createAbstractRoleTypeList();
         }
 
         if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createFocusTypeList();
+            return ObjectTypeListUtil.createFocusTypeList();
         }
 
         if (AssignmentHolderType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createAssignmentHolderTypeQnamesList();
+            return ObjectTypeListUtil.createAssignmentHolderTypeQnamesList();
         }
 
         return Collections.singletonList(targetTypeFromDef);
@@ -1017,11 +882,11 @@ public final class WebComponentUtil {
         List<QName> concreteTypes = new ArrayList<>(types.size());
         for (Class<? extends O> type : types) {
             if (type == null || type.equals(ObjectType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, createObjectTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createObjectTypeList());
             } else if (type.equals(FocusType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, createFocusTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createFocusTypeList());
             } else if (type.equals(AbstractRoleType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, createAbstractRoleTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createAbstractRoleTypeList());
             } else {
                 MiscUtil.addIfNotPresent(concreteTypes, classToQName(prismContext, type));
             }

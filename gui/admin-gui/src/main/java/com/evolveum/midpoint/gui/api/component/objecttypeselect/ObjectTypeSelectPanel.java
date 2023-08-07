@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.api.component.objecttypeselect;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.behavior.Behavior;
@@ -15,8 +14,8 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -45,17 +44,17 @@ public class ObjectTypeSelectPanel<O extends ObjectType> extends BasePanel<QName
                     @Override
                     public List<QName> getObject() {
                         if (superclass == null || superclass == ObjectType.class) {
-                            return WebComponentUtil.createObjectTypeList();
+                            return ObjectTypeListUtil.createObjectTypeList();
                         }
                         if (superclass == FocusType.class) {
-                            return WebComponentUtil.createFocusTypeList();
+                            return ObjectTypeListUtil.createFocusTypeList();
                         }
                         if (superclass == AbstractRoleType.class) {
-                            return WebComponentUtil.createAbstractRoleTypeList();
+                            return ObjectTypeListUtil.createAbstractRoleTypeList();
                         }
                         throw new IllegalArgumentException("Unknown superclass "+superclass);
                     }
-            }, new QNameChoiceRenderer());
+            }, new QNameObjectTypeChoiceRenderer());
         select.setNullValid(true);
 
         add(select);

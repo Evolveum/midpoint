@@ -1,26 +1,5 @@
 <query>
     <filter>
-        <or>
-            <and>
-                <greater>
-                    <path>costCenter</path>
-                    <value>100000</value>
-                </greater>
-                <less>
-                    <path>costCenter</path>
-                    <value>999999</value>
-                </less>
-            </and>
-            <and>
-                <greaterOrEqual>
-                    <path>costCenter</path>
-                    <value>X100</value>
-                </greaterOrEqual>
-                <lessOrEqual>
-                    <path>costCenter</path>
-                    <value>X999</value>
-                </lessOrEqual>
-            </and>
-        </or>
+        <text>(costCenter > '100000' and costCenter < '999999') or (costCenter >= 'X100' and costCenter <= 'X999')</text>
     </filter>
 </query>
