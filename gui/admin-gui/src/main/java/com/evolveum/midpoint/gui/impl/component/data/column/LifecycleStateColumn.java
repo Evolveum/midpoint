@@ -20,9 +20,9 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-public class SimulationModeColumn<C extends Containerable> extends PrismPropertyWrapperColumn<C, String> {
+public class LifecycleStateColumn<C extends Containerable> extends PrismPropertyWrapperColumn<C, String> {
 
-    public SimulationModeColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, PageBase pageBase) {
+    public LifecycleStateColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, PageBase pageBase) {
         super(mainModel, ObjectType.F_LIFECYCLE_STATE, ColumnType.VALUE, pageBase);
     }
 
@@ -33,8 +33,8 @@ public class SimulationModeColumn<C extends Containerable> extends PrismProperty
         return panel;
     }
 
-    @Override
-    public Component getHeader(String componentId) {
-        return new Label(componentId, getPageBase().createStringResource("PrismPropertyWrapperColumn.column.mode"));
-    }
+//    @Override
+//    public Component getHeader(String componentId) {
+//        return new Label(componentId, getPageBase().createStringResource("PrismPropertyWrapperColumn.column.mode"));
+//    }
 }
