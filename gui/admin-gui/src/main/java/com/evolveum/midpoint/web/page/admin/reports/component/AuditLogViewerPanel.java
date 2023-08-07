@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -85,6 +87,13 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
     public AuditLogViewerPanel(String id, ContainerPanelConfigurationType configuration) {
         super(id, AuditEventRecordType.class, configuration);
+    }
+
+    @Override
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setHistory(isObjectHistoryPanel());
+        return ctx;
     }
 
     @Override
