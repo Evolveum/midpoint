@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 
 import org.apache.commons.csv.CSVFormat;
@@ -89,7 +90,16 @@ public class ImportController {
         this.compiledCollection = compiledCollection;
         ReportBehaviorType behavior = report.getBehavior();
         ExecuteScriptType importScript = behavior != null ? behavior.getImportScript() : null;
-        this.script = importScript != null ? ExecuteScriptConfigItem.embedded(importScript) : null;
+        if (importScript != null) {
+            // We cannot use "embedded" origin for property real values, as they have no notion of the parent.
+            // Hence, we have to start with the origin "behavior" (containerable), and derive our origin from it.
+            ConfigurationItemOrigin origin =
+                    ConfigurationItemOrigin.embedded(behavior)
+                            .child(ReportBehaviorType.F_IMPORT_SCRIPT);
+            this.script = ExecuteScriptConfigItem.of(importScript, origin);
+        } else {
+            this.script = null;
+        }
         this.support = new CommonCsvSupport(report.getFileFormat());
     }
 
