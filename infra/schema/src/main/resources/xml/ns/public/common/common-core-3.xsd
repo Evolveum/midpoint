@@ -5347,9 +5347,14 @@
                             Specifies if the mapping is enabled and is being evaluated. Default
                             value is true. It means, that each defined mapping is by default enabled.
                             To skip mapping evaluation, it has to be set to false.
+
+                            DEPRECATED. Use value DRAFT for lifecycleState element, that means same behaviour.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
                         <a:displayName>MappingType.enabled</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
