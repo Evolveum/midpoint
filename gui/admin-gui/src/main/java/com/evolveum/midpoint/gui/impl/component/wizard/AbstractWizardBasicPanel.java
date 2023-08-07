@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
@@ -207,6 +208,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
 
     protected void onExitPerformed(AjaxRequestTarget target) {
         removeLastBreadcrumb();
+        getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
     }
 
     protected void addCustomButtons(RepeatingView buttons) {
