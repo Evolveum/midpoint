@@ -70,7 +70,7 @@ public class TestUtil {
      */
     public static final String NON_EXISTENT_OID = "4e4f4e5f-4558-4953-5445-4e545f4f4944";
 
-    private static final boolean checkResults = true;
+    private static boolean checkResults = true;
 
     private static DatatypeFactory datatypeFactory = null;
 
