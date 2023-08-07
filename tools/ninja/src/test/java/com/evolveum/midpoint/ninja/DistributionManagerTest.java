@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.ninja;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.fusesource.jansi.AnsiConsole;
 import org.testng.AssertJUnit;
@@ -45,6 +46,11 @@ public class DistributionManagerTest {
     @Test(enabled = false)
     public void downloadLatest() throws Exception {
         downloadAndAssert(DistributionManager.LATEST_VERSION);
+    }
+
+    @Test(expectedExceptions = IOException.class, enabled = false)
+    public void downloadUnknown() throws Exception {
+        downloadAndAssert("unknown");
     }
 
     private void downloadAndAssert(String version) throws Exception {

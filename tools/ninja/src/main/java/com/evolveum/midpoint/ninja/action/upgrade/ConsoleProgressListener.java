@@ -7,48 +7,81 @@
 
 package com.evolveum.midpoint.ninja.action.upgrade;
 
-import java.io.PrintStream;
+import static com.evolveum.midpoint.ninja.util.ConsoleFormat.*;
+
 import java.text.DecimalFormat;
 
 import org.apache.commons.io.FileUtils;
-import org.fusesource.jansi.Ansi;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+
+import com.evolveum.midpoint.ninja.impl.Log;
+import com.evolveum.midpoint.ninja.impl.LogLevel;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class ConsoleProgressListener implements ProgressListener {
 
-    private static final DecimalFormat FORMAT = new DecimalFormat("###");
+    private static final DecimalFormat PROGRESS_FORMAT = new DecimalFormat("###");
 
-    private PrintStream stream;
+    private static final DecimalFormat SPEED_FORMAT = new DecimalFormat("####.##");
 
-    boolean firstUpdate = true;
+    private final Log log;
 
-    double progress = 0;
+    private boolean firstUpdate = true;
 
-    public ConsoleProgressListener(PrintStream stream) {
-        this.stream = stream;
+    private long startTime;
+
+    private long lastReportTime;
+
+    public ConsoleProgressListener(Log log) {
+        this.log = log;
     }
 
     @Override
     public void update(long bytesRead, long contentLength, boolean done) {
         if (done) {
-            stream.println(Ansi.ansi().cursorUpLine().eraseLine().fgGreen().a("Download complete").reset());
+            log.info(
+                    rewriteConsoleLine(
+                            formatLogMessage(LogLevel.INFO,
+                                    formatSuccessMessage("Download complete"))));
             return;
         }
 
         if (firstUpdate) {
             firstUpdate = false;
 
+            startTime = System.currentTimeMillis();
+
             String size = contentLength == -1 ? "unknown" : FileUtils.byteCountToDisplaySize(contentLength);
 
-            stream.println(Ansi.ansi().fgBlack().a("Download size: " + size).reset());
-            // this empy line will be removed with progress update
-            stream.println();
+            log.info(formatMessageWithInfoParameters("Download size: {}", size));
+
+            // this empty line will be removed with progress update
+            log.info(logProgress(bytesRead, contentLength));
+            lastReportTime = System.currentTimeMillis();
         }
 
-        double newProgress = (double) (100 * bytesRead) / contentLength;
-        if (newProgress - progress > 1) {
-            stream.println(Ansi.ansi().cursorUpLine().eraseLine(Ansi.Erase.ALL).a("Progress: ").fgBlue().a(FORMAT.format(newProgress)).a("%").reset());
-
-            progress = newProgress;
+        if (System.currentTimeMillis() - lastReportTime < NinjaUtils.COUNT_STATUS_LOG_INTERVAL) {
+            return;
         }
+
+        log.info(
+                rewriteConsoleLine(
+                        logProgress(bytesRead, contentLength)));
+        lastReportTime = System.currentTimeMillis();
+    }
+
+    private String logProgress(long bytesRead, long contentLength) {
+        double speed = bytesRead / ((System.currentTimeMillis() - startTime) / 1000.0);
+        double speedMB = speed / 1024 / 1024;
+        long estimatedDuration = (long) ((contentLength - bytesRead) / speed * 1000);
+
+        double progress = (double) (100 * bytesRead) / contentLength;
+
+        return formatLogMessage(LogLevel.INFO,
+                NinjaUtils.printFormatted(
+                        "Progress: {}\t{} MB/s\tETA: {}",
+                        formatMessage(PROGRESS_FORMAT.format(progress) + "%", Color.INFO),
+                        SPEED_FORMAT.format(speedMB),
+                        DurationFormatUtils.formatDurationWords(estimatedDuration, true, true)));
     }
 }

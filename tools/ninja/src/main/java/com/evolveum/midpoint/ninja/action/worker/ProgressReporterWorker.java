@@ -8,6 +8,7 @@ package com.evolveum.midpoint.ninja.action.worker;
 
 import java.util.concurrent.BlockingQueue;
 
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
@@ -24,6 +25,9 @@ public class ProgressReporterWorker<T> extends BaseWorker<Object, T> {
 
     @Override
     public void run() {
+        final Log log = context.getLog();
+        log.info("Progress reporter starting");
+
         while (!shouldConsumerStop()) {
             if (operation.isStarted() || operation.isProducerFinished()) {
                 operation.print(context.getLog());

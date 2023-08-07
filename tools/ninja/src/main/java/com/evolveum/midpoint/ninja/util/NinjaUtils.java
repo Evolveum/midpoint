@@ -12,6 +12,8 @@ import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -41,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class NinjaUtils {
 
+    public static final Pattern PATTERN = Pattern.compile("\\{}");
+
     public static final String XML_OBJECTS_PREFIX = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<c:objects xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"\n" +
             "\txmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"\n" +
@@ -54,7 +58,7 @@ public class NinjaUtils {
 
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##");
 
-    public static final long COUNT_STATUS_LOG_INTERVAL = 2 * 1000; // two seconds
+    public static final long COUNT_STATUS_LOG_INTERVAL = 500;
 
     public static final long WAIT_FOR_EXECUTOR_FINISH = 365;
 
@@ -284,5 +288,24 @@ public class NinjaUtils {
         }
 
         return line;
+    }
+
+    public static String printFormatted(String message, Object... args) {
+        Matcher matcher = PATTERN.matcher(message);
+
+        StringBuilder sb = new StringBuilder();
+
+        int i = 0;
+        while (matcher.find()) {
+            Object arg = args[i++];
+            if (arg == null) {
+                arg = "null";
+            }
+
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(arg.toString()));
+        }
+        matcher.appendTail(sb);
+
+        return sb.toString();
     }
 }
