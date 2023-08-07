@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.AccessDecision;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -66,20 +65,20 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
     }
 
     private @NotNull AccessDecision decideClass(String className, String methodName) {
-        AccessDecision decision = GroovyScriptEvaluator.decideGroovyBuiltin(className, methodName);
-        LOGGER.trace("decideClass: builtin [{},{}] : {}", className, methodName, decision);
-        if (decision != AccessDecision.DEFAULT) {
-            return decision;
+        AccessDecision builtinDecision = GroovyScriptEvaluator.decideGroovyBuiltin(className, methodName);
+        LOGGER.trace("decideClass: builtin [{},{}] : {}", className, methodName, builtinDecision);
+        if (builtinDecision != AccessDecision.DEFAULT) {
+            return builtinDecision;
         }
-        ScriptExpressionProfile scriptExpressionProfile = getContext().getScriptExpressionProfile();
+        var scriptExpressionProfile = getContext().getScriptExpressionProfile();
         if (scriptExpressionProfile == null) {
             LOGGER.trace("decideClass: profile==null [{},{}] : ALLOW", className, methodName);
             return AccessDecision.ALLOW;
         }
-        decision = scriptExpressionProfile.decideClassAccess(className, methodName);
+        var methodDecision = scriptExpressionProfile.decideClassAccess(className, methodName);
         LOGGER.trace("decideClass: profile({}) [{},{}] : {}",
-                getContext().getExpressionProfile().getIdentifier(), className, methodName, decision);
-        return decision;
+                getContext().getExpressionProfile().getIdentifier(), className, methodName, methodDecision);
+        return methodDecision;
     }
 
     @Override

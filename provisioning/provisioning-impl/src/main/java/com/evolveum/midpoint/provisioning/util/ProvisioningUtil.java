@@ -80,9 +80,10 @@ public class ProvisioningUtil {
         scriptArgumentDefinition.setMaxOccurs(-1);
 
         for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
-            ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
-                    StaticExpressionUtil.getStaticOutput(argument, scriptArgumentDefinition, desc,
-                            ExpressionReturnMultiplicityType.SINGLE, prismContext));
+            ExecuteScriptArgument arg = new ExecuteScriptArgument(
+                    argument.getName(),
+                    StaticExpressionUtil.getStaticOutput(
+                            argument, scriptArgumentDefinition, desc, ExpressionReturnMultiplicityType.SINGLE));
             scriptOperation.getArgument().add(arg);
         }
 

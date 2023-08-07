@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -54,7 +54,7 @@ public class ScriptExpression {
     private ObjectResolver objectResolver;
     private Collection<FunctionLibraryBinding> functionLibraryBindings;
     private ExpressionProfile expressionProfile;
-    private ScriptExpressionProfile scriptExpressionProfile;
+    private ScriptLanguageExpressionProfile scriptExpressionProfile;
     private PrismContext prismContext;
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
@@ -97,7 +97,7 @@ public class ScriptExpression {
         this.expressionProfile = expressionProfile;
     }
 
-    void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+    void setScriptExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
         this.scriptExpressionProfile = scriptExpressionProfile;
     }
 

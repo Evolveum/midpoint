@@ -25,6 +25,24 @@
  * . The names of the classes should correspond to the names of respective beans, even if they may not seem the optimal ones
  * (from the point of view of the current knowledge). The idea is to make them easily discernible and, in the future, maybe
  * also (semi)automatically generated.
+ * +
+ * The exception is when a bean has multiple uses like `ExpressionType` used as a library function.
+ *
+ * == Broader context
+ *
+ * The idea of providing a wrapper for configuration items is not new. However, the previous attempts were limited
+ * to specific domains, for example:
+ *
+ * - activity definitions (`ActivityDefinition` and its constituents, especially `WorkDefinition`),
+ * - refined resource object class and attribute definitions
+ * ({@link com.evolveum.midpoint.schema.processor.ResourceObjectDefinition} and its parts) - although these are more parsed
+ * than configuration items here,
+ * - TODO what else?
+ *
+ * == Boundaries: what is this NOT meant to be
+ *
+ * This is not to store the fully processed (parsed) information like `Expression` or `Mapping`.
+ * It should be really a quite thin wrapper around the raw beans, with limited responsibilities mentioned above.
  *
  * HIGHLY EXPERIMENTAL. MAYBE NOT USABLE FOR THE FUTURE. MAYBE YES, WITH SOME CODE GENERATION SUPPORT.
  */

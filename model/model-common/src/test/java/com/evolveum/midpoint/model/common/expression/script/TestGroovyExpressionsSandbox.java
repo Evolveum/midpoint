@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 
 /**
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
     @Override
-    protected ScriptExpressionProfile createScriptExpressionProfile(@NotNull String language) {
+    protected ScriptLanguageExpressionProfile createScriptExpressionProfile(@NotNull String language) {
 
         ExpressionPermissionProfile permissionProfile =
                 ExpressionPermissionProfile.open(
@@ -40,7 +40,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         permissionProfile.addClassAccessRule(List.class, AccessDecision.ALLOW);
         permissionProfile.addClassAccessRule(List.class, "execute", AccessDecision.DENY);
 
-        return new ScriptExpressionProfile(language, AccessDecision.DEFAULT, true, permissionProfile);
+        return new ScriptLanguageExpressionProfile(language, AccessDecision.DEFAULT, true, permissionProfile);
     }
 
     /**

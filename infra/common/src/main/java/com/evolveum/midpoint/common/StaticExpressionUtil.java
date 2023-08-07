@@ -36,60 +36,47 @@ public class StaticExpressionUtil {
     /**
      * Returns either Object (if result is supposed to be single-value) or Collection<X> (if result is supposed to be multi-value)
      */
-    public static Object getStaticOutput(ExpressionType expressionType, PrismPropertyDefinition outputDefinition,
-            String contextDescription, ExpressionReturnMultiplicityType preferredMultiplicity, PrismContext prismContext) throws SchemaException {
-        PrismProperty<?> output = getPropertyStatic(expressionType, outputDefinition, contextDescription, prismContext);
+    public static Object getStaticOutput(
+            ExpressionType expressionBean, PrismPropertyDefinition<?> outputDefinition,
+            String contextDescription, ExpressionReturnMultiplicityType preferredMultiplicity) throws SchemaException {
+        PrismProperty<?> output = getPropertyStatic(expressionBean, outputDefinition, contextDescription);
         ExpressionReturnMultiplicityType multiplicity = preferredMultiplicity;
-        if (expressionType.getReturnMultiplicity() != null) {
-            multiplicity = expressionType.getReturnMultiplicity();
+        if (expressionBean.getReturnMultiplicity() != null) {
+            multiplicity = expressionBean.getReturnMultiplicity();
         } else if (output != null && output.size() > 1) {
             multiplicity = ExpressionReturnMultiplicityType.MULTI;
         }
         if (output == null) {
-            switch (multiplicity) {
-                case MULTI:
-                    return new ArrayList<>(0);
-                case SINGLE:
-                    return null;
-                default:
-                    throw new IllegalStateException("Unknown return type " + multiplicity);
-            }
+            return switch (multiplicity) {
+                case MULTI -> new ArrayList<>(0);
+                case SINGLE -> null;
+            };
         } else {
             Collection<?> realValues = output.getRealValues();
-            switch (multiplicity) {
-                case MULTI:
-                    return realValues;
-                case SINGLE:
-                    return MiscUtil.extractSingleton(realValues);
-                default:
-                    throw new IllegalStateException("Unknown return type " + multiplicity);
-            }
+            return switch (multiplicity) {
+                case MULTI -> realValues;
+                case SINGLE -> MiscUtil.extractSingleton(realValues);
+            };
         }
     }
 
-    public static <X> PrismProperty<X> getPropertyStatic(ExpressionType expressionType, PrismPropertyDefinition outputDefinition,
-            String contextDescription, PrismContext prismContext) throws SchemaException {
-        Collection<JAXBElement<?>> expressionEvaluatorElement = expressionType.getExpressionEvaluator();
+    private static <X> PrismProperty<X> getPropertyStatic(
+            ExpressionType expressionBean, PrismPropertyDefinition<?> outputDefinition, String contextDescription)
+            throws SchemaException {
+        Collection<JAXBElement<?>> expressionEvaluatorElement = expressionBean.getExpressionEvaluator();
+        //noinspection unchecked,rawtypes
         return (PrismProperty) parseValueElements(expressionEvaluatorElement, outputDefinition, contextDescription);
     }
 
-    /**
-     * Always returns collection, even for single-valued results.
-     */
-    public static <X> Collection<X> getPropertyStaticRealValues(ExpressionType expressionType, PrismPropertyDefinition outputDefinition,
-            String contextDescription, PrismContext prismContext) throws SchemaException {
-        PrismProperty<X> output = getPropertyStatic(expressionType, outputDefinition, contextDescription, prismContext);
-        return output.getRealValues();
-    }
-
-    public static ItemDefinition<?> deriveOutputDefinitionFromValueElements(QName elementName, Collection<JAXBElement<?>> valueElements, String contextDescription, PrismContext prismContext)
+    public static ItemDefinition<?> deriveOutputDefinitionFromValueElements(
+            QName elementName, Collection<JAXBElement<?>> valueElements, String contextDescription)
             throws SchemaException {
         QName overallType = null;
         for (Object valueElement : valueElements) {
             RawType rawType = getRawType(valueElement, contextDescription);
             QName currentType = rawType.getExplicitTypeName();
             if (currentType != null) {
-                QName unified = prismContext.getSchemaRegistry().unifyTypes(overallType, currentType);
+                QName unified = PrismContext.get().getSchemaRegistry().unifyTypes(overallType, currentType);
                 if (unified == null) {
                     throw new SchemaException("Couldn't unify types " + overallType + " and " + currentType + " in " + contextDescription);
                 }
@@ -100,7 +87,7 @@ public class StaticExpressionUtil {
             overallType = DOMUtil.XSD_STRING;
         }
         int maxOccurs = valueElements.size() > 1 ? -1 : 1;
-        return prismContext.getSchemaRegistry().createAdHocDefinition(elementName, overallType, 0, maxOccurs);
+        return PrismContext.get().getSchemaRegistry().createAdHocDefinition(elementName, overallType, 0, maxOccurs);
     }
 
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Item<IV, ID> parseValueElements(
@@ -139,7 +126,7 @@ public class StaticExpressionUtil {
     }
 
     private static RawType getRawType(Object valueElement, String contextDescription) throws SchemaException {
-        if (!(valueElement instanceof JAXBElement<?>)) {
+        if (!(valueElement instanceof JAXBElement<?> jaxbElement)) {
             throw new SchemaException("Literal expression cannot handle element " + valueElement + " "
                     + valueElement.getClass().getName() + " in " + contextDescription);
         }
@@ -147,7 +134,6 @@ public class StaticExpressionUtil {
         if (!valueElementName.equals(SchemaConstants.C_VALUE)) {
             throw new SchemaException("Literal expression cannot handle element <" + valueElementName + "> in " + contextDescription);
         }
-        JAXBElement<?> jaxbElement = (JAXBElement<?>) valueElement;
         // not checking declaredType because it may be Object.class instead ... but actual type must be of RawType
         if (jaxbElement.getValue() != null && !(jaxbElement.getValue() instanceof RawType)) {
             throw new SchemaException("Literal expression cannot handle JAXBElement value type "

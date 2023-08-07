@@ -27,7 +27,9 @@ import org.jetbrains.annotations.NotNull;
  * Immutable.
  *
  * It is the basic building block of https://docs.evolveum.com/midpoint/reference/expressions/expressions/profiles/[Expression
- * Profiles] functionality; contained within {@link ScriptExpressionProfile}.
+ * Profiles] functionality; contained within {@link ScriptLanguageExpressionProfile}.
+ *
+ * TODO is this a good name?
  *
  * @author Radovan Semancik
  */

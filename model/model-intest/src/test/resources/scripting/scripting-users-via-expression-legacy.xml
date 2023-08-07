@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:search>
+        <s:type>c:UserType</s:type>
+    </s:search>
+    <s:action>
+        <s:type>evaluate-expression</s:type>
+        <s:parameter>
+            <s:name>expression</s:name>
+            <c:value xsi:type="c:ExpressionType">
+                <c:script>
+                    <c:code>
+                        cloned = input.clone()
+                        cloned.setDescription('Test')
+                        cloned
+                    </c:code>
+                </c:script>
+            </c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>outputItem</s:name>
+            <c:value>UserType</c:value>
+        </s:parameter>
+    </s:action>
+</s:pipeline>

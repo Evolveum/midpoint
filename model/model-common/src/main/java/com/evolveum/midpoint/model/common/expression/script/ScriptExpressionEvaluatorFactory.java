@@ -26,7 +26,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -73,7 +72,7 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 
         ScriptExpression scriptExpression =
                 scriptExpressionFactory.createScriptExpression(
-                        evaluatorBean, outputDefinition, expressionProfile, expressionFactory, contextDescription, result);
+                        evaluatorBean, outputDefinition, expressionProfile, contextDescription, result);
 
         return new ScriptExpressionEvaluator<>(
                 ELEMENT_NAME,

@@ -21,18 +21,16 @@ public class ConstructionConfigItem extends ConfigurationItem<ConstructionType> 
     }
 
     public @NotNull List<ResourceAttributeDefinitionConfigItem> getAttributes() {
-        return value().getAttribute().stream()
-                .map(val ->
-                        new ResourceAttributeDefinitionConfigItem(
-                                childWithId(val, ConstructionType.F_ATTRIBUTE)))
-                .toList();
+        return children(
+                value().getAttribute(),
+                ResourceAttributeDefinitionConfigItem.class,
+                ConstructionType.F_ATTRIBUTE);
     }
 
     public @NotNull List<ResourceObjectAssociationConfigItem> getAssociations() {
-        return value().getAssociation().stream()
-                .map(val ->
-                        new ResourceObjectAssociationConfigItem(
-                                childWithId(val, ConstructionType.F_ASSOCIATION)))
-                .toList();
+        return children(
+                value().getAssociation(),
+                ResourceObjectAssociationConfigItem.class,
+                ConstructionType.F_ASSOCIATION);
     }
 }

@@ -10,10 +10,8 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.io.Serial;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -67,7 +65,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @SuppressWarnings("CloneableClassWithoutClone")
 public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O>, Cloneable {
 
-    private static final long serialVersionUID = 1649567559396392861L;
+    @Serial private static final long serialVersionUID = 1649567559396392861L;
 
     private static final Trace LOGGER = TraceManager.getTrace(LensElementContext.class);
 
@@ -75,7 +73,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * State of the element, i.e. object old, current, new, along with the respective deltas
      * (primary, secondary, current, summary).
      */
-    @NotNull protected final ElementState<O> state;
+    @NotNull final ElementState<O> state;
 
     /** Keeps temporary PCV IDs to be applied on delta execution. */
     private TemporaryContainerIdStore<O> temporaryContainerIdStore;
@@ -132,7 +130,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.lensContext = lensContext;
     }
 
-    public LensElementContext(@NotNull ElementState<O> elementState, @NotNull LensContext<? extends ObjectType> lensContext) {
+    LensElementContext(@NotNull ElementState<O> elementState, @NotNull LensContext<? extends ObjectType> lensContext) {
         this.state = elementState;
         this.lensContext = lensContext;
     }
@@ -215,6 +213,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     @Override
     public PrismObject<O> getObjectNew() {
         return state.getNewObject();
+    }
+
+    @NotNull public PrismObject<O> getObjectNewRequired() {
+        return Objects.requireNonNull(
+                getObjectNew(),
+                () -> String.format("Expected 'new' object is null: %s", this));
     }
 
     public @Nullable PrismObject<O> getObjectNewOrCurrentOrOld() {
@@ -409,7 +413,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     /**
-     * Modifies the primary delta.
+     * Modifies the primary delta. Treats cases of delta being null or immutable.
      *
      * Dangerous! Primary delta is generally supposed to be immutable. Use with utmost care!
      */
@@ -515,10 +519,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         policyRulesContext.clearObjectPolicyRules();
         policyRulesContext.addObjectPolicyRules(policyRules);
     }
-
-    public void addObjectPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
-        policyRulesContext.addObjectPolicyRule(policyRule);
-    }
     //endregion
 
     //region Kinds of operations
@@ -563,15 +563,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public boolean operationMatches(ChangeTypeType operation) {
-        switch (operation) {
-            case ADD:
-                return getOperation() == SimpleOperationName.ADD;
-            case MODIFY:
-                return getOperation() == SimpleOperationName.MODIFY;
-            case DELETE:
-                return getOperation() == SimpleOperationName.DELETE;
-        }
-        throw new IllegalArgumentException("Unknown operation "+operation);
+        return switch (operation) {
+            case ADD -> getOperation() == SimpleOperationName.ADD;
+            case MODIFY -> getOperation() == SimpleOperationName.MODIFY;
+            case DELETE -> getOperation() == SimpleOperationName.DELETE;
+        };
     }
     //endregion
 
@@ -905,12 +901,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @Override
     @NotNull
-    public Collection<String> getMatchingEventMarks() {
-        return policyRulesContext.getTriggeredEventMarks();
+    public Collection<String> getMatchingEventMarksOids() {
+        return policyRulesContext.getTriggeredEventMarksOids();
     }
 
-    public @NotNull Collection<String> getAllConsideredEventMarks() {
-        return policyRulesContext.getAllConsideredEventMarks();
+    public @NotNull Collection<String> getAllConsideredEventMarksOids() {
+        return policyRulesContext.getAllConsideredEventMarksOids();
     }
 
     public @NotNull ItemChangeApplicationModeConfiguration getItemChangeApplicationModeConfiguration()
@@ -924,4 +920,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     abstract @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
             throws SchemaException, ConfigurationException;
     //endregion
+
+    /** Currently, just a single-use interface for {@link #modifyPrimaryDelta(DeltaModifier)} method. No deep ideas here. */
+    @FunctionalInterface
+    public interface DeltaModifier<O extends Objectable> {
+        void modify(ObjectDelta<O> delta) throws SchemaException;
+    }
 }

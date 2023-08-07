@@ -389,18 +389,20 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
             setRawResourceSchema(parsedCapabilitiesAndSchema.getRawResourceSchema());
 
+            if (rawResourceSchema == null) {
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Connector does not support schema");
+            } else {
+                result.recordSuccess();
+            }
+
+            return rawResourceSchema;
+
         } catch (Throwable e) {
             result.recordFatalError(e);
             throw e;
+        } finally {
+            result.close();
         }
-
-        if (rawResourceSchema == null) {
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Connector does not support schema");
-        } else {
-            result.recordSuccess();
-        }
-
-        return rawResourceSchema;
     }
 
     @Override

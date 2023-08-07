@@ -11,7 +11,11 @@ import static org.springframework.http.ResponseEntity.status;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
@@ -417,11 +421,11 @@ public class ModelRestController extends AbstractRestController {
         OperationResult result = task.getResult().createSubresult("addObject");
 
         Class<?> clazz = ObjectTypes.getClassFromRestType(type);
-        if (!object.getCompileTimeClass().equals(clazz)) {
+        Class<T> objectClazz = Objects.requireNonNull(object.getCompileTimeClass());
+        if (!clazz.equals(objectClazz)) {
             finishRequest(task, result);
-            result.recordFatalError("Request to add object of type "
-                    + object.getCompileTimeClass().getSimpleName()
-                    + " to the collection of " + type);
+            result.recordFatalError(
+                    "Request to add object of type %s to the collection of %s".formatted(objectClazz.getSimpleName(), type));
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
         }
 
@@ -755,14 +759,19 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             if (Boolean.TRUE.equals(asynchronous)) {
-                scriptingService.evaluateExpressionInBackground(command, task, result);
+                var taskOid = modelInteraction.submitScriptingExpression(command, task, result);
                 response = createResponseWithLocation(
                         HttpStatus.CREATED,
-                        uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid()),
+                        uriGetObject(ObjectTypes.TASK.getRestType(), taskOid),
                         result);
             } else {
                 ScriptExecutionResult executionResult = scriptingService.evaluateExpression(
-                        command, VariablesMap.emptyMap(), false, task, result);
+                        // detached because of REST origin
+                        ExecuteScriptConfigItem.of(command, ConfigurationItemOrigin.rest()),
+                        VariablesMap.emptyMap(),
+                        false,
+                        task,
+                        result);
                 ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
                         .result(result.createOperationResultType())
                         .output(new ExecuteScriptOutputType()

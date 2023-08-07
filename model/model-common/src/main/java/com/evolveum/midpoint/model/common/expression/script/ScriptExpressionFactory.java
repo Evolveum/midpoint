@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorsProfile;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -20,12 +22,11 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryMa
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -114,7 +115,6 @@ public class ScriptExpressionFactory {
             @NotNull ScriptExpressionEvaluatorType scriptExpressionBean,
             ItemDefinition<?> outputDefinition,
             ExpressionProfile expressionProfile,
-            ExpressionFactory expressionFactory,
             String shortDesc,
             OperationResult result)
             throws ExpressionSyntaxException, SecurityViolationException {
@@ -127,7 +127,7 @@ public class ScriptExpressionFactory {
         expression.setObjectResolver(objectResolver);
         Collection<FunctionLibraryBinding> allLibraryBindings = new ArrayList<>(builtInLibraryBindings);
         allLibraryBindings.addAll(
-                getDeclaredFunctionLibraryBindings(expressionFactory, result));
+                getRepoFunctionLibraryBindings(result));
         expression.setFunctionLibraryBindings(allLibraryBindings);
 
         // It is not very elegant to process expression profile and script expression profile here.
@@ -137,7 +137,7 @@ public class ScriptExpressionFactory {
         // and it should be removed.
         expression.setExpressionProfile(expressionProfile);
         expression.setScriptExpressionProfile(
-                processScriptExpressionProfile(
+                getScriptLanguageExpressionProfileOrFail(
                         expressionProfile,
                         // We need "normalized" language URI here hence not taking one from the script bean
                         evaluator.getLanguageUrl(),
@@ -146,37 +146,39 @@ public class ScriptExpressionFactory {
         return expression;
     }
 
-    private ScriptExpressionProfile processScriptExpressionProfile(
+    private ScriptLanguageExpressionProfile getScriptLanguageExpressionProfileOrFail(
             ExpressionProfile expressionProfile, @NotNull String language, String shortDesc) throws SecurityViolationException {
         if (expressionProfile == null) {
             return null;
         }
+        ExpressionEvaluatorsProfile evaluatorsProfile = expressionProfile.getEvaluatorsProfile();
+
         ExpressionEvaluatorProfile evaluatorProfile =
-                expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+                evaluatorsProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
         if (evaluatorProfile == null) {
-            if (expressionProfile.getDefaultDecision() == AccessDecision.ALLOW) {
+            if (evaluatorsProfile.getDefaultDecision() == AccessDecision.ALLOW) {
                 return null;
             } else {
                 throw new SecurityViolationException(
-                        "Access to script expression evaluator not allowed (expression profile: %s) in %s"
-                                .formatted(expressionProfile.getIdentifier(), shortDesc));
+                        "Access to script expression evaluator not allowed (expression profile: %s) in %s".formatted(
+                                expressionProfile.getIdentifier(), shortDesc));
             }
         }
-        ScriptExpressionProfile scriptProfile = evaluatorProfile.getScriptExpressionProfile(language);
-        if (scriptProfile != null) {
-            return scriptProfile;
+        ScriptLanguageExpressionProfile languageProfile = evaluatorProfile.getScriptExpressionProfile(language);
+        if (languageProfile == null) {
+            if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
+                return null;
+            } else {
+                throw new SecurityViolationException(
+                        "Access to script language %s not allowed (expression profile: %s) in %s".formatted(
+                                language, expressionProfile.getIdentifier(), shortDesc));
+            }
         }
 
-        if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
-            return null;
-        } else {
-            throw new SecurityViolationException("Access to script language " + language +
-                    " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
-        }
+        return languageProfile;
     }
 
-    private @NotNull Collection<FunctionLibraryBinding> getDeclaredFunctionLibraryBindings(
-            ExpressionFactory expressionFactory, OperationResult result)
+    private @NotNull Collection<FunctionLibraryBinding> getRepoFunctionLibraryBindings(OperationResult result)
             throws ExpressionSyntaxException {
         if (functionLibraryManager != null) {
             return functionLibraryManager.getFunctionLibraryBindings(result);

@@ -5,8 +5,6 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
-
 <s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -45,7 +43,7 @@
         </s:parameter>
         <s:parameter>
             <s:name>outputItem</s:name>
-            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#description</c:value>       <!-- just a plain string -->
+            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#description</c:value> <!-- just a plain string -->
         </s:parameter>
     </s:action>
     <s:variables>

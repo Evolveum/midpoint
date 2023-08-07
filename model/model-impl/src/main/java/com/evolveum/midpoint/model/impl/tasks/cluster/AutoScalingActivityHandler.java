@@ -35,7 +35,7 @@ public class AutoScalingActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ActivityAutoScalingWorkDefinitionType.COMPLEX_TYPE,
+                ActivityAutoScalingWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_ACTIVITY_AUTO_SCALING,
                 AutoScalingWorkDefinition.class, AutoScalingWorkDefinition::new, this);
     }
 

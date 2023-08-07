@@ -17,12 +17,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportExportWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +46,7 @@ public class ClassicReportExportActivityHandler
     @PostConstruct
     public void register() {
         registry.register(
-                ClassicReportExportWorkDefinitionType.COMPLEX_TYPE,
+                ClassicReportExportWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_REPORT_EXPORT,
                 ClassicReportExportWorkDefinition.class, ClassicReportExportWorkDefinition::new, this);
     }
 
@@ -84,7 +79,7 @@ public class ClassicReportExportActivityHandler
             return new ClassicDashboardReportExportActivityRun(context);
         }
         if (report.getObjectCollection() != null) {
-            return new ClassicCollectionReportExportActivityRun(context);
+            return new ClassicCollectionReportExportActivityRun<>(context);
         }
         LOGGER.error("Report don't contains engine");
         throw new IllegalArgumentException("Report don't contains engine");

@@ -140,7 +140,7 @@ public abstract class AbstractMappingBuilder<
 
     public RT computeExpressionProfile(@NotNull OperationResult result) throws SchemaException, ConfigurationException {
         var configItem = Objects.requireNonNull(mappingConfigItem, "no mapping");
-        expressionProfile = beans.archetypeManager.determineExpressionProfile(configItem.origin(), result);
+        expressionProfile = beans.expressionProfileManager.determineExpressionProfile(configItem.origin(), result);
         return typedThis();
     }
 

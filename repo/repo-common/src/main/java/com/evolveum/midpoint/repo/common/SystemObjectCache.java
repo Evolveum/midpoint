@@ -17,7 +17,6 @@ import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;

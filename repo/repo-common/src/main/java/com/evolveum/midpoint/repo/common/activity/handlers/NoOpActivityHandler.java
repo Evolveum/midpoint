@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.activity.handlers;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import com.google.common.base.MoreObjects;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -17,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
@@ -44,7 +43,8 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(NoOpWorkDefinitionType.COMPLEX_TYPE,
+        handlerRegistry.register(
+                NoOpWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_NO_OP,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
@@ -128,17 +128,10 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
 
         private void sleep(MyWorkDefinition def) {
             switch (def.stepInterruptibility) {
-                case FULL:
-                    MiscUtil.sleepWatchfully(System.currentTimeMillis() + def.delay, 100, this::canRun);
-                    return;
-                case HARD:
-                    MiscUtil.sleepCatchingInterruptedException(def.delay);
-                    return;
-                case NONE:
-                    MiscUtil.sleepNonInterruptibly(def.delay);
-                    return;
-                default:
-                    throw new AssertionError(def.stepInterruptibility);
+                case FULL -> MiscUtil.sleepWatchfully(System.currentTimeMillis() + def.delay, 100, this::canRun);
+                case HARD -> MiscUtil.sleepCatchingInterruptedException(def.delay);
+                case NONE -> MiscUtil.sleepNonInterruptibly(def.delay);
+                default -> throw new AssertionError(def.stepInterruptibility);
             }
         }
 
@@ -156,22 +149,28 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         }
     }
 
-    protected static class MyWorkDefinition extends AbstractWorkDefinition {
+    public static class MyWorkDefinition extends AbstractWorkDefinition {
 
         private final long delay;
         private final int steps;
         @NotNull private final NoOpActivityStepInterruptibilityType stepInterruptibility;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var bean = (NoOpWorkDefinitionType) source.getBean();
-            delay = MoreObjects.firstNonNull(bean.getDelay(), 0);
-            steps = MoreObjects.firstNonNull(bean.getSteps(), 1);
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (NoOpWorkDefinitionType) info.getBean();
+            delay = MoreObjects.firstNonNull(typedDefinition.getDelay(), 0);
+            steps = MoreObjects.firstNonNull(typedDefinition.getSteps(), 1);
             stepInterruptibility = MoreObjects.firstNonNull(
-                    bean.getStepInterruptibility(), NoOpActivityStepInterruptibilityType.NONE);
+                    typedDefinition.getStepInterruptibility(), NoOpActivityStepInterruptibilityType.NONE);
         }
 
         private Interval getInterval() {
             return Interval.of(0, steps);
+        }
+
+        @Override
+        public TaskAffectedObjectsType getAffectedObjects() {
+            return null;
         }
 
         @Override

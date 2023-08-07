@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.trigger;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
@@ -22,8 +21,9 @@ public class TriggerScanWorkDefinition extends AbstractWorkDefinition implements
 
     @NotNull private final ObjectSetType objects;
 
-    TriggerScanWorkDefinition(@NotNull WorkDefinitionBean source) {
-        var typedDefinition = (TriggerScanWorkDefinitionType) source.getBean();
+    TriggerScanWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        var typedDefinition = (TriggerScanWorkDefinitionType) info.getBean();
         objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
     }
 

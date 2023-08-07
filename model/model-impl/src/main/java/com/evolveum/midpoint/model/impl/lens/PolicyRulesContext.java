@@ -136,11 +136,11 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
         LensContext.dumpRules(sb, "Object policy rules", indent, getObjectPolicyRules());
         sb.append("\n");
 
-        Set<String> allEventMarks = getAllConsideredEventMarks();
-        Set<String> triggeredEventMarks = getTriggeredEventMarks();
-        DebugUtil.debugDumpWithLabelLn(sb, "Triggered event marks", triggeredEventMarks, indent);
+        Set<String> allEventMarksOids = getAllConsideredEventMarksOids();
+        Set<String> triggeredEventMarksOids = getTriggeredEventMarksOids();
+        DebugUtil.debugDumpWithLabelLn(sb, "Triggered event marks", triggeredEventMarksOids, indent);
         DebugUtil.debugDumpWithLabel(
-                sb, "Other (non-triggered) event marks", Sets.difference(allEventMarks, triggeredEventMarks), indent);
+                sb, "Other (non-triggered) event marks", Sets.difference(allEventMarksOids, triggeredEventMarksOids), indent);
         return sb.toString();
     }
 
@@ -160,16 +160,16 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
     }
 
     // TEMPORARY IMPLEMENTATION
-    @NotNull Set<String> getTriggeredEventMarks() {
+    @NotNull Set<String> getTriggeredEventMarksOids() {
         return objectPolicyRules.stream()
-                .flatMap(rule -> rule.getTriggeredEventMarks().stream())
+                .flatMap(rule -> rule.getTriggeredEventMarksOids().stream())
                 .collect(Collectors.toSet());
     }
 
     // TEMPORARY IMPLEMENTATION
-    @NotNull Set<String> getAllConsideredEventMarks() {
+    @NotNull Set<String> getAllConsideredEventMarksOids() {
         return objectPolicyRules.stream()
-                .flatMap(rule -> rule.getAllEventMarks().stream())
+                .flatMap(rule -> rule.getAllEventMarksOids().stream())
                 .collect(Collectors.toSet());
     }
 }

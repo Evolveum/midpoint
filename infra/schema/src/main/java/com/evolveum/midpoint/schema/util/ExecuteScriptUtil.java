@@ -8,11 +8,13 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 
 import java.util.Collection;
 
+/** TODO move to {@link ExecuteScriptConfigItem}. */
 public class ExecuteScriptUtil {
 
     /**

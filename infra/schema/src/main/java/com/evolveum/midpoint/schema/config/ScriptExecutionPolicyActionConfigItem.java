@@ -8,13 +8,18 @@
 package com.evolveum.midpoint.schema.config;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionPrivilegesSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExecutionPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class ScriptExecutionPolicyActionConfigItem
-        extends ConfigurationItem<ScriptExecutionPolicyActionType>
+        extends PolicyActionConfigItem<ScriptExecutionPolicyActionType>
         implements PrivilegesMixin<ScriptExecutionPolicyActionType> {
 
     @SuppressWarnings("unused") // called dynamically
@@ -44,5 +49,12 @@ public class ScriptExecutionPolicyActionConfigItem
         return getPrivileges(
                 value().getRunAsRef(),
                 value().getPrivileges());
+    }
+
+    public @NotNull List<ExecuteScriptConfigItem> getExecuteScriptConfigItems() {
+        return childrenPlain(
+                value().getExecuteScript(),
+                ExecuteScriptConfigItem.class,
+                ScriptExecutionPolicyActionType.F_EXECUTE_SCRIPT);
     }
 }
