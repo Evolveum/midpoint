@@ -35,6 +35,8 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.query.PreparedQuery;
+import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.google.common.base.Preconditions;
@@ -2572,5 +2574,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             @Nullable FocusIdentitySourceType source,
             @NotNull ItemPath itemPath) {
         return beans.identitiesManager.selectIdentityItemValue(identities, source, itemPath);
+    }
+
+    @Override
+    public <T> TypedQuery<T> queryFor(Class<T> type, String query) throws SchemaException {
+        return TypedQuery.parse(type, query);
+    }
+
+    public <T> PreparedQuery<T> preparedQueryFor(Class<T> type, String query) throws SchemaException {
+        return PreparedQuery.parse(type, query);
+    }
+    @Override
+    public <T extends ObjectType> List<T> searchObjects(TypedQuery<T> query) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return MiscSchemaUtil.toObjectableList(
+                modelService.searchObjects(query, getCurrentTask(), getCurrentResult()));
     }
 }

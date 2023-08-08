@@ -19,6 +19,7 @@
         <classes>
             <class name="com.evolveum.midpoint.model.impl.expr.TestFilterExpression" />
             <class name="com.evolveum.midpoint.model.impl.expr.TestModelExpressions"/>
+            <class name="com.evolveum.midpoint.model.impl.expr.TestQueryExpression" />
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">

@@ -6,74 +6,33 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.QueryDto;
 
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.QueryConverterPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.QueryPlaygroundPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author lazyman
@@ -94,71 +53,18 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRepositoryQuery.class);
 
-    private static final String DOT_CLASS = PageRepositoryQuery.class.getName() + ".";
-
-    private static final String OPERATION_CHECK_QUERY = DOT_CLASS + "checkQuery";
-    private static final String OPERATION_TRANSLATE_QUERY = DOT_CLASS + "translateQuery";
-    private static final String OPERATION_EXECUTE_QUERY = DOT_CLASS + "executeQuery";
-
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_REPOSITORY_QUERY_LABEL = "repositoryQueryLabel";
-    private static final String ID_QUERY_VS_FILTER_NOTE = "queryVsFilterNote";
-    private static final String ID_MIDPOINT_QUERY_BUTTON_BAR = "midPointQueryButtonBar";
-    private static final String ID_EXECUTE_MIDPOINT = "executeMidPoint";
-    private static final String ID_COMPILE_MIDPOINT = "compileMidPoint";
-    private static final String ID_USE_IN_OBJECT_LIST = "useInObjectList";
-    private static final String ID_EDITOR_MIDPOINT = "editorMidPoint";
-    private static final String ID_EDITOR_MIDPOINT_SCRIPT = "editorMidPointScript";
-    private static final String ID_QUERY_EDITOR = "queryEditor";
-    private static final String ID_QUERY_LABEL = "queryLabel";
-    private static final String ID_PARAMETERS = "parameters";
-    private static final String ID_RESULT_LABEL = "resultLabel";
-    private static final String ID_RESULT_TEXT = "resultText";
-    private static final String ID_QUERY_SAMPLE = "querySample";
-    private static final String ID_OBJECT_TYPE = "objectType";
-    private static final String ID_DISTINCT = "distinct";
-    private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
-    private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
-    private static final String ID_SCRIPT_ENABLED = "scriptEnabled";
-
-    private static final String SAMPLES_DIR = "query-samples";
-    private static final List<String> SAMPLES = Arrays.asList(
-            "UserType_AllUsers",
-            "UserType_UsersStartingWithA",
-            "UserType_UsersContainingJack",
-            "UserType_UsersNamedJack",
-            "UserType_First10UsersStartingWithA",
-            "UserType_UsersWithAGivenMailDomain",
-            "UserType_SpecifiedCostCenters",
-            "UserType_UsersThatHaveAssignedRole",
-            "UserType_UsersThatHaveARole",
-            "OrgType_AllRootOrgs",
-            "OrgType_OrgOfType1",
-            "ObjectType_AllObjectsInASubtree",
-            "ObjectType_AllObjectsInAnOrg",
-            "ShadowType_ShadowsOnGivenResource",
-            "UserType_UsersWithShadowOnGivenResource"
-    );
-    private static final Set<QName> USE_IN_OBJECT_LIST_AVAILABLE_FOR = new HashSet<>(Arrays.asList(
-            UserType.COMPLEX_TYPE,
-            RoleType.COMPLEX_TYPE,
-            ServiceType.COMPLEX_TYPE,
-            ResourceType.COMPLEX_TYPE
-    ));
+    private static final String ID_TAB_PANEL = "tabs";
 
     private final NonEmptyModel<RepoQueryDto> model = new NonEmptyWrapperModel<>(new Model<>(new RepoQueryDto()));
-    private final boolean isAdmin;
 
-    private String dataLanguage;
 
-    enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT}
+
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        if (dataLanguage == null) {
-            dataLanguage = determineDataLanguage();
-        }
+
         initLayout();
     }
 
@@ -169,466 +75,35 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     public PageRepositoryQuery(QName objectType, String queryText) {
         model.getObject().setObjectType(objectType);
         model.getObject().setMidPointQuery(queryText);
-
-        boolean admin;
-        try {
-            admin = isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException
-                | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
-            admin = false;
-        }
-        isAdmin = admin;
     }
 
     private void initLayout() {
-        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
+        MidpointForm<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        Label repositoryQueryLabel = new Label(ID_REPOSITORY_QUERY_LABEL, createStringResource("PageRepositoryQuery.midPoint",
-                WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "MidPoint")));
-        repositoryQueryLabel.setOutputMarkupId(true);
-        mainForm.add(repositoryQueryLabel);
+        TabbedPanel<?> tabbedPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, createTabList(), null);
+        mainForm.add(tabbedPanel);
 
-        DropDownChoicePanel<QName> objectTypeChoice = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
-                new ListModel<>(WebComponentUtil.createObjectTypeList()),
-                new QNameChoiceRenderer());
-        objectTypeChoice.setOutputMarkupId(true);
-        objectTypeChoice.getBaseFormComponent().setNullValid(true);
-        objectTypeChoice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+    }
+
+    private List<ITab> createTabList() {
+        List<ITab> tabs = new ArrayList<>();
+
+        tabs.add(new PanelTab(createStringResource("Query playground")) {
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(get(ID_MAIN_FORM).get(ID_MIDPOINT_QUERY_BUTTON_BAR));
+            public WebMarkupContainer createPanel(String panelId) {
+                return new QueryPlaygroundPanel(panelId, model);
             }
         });
-        mainForm.add(objectTypeChoice);
 
-        CheckFormGroup distinctCheck = new CheckFormGroup(
-                ID_DISTINCT, new PropertyModel<>(model, RepoQueryDto.F_DISTINCT),
-                createStringResource("PageRepositoryQuery.checkBox.distinct"), "col-xs-3", "col-xs-1");
-        mainForm.add(distinctCheck);
-
-        AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<>(model, RepoQueryDto.F_MIDPOINT_QUERY));
-        editorMidPoint.setHeight(400);
-        editorMidPoint.setResizeToMaxHeight(false);
-        mainForm.add(editorMidPoint);
-
-        CheckFormGroup scriptCheck = new CheckFormGroup(
-                ID_SCRIPT_ENABLED, new PropertyModel<>(model, RepoQueryDto.F_SCRIPT_ENABLED),
-                createStringResource("PageRepositoryQuery.checkBox.script"), "col-xs-3", "col-xs-1");
-        scriptCheck.getCheck().add(new OnChangeAjaxBehavior() {
+        tabs.add(new PanelTab(createStringResource("Query converter")) {
             @Override
-            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-//                model.getObject().setScriptEnabled(!model.getObject().isScriptEnabled());
-                ajaxRequestTarget.add(PageRepositoryQuery.this);
+            public WebMarkupContainer createPanel(String panelId) {
+                return new QueryConverterPanel(panelId, new Model<>(new QueryDto()));
             }
         });
-        scriptCheck.setOutputMarkupId(true);
-        mainForm.add(scriptCheck);
-
-        AceEditor editorMidPointScript = new AceEditor(ID_EDITOR_MIDPOINT_SCRIPT, new PropertyModel<>(model, RepoQueryDto.F_MIDPOINT_QUERY_SCRIPT));
-        editorMidPointScript.setHeight(200);
-        editorMidPointScript.setResizeToMaxHeight(false);
-        editorMidPointScript.setOutputMarkupId(true);
-//        editorMidPointScript.setOutputMarkupPlaceholderTag(true);
-        editorMidPointScript.add(new VisibleBehaviour(() -> model.getObject().isScriptEnabled()));
-        mainForm.add(editorMidPointScript);
-
-        Label queryLabel = new Label(ID_QUERY_LABEL, createQueryLabelModel());
-        mainForm.add(queryLabel);
-
-        AceEditor editorHibernate = new AceEditor(ID_QUERY_EDITOR, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_QUERY));
-        editorHibernate.setHeight(300);
-        editorHibernate.setResizeToMaxHeight(false);
-        editorHibernate.setReadonly(!isAdmin);
-        editorHibernate.setMode(null);
-        mainForm.add(editorHibernate);
-
-        AceEditor hibernateParameters = new AceEditor(ID_PARAMETERS, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
-        hibernateParameters.setReadonly(true);
-        hibernateParameters.setHeight(100);
-        hibernateParameters.setResizeToMaxHeight(false);
-        hibernateParameters.setMode(null);
-        mainForm.add(hibernateParameters);
-
-        Label queryVsFilterNote = new Label(ID_QUERY_VS_FILTER_NOTE, createStringResource("PageRepositoryQuery.queryVsFilterNote",
-                WebComponentUtil.getMidpointCustomSystemName(PageRepositoryQuery.this, "midPoint")));
-        queryVsFilterNote.setOutputMarkupId(true);
-        mainForm.add(queryVsFilterNote);
-
-        WebMarkupContainer midPointQueryButtonBar = new WebMarkupContainer(ID_MIDPOINT_QUERY_BUTTON_BAR);
-        midPointQueryButtonBar.setOutputMarkupId(true);
-        mainForm.add(midPointQueryButtonBar);
-
-        DataLanguagePanel<QueryType> dataLanguagePanel =
-                new DataLanguagePanel<>(ID_VIEW_BUTTON_PANEL, dataLanguage, QueryType.class, PageRepositoryQuery.this) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onLanguageSwitched(AjaxRequestTarget target, int updatedIndex, String updatedLanguage,
-                            String objectString) {
-                        model.getObject().setMidPointQuery(objectString);
-                        dataLanguage = updatedLanguage;
-                        target.add(mainForm);
-                    }
-
-                    @Override
-                    protected String getObjectStringRepresentation() {
-                        return model.getObject().getMidPointQuery();
-                    }
-                };
-        dataLanguagePanel.setOutputMarkupId(true);
-        mainForm.add(dataLanguagePanel);
-
-        AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT,
-                createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                queryPerformed(Action.EXECUTE_MIDPOINT, target);
-            }
-        };
-        midPointQueryButtonBar.add(executeMidPoint);
-
-        AjaxSubmitButton compileMidPoint = new AjaxSubmitButton(ID_COMPILE_MIDPOINT, createCompileMidpointLabelModel()) {
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                queryPerformed(Action.TRANSLATE_ONLY, target);
-            }
-        };
-        midPointQueryButtonBar.add(compileMidPoint);
-
-        AjaxSubmitButton useInObjectList = new AjaxSubmitButton(ID_USE_IN_OBJECT_LIST,
-                createStringResource("PageRepositoryQuery.button.useInObjectList")) {
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                useInObjectListPerformed(target);
-            }
-        };
-        useInObjectList.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return USE_IN_OBJECT_LIST_AVAILABLE_FOR.contains(model.getObject().getObjectType());
-            }
-        });
-        midPointQueryButtonBar.add(useInObjectList);
-
-        final DropDownChoicePanel<String> sampleChoice = new DropDownChoicePanel<>(ID_QUERY_SAMPLE,
-                Model.of(""), Model.ofList(SAMPLES),
-                new StringResourceChoiceRenderer("PageRepositoryQuery.sample"), true);
-        sampleChoice.getBaseFormComponent().setNullValid(true);
-        sampleChoice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                String sampleName = sampleChoice.getModel().getObject();
-                if (StringUtils.isEmpty(sampleName)) {
-                    return;
-                }
-                String resourceName = SAMPLES_DIR + "/" + sampleName + ".xml.data";
-                InputStream is = PageRepositoryQuery.class.getResourceAsStream(resourceName);
-                if (is != null) {
-                    try {
-                        String localTypeName = StringUtils.substringBefore(sampleName, "_");
-                        model.getObject().setObjectType(new QName(SchemaConstants.NS_C, localTypeName));
-                        String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
-                        String serialization;
-                        if (PrismContext.LANG_XML.equals(dataLanguage)) {
-                            serialization = xml;
-                        } else {
-                            PrismContext prismContext = getPrismContext();
-                            try {
-                                QueryType parsed = prismContext.parserFor(xml).xml().parseRealValue(QueryType.class);
-                                serialization = prismContext.serializerFor(dataLanguage).serializeRealValue(parsed);
-                            } catch (Throwable t) {
-                                serialization = "Couldn't serialize sample: " + t.getMessage();
-                            }
-                        }
-                        model.getObject().setMidPointQuery(serialization);
-                        model.getObject().setHibernateQuery("");
-                        model.getObject().setHibernateParameters("");
-                        model.getObject().setQueryResultObject(null);
-                        model.getObject().resetQueryResultText();
-                        target.add(PageRepositoryQuery.this);
-                    } catch (IOException e) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't read sample from resource {}", e, resourceName);
-                    }
-                } else {
-                    LOGGER.warn("Resource {} containing sample couldn't be found", resourceName);
-                }
-            }
-        });
-        mainForm.add(sampleChoice);
-
-        Label resultLabel = new Label(ID_RESULT_LABEL, (IModel<String>) () -> {
-            if (model.getObject().getQueryResultText() == null) {
-                return "";
-            }
-            Object queryResult = model.getObject().getQueryResultObject();
-            if (queryResult instanceof List) {
-                return getString("PageRepositoryQuery.resultObjects", ((List<?>) queryResult).size());
-            } else if (queryResult instanceof Throwable) {
-                return getString("PageRepositoryQuery.resultException", queryResult.getClass().getName());
-            } else {
-                // including null
-                return getString("PageRepositoryQuery.result");
-            }
-        });
-        mainForm.add(resultLabel);
-
-        WebMarkupContainer incompleteResultsNote = new WebMarkupContainer(ID_INCOMPLETE_RESULTS_NOTE);
-        incompleteResultsNote.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !isAdmin && model.getObject().getQueryResultText() != null;
-            }
-        });
-        mainForm.add(incompleteResultsNote);
-
-        AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<>(model, RepoQueryDto.F_QUERY_RESULT_TEXT));
-        resultText.setReadonly(true);
-        resultText.setHeight(300);
-        resultText.setResizeToMaxHeight(false);
-        resultText.setMode(null);
-        resultText.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return model.getObject().getQueryResultText() != null;
-            }
-        });
-        mainForm.add(resultText);
-
+        return tabs;
     }
 
-    private IModel<String> createCompileMidpointLabelModel() {
-        return isNativeRepo()
-                ? createStringResource("PageRepositoryQuery.button.translate.SQL")
-                : createStringResource("PageRepositoryQuery.button.translate");
-    }
 
-    private IModel<String> createQueryLabelModel() {
-        return isNativeRepo()
-                ? createStringResource("PageRepositoryQuery.sqlQuery")
-                : createStringResource("PageRepositoryQuery.hibernateQuery");
-    }
-
-    private void useInObjectListPerformed(AjaxRequestTarget target) {
-        final RepoQueryDto dto = model.getObject();
-        String queryText = dto.getMidPointQuery();
-        if (StringUtils.isBlank(queryText)) {
-            queryText = "<query/>";
-        }
-        RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
-        Task task = createSimpleTask(OPERATION_CHECK_QUERY);
-        OperationResult result = task.getResult();
-        try {
-            updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, dto.isDistinct(), dto.getMidPointQueryScript(), task, result); // just to parse the query
-
-            ObjectFilter parsedFilter = request.getQuery().getFilter();
-            String filterAsString;
-            if (parsedFilter != null) {
-                SearchFilterType filterType = getQueryConverter().createSearchFilterType(parsedFilter);
-                filterAsString = getPrismContext().xmlSerializer().serializeRealValue(filterType, SchemaConstantsGenerated.Q_FILTER);
-                // TODO remove extra xmlns from serialized value
-            } else {
-                filterAsString = "";
-            }
-
-            // TODO add containerable option too (or split the code sooner?)
-            //noinspection unchecked
-            Class<? extends PageBase> listPageClass = WebComponentUtil.getObjectListPage((Class<? extends ObjectType>) request.getType());
-            String storageKey = listPageClass != null ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart()) : null;
-            if (storageKey == null) {
-                // shouldn't occur because of button visibility
-                error("No page to redirect for " + dto.getObjectType());
-                target.add(getFeedbackPanel());
-                return;
-            }
-
-            SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
-            PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
-            if (storage == null) {
-                storage = sessionStorage.initPageStorage(storageKey);
-            }
-            // TODO add containerable option too
-            Search search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(this).build();
-            search.addAllowedModelType(SearchBoxModeType.ADVANCED);
-            search.setSearchMode(SearchBoxModeType.ADVANCED);
-            search.setAdvancedQuery(filterAsString);
-
-            if (!search.isAdvancedQueryValid(PageRepositoryQuery.this)) {
-                // shouldn't occur because the query was already parsed
-                error("Query is not valid: " + search.getAdvancedError());
-                target.add(getFeedbackPanel());
-                return;
-            }
-            storage.setSearch(search);
-            setResponsePage(listPageClass);
-        } catch (CommonException | RuntimeException e) {
-            result.recordFatalError(getString("PageRepositoryQuery.message.couldNotParseQuery", e.getMessage()), e);
-            showResult(result);
-            target.add(this);
-        }
-    }
-
-    private void queryPerformed(Action action, AjaxRequestTarget target) {
-        String opName = action == Action.TRANSLATE_ONLY ? OPERATION_TRANSLATE_QUERY : OPERATION_EXECUTE_QUERY;
-        Task task = createSimpleTask(opName);
-        OperationResult result = new OperationResult(opName);
-
-        RepoQueryDto dto = model.getObject();
-        try {
-            boolean queryPresent;
-            RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
-
-            switch (action) {
-                case TRANSLATE_ONLY:
-                    request.setTranslateOnly(true);
-                    // Falls through to the next section, we want this.
-                case EXECUTE_MIDPOINT:
-                    queryPresent = StringUtils.isNotBlank(dto.getMidPointQuery()) || StringUtils.isNotBlank(dto.getMidPointQueryScript());
-                    if (queryPresent) {
-                        updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), dto.getMidPointQueryScript(), task, result);
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid action: " + action);
-            }
-
-            if (!queryPresent) {
-                warnNoQuery(target);
-                return;
-            }
-
-            RepositoryQueryDiagResponse response;
-            List<?> queryResult;
-
-            if (isAdmin) {
-                response = getModelDiagnosticService().executeRepositoryQuery(request, task, result);
-                queryResult = response.getQueryResult();
-            } else {
-                request.setTranslateOnly(true);
-                response = getModelDiagnosticService().executeRepositoryQuery(request, task, result);
-
-                if (action != Action.TRANSLATE_ONLY) {
-                    // not an admin, so have to fetch objects via model
-                    // TODO add containerable option too
-                    //noinspection unchecked
-                    queryResult = getModelService().searchObjects((Class<? extends ObjectType>) request.getType(), request.getQuery(),
-                            createRawCollection(), task, result);
-                } else {
-                    queryResult = null;
-                }
-            }
-
-            dto.setHibernateQuery(String.valueOf(response.getImplementationLevelQuery()));
-            StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, RepositoryQueryDiagResponse.ParameterValue> entry : response.getImplementationLevelQueryParameters().entrySet()) {
-                sb.append(entry.getKey()).append(" = ").append(entry.getValue().displayValue).append("\n");
-            }
-            dto.setHibernateParameters(sb.toString());
-
-            if (action != Action.TRANSLATE_ONLY) {
-                dto.setQueryResultText(formatQueryResult(queryResult));
-                dto.setQueryResultObject(queryResult);
-            } else {
-                dto.resetQueryResultText();
-                dto.setQueryResultObject(null);
-            }
-        } catch (CommonException | RuntimeException e) {
-            result.recordFatalError(getString("PageRepositoryQuery.message.couldNotExecuteQuery"), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute query", e);
-            dto.setQueryResultText(e.getMessage());
-            dto.setQueryResultObject(e);
-        } finally {
-            result.computeStatus();
-        }
-
-        showResult(result);
-        target.add(this);
-    }
-
-    private void warnNoQuery(AjaxRequestTarget target) {
-        warn(getString("PageRepositoryQuery.message.emptyString"));
-        target.add(getFeedbackPanel());
-    }
-
-    private void updateRequestWithMidpointQuery(RepositoryQueryDiagRequest request,
-            QName objectType, String queryText,
-            boolean distinct,
-            String midPointQueryScript,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        PrismContext prismContext = getPrismContext();
-        if (objectType == null) {
-            objectType = ObjectType.COMPLEX_TYPE;
-        }
-        @SuppressWarnings("unchecked")
-        Class<? extends ObjectType> clazz = (Class<? extends ObjectType>)
-                prismContext.getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
-
-        ObjectQuery queryWithExprEvaluated = null;
-        if (midPointQueryScript != null) {
-            ExpressionType expressionType = prismContext.parserFor(midPointQueryScript).language(dataLanguage).parseRealValue(ExpressionType.class);
-            PrismPropertyValue<ObjectQuery> filterValue = ExpressionUtil.evaluateExpression(new VariablesMap(), null, expressionType,
-                    MiscSchemaUtil.getExpressionProfile(), getExpressionFactory(), "", task, task.getResult());
-            queryWithExprEvaluated = filterValue.getRealValue();
-
-            QueryType q = prismContext.getQueryConverter().createQueryType(queryWithExprEvaluated);
-            queryText = prismContext.serializerFor(dataLanguage).serializeRealValue(q);
-            model.getObject().setMidPointQuery(queryText);
-        }
-
-        if (queryWithExprEvaluated == null) {
-            QueryType queryType = prismContext.parserFor(queryText).language(dataLanguage).parseRealValue(QueryType.class);
-            ObjectQuery objectQuery = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
-            queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(
-                    objectQuery, new VariablesMap(),
-                    MiscSchemaUtil.getExpressionProfile(),
-                    getExpressionFactory(),
-                    "evaluate query expressions", task, result);
-        }
-
-        request.setType(clazz);
-        request.setQuery(queryWithExprEvaluated);
-
-        Collection<SelectorOptions<GetOperationOptions>> options = distinct ? createCollection(createDistinct()) : null;
-        request.setOptions(options);
-    }
-
-    private String formatQueryResult(List<?> objects) {
-        StringBuilder sb = new StringBuilder();
-        if (objects != null) {
-            for (Object item : objects) {
-                if (item instanceof Object[]) {
-                    boolean first = true;
-                    for (Object item1 : (Object[]) item) {
-                        if (first) {
-                            first = false;
-                        } else {
-                            sb.append(",");
-                        }
-                        sb.append(item1);
-                    }
-                } else {
-                    sb.append(item);
-                }
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
-    }
 }

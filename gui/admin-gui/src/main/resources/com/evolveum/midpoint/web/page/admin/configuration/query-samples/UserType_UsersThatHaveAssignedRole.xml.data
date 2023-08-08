@@ -1,9 +1,6 @@
 <query>
     <filter>
-        <ref>
-            <path>assignment/targetRef</path>
-            <value oid="00000000-0000-0000-0000-000000000004"/>
-        </ref>
+        <text>assignment/targetRef matches (oid = '00000000-0000-0000-0000-000000000004')</text>
     </filter>
 </query>
 

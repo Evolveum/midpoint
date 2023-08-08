@@ -1,0 +1,59 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="mainForm">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex flex-wrap mx-3 my-2 form-inline">
+                    <div class="mr-2 form-group">
+                        <label for="objectType" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.objectType"/></label>
+                        <div id="objectType" wicket:id="objectType"/>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col" wicket:id="viewButtonPanel"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" >XML Query</h3>
+                    </div>
+                    <div class="card-body p-0">
+
+
+                        <div wicket:id="xmlQuery"></div>
+
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <a class="btn btn-primary" wicket:id="convertQuery"/>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" >Converted midPoint Query</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div wicket:id="axiomQuery"></div> <!--class="w-100 border rounded" -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+
+</wicket:panel>
+</html>

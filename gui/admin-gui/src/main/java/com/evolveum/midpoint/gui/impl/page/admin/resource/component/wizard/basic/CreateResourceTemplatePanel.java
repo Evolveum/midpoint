@@ -7,58 +7,51 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ResourceTemplateProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ResourceTemplateProvider.TemplateType;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplate.TemplateType;
+import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
 public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<ResourceType>> {
 
-    private static final String ID_SEARCH_FRAGMENT = "searchFragment";
     private static final String ID_TILE_TABLE = "tileTable";
-    private static final String ID_SEARCH = "search";
     private static final String ID_BACK = "back";
-    private static final String ID_TYPE_FIELD = "type";
     private static final String CREATE_RESOURCE_TEMPLATE_STORAGE_KEY = "resourceTemplateStorage";
 
 
 
     private LoadableDetachableModel<Search> searchModel;
 
-    private final Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
+    private final Model<TemplateType> templateType;
 
-    public CreateResourceTemplatePanel(String id) {
+    public CreateResourceTemplatePanel(String id, Model<TemplateType> templateType) {
         super(id);
+        this.templateType = templateType;
     }
 
     @Override
@@ -95,7 +88,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                getPageBase().redirectBack();
+                onBackPerformed(target);
             }
         };
         add(back);
@@ -119,11 +112,6 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             }
 
             @Override
-            protected Component createHeader(String id) {
-                return createSearchFragment(id);
-            }
-
-            @Override
             protected ISortableDataProvider<TemplateTile<ResourceTemplate>, String> createProvider() {
                 return new ResourceTemplateProvider(this, searchModel, templateType);
             }
@@ -138,45 +126,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
     }
 
-    private Fragment createSearchFragment(String id) {
-        Fragment fragment = new Fragment(id, ID_SEARCH_FRAGMENT, CreateResourceTemplatePanel.this);
-        fragment.setOutputMarkupId(true);
-
-        DropDownChoicePanel<TemplateType> type
-                = WebComponentUtil.createEnumPanel(TemplateType.class, ID_TYPE_FIELD, templateType, this, false);
-        type.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                super.onUpdate(target);
-                target.add(CreateResourceTemplatePanel.this);
-            }
-        });
-        fragment.add(type);
-
-        SearchPanel<AssignmentHolderType> search = initSearch();
-        fragment.add(search);
-        fragment.add(AttributeAppender.replace("class", "w-100"));
-
-        return fragment;
-    }
-
-    private SearchPanel<AssignmentHolderType> initSearch() {
-        return new SearchPanel<>(ID_SEARCH, (IModel) searchModel) {
-
-            @Override
-            public void searchPerformed(AjaxRequestTarget target) {
-                target.add(getTilesTable());
-            }
-
-            @Override
-            protected void saveSearch(Search search, AjaxRequestTarget target) {
-                getStorage().setSearch(search);
-            }
-        };
-    }
-
-    private WebMarkupContainer getTilesTable() {
-        return (WebMarkupContainer) get(ID_TILE_TABLE);
+    protected void onBackPerformed(AjaxRequestTarget target) {
     }
 
     private PageStorage getStorage() {
@@ -189,17 +139,28 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
     private void onTemplateSelectionPerformed(TemplateTile<ResourceTemplate> tile, AjaxRequestTarget target) {
         try {
+            ResourceTemplate resourceTemplate = tile.getValue();
+
+            if (resourceTemplate != null && TemplateType.COPY_FROM_TEMPLATE.equals(resourceTemplate.getTemplateType())) {
+                Task task = getPageBase().createSimpleTask("load resource template");
+                OperationResult result = task.getResult();
+                @Nullable PrismObject<ResourceType> resource =
+                        WebModelServiceUtils.loadObject(ResourceType.class, resourceTemplate.getOid(), getPageBase(), task, result);
+                PrismObject<ResourceType> obj = resource.cloneComplex(CloneStrategy.REUSE);
+                onTemplateSelectionPerformed(obj, target);
+                return;
+            }
+
             PrismObjectDefinition<ResourceType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(getType());
             PrismObject<ResourceType> obj = def.instantiate();
 
-            ResourceTemplate resourceTemplate = tile.getValue();
             if (resourceTemplate != null) {
-                if (QNameUtil.match(ConnectorType.COMPLEX_TYPE, resourceTemplate.getType())) {
+                if (TemplateType.CONNECTOR.equals(resourceTemplate.getTemplateType())) {
                     obj.asObjectable().beginConnectorRef()
                             .oid(resourceTemplate.getOid())
                             .type(ConnectorType.COMPLEX_TYPE);
-                } else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, resourceTemplate.getType())) {
-                    Task task = getPageBase().createSimpleTask("load resource template");
+                } else if (TemplateType.INHERIT_TEMPLATE.equals(resourceTemplate.getTemplateType())) {
+                    Task task = getPageBase().createSimpleTask("expand resource with template");
                     OperationResult result = task.getResult();
                     obj.asObjectable().beginSuper().beginResourceRef()
                             .oid(resourceTemplate.getOid())

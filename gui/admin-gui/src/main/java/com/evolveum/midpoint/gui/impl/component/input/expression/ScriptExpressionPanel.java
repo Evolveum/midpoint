@@ -36,6 +36,11 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         if (StringUtils.isEmpty(getEvaluatorValue())) {
             updateEvaluatorValue("");
         }

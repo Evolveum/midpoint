@@ -1,8 +1,5 @@
 <query>
     <filter>
-        <ref>
-            <path>resourceRef</path>
-            <value oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
-        </ref>
+        <text>resourceRef matches (oid = 'ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2')</text>
     </filter>
 </query>

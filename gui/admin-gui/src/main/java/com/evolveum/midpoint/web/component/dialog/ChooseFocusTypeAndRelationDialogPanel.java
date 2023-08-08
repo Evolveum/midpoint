@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -183,7 +184,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
     }
 
     protected List<QName> getSupportedObjectTypes() {
-        return WebComponentUtil.createFocusTypeList(true);
+        return ObjectTypeListUtil.createFocusTypeList(true);
     }
 
     protected QName getDefaultObjectType() {

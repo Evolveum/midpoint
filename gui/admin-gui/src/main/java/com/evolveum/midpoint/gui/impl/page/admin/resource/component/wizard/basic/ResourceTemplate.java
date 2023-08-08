@@ -7,24 +7,53 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 public class ResourceTemplate implements Serializable {
 
     private final String oid;
-    private final QName type;
 
-    public ResourceTemplate(String oid, QName type) {
+    private final TemplateType templateType;
+
+    public ResourceTemplate(String oid, TemplateType templateType) {
         this.oid = oid;
-        this.type = type;
-    }
-
-    public QName getType() {
-        return type;
+        this.templateType = templateType;
     }
 
     public String getOid() {
         return oid;
+    }
+
+    public TemplateType getTemplateType() {
+        return templateType;
+    }
+
+    public enum TemplateType implements TileEnum {
+        INHERIT_TEMPLATE(ResourceType.class, "fa fa-code-branch fa-rotate-180"),
+        CONNECTOR(ConnectorType.class, "fa fa-arrows-to-circle"),
+        COPY_FROM_TEMPLATE(ResourceType.class, "fa fa-clone");
+
+        private final Class<? extends AssignmentHolderType> type;
+        private final String icon;
+
+        TemplateType(Class<? extends AssignmentHolderType> type, String icon) {
+            this.type = type;
+            this.icon = icon;
+        }
+
+        public Class<? extends AssignmentHolderType> getType() {
+            return type;
+        }
+
+        @Override
+        public String getIcon() {
+            return icon;
+        }
     }
 }

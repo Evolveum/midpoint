@@ -1,10 +1,5 @@
 <query>
     <filter>
-        <substring>
-            <matching>polyStringNorm</matching>     <!-- normalized (case insensitive) -->
-            <path>name</path>
-            <value>a</value>
-            <anchorStart>true</anchorStart>         <!-- should start with a given string -->
-        </substring>
+        <text>name startsWith[polyStringNorm] 'a'</text> <!-- normalized (case insensitive) and should start with a given string-->
     </filter>
 </query>
