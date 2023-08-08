@@ -303,8 +303,6 @@ public class SecurityHelper implements ModelAuditRecorder {
      */
     private PrismObject<SecurityPolicyType> mergeSecurityPolicies(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
             PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
-        //todo for now probably only authentication and credentialsReset merge is needed (may be name this method
-        // as "mergeAuthentications" then)
         if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
             return null;
         }
@@ -322,6 +320,8 @@ public class SecurityHelper implements ModelAuditRecorder {
                 topLevelSecurityPolicy.asObjectable().getCredentials()));
         mergedSecurityPolicy.setCredentialsReset(mergeCredentialsReset(lowLevelSecurityPolicy.asObjectable().getCredentialsReset(),
                 topLevelSecurityPolicy.asObjectable().getCredentialsReset()));
+        mergedSecurityPolicy.setLoginNameRecovery(mergeLoginNameRecovery(lowLevelSecurityPolicy.asObjectable().getLoginNameRecovery(),
+                topLevelSecurityPolicy.asObjectable().getLoginNameRecovery()));
         return mergedSecurityPolicy.asPrismObject();
     }
 
@@ -368,6 +368,8 @@ public class SecurityHelper implements ModelAuditRecorder {
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getAttributeVerification(), modules.getAttributeVerification());
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getHint(), modules.getHint());
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getFocusIdentification(), modules.getFocusIdentification());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getArchetypeSelection(), modules.getArchetypeSelection());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getCorrelation(), modules.getCorrelation());
     }
 
     private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProcess) {
@@ -504,12 +506,24 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     private CredentialsResetPolicyType mergeCredentialsReset(CredentialsResetPolicyType lowLevelCredentialsReset, CredentialsResetPolicyType topLevelCredentialsReset) {
-        if (lowLevelCredentialsReset == null && topLevelCredentialsReset == null) {
-            return null;
+        if (lowLevelCredentialsReset != null) {
+            return lowLevelCredentialsReset.cloneWithoutId();
         }
-        //todo do we want to merge credentials reset attributes separately? e.g. if identifiers are the same, then merge every
-        //single attribute with the rule that lowLevelCredentialsReset attribute overrides topLevelCredentialsReset attribute
-        return lowLevelCredentialsReset != null ? lowLevelCredentialsReset.cloneWithoutId() : topLevelCredentialsReset.cloneWithoutId();
+        if (topLevelCredentialsReset != null) {
+            return topLevelCredentialsReset.cloneWithoutId();
+        }
+        return null;
+    }
+
+    private LoginNameRecoveryPolicyType mergeLoginNameRecovery(LoginNameRecoveryPolicyType lowLevelRecoveryPolicy,
+            LoginNameRecoveryPolicyType topLevelRecoveryPolicy) {
+        if (lowLevelRecoveryPolicy != null) {
+            return lowLevelRecoveryPolicy.cloneWithoutId();
+        }
+        if (topLevelRecoveryPolicy != null) {
+            return topLevelRecoveryPolicy.cloneWithoutId();
+        }
+        return null;
     }
 
     public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> focus,
