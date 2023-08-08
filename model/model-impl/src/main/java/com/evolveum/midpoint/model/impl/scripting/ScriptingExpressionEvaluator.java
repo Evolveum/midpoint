@@ -94,13 +94,15 @@ public class ScriptingExpressionEvaluator {
             @NotNull OperationResult result) throws ScriptExecutionException {
         var executeScriptBean = executeScript.value();
         try {
-            var expressionProfile = expressionProfileManager.determineExpressionProfile(executeScript.origin(), result);
+            var expressionProfile =
+                    expressionProfileManager.determineScriptingExpressionProfile(executeScript.origin(), task, result);
             VariablesMap frozenVariables = VariablesUtil.initialPreparation(
                     initialVariables, executeScriptBean.getVariables(),
                     expressionProfile, task, result);
             PipelineData inputPipeline = PipelineData.parseFrom(executeScriptBean.getInput(), frozenVariables);
-            ExecutionContext context = new ExecutionContext(executeScriptBean.getOptions(), task, this,
-                    privileged, recordProgressAndIterationStatistics, frozenVariables);
+            ExecutionContext context = new ExecutionContext(
+                    executeScriptBean.getOptions(), task, this,
+                    privileged, recordProgressAndIterationStatistics, frozenVariables, expressionProfile);
             PipelineData output = evaluateExpression(
                     executeScriptBean.getScriptingExpression().getValue(), inputPipeline, context, result);
             context.setFinalOutput(output);

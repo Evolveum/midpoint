@@ -8,14 +8,18 @@ package com.evolveum.midpoint.notifications.impl.handlers;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
 import com.evolveum.midpoint.notifications.impl.helpers.*;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,59 +47,71 @@ public class AggregatedEventHandler extends BaseHandler<Event, BaseEventHandlerT
     @Autowired private EventHandlerRegistry eventHandlerRegistry;
 
     @Override
-    public Class<Event> getEventType() {
+    public @NotNull Class<Event> getEventType() {
         return Event.class;
     }
 
     @Override
-    public Class<EventHandlerType> getEventHandlerConfigurationType() {
+    public @NotNull Class<EventHandlerType> getEventHandlerConfigurationType() {
         return EventHandlerType.class;
     }
 
     @Override
-    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig, Task task, OperationResult result)
+    public boolean processEvent(
+            @NotNull ConfigurationItem<? extends BaseEventHandlerType> handlerConfig,
+            @NotNull EventProcessingContext<?> ctx,
+            @NotNull OperationResult result)
             throws SchemaException {
 
-        logStart(LOGGER, event, eventHandlerConfig);
+        logStart(LOGGER, handlerConfig, ctx);
 
-        boolean shouldContinue = categoryFilter.processEvent(event, eventHandlerConfig)
-                && operationFilter.processEvent(event, eventHandlerConfig)
-                && statusFilter.processEvent(event, eventHandlerConfig)
-                && kindIntentFilter.processEvent(event, eventHandlerConfig)
-                && focusTypeFilterHelper.processEvent(event, eventHandlerConfig)
-                && expressionFilter.processEvent(event, eventHandlerConfig, task, result);
+        boolean shouldContinue = categoryFilter.processEvent(handlerConfig, ctx)
+                && operationFilter.processEvent(handlerConfig, ctx)
+                && statusFilter.processEvent(handlerConfig, ctx)
+                && kindIntentFilter.processEvent(handlerConfig, ctx)
+                && focusTypeFilterHelper.processEvent(handlerConfig, ctx)
+                && expressionFilter.processEvent(handlerConfig, ctx, result);
 
-        if (eventHandlerConfig instanceof EventHandlerType) {
-            EventHandlerType handlerConfig = (EventHandlerType) eventHandlerConfig;
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleUserNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleFocalObjectNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleResourceObjectNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleWorkflowNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleCaseManagementNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getUserPasswordNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getUserRegistrationNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getPasswordResetNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getAccountActivationNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getAccountPasswordNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getGeneralNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getCustomNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleCampaignNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleCampaignStageNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleReviewerNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleTaskNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimpleReportNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getSimplePolicyRuleNotifier(), task, result);
-            shouldContinue = shouldContinue && processNotifiers(event, handlerConfig.getTimeValidityNotifier(), task, result);
+        // We are too lazy to determine the exact origin here. It is not needed for profiles anyway, as the profile
+        // is pre-determined and stored in the context.
+        ConfigurationItemOrigin o = handlerConfig.origin().toApproximate();
+
+        if (handlerConfig.value() instanceof EventHandlerType configBean) {
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleUserNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleFocalObjectNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleResourceObjectNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleWorkflowNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleCaseManagementNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getUserPasswordNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getUserRegistrationNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getPasswordResetNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getAccountActivationNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getAccountPasswordNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getGeneralNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getCustomNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleCampaignNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleCampaignStageNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleReviewerNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleTaskNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleReportNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimplePolicyRuleNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getTimeValidityNotifier(), o, ctx, result);
         }
 
-        logEnd(LOGGER, event, shouldContinue);
+        logEnd(LOGGER, ctx.event(), shouldContinue);
         return shouldContinue;
     }
 
-    private boolean processNotifiers(Event event, List<? extends BaseEventHandlerType> notifiers, Task task, OperationResult result)
+    private boolean processNotifiers(
+            List<? extends BaseEventHandlerType> notifiers,
+            ConfigurationItemOrigin approximateOrigin,
+            EventProcessingContext<?> ctx,
+            OperationResult result)
             throws SchemaException {
         for (BaseEventHandlerType notifier : notifiers) {
-            boolean shouldContinue = eventHandlerRegistry.forwardToHandler(event, notifier, task, result);
+            boolean shouldContinue = eventHandlerRegistry.forwardToHandler(
+                    EventHandlerConfigItem.of(notifier, approximateOrigin),
+                    ctx, result);
             if (!shouldContinue) {
                 return false;
             }

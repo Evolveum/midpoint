@@ -32,6 +32,12 @@ public class FunctionLibrariesProfile extends AbstractSecurityProfile {
             AccessDecision.ALLOW,
             Map.of());
 
+    /** "Allow nothing" profile. */
+    private static final FunctionLibrariesProfile NONE = new FunctionLibrariesProfile(
+            SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
+            AccessDecision.DENY,
+            Map.of());
+
     private FunctionLibrariesProfile(
             @NotNull String identifier,
             @NotNull AccessDecision defaultDecision,
@@ -42,6 +48,10 @@ public class FunctionLibrariesProfile extends AbstractSecurityProfile {
 
     public static @NotNull FunctionLibrariesProfile full() {
         return FULL;
+    }
+
+    public static @NotNull FunctionLibrariesProfile none() {
+        return NONE;
     }
 
     public static FunctionLibrariesProfile of(@NotNull FunctionLibrariesProfileType bean) throws ConfigurationException {

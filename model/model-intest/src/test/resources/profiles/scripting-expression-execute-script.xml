@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<s:executeScript
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:evaluateExpression>
+        <s:forWholeInput>true</s:forWholeInput>
+        <s:expression>
+            <script>
+                <code>
+                    com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom() // non-compliant
+                </code>
+            </script>
+        </s:expression>
+    </s:evaluateExpression>
+</s:executeScript>

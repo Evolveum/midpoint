@@ -22,23 +22,20 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.HttpHost;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
@@ -48,13 +45,14 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -86,7 +84,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
     }
 
     @Override
-    public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
+    public void send(Message message, String transportName, SendingContext ctx, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
@@ -103,8 +101,8 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
 
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(
-                    allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
-                    transportSupport.expressionFactory(), MiscSchemaUtil.getExpressionProfile(), LOGGER);
+                    allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, ctx.task(), result,
+                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty()) {
@@ -149,7 +147,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         }
 
         List<String> to = message.getTo();
-        assert to.size() > 0;
+        assert !to.isEmpty();
 
         for (SmsGatewayConfigurationType smsGatewayConfigurationType : configuration.getGateway()) {
             OperationResult resultForGateway = result.createSubresult(DOT_CLASS + "send.forGateway");
@@ -158,20 +156,22 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
                 VariablesMap variables = getDefaultVariables(from, to, message);
                 HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
                 ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), null);
-                String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
+                String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", ctx, result);
                 String proxyHost = smsGatewayConfigurationType.getProxyHost();
                 Integer proxyPort = smsGatewayConfigurationType.getProxyPort();
                 LOGGER.debug("Sending SMS to URL {} via proxy host {} and port {} (method {})", url, proxyHost, proxyPort, method);
                 if (url == null) {
                     throw new IllegalArgumentException("No URL specified");
                 }
-                List<String> headersList = evaluateExpressionsChecked(smsGatewayConfigurationType.getHeadersExpression(), variables,
-                        "sms gateway request headers", task, result);
+                List<String> headersList = evaluateExpressionsChecked(
+                        smsGatewayConfigurationType.getHeadersExpression(), variables,
+                        "sms gateway request headers", ctx, result);
                 LOGGER.debug("Using request headers:\n{}", headersList);
 
                 String encoding = defaultIfNull(smsGatewayConfigurationType.getBodyEncoding(), StandardCharsets.ISO_8859_1.name());
-                String body = evaluateExpressionChecked(smsGatewayConfigurationType.getBodyExpression(), variables,
-                        "sms gateway request body", task, result);
+                String body = evaluateExpressionChecked(
+                        smsGatewayConfigurationType.getBodyExpression(), variables,
+                        "sms gateway request body", ctx, result);
                 LOGGER.debug("Using request body text (encoding: {}):\n{}", encoding, body);
 
                 if (smsGatewayConfigurationType.getLogToFile() != null) {
@@ -279,10 +279,11 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
                 + "\n\nFor message:\n" + smsMessage.toString() + "\n\n";
     }
 
-    private String evaluateExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
-            String shortDesc, Task task, OperationResult result) {
+    private String evaluateExpressionChecked(
+            ExpressionType expressionType, VariablesMap VariablesMap,
+            String shortDesc, SendingContext ctx, OperationResult result) {
         try {
-            return evaluateExpression(expressionType, VariablesMap, false, shortDesc, task, result).get(0);
+            return evaluateExpression(expressionType, VariablesMap, false, shortDesc, ctx, result).get(0);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
                 ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
@@ -292,10 +293,11 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
     }
 
     @NotNull
-    private List<String> evaluateExpressionsChecked(ExpressionType expressionType, VariablesMap VariablesMap,
-            @SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
+    private List<String> evaluateExpressionsChecked(
+            ExpressionType expressionType, VariablesMap VariablesMap,
+            @SuppressWarnings("SameParameterValue") String shortDesc, SendingContext ctx, OperationResult result) {
         try {
-            return evaluateExpression(expressionType, VariablesMap, true, shortDesc, task, result);
+            return evaluateExpression(expressionType, VariablesMap, true, shortDesc, ctx, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
                 ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
@@ -306,8 +308,10 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
 
     // A little hack: for single-value cases we always return single-item list (even if the returned value is null)
     @NotNull
-    private List<String> evaluateExpression(ExpressionType expressionType, VariablesMap variablesMap,
-            boolean multipleValues, String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+    private List<String> evaluateExpression(
+            ExpressionType expressionType, VariablesMap variablesMap,
+            boolean multipleValues, String shortDesc, SendingContext ctx, OperationResult result)
+            throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (expressionType == null) {
             return multipleValues ? emptyList() : singletonList(null);
@@ -319,10 +323,13 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
             resultDef.setMaxOccurs(-1);
         }
 
+        var task = ctx.task();
+
         ExpressionFactory expressionFactory = transportSupport.expressionFactory();
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
-                        expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                        ExpressionConfigItem.of(expressionType, ConfigurationItemOrigin.undeterminedSafe()),
+                        resultDef, ctx.expressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =

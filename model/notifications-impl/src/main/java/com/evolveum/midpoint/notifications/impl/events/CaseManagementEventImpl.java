@@ -40,9 +40,10 @@ abstract public class CaseManagementEventImpl extends BaseEventImpl implements C
     @NotNull private final ChangeType changeType;
     @NotNull protected final CaseType aCase;
 
-    CaseManagementEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-            @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase, EventHandlerType handler) {
-        super(lightweightIdentifierGenerator, handler);
+    CaseManagementEventImpl(
+            @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+            @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase) {
+        super(lightweightIdentifierGenerator);
         this.changeType = changeType;
         this.approvalContext = approvalContext;
         this.aCase = aCase;

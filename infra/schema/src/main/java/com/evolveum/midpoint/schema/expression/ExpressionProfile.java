@@ -31,6 +31,17 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             FunctionLibrariesProfile.full());
 
     /**
+     * Profile that mimics the legacy non-root behavior for bulk actions:
+     * no expressions - this limits all of "execute-script", "notification" (with unsafe custom event handler), and
+     * the new "evaluate-expression" actions.
+     */
+    private static final ExpressionProfile SCRIPTING_LEGACY_UNPRIVILEGED = new ExpressionProfile(
+            SchemaConstants.LEGACY_UNPRIVILEGED_SCRIPTING_PROFILE_ID,
+            ExpressionEvaluatorsProfile.none(),
+            ScriptingProfile.full(), // actions without scripts/expressions are safe
+            FunctionLibrariesProfile.none());
+
+    /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.
      *
      * @see ExpressionProfileType#getIdentifier()
@@ -58,6 +69,10 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
 
     public static @NotNull ExpressionProfile full() {
         return FULL;
+    }
+
+    public static @NotNull ExpressionProfile scriptingLegacyUnprivileged() {
+        return SCRIPTING_LEGACY_UNPRIVILEGED;
     }
 
     public @NotNull String getIdentifier() {

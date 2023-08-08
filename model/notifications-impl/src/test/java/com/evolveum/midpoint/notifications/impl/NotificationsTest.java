@@ -737,15 +737,15 @@ public class NotificationsTest extends AbstractIntegrationTest {
 
     @NotNull
     private CustomEventImpl createCustomEvent() {
-        return new CustomEventImpl(lightweightIdentifierGenerator, "test", null, null,
+        return new CustomEventImpl(
+                lightweightIdentifierGenerator, "test", null,
                 EventOperationType.ADD, // TODO why is this not nullable or some OTHER operation is not available?
                 EventStatusType.SUCCESS, "test-channel");
     }
 
     private Message getSingleMessage(TestMessageTransport testTransport) {
         assertThat(testTransport.getMessages()).hasSize(1);
-        Message message = testTransport.getMessages().get(0);
-        return message;
+        return testTransport.getMessages().get(0);
     }
 
     private Object getRawValue(Object value) {

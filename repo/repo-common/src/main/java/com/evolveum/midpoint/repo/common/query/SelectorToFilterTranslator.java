@@ -11,7 +11,6 @@ import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;

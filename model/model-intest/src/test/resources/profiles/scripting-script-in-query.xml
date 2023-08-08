@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<s:executeScript
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:search>
+        <s:type>UserType</s:type>
+        <s:query>
+            <q:filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+                                com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom() // non-compliant
+                                '12345'
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </q:filter>
+        </s:query>
+    </s:search>
+</s:executeScript>

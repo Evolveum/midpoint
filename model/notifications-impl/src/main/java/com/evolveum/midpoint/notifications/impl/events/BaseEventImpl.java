@@ -9,28 +9,16 @@ package com.evolveum.midpoint.notifications.impl.events;
 
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
+import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.util.ApplicationContextHolder;
 import com.evolveum.midpoint.prism.*;
@@ -39,19 +27,26 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Base implementation of Event that contains the common functionality.
@@ -66,15 +61,6 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
 
     private SimpleObjectRef requestee;
 
-    /**
-     * If needed, we can prescribe the handler that should process this event, in addition to the handlers
-     * defined by the system configuration.
-     *
-     * It is recommended only for specific (ad-hoc) situations.
-     * A better is to define handlers in system configuration.
-     */
-    private final EventHandlerType adHocHandler;
-
     private transient MidpointFunctions midpointFunctions;
     private transient TextFormatter textFormatter;
     private transient PrismContext prismContext;
@@ -86,12 +72,7 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     BaseEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator) {
-        this(lightweightIdentifierGenerator, null);
-    }
-
-    BaseEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
         id = lightweightIdentifierGenerator.generate();
-        this.adHocHandler = adHocHandler;
     }
 
     @NotNull
@@ -100,16 +81,11 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
     }
 
     boolean changeTypeMatchesOperationType(ChangeType changeType, EventOperationType eventOperationType) {
-        switch (eventOperationType) {
-            case ADD:
-                return changeType == ChangeType.ADD;
-            case MODIFY:
-                return changeType == ChangeType.MODIFY;
-            case DELETE:
-                return changeType == ChangeType.DELETE;
-            default:
-                throw new IllegalStateException("Unexpected EventOperationType: " + eventOperationType);
-        }
+        return switch (eventOperationType) {
+            case ADD -> changeType == ChangeType.ADD;
+            case MODIFY -> changeType == ChangeType.MODIFY;
+            case DELETE -> changeType == ChangeType.DELETE;
+        };
     }
 
     abstract public boolean isCategoryType(EventCategoryType eventCategory);
@@ -345,11 +321,6 @@ public abstract class BaseEventImpl implements Event, DebugDumpable, ShortDumpab
         } else {
             return "UNKNOWN";
         }
-    }
-
-    @Override
-    public EventHandlerType getAdHocHandler() {
-        return adHocHandler;
     }
 
     protected void debugDumpCommon(StringBuilder sb, int indent) {

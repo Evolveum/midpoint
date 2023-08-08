@@ -48,7 +48,12 @@ public abstract class ConfigurationItemOrigin implements Serializable {
      * Use with care! Careless use of this origin may render expression profiles ineffective.
      */
     public static ConfigurationItemOrigin undetermined() {
-        return new ConfigurationItemOrigin.Undetermined();
+        return new ConfigurationItemOrigin.Undetermined(false);
+    }
+
+    /** Undetermined but safe, because it is never used to determine the expression profile. */
+    public static ConfigurationItemOrigin undeterminedSafe() {
+        return new ConfigurationItemOrigin.Undetermined(true);
     }
 
     /** Use with care! Careless use of this origin may render expression profiles ineffective. */
@@ -132,11 +137,29 @@ public abstract class ConfigurationItemOrigin implements Serializable {
     /** Returns the description of the origin, e.g. "in role:xxx(xxx) @assignment[102]/condition". */
     public abstract @NotNull String fullDescription();
 
+    public @NotNull ConfigurationItemOrigin toApproximate() {
+        return this; // usually this is the case
+    }
+
     /** Represents an origin we are not currently able to determine exactly. */
     public static class Undetermined extends ConfigurationItemOrigin {
+
+        /**
+         * Safe means that it is safe to use this origin, as is is NEVER used to determine the expression profile.
+         * So, the possible damage is limited to imprecise information in error or diagnostic messages.
+         *
+         * OTOH, _unsafe_ means that this is a temporary situation during the migration to full implementation of expression
+         * profiles. Such cases should be found and fixed.
+         */
+        private final boolean safe;
+
+        Undetermined(boolean safe) {
+            this.safe = safe;
+        }
+
         @Override
         public String toString() {
-            return "undetermined";
+            return safe ? "undetermined" : "undetermined (unsafe)";
         }
 
         @Override
@@ -146,7 +169,11 @@ public abstract class ConfigurationItemOrigin implements Serializable {
 
         @Override
         public @NotNull String fullDescription() {
-            return "(undetermined origin)";
+            return safe ? "(undetermined origin)" : "(undetermined origin; unsafe)";
+        }
+
+        public boolean isSafe() {
+            return safe;
         }
     }
 
@@ -210,6 +237,15 @@ public abstract class ConfigurationItemOrigin implements Serializable {
             this.originatingObject = Objects.requireNonNull(originatingObject);
             this.path = path;
             this.precise = precise;
+        }
+
+        @Override
+        public @NotNull ConfigurationItemOrigin toApproximate() {
+            if (precise) {
+                return new InObject(originatingObject, path, false);
+            } else {
+                return this;
+            }
         }
 
         public @NotNull ObjectType getOriginatingObject() {

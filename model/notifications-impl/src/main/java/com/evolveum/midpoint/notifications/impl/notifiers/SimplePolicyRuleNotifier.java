@@ -9,16 +9,14 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimplePolicyRuleNotifierType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-/**
- *
- */
 @Component
 public class SimplePolicyRuleNotifier extends AbstractPolicyRuleNotifier<SimplePolicyRuleNotifierType> {
 
     @Override
-    public Class<SimplePolicyRuleNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimplePolicyRuleNotifierType> getEventHandlerConfigurationType() {
         return SimplePolicyRuleNotifierType.class;
     }
 }

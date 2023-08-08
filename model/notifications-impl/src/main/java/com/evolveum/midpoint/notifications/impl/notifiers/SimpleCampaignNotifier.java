@@ -9,13 +9,15 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Date;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignEvent;
 import com.evolveum.midpoint.notifications.impl.helpers.CertHelper;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -33,23 +35,31 @@ public class SimpleCampaignNotifier extends AbstractGeneralNotifier<CertCampaign
     private CertHelper certHelper;
 
     @Override
-    public Class<CertCampaignEvent> getEventType() {
+    public @NotNull Class<CertCampaignEvent> getEventType() {
         return CertCampaignEvent.class;
     }
 
     @Override
-    public Class<SimpleCampaignNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleCampaignNotifierType> getEventHandlerConfigurationType() {
         return SimpleCampaignNotifierType.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(CertCampaignEvent event, SimpleCampaignNotifierType configuration, OperationResult result) {
+    protected boolean quickCheckApplicability(
+            ConfigurationItem<? extends SimpleCampaignNotifierType> configuration,
+            EventProcessingContext<? extends CertCampaignEvent> ctx,
+            OperationResult result) {
         // general modifications are not supported
-        return event.isAdd() || event.isDelete();
+        return ctx.event().isAdd() || ctx.event().isDelete();
     }
 
     @Override
-    protected String getSubject(CertCampaignEvent event, SimpleCampaignNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends SimpleCampaignNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends CertCampaignEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         String change;
         if (event.isAdd()) {
             change = "started";
@@ -62,7 +72,12 @@ public class SimpleCampaignNotifier extends AbstractGeneralNotifier<CertCampaign
     }
 
     @Override
-    protected String getBody(CertCampaignEvent event, SimpleCampaignNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends SimpleCampaignNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends CertCampaignEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         StringBuilder body = new StringBuilder();
         AccessCertificationCampaignType campaign = event.getCampaign();
 
@@ -84,7 +99,7 @@ public class SimpleCampaignNotifier extends AbstractGeneralNotifier<CertCampaign
 
         body.append("\n\nCurrent state: ").append(certHelper.formatState(event));
         body.append("\n\n");
-        certHelper.appendStatistics(body, campaign, task, result);
+        certHelper.appendStatistics(body, campaign, ctx.task(), result);
 
         body.append("\n\n");
         addRequesterAndChannelInformation(body, event, result);

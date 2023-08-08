@@ -702,6 +702,12 @@ public abstract class SchemaConstants {
     /** ID of "allow all" expression profile. */
     public static final String FULL_EXPRESSION_PROFILE_ID = "##full";
 
+    /** ID of "allow none" expression profile. */
+    public static final String NONE_EXPRESSION_PROFILE_ID = "##none";
+
+    /** ID of "legacy unprivileged mode" expression profile for scripting (bulk actions). */
+    public static final String LEGACY_UNPRIVILEGED_SCRIPTING_PROFILE_ID = "##legacyUnprivilegedScripting";
+
     /**
      * The ID for built-in Groovy permission and script expression profiles.
      *

@@ -9,14 +9,16 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Date;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -27,20 +29,23 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
     private static final Trace LOGGER = TraceManager.getTrace(SimpleResourceObjectNotifier.class);
 
     @Override
-    public Class<ResourceObjectEvent> getEventType() {
+    public @NotNull Class<ResourceObjectEvent> getEventType() {
         return ResourceObjectEvent.class;
     }
 
     @Override
-    public Class<SimpleResourceObjectNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleResourceObjectNotifierType> getEventHandlerConfigurationType() {
         return SimpleResourceObjectNotifierType.class;
     }
 
     @Override
-    protected boolean checkApplicability(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, OperationResult result) {
-        return event.hasContentToShow(
-                isWatchSynchronizationAttributes(configuration),
-                isWatchAuxiliaryAttributes(configuration));
+    protected boolean checkApplicability(
+            ConfigurationItem<? extends SimpleResourceObjectNotifierType> configuration,
+            EventProcessingContext<? extends ResourceObjectEvent> ctx,
+            OperationResult result) {
+        return ctx.event().hasContentToShow(
+                isWatchSynchronizationAttributes(configuration.value()),
+                isWatchAuxiliaryAttributes(configuration.value()));
     }
 
     private boolean isWatchSynchronizationAttributes(SimpleResourceObjectNotifierType configuration) {
@@ -48,7 +53,12 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
     }
 
     @Override
-    protected String getSubject(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends SimpleResourceObjectNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ResourceObjectEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         ResourceOperationDescription rod = event.getOperationDescription();
         //noinspection unchecked
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
@@ -67,12 +77,17 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
     }
 
     @Override
-    protected String getBody(ResourceObjectEvent event, SimpleResourceObjectNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends SimpleResourceObjectNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ResourceObjectEvent> ctx,
+            OperationResult result) {
 
-        boolean techInfo = Boolean.TRUE.equals(configuration.isShowTechnicalInformation());
+        boolean techInfo = Boolean.TRUE.equals(configuration.value().isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 
+        var event = ctx.event();
         FocusType owner = (FocusType) event.getRequesteeObject();
         ResourceOperationDescription rod = event.getOperationDescription();
         //noinspection unchecked
@@ -117,8 +132,8 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
             case FAILURE: body.append("FAILED to be "); break;
         }
 
-        final boolean watchSynchronizationAttributes = isWatchSynchronizationAttributes(configuration);
-        final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration);
+        boolean watchSynchronizationAttributes = isWatchSynchronizationAttributes(configuration.value());
+        boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration.value());
 
         if (delta.isAdd()) {
             body.append("created on the resource with attributes:\n");

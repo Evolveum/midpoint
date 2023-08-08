@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -28,17 +30,16 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
 
 @Component
@@ -53,38 +54,42 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
     @Autowired private TransportService transportService;
 
     @Override
-    public Class<Event> getEventType() {
+    public @NotNull Class<Event> getEventType() {
         return Event.class;
     }
 
     @Override
-    public Class<CustomNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<CustomNotifierType> getEventHandlerConfigurationType() {
         return CustomNotifierType.class;
     }
 
     @Override
-    public boolean processEvent(Event event, CustomNotifierType configuration,
-            Task task, OperationResult parentResult) throws SchemaException {
+    public boolean processEvent(
+            @NotNull ConfigurationItem<? extends CustomNotifierType> handlerConfig,
+            @NotNull EventProcessingContext<?> ctx,
+            @NotNull OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createMinorSubresult(CustomNotifier.class.getName() + ".processEvent");
 
-        logStart(getLogger(), event, configuration);
+        Event event = ctx.event();
 
-        boolean applies = aggregatedEventHandler.processEvent(event, configuration, task, result);
+        logStart(getLogger(), handlerConfig, ctx);
+
+        boolean applies = aggregatedEventHandler.processEvent(handlerConfig, ctx, result);
 
         if (applies) {
             VariablesMap variables = getDefaultVariables(event, result);
 
             reportNotificationStart(event);
             try {
-                for (String transportName : configuration.getTransport()) {
+                for (String transportName : handlerConfig.value().getTransport()) {
                     variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
                     Transport<?> transport = transportService.getTransport(transportName);
 
-                    Message message = getMessageFromExpression(configuration, variables, task, result);
+                    Message message = getMessageFromExpression(handlerConfig, variables, ctx, result);
                     if (message != null) {
                         getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-                        transport.send(message, transportName, event, task, result);
+                        transport.send(message, transportName, ctx.sendingContext(), result);
                     } else {
                         getLogger().debug("No message for transport {}, won't send anything", transportName);
                     }
@@ -103,14 +108,23 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
     }
 
     private Message getMessageFromExpression(
-            CustomNotifierType config, VariablesMap variables, Task task, OperationResult result) {
-        if (config.getExpression() == null) {
+            ConfigurationItem<? extends CustomNotifierType> config,
+            VariablesMap variables,
+            EventProcessingContext<?> ctx,
+            OperationResult result) {
+        var expressionBean = config.value().getExpression();
+        if (expressionBean == null) {
             return null;
         }
         List<NotificationMessageType> messages;
         try {
-            messages = evaluateExpression(config.getExpression(), variables,
-                    "message expression", task, result);
+            messages = evaluateExpression(
+                    ExpressionConfigItem.of(
+                            expressionBean,
+                            config.origin().toApproximate()),
+                    variables,
+                    "message expression",
+                    ctx, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
                 ConfigurationException | SecurityViolationException e) {
             throw new SystemException("Couldn't evaluate custom notifier expression: " + e.getMessage(), e);
@@ -124,16 +138,22 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private List<NotificationMessageType> evaluateExpression(ExpressionType expressionType, VariablesMap VariablesMap,
-            String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+    private List<NotificationMessageType> evaluateExpression(
+            ExpressionConfigItem expressionCI,
+            VariablesMap VariablesMap,
+            String shortDesc,
+            EventProcessingContext<?> ctx,
+            OperationResult result) throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+        var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<NotificationMessageType> resultDef =
                 prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageType.COMPLEX_TYPE);
 
         Expression<PrismPropertyValue<NotificationMessageType>, PrismPropertyDefinition<NotificationMessageType>> expression =
-                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(
+                        expressionCI, resultDef, ctx.defaultExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult =

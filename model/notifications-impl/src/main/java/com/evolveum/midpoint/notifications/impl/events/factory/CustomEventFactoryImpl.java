@@ -33,16 +33,15 @@ public class CustomEventFactoryImpl implements CustomEventFactory {
 
     @Override
     @NotNull
-    public CustomEvent createEvent(String subtype, EventHandlerType handler, PrismValue value, EventOperationType operation,
-            EventStatusType status, String channel) {
-        return new CustomEventImpl(lightweightIdentifierGenerator, subtype, handler, value, operation, status, channel);
+    public CustomEvent createEvent(
+            String subtype, PrismValue value, EventOperationType operation, EventStatusType status, String channel) {
+        return new CustomEventImpl(lightweightIdentifierGenerator, subtype, value, operation, status, channel);
     }
 
     @Override
     @NotNull
-    public CustomEvent createEvent(String subtype, EventHandlerType handler, List<PipelineItem> data,
-            EventOperationType operation, EventStatusType status, String channel) {
-        return new CustomEventImpl(lightweightIdentifierGenerator, subtype, handler, data, operation, status, channel);
+    public CustomEvent createEvent(
+            String subtype, List<PipelineItem> data, EventOperationType operation, EventStatusType status, String channel) {
+        return new CustomEventImpl(lightweightIdentifierGenerator, subtype, data, operation, status, channel);
     }
-
 }

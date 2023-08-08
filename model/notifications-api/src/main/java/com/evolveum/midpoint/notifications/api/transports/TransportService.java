@@ -8,9 +8,7 @@ package com.evolveum.midpoint.notifications.api.transports;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 
 /**
  * Message transport service component which facilitates sending the messages via transports.
@@ -23,7 +21,7 @@ public interface TransportService {
     /** Returns transport with the specified name or throws if no such transport exists. */
     Transport<?> getTransport(String name);
 
-    void send(Message message, String transportName, Event event, Task task, OperationResult parentResult);
+    void send(Message message, String transportName, SendingContext ctx, OperationResult parentResult);
 
     /*
     TODO: Do we want this? What should a disabled transport service do? Add partial error to result? Just log?

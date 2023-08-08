@@ -6,12 +6,16 @@
  */
 package com.evolveum.midpoint.notifications.impl.helpers;
 
+import java.util.List;
+
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
@@ -24,29 +28,34 @@ public class ExpressionFilterHelper extends BaseNotificationHelper {
 
     @Autowired private NotificationExpressionHelper expressionHelper;
 
-    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig, Task task, OperationResult result) {
+    public boolean processEvent(
+            ConfigurationItem<? extends BaseEventHandlerType> handlerConfig,
+            EventProcessingContext<?> ctx,
+            OperationResult result) {
 
-        if (eventHandlerConfig.getExpressionFilter().isEmpty()) {
+        List<ExpressionType> filters = handlerConfig.value().getExpressionFilter();
+        if (filters.isEmpty()) {
             return true;
         }
 
-        logStart(LOGGER, event, eventHandlerConfig, eventHandlerConfig.getExpressionFilter());
+        logStart(LOGGER, handlerConfig, ctx, filters);
 
         boolean retval = true;
 
-        for (ExpressionType expressionType : eventHandlerConfig.getExpressionFilter()) {
+        for (ExpressionType filter : filters) {
             if (!expressionHelper.evaluateBooleanExpressionChecked(
-                    expressionType,
-                    expressionHelper.getDefaultVariables(event, result),
+                    ExpressionConfigItem.of(
+                            filter,
+                            handlerConfig.origin().toApproximate()), // TODO provide precise (child) origin here
+                    expressionHelper.getDefaultVariables(ctx.event(), result),
                     "event filter expression",
-                    task,
-                    result)) {
+                    ctx, result)) {
                 retval = false;
                 break;
             }
         }
 
-        logEnd(LOGGER, event, eventHandlerConfig, retval);
+        logEnd(LOGGER, handlerConfig, ctx, retval);
         return retval;
     }
 }

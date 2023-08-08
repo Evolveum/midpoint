@@ -7,22 +7,22 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.util.Date;
-
-import com.evolveum.midpoint.prism.PrismObject;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
-
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleTaskNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 @Component
 public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, SimpleTaskNotifierType> {
@@ -30,17 +30,22 @@ public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, Simpl
     private static final Trace LOGGER = TraceManager.getTrace(SimpleTaskNotifier.class);
 
     @Override
-    public Class<TaskEvent> getEventType() {
+    public @NotNull Class<TaskEvent> getEventType() {
         return TaskEvent.class;
     }
 
     @Override
-    public Class<SimpleTaskNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleTaskNotifierType> getEventHandlerConfigurationType() {
         return SimpleTaskNotifierType.class;
     }
 
     @Override
-    protected String getSubject(TaskEvent event, SimpleTaskNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends SimpleTaskNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends TaskEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         String taskName = PolyString.getOrig(event.getTask().getName());
         if (event.isAdd()) {
             return "Task '" + taskName + "' start notification";
@@ -52,9 +57,14 @@ public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, Simpl
     }
 
     @Override
-    protected String getBody(TaskEvent event, SimpleTaskNotifierType configuration, String transport, Task opTask, OperationResult opResult) {
-        final Task task = event.getTask();
-        final String taskName = PolyString.getOrig(task.getName());
+    protected String getBody(
+            ConfigurationItem<? extends SimpleTaskNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends TaskEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
+        var task = event.getTask();
+        var taskName = PolyString.getOrig(task.getName());
 
         StringBuilder body = new StringBuilder();
 
@@ -73,7 +83,7 @@ public class SimpleTaskNotifier extends AbstractGeneralNotifier<TaskEvent, Simpl
         body.append("\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
-        PrismObject<? extends FocusType> taskOwner = task.getOwner(opResult);
+        PrismObject<? extends FocusType> taskOwner = task.getOwner(result);
         if (taskOwner != null) {
             FocusType owner = taskOwner.asObjectable();
             body.append("Task owner: ");

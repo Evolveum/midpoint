@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -27,9 +26,14 @@ public class CustomEventImpl extends BaseEventImpl implements CustomEvent {
     @NotNull private final EventStatusType status;
     @NotNull private final EventOperationType operationType;
 
-    public CustomEventImpl(LightweightIdentifierGenerator lightweightIdentifierGenerator, @Nullable String subtype, @Nullable EventHandlerType adHocHandler,
-            @Nullable Object object, @NotNull EventOperationType operationType, @NotNull EventStatusType status, String channel) {
-        super(lightweightIdentifierGenerator, adHocHandler);
+    public CustomEventImpl(
+            LightweightIdentifierGenerator lightweightIdentifierGenerator,
+            @Nullable String subtype,
+            @Nullable Object object,
+            @NotNull EventOperationType operationType,
+            @NotNull EventStatusType status,
+            String channel) {
+        super(lightweightIdentifierGenerator);
         this.subtype = subtype;
         this.object = object;
         this.status = status;
@@ -80,9 +84,9 @@ public class CustomEventImpl extends BaseEventImpl implements CustomEvent {
     public boolean isUserRelated() {
         if (object instanceof UserType) {
             return true;
-        } else if (object instanceof PrismObject) {
-            PrismObject prismObject = (PrismObject) object;
-            return prismObject.getCompileTimeClass() != null && UserType.class.isAssignableFrom(prismObject.getCompileTimeClass());
+        } else if (object instanceof PrismObject<?> prismObject) {
+            return prismObject.getCompileTimeClass() != null
+                    && UserType.class.isAssignableFrom(prismObject.getCompileTimeClass());
         } else {
             return false;
         }

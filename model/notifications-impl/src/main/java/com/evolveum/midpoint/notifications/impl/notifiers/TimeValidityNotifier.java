@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -28,32 +30,45 @@ public class TimeValidityNotifier extends AbstractPolicyRuleNotifier<TimeValidit
     private static final Trace LOGGER = TraceManager.getTrace(TimeValidityNotifier.class);
 
     @Override
-    public Class<TimeValidityNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<TimeValidityNotifierType> getEventHandlerConfigurationType() {
         return TimeValidityNotifierType.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(PolicyRuleEvent event, TimeValidityNotifierType configuration, OperationResult result) {
-        return UserType.class.isAssignableFrom(event.getRequesteeObject().getClass());
+    protected boolean quickCheckApplicability(
+            ConfigurationItem<? extends TimeValidityNotifierType> configuration,
+            EventProcessingContext<? extends PolicyRuleEvent> ctx,
+            OperationResult result) {
+        return UserType.class.isAssignableFrom(ctx.event().getRequesteeObject().getClass());
     }
 
     @Override
-    protected boolean checkApplicability(PolicyRuleEvent event, TimeValidityNotifierType configuration, OperationResult result) {
-        PolicyConstraintsType policyConstraints = event.getPolicyRule().getPolicyConstraints();
+    protected boolean checkApplicability(
+            ConfigurationItem<? extends TimeValidityNotifierType> configuration,
+            EventProcessingContext<? extends PolicyRuleEvent> ctx,
+            OperationResult result) {
+        PolicyConstraintsType policyConstraints = ctx.event().getPolicyRule().getPolicyConstraints();
         return policyConstraints != null &&
                 policyConstraints.getObjectTimeValidity() != null &&
                 !policyConstraints.getObjectTimeValidity().isEmpty();
     }
 
     @Override
-    protected String getSubject(PolicyRuleEvent event, TimeValidityNotifierType configuration, String transport, Task task,
+    protected String getSubject(
+            ConfigurationItem<? extends TimeValidityNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends PolicyRuleEvent> ctx,
             OperationResult result) {
-        return "Planned deactivation of user " + getUserName(event);
+        return "Planned deactivation of user " + getUserName(ctx.event());
     }
 
     @Override
-    protected String getBody(PolicyRuleEvent event, TimeValidityNotifierType configuration, String transport, Task task,
+    protected String getBody(
+            ConfigurationItem<? extends TimeValidityNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends PolicyRuleEvent> ctx,
             OperationResult result) {
+        var event = ctx.event();
         return "User " + getUserName(event) + " is going to be deactivated on " + getUser(event).getActivation().getValidTo();
     }
 

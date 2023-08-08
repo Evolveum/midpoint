@@ -24,7 +24,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,7 +51,7 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
 
     private static final String NAME = "unassign";
 
-    static class UnassignParameters extends AssignmentOperationsExecutor.Parameters {
+    protected static class UnassignParameters extends AssignmentOperationsExecutor.Parameters {
         // These come from dynamic parameters (~ legacy way)
         private final Collection<ObjectReferenceType> dynamicRoleRefs = new ArrayList<>();
         private final Collection<ObjectReferenceType> dynamicResourceRefs = new ArrayList<>();
@@ -127,9 +126,13 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (parameters.staticFilter != null) {
             return ExpressionUtil.evaluateFilterExpressions(
-                    parameters.staticFilter, createVariables(object, item), MiscSchemaUtil.getExpressionProfile(),
+                    parameters.staticFilter,
+                    createVariables(object, item),
+                    context.getExpressionProfile(),
                     expressionFactory,
-                    "expression evaluation in unassign filter for " + object, context.getTask(), result);
+                    "expression evaluation in unassign filter for " + object,
+                    context.getTask(),
+                    result);
         } else {
             return null;
         }
