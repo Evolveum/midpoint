@@ -31,6 +31,10 @@ public class Saml2DeprecatedProcessor implements UpgradeObjectProcessor<Security
     private static final List<ItemPath> DEPRECATED_PATHS = Arrays.asList(
             createPath(
                     Saml2AuthenticationModuleType.F_NETWORK),
+            // serviceProvider/metadata is unsued, only serviceProvider/identityProvider/metadata is used
+            createPath(
+                    Saml2AuthenticationModuleType.F_SERVICE_PROVIDER,
+                    Saml2ServiceProviderAuthenticationModuleType.F_METADATA),
             createPath(
                     Saml2AuthenticationModuleType.F_SERVICE_PROVIDER,
                     Saml2ServiceProviderAuthenticationModuleType.F_PROVIDER,
