@@ -13,6 +13,7 @@ import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /** Querydsl "row bean" type related to {@link QAuditEventRecord}. */
@@ -36,6 +37,10 @@ public class MAuditEventRecord {
     public String initiatorName;
     public UUID attorneyOid;
     public String attorneyName;
+    public UUID effectivePrincipalOid;
+    public MObjectType effectivePrincipalType;
+    public String effectivePrincipalName;
+    public EffectivePrivilegesModificationType effectivePrivilegesModification;
     public UUID targetOid;
     public MObjectType targetType;
     public String targetName;
@@ -111,6 +116,10 @@ public class MAuditEventRecord {
                 ", initiatorName='" + initiatorName + '\'' +
                 ", attorneyOid=" + attorneyOid +
                 ", attorneyName='" + attorneyName + '\'' +
+                ", effectivePrincipalOid=" + effectivePrincipalOid +
+                ", effectivePrincipalType=" + effectivePrincipalType +
+                ", effectivePrincipalName='" + effectivePrincipalName + '\'' +
+                ", effectivePrivilegesModification=" + effectivePrivilegesModification +
                 ", targetOid=" + targetOid +
                 ", targetType=" + targetType +
                 ", targetName='" + targetName + '\'' +

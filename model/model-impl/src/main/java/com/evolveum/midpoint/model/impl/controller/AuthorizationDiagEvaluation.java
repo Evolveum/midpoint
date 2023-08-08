@@ -85,7 +85,8 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
         if (additionalAuthorizations.isEmpty()) {
             return newPrincipal;
         } else {
-            return newPrincipal.cloneWithAdditionalAuthorizations(additionalAuthorizations);
+            // We are not sure if the elevation is total or partial.
+            return newPrincipal.cloneWithAdditionalAuthorizations(additionalAuthorizations, false);
         }
     }
 

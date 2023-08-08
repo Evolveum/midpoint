@@ -487,7 +487,7 @@ public class GuiProfiledPrincipalManagerImpl
             focusComputer.recompute(focus, lifecycleModel);
             principal.clearAuthorizations();
             initializePrincipalFromAssignments(principal, systemConfiguration, null);
-            principal.setAuthorizationsModified(false); // we just recomputed them strictly from user's assignments
+            principal.clearEffectivePrivilegesModification(); // we just recomputed them strictly from user's assignments
             return principal.getCompiledGuiProfile();
         } finally {
             securityContextManager.clearTemporaryPrincipalOid();

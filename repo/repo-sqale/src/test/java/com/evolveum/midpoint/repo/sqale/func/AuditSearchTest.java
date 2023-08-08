@@ -59,6 +59,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
     private String initiatorOid;
     private String attorneyOid;
+    private String effectivePrincipalOid;
     private String targetOid;
     private String targetOwnerOid;
     private String record1EventIdentifier;
@@ -77,6 +78,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         initiatorOid = initiator.getOid();
         PrismObject<UserType> attorney = createUser("attorney");
         attorneyOid = attorney.getOid();
+        PrismObject<UserType> effectivePrincipal = createUser("effectivePrincipal");
+        effectivePrincipalOid = effectivePrincipal.getOid();
         PrismObject<UserType> target = createUser("target");
         targetOid = target.getOid();
         PrismObject<? extends FocusType> targetOwner = createUser("targetOwner");
@@ -118,6 +121,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record1.addResourceOid(UUID.randomUUID().toString());
         record1.addResourceOid(UUID.randomUUID().toString());
         record1.getCustomColumnProperty().put("foo", "foo-val");
+        record1.setEffectivePrivilegesModification(EffectivePrivilegesModificationType.FULL_ELEVATION);
         auditService.audit(record1, NullTaskImpl.INSTANCE, result);
         record1EventIdentifier = record1.getEventIdentifier();
 
@@ -134,6 +138,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record2.setRemoteHostAddress("192.168.10.2");
         record2.setSessionIdentifier("session-1"); // session-1 on purpose
         record2.setAttorney(attorney);
+        record2.setEffectivePrincipal(effectivePrincipal);
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
         record2.addDelta(createDelta(UserType.F_ADDITIONAL_NAME));
@@ -571,6 +576,24 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test161SearchByEffectivePrincipal() throws SchemaException {
+        when("searching audit filtered by effectivePrincipal (reference by OID)");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EFFECTIVE_PRINCIPAL_REF)
+                .ref(effectivePrincipalOid)
+                .build());
+
+        then("only audit events with the specific principal are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
+        assertThat(result.get(0).getEffectivePrincipalRef()).isNotNull()
+                .matches(r -> r.getOid().equals(effectivePrincipalOid))
+                .matches(r -> r.getDescription().equals("effectivePrincipal"))
+                .matches(r -> r.getType().equals(UserType.COMPLEX_TYPE));
+    }
+
+    @Test
     public void test163SearchByTarget() throws SchemaException {
         when("searching audit filtered by target (reference by OID)");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
@@ -960,6 +983,35 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         then("audit events with any of the the specified resource OIDs are returned");
         assertThat(result).extracting(aer -> aer.getParameter())
                 .containsExactlyInAnyOrder("1");
+    }
+
+    @Test
+    public void test285SearchByEffectivePrivilegesModification() throws SchemaException {
+        when("searching audit filtered by effective privileges modification");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EFFECTIVE_PRIVILEGES_MODIFICATION)
+                .eq(EffectivePrivilegesModificationType.FULL_ELEVATION)
+                .build());
+
+        then("only audit events with the specified effective privileges modification are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(
+                aer -> aer.getEffectivePrivilegesModification() == EffectivePrivilegesModificationType.FULL_ELEVATION);
+    }
+
+    @Test
+    public void test287SearchByEffectivePrivilegesModificationNull() throws SchemaException {
+        when("searching audit filtered by effective privileges modification being null");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EFFECTIVE_PRIVILEGES_MODIFICATION).isNull()
+                .build());
+
+        then("only audit events without effective privileges modification are returned");
+        assertThat(result).hasSize(3);
+        assertThat(result).allMatch(
+                aer -> aer.getEffectivePrivilegesModification() == null);
     }
 
     @Test

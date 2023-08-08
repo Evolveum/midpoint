@@ -87,6 +87,10 @@ public class QAuditEventRecordMapping
         addAuditRefMapping(F_ATTORNEY_REF,
                 q -> q.attorneyOid, null, q -> q.attorneyName,
                 QFocusMapping::getFocusMapping);
+        addAuditRefMapping(F_EFFECTIVE_PRINCIPAL_REF,
+                q -> q.effectivePrincipalOid, q -> q.effectivePrincipalType, q -> q.effectivePrincipalName,
+                QFocusMapping::getFocusMapping);
+        addItemMapping(F_EFFECTIVE_PRIVILEGES_MODIFICATION, enumMapper(q -> q.effectivePrivilegesModification));
         addAuditRefMapping(F_TARGET_REF,
                 q -> q.targetOid, q -> q.targetType, q -> q.targetName,
                 QObjectMapping::getObjectMapping);
@@ -134,6 +138,8 @@ public class QAuditEventRecordMapping
                 .remoteHostAddress(row.remoteHostAddress)
                 .initiatorRef(objectReference(row.initiatorOid, row.initiatorType, row.initiatorName))
                 .attorneyRef(objectReference(row.attorneyOid, MObjectType.FOCUS, row.attorneyName))
+                .effectivePrincipalRef(objectReference(row.effectivePrincipalOid, row.effectivePrincipalType, row.effectivePrincipalName))
+                .effectivePrivilegesModification(row.effectivePrivilegesModification)
                 .targetRef(objectReference(row.targetOid, row.targetType, row.targetName))
                 .targetOwnerRef(objectReference(row.targetOwnerOid, row.targetOwnerType, row.targetOwnerName))
                 .channel(row.channel)
@@ -235,6 +241,17 @@ public class QAuditEventRecordMapping
             row.initiatorName = initiator.getDescription();
         }
 
+        PrismReferenceValue effectivePrincipal = record.getEffectivePrincipalRef();
+        if (effectivePrincipal != null) {
+            row.effectivePrincipalOid = SqaleUtils.oidToUuid(effectivePrincipal.getOid());
+            row.effectivePrincipalType = Objects.requireNonNullElse(
+                    MObjectType.fromTypeQName(effectivePrincipal.getTargetType()),
+                    MObjectType.FOCUS);
+            row.effectivePrincipalName = effectivePrincipal.getDescription();
+        }
+
+        row.effectivePrivilegesModification = record.getEffectivePrivilegesModification();
+
         row.message = record.getMessage();
         row.nodeIdentifier = record.getNodeIdentifier();
         row.outcome = OperationResultStatus.createStatusType(record.getOutcome());
@@ -298,6 +315,17 @@ public class QAuditEventRecordMapping
                     MObjectType.FOCUS);
             row.initiatorName = initiator.getDescription();
         }
+
+        ObjectReferenceType effectivePrincipal = record.getEffectivePrincipalRef();
+        if (effectivePrincipal != null) {
+            row.effectivePrincipalOid = SqaleUtils.oidToUuid(effectivePrincipal.getOid());
+            row.effectivePrincipalType = Objects.requireNonNullElse(
+                    MObjectType.fromTypeQName(effectivePrincipal.getType()),
+                    MObjectType.FOCUS);
+            row.effectivePrincipalName = effectivePrincipal.getDescription();
+        }
+
+        row.effectivePrivilegesModification = record.getEffectivePrivilegesModification();
 
         row.message = record.getMessage();
         row.nodeIdentifier = record.getNodeIdentifier();
