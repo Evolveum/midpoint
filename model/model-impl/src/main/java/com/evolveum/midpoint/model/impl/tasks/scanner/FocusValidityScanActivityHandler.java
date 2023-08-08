@@ -36,7 +36,7 @@ public class FocusValidityScanActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE,
+                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_FOCUS_VALIDITY_SCAN,
                 FocusValidityScanWorkDefinition.class, FocusValidityScanWorkDefinition::new, this);
     }
 

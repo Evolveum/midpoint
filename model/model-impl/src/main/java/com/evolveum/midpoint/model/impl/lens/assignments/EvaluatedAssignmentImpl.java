@@ -238,12 +238,11 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     @VisibleForTesting
     public Collection<AssignedResourceObjectConstruction<AH>> getConstructionSet(PlusMinusZero whichSet) {
-        switch (whichSet) {
-            case ZERO: return getConstructionTriple().getZeroSet();
-            case PLUS: return getConstructionTriple().getPlusSet();
-            case MINUS: return getConstructionTriple().getMinusSet();
-            default: throw new IllegalArgumentException("whichSet: " + whichSet);
-        }
+        return switch (whichSet) {
+            case ZERO -> getConstructionTriple().getZeroSet();
+            case PLUS -> getConstructionTriple().getPlusSet();
+            case MINUS -> getConstructionTriple().getMinusSet();
+        };
     }
 
     void addConstruction(AssignedResourceObjectConstruction<AH> construction, PlusMinusZero whichSet) {
@@ -252,17 +251,10 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     private <T> void addToTriple(T construction, @NotNull DeltaSetTriple<T> triple, PlusMinusZero whichSet) {
         switch (whichSet) {
-            case ZERO:
-                triple.addToZeroSet(construction);
-                break;
-            case PLUS:
-                triple.addToPlusSet(construction);
-                break;
-            case MINUS:
-                triple.addToMinusSet(construction);
-                break;
-            default:
-                throw new IllegalArgumentException("whichSet: " + whichSet);
+            case ZERO -> triple.addToZeroSet(construction);
+            case PLUS -> triple.addToPlusSet(construction);
+            case MINUS -> triple.addToMinusSet(construction);
+            default -> throw new IllegalArgumentException("whichSet: " + whichSet);
         }
     }
 
@@ -501,9 +493,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
 
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-            if (trigger instanceof EvaluatedExclusionTrigger) {
+            if (trigger instanceof EvaluatedExclusionTrigger exclusionTrigger) {
                 EvaluatedAssignmentImpl<?> conflictingAssignment =
-                        (EvaluatedAssignmentImpl<?>) ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
+                        (EvaluatedAssignmentImpl<?>) exclusionTrigger.getConflictingAssignment();
                 if (conflictingAssignment.hasDirectPolicyRuleException(rule, triggers)) {
                     return true;
                 }

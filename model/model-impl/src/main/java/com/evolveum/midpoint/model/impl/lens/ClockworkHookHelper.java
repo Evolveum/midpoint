@@ -152,7 +152,7 @@ public class ClockworkHookHelper {
         // null output definition: this script has no output
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptExpressionEvaluatorType, null,
-                context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, result);
+                context.getPrivilegedExpressionProfile(), shortDesc, result);
 
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);

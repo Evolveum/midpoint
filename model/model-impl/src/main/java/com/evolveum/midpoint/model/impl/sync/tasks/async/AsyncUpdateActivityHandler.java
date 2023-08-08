@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.async;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -34,7 +36,7 @@ public class AsyncUpdateActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                AsyncUpdateWorkDefinitionType.COMPLEX_TYPE,
+                AsyncUpdateWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_ASYNCHRONOUS_UPDATE,
                 AsyncUpdateWorkDefinition.class, AsyncUpdateWorkDefinition::new, this);
     }
 

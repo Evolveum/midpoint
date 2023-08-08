@@ -1,0 +1,74 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="mainForm" class="form-inline" role="form">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 col-xl-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" wicket:id="repositoryQueryLabel"/>
+                        </div>
+                        <div class="card-body p-0">
+
+
+                            <div class="d-flex flex-wrap mx-3 my-2">
+                                <div class="mr-2 form-group">
+                                    <label for="objectType" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.objectType"/></label>
+                                    <div id="objectType" wicket:id="objectType"/>
+                                </div>
+                                <div class="mr-2 flex-grow-1 form-group justify-content-start" wicket:id="distinct"/>
+                            </div>
+
+                            <div class="mr-2 flex-grow-1 form-group justify-content-start" wicket:id="scriptEnabled"/>
+                            <div wicket:id="editorMidPointScript"></div>
+
+                            <textarea class="border-top border-bottom" wicket:id="editorMidPoint"></textarea>
+
+                            <div class="mx-3 my-2 form-group">
+                                <label for="querySample" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.chooseSample"/></label>
+                                <div id="querySample" wicket:id="querySample"/>
+                            </div>
+
+                            <p class="mx-3 my-2 small" wicket:id="queryVsFilterNote"/>
+
+                            <div class="mx-3 mb-3 mt-2 main-button-bar" wicket:id="midPointQueryButtonBar">
+                                <a class="btn btn-primary" wicket:id="executeMidPoint"/>
+                                <a class="btn btn-default" wicket:id="compileMidPoint"/>
+                                <a class="btn btn-success" wicket:id="useInObjectList"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title" wicket:id="queryLabel"/>
+                        </div>
+                        <div class="card-body p-0">
+                            <textarea class="border-bottom" wicket:id="queryEditor"></textarea>
+
+                            <h5 class="m-3"><wicket:message key="PageRepositoryQuery.hibernateParameters"/></h5>
+                            <textarea class="border-top" wicket:id="parameters"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 wicket:id="resultLabel"/>
+                    <p class="small" wicket:id="incompleteResultsNote"><wicket:message key="PageRepositoryQuery.incompleteResultsNote"/></p>
+                    <textarea wicket:id="resultText"></textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+</wicket:panel>
+</html>

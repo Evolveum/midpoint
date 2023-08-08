@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.*;
@@ -84,6 +85,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ArchetypeManager archetypeManager;
+    @Autowired private ExpressionProfileManager expressionProfileManager;
 
     @Autowired private Clock clock;
     @Autowired private ModelService modelService;
@@ -133,7 +135,7 @@ public class ReportServiceImpl implements ReportService {
 
             ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                     scriptExpressionBean, context.getOutputDefinition(), context.getExpressionProfile(),
-                    expressionFactory, context.getContextDescription(), context.getResult());
+                    context.getContextDescription(), context.getResult());
 
             scriptExpression.setFunctionLibraryBindings(createFunctionLibraries(scriptExpression.getFunctionLibraryBindings()));
 
@@ -167,7 +169,7 @@ public class ReportServiceImpl implements ReportService {
     private ExpressionProfile determineExpressionProfile(
             @NotNull PrismObject<ReportType> report, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
-        return archetypeManager.determineExpressionProfile(report, result);
+        return expressionProfileManager.determineExpressionProfile(report, result);
     }
 
     private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report)
@@ -180,13 +182,14 @@ public class ReportServiceImpl implements ReportService {
                 findScriptExpressionProfile(expressionProfile, report));
     }
 
-    private @Nullable ScriptExpressionProfile findScriptExpressionProfile(
+    private @Nullable ScriptLanguageExpressionProfile findScriptExpressionProfile(
             ExpressionProfile expressionProfile, PrismObject<ReportType> report) {
         if (expressionProfile == null) {
             return null;
         }
+        ExpressionEvaluatorsProfile evaluatorsProfile = expressionProfile.getEvaluatorsProfile();
         ExpressionEvaluatorProfile scriptEvaluatorProfile =
-                expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+                evaluatorsProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
         if (scriptEvaluatorProfile == null) {
             return null;
         }

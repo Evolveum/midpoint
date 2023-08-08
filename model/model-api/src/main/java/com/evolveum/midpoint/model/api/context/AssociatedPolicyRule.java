@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -54,14 +55,17 @@ public interface AssociatedPolicyRule extends DebugDumpable, Serializable, Clone
      */
     boolean isTriggered();
 
+    /** TODO */
+    boolean isEvaluated();
+
     /** Are there any enabled actions of given type? */
     boolean containsEnabledAction(Class<? extends PolicyActionType> type);
 
     /** Returns enabled action of given type, if there's any. Throws an exception if there are more of them. */
-    <T extends PolicyActionType> @Nullable T getEnabledAction(Class<T> type);
+    <T extends PolicyActionType> @Nullable PolicyActionConfigItem<T> getEnabledAction(Class<T> type);
 
     /** Returns all enabled actions of given type. */
-    <T extends PolicyActionType> @NotNull List<T> getEnabledActions(Class<T> type);
+    <T extends PolicyActionType> @NotNull List<? extends PolicyActionConfigItem<T>> getEnabledActions(Class<T> type);
 
     /** Returns exclusion triggers without ones that are not relevant for given "new owner" (see class javadoc). */
     @NotNull Collection<EvaluatedExclusionTrigger> getRelevantExclusionTriggers();

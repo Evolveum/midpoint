@@ -7,13 +7,12 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
-public class AssignmentConfigItem extends ConfigurationItem<AssignmentType> {
+import org.jetbrains.annotations.NotNull;
 
-    @SuppressWarnings("unused") // called dynamically
+public class AssignmentConfigItem extends AbstractAssignmentConfigItem {
+
     public AssignmentConfigItem(@NotNull ConfigurationItem<AssignmentType> original) {
         super(original);
     }
@@ -22,11 +21,7 @@ public class AssignmentConfigItem extends ConfigurationItem<AssignmentType> {
         super(value, origin);
     }
 
-    public static AssignmentConfigItem of(@NotNull AssignmentType bean, @NotNull ConfigurationItemOrigin origin) {
-        return new AssignmentConfigItem(bean, origin);
-    }
-
-    public static AssignmentConfigItem of(
+    public static AbstractAssignmentConfigItem of(
             @NotNull AssignmentType bean,
             @NotNull OriginProvider<? super AssignmentType> originProvider) {
         return new AssignmentConfigItem(bean, originProvider.origin(bean));
@@ -34,6 +29,6 @@ public class AssignmentConfigItem extends ConfigurationItem<AssignmentType> {
 
     @Override
     public @NotNull String localDescription() {
-        return "assignment/inducement";
+        return "assignment";
     }
 }

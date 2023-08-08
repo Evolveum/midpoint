@@ -11,7 +11,7 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
+import com.evolveum.midpoint.schema.config.AbstractAssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -84,7 +84,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     /** TODO describe, use */
     @Experimental
-    @NotNull final AssignmentConfigItem assignmentConfigItem;
+    @NotNull final AbstractAssignmentConfigItem assignmentConfigItem;
 
     /**
      * Relation of the assignment; normalized.
@@ -212,7 +212,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         assignmentOrigin = Objects.requireNonNull(builder.assignmentOrigin, "no assignmentOrigin");
         evaluateOld = builder.evaluateOld;
         assignment = Util.getAssignment(assignmentIdi, evaluateOld);
-        assignmentConfigItem = AssignmentConfigItem.of(assignment, assignmentOrigin);
+        assignmentConfigItem = AbstractAssignmentConfigItem.of(assignment, assignmentOrigin);
         relation = getRelation(assignment, getRelationRegistry());
         isAssignment = builder.isAssignment;
         target = builder.target;

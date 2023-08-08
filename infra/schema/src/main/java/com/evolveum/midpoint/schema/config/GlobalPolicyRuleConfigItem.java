@@ -12,7 +12,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GlobalPolicyRuleConfigItem extends ConfigurationItem<GlobalPolicyRuleType> {
+public class GlobalPolicyRuleConfigItem extends AbstractPolicyRuleConfigItem<GlobalPolicyRuleType> {
+
+    GlobalPolicyRuleConfigItem(@NotNull ConfigurationItem<GlobalPolicyRuleType> original) {
+        super(original);
+    }
 
     public GlobalPolicyRuleConfigItem(@NotNull GlobalPolicyRuleType value, @NotNull ConfigurationItemOrigin origin) {
         super(value, origin);
@@ -26,7 +30,8 @@ public class GlobalPolicyRuleConfigItem extends ConfigurationItem<GlobalPolicyRu
         return new GlobalPolicyRuleConfigItem(bean, ConfigurationItemOrigin.embedded(bean));
     }
 
-    public @Nullable String getName() {
-        return value().getName();
+    @Override
+    public GlobalPolicyRuleConfigItem clone() {
+        return new GlobalPolicyRuleConfigItem(super.clone());
     }
 }

@@ -1,9 +1,5 @@
 <query>
     <filter>
-        <substring>
-            <matching>polyStringNorm</matching>         <!-- don't distinguish JACK, jack, j.a.c.k. etc -->
-            <path>name</path>
-            <value>jack</value>
-        </substring>
+        <text>name contains[polyStringNorm] 'jack'</text> <!-- don't distinguish JACK, jack, j.a.c.k. etc -->
     </filter>
 </query>

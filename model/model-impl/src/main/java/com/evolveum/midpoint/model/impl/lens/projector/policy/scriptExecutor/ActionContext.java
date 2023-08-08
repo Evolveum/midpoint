@@ -11,6 +11,8 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+import com.evolveum.midpoint.schema.config.ScriptExecutionPolicyActionConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 class ActionContext {
 
+    @NotNull final ScriptExecutionPolicyActionConfigItem actionCI;
     @NotNull final ScriptExecutionPolicyActionType action;
     @NotNull final EvaluatedPolicyRuleImpl rule;
     @NotNull final LensContext<?> context;
@@ -30,9 +33,14 @@ class ActionContext {
     @NotNull final Task task;
     @NotNull final PolicyRuleScriptExecutor beans;
 
-    ActionContext(@NotNull ScriptExecutionPolicyActionType action, @NotNull EvaluatedPolicyRuleImpl rule,
-            @NotNull LensContext<?> context, @NotNull Task task, @NotNull PolicyRuleScriptExecutor beans) {
-        this.action = action;
+    ActionContext(
+            @NotNull PolicyActionConfigItem<ScriptExecutionPolicyActionType> action,
+            @NotNull EvaluatedPolicyRuleImpl rule,
+            @NotNull LensContext<?> context,
+            @NotNull Task task,
+            @NotNull PolicyRuleScriptExecutor beans) {
+        this.actionCI = action.as(ScriptExecutionPolicyActionConfigItem.class);
+        this.action = actionCI.value();
         this.rule = rule;
         this.context = context;
         this.focusContext = context.getFocusContextRequired();

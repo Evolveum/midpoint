@@ -9,24 +9,24 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportImportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Work definition for report import activity.
  */
-class ClassicReportImportWorkDefinition extends AbstractReportWorkDefinition {
+public class ClassicReportImportWorkDefinition extends AbstractReportWorkDefinition {
 
     @NotNull private final ObjectReferenceType reportDataRef;
 
-    ClassicReportImportWorkDefinition(@NotNull WorkDefinitionBean source) throws SchemaException {
-        super(source);
-        var typedDefinition = (ClassicReportImportWorkDefinitionType) source.getBean();
-        reportDataRef = MiscUtil.requireNonNull(typedDefinition.getReportDataRef(), () -> "No report data object specified");
+    ClassicReportImportWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
+        super(info);
+        var typedDefinition = (ClassicReportImportWorkDefinitionType) info.getBean();
+        reportDataRef = MiscUtil.configNonNull(typedDefinition.getReportDataRef(), () -> "No report data object specified");
     }
 
     @NotNull ObjectReferenceType getReportDataRef() {

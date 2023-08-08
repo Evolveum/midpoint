@@ -14,7 +14,7 @@ import java.io.Serializable;
 /**
  * For internal use. TODO better name
  */
-interface ConfigurationItemable<T extends Serializable> {
+interface ConfigurationItemable<T extends Serializable & Cloneable> {
 
     /** See {@link ConfigurationItem#value}. */
     @NotNull T value();

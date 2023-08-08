@@ -57,7 +57,7 @@ public class MappingDiagEvaluator {
         MappingType mappingBean = request.getMapping();
         if (task.canSee(mappingBean)) {
             builder
-                    .mappingBean(mappingBean, ConfigurationItemOrigin.detached())
+                    .mappingBean(mappingBean, ConfigurationItemOrigin.external(task.getChannel()))
                     .mappingKind(MappingKindType.OTHER)
                     .contextDescription("mapping diagnostic execution")
                     .sourceContext(sourceContext)

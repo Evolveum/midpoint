@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 
@@ -79,7 +80,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -94,8 +94,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -2179,32 +2177,17 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     //region Scripting (bulk actions)
     @Override
-    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkScriptingAuthorization(task, parentResult);
-        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, parentResult);
-    }
-
-    @Override
-    public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkScriptingAuthorization(task, parentResult);
-        scriptingExpressionEvaluator.evaluateExpressionInBackground(executeScriptCommand, task, parentResult);
-    }
-
-    @Override
-    public ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public ScriptExecutionResult evaluateExpression(
+            @NotNull ExecuteScriptConfigItem scriptExecutionCommand,
+            @NotNull VariablesMap initialVariables,
+            boolean recordProgressAndIterationStatistics,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, result);
-        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
-        return executionContext.toExecutionResult();
-    }
-
-    @Override
-    public ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType scriptExecutionCommand,
-            @NotNull VariablesMap initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
-            @NotNull OperationResult result)
-            throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkScriptingAuthorization(task, result);
-        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, initialVariables,
-                recordProgressAndIterationStatistics, task, result);
+        ExecutionContext executionContext =
+                scriptingExpressionEvaluator.evaluateExpression(
+                        scriptExecutionCommand, initialVariables, recordProgressAndIterationStatistics, task, result);
         return executionContext.toExecutionResult();
     }
 

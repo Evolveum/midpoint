@@ -238,7 +238,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                         new ModelExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, lResult));
                 try {
                     var expressionProfile =
-                            ModelBeans.get().archetypeManager.determineExpressionProfile(filterOrigin, lResult);
+                            ModelBeans.get().expressionProfileManager.determineExpressionProfile(filterOrigin, lResult);
                     VariablesMap variables = createVariables(segment, ctx, lResult);
                     return ExpressionUtil.evaluateFilterExpressions(
                             rawFilter, variables, expressionProfile,

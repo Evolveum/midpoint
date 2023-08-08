@@ -36,9 +36,12 @@ public class SearchContext {
 
     private List<SearchBoxModeType> availableSearchBoxModes;
 
+    private boolean history;
+
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
     }
+
 
     public void setResourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
         this.resourceObjectDefinition = resourceObjectDefinition;
@@ -109,5 +112,13 @@ public class SearchContext {
 
     public void setAvailableSearchBoxModes(List<SearchBoxModeType> availableSearchBoxModes) {
         this.availableSearchBoxModes = availableSearchBoxModes;
+    }
+
+    public void setHistory(boolean objectHistoryPanel) {
+        this.history = objectHistoryPanel;
+    }
+
+    public boolean isHistory() {
+        return history;
     }
 }

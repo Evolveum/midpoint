@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -13,13 +14,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +23,12 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -38,13 +36,15 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 /**
  * @author katkav
  */
 public abstract class ObjectListPanel<O extends ObjectType> extends ContainerableListPanel<O, SelectableBean<O>> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = ObjectListPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
@@ -85,7 +85,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             Collection<SelectorOptions<GetOperationOptions>> options) {
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
                 getPageBase(), getSearchModel(), null) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected PageStorage getPageStorage() {
@@ -123,10 +123,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), OperationTypeType.ADD);
     }
 
-    public void clearCache() {
-        WebComponentUtil.clearProviderCache(getDataProvider());
-    }
-
     protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends O>> objectsSupplier) {
         CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
         if (guiObjectListViewType != null && !guiObjectListViewType.getActions().isEmpty()) {
@@ -135,40 +131,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         }
     }
 
-    public void addPerformed(AjaxRequestTarget target, List<O> selected) {
-        getPageBase().hideMainPopup(target);
-    }
-
     @Override
     protected boolean notContainsNameColumn(@NotNull List<IColumn<SelectableBean<O>, String>> columns) {
         return columns.stream().noneMatch(c -> c instanceof ObjectNameColumn);
     }
 
-    @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
-                customColumn, expression, getPageBase()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                O object = rowModel.getObject().getValue();
-                ObjectListPanel.this.objectDetailsPerformed(target, object);
-            }
-
-            @Override
-            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                return ObjectListPanel.this.isObjectDetailsEnabled(rowModel);
-            }
-        };
-    }
-
-    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
-        return true;
-    }
-
-    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
-    }
     @Override
     protected IColumn<SelectableBean<O>, String> createIconColumn() {
         return ColumnUtils.createIconColumn(getPageBase());

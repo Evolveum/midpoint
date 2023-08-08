@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -33,7 +35,7 @@ public class MultiPropagationActivityHandler
 
     @PostConstruct
     public void register() {
-        handlerRegistry.register(MultiPropagationWorkDefinitionType.COMPLEX_TYPE,
+        handlerRegistry.register(MultiPropagationWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_MULTI_PROPAGATION,
                 MultiPropagationWorkDefinition.class, MultiPropagationWorkDefinition::new, this);
     }
 

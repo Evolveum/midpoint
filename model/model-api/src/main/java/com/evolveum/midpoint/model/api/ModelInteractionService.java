@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -613,6 +615,10 @@ public interface ModelInteractionService {
      *
      * The goal is to better isolate GUI from the rest of midPoint, and to provide means for 3rd party GUI implementations.
      * The current method should be seen as a (very rough) placeholder.
+     *
+     * Task archetype(s) are determined from the work, from the task template or from explicit options.
+     *
+     * Returns the background task OID. It is also set in the operation result.
      */
     @NotNull String submit(
             @NotNull ActivityDefinitionType activityDefinition,
@@ -629,6 +635,28 @@ public interface ModelInteractionService {
             @NotNull ActivitySubmissionOptions options,
             @NotNull Task task,
             @NotNull OperationResult result) throws CommonException;
+
+    /** A convenience method, moved here from the {@link ScriptingService} (and scripting expression evaluator). */
+    default @NotNull String submitScriptingExpression(
+            @NotNull ExecuteScriptType executeScriptCommand,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+
+        checkScriptingAuthorization(task, result);
+        return submit(
+                new ActivityDefinitionType()
+                        .work(new WorkDefinitionsType()
+                                .nonIterativeScripting(new NonIterativeScriptingWorkDefinitionType()
+                                        .scriptExecutionRequest(executeScriptCommand))),
+                ActivitySubmissionOptions.create(),
+                task, result);
+    }
+
+    /** Just a convenience method that checks that `#executeScript` authorization is present. */
+    void checkScriptingAuthorization(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /**
      * Returns Container Definition of Assignment Type with target type of assignment replaced by more concrete situation

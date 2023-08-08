@@ -1,8 +1,5 @@
 <query>
     <filter>
-        <equal>
-            <path>orgType</path>
-            <value>type1</value>
-        </equal>
+        <text>subtype = 'type1'</text>
     </filter>
 </query>

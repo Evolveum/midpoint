@@ -22,6 +22,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
 
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -260,8 +262,12 @@ public class AssignmentPolicyAspectPart {
                 return null;
             }
             throw new IllegalStateException(
-                    String.format("Assignment to be added/deleted was not found in primary nor secondary delta."
-                            + "\nAssignment:\n%s\nPrimary delta:\n%s",
+                    String.format("""
+                                    Assignment to be added/deleted was not found in primary nor secondary delta.
+                                    Assignment:
+                                    %s
+                                    Primary delta:
+                                    %s""",
                             assignmentValue.debugDump(), objectTreeDeltas.debugDump()));
         }
         String objectOid = ctx.getFocusObjectOid();
@@ -321,10 +327,11 @@ public class AssignmentPolicyAspectPart {
 
         // actions from triggered rules on this assignment
         for (AssociatedPolicyRule approvalRule : triggeredApprovalRules) {
-            for (ApprovalPolicyActionType approvalAction : approvalRule.getEnabledActions(ApprovalPolicyActionType.class)) {
+            for (PolicyActionConfigItem<ApprovalPolicyActionType> approvalAction :
+                    approvalRule.getEnabledActions(ApprovalPolicyActionType.class)) {
                 builder.add(
-                        main.getSchemaFromAction(approvalAction),
-                        approvalAction,
+                        main.getSchemaFromAction(approvalAction.value()),
+                        approvalAction.value(),
                         targetObject,
                         approvalRule);
             }

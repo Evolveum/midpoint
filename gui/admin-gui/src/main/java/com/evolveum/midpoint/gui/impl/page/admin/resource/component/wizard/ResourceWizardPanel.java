@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeTableWizardPanel;
@@ -21,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -30,20 +27,9 @@ import org.apache.wicket.model.IModel;
  */
 public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, ResourceDetailsModel> {
 
-//    private static final String ID_WIZARD_PANEL = "wizardPanel";
-//
-//    private final ResourceDetailsModel resourceModel;
-
     public ResourceWizardPanel(String id, WizardPanelHelper<ResourceType, ResourceDetailsModel> helper) {
         super(id, helper);
-//        this.resourceModel = model;
     }
-
-//    @Override
-//    protected void onInitialize() {
-//        super.onInitialize();
-//        initLayout();
-//    }
 
     protected void initLayout() {
         add(createChoiceFragment(createBasicWizard()));
@@ -144,13 +130,4 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         };
         showChoiceFragment(target, preview);
     }
-
-//    private void showWizardPanel(Component wizard, AjaxRequestTarget target) {
-//        ResourceWizardPanel.this.addOrReplace(wizard);
-//        target.add(wizard);
-//    }
-
-//    protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-//        return null;
-//    }
 }

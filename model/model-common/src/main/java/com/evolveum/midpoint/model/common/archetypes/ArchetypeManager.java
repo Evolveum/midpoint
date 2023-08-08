@@ -326,7 +326,7 @@ public class ArchetypeManager implements Cache {
     }
 
     /** Determines legacy object policy configuration (from subtypes) */
-    private ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+    public ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
             ObjectType object, OperationResult result)
             throws SchemaException, ConfigurationException {
         if (object == null) {
@@ -393,67 +393,6 @@ public class ArchetypeManager implements Cache {
             return null;
         }
         return objectPolicyConfiguration.getLifecycleStateModel();
-    }
-
-    /**
-     * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
-     */
-    public <O extends ObjectType> @NotNull ExpressionProfile determineExpressionProfile(
-            @NotNull PrismObject<O> object, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-        Preconditions.checkNotNull(object, "Object is null"); // explicitly checking to avoid false 'null' profiles
-        var profileId = determineExpressionProfileId(object, result);
-        if (profileId != null) {
-            return systemObjectCache.getExpressionProfile(profileId, result);
-        } else {
-            return ExpressionProfile.full();
-        }
-    }
-
-    /**
-     * We intentionally do not use {@link #determineArchetypePolicy(ObjectType, OperationResult)} method, as it tries
-     * to merge the policy from all archetypes; and it's 1. slow, 2. unreliable, because of ignoring potential conflicts.
-     * Let's do it in more explicit way.
-     */
-    private <O extends ObjectType> @Nullable String determineExpressionProfileId(
-            @NotNull PrismObject<O> object, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-
-        O objectable = object.asObjectable();
-
-        var structuralArchetype = // hopefully obtained from the cache
-                objectable instanceof AssignmentHolderType assignmentHolder ?
-                        determineStructuralArchetype(assignmentHolder, result) : null;
-
-        // The policy is (generally) cached, so this should be fast
-        var structuralArchetypePolicy = getPolicyForArchetype(structuralArchetype, result);
-        if (structuralArchetypePolicy != null) {
-            var profileId = structuralArchetypePolicy.getExpressionProfile();
-            if (profileId != null) {
-                return profileId;
-            }
-        }
-
-        var objectPolicy = determineObjectPolicyConfiguration(objectable, result);
-        return objectPolicy != null ? objectPolicy.getExpressionProfile() : null;
-    }
-
-    public ExpressionProfile determineExpressionProfile(
-            @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-        if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
-            return determineExpressionProfile(inObject.getOriginatingPrismObject(), result);
-        } else if (origin instanceof ConfigurationItemOrigin.InDelta inDelta) {
-            return determineExpressionProfile(inDelta.getTargetPrismObject(), result);
-        } else if (origin instanceof ConfigurationItemOrigin.Generated) {
-            return ExpressionProfile.full(); // Most probably OK
-        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
-            return ExpressionProfile.full(); // Later, we may throw an exception here
-        } else if (origin instanceof ConfigurationItemOrigin.Detached) {
-            return ExpressionProfile.full(); // TODO we should perhaps return a restricted profile here (from the configuration?)
-        } else {
-            throw new AssertionError(origin);
-        }
     }
 
     @Override

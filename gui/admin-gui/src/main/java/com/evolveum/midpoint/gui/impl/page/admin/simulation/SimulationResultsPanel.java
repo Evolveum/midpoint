@@ -82,7 +82,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     }
 
     @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, SimulationResultType object) {
+    protected void objectDetailsPerformed(SimulationResultType object) {
         PageParameters params = new PageParameters();
         params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, object.getOid());
 
@@ -110,7 +110,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(target, getRowModel());
+                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(getRowModel());
                         if (selected.isEmpty()) {
                             getPageBase().warn(getString("FocusListInlineMenuHelper.message.nothingSelected"));
                             target.add(getFeedbackPanel());
@@ -137,7 +137,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel
-                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(target, getRowModel());
+                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(getRowModel());
                         if (selected.isEmpty()) {
                             getPageBase().warn(getString("FocusListInlineMenuHelper.message.nothingSelected"));
                             target.add(getFeedbackPanel());
@@ -154,7 +154,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 ColumnMenuAction action = (ColumnMenuAction) getAction();
 
                 // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel, fix after release!
-                List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(null, action.getRowModel());
+                List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(action.getRowModel());
                 if (selected.isEmpty()) {
                     return null;
                 }
@@ -172,7 +172,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel, fix after release!
-                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(target, getRowModel());
+                        List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(getRowModel());
                         if (selected.isEmpty()) {
                             getPageBase().warn(getString("FocusListInlineMenuHelper.message.nothingSelected"));
                             target.add(getFeedbackPanel());
@@ -189,7 +189,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
                 ColumnMenuAction action = (ColumnMenuAction) getAction();
 
                 // todo nasty fix for showing warning on page when nothing was selected, needs to be fixed in MenuLinkPanel, fix after release!
-                List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(null, action.getRowModel());
+                List<SelectableBean<SimulationResultType>> selected = isAnythingSelected(action.getRowModel());
                 if (selected.isEmpty()) {
                     return null;
                 }
@@ -204,7 +204,7 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     }
 
     private void deleteResultObjectsConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultType>> rowModel) {
-        List<SelectableBean<SimulationResultType>> objects = isAnythingSelected(target, rowModel);
+        List<SelectableBean<SimulationResultType>> objects = isAnythingSelected(rowModel);
 
         if (objects.isEmpty()) {
             return;

@@ -10,8 +10,6 @@ import static java.util.Collections.emptyList;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +17,7 @@ import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -47,6 +46,11 @@ public class ReindexActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return ReindexingWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_REINDEXING;
     }
 
     @Override
@@ -118,8 +122,9 @@ public class ReindexActivityHandler
 
         @NotNull private final ObjectSetType objects;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var typedDefinition = (ReindexingWorkDefinitionType) source.getBean();
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (ReindexingWorkDefinitionType) info.getBean();
             objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
         }
 

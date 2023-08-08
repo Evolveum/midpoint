@@ -5,6 +5,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -21,8 +22,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -100,8 +98,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     }
 
     @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
-        shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
+    protected void objectDetailsPerformed(ShadowType object) {
+        shadowDetailsPerformed(WebComponentUtil.getName(object), object.getOid());
     }
 
     @Override
@@ -258,7 +256,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     public void onSubmit(AjaxRequestTarget target) {
                         ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<>(
                                 getPageBase().getMainPopupBodyId(), UserType.class,
-                                WebComponentUtil.createFocusTypeList(), false, getPageBase()) {
+                                ObjectTypeListUtil.createFocusTypeList(), false, getPageBase()) {
 
                             @Override
                             protected void onSelectPerformed(AjaxRequestTarget target, FocusType focus) {
@@ -431,7 +429,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                         if (object == null) {
                             return;
                         }
-                        objectDetailsPerformed(target, object);
+                        objectDetailsPerformed(object);
                     }
 
                     @Override
@@ -527,11 +525,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         return columns;
     }
 
-    private void shadowDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
+    private void shadowDetailsPerformed(String accountName, String accountOid) {
         if (StringUtils.isEmpty(accountOid)) {
             error(getString("pageContentAccounts.message.cantShowAccountDetails", accountName,
                     accountOid));
-            target.add(getPageBase().getFeedbackPanel());
+//            target.add(getPageBase().getFeedbackPanel()); //TODO when this can happen?
             return;
         }
 

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -17,7 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemConfigurationType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -82,7 +83,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
     }
 
     protected List<ObjectTypes> getSupportedTypesList(){
-        List<ObjectTypes> supportedTypes = WebComponentUtil.createAssignmentHolderTypesList();
+        List<ObjectTypes> supportedTypes = ObjectTypeListUtil.createAssignmentHolderTypesList();
         supportedTypes.remove(ObjectTypes.USER);
         supportedTypes.remove(ObjectTypes.ROLE);
         supportedTypes.remove(ObjectTypes.SERVICE);

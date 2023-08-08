@@ -281,7 +281,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                         ObjectProcessingStateType.UNMODIFIED,
                 singleDelta == null ?
                         ParsedMetricValues.fromEventMarks(
-                                elementContext.getMatchingEventMarks(), elementContext.getAllConsideredEventMarks()) :
+                                elementContext.getMatchingEventMarksOids(), elementContext.getAllConsideredEventMarksOids()) :
                         new ParsedMetricValues(Map.of()), // Ignoring metrics in single-delta mode
                 elementContext instanceof LensFocusContext<?>,
                 null, // provided later

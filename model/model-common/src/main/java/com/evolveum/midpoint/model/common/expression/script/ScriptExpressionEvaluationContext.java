@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -45,7 +45,7 @@ public class ScriptExpressionEvaluationContext {
     private ObjectResolver objectResolver;
     private Collection<FunctionLibraryBinding> functionLibraryBindings;
     private ExpressionProfile expressionProfile;
-    private ScriptExpressionProfile scriptExpressionProfile;
+    private ScriptLanguageExpressionProfile scriptExpressionProfile;
 
     private ScriptExpression scriptExpression;
     private boolean evaluateNew = false;
@@ -120,11 +120,11 @@ public class ScriptExpressionEvaluationContext {
         this.expressionProfile = expressionProfile;
     }
 
-    public ScriptExpressionProfile getScriptExpressionProfile() {
+    public ScriptLanguageExpressionProfile getScriptExpressionProfile() {
         return scriptExpressionProfile;
     }
 
-    public void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+    public void setScriptExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
         this.scriptExpressionProfile = scriptExpressionProfile;
     }
 

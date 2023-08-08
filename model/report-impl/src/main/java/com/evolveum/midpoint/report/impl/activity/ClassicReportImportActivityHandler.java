@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportImportW
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +43,8 @@ public class ClassicReportImportActivityHandler
 
     @PostConstruct
     public void register() {
-        registry.register(ClassicReportImportWorkDefinitionType.COMPLEX_TYPE,
+        registry.register(
+                ClassicReportImportWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_REPORT_IMPORT,
                 ClassicReportImportWorkDefinition.class, ClassicReportImportWorkDefinition::new, this);
     }
 

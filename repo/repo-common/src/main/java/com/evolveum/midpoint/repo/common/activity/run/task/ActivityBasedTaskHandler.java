@@ -123,14 +123,6 @@ public class ActivityBasedTaskHandler implements TaskHandler {
         currentTaskRuns.remove(localCoordinatorTask.getOid());
     }
 
-    public void registerLegacyHandlerUri(String handlerUri) {
-        beans.taskManager.registerHandler(handlerUri, this);
-    }
-
-    public void unregisterLegacyHandlerUri(String handlerUri) {
-        beans.taskManager.unregisterHandler(handlerUri);
-    }
-
     boolean isAvoidAutoAssigningArchetypes() {
         return avoidAutoAssigningArchetypes;
     }

@@ -106,7 +106,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                     }
 
                     @Override
-                    public void objectDetailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
+                    public void objectDetailsPerformed(AccessCertificationDefinitionType service) {
                         PageCertDefinitions.this.detailsPerformed(service);
                     }
 

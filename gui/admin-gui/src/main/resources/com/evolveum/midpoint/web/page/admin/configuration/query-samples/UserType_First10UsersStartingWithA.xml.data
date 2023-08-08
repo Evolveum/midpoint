@@ -1,11 +1,6 @@
 <query>
     <filter>
-        <substring>
-            <matching>polyStringNorm</matching>         <!-- normalized (case insensitive) -->
-            <path>name</path>
-            <value>a</value>
-            <anchorStart>true</anchorStart>             <!-- should start with a given string -->
-        </substring>
+        <text>name startsWith[polyStringNorm] 'a'</text> <!-- normalized (case insensitive) should start with a given string-->
     </filter>
     <paging>    <!-- note this is NOT to be used in Advanced search box in GUI -->
         <orderBy>name</orderBy>

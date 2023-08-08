@@ -19,6 +19,8 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
+import com.evolveum.midpoint.schema.query.PreparedQuery;
+import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -1469,6 +1471,12 @@ public interface MidpointFunctions {
      */
     @Experimental
     @Nullable CaseType getCorrelationCaseForShadow(@Nullable ShadowType shadow) throws SchemaException;
+
+    <T> TypedQuery<T> queryFor(Class<T> type, String query) throws SchemaException;
+
+    <T> PreparedQuery<T> preparedQueryFor(Class<T> type, String query) throws SchemaException;
+    <T extends ObjectType> List<T> searchObjects(TypedQuery<T> query) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     @FunctionalInterface
     interface TriggerCustomizer {

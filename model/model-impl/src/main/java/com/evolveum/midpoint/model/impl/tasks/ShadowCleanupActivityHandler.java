@@ -14,8 +14,6 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
@@ -67,6 +66,11 @@ public class ShadowCleanupActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return ShadowCleanupWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_SHADOW_CLEANUP;
     }
 
     @Override
@@ -186,8 +190,9 @@ public class ShadowCleanupActivityHandler
         private final ResourceObjectSetType shadows;
         @NotNull private final Duration interval;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var typedDefinition = (ShadowCleanupWorkDefinitionType) source.getBean();
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (ShadowCleanupWorkDefinitionType) info.getBean();
 
             shadows = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getShadows());
             ResourceObjectSetUtil.setDefaultQueryApplicationMode(shadows, APPEND); // "replace" would be very dangerous

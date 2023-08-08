@@ -10,18 +10,18 @@ package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityRun.NS_EXT;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
 
 public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
 
@@ -32,6 +32,7 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     private static final ItemName CLOSING_NAME = new ItemName(NS_EXT, "closing");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "CompositeMockDefinitionType");
+    static final QName WORK_DEFINITION_ITEM_QNAME = new QName(NS_EXT, "compositeMock");
 
     private final String message;
     private final long delay;
@@ -39,8 +40,9 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     private final Boolean opening;
     private final Boolean closing;
 
-    CompositeMockWorkDefinition(@NotNull WorkDefinitionBean source) {
-        PrismContainerValue<?> pcv = source.getValue();
+    CompositeMockWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        PrismContainerValue<?> pcv = info.source().getValue();
         this.message = pcv.getPropertyRealValue(MESSAGE_NAME, String.class);
         this.delay = or0(pcv.getPropertyRealValue(DELAY_NAME, Long.class));
         this.steps = Objects.requireNonNullElse(pcv.getPropertyRealValue(STEPS_NAME, Integer.class), 1);
@@ -74,6 +76,11 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
 
     boolean isClosingEnabled() {
         return !Boolean.FALSE.equals(isClosing());
+    }
+
+    @Override
+    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+        return null; // not relevant here
     }
 
     @Override

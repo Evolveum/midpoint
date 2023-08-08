@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 
@@ -33,7 +35,7 @@ public class RepoQueryDto implements Serializable {
     private boolean distinct;
     private boolean scriptEnabled;
 
-    private String midPointQueryScript;
+    private ExpressionType midPointQueryScript = new ExpressionType();
 
     public QName getObjectType() {
         return objectType;
@@ -95,11 +97,11 @@ public class RepoQueryDto implements Serializable {
         this.distinct = distinct;
     }
 
-    public String getMidPointQueryScript() {
+    public ExpressionType getMidPointQueryScript() {
         return midPointQueryScript;
     }
 
-    public void setMidPointQueryScript(String midPointQueryScript) {
+    public void setMidPointQueryScript(ExpressionType midPointQueryScript) {
         this.midPointQueryScript = midPointQueryScript;
     }
 

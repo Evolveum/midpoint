@@ -18,18 +18,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -52,7 +53,7 @@ public class ExplicitChangeExecutionActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE,
+                ExplicitChangeExecutionWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_EXPLICIT_CHANGE_EXECUTION,
                 MyWorkDefinition.class, MyWorkDefinition::new, this);
     }
 
@@ -138,8 +139,9 @@ public class ExplicitChangeExecutionActivityHandler
 
         @NotNull private final List<ChangeExecutionRequest> requests = new ArrayList<>();
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) throws ConfigurationException {
-            var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) source.getBean();
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) throws ConfigurationException {
+            super(info);
+            var typedDefinition = (ExplicitChangeExecutionWorkDefinitionType) info.getBean();
             Collection<ObjectDeltaType> rootDeltas = typedDefinition.getDelta();
             ModelExecuteOptions rootOptions =
                     ModelExecuteOptions.fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
@@ -168,13 +170,18 @@ public class ExplicitChangeExecutionActivityHandler
         }
 
         @Override
+        public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+            return null; // not easily determinable
+        }
+
+        @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
             DebugUtil.debugDumpWithLabel(sb, "requests", requests, indent+1);
         }
     }
 
     /** Semi-parsed and ordered change execution request (deltas + options). */
-    private record ChangeExecutionRequest(
+    record ChangeExecutionRequest(
             int number,
             String name,
             @NotNull Collection<ObjectDeltaType> deltas,

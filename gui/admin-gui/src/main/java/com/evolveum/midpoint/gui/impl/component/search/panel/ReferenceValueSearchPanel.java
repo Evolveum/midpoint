@@ -11,14 +11,12 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -55,7 +53,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
     private <O extends ObjectType> void selectObjectPerformed(AjaxRequestTarget target) {
         List<QName> supportedTypes = getSupportedTargetList();
         if (CollectionUtils.isEmpty(supportedTypes)) {
-            supportedTypes = WebComponentUtil.createObjectTypeList();
+            supportedTypes = ObjectTypeListUtil.createObjectTypeList();
         }
         ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<>(
                 getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),

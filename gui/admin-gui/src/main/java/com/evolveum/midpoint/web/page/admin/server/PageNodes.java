@@ -86,7 +86,7 @@ public class PageNodes extends PageAdmin {
             }
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, NodeType object) {
+            protected void objectDetailsPerformed(NodeType object) {
                 //nothing to do, details not enabled.
             }
 

@@ -34,6 +34,7 @@ public class SearchIterativeMockActivityHandler
     public void register() {
         handlerRegistry.register(
                 SearchIterativeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
+                SearchIterativeMockWorkDefinition.WORK_DEFINITION_ITEM_QNAME,
                 SearchIterativeMockWorkDefinition.class, SearchIterativeMockWorkDefinition::new, this);
     }
 

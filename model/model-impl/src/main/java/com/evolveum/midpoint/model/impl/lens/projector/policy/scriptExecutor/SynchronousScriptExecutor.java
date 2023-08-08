@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import static com.evolveum.midpoint.schema.util.ExecuteScriptUtil.createInputCloned;
-import static com.evolveum.midpoint.schema.util.ExecuteScriptUtil.implantInput;
 
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 
 /**
@@ -41,38 +40,38 @@ class SynchronousScriptExecutor {
         this.actx = actx;
     }
 
-    void executeScripts(OperationResult parentResult) {
-        for (ExecuteScriptType executeScriptBean : actx.action.getExecuteScript()) {
-            executeScript(executeScriptBean, parentResult);
-        }
+    void executeScripts(OperationResult result) {
+        actx.actionCI.getExecuteScriptConfigItems().forEach(
+                executeScriptCI -> executeScript(executeScriptCI, result));
     }
 
-    private void executeScript(ExecuteScriptType specifiedExecuteScriptBean, OperationResult parentResult) {
+    private void executeScript(ExecuteScriptConfigItem configuredScriptCI, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPT);
         try {
-            ExecuteScriptType executeScriptBean = addInputIfNeeded(specifiedExecuteScriptBean, result);
+            var updatedScriptCI = addInputIfNeeded(configuredScriptCI, result);
             VariablesMap initialVariables = createInitialVariables();
-            actx.beans.scriptingExpressionEvaluator.evaluateExpression(executeScriptBean, initialVariables,
-                    false, actx.task, result);
+            actx.beans.scriptingExpressionEvaluator.evaluateExpression(
+                    updatedScriptCI, initialVariables, false, actx.task, result);
         } catch (Throwable t) {
-            result.recordFatalError("Couldn't execute script policy action: " + t.getMessage(), t);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script with id={} in scriptExecution policy action '{}' (rule '{}'): {}",
+            result.recordException("Couldn't execute script policy action: " + t.getMessage(), t);
+            LoggingUtils.logUnexpectedException(
+                    LOGGER, "Couldn't execute script with id={} in scriptExecution policy action '{}' (rule '{}'): {}",
                     t, actx.action.getId(), actx.action.getName(), actx.rule.getName(), t.getMessage());
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
-    private ExecuteScriptType addInputIfNeeded(ExecuteScriptType specifiedExecuteScriptBean, OperationResult result)
+    private ExecuteScriptConfigItem addInputIfNeeded(ExecuteScriptConfigItem specifiedExecuteScriptCI, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        if (specifiedExecuteScriptBean.getInput() == null) {
+        if (specifiedExecuteScriptCI.value().getInput() == null) {
             FullDataBasedObjectSet objectSet = new FullDataBasedObjectSet(actx, result);
             objectSet.collect();
             ValueListType input = createInputCloned(objectSet.asObjectValues());
-            return implantInput(specifiedExecuteScriptBean, input);
+            return specifiedExecuteScriptCI.implantInput(input);
         } else {
-            return specifiedExecuteScriptBean;
+            return specifiedExecuteScriptCI;
         }
     }
 

@@ -128,7 +128,7 @@ class ConstructionResourceResolver {
         // TODO skip determination of expression profile if there is no expression in the filter
         ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
                 origFilter, variables,
-                ModelBeans.get().archetypeManager.determineExpressionProfile(
+                ModelBeans.get().expressionProfileManager.determineExpressionProfile(
                         construction.constructionConfigItem.originFor(
                                 ConstructionType.F_RESOURCE_REF.append(ObjectReferenceType.F_FILTER)),
                         result),
