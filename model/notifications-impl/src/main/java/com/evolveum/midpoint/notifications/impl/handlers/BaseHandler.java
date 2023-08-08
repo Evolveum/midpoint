@@ -10,13 +10,16 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.N
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 
 import java.util.List;
-import jakarta.annotation.PostConstruct;
+import java.util.Objects;
 
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.notifications.api.EventHandler;
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
@@ -26,14 +29,16 @@ import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.helpers.NotificationExpressionHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+/** Common superclass for all event handlers. */
 @Component
 public abstract class BaseHandler<E extends Event, C extends BaseEventHandlerType> implements EventHandler<E, C> {
 
@@ -52,17 +57,22 @@ public abstract class BaseHandler<E extends Event, C extends BaseEventHandlerTyp
         eventHandlerRegistry.registerEventHandler(getEventHandlerConfigurationType(), this);
     }
 
-    protected void logStart(Trace LOGGER, E event, C handlerConfiguration) {
-        logStart(LOGGER, event, handlerConfiguration, null);
+    protected void logStart(
+            Trace LOGGER, ConfigurationItem<? extends C> handlerConfig, EventProcessingContext<? extends E> ctx) {
+        logStart(LOGGER, handlerConfig, ctx, null);
     }
 
-    protected void logStart(Trace LOGGER, E event, C handlerConfiguration, Object additionalData) {
+    protected void logStart(
+            Trace LOGGER,
+            ConfigurationItem<? extends C> handlerConfiguration,
+            EventProcessingContext<? extends E> ctx,
+            Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Starting processing event " + event.shortDump() + " with handler " +
-                    getHumanReadableHandlerDescription(handlerConfiguration) + "\n  parameters: " +
+            LOGGER.trace("Starting processing event {} with handler {}\n{}",
+                    ctx.event().shortDump(),
+                    getHumanReadableHandlerDescription(handlerConfiguration.value()),
                     (additionalData != null ? ("\n  parameters: " + additionalData) :
                             ("\n  configuration: " + handlerConfiguration)));
-
         }
     }
 
@@ -74,21 +84,22 @@ public abstract class BaseHandler<E extends Event, C extends BaseEventHandlerTyp
         }
     }
 
-    protected String getHumanReadableHandlerDescription(C handlerConfiguration) {
-        if (handlerConfiguration.getName() != null) {
-            return handlerConfiguration.getName();
-        } else {
-            return handlerConfiguration.getClass().getSimpleName();
-        }
+    private String getHumanReadableHandlerDescription(C handlerConfiguration) {
+        return Objects.requireNonNullElseGet(
+                handlerConfiguration.getName(),
+                () -> handlerConfiguration.getClass().getSimpleName());
     }
 
     public void logEnd(Trace logger, E event, boolean result) {
         logger.trace("Finishing processing event {}, result = {}", event, result);
     }
 
-    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
-            String shortDesc, Task task, OperationResult result) {
-        return expressionHelper.evaluateExpressionChecked(expressionType, VariablesMap, shortDesc, task, result);
+    protected List<String> evaluateExpressionChecked(
+            @NotNull ExpressionType expressionBean,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variablesMap,
+            String shortDesc, EventProcessingContext<?> ctx, OperationResult result) {
+        return expressionHelper.evaluateExpressionChecked(expressionBean, origin, variablesMap, shortDesc, ctx, result);
     }
 
     protected VariablesMap getDefaultVariables(E event, OperationResult result) {

@@ -10,6 +10,9 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -129,6 +132,24 @@ public class ExceptionUtil {
             throwable = throwable.getCause();
         }
         return throwable;
+    }
+
+    public static List<Throwable> getCauses(@NotNull Throwable throwable) {
+        List<Throwable> causes = new ArrayList<>();
+        for (;;) {
+            causes.add(throwable);
+            var cause = throwable.getCause();
+            if (cause == null || cause == throwable) {
+                return causes;
+            }
+            throwable = cause;
+        }
+    }
+
+    public static List<Throwable> getCausesFromBottomUp(@NotNull Throwable throwable) {
+        var causes = getCauses(throwable);
+        Collections.reverse(causes);
+        return causes;
     }
 
     public static String printStackTrace(Throwable t) {

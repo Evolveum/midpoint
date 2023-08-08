@@ -30,10 +30,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,9 +60,6 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notNull(searchExpression.getType());
-
-        // FIXME
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
         List<PipelineItem> data = input.getData();
         if (data.isEmpty()) {
@@ -114,7 +109,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                 item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
                 try {
                     objectQuery = ExpressionUtil.evaluateQueryExpressions(
-                            unresolvedObjectQuery, variables, expressionProfile, expressionFactory,
+                            unresolvedObjectQuery, variables, context.getExpressionProfile(), expressionFactory,
                             "bulk action query", context.getTask(), globalResult);
                 } catch (CommonException e) {
                     // TODO continue on any error?

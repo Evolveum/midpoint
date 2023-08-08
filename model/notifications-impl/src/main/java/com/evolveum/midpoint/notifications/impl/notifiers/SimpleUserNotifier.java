@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -20,7 +21,7 @@ public class SimpleUserNotifier extends SimpleFocalObjectNotifier {
     private static final Trace LOGGER = TraceManager.getTrace(SimpleUserNotifier.class);
 
     @Override
-    public Class<SimpleUserNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleUserNotifierType> getEventHandlerConfigurationType() {
         return SimpleUserNotifierType.class;
     }
 

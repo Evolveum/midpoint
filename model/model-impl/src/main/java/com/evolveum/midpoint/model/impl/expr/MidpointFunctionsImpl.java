@@ -35,6 +35,8 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.query.PreparedQuery;
+import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.google.common.base.Preconditions;
@@ -1607,20 +1609,26 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public String createRegistrationConfirmationLink(UserType userType) {
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
-        if (securityPolicy != null && securityPolicy.getAuthentication() != null
-                && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
+        if (securityPolicy != null
+                && securityPolicy.getAuthentication() != null
+                && securityPolicy.getAuthentication().getSequence() != null
+                && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
             if (selfRegistrationPolicy != null) {
                 String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence();
                 if (resetPasswordSequenceName != null) {
-                    String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                    String prefix = createPrefixLinkByAuthSequence(
+                            SchemaConstants.CHANNEL_SELF_REGISTRATION_URI,
+                            resetPasswordSequenceName,
+                            securityPolicy.getAuthentication().getSequence());
                     if (prefix != null) {
                         return createTokenConfirmationLink(prefix, userType);
                     }
                 }
             }
         }
-        return createTokenConfirmationLink(SchemaConstants.AUTH_MODULE_PREFIX + SchemaConstants.REGISTRATION_PREFIX, userType);
+        return createTokenConfirmationLink(
+                SchemaConstants.AUTH_MODULE_PREFIX + SchemaConstants.REGISTRATION_PREFIX, userType);
     }
 
     @Override
@@ -1739,11 +1747,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public String createPasswordResetLink(UserType userType) {
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
-        if (securityPolicy != null && securityPolicy.getAuthentication() != null
-                && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
-            if (securityPolicy.getCredentialsReset() != null && securityPolicy.getCredentialsReset().getAuthenticationSequenceName() != null) {
+        if (securityPolicy != null
+                && securityPolicy.getAuthentication() != null
+                && securityPolicy.getAuthentication().getSequence() != null
+                && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
+            if (securityPolicy.getCredentialsReset() != null
+                    && securityPolicy.getCredentialsReset().getAuthenticationSequenceName() != null) {
                 String resetPasswordSequenceName = securityPolicy.getCredentialsReset().getAuthenticationSequenceName();
-                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_RESET_PASSWORD_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                String prefix = createPrefixLinkByAuthSequence(
+                        SchemaConstants.CHANNEL_RESET_PASSWORD_URI,
+                        resetPasswordSequenceName,
+                        securityPolicy.getAuthentication().getSequence());
                 if (prefix != null) {
                     return createTokenConfirmationLink(prefix, userType);
                 }
@@ -2560,5 +2574,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             @Nullable FocusIdentitySourceType source,
             @NotNull ItemPath itemPath) {
         return beans.identitiesManager.selectIdentityItemValue(identities, source, itemPath);
+    }
+
+    @Override
+    public <T> TypedQuery<T> queryFor(Class<T> type, String query) throws SchemaException {
+        return TypedQuery.parse(type, query);
+    }
+
+    public <T> PreparedQuery<T> preparedQueryFor(Class<T> type, String query) throws SchemaException {
+        return PreparedQuery.parse(type, query);
+    }
+    @Override
+    public <T extends ObjectType> List<T> searchObjects(TypedQuery<T> query) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return MiscSchemaUtil.toObjectableList(
+                modelService.searchObjects(query, getCurrentTask(), getCurrentResult()));
     }
 }

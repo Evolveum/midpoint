@@ -8,7 +8,8 @@ package com.evolveum.midpoint.notifications.impl.helpers;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
@@ -19,27 +20,28 @@ public class CategoryFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(CategoryFilterHelper.class);
 
-    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig) {
+    public boolean processEvent(
+            ConfigurationItem<? extends BaseEventHandlerType> eventHandlerConfig, EventProcessingContext<?> ctx) {
 
-        if (eventHandlerConfig.getCategory().isEmpty()) {
+        var categories = eventHandlerConfig.value().getCategory();
+        if (categories.isEmpty()) {
             return true;
         }
 
         boolean retval = false;
 
-        logStart(LOGGER, event, eventHandlerConfig, eventHandlerConfig.getCategory());
+        logStart(LOGGER, eventHandlerConfig, ctx, categories);
 
-        for (EventCategoryType eventCategoryType : eventHandlerConfig.getCategory()) {
-
-            if (eventCategoryType == null) {
+        for (EventCategoryType category : categories) {
+            if (category == null) {
                 LOGGER.warn("Filtering on null EventCategoryType: " + eventHandlerConfig);
-            } else if (event.isCategoryType(eventCategoryType)) {
+            } else if (ctx.event().isCategoryType(category)) {
                 retval = true;
                 break;
             }
         }
 
-        logEnd(LOGGER, event, eventHandlerConfig, retval);
+        logEnd(LOGGER, eventHandlerConfig, ctx, retval);
         return retval;
     }
 }

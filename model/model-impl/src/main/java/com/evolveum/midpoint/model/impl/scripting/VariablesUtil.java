@@ -54,7 +54,8 @@ public class VariablesUtil {
             ExpressionProfile expressionProfile,
             Task task,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         VariablesMap rv = new VariablesMap();
         addProvidedVariables(rv, initialVariables, task);
         addDerivedVariables(rv, derivedVariables, expressionProfile, task, result);
@@ -73,7 +74,8 @@ public class VariablesUtil {
     private static void addDerivedVariables(VariablesMap resultingVariables,
             ScriptingVariablesDefinitionType definitions, ExpressionProfile expressionProfile,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (definitions == null) {
             return;
         }

@@ -8,16 +8,18 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
 import com.evolveum.midpoint.notifications.impl.helpers.CertHelper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -36,38 +38,44 @@ public class SimpleReviewerNotifier extends AbstractGeneralNotifier<CertReviewEv
     @Autowired private CertHelper certHelper;
 
     @Override
-    public Class<CertReviewEvent> getEventType() {
+    public @NotNull Class<CertReviewEvent> getEventType() {
         return CertReviewEvent.class;
     }
 
     @Override
-    public Class<SimpleReviewerNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleReviewerNotifierType> getEventHandlerConfigurationType() {
         return SimpleReviewerNotifierType.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(CertReviewEvent event, SimpleReviewerNotifierType configuration, OperationResult result) {
+    protected boolean quickCheckApplicability(
+            ConfigurationItem<? extends SimpleReviewerNotifierType> configuration,
+            EventProcessingContext<? extends CertReviewEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         if (event.isAdd()) {
             return true;
         }
         if (event.isDelete()) {
-            return false;                   // such events are not even created
+            return false; // such events are not even created
         }
         AccessCertificationStageDefinitionType stageDef = event.getCurrentStageDefinition();
         if (stageDef == null) {
-            return false;                   // should not occur
+            return false; // should not occur
         }
         if (Boolean.FALSE.equals(stageDef.isNotifyOnlyWhenNoDecision())) {
             return true;
         }
-        if (event.getCasesAwaitingResponseFromActualReviewer().isEmpty()) {
-            return false;
-        }
-        return true;
+        return !event.getCasesAwaitingResponseFromActualReviewer().isEmpty();
     }
 
     @Override
-    protected String getSubject(CertReviewEvent event, SimpleReviewerNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends SimpleReviewerNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends CertReviewEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         String campaignName = event.getCampaignName();
         if (event.isAdd()) {
             return "Your review is requested in campaign " + campaignName;
@@ -79,8 +87,13 @@ public class SimpleReviewerNotifier extends AbstractGeneralNotifier<CertReviewEv
     }
 
     @Override
-    protected String getBody(CertReviewEvent event, SimpleReviewerNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends SimpleReviewerNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends CertReviewEvent> ctx,
+            OperationResult result) {
         StringBuilder body = new StringBuilder();
+        var event = ctx.event();
         AccessCertificationCampaignType campaign = event.getCampaign();
 
         body.append("You have been requested to provide a review in a certification campaign.");

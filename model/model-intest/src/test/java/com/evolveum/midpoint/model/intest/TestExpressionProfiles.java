@@ -11,8 +11,14 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -21,8 +27,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,6 +47,7 @@ import com.evolveum.midpoint.test.TestObject;
  *
  * . `test1xx`: auto-assigned roles
  * . `test2xx`: various expressions in explicitly-assigned roles
+ * . `test3xx`: bulk actions
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -56,6 +66,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "metarole-dummy.xml", "d9a263b7-b272-46d8-84dc-cdf96d79128e");
     private static final TestObject<RoleType> ROLE_UNRESTRICTED = TestObject.file(
             TEST_DIR, "role-unrestricted.xml", "ffe619f0-a7e7-4803-b50a-8a10eed96bf9");
+    private static final TestObject<RoleType> ROLE_SCRIPTING = TestObject.file(
+            TEST_DIR, "role-scripting.xml", "16c7a275-83b5-44c7-9b37-0114a56efb2b");
+
+    private static final TestObject<UserType> USER_JOE = TestObject.file(
+            TEST_DIR, "user-joe.xml", "562d5f0a-1a5a-4751-b0ee-6ef7b928944d");
 
     private static final TestObject<ArchetypeType> ARCHETYPE_RESTRICTED_ROLE = TestObject.file(
             TEST_DIR, "archetype-restricted-role.xml", "a2242707-43cd-4f18-b986-573cb468693d");
@@ -87,11 +102,18 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_RESTRICTED_BAD_INDUCEMENT_TARGET_FILTER = TestObject.file(
             TEST_DIR, "role-restricted-bad-inducement-target-filter.xml", "bae5a90d-87c0-44f8-a585-0ea11e42ee9a");
 
+    private static final File FILE_SCRIPTING_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-execute-script.xml");
+    private static final File FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-expression-execute-script.xml");
+    private static final File FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER = new File(TEST_DIR, "scripting-notification-custom-handler.xml");
+    private static final File FILE_SCRIPTING_SCRIPT_IN_QUERY = new File(TEST_DIR, "scripting-script-in-query.xml");
+
     private static final String DETAIL_REASON_MESSAGE =
             "Access to Groovy method com.evolveum.midpoint.model.intest.TestExpressionProfiles#boom denied"
                     + " (applied expression profile 'restricted')";
 
     private static boolean boomed;
+
+    @Autowired private ScriptingService scriptingService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -102,6 +124,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         initTestObjects(initTask, initResult,
                 METAROLE_DUMMY,
                 ROLE_UNRESTRICTED,
+                ROLE_SCRIPTING,
+                USER_JOE,
                 ARCHETYPE_RESTRICTED_ROLE,
                 ROLE_RESTRICTED_GOOD,
                 ROLE_RESTRICTED_BAD_FOCUS_MAPPING,
@@ -402,6 +426,102 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeRoleAssignmentTest(
                 ROLE_RESTRICTED_BAD_INDUCEMENT_TARGET_FILTER,
                 RoleType.F_INDUCEMENT.append(333L));
+    }
+
+    // TODO test300: execution with known origin
+
+    @Test
+    public void test300BulkActionWithKnownOrigin() {
+        // TODO
+    }
+
+    /** Executing script directly. */
+    @Test
+    public void test310UntrustedBulkExecutingScriptDirectly() throws CommonException, IOException {
+        runNegativeBulkActionTest(FILE_SCRIPTING_EXECUTE_SCRIPT);
+    }
+
+    /** Executing script via expression. */
+    @Test
+    public void test315UntrustedBulkExecutingScriptViaExpression() throws CommonException, IOException {
+        runNegativeBulkActionTest(FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT);
+    }
+
+    /** Executing script via notification. */
+    @Test
+    public void test320UntrustedBulkExecutingScriptViaNotification() throws CommonException, IOException {
+        runNegativeNotificationBulkActionTest(FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER);
+    }
+
+    /** Executing script via search filter. */
+    @Test
+    public void test325UntrustedBulkExecutingScriptViaSearchFilter() throws CommonException, IOException {
+        runNegativeBulkActionTest(FILE_SCRIPTING_SCRIPT_IN_QUERY);
+    }
+
+    private void runNegativeBulkActionTest(File file) throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        given("unprivileged user is logged in");
+        login(USER_JOE.getNameOrig());
+
+        when("dangerous bulk action is executed");
+        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        try {
+            scriptingService.evaluateExpression(
+                    ExecuteScriptConfigItem.of(
+                            script,
+                            ConfigurationItemOrigin.rest()),
+                    VariablesMap.emptyMap(),
+                    false,
+                    task, result);
+            fail("unexpected success");
+        } catch (ScriptExecutionException e) {
+            var cause = ExceptionUtil.findCause(e, SecurityViolationException.class);
+            assertThat(cause).as("security violation cause").isNotNull();
+            assertExpectedException(cause)
+                    .hasMessageContaining("Access to script expression evaluator not allowed")
+                    .hasMessageContaining("expression profile: ##legacyUnprivilegedScripting");
+        }
+
+        and("not boomed");
+        assertNotBoomed();
+    }
+
+    /**
+     * Different from {@link #runNegativeBulkActionTest(File)} in that the exception is not thrown (notifications don't do that)
+     */
+    private void runNegativeNotificationBulkActionTest(File file) throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        given("unprivileged user is logged in");
+        login(USER_JOE.getNameOrig());
+
+        when("dangerous bulk action is executed");
+        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        scriptingService.evaluateExpression(
+                ExecuteScriptConfigItem.of(
+                        script,
+                        ConfigurationItemOrigin.rest()),
+                VariablesMap.emptyMap(),
+                false,
+                task, result);
+
+        then("not boomed");
+        assertNotBoomed();
+
+        and("result is an error");
+        assertFailure(result);
+
+        // these asserts may be fragile
+        assertThat(result.getMessage())
+                .contains("Access to script expression evaluator not allowed")
+                .contains("expression profile: ##legacyUnprivilegedScripting")
+                .contains("in event filter expression");
     }
 
     // TODO what about import-time resolution? Is that even supported? Probably not but we should write a test for it.

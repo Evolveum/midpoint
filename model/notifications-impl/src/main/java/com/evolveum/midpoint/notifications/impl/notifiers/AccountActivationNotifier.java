@@ -10,16 +10,18 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,7 +36,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
     private static final Trace LOGGER = TraceManager.getTrace(AccountActivationNotifier.class);
 
     @Override
-    public Class<AccountActivationNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<AccountActivationNotifierType> getEventHandlerConfigurationType() {
         return AccountActivationNotifierType.class;
     }
 
@@ -44,8 +46,11 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
     }
 
     @Override
-    protected boolean checkApplicability(ModelEvent event, AccountActivationNotifierType configuration,
+    protected boolean checkApplicability(
+            ConfigurationItem<? extends AccountActivationNotifierType> configuration,
+            EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) {
+        var event = ctx.event();
         if (!event.isSuccess()) {
             logNotApplicable(event, "operation was not successful");
             return false;
@@ -67,15 +72,22 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
     }
 
     @Override
-    protected String getSubject(ModelEvent event, AccountActivationNotifierType configuration, String transport,
-            Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends AccountActivationNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ModelEvent> ctx,
+            OperationResult result) {
         return "Activate your accounts";
     }
 
     @Override
-    protected String getBody(ModelEvent event, AccountActivationNotifierType configuration, String transport,
-            Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends AccountActivationNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ModelEvent> ctx,
+            OperationResult result) {
 
+        var event = ctx.event();
         StringBuilder body = new StringBuilder();
         String message = "Your accounts was successfully created. To activate your accounts, please click on the link below.";
         body.append(message).append("\n\n").append(createConfirmationLink(getUser(event), configuration, result)).append("\n\n");
@@ -97,7 +109,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
             if (StringUtils.isNotBlank(resourceOid)) {
                 PrismObject<ResourceType> resource;
                 try {
-                    resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+                    resource = modelService.getObject(ResourceType.class, resourceOid, null, ctx.task(), result);
                 } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
                         | ExpressionEvaluationException | SchemaException e) {
                     getLogger().error("Couldn't get Resource with oid " + resourceOid, e);
@@ -110,8 +122,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
                 body.append("unknown\n");
             }
             for (Object att : shadow.getAttributes().asPrismContainerValue().getItems()) {
-                if (att instanceof ResourceAttribute) {
-                    ResourceAttribute<?> attribute = (ResourceAttribute<?>) att;
+                if (att instanceof ResourceAttribute<?> attribute) {
                     body.append(" - ").append(attribute.getDisplayName()).append(": ");
                     if (attribute.isSingleValue()) {
                         body.append(attribute.getRealValue()).append("\n");
@@ -153,7 +164,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
     }
 
     @Override
-    public String getConfirmationLink(UserType userType) {
-        return getMidpointFunctions().createAccountActivationLink(userType);
+    public String getConfirmationLink(UserType user) {
+        return getMidpointFunctions().createAccountActivationLink(user);
     }
 }

@@ -14,24 +14,25 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -65,7 +66,7 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
     }
 
     @Override
-    public void send(Message message, String transportNameIgnored, Event event, Task task, OperationResult parentResult) {
+    public void send(Message message, String transportNameIgnored, SendingContext ctx, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
@@ -84,14 +85,19 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
         List<String> allowedRecipientBcc = new ArrayList<>();
         List<String> forbiddenRecipientBcc = new ArrayList<>();
 
+        var task = ctx.task();
+
         String file = configuration.getRedirectToFile();
         if (optionsForFilteringRecipient != 0) {
-            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
-                    transportSupport.expressionFactory(), MiscSchemaUtil.getExpressionProfile(), LOGGER);
-            TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
-                    transportSupport.expressionFactory(), MiscSchemaUtil.getExpressionProfile(), LOGGER);
-            TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
-                    transportSupport.expressionFactory(), MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(
+                    allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
+                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(
+                    allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
+                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(
+                    allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
+                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
@@ -111,8 +117,10 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
         }
 
         try {
-            evaluateExpression(configuration.getExpression(), getDefaultVariables(message, event),
-                    "custom transport expression", task, result);
+            evaluateExpression(
+                    configuration.getExpression(),
+                    getDefaultVariables(message, ctx.event()),
+                    "custom transport expression", ctx, result);
             LOGGER.trace("Custom transport expression execution finished");
             result.recordSuccess();
         } catch (Throwable t) {
@@ -139,17 +147,21 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
 
     // TODO deduplicate
     private void evaluateExpression(
-            ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc, Task task, OperationResult result)
+            ExpressionType expressionBean, VariablesMap VariablesMap, String shortDesc, SendingContext ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = transportSupport.prismContext().definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
+        var task = ctx.task();
         ExpressionFactory expressionFactory = transportSupport.expressionFactory();
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
-                        expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                        expressionBean != null ?
+                                ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.undeterminedSafe()) : null,
+                        resultDef, ctx.expressionProfile(),
+                        shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);

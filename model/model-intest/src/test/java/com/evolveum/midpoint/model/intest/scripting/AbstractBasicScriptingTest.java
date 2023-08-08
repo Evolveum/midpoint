@@ -260,7 +260,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
             ExecuteScriptType executeScript, VariablesMap variablesMap, Task task, OperationResult result)
             throws ScriptExecutionException {
         return evaluator.evaluateExpression(
-                ExecuteScriptConfigItem.of(executeScript, ConfigurationItemOrigin.undetermined()),
+                ExecuteScriptConfigItem.of(executeScript, ConfigurationItemOrigin.generated()),
                 variablesMap,
                 false,
                 task,

@@ -11,8 +11,14 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.repo.common.expression.*;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,8 +34,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -49,29 +53,43 @@ public class NotificationExpressionHelper {
     @Autowired private SystemObjectCache systemObjectCache;
 
     // shortDesc = what is to be evaluated e.g. "event filter expression"
-    boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, VariablesMap variablesMap,
-            String shortDesc, Task task, OperationResult result) {
+    boolean evaluateBooleanExpressionChecked(
+            @NotNull ExpressionConfigItem expressionCI,
+            VariablesMap variablesMap,
+            @SuppressWarnings("SameParameterValue") String shortDesc,
+            EventProcessingContext<?> ctx,
+            OperationResult result) {
 
-        Throwable failReason;
         try {
-            return evaluateBooleanExpression(expressionType, variablesMap, shortDesc, task, result);
+            return evaluateBooleanExpression(expressionCI, variablesMap, shortDesc, ctx, result);
         } catch (CommonException e) {
-            failReason = e;
+            throw handleCommonException(shortDesc, result, e);
         }
+    }
 
-        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", failReason, shortDesc, expressionType);
-        result.recordFatalError("Couldn't evaluate " + shortDesc, failReason);
-        throw new SystemException(failReason);
+    // FIXME we should throw correct exception class
+    private static RuntimeException handleCommonException(String shortDesc, OperationResult result, CommonException e) {
+        String msg = "Couldn't evaluate " + shortDesc + ": " + e.getMessage();
+        result.recordException(msg, e);
+        throw new SystemException(msg, e);
     }
 
     private boolean evaluateBooleanExpression(
-            ExpressionType expressionType, VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            @NotNull ExpressionConfigItem expressionCI,
+            VariablesMap variablesMap, String shortDesc,
+            EventProcessingContext<?> ctx, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
+        var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
+        PrismPropertyDefinition<Boolean> resultDef =
+                prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
         Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
-                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(
+                        expressionCI,
+                        resultDef, ctx.defaultExpressionProfile(),
+                        shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
 
@@ -79,29 +97,34 @@ public class NotificationExpressionHelper {
                 ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
-        if (exprResult.size() == 0) {
+        if (exprResult.isEmpty()) {
             return false;
         } else if (exprResult.size() > 1) {
-            throw new IllegalStateException("Filter expression should return exactly one boolean value; it returned " + exprResult.size() + " ones");
+            throw new IllegalStateException(
+                    "Filter expression should return exactly one boolean value; it returned " + exprResult.size() + " ones");
         }
         Boolean boolResult = exprResult.iterator().next().getValue();
         return boolResult != null ? boolResult : false;
     }
 
-    public List<String> evaluateExpressionChecked(ExpressionType expressionType, VariablesMap variablesMap,
-            String shortDesc, Task task, OperationResult result) {
+    public List<String> evaluateExpressionChecked(
+            @NotNull ExpressionType expressionBean,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variablesMap,
+            String shortDesc,
+            EventProcessingContext<?> ctx, OperationResult result) {
 
         try {
-            return evaluateExpression(expressionType, variablesMap, shortDesc, task, result);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
-            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
-            throw new SystemException(e);
+            return evaluateExpression(expressionBean, origin, variablesMap, shortDesc, ctx, result);
+        } catch (CommonException e) {
+            throw handleCommonException(shortDesc, result, e);
         }
     }
 
-    private List<String> evaluateExpression(ExpressionType expressionType,
-            VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
+    private List<String> evaluateExpression(
+            @NotNull ExpressionType expressionBean,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -109,8 +132,12 @@ public class NotificationExpressionHelper {
         MutablePrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
         resultDef.setMaxOccurs(-1);
 
+        var task = ctx.task();
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(
+                        ExpressionConfigItem.of(expressionBean, origin),
+                        resultDef, ctx.defaultExpressionProfile(),
+                        shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =
@@ -123,19 +150,22 @@ public class NotificationExpressionHelper {
         return retval;
     }
 
-    public List<RecipientExpressionResultType> evaluateRecipientExpressionChecked(ExpressionType expressionType,
-            VariablesMap variablesMap, String shortDesc, Task task, OperationResult result) {
+    public List<RecipientExpressionResultType> evaluateRecipientExpressionChecked(
+            @NotNull ExpressionType expressionBean,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variablesMap, String shortDesc,
+            EventProcessingContext<?> ctx, OperationResult result) {
         try {
-            return evaluateRecipientExpression(expressionType, variablesMap, shortDesc, task, result);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
-            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
-            throw new SystemException(e);
+            return evaluateRecipientExpression(expressionBean, origin, variablesMap, shortDesc, ctx, result);
+        } catch (CommonException e) {
+            throw handleCommonException(shortDesc, result, e);
         }
     }
 
-    private List<RecipientExpressionResultType> evaluateRecipientExpression(ExpressionType expressionType,
-            VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
+    private List<RecipientExpressionResultType> evaluateRecipientExpression(
+            @NotNull ExpressionType expressionBean,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -145,8 +175,12 @@ public class NotificationExpressionHelper {
                         RecipientExpressionResultType.COMPLEX_TYPE);
         resultDef.setMaxOccurs(-1);
 
+        var task = ctx.task();
         Expression<PrismPropertyValue<RecipientExpressionResultType>, PrismPropertyDefinition<RecipientExpressionResultType>> expression =
-                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(
+                        ExpressionConfigItem.of(expressionBean, origin),
+                        resultDef,
+                        ctx.defaultExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(this::recipientConverter);
@@ -186,30 +220,36 @@ public class NotificationExpressionHelper {
     }
 
     public List<NotificationMessageAttachmentType> evaluateAttachmentExpressionChecked(
-            ExpressionType expressionType, VariablesMap variablesMap,
-            String shortDesc, Task task, OperationResult result) {
+            @NotNull ExpressionType expressionBean,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variablesMap,
+            String shortDesc,
+            EventProcessingContext<?> ctx, OperationResult result) {
 
-        Throwable failReason;
         try {
-            return evaluateNotificationMessageAttachmentTypeExpression(expressionType, variablesMap, shortDesc, task, result);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            failReason = e;
+            return evaluateNotificationMessageAttachmentTypeExpression(
+                    expressionBean, origin, variablesMap, shortDesc, ctx, result);
+        } catch (CommonException e) {
+            throw handleCommonException(shortDesc, result, e);
         }
-
-        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", failReason, shortDesc, expressionType);
-        result.recordFatalError("Couldn't evaluate " + shortDesc, failReason);
-        throw new SystemException(failReason);
     }
 
-    public List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpression(
-            ExpressionType expressionType, VariablesMap variablesMap, String shortDesc, Task task, OperationResult result)
+    private List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpression(
+            @NotNull ExpressionType expressionBean,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+        var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<NotificationMessageAttachmentType> resultDef =
-                prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
+                prismContext.definitionFactory().createPropertyDefinition(
+                        resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
         Expression<PrismPropertyValue<NotificationMessageAttachmentType>, PrismPropertyDefinition<NotificationMessageAttachmentType>> expression =
-                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(
+                        ExpressionConfigItem.of(expressionBean, origin),
+                        resultDef, ctx.defaultExpressionProfile(),
+                        shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
 
@@ -217,7 +257,7 @@ public class NotificationExpressionHelper {
                 ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         Collection<PrismPropertyValue<NotificationMessageAttachmentType>> exprResult = exprResultTriple.getZeroSet();
-        if (exprResult.size() == 0) {
+        if (exprResult.isEmpty()) {
             return null;
         }
 

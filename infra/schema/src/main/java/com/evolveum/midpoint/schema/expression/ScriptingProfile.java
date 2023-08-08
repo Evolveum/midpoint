@@ -6,19 +6,18 @@
  */
 package com.evolveum.midpoint.schema.expression;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.schema.AccessDecision;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptingActionProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptingProfileType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * Specifies limitations on the use of a scripting actions. It is a compiled form of a {@link ScriptingProfileType}.

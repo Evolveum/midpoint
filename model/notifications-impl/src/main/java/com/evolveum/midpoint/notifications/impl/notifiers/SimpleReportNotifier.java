@@ -6,19 +6,19 @@
  */
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.util.List;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ReportOutputCreatedEvent;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleReportNotifierType;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Basic notifier for {@link ReportOutputCreatedEvent} instances.
@@ -29,48 +29,45 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<ReportOutputCr
     private static final Trace LOGGER = TraceManager.getTrace(SimpleReportNotifier.class);
 
     @Override
-    public Class<ReportOutputCreatedEvent> getEventType() {
+    public @NotNull Class<ReportOutputCreatedEvent> getEventType() {
         return ReportOutputCreatedEvent.class;
     }
 
     @Override
-    public Class<SimpleReportNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleReportNotifierType> getEventHandlerConfigurationType() {
         return SimpleReportNotifierType.class;
     }
 
     @Override
     protected String getSubject(
-            @NotNull ReportOutputCreatedEvent event,
-            SimpleReportNotifierType configuration,
+            ConfigurationItem<? extends SimpleReportNotifierType> configuration,
             String transportName,
-            Task task,
+            @NotNull EventProcessingContext<? extends ReportOutputCreatedEvent> ctx,
             OperationResult result) {
-        return "Report " + event.getReportName() + " was created";
+        return "Report " + ctx.event().getReportName() + " was created";
     }
 
     @Override
     protected List<NotificationMessageAttachmentType> getAttachment(
-            ReportOutputCreatedEvent event,
-            SimpleReportNotifierType configuration,
+            ConfigurationItem<? extends SimpleReportNotifierType> configuration,
             String transportName,
-            Task task,
+            @NotNull EventProcessingContext<? extends ReportOutputCreatedEvent> ctx,
             OperationResult result) {
         return List.of(
                 new NotificationMessageAttachmentType()
-                        .contentType(event.getContentType())
-                        .contentFromFile(event.getFilePath()));
+                        .contentType(ctx.event().getContentType())
+                        .contentFromFile(ctx.event().getFilePath()));
     }
 
     @Override
     protected String getBody(
-            ReportOutputCreatedEvent event,
-            SimpleReportNotifierType configuration,
+            ConfigurationItem<? extends SimpleReportNotifierType> configuration,
             String transportName,
-            Task task,
+            @NotNull EventProcessingContext<? extends ReportOutputCreatedEvent> ctx,
             OperationResult result) throws SchemaException {
 
         return "Notification about creating of report.\n\n"
-                + "Report: " + event.getReportName() + "\n\n"
+                + "Report: " + ctx.event().getReportName() + "\n\n"
                 + "You can see report output in attachment." + "\n";
     }
 

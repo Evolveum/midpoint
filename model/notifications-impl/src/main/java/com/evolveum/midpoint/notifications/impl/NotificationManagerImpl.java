@@ -6,7 +6,15 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+
+import com.evolveum.midpoint.schema.config.OriginProvider;
+
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -25,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+
 @Component
 public class NotificationManagerImpl implements NotificationManager {
 
@@ -40,15 +50,22 @@ public class NotificationManagerImpl implements NotificationManager {
     private boolean disabled = false; // for testing purposes (in order for model-intest to run more quickly)
 
     @Override
-    public void processEvent(@NotNull Event event, Task task, OperationResult parentResult) {
+    public void processEvent(
+            @NotNull Event event,
+            @Nullable EventHandlerConfigItem customHandler,
+            @Nullable ExpressionProfile customHandlerExpressionProfile,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_PROCESS_EVENT)
                 .addArbitraryObjectAsParam("event", event)
                 .build();
         try {
             LOGGER.trace("NotificationManager processing event:\n{}", event.debugDumpLazily(1));
 
-            if (event.getAdHocHandler() != null) {
-                processEvent(event, event.getAdHocHandler(), task, result);
+            if (customHandler != null) {
+                argCheck(customHandlerExpressionProfile != null, "customHandlerExpressionProfile is null");
+                var ctx = new EventProcessingContext<>(event, customHandlerExpressionProfile, task);
+                processEvent(customHandler, ctx, result);
             }
 
             SystemConfigurationType systemConfiguration = getSystemConfiguration(task, result);
@@ -59,7 +76,16 @@ public class NotificationManagerImpl implements NotificationManager {
             } else {
                 NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
                 for (EventHandlerType eventHandlerBean : notificationConfiguration.getHandler()) {
-                    processEvent(event, eventHandlerBean, task, result);
+                    // Default expression profile for embedded handlers is always "full".
+                    // We don't use archetype manager to avoid wasting cpu cycles
+                    // TODO review in the future
+                    ExpressionProfile profile = ExpressionProfile.full();
+                    var ctx = new EventProcessingContext<>(event, profile, task);
+                    processEvent(
+                            EventHandlerConfigItem.of(
+                                    eventHandlerBean,
+                                    OriginProvider.embedded()),
+                            ctx, result);
                 }
                 LOGGER.trace("NotificationManager successfully processed event {} ({} top level handler(s))", event,
                         notificationConfiguration.getHandler().size());
@@ -77,13 +103,14 @@ public class NotificationManagerImpl implements NotificationManager {
         return TransportUtil.getSystemConfiguration(cacheRepositoryService, errorIfNotFound, result);
     }
 
-    @Override
-    public boolean processEvent(@NotNull Event event, EventHandlerType eventHandlerBean, Task task, OperationResult result) {
+    private void processEvent(
+            @NotNull EventHandlerConfigItem eventHandlerConfig,
+            @NotNull EventProcessingContext<?> ctx,
+            @NotNull OperationResult result) {
         try {
-            return eventHandlerRegistry.forwardToHandler(event, eventHandlerBean, task, result);
+            eventHandlerRegistry.forwardToHandler(eventHandlerConfig, ctx, result);
         } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Event couldn't be processed; event = {}", t, event);
-            return true; // continue if you can
+            LoggingUtils.logUnexpectedException(LOGGER, "Event couldn't be processed: {}", t, ctx);
         }
     }
 

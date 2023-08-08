@@ -9,12 +9,15 @@ package com.evolveum.midpoint.notifications.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.EventHandler;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,17 +36,21 @@ public class EventHandlerRegistry {
         handlers.put(configType, handler);
     }
 
-    public boolean forwardToHandler(Event event, BaseEventHandlerType configuration, Task task, OperationResult result) throws SchemaException {
-        EventHandler<?, ?> handler = handlers.get(configuration.getClass());
+    public boolean forwardToHandler(
+            @NotNull ConfigurationItem<? extends BaseEventHandlerType> configuration,
+            @NotNull EventProcessingContext<?> ctx,
+            @NotNull OperationResult result)
+            throws SchemaException {
+        EventHandler<?, ?> handler = handlers.get(configuration.value().getClass());
         if (handler == null) {
             throw new IllegalStateException("Unknown handler for " + configuration);
-        } else if (!handler.getEventType().isAssignableFrom(event.getClass())) {
-            LOGGER.trace("Not forwarding event {} to handler {} because the handler does not support events of that type",
-                    event, handler);
+        } else if (!handler.getEventType().isAssignableFrom(ctx.event().getClass())) {
+            LOGGER.trace("Not forwarding event to handler {} because the handler does not support events of that type: {}",
+                    handler, ctx);
             return true;
         } else {
             //noinspection unchecked,rawtypes
-            return ((EventHandler) handler).processEvent(event, configuration, task, result);
+            return ((EventHandler) handler).processEvent(configuration, ctx, result);
         }
     }
 }
