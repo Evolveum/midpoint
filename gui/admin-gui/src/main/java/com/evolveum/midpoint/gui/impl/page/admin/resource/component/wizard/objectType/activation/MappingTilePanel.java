@@ -10,16 +10,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SimulationModePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTilePanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -31,7 +29,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -68,7 +65,7 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
                 return null;
             };
 
-            SimulationModePanel panel = new SimulationModePanel(ID_LIFECYCLE_STATE, model);
+            LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, model);
 //            Panel panel = getPageBase().initItemPanel(
 //                    ID_LIFECYCLE_STATE,
 //                    model.getObject().getTypeName(),

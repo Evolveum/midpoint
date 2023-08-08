@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.input.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
@@ -31,8 +28,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.string.AppendingStringBuffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,20 +42,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SimulationModePanel extends BasePanel<PrismPropertyWrapper<String>> {
+public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SimulationModePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LifecycleStatePanel.class);
 
     private static final String ID_PANEL = "panel";
-
-    private static final String ID_MODE = "mode";
-    private static final String ID_SWITCH_TO_DEV = "switchToDev";
-    private static final String ID_SWITCH_TO_PROD = "switchToProd";
 
     enum DisplayForOption {
 
         ACTIVE("SimulationModePanel.option.active", "colored-form-success"),
-        DRAFT("SimulationModePanel.option.draft", "colored-form-danger"),
+        DRAFT("SimulationModePanel.option.draft", "colored-form-secondary"),
         PROPOSED("SimulationModePanel.option.proposed", "colored-form-warning"),
         DEFAULT(null, "colored-form-info");
 
@@ -91,7 +82,7 @@ public class SimulationModePanel extends BasePanel<PrismPropertyWrapper<String>>
         }
     }
 
-    public SimulationModePanel(String id, IModel<PrismPropertyWrapper<String>> model) {
+    public LifecycleStatePanel(String id, IModel<PrismPropertyWrapper<String>> model) {
         super(id, model);
     }
 
@@ -233,65 +224,14 @@ public class SimulationModePanel extends BasePanel<PrismPropertyWrapper<String>>
                 name = value.getValue();
             }
             DisplayForOption display = DisplayForOption.valueOfOrDefault(name);
-            return display.cssClass + " form-control form-control-sm resizing-select";
+            return display.cssClass + " form-control form-control-sm resizing-select " + customCssClassForInputField();
         }));
 
         add(input);
+    }
 
-//        DropDownChoicePanel panel = new DropDownChoicePanel(
-//                ID_PANEL, model, choices, new DisplayableChoiceRenderer(), false) {
-//            @Override
-//            protected String getNullValidDisplayValue() {
-//                Optional<? extends DisplayableValue<String>> value = choices.getObject()
-//                        .stream()
-//                        .filter(displayableValue -> displayableValue.getValue().equals(SchemaConstants.LIFECYCLE_ACTIVE))
-//                        .findFirst();
-//
-//                if (value.isPresent()) {
-//                    return (String) getBaseFormComponent().getChoiceRenderer().getDisplayValue(value.get());
-//                }
-//                return SchemaConstants.LIFECYCLE_ACTIVE;
-//            }
-//        };
-//        add(panel);
-
-//        Label label = new Label(ID_MODE, createLabelModel());
-//        label.setOutputMarkupId(true);
-//        add(label);
-//
-//        AjaxIconButton toggleToProduction = new AjaxIconButton(ID_SWITCH_TO_PROD, Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
-//                createStringResource("OperationalButtonsPanel.button.toggleToProduction")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                updateState(SchemaConstants.LIFECYCLE_ACTIVE);
-//                target.add(SimulationModePanel.this);
-//                target.add(label);
-//            }
-//        };
-//
-//        toggleToProduction.setOutputMarkupId(true);
-//        toggleToProduction.showTitleAsLabel(true);
-//        toggleToProduction.add(new VisibleBehaviour(() -> isToggleModeButtonVisible(SchemaConstants.LIFECYCLE_ACTIVE)));
-//        add(toggleToProduction);
-//
-//        AjaxIconButton toggleToDevelopment = new AjaxIconButton(ID_SWITCH_TO_DEV, Model.of(GuiStyleConstants.CLASS_ICON_TOOGLE),
-//                createStringResource("OperationalButtonsPanel.button.toggleToDevelopment")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                updateState(SchemaConstants.LIFECYCLE_PROPOSED);
-//                target.add(SimulationModePanel.this);
-//                target.add(label);
-//            }
-//        };
-//        toggleToDevelopment.setOutputMarkupId(true);
-//        toggleToDevelopment.showTitleAsLabel(true);
-//        toggleToDevelopment.add(new VisibleBehaviour(() -> isToggleModeButtonVisible(SchemaConstants.LIFECYCLE_PROPOSED)));
-//        add(toggleToDevelopment);
-
+    protected String customCssClassForInputField() {
+        return "";
     }
 
     private List getChoices() {
