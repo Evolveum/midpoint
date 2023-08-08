@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -150,6 +151,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     @Override
     public @NotNull PolicyRuleType getPolicyRule() {
         return policyRuleCI.value();
+    }
+
+    public @NotNull ConfigurationItemOrigin getRuleOrigin() {
+        return policyRuleCI.origin();
     }
 
     @Nullable

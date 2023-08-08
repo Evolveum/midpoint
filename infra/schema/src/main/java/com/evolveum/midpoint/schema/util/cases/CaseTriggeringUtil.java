@@ -96,10 +96,10 @@ public class CaseTriggeringUtil {
             Long workItemId,
             @NotNull String handlerUri)
             throws SchemaException {
-        TriggerType trigger = new TriggerType(prismContext);
+        TriggerType trigger = new TriggerType();
         trigger.setTimestamp(triggerTime);
         trigger.setHandlerUri(handlerUri);
-        ExtensionType extension = new ExtensionType(prismContext);
+        ExtensionType extension = new ExtensionType();
         trigger.setExtension(extension);
 
         SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
@@ -110,6 +110,7 @@ public class CaseTriggeringUtil {
                     prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
             PrismProperty<Long> workItemIdProp = workItemIdDef.instantiate();
             workItemIdProp.addRealValue(workItemId);
+            //noinspection unchecked
             trigger.getExtension().asPrismContainerValue().add(workItemIdProp);
         }
         // actions
@@ -117,7 +118,9 @@ public class CaseTriggeringUtil {
             @NotNull PrismContainerDefinition<WorkItemActionsType> workItemActionsDef =
                     schemaRegistry.findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
             PrismContainer<WorkItemActionsType> workItemActionsCont = workItemActionsDef.instantiate();
+            //noinspection unchecked
             workItemActionsCont.add(actions.asPrismContainerValue().clone());
+            //noinspection unchecked
             extension.asPrismContainerValue().add(workItemActionsCont);
         }
         // time before + action
@@ -125,13 +128,16 @@ public class CaseTriggeringUtil {
             @NotNull PrismContainerDefinition<AbstractWorkItemActionType> workItemActionDef =
                     schemaRegistry.findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTION);
             PrismContainer<AbstractWorkItemActionType> workItemActionCont = workItemActionDef.instantiate();
+            //noinspection unchecked
             workItemActionCont.add(notifyInfo.getValue().asPrismContainerValue().clone());
+            //noinspection unchecked
             extension.asPrismContainerValue().add(workItemActionCont);
             @SuppressWarnings("unchecked")
             @NotNull PrismPropertyDefinition<Duration> timeBeforeActionDef =
                     schemaRegistry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_TIME_BEFORE_ACTION);
             PrismProperty<Duration> timeBeforeActionProp = timeBeforeActionDef.instantiate();
             timeBeforeActionProp.addRealValue(notifyInfo.getKey());
+            //noinspection unchecked
             extension.asPrismContainerValue().add(timeBeforeActionProp);
         }
         return trigger;
@@ -171,23 +177,21 @@ public class CaseTriggeringUtil {
         if (base == null) {
             base = duration.getSign() <= 0 ? WfTimeBaseType.DEADLINE : WfTimeBaseType.WORK_ITEM_CREATION;
         }
-        switch (base) {
-            case DEADLINE:
+        baseTime = switch (base) {
+            case DEADLINE -> {
                 if (deadline == null) {
                     throw new IllegalStateException("Couldn't set timed action relative to work item's deadline because"
                             + " the deadline is not set. Requested interval: " + duration);
                 }
-                baseTime = deadline;
-                break;
-            case WORK_ITEM_CREATION:
+                yield deadline;
+            }
+            case WORK_ITEM_CREATION -> {
                 if (start == null) {
                     throw new IllegalStateException("Work item create time is null");
                 }
-                baseTime = start;
-                break;
-            default:
-                throw new IllegalArgumentException("base: " + base);
-        }
+                yield start;
+            }
+        };
         XMLGregorianCalendar rv = XmlTypeConverter.createXMLGregorianCalendar(baseTime);
         rv.add(duration);
         return rv;
