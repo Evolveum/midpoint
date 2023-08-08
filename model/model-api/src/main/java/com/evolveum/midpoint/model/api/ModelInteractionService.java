@@ -256,6 +256,14 @@ public interface ModelInteractionService {
             SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException;
 
     /**
+     * Returns security policy for the specified by the oid archetype.
+     */
+    SecurityPolicyType getSecurityPolicy(
+            String archetypeOid, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+
+    /**
      * Returns an authentications policies as defined in the system configuration security policy. This method is designed to be used
      * during registration process or reset password process.
      * security questions, etc).

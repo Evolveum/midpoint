@@ -30,7 +30,6 @@ import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.schema.util.AuthenticationSequenceTypeUtil;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
@@ -618,7 +617,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return authentication != null ? authentication.getState() : null;
     }
 
-    public SecurityPolicyType resolveSecurityPolicy() throws SchemaException {
+    public SecurityPolicyType resolveSecurityPolicyForPrincipal() {
         SecurityPolicyType securityPolicy = null;
         if (principal instanceof GuiProfiledPrincipal guiProfiledPrincipal) {
             securityPolicy = guiProfiledPrincipal.getApplicableSecurityPolicy();
@@ -640,6 +639,10 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public String getArchetypeOid() {
         return archetypeOid;
+    }
+
+    public boolean isArchetypeDefined() {
+        return StringUtils.isNotEmpty(archetypeOid);
     }
 
     public Collection<? extends GrantedAuthority> resolveAuthorities(Authentication token) {

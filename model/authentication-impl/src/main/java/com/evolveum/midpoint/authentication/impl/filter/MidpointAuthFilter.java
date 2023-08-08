@@ -15,6 +15,10 @@ import java.util.Map;
 
 import com.evolveum.midpoint.authentication.impl.util.AuthenticationSequenceModuleCreator;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -77,6 +81,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     @Autowired private MidpointProviderManager authenticationManager;
     @Autowired private TaskManager taskManager;
     @Autowired private RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
+    @Autowired private ModelInteractionService modelInteractionService;
 
     private volatile AuthenticationsPolicyType defaultAuthenticationPolicy;
 
@@ -346,8 +351,26 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private PrismObject<SecurityPolicyType> resolveSecurityPolicy(MidpointAuthentication mpAuthentication) throws SchemaException {
-        SecurityPolicyType securityPolicyType = mpAuthentication == null ? null : mpAuthentication.resolveSecurityPolicy();
+        SecurityPolicyType securityPolicyType = null;
+        if (mpAuthentication != null) {
+            securityPolicyType = mpAuthentication.resolveSecurityPolicyForPrincipal();
+            if (securityPolicyType == null && mpAuthentication.isArchetypeDefined()) {
+                securityPolicyType = loadSecurityPolicyForArchetype(mpAuthentication.getArchetypeOid());
+            }
+        }
         return securityPolicyType == null ? getGlobalSecurityPolicy() : securityPolicyType.asPrismObject();
+    }
+
+    private SecurityPolicyType loadSecurityPolicyForArchetype(String archetypeOid) {
+        try {
+            var operation = "loadSecurityPolicyForArchetype";
+            Task task = taskManager.createTaskInstance(operation);
+            OperationResult result = new OperationResult(operation);
+            return modelInteractionService.getSecurityPolicy(archetypeOid, task, result);
+        } catch (Exception ex) {
+            LOGGER.debug("Couldn't load security policy for archetype");
+        }
+        return null;
     }
 
     private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() throws SchemaException {

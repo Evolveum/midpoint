@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -138,10 +139,10 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     /**
-     * Returns security policy applicable for the specified user. It looks for organization and global policies and takes into account
-     * deprecated properties and password policy references. The resulting security policy has all the (non-deprecated) properties set.
-     * If there is also referenced value policy, it is will be stored as "object" in the value policy reference inside the
-     * returned security policy.
+     * Returns security policy applicable for the specified user. It looks for organization, archetype and global policies and
+     * takes into account deprecated properties and password policy references. The resulting security policy has all the
+     * (non-deprecated) properties set. If there is also referenced value policy, it is will be stored as "object" in the value
+     * policy reference inside the returned security policy.
      */
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, PrismObject<SystemConfigurationType> systemConfiguration,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -163,6 +164,32 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
 
         return null;
+    }
+
+    /**
+     * Returns security policy referenced from the archetype and merged with the global security policy referenced from the
+     * system configuration.
+     */
+    public SecurityPolicyType resolveSecurityPolicyForArchetype(String archetypeOid, Task task,
+            OperationResult result) throws CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SchemaException {
+
+        var systemConfiguration = getSystemConfig();
+        var globalSecurityPolicy = resolveGlobalSecurityPolicy(null, systemConfiguration, task, result);
+
+        var archetypes = archetypeManager.resolveArchetypeOids(Collections.singleton(archetypeOid), null, result);
+        if (archetypes.isEmpty()) {
+            return null;
+        }
+        var archetype = archetypes.get(0);
+        var shortDescription = "load security policy from archetype";
+        var archetypeSecurityPolicy = loadArchetypeSecurityPolicy(archetype, shortDescription, task, result);
+
+        if (archetypeSecurityPolicy == null) {
+            return null;
+        }
+
+        return mergeSecurityPolicies(archetypeSecurityPolicy.asObjectable(), globalSecurityPolicy);
     }
 
     private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(PrismObject<F> focus, Task task,
@@ -203,18 +230,24 @@ public class SecurityHelper implements ModelAuditRecorder {
         if (structuralArchetype == null) {
             return null;
         }
+        return loadArchetypeSecurityPolicy(structuralArchetype, shortDesc, task, result);
+    }
+
+    private <O extends ObjectType> PrismObject<SecurityPolicyType> loadArchetypeSecurityPolicy(ArchetypeType archetype,
+            String shortDesc, Task task, OperationResult result) throws SchemaException {
         PrismObject<SecurityPolicyType> securityPolicy = null;
-        ObjectReferenceType securityPolicyRef = structuralArchetype.getSecurityPolicyRef();
+        ObjectReferenceType securityPolicyRef = archetype.getSecurityPolicyRef();
         if (securityPolicyRef != null) {
             try {
                 securityPolicy = objectResolver.resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
             } catch (ObjectNotFoundException ex) {
-                LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", structuralArchetype.getName(), structuralArchetype.getOid());
+                LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", archetype.getName(),
+                        archetype.getOid());
                 return null;
             }
         }
 
-        return mergeSecurityPolicyWithSuperArchetype(structuralArchetype, securityPolicy, task, result);
+        return mergeSecurityPolicyWithSuperArchetype(archetype, securityPolicy, task, result);
     }
 
     private PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
@@ -482,11 +515,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> focus,
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (systemConfiguration != null) {
-            return resolveGlobalSecurityPolicy(focus, systemConfiguration.asObjectable(), task, result);
-        } else {
-            return null;
-        }
+        return resolveGlobalSecurityPolicy(focus, systemConfiguration.asObjectable(), task, result);
     }
 
     public SecurityPolicyType locateProjectionSecurityPolicy(ResourceObjectDefinition structuralObjectClassDefinition,
@@ -514,6 +543,9 @@ public class SecurityHelper implements ModelAuditRecorder {
     private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> focus,
             SystemConfigurationType systemConfiguration, Task task, OperationResult result)
             throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        if (systemConfiguration == null) {
+            return null;
+        }
         ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.getGlobalSecurityPolicyRef();
         if (globalSecurityPolicyRef != null) {
             try {

@@ -724,6 +724,27 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public SecurityPolicyType getSecurityPolicy(String archetypeOid, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
+        try {
+            SecurityPolicyType securityPolicyType = securityHelper.resolveSecurityPolicyForArchetype(archetypeOid, task, parentResult);
+            if (securityPolicyType == null) {
+                result.recordNotApplicableIfUnknown();
+                return null;
+            }
+
+            return securityPolicyType;
+        } catch (Throwable e) {
+            result.recordFatalError(e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
     @NotNull
     public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
