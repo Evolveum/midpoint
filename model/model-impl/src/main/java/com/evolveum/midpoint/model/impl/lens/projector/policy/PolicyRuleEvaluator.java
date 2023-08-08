@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.F_AND;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -139,7 +138,7 @@ abstract class PolicyRuleEvaluator {
             }
             traceRuleEvaluationResult(rule, ctx);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();

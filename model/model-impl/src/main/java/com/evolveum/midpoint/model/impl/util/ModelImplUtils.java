@@ -35,12 +35,14 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.error.ErrorStackDumper;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -113,6 +115,12 @@ public class ModelImplUtils {
         // What model considers an error may be just a normal situation for the code is using model API.
         // If this is really an error then it should be logged by the invoking code.
         LoggingUtils.logExceptionOnDebugLevel(LOGGER, message, e);
+        if (InternalsConfig.consistencyChecks) { // TODO implement correctly
+            // The idea is to do this only when explicitly enabled, at least for the PoC, so let's attach it to consistency
+            // checks that are set e.g. in tests
+            String stack = ErrorStackDumper.dump(e, result);
+            LOGGER.debug("Error stack:\n{}", stack);
+        }
         result.recordException(message, e);
         result.cleanup();
     }

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -34,6 +36,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Component
 @ProcessorExecution
 public class PolicyRuleProcessor implements ProjectorProcessor {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleProcessor.class);
 
     private static final String CLASS_DOT = PolicyRuleProcessor.class.getName() + ".";
     private static final String OP_EVALUATE_ASSIGNMENT_POLICY_RULES = CLASS_DOT + "evaluateAssignmentPolicyRules";
@@ -82,10 +86,15 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             LensContext<AH> context, XMLGregorianCalendar ignoredNow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        // No need for custom operation result, as this already has one (because it's a projector component)
-        FocusPolicyRulesEvaluator<AH> evaluator = new FocusPolicyRulesEvaluator<>(context.getFocusContextRequired(), task);
-        evaluator.evaluate(result);
-        evaluator.record(result);
+        if (context.getFocusContextRequired().isDeleted()) {
+            LOGGER.trace("Focus is gone, therefore we will skip processing focus policy rules");
+            result.setNotApplicable("focus is gone");
+        } else {
+            // No need for custom operation result, as this already has one (because it's a projector component)
+            FocusPolicyRulesEvaluator<AH> evaluator = new FocusPolicyRulesEvaluator<>(context.getFocusContextRequired(), task);
+            evaluator.evaluate(result);
+            evaluator.record(result);
+        }
     }
 
     @ProcessorMethod
