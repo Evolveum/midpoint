@@ -116,6 +116,15 @@ call apply_audit_change(4, $aa$
    ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'DISCOVER_OBJECT' AFTER 'RUN_TASK_IMMEDIATELY';
 $aa$);
 
+call apply_audit_change(5, $aa$
+   CREATE TYPE EffectivePrivilegesModificationType AS ENUM ('ELEVATION', 'FULL_ELEVATION', 'REDUCTION', 'OTHER');
+   ALTER TABLE ma_audit_event
+     ADD COLUMN effectivePrincipalOid UUID,
+     ADD COLUMN effectivePrincipalType ObjectType,
+     ADD COLUMN effectivePrincipalName TEXT,
+     ADD COLUMN effectivePrivilegesModification EffectivePrivilegesModificationType;
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
 -- to match the number used in the last change here!

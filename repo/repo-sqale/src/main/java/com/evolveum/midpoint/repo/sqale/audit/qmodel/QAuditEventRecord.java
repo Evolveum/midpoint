@@ -8,8 +8,11 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
 import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
 
+import java.io.Serial;
 import java.sql.Types;
 import java.time.Instant;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
@@ -28,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 @SuppressWarnings("unused")
 public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRecord> {
 
-    private static final long serialVersionUID = 6404919477946782879L;
+    @Serial private static final long serialVersionUID = 6404919477946782879L;
 
     public static final String TABLE_NAME = "ma_audit_event";
 
@@ -66,6 +69,14 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
             ColumnMetadata.named("attorneyOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata ATTORNEY_NAME =
             ColumnMetadata.named("attorneyName").ofType(Types.VARCHAR);
+    public static final ColumnMetadata EFFECTIVE_PRINCIPAL_OID =
+            ColumnMetadata.named("effectivePrincipalOid").ofType(UuidPath.UUID_TYPE);
+    public static final ColumnMetadata EFFECTIVE_PRINCIPAL_TYPE =
+            ColumnMetadata.named("effectivePrincipalType").ofType(Types.OTHER);
+    public static final ColumnMetadata EFFECTIVE_PRINCIPAL_NAME =
+            ColumnMetadata.named("effectivePrincipalName").ofType(Types.VARCHAR);
+    public static final ColumnMetadata EFFECTIVE_PRIVILEGES_MODIFICATION =
+            ColumnMetadata.named("effectivePrivilegesModification").ofType(Types.OTHER);
     public static final ColumnMetadata TARGET_OID =
             ColumnMetadata.named("targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TARGET_TYPE =
@@ -119,6 +130,12 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final StringPath initiatorName = createString("initiatorName", INITIATOR_NAME);
     public final UuidPath attorneyOid = createUuid("attorneyOid", ATTORNEY_OID);
     public final StringPath attorneyName = createString("attorneyName", ATTORNEY_NAME);
+    public final UuidPath effectivePrincipalOid = createUuid("effectivePrincipalOid", EFFECTIVE_PRINCIPAL_OID);
+    public final EnumPath<MObjectType> effectivePrincipalType =
+            createEnum("effectivePrincipalType", MObjectType.class, EFFECTIVE_PRINCIPAL_TYPE);
+    public final StringPath effectivePrincipalName = createString("effectivePrincipalName", EFFECTIVE_PRINCIPAL_NAME);
+    public final EnumPath<EffectivePrivilegesModificationType> effectivePrivilegesModification =
+            createEnum("effectivePrivilegesModification", EffectivePrivilegesModificationType.class, EFFECTIVE_PRIVILEGES_MODIFICATION);
     public final UuidPath targetOid = createUuid("targetOid", TARGET_OID);
     public final EnumPath<MObjectType> targetType =
             createEnum("targetType", MObjectType.class, TARGET_TYPE);

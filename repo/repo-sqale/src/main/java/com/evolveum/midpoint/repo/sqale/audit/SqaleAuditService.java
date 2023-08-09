@@ -235,19 +235,18 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
 
         switch (deltaSuccessExecutionResult) {
-            case TOP:
-                executionResult = executionResult.keepRootOnly();
-                break;
-            case CLEANED_UP:
+            case TOP -> executionResult = executionResult.keepRootOnly();
+            case CLEANED_UP -> {
                 executionResult = executionResult.clone();
                 try {
-                    executionResult.cleanupResult();
+                    executionResult.cleanup();
                 } catch (Exception e) {
                     logger.warn("Execution result cleanup exception (reported, but ignored otherwise): {}", e.toString());
                 }
-                break;
-            default:
-                // full or none - nothing to do here
+            }
+            default -> {
+            }
+            // full or none - nothing to do here
         }
         return executionResult;
     }

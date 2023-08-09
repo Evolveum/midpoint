@@ -13,6 +13,8 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
+import static com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType.FULL_ELEVATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -153,17 +156,22 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
         and("audit is OK");
         displayDumpable("audit", dummyAuditService);
 
-        assertAuditRecords(AuditEventType.MODIFY_OBJECT, user.getOid(), user.getOid(), false); // user
-        assertAuditRecords(AuditEventType.ADD_OBJECT, user.getOid(), USER_ADMINISTRATOR_OID, false); // service
+        assertAuditRecords(AuditEventType.MODIFY_OBJECT, user.getOid(), user.getOid(), null); // user
+        assertAuditRecords(AuditEventType.ADD_OBJECT, user.getOid(), USER_ADMINISTRATOR_OID, null); // service
     }
 
     private void assertAuditRecords(
-            AuditEventType eventType, String initiatorOid, String effectivePrincipalOid, boolean privilegesModified) {
+            AuditEventType eventType,
+            String initiatorOid,
+            String effectivePrincipalOid,
+            EffectivePrivilegesModificationType privilegesModification) {
         dummyAuditService.getRecordsOfType(eventType).forEach(r -> {
             assertThat(r.getInitiatorRef().getOid()).as("initiator OID").isEqualTo(initiatorOid);
             assertThat(Objects.requireNonNull(r.getEffectivePrincipalRef()).getOid())
                     .as("effective principal OID").isEqualTo(effectivePrincipalOid);
-            assertThat(r.isEffectivePrivilegesModified()).as("privileges modified flag").isEqualTo(privilegesModified);
+            assertThat(r.getEffectivePrivilegesModification())
+                    .as("privileges modified flag")
+                    .isEqualTo(privilegesModification);
         });
     }
 
@@ -192,8 +200,8 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
         and("audit is OK");
         displayDumpable("audit", dummyAuditService);
 
-        assertAuditRecords(AuditEventType.MODIFY_OBJECT, user.getOid(), user.getOid(), false); // user
-        assertAuditRecords(AuditEventType.ADD_OBJECT, user.getOid(), user.getOid(), true); // service
+        assertAuditRecords(AuditEventType.MODIFY_OBJECT, user.getOid(), user.getOid(), null); // user
+        assertAuditRecords(AuditEventType.ADD_OBJECT, user.getOid(), user.getOid(), FULL_ELEVATION); // service
     }
 
     /** Using the standard library method under administrator. */
