@@ -33,6 +33,7 @@ public class ExtractJaccard implements DetectionOperation {
 
         List<DetectedPattern> detectedPatterns = new ArrayList<>();
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
+        Set<Set<String>> existingDetectedProperties = new HashSet<>();
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
             double frequency = miningRoleTypeChunk.getFrequency();
             if (frequency < minFrequency || frequency > maxFrequency) {
@@ -43,13 +44,23 @@ public class ExtractJaccard implements DetectionOperation {
             if (membersCount < minIntersection) {
                 continue;
             }
-            preparedObjects.add(miningRoleTypeChunk);
 
+            boolean addPreparedObject = true;
+            Set<String> properties = new HashSet<>(miningRoleTypeChunk.getRoles());
             int propertiesCount = miningRoleTypeChunk.getRoles().size();
             if (propertiesCount >= minOccupancy) {
 
-                detectedPatterns.add(addDetectedObjectJaccard(new HashSet<>(miningRoleTypeChunk.getRoles()),
-                        members, null));
+                if (!existingDetectedProperties.contains(properties)) {
+                    addPreparedObject = false;
+                    existingDetectedProperties.add(properties);
+                    detectedPatterns.add(addDetectedObjectJaccard(new HashSet<>(miningRoleTypeChunk.getRoles()),
+                            members, null));
+                }
+
+            }
+
+            if(addPreparedObject) {
+                preparedObjects.add(miningRoleTypeChunk);
             }
 
         }
@@ -70,7 +81,6 @@ public class ExtractJaccard implements DetectionOperation {
             }
         }
 
-        Set<Set<String>> existProperties = new HashSet<>();
         for (MiningRoleTypeChunk key : map.keySet()) {
             List<MiningRoleTypeChunk> values = map.get(key);
             Set<String> members = new HashSet<>(key.getUsers());
@@ -84,10 +94,10 @@ public class ExtractJaccard implements DetectionOperation {
                 continue;
             }
 
-            if (existProperties.contains(properties)) {
+            if (existingDetectedProperties.contains(properties)) {
                 continue;
             }
-            existProperties.add(properties);
+            existingDetectedProperties.add(properties);
 
             detectedPatterns.add(addDetectedObjectJaccard(properties, members, null));
         }
@@ -103,35 +113,6 @@ public class ExtractJaccard implements DetectionOperation {
         intersection.retainAll(set2);
 
         return (double) intersection.size() / union.size();
-    }
-
-    public static List<Set<Set<String>>> hierarchicalCluster(List<Set<String>> inputSets, double threshold) {
-        List<Set<Set<String>>> clusters = new ArrayList<>();
-        Map<Set<String>, Integer> setToClusterIndex = new HashMap<>();
-
-        for (Set<String> set : inputSets) {
-            Set<Integer> candidateClusters = new HashSet<>();
-
-            for (Set<String> existingSet : setToClusterIndex.keySet()) {
-                double similarity = calculateJaccardSimilarity(set, existingSet);
-                if (similarity >= threshold) {
-                    candidateClusters.add(setToClusterIndex.get(existingSet));
-                }
-            }
-
-            if (candidateClusters.isEmpty()) {
-                Set<Set<String>> newCluster = new HashSet<>();
-                newCluster.add(set);
-                clusters.add(newCluster);
-                setToClusterIndex.put(set, clusters.size() - 1);
-            } else {
-                int clusterIndex = candidateClusters.iterator().next();
-                clusters.get(clusterIndex).add(set);
-                setToClusterIndex.put(set, clusterIndex);
-            }
-        }
-
-        return clusters;
     }
 
     @Override
