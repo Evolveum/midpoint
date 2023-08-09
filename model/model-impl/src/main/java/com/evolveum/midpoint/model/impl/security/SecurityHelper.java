@@ -139,19 +139,26 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     /**
-     * Returns security policy applicable for the specified user. It looks for organization, archetype and global policies and
+     * Returns security policy applicable for the specified focus if specified. It looks for organization, archetype and global policies and
      * takes into account deprecated properties and password policy references. The resulting security policy has all the
      * (non-deprecated) properties set. If there is also referenced value policy, it is will be stored as "object" in the value
      * policy reference inside the returned security policy.
+     *
+     * If no focus is specified, returns the security policy referenced with the archetype and merged with the global security policy
      */
-    public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, PrismObject<SystemConfigurationType> systemConfiguration,
-            Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, String archetypeOid,
+            PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
-        SecurityPolicyType securityPolicyFromOrgs = locateFocusSecurityPolicyFromOrgs(focus, task, result);
-        SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromOrgs, globalSecurityPolicy);  //sec policy from org overrides global sec policy
-        SecurityPolicyType securityPolicyFromArchetypes = locateFocusSecurityPolicyFromArchetypes(focus, task, result);
-        mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromArchetypes, mergedSecurityPolicy);  //sec policy from archetypes overrides sec policy from org
+
+        SecurityPolicyType mergedSecurityPolicy = null;
+
+        if (focus != null) {
+            mergedSecurityPolicy = resolveSecurityPolicyForFocus(focus, globalSecurityPolicy, task, result);
+        } else if (StringUtils.isNotEmpty(archetypeOid)) {
+            mergedSecurityPolicy = resolveSecurityPolicyForArchetype(archetypeOid, globalSecurityPolicy, task, result);
+        }
 
         if (mergedSecurityPolicy != null) {
             traceSecurityPolicy(mergedSecurityPolicy, focus);
@@ -166,30 +173,35 @@ public class SecurityHelper implements ModelAuditRecorder {
         return null;
     }
 
+    private <F extends FocusType> SecurityPolicyType resolveSecurityPolicyForFocus(PrismObject<F> focus,
+            SecurityPolicyType globalSecurityPolicy, Task task, OperationResult result) throws SchemaException{
+        SecurityPolicyType securityPolicyFromOrgs = locateFocusSecurityPolicyFromOrgs(focus, task, result);
+        SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromOrgs, globalSecurityPolicy);  //sec policy from org overrides global sec policy
+        SecurityPolicyType securityPolicyFromArchetypes = locateFocusSecurityPolicyFromArchetypes(focus, task, result);
+        mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromArchetypes, mergedSecurityPolicy);  //sec policy from archetypes overrides sec policy from org
+        return mergedSecurityPolicy;
+    }
+
     /**
      * Returns security policy referenced from the archetype and merged with the global security policy referenced from the
      * system configuration.
      */
-    public SecurityPolicyType resolveSecurityPolicyForArchetype(String archetypeOid, Task task,
-            OperationResult result) throws CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, SchemaException {
+    private SecurityPolicyType resolveSecurityPolicyForArchetype(String archetypeOid, SecurityPolicyType globalSecurityPolicy,
+            Task task, OperationResult result) throws SchemaException {
+        try {
+            var archetype = archetypeManager.getArchetype(archetypeOid, result);
+            var shortDescription = "load security policy from archetype";
+            var archetypeSecurityPolicy = loadArchetypeSecurityPolicy(archetype, shortDescription, task, result);
 
-        var systemConfiguration = getSystemConfig();
-        var globalSecurityPolicy = resolveGlobalSecurityPolicy(null, systemConfiguration, task, result);
+            if (archetypeSecurityPolicy == null) {
+                return null;
+            }
 
-        var archetypes = archetypeManager.resolveArchetypeOids(Collections.singleton(archetypeOid), null, result);
-        if (archetypes.isEmpty()) {
-            return null;
+            return mergeSecurityPolicies(archetypeSecurityPolicy.asObjectable(), globalSecurityPolicy);
+        } catch (ObjectNotFoundException e) {
+            LOGGER.error("Cannot load archetype object, ", e);
         }
-        var archetype = archetypes.get(0);
-        var shortDescription = "load security policy from archetype";
-        var archetypeSecurityPolicy = loadArchetypeSecurityPolicy(archetype, shortDescription, task, result);
-
-        if (archetypeSecurityPolicy == null) {
-            return null;
-        }
-
-        return mergeSecurityPolicies(archetypeSecurityPolicy.asObjectable(), globalSecurityPolicy);
+        return null;
     }
 
     private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(PrismObject<F> focus, Task task,

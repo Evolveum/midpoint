@@ -43,7 +43,6 @@ public class ArchetypeSelectionAuthenticationProvider extends MidpointAbstractAu
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
-        //todo process the case when no archetype oid is defined
         var archetypeOid = ((ArchetypeSelectionAuthenticationToken) authentication).getArchetypeOid();
         var allowUndefinedArchetype = ((ArchetypeSelectionAuthenticationToken) authentication).isAllowUndefinedArchetype();
         if (StringUtils.isEmpty(archetypeOid) && !allowUndefinedArchetype) {

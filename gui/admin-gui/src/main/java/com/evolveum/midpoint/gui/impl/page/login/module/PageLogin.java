@@ -11,11 +11,8 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebComponent;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.springframework.security.core.Authentication;
@@ -23,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.CredentialModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;

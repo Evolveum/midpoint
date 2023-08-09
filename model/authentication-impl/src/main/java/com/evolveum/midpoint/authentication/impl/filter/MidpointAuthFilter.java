@@ -366,7 +366,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
             var operation = "loadSecurityPolicyForArchetype";
             Task task = taskManager.createTaskInstance(operation);
             OperationResult result = new OperationResult(operation);
-            return modelInteractionService.getSecurityPolicy(archetypeOid, task, result);
+            return modelInteractionService.getSecurityPolicy(null, archetypeOid, task, result);
         } catch (Exception ex) {
             LOGGER.debug("Couldn't load security policy for archetype");
         }

@@ -91,7 +91,8 @@ public class GuiProfileCompiler {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         LOGGER.debug("Going to compile focus profile for {}", principal.getName());
-        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(), systemConfiguration, task, result));
+        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(),
+                null, systemConfiguration, task, result));
 
         List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
         Set<String> profileDependencies = new HashSet<>();

@@ -160,7 +160,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                 Task task = taskManager.createTaskInstance(operation);
                 OperationResult result = new OperationResult(operation);
                 var archetypeOid = mpAuthentication.getArchetypeOid();
-                return modelInteractionService.getSecurityPolicy(archetypeOid, task, result);
+                return modelInteractionService.getSecurityPolicy(null, archetypeOid, task, result);
             } catch (Exception ex) {
                 LOGGER.debug("Couldn't load security policy for archetype");
             }

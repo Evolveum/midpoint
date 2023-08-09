@@ -81,7 +81,8 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
                 Task task = createAnonymousTask(OPERATION_LOAD_RESET_PASSWORD_POLICY);
                 OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
                 try {
-                    return getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null, task, parentResult);
+                    return getModelInteractionService().getSecurityPolicy((PrismObject<? extends FocusType>) null,
+                            getArchetypeOid(), task, parentResult);
                 } catch (CommonException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
@@ -305,7 +306,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
             OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
             try {
-                return getModelInteractionService().getSecurityPolicy(user, task, result);
+                return getModelInteractionService().getSecurityPolicy(user, getArchetypeOid(), task, result);
             } catch (CommonException e) {
                 LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
                 return null;
@@ -318,5 +319,8 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         return (MidpointForm<?>) get(ID_FORM);
     }
 
+    protected String getArchetypeOid() {
+        return null;
+    }
 
 }
