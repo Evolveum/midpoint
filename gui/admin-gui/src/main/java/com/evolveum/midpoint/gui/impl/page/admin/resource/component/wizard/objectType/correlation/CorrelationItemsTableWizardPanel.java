@@ -7,19 +7,27 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,8 +43,10 @@ import java.util.List;
         display = @PanelDisplay(label = "CorrelationWizardPanelWizardPanel.headerLabel", icon = "fa fa-code-branch"))
 public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
 
-    private static final String PANEL_TYPE = "rw-correlationRules";
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemsTableWizardPanel.class);
 
+    private static final String ID_NOT_SHOWN_CONTAINER_INFO = "notShownContainerInfo";
+    private static final String PANEL_TYPE = "rw-correlationRules";
     private static final String ID_TABLE = "table";
 
     public CorrelationItemsTableWizardPanel(
@@ -63,6 +73,46 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         };
         table.setOutputMarkupId(true);
         add(table);
+
+        Label info = new Label(
+                ID_NOT_SHOWN_CONTAINER_INFO,
+                getPageBase().createStringResource("CorrelationItemsTableWizardPanel.notShownContainer"));
+        info.setOutputMarkupId(true);
+        info.add(new VisibleBehaviour(this::isNotShownContainerInfo));
+        add(info);
+    }
+
+    private Boolean isNotShownContainerInfo() {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = getValueModel().getObject();
+        if (objectType != null) {
+            try {
+                PrismContainerWrapper<Containerable> correlators = objectType.findContainer(ItemPath.create(
+                        ResourceObjectTypeDefinitionType.F_CORRELATION,
+                        CorrelationDefinitionType.F_CORRELATORS));
+                if (correlators != null) {
+                    PrismContainerValueWrapper<Containerable> correlatorsValue = correlators.getValue();
+                    if (correlatorsValue != null) {
+                        for (PrismContainerWrapper<? extends Containerable> container : correlatorsValue.getContainers()) {
+                            if (container == null
+                                    || container.isOperational()
+                                    || container.getItemName().equivalent(CompositeCorrelatorType.F_ITEMS)
+                                    || container.getItemName().equivalent(CompositeCorrelatorType.F_EXTENSION)) {
+                                continue;
+                            }
+
+                            PrismContainer<? extends Containerable> cloneContainer = container.getItem().clone();
+                            WebPrismUtil.cleanupEmptyContainers(cloneContainer);
+                            if (!cloneContainer.isEmpty()) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            } catch (SchemaException e) {
+                LOGGER.debug("Couldn't find correlators container in " + objectType);
+            }
+        }
+        return false;
     }
 
     protected abstract void showTableForItemRefs(

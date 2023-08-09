@@ -10,6 +10,12 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <wicket:enclosure child="notShownContainerInfo">
+        <div class="ml-auto mr-auto col-11 alert alert-info alert-dismissible">
+            <i class="icon fas fa-info"></i>
+            <span wicket:id="notShownContainerInfo"/>
+        </div>
+    </wicket:enclosure>
     <div class="card col-11 mx-auto p-0">
         <div class="card-header">
                 <span>
