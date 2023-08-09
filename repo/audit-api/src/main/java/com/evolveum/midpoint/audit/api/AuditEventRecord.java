@@ -156,9 +156,9 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
     private PrismReferenceValue effectivePrincipalRef;
 
     /**
-     * Present if the effective privileges used to execute the operation differ from the regular (declared) privileges
-     * of the {@link #effectivePrincipalRef}. This is usually the case when "runPrivileged" mechanism is used
-     * for expression evaluation (or the like).
+     * Present if the effective privileges used to execute the operation differ or may differ from the regular
+     * (declared) privileges of the {@link #effectivePrincipalRef}. This is usually the case e.g. when "runPrivileged"
+     * mechanism is used for expression evaluation.
      */
     private EffectivePrivilegesModificationType effectivePrivilegesModification;
 

@@ -246,9 +246,9 @@
             <xsd:element name="effectivePrivilegesModification" type="tns:EffectivePrivilegesModificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Present if the effective privileges used to execute the operation differ from the regular
-                        (declared) privileges of the "effectivePrincipalRef". This is usually the case when
-                        "runPrivileged" mechanism is used for expression evaluation, but can occur also in other cases.
+                        Present if the effective privileges used to execute the operation differ or may differ from the regular
+                         (declared) privileges of the "effectivePrincipalRef". This is usually the case e.g. when
+                        "runPrivileged" mechanism is used for expression evaluation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.8</a:since>

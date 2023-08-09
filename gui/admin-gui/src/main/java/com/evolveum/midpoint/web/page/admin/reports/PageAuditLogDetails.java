@@ -85,6 +85,8 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_REMOTE_HOST_ADDRESS = "remoteHostAddress";
     private static final String ID_PARAMETERS_EVENT_INITIATOR = "initiatorRef";
     private static final String ID_PARAMETERS_EVENT_ATTORNEY = "attorneyRef";
+    private static final String ID_PARAMETERS_EVENT_EFFECTIVE_PRINCIPAL = "effectivePrincipalRef";
+    private static final String ID_PARAMETERS_EVENT_EFFECTIVE_PRIVILEGES_MODIFICATION = "effectivePrivilegesModification";
     private static final String ID_PARAMETERS_EVENT_TARGET = "targetRef";
     private static final String ID_PARAMETERS_EVENT_TARGET_OWNER = "targetOwnerRef";
     private static final String ID_PARAMETERS_EVENT_TYPE = "eventType";
@@ -210,6 +212,8 @@ public class PageAuditLogDetails extends PageBase {
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_REMOTE_HOST_ADDRESS, new PropertyModel<>(recordModel, ID_PARAMETERS_REMOTE_HOST_ADDRESS)));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_INITIATOR, createInitiatorRefModel()));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_ATTORNEY, createAttorneyRefModel()));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_EFFECTIVE_PRINCIPAL, createEffectivePrincipalRefModel()));
+        eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_EFFECTIVE_PRIVILEGES_MODIFICATION, new PropertyModel<>(recordModel, AuditEventRecordType.F_EFFECTIVE_PRIVILEGES_MODIFICATION.getLocalPart())));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TARGET, createTargetRefModel()));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TARGET_OWNER, createTargetOwnerRefModel()));
         eventDetailsPanel.add(createLabel(ID_PARAMETERS_EVENT_TYPE, new PropertyModel<>(recordModel, ID_PARAMETERS_EVENT_TYPE)));
@@ -330,6 +334,13 @@ public class PageAuditLogDetails extends PageBase {
                 recordModel.getObject().getAttorneyRef(), PageAuditLogDetails.this,
                 createSimpleTask(ID_PARAMETERS_EVENT_ATTORNEY),
                 new OperationResult(ID_PARAMETERS_EVENT_ATTORNEY)));
+    }
+
+    private IModel<String> createEffectivePrincipalRefModel() {
+        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(
+                recordModel.getObject().getEffectivePrincipalRef(), PageAuditLogDetails.this,
+                createSimpleTask(ID_PARAMETERS_EVENT_EFFECTIVE_PRINCIPAL),
+                new OperationResult(ID_PARAMETERS_EVENT_EFFECTIVE_PRINCIPAL)));
     }
 
     private IModel<String> createTargetRefModel() {

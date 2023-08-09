@@ -107,7 +107,16 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         authorizations.add(authorization);
     }
 
-    /** Use to add extra authorizations - it sets {@link #effectivePrivilegesModification} flag. */
+    /**
+     * Use to add extra authorizations - it sets {@link #effectivePrivilegesModification} flag.
+     *
+     * The "if missing" will be (most of the time) a false positive match:
+     *
+     * . The authorization source will most probably differ between role-derived and artificial (runPrivileged) one;
+     * . Even if that would not be the case, any minor difference (like in name or description) would count as well.
+     *
+     * So, the full elevation would be signalled for the majority of cases even if the equivalent authorization was there.
+     */
     public void addExtraAuthorizationIfMissing(@NotNull Authorization authorization, boolean full) {
         if (!authorizations.contains(authorization)) {
             authorizations.add(authorization);
