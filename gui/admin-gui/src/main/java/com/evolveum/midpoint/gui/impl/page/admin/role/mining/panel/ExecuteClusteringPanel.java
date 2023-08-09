@@ -210,13 +210,16 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     LabelWithHelpPanel occupancyLabel;
     LabelWithHelpPanel minFrequencyLabel;
 
+    public Form<?> getDefaultDetectionForm() {
+        return (Form<?>) get("default_intersection_option_form");
+    }
     public void defaultIntersectionForm() {
 
-        Form<?> form = new Form<>("default_intersection_option_form");
-        form.setOutputMarkupId(true);
-        form.setOutputMarkupPlaceholderTag(true);
-        form.setVisible(false);
-        add(form);
+        Form<?> defaultDetectionForm = new Form<>("default_intersection_option_form");
+        defaultDetectionForm.setOutputMarkupId(true);
+        defaultDetectionForm.setOutputMarkupPlaceholderTag(true);
+        defaultDetectionForm.setVisible(false);
+        add(defaultDetectionForm);
 
         LabelWithHelpPanel labelMode = new LabelWithHelpPanel("searchMode_label",
                 Model.of("Search mode")) {
@@ -226,15 +229,20 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             }
         };
         labelMode.setOutputMarkupId(true);
-        form.add(labelMode);
+        defaultDetectionForm.add(labelMode);
 
-        TextField<Double> thresholdField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
-                Model.of(clusterOptions.getSimilarity()));
-        thresholdField.setOutputMarkupId(true);
-        thresholdField.setOutputMarkupPlaceholderTag(true);
-        thresholdField.add(new EnableBehaviour(this::isEditMiningOptionAndJaccardMode));
+        TextField<Double> defaultDetectionSimilarityField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
+                new LoadableModel<>() {
+                    @Override
+                    protected Double load() {
+                        return clusterOptions.getDefaultJaccardThreshold();
+                    }
+                });
+        defaultDetectionSimilarityField.setOutputMarkupId(true);
+        defaultDetectionSimilarityField.setOutputMarkupPlaceholderTag(true);
+        defaultDetectionSimilarityField.add(new EnableBehaviour(this::isEditMiningOptionAndJaccardMode));
 
-        form.add(thresholdField);
+        defaultDetectionForm.add(defaultDetectionSimilarityField);
 
         LabelWithHelpPanel thresholdLabel = new LabelWithHelpPanel(ID_JACCARD_THRESHOLD_FIELD + "_label",
                 Model.of("Similarity")) {
@@ -244,15 +252,20 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             }
         };
         thresholdLabel.setOutputMarkupId(true);
-        form.add(thresholdLabel);
+        defaultDetectionForm.add(thresholdLabel);
 
         TextField<Integer> intersectionField = new TextField<>("intersectionField",
-                Model.of(clusterOptions.getDefaultIntersectionSearch()));
+                new LoadableModel<>() {
+                    @Override
+                    protected Integer load() {
+                        return clusterOptions.getDefaultIntersectionSearch();
+                    }
+                });
         intersectionField.setOutputMarkupId(true);
         intersectionField.setOutputMarkupPlaceholderTag(true);
         intersectionField.setVisible(true);
         intersectionField.add(new EnableBehaviour(this::isEditMiningOption));
-        form.add(intersectionField);
+        defaultDetectionForm.add(intersectionField);
         intersectionLabel = new LabelWithHelpPanel("intersection_label",
                 new LoadableModel<>() {
                     @Override
@@ -267,16 +280,21 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         };
         intersectionLabel.setOutputMarkupId(true);
         intersectionLabel.setOutputMarkupPlaceholderTag(true);
-        form.add(intersectionLabel);
+        defaultDetectionForm.add(intersectionLabel);
 
         TextField<Integer> occupancyField = new TextField<>("minOccupancyField",
-                Model.of(clusterOptions.getDefaultOccupancySearch()));
+                new LoadableModel<Integer>() {
+                    @Override
+                    protected Integer load() {
+                        return clusterOptions.getDefaultOccupancySearch();
+                    }
+                });
         occupancyField.setOutputMarkupId(true);
         occupancyField.setOutputMarkupPlaceholderTag(true);
         occupancyField.setVisible(true);
         occupancyField.add(new EnableBehaviour(this::isEditMiningOption));
 
-        form.add(occupancyField);
+        defaultDetectionForm.add(occupancyField);
         occupancyLabel = new LabelWithHelpPanel("occupancy_label",
                 new LoadableModel<>() {
                     @Override
@@ -291,15 +309,20 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         };
         occupancyLabel.setOutputMarkupId(true);
         occupancyLabel.setOutputMarkupPlaceholderTag(true);
-        form.add(occupancyLabel);
+        defaultDetectionForm.add(occupancyLabel);
 
         TextField<Double> minFrequencyField = new TextField<>("minFrequency",
-                Model.of(clusterOptions.getDefaultMinFrequency()));
+                new LoadableModel<>() {
+                    @Override
+                    protected Double load() {
+                        return clusterOptions.getDefaultMinFrequency();
+                    }
+                });
         minFrequencyField.setOutputMarkupId(true);
         minFrequencyField.setOutputMarkupPlaceholderTag(true);
         minFrequencyField.setVisible(true);
         minFrequencyField.add(new EnableBehaviour(this::isEditMiningOption));
-        form.add(minFrequencyField);
+        defaultDetectionForm.add(minFrequencyField);
         minFrequencyLabel = new LabelWithHelpPanel("minFrequency_label",
                 new LoadableModel<>() {
                     @Override
@@ -314,15 +337,20 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         };
         minFrequencyLabel.setOutputMarkupId(true);
         minFrequencyField.setOutputMarkupPlaceholderTag(true);
-        form.add(minFrequencyLabel);
+        defaultDetectionForm.add(minFrequencyLabel);
 
         TextField<Double> maxFrequencyField = new TextField<>("maxFrequency",
-                Model.of(clusterOptions.getDefaultMaxFrequency()));
+                new LoadableModel<>() {
+                    @Override
+                    protected Double load() {
+                        return clusterOptions.getDefaultMaxFrequency();
+                    }
+                });
         maxFrequencyField.setOutputMarkupId(true);
         maxFrequencyField.setOutputMarkupPlaceholderTag(true);
         maxFrequencyField.setVisible(true);
         maxFrequencyField.add(new EnableBehaviour(this::isEditMiningOption));
-        form.add(maxFrequencyField);
+        defaultDetectionForm.add(maxFrequencyField);
 
         LabelWithHelpPanel labelDetectMode = new LabelWithHelpPanel("detect_label",
                 Model.of("Process detection")) {
@@ -332,7 +360,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             }
         };
         labelDetectMode.setOutputMarkupId(true);
-        form.add(labelDetectMode);
+        defaultDetectionForm.add(labelDetectMode);
 
         ChoiceRenderer<DETECT> rendererDetect = new ChoiceRenderer<>("displayString");
 
@@ -354,7 +382,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         modeSelectorDetect.setOutputMarkupPlaceholderTag(true);
         modeSelectorDetect.setVisible(true);
         modeSelectorDetect.add(new EnableBehaviour(this::isEditMiningOption));
-        form.add(modeSelectorDetect);
+        defaultDetectionForm.add(modeSelectorDetect);
 
         ChoiceRenderer<RoleAnalysisDetectionModeType> renderer = new ChoiceRenderer<>("value");
 
@@ -366,29 +394,45 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             protected void onUpdate(AjaxRequestTarget target) {
                 RoleAnalysisDetectionModeType modelObject = searchModeSelector.getModelObject();
                 clusterOptions.setSearchMode(modelObject);
+                if (modelObject.equals(RoleAnalysisDetectionModeType.JACCARD)) {
+                    defaultDetectionSimilarityField.setVisible(true);
+                    target.add(defaultDetectionSimilarityField);
+                } else {
+                    defaultDetectionSimilarityField.setVisible(false);
+                    target.add(defaultDetectionSimilarityField);
+                }
             }
         });
         searchModeSelector.setOutputMarkupId(true);
         searchModeSelector.setOutputMarkupPlaceholderTag(true);
         searchModeSelector.setVisible(true);
         searchModeSelector.add(new EnableBehaviour(this::isEditMiningOption));
-        form.add(searchModeSelector);
+        defaultDetectionForm.add(searchModeSelector);
 
         AjaxSubmitButton ajaxSubmitButton = new AjaxSubmitButton("submit_default_option_search") {
             @Override
             protected void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
+                if (isEditClusterOption()) {
+                    return;
+                }
+
                 if (isEditMiningOption()) {
                     setEditMiningOption(false);
-                    clusterOptions.setDefaultIntersectionSearch(intersectionField.getModelObject());
-                    clusterOptions.setDefaultOccupancySearch(occupancyField.getModelObject());
-                    clusterOptions.setDefaultMinFrequency(minFrequencyField.getModelObject());
-                    clusterOptions.setDefaultMaxFrequency(maxFrequencyField.getModelObject());
+                    int intersection = Integer.parseInt(String.valueOf(intersectionField.getModelObject()));
+                    int occupancy = Integer.parseInt(String.valueOf(occupancyField.getModelObject()));
+                    double minFrequency = Double.parseDouble(String.valueOf(minFrequencyField.getModelObject()));
+                    double maxFrequency = Double.parseDouble(String.valueOf(maxFrequencyField.getModelObject()));
+                    double similarity = Double.parseDouble(String.valueOf(defaultDetectionSimilarityField.getModelObject()));
+
+                    clusterOptions.setDefaultIntersectionSearch(intersection);
+                    clusterOptions.setDefaultOccupancySearch(occupancy);
+                    clusterOptions.setDefaultMinFrequency(minFrequency);
+                    clusterOptions.setDefaultMaxFrequency(maxFrequency);
 
                     if (clusterOptions.getSearchMode().equals(RoleAnalysisDetectionModeType.JACCARD)) {
-                        clusterOptions.setDefaultJaccardThreshold(thresholdField.getModelObject());
+                        clusterOptions.setDefaultJaccardThreshold(similarity);
                     }
 
-                    intersectionField.setEnabled(false);
                     this.add(AttributeAppender.replace("value",
                             createStringResource("RoleMining.edit.options.mining")));
                     this.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
@@ -399,6 +443,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                     this.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
                 }
 
+                ajaxRequestTarget.add(defaultDetectionSimilarityField);
                 ajaxRequestTarget.add(executeClustering);
                 ajaxRequestTarget.add(intersectionField);
                 ajaxRequestTarget.add(occupancyField);
@@ -412,10 +457,10 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         };
         ajaxSubmitButton.setOutputMarkupId(true);
         ajaxSubmitButton.setOutputMarkupPlaceholderTag(true);
-        form.add(ajaxSubmitButton);
+        defaultDetectionForm.add(ajaxSubmitButton);
 
-        add(form);
-        AjaxButton showAdditionalOptions = showDefaultMiningPanel(form);
+        add(defaultDetectionForm);
+        AjaxButton showAdditionalOptions = showDefaultMiningPanel(defaultDetectionForm);
         add(showAdditionalOptions);
 
     }
@@ -503,10 +548,20 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         labelName.setOutputMarkupId(true);
         form.add(labelName);
 
-        RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(ID_JACCARD_THRESHOLD_FIELD){
+        RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(ID_JACCARD_THRESHOLD_FIELD) {
             @Override
             public int getMinValue() {
                 return 10;
+            }
+
+            @Override
+            public int getSliderWidth() {
+                return 90;
+            }
+
+            @Override
+            public String getSliderWidthUnit() {
+                return "%";
             }
 
             @Override
@@ -650,6 +705,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 clusterOptions.setMode(modeSelector.getModelObject());
+
                 target.add(overlapLabel);
                 target.add(assignmentsLabel);
                 target.add(minMembers);
@@ -669,6 +725,10 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
 
+                if(isEditMiningOption()){
+                    return;
+                }
+
                 if (isEditClusterOption()) {
                     setEditClusterOption(false);
                     clusterOptions.setName(nameField.getModelObject());
@@ -680,6 +740,15 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                     clusterOptions.setMinMembers(minMembers.getModelObject());
                     clusterOptions.setMinProperties(minAssign.getModelObject());
                     clusterOptions.setMaxProperties(maxAssign.getModelObject());
+
+                    clusterOptions.setDefaultIntersectionSearch(minMembers.getModelObject());
+                    clusterOptions.setDefaultOccupancySearch(minIntersectionField.getModelObject());
+                    clusterOptions.setDefaultMinFrequency(0.3);
+                    clusterOptions.setDefaultMaxFrequency(1.0);
+                    clusterOptions.setDefaultJaccardThreshold(similarity);
+
+                    target.add(getDefaultDetectionForm());
+
                     this.add(AttributeAppender.replace("value",
                             createStringResource("RoleMining.edit.options.cluster")));
                     this.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
@@ -693,6 +762,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 target.add(filterSubmitButton);
                 target.add(executeClustering);
                 target.add(nameField);
+                target.add(minMembers);
                 target.add(minAssign);
                 target.add(maxAssign);
                 target.add(rangeSliderPanel);
