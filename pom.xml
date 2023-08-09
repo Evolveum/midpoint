@@ -98,7 +98,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.0.6</version>
+        <version>3.0.9</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/2.7.3/reference/html/dependency-versions.html#dependency-versions
         Or for current version of Spring Boot:
