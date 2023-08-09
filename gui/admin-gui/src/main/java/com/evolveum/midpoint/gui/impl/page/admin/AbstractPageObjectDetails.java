@@ -10,8 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
+
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -78,21 +79,29 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private boolean isShowedByWizard;
 
     public AbstractPageObjectDetails() {
-        this(null, null);
+        this(null, null, null);
     }
 
     public AbstractPageObjectDetails(PageParameters pageParameters) {
-        this(pageParameters, null);
+        this(pageParameters, null, null);
     }
 
     public AbstractPageObjectDetails(PrismObject<O> object) {
-        this(null, object);
+        this(null, object, null);
     }
 
-    private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object) {
+    private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object, List<BusinessRoleApplicationDto> patternDeltas) {
         super(params);
         isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
+
+        if (patternDeltas != null && !patternDeltas.isEmpty()) {
+            objectDetailsModels.addPatternDeltas(patternDeltas);
+        }
+    }
+
+    public AbstractPageObjectDetails(PrismObject<O> object, List<BusinessRoleApplicationDto> patternDeltas) {
+        this(null, object, patternDeltas);
     }
 
     @Override
@@ -135,6 +144,26 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 }
                 return loadPrismObject();
             }
+        };
+    }
+
+    protected LoadableDetachableModel<List<PrismObject<O>>> createPrismObjectModel(List<PrismObject<UserType>> object) {
+
+        List<PrismObject<O>> test = new ArrayList<>();
+        for (PrismObject<UserType> userTypePrismObject : object) {
+            PrismObject<O> prismObject;
+
+            prismObject = userTypePrismObject.asObjectable().asPrismContainer();
+            test.add(prismObject);
+        }
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<PrismObject<O>> load() {
+                return test;
+            }
+
+            ;
         };
     }
 

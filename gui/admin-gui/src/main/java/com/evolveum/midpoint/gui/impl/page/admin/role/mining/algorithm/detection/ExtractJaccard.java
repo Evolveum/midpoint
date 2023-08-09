@@ -31,7 +31,7 @@ public class ExtractJaccard implements DetectionOperation {
         int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinOccupancy();
         double similarity = roleAnalysisSessionDetectionOptionType.getJaccardSimilarityThreshold();
 
-        List<DetectedPattern> intersections = new ArrayList<>();
+        List<DetectedPattern> detectedPatterns = new ArrayList<>();
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
             double frequency = miningRoleTypeChunk.getFrequency();
@@ -48,7 +48,7 @@ public class ExtractJaccard implements DetectionOperation {
             int propertiesCount = miningRoleTypeChunk.getRoles().size();
             if (propertiesCount >= minOccupancy) {
 
-                intersections.add(addDetectedObjectJaccard(new HashSet<>(miningRoleTypeChunk.getRoles()),
+                detectedPatterns.add(addDetectedObjectJaccard(new HashSet<>(miningRoleTypeChunk.getRoles()),
                         members, null));
             }
 
@@ -58,18 +58,19 @@ public class ExtractJaccard implements DetectionOperation {
         for (int i = 0; i < preparedObjects.size(); i++) {
             MiningRoleTypeChunk miningRoleTypeChunkA = preparedObjects.get(i);
             Set<String> pointsA = new HashSet<>(miningRoleTypeChunkA.getUsers());
-            for (int j = i + 1; j < preparedObjects.size(); j++) {
-                MiningRoleTypeChunk miningRoleTypeChunkB = preparedObjects.get(j);
+            for (MiningRoleTypeChunk miningRoleTypeChunkB : preparedObjects) {
                 HashSet<String> pointsB = new HashSet<>(miningRoleTypeChunkB.getUsers());
                 double resultSimilarity = RoleUtils.jacquardSimilarity(pointsA, pointsB);
 
                 if (resultSimilarity >= similarity) {
                     map.putAll(miningRoleTypeChunkB, Collections.singleton(miningRoleTypeChunkA));
+                    map.putAll(miningRoleTypeChunkA, Collections.singleton(miningRoleTypeChunkB));
                 }
 
             }
         }
 
+        Set<Set<String>> existProperties = new HashSet<>();
         for (MiningRoleTypeChunk key : map.keySet()) {
             List<MiningRoleTypeChunk> values = map.get(key);
             Set<String> members = new HashSet<>(key.getUsers());
@@ -79,10 +80,58 @@ public class ExtractJaccard implements DetectionOperation {
                 properties.addAll(value.getRoles());
             }
 
-            intersections.add(addDetectedObjectJaccard(properties, members, null));
+            if (properties.size() < minIntersection) {
+                continue;
+            }
+
+            if (existProperties.contains(properties)) {
+                continue;
+            }
+            existProperties.add(properties);
+
+            detectedPatterns.add(addDetectedObjectJaccard(properties, members, null));
         }
 
-        return intersections;
+        return detectedPatterns;
+    }
+
+    public static double calculateJaccardSimilarity(Set<String> set1, Set<String> set2) {
+        Set<String> union = new HashSet<>(set1);
+        union.addAll(set2);
+
+        Set<String> intersection = new HashSet<>(set1);
+        intersection.retainAll(set2);
+
+        return (double) intersection.size() / union.size();
+    }
+
+    public static List<Set<Set<String>>> hierarchicalCluster(List<Set<String>> inputSets, double threshold) {
+        List<Set<Set<String>>> clusters = new ArrayList<>();
+        Map<Set<String>, Integer> setToClusterIndex = new HashMap<>();
+
+        for (Set<String> set : inputSets) {
+            Set<Integer> candidateClusters = new HashSet<>();
+
+            for (Set<String> existingSet : setToClusterIndex.keySet()) {
+                double similarity = calculateJaccardSimilarity(set, existingSet);
+                if (similarity >= threshold) {
+                    candidateClusters.add(setToClusterIndex.get(existingSet));
+                }
+            }
+
+            if (candidateClusters.isEmpty()) {
+                Set<Set<String>> newCluster = new HashSet<>();
+                newCluster.add(set);
+                clusters.add(newCluster);
+                setToClusterIndex.put(set, clusters.size() - 1);
+            } else {
+                int clusterIndex = candidateClusters.iterator().next();
+                clusters.get(clusterIndex).add(set);
+                setToClusterIndex.put(set, clusterIndex);
+            }
+        }
+
+        return clusters;
     }
 
     @Override

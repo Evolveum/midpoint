@@ -7,18 +7,22 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.MiningDataUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
@@ -26,28 +30,23 @@ import org.apache.commons.math3.ml.distance.DistanceMeasure;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class RoleBasedClustering implements Clusterable {
 
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions) {
+        PageBase pageBase = clusterOptions.getPageBase();
+
+//        ts2(clusterOptions.getPageBase());
         long start = startTimer(" prepare clustering object");
         int assignThreshold = clusterOptions.getMinProperties();
         int minIntersections = clusterOptions.getMinIntersections();
         int threshold = Math.max(assignThreshold, minIntersections);
         int maxProperties = Math.max(clusterOptions.getMaxProperties(), threshold);
 
-        PageBase pageBase = clusterOptions.getPageBase();
         ObjectFilter query = clusterOptions.getQuery();
         OperationResult operationResult = new OperationResult("ExecuteRoleBasedClustering");
         ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
@@ -75,44 +74,35 @@ public class RoleBasedClustering implements Clusterable {
     private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull PageBase pageBase,
             int minProperties, int maxProperties, ObjectFilter userQuery) {
 
+        Set<String> existingRolesOidsSet = getExistingRolesOidsSet(result, pageBase);
+
         //role //user
-        ListMultimap<String, String> roleToUserMap = ArrayListMultimap.create();
-
-        ResultHandler<UserType> resultHandler = (object, parentResult) -> {
-            try {
-                UserType properties = object.asObjectable();
-                List<String> members = ClusterObjectUtils.getRolesOid(properties);
-                for (String roleId : members) {
-                    roleToUserMap.putAll(roleId, Collections.singletonList(properties.getOid()));
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return true;
-        };
-
-        GetOperationOptionsBuilder optionsBuilder = pageBase.getSchemaService().getOperationOptionsBuilder();
-        RepositoryService repositoryService = pageBase.getRepositoryService();
-        ObjectQuery objectQuery = pageBase.getPrismContext().queryFactory().createQuery(userQuery);
-
-        try {
-            repositoryService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, optionsBuilder.build(),
-                    true, result);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
+        ListMultimap<String, String> roleToUserMap = getRoleBasedRoleToUserMap(result, pageBase, userQuery, existingRolesOidsSet);
 
         //user //role
-        ListMultimap<List<String>, String> userToRoleMap = ArrayListMultimap.create();
-        for (String member : roleToUserMap.keySet()) {
-            List<String> properties = roleToUserMap.get(member);
-            int propertiesCount = properties.size();
-            if (minProperties <= propertiesCount && maxProperties >= propertiesCount) {
-                userToRoleMap.put(properties, member);
-            }
-        }
-
-        return userToRoleMap;
+        return getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
     }
+
+//    public ActivityDefinitionType ts(){
+//        return new ActivityDefinitionType().identifier("Role-mining event")
+//                .work(new WorkDefinitionsType().sessionProcess(new NoOpWorkDefinitionType().stepInterruptibility(NoOpActivityStepInterruptibilityType.NONE).steps(1).delay(1)));
+//    }
+//
+//    public void ts2(PageBase pageBase){
+//        Task task = pageBase.createSimpleTask("executeTask");
+//        OperationResult result = task.getResult();
+//
+//        try {
+//            pageBase.getModelInteractionService().submit(
+//                    ts(),
+//                    ActivitySubmissionOptions.create()
+//                            .withTaskTemplate(new TaskType()
+//                                    .name("Delete all objects")
+//                                    .cleanupAfterCompletion(XmlTypeConverter.createDuration("P1D"))),
+//                    task, result);
+//        } catch (CommonException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
 }

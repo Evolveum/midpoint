@@ -272,7 +272,7 @@ public class MainPageMining extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
                         RoleAnalysisSessionType value = model.getObject().getValue();
-                        cellItem.add(new Label(componentId, value.getClusterOptions().getMinUniqueGroupCount()));
+                        cellItem.add(new Label(componentId, value.getClusterOptions().getMinUniqueMembersCount()));
                     }
 
                     @Override

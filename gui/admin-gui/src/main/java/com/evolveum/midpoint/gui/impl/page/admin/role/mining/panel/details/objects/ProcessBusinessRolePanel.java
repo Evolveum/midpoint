@@ -7,11 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.BusinessRoleTablePanel;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
@@ -62,80 +69,55 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
         PageBase pageBase = (PageBase) getPage();
         OperationResult operationResult = new OperationResult("prepareObjects");
 
-        List<PrismObject<FocusType>> elements = new ArrayList<>();
-        List<PrismObject<FocusType>> points = new ArrayList<>();
+        List<RoleType> roleList = new ArrayList<>();
+        List<UserType> userList = new ArrayList<>();
 
-        DisplayType displayTypeElement;
-        DisplayType displayTypePoints;
-        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-
-            for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
-                if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                    List<String> roles = miningRoleTypeChunk.getRoles();
-                    for (String s : roles) {
-                        elements.add(getFocusTypeObject(pageBase, s, operationResult));
+        PrismObject<RoleType> testRole = null;
+        for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
+            if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                List<String> roles = miningRoleTypeChunk.getRoles();
+                for (String oid : roles) {
+                    if (testRole == null) {
+                        testRole = getRoleTypeObject(pageBase, oid, operationResult);
                     }
+                    roleList.add(Objects.requireNonNull(getRoleTypeObject(pageBase, oid, operationResult)).asObjectable());
                 }
             }
-
-            for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
-                if (miningUserTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                    List<String> users = miningUserTypeChunk.getUsers();
-                    for (String s : users) {
-                        points.add(getFocusTypeObject(pageBase, s, operationResult));
-                    }
-                }
-            }
-
-            displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
-            displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
-
-        } else {
-
-            for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
-                if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                    List<String> roles = miningRoleTypeChunk.getRoles();
-                    for (String s : roles) {
-                        points.add(getFocusTypeObject(pageBase, s, operationResult));
-                    }
-                }
-            }
-
-            for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
-                if (miningUserTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
-                    List<String> users = miningUserTypeChunk.getUsers();
-                    for (String s : users) {
-                        elements.add(getFocusTypeObject(pageBase, s, operationResult));
-                    }
-                }
-            }
-
-            displayTypeElement = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
-            displayTypePoints = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
         }
 
-        ListView<PrismObject<FocusType>> listViewElements = new ListView<>("list_elements", elements) {
+        for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
+            if (miningUserTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                List<String> users = miningUserTypeChunk.getUsers();
+                for (String s : users) {
+                    userList.add(Objects.requireNonNull(getUserTypeObject(pageBase, s, operationResult)).asObjectable());
+                }
+            }
+        }
+
+//        ModificationsPanel modificationsPanel = new ModificationsPanel("modifications", Model.of(getUserBasedDelta(pageBase, roleList.get(0), userList.get(0))));
+//        modificationsPanel.setOutputMarkupId(true);
+//        add(modificationsPanel);
+
+        BusinessRoleTablePanel businessRoleTablePanel = new BusinessRoleTablePanel("table", roleList);
+        businessRoleTablePanel.setOutputMarkupId(true);
+        add(businessRoleTablePanel);
+
+        ListView<RoleType> listViewElements = new ListView<>("list_elements", roleList) {
             @Override
-            protected void populateItem(ListItem<PrismObject<FocusType>> listItem) {
-                PrismObject<FocusType> modelObject = listItem.getModelObject();
+            protected void populateItem(ListItem<RoleType> listItem) {
+                RoleType modelObject = listItem.getModelObject();
                 listItem.add(new AjaxLinkIconPanel("object",
                         createStringResource(modelObject.getName()),
-                        createStringResource(modelObject.getName()), displayTypeElement) {
+                        createStringResource(modelObject.getName()), GuiDisplayTypeUtil.createDisplayType(
+                        WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE))) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
 
-                        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                            ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
-                        } else {
-                            ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
-                        }
+                        ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
+
                     }
 
                 });
@@ -143,24 +125,21 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
         };
         add(listViewElements);
 
-        ListView<PrismObject<FocusType>> listPoints = new ListView<>("list_points", points) {
+        ListView<UserType> listPoints = new ListView<>("list_points", userList) {
             @Override
-            protected void populateItem(ListItem<PrismObject<FocusType>> listItem) {
-                PrismObject<FocusType> modelObject = listItem.getModelObject();
+            protected void populateItem(ListItem<UserType> listItem) {
+                UserType modelObject = listItem.getModelObject();
                 listItem.add(new AjaxLinkIconPanel("object",
                         createStringResource(modelObject.getName()),
-                        createStringResource(modelObject.getName()), displayTypePoints) {
+                        createStringResource(modelObject.getName()),
+                        GuiDisplayTypeUtil.createDisplayType(
+                                WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE))) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
-
-                        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                            ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
-                        } else {
-                            ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
-                        }
+                        ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
                     }
 
                 });
@@ -223,5 +202,21 @@ public class ProcessBusinessRolePanel extends BasePanel<String> implements Popup
     @Override
     public StringResourceModel getTitle() {
         return new StringResourceModel("RoleMining.todo.title");
+    }
+
+    public DeltaDto getUserBasedDelta(PageBase pageBase, PrismObject<FocusType> userObject, PrismObject<FocusType> roleObject) {
+
+        try {
+            ObjectDelta<?> objectDelta = pageBase.getPrismContext()
+                    .deltaFor(UserType.class)
+                    .item(UserType.F_ASSIGNMENT)
+                    .delete(createAssignmentTo(roleObject.getOid(), ObjectTypes.ROLE, pageBase.getPrismContext()))
+                    .asObjectDelta(userObject.getOid());
+
+            return new DeltaDto(objectDelta);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

@@ -6,30 +6,34 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.*;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.BusinessRoleWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @PageDescriptor(
         urls = {
@@ -52,6 +56,10 @@ public class PageRole extends PageAbstractRole<RoleType, FocusDetailsModels<Role
 
     public PageRole(PrismObject<RoleType> role) {
         super(role);
+    }
+
+    public PageRole(PrismObject<RoleType> role, List<BusinessRoleApplicationDto> patternDeltas) {
+        super(role, patternDeltas);
     }
 
     @Override

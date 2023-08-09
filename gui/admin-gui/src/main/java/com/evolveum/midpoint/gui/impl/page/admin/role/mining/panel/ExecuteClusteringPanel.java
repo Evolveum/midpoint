@@ -16,16 +16,15 @@ import java.util.EnumSet;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RangeSliderPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -41,8 +40,8 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AxiomQueryWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.ClusteringAction;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -67,6 +66,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     private static final String ID_MAX_ASSIGN = "assign_max_occupy";
 
     private static final String ID_GROUP_THRESHOLD_FIELD = "group_min_cluster";
+    private static final String ID_MIN_MEMBERS_THRESHOLD_FIELD = "min_members";
     private static final String ID_SUBMIT_BUTTON = "ajax_submit_link_cluster";
 
     OperationResult result;
@@ -85,6 +85,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
         this.clusterOptions = new ClusterOptions((PageBase) getPage(),
                 RoleAnalysisProcessModeType.USER,
                 RoleAnalysisDetectionModeType.INTERSECTION);
@@ -96,6 +97,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         add(showClusterPanelButton);
         defaultIntersectionForm();
         addExecuteClusteringButton();
+
     }
 
     private void addExecuteClusteringButton() {
@@ -138,7 +140,8 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
 
                 roleAnalysisSessionClusterOption.setProcessMode(clusterOptions.getMode());
                 roleAnalysisSessionClusterOption.setSimilarityThreshold(clusterOptions.getSimilarity());
-                roleAnalysisSessionClusterOption.setMinUniqueGroupCount(clusterOptions.getMinGroupSize());
+                roleAnalysisSessionClusterOption.setMinUniqueMembersCount(clusterOptions.getMinGroupSize());
+                roleAnalysisSessionClusterOption.setMinMembersCount(clusterOptions.getMinMembers());
                 roleAnalysisSessionClusterOption.setMinPropertiesCount(clusterOptions.getMinProperties());
                 roleAnalysisSessionClusterOption.setMaxPropertiesCount(clusterOptions.getMaxProperties());
                 roleAnalysisSessionClusterOption.setMinPropertiesOverlap(clusterOptions.getMinIntersections());
@@ -321,23 +324,55 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         maxFrequencyField.add(new EnableBehaviour(this::isEditMiningOption));
         form.add(maxFrequencyField);
 
-        ChoiceRenderer<RoleAnalysisDetectionModeType> renderer = new ChoiceRenderer<>("value");
+        LabelWithHelpPanel labelDetectMode = new LabelWithHelpPanel("detect_label",
+                Model.of("Process detection")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.cluster.option.detection.mode");
+            }
+        };
+        labelDetectMode.setOutputMarkupId(true);
+        form.add(labelDetectMode);
 
-        DropDownChoice<RoleAnalysisDetectionModeType> modeSelector = new DropDownChoice<>(
-                "searchModeSelector", Model.of(clusterOptions.getSearchMode()),
-                new ArrayList<>(EnumSet.allOf(RoleAnalysisDetectionModeType.class)), renderer);
-        modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
+        ChoiceRenderer<DETECT> rendererDetect = new ChoiceRenderer<>("displayString");
+
+        if (clusterOptions.getDetect() == null) {
+            clusterOptions.setDetect(DETECT.PARTIAL);
+        }
+        DropDownChoice<DETECT> modeSelectorDetect = new DropDownChoice<>(
+                "detect", Model.of(clusterOptions.getDetect()),
+                new ArrayList<>(EnumSet.allOf(DETECT.class)), rendererDetect);
+        modeSelectorDetect.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                RoleAnalysisDetectionModeType modelObject = modeSelector.getModelObject();
+                DETECT modelObject = modeSelectorDetect.getModelObject();
+                clusterOptions.setDetect(modelObject);
+            }
+        });
+
+        modeSelectorDetect.setOutputMarkupId(true);
+        modeSelectorDetect.setOutputMarkupPlaceholderTag(true);
+        modeSelectorDetect.setVisible(true);
+        modeSelectorDetect.add(new EnableBehaviour(this::isEditMiningOption));
+        form.add(modeSelectorDetect);
+
+        ChoiceRenderer<RoleAnalysisDetectionModeType> renderer = new ChoiceRenderer<>("value");
+
+        DropDownChoice<RoleAnalysisDetectionModeType> searchModeSelector = new DropDownChoice<>(
+                "searchModeSelector", Model.of(clusterOptions.getSearchMode()),
+                new ArrayList<>(EnumSet.allOf(RoleAnalysisDetectionModeType.class)), renderer);
+        searchModeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                RoleAnalysisDetectionModeType modelObject = searchModeSelector.getModelObject();
                 clusterOptions.setSearchMode(modelObject);
             }
         });
-        modeSelector.setOutputMarkupId(true);
-        modeSelector.setOutputMarkupPlaceholderTag(true);
-        modeSelector.setVisible(true);
-        modeSelector.add(new EnableBehaviour(this::isEditMiningOption));
-        form.add(modeSelector);
+        searchModeSelector.setOutputMarkupId(true);
+        searchModeSelector.setOutputMarkupPlaceholderTag(true);
+        searchModeSelector.setVisible(true);
+        searchModeSelector.add(new EnableBehaviour(this::isEditMiningOption));
+        form.add(searchModeSelector);
 
         AjaxSubmitButton ajaxSubmitButton = new AjaxSubmitButton("submit_default_option_search") {
             @Override
@@ -369,7 +404,8 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 ajaxRequestTarget.add(occupancyField);
                 ajaxRequestTarget.add(minFrequencyField);
                 ajaxRequestTarget.add(maxFrequencyField);
-                ajaxRequestTarget.add(modeSelector);
+                ajaxRequestTarget.add(searchModeSelector);
+                ajaxRequestTarget.add(modeSelectorDetect);
                 ajaxRequestTarget.add(this);
 
             }
@@ -467,13 +503,34 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         labelName.setOutputMarkupId(true);
         form.add(labelName);
 
-        TextField<Double> thresholdField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
-                Model.of(clusterOptions.getSimilarity()));
-        thresholdField.setOutputMarkupId(true);
-        thresholdField.setOutputMarkupPlaceholderTag(true);
-        thresholdField.setVisible(true);
-        thresholdField.add(new EnableBehaviour(this::isEditClusterOption));
-        form.add(thresholdField);
+        RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(ID_JACCARD_THRESHOLD_FIELD){
+            @Override
+            public int getMinValue() {
+                return 10;
+            }
+
+            @Override
+            public int getMaxValue() {
+                return 100;
+            }
+
+            @Override
+            public int getDefaultValue() {
+                return 80;
+            }
+        };
+        rangeSliderPanel.setOutputMarkupId(true);
+        rangeSliderPanel.setOutputMarkupPlaceholderTag(true);
+        rangeSliderPanel.setVisible(true);
+        rangeSliderPanel.add(new EnableBehaviour(this::isEditClusterOption));
+
+//        TextField<Double> thresholdField = new TextField<>(ID_JACCARD_THRESHOLD_FIELD,
+//                Model.of(clusterOptions.getSimilarity()));
+//        thresholdField.setOutputMarkupId(true);
+//        thresholdField.setOutputMarkupPlaceholderTag(true);
+//        thresholdField.setVisible(true);
+//        thresholdField.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(rangeSliderPanel);
 
         LabelWithHelpPanel thresholdLabel = new LabelWithHelpPanel(ID_JACCARD_THRESHOLD_FIELD + "_label",
                 Model.of("Similarity")) {
@@ -552,6 +609,25 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
         minGroupField.add(new EnableBehaviour(this::isEditClusterOption));
         form.add(minGroupField);
 
+        LabelWithHelpPanel minMembersLabel = new LabelWithHelpPanel(ID_MIN_MEMBERS_THRESHOLD_FIELD + "_label",
+                Model.of("Min members count")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return createStringResource("RoleMining.session.option.min.members");
+            }
+        };
+        minMembersLabel.setOutputMarkupId(true);
+        minMembersLabel.setOutputMarkupPlaceholderTag(true);
+        form.add(minMembersLabel);
+
+        TextField<Integer> minMembers = new TextField<>(ID_MIN_MEMBERS_THRESHOLD_FIELD,
+                Model.of(clusterOptions.getMinMembers()));
+        minMembers.setOutputMarkupId(true);
+        minMembers.setOutputMarkupPlaceholderTag(true);
+        minMembers.setVisible(true);
+        minMembers.add(new EnableBehaviour(this::isEditClusterOption));
+        form.add(minMembers);
+
         LabelWithHelpPanel groupLabel = new LabelWithHelpPanel(ID_GROUP_THRESHOLD_FIELD + "_label",
                 Model.of("Min unique members")) {
             @Override
@@ -576,6 +652,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 clusterOptions.setMode(modeSelector.getModelObject());
                 target.add(overlapLabel);
                 target.add(assignmentsLabel);
+                target.add(minMembers);
 
                 target.add(intersectionLabel);
                 target.add(occupancyLabel);
@@ -595,9 +672,12 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 if (isEditClusterOption()) {
                     setEditClusterOption(false);
                     clusterOptions.setName(nameField.getModelObject());
-                    clusterOptions.setSimilarity(thresholdField.getModelObject());
+                    double similarity = Integer.parseInt(rangeSliderPanel.getSliderFormComponent().getValue()) / (double) 100;
+                    clusterOptions.setSimilarity(similarity);
+                    clusterOptions.setSimilarity(similarity);
                     clusterOptions.setMinIntersections(minIntersectionField.getModelObject());
                     clusterOptions.setMinGroupSize(minGroupField.getModelObject());
+                    clusterOptions.setMinMembers(minMembers.getModelObject());
                     clusterOptions.setMinProperties(minAssign.getModelObject());
                     clusterOptions.setMaxProperties(maxAssign.getModelObject());
                     this.add(AttributeAppender.replace("value",
@@ -615,7 +695,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
                 target.add(nameField);
                 target.add(minAssign);
                 target.add(maxAssign);
-                target.add(thresholdField);
+                target.add(rangeSliderPanel);
                 target.add(minIntersectionField);
                 target.add(minGroupField);
                 target.add(modeSelector);

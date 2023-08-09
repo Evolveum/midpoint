@@ -26,7 +26,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
+public class ExecuteDetectionPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_FREQUENCY_FORM = "thresholds_form";
     private static final String ID_FREQUENCY_THRESHOLD_MIN_FRQ = "threshold_frequency";
@@ -49,7 +49,7 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
     DetectionOption detectionOption;
     ;
 
-    public ExecuteSearchPanel(String id, IModel<String> messageModel, RoleAnalysisProcessModeType roleAnalysisProcessModeType, DetectionOption defaultDetectionOptions) {
+    public ExecuteDetectionPanel(String id, IModel<String> messageModel, RoleAnalysisProcessModeType roleAnalysisProcessModeType, DetectionOption defaultDetectionOptions) {
         super(id, messageModel);
         this.roleAnalysisProcessModeType = roleAnalysisProcessModeType;
         this.detectionOption = defaultDetectionOptions;
@@ -114,7 +114,8 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
         form.add(minOccupancyField);
 
         TextFieldLabelPanel jaccardField = generateFieldPanel(ID_SIMILARITY_THRESHOLD,
-                Model.of(detectionOption.getJaccardSimilarityThreshold()), getString("RoleMining.frequency.max.title"));
+                Model.of(detectionOption.getJaccardSimilarityThreshold()),
+                getString("RoleMining.cluster.table.column.header.similarity"));
         jaccardField.add(new VisibleEnableBehaviour(this::isJaccardSearchMode));
         form.add(jaccardField);
 
@@ -167,22 +168,22 @@ public class ExecuteSearchPanel extends BasePanel<String> implements Popupable {
 
     @Override
     public int getWidth() {
-        return 300;
+        return 50;
     }
 
     @Override
     public int getHeight() {
-        return 400;
+        return 40;
     }
 
     @Override
     public String getWidthUnit() {
-        return "px";
+        return "%";
     }
 
     @Override
     public String getHeightUnit() {
-        return "px";
+        return "%";
     }
 
     @Override

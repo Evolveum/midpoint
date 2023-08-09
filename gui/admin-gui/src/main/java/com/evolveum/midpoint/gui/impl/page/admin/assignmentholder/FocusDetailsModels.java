@@ -56,7 +56,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     private static final String PANEL_TYPE_ACTIVATION = "activation";
     private static final String PANEL_TYPE_PASSWORD = "password";
     private static final String PANEL_TYPE_DELEGATED_TO_ME = "delegatedToMe";
-
+    private static final String PANEL_TYPE_MODIFICATION_TARGET = "modificationTarget";
     public FocusDetailsModels(LoadableDetachableModel<PrismObject<F>> prismObjectModel, PageBase serviceLocator) {
         this(prismObjectModel, false, serviceLocator);
     }
@@ -86,6 +86,13 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
 
     @Override
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
+
+        if (getPatternDeltas() == null || getPatternDeltas().isEmpty()) {
+            GuiObjectDetailsPageType guiObjectDetailsPageType = super.loadDetailsPageConfiguration().clone();
+            hiddeAssignmentTargetPanel(guiObjectDetailsPageType);
+            return guiObjectDetailsPageType;
+        }
+
         if (history) {
             GuiObjectDetailsPageType guiObjectDetailsPageType = super.loadDetailsPageConfiguration().clone();
             List<ContainerPanelConfigurationType> containerPanelConfigurationTypeList = guiObjectDetailsPageType.getPanel();
@@ -100,6 +107,27 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         }
 
         return super.loadDetailsPageConfiguration();
+    }
+
+    private void hiddeAssignmentTargetPanel(GuiObjectDetailsPageType guiObjectDetailsPageType) {
+        List<ContainerPanelConfigurationType> containerPanelConfigurationTypeList = guiObjectDetailsPageType.getPanel();
+
+        for (ContainerPanelConfigurationType containerPanelConfigurationType : containerPanelConfigurationTypeList) {
+            String identifier = containerPanelConfigurationType
+                    .getIdentifier();
+
+            if (identifier == null) {
+                continue;
+            }
+
+            if (identifier.equals(PANEL_TYPE_MODIFICATION_TARGET)) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+        }
+
+        if (history) {
+            hiddeSpecificPanel(containerPanelConfigurationTypeList, visiblePanelIdentifierList());
+        }
     }
 
     private void hiddeSpecificPanel(List<ContainerPanelConfigurationType> item, List<String> visiblePanelIdentifierList) {

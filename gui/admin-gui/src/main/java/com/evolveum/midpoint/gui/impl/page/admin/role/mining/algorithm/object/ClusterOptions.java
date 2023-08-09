@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
@@ -18,6 +19,7 @@ public class ClusterOptions implements Serializable {
     private PageBase pageBase;
     private double similarity;
     private int minGroupSize;
+    private int minMembers;
     private int minIntersections;
     private ObjectFilter query;
     private int minProperties;
@@ -25,6 +27,8 @@ public class ClusterOptions implements Serializable {
     RoleAnalysisProcessModeType mode;
     RoleAnalysisDetectionModeType searchMode;
     String name;
+    ClusterObjectUtils.DETECT detect;
+
     int defaultIntersectionSearch = 10;
     int defaultOccupancySearch = 5;
     double defaultMinFrequency = 0.3;
@@ -44,12 +48,22 @@ public class ClusterOptions implements Serializable {
             this.minProperties = 300;
             this.minIntersections = 10;
             this.minGroupSize = 2;
+            this.minMembers = 10;
         } else if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             this.similarity = 0.8;
             this.minProperties = 10;
             this.minIntersections = 10;
             this.minGroupSize = 5;
+            this.minMembers = 10;
         }
+    }
+
+    public int getMinMembers() {
+        return minMembers;
+    }
+
+    public void setMinMembers(int minMembers) {
+        this.minMembers = minMembers;
     }
 
     public PageBase getPageBase() {
@@ -171,6 +185,14 @@ public class ClusterOptions implements Serializable {
 
     public void setMaxProperties(int maxProperties) {
         this.maxProperties = maxProperties;
+    }
+
+    public ClusterObjectUtils.DETECT getDetect() {
+        return detect;
+    }
+
+    public void setDetect(ClusterObjectUtils.DETECT detect) {
+        this.detect = detect;
     }
 
 }

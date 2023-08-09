@@ -63,6 +63,23 @@ public class ClusterObjectUtils {
 
     }
 
+    public enum DETECT implements Serializable {
+        FULL("full"),
+        PARTIAL("skip large"),
+        NONE("none");
+
+        private final String displayString;
+
+        DETECT(String displayString) {
+            this.displayString = displayString;
+        }
+
+        public String getDisplayString() {
+            return displayString;
+        }
+
+    }
+
     public enum Status implements Serializable {
         NEUTRAL("fa fa-plus"),
         ADD("fa fa-minus"),
@@ -91,16 +108,17 @@ public class ClusterObjectUtils {
     public static void deleteSingleRoleAnalysisSession(OperationResult result, RoleAnalysisSessionType roleAnalysisSessionType,
             @NotNull PageBase pageBase) {
 
-        List<ObjectReferenceType> roleAnalysisClusterRef = roleAnalysisSessionType.getRoleAnalysisClusterRef();
-
-        try {
-            for (ObjectReferenceType objectReferenceType : roleAnalysisClusterRef) {
-                String oid = objectReferenceType.getOid();
-                pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, oid, result);
-            }
-        } catch (ObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+//        List<ObjectReferenceType> roleAnalysisClusterRef = roleAnalysisSessionType.getRoleAnalysisClusterRef();
+//
+//        try {
+//            for (ObjectReferenceType objectReferenceType : roleAnalysisClusterRef) {
+//                System.out.println("cl"+objectReferenceType);
+//                String oid = objectReferenceType.getOid();
+//                pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, oid, result);
+//            }
+//        } catch (ObjectNotFoundException e) {
+//            throw new RuntimeException(e);
+//        }
 
         try {
             pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, roleAnalysisSessionType.getOid(), result);
@@ -447,11 +465,21 @@ public class ClusterObjectUtils {
         );
     }
 
-    public static List<String> getRolesOid(AssignmentHolderType object) {
+    public static List<String> getRolesOidAssignment(AssignmentHolderType object) {
         List<String> oidList;
         List<AssignmentType> assignments = object.getAssignment();
         oidList = assignments.stream().map(AssignmentType::getTargetRef).filter(
                         targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
+                .map(AbstractReferencable::getOid).sorted()
+                .collect(Collectors.toList());
+        return oidList;
+    }
+
+    public static List<String> getRolesOidInducements(PrismObject<RoleType> object) {
+        List<String> oidList;
+        List<AssignmentType> assignments = object.asObjectable().getInducement();
+        oidList = assignments.stream().map(AssignmentType::getTargetRef).filter(
+                        targetRef -> targetRef.getType().equals(AbstractRoleType.COMPLEX_TYPE))
                 .map(AbstractReferencable::getOid).sorted()
                 .collect(Collectors.toList());
         return oidList;
@@ -474,6 +502,8 @@ public class ClusterObjectUtils {
                     .replace(roleAnalysisDetectionOptionType.asPrismContainerValue())
                     .asItemDeltas());
             pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, clusterOid, modifications, result);
+
+
         } catch (Throwable e) {
             LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", clusterOid, e.getMessage(), e);
         }
@@ -554,5 +584,28 @@ public class ClusterObjectUtils {
         String timeString = String.format("%02d:%02d %s", hours, minutes, amPm);
 
         return dateString + ", " + timeString;
+    }
+
+    public static @NotNull PrismObject<RoleType> generateBusinessRole(PageBase pageBase, List<AssignmentType> assignmentTypes,String name) {
+
+        PrismObject<RoleType> roleTypePrismObject = null;
+        try {
+            roleTypePrismObject = pageBase.getPrismContext()
+                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class).instantiate();
+        } catch (SchemaException e) {
+            LOGGER.error("Error while finding object definition by compile time class ClusterType object: {}", e.getMessage(), e);
+        }
+
+        assert roleTypePrismObject != null;
+
+        RoleType role = roleTypePrismObject.asObjectable();
+        role.setName(PolyStringType.fromOrig(name));
+        role.getInducement().addAll(assignmentTypes);
+
+        return roleTypePrismObject;
+    }
+
+    public void generateUserAssignmentDeltas(){
+
     }
 }

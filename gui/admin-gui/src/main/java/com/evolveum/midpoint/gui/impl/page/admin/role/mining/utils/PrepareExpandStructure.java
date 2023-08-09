@@ -20,9 +20,7 @@ import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getRoleTypeObject;
@@ -70,47 +68,49 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
 
         List<ObjectReferenceType> rolesElements = cluster.getMember();
-
         ListMultimap<String, String> userChunk = ArrayListMultimap.create();
+        Set<String> membersOidSet = new HashSet<>();
 
         int rolesCount = rolesElements.size();
         for (int i = 0; i < rolesElements.size(); i++) {
-            String rolesOid = rolesElements.get(i).getOid();
-            List<PrismObject<UserType>> userMembers = extractRoleMembers(result, pageBase, rolesOid);
+            String roleId = rolesElements.get(i).getOid();
+            PrismObject<RoleType> role = getRoleTypeObject(pageBase, roleId, result);
+            if (role == null) {
+                continue;
+            }
+            membersOidSet.add(roleId);
+
+            List<PrismObject<UserType>> userMembers = extractRoleMembers(result, pageBase, roleId);
             List<String> users = extractOid(userMembers);
 
-            int size = users.size();
-            double frequency = Math.min(size / (double) rolesCount, 1);
+            String chunkName = role.getName().toString();
 
-            PrismObject<RoleType> role = getRoleTypeObject(pageBase, rolesOid, result);
-            String chunkName = "NOT FOUND";
-            if (role != null) {
-                chunkName = role.getName().toString();
-            }
-
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(rolesOid),
-                    users, chunkName, frequency, Status.NEUTRAL));
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(roleId),
+                    users, chunkName, 0, Status.NEUTRAL));
 
             for (String user : users) {
-                userChunk.putAll(user, Collections.singletonList(rolesOid));
+                userChunk.putAll(user, Collections.singletonList(roleId));
             }
 
             state = i + "/" + rolesCount + " ((1 & 2)/4 mapping elements)";
             System.out.println(state);
         }
 
+        int memberCount = membersOidSet.size();
+
         int counter = 0;
         int userChunkSize = userChunk.size();
         for (String key : userChunk.keySet()) {
-            List<String> strings = userChunk.get(key);
-            double frequency = Math.min(strings.size() / (double) rolesCount, 1);
+            List<String> roleIds = userChunk.get(key);
+            roleIds.retainAll(membersOidSet);
+            double frequency = Math.min(roleIds.size() / (double) memberCount, 1);
             PrismObject<UserType> user = getUserTypeObject(pageBase, key, result);
             String chunkName = "NOT FOUND";
             if (user != null) {
                 chunkName = user.getName().toString();
             }
 
-            miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(key), strings, chunkName, frequency,
+            miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(key), roleIds, chunkName, frequency,
                     Status.NEUTRAL));
             state = counter + "/" + userChunkSize + " (3/4 mapping points)";
             System.out.println(state);
@@ -118,8 +118,8 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         }
 
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
-
     }
+
 
     @Override
     public MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
@@ -128,28 +128,29 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
 
         ListMultimap<String, String> roleChunk = ArrayListMultimap.create();
+        Set<String> membersOidSet = new HashSet<>();
 
         List<ObjectReferenceType> members = cluster.getMember();
         int usersCount = members.size();
-        for (int i = 0; i < members.size(); i++) {
-            String membersOid = members.get(i).getOid();
-            PrismObject<UserType> user = getUserTypeObject(pageBase, membersOid, result);
+        for (int i = 0; i < usersCount; i++) {
+            String userOid = members.get(i).getOid();
+            PrismObject<UserType> user = getUserTypeObject(pageBase, userOid, result);
 
             if (user == null) {
                 continue;
             }
 
-            List<String> rolesOid = getRolesOid(user.asObjectable());
-            int size = rolesOid.size();
-            double frequency = Math.min(size / (double) usersCount, 1);
+            membersOidSet.add(userOid);
+            List<String> roleOids = getRolesOidAssignment(user.asObjectable());
+
             String chunkName = "NOT FOUND";
             if (user.getName() != null) {
                 chunkName = user.getName().toString();
             }
-            miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(membersOid), rolesOid, chunkName,
-                    frequency, Status.NEUTRAL));
+            miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(userOid), roleOids, chunkName,
+                    0, Status.NEUTRAL));
 
-            for (String roleId : rolesOid) {
+            for (String roleId : roleOids) {
                 roleChunk.putAll(roleId, Collections.singletonList(user.getOid()));
             }
 
@@ -157,11 +158,14 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             System.out.println(state);
         }
 
+        int memberCount = membersOidSet.size();
+
         int roleChunkSize = roleChunk.size();
         int counter = 0;
         for (String key : roleChunk.keySet()) {
-            List<String> strings = roleChunk.get(key);
-            double frequency = Math.min(strings.size() / (double) usersCount, 1);
+            List<String> userOids = roleChunk.get(key);
+            userOids.retainAll(membersOidSet);
+            double frequency = Math.min(userOids.size() / (double) memberCount, 1);
 
             PrismObject<RoleType> role = getRoleTypeObject(pageBase, key, result);
             String chunkName = "NOT FOUND";
@@ -169,30 +173,35 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
                 chunkName = role.getName().toString();
             }
 
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), strings, chunkName, frequency,
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), userOids, chunkName, frequency,
                     Status.NEUTRAL));
             state = counter + "/" + roleChunkSize + " (3/4 mapping points)";
             System.out.println(state);
             counter++;
-
         }
 
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
-
     }
 
+
     @Override
-    public MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, String state) {
+    public MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster,
+            PageBase pageBase, OperationResult result, String state) {
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
-        List<ObjectReferenceType> rolesElements = cluster.getMember();
 
+        List<ObjectReferenceType> rolesElements = cluster.getMember();
         ListMultimap<List<String>, String> userChunk = ArrayListMultimap.create();
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
+        Set<String> membersOidSet = new HashSet<>();
 
         for (ObjectReferenceType objectReferenceType : rolesElements) {
             String oid = objectReferenceType.getOid();
+            PrismObject<RoleType> role = getRoleTypeObject(pageBase, oid, result);
+            if (role == null) {
+                continue;
+            }
+            membersOidSet.add(oid);
 
             List<PrismObject<UserType>> userMembers = extractRoleMembers(result, pageBase, oid);
             List<String> users = extractOid(userMembers);
@@ -204,8 +213,6 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             }
         }
 
-        int rolesCount = rolesElements.size();
-
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
         for (String key : roleMap.keySet()) {
@@ -213,10 +220,13 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             roleChunk.put(values, key);
         }
 
+        int memberCount = membersOidSet.size();
+
         for (List<String> key : roleChunk.keySet()) {
             List<String> users = roleChunk.get(key);
+            key.retainAll(membersOidSet);
             int size = key.size();
-            double frequency = Math.min(size / (double) rolesCount, 1);
+            double frequency = Math.min(size / (double) memberCount, 1);
             int userSize = users.size();
             String chunkName = "Group (" + userSize + " Users)";
             if (userSize == 1) {
@@ -225,20 +235,22 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
                 if (user != null) {
                     chunkName = user.getName().toString();
                 }
-
             }
             miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, Status.NEUTRAL));
         }
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
 
+
     @Override
-    public MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, String state) {
+    public MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster,
+            PageBase pageBase, OperationResult result, String state) {
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
+
         ListMultimap<List<String>, String> userChunk = ArrayListMultimap.create();
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
+        Set<String> membersOidSet = new HashSet<>();
 
         List<ObjectReferenceType> members = cluster.getMember();
         for (ObjectReferenceType objectReferenceType : members) {
@@ -247,15 +259,15 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             if (user == null) {
                 continue;
             }
-            List<String> rolesOid = getRolesOid(user.asObjectable());
+            membersOidSet.add(oid);
+
+            List<String> rolesOid = getRolesOidAssignment(user.asObjectable());
             Collections.sort(rolesOid);
             userChunk.putAll(rolesOid, Collections.singletonList(oid));
             for (String roleId : rolesOid) {
                 roleMap.putAll(roleId, Collections.singletonList(oid));
             }
         }
-
-        int usersCount = members.size();
 
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
@@ -264,10 +276,13 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             roleChunk.put(values, key);
         }
 
+        int memberCount = membersOidSet.size();
+
         for (List<String> key : roleChunk.keySet()) {
             List<String> roles = roleChunk.get(key);
+            key.retainAll(membersOidSet);
             int size = key.size();
-            double frequency = Math.min(size / (double) usersCount, 1);
+            double frequency = Math.min(size / (double) memberCount, 1);
             int rolesSize = roles.size();
             String chunkName = "Group (" + rolesSize + " Roles)";
             if (rolesSize == 1) {
@@ -281,5 +296,6 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         }
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
+
 }
 

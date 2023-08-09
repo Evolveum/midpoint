@@ -361,7 +361,7 @@ public class MiningIntersectionTable extends Panel {
         if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.USER)) {
             ResultHandler<UserType> resultHandler = (object, parentResult) -> {
                 try {
-                    List<String> properties = ClusterObjectUtils.getRolesOid(object.asObjectable());
+                    List<String> properties = ClusterObjectUtils.getRolesOidAssignment(object.asObjectable());
                     if (new HashSet<>(properties).containsAll(detectedProperties)) {
                         membersOidList.add(object.getOid());
                     }
@@ -386,7 +386,7 @@ public class MiningIntersectionTable extends Panel {
             ResultHandler<UserType> resultHandler = (object, parentResult) -> {
                 try {
                     UserType properties = object.asObjectable();
-                    List<String> members = ClusterObjectUtils.getRolesOid(properties);
+                    List<String> members = ClusterObjectUtils.getRolesOidAssignment(properties);
                     for (String roleId : members) {
                         roleToUserMap.putAll(roleId, Collections.singletonList(properties.getOid()));
                     }

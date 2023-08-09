@@ -117,7 +117,8 @@ public class DefaultPatternResolver {
 
         DetectionOption roleAnalysisSessionDetectionOptionType = loadDetectionOption(clusterOptions);
 
-        possibleBusinessRole = new DetectionAction(roleAnalysisSessionDetectionOptionType).executeDetection(miningRoleTypeChunks, miningUserTypeChunks, mode);
+        possibleBusinessRole = new DetectionAction(roleAnalysisSessionDetectionOptionType)
+                .executeDetection(miningRoleTypeChunks, miningUserTypeChunks, mode);
 
         return loadIntersections(possibleBusinessRole, searchMode, processedObjectComplexType, propertiesComplexType);
     }

@@ -383,11 +383,11 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minUniqueGroupCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="minUniqueMembersCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies the minimum required cluster size (unique objects).
+                            Specifies the minimum required cluster size (unique member objects).
                             We consider a unique object to be a separate unique object with unique properties
                             or a group of objects consisting of the same properties.
 
@@ -396,7 +396,22 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionOptionType.minUniqueGroupSize</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.minUniqueMembersCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minMembersCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the minimum required cluster size (member objects).
+
+                            NOTE: The parameter checks the number of these unique objects, not the total
+                            number of included objects in the cluster.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionOptionType.minMembersCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -8,17 +8,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex " style="width:1500px" ;>
+    <div class="card">
+        <div class="card-body">
+            <input class="btn btn-default" type="submit" value="Business role mining"
+                    wicket:id="business_role_mining"/>
 
-        <input class="btn btn-default" type="submit" value="Business role mining"
-                wicket:id="business_role_mining"/>
+            <input class="mr-4 btn btn-warning" type="submit" value="Sort by Jaccard (TODO)"
+                    wicket:id="jaccard_sort"/>
 
-        <input class="mr-4 btn btn-warning" type="submit" value="Sort table data by Jaccard
-        (TODO: Needs to optimize and progress bar. Current listing in the console)"
-                wicket:id="jaccard_sort"/>
-
-
-        <div>
             <div class="ml-4 btn btn-default"
                     wicket:id="process_selections_id"></div>
         </div>

@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteDetectionPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -23,14 +25,13 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionAction;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteSearchPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ProcessBusinessRolePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningIntersectionTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningRoleBasedTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningUserBasedTable;
@@ -38,18 +39,19 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObject
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareChunkStructure;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareExpandStructure;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class PageOperationsPanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
     private static final String ID_PROCESS_BUTTON = "process_selections_id";
+
+    String state = "START";
 
     double minFrequency = 0.3;
     Integer minOccupancy = 5;
@@ -155,14 +157,41 @@ public class PageOperationsPanel extends Panel {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
-                ProcessBusinessRolePanel detailsPanel = new ProcessBusinessRolePanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("TO DO: details"), miningRoleTypeChunks, miningUserTypeChunks, processMode) {
-                    @Override
-                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                        super.onClose(ajaxRequestTarget);
+                List<AssignmentType> roleList = new ArrayList<>();
+                for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
+                    if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                        List<String> roles = miningRoleTypeChunk.getRoles();
+                        for (String oid : roles) {
+                            PrismObject<RoleType> roleTypeObject = getRoleTypeObject((PageBase) getPage(), oid, result);
+                            if (roleTypeObject == null) {
+                                continue;
+                            }
+                            AssignmentType assignment = new AssignmentType();
+                            assignment.setTargetRef(ObjectTypeUtil.createObjectRef(roleTypeObject.getOid(),
+                                    ObjectTypes.ABSTRACT_ROLE));
+                            roleList.add(assignment);
+                        }
                     }
-                };
-                ((PageBase) getPage()).showMainPopup(detailsPanel, ajaxRequestTarget);
+                }
+
+                PrismObject<RoleType> roleTypePrismObject = generateBusinessRole((PageBase) getPage(), roleList, "new role");
+                List<BusinessRoleApplicationDto> patternDeltas = new ArrayList<>();
+
+                for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
+                    if (miningUserTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                        List<String> users = miningUserTypeChunk.getUsers();
+                        for (String userOid : users) {
+                            PrismObject<UserType> userTypeObject = getUserTypeObject((PageBase) getPage(), userOid, result);
+                            if (userTypeObject != null) {
+                                patternDeltas.add(new BusinessRoleApplicationDto(userTypeObject, roleTypePrismObject,
+                                        (PageBase) getPage()));
+                            }
+                        }
+                    }
+                }
+
+                PageRole pageRole = new PageRole(roleTypePrismObject, patternDeltas);
+                setResponsePage(pageRole);
 
             }
 
@@ -179,7 +208,7 @@ public class PageOperationsPanel extends Panel {
             @Override
             public void onClick(AjaxRequestTarget target) {
 
-                ExecuteSearchPanel detailsPanel = new ExecuteSearchPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                ExecuteDetectionPanel detailsPanel = new ExecuteDetectionPanel(((PageBase) getPage()).getMainPopupBodyId(),
                         Model.of("Analyzed members details panel"), processMode, detectionOption) {
                     @Override
                     public void performAction(AjaxRequestTarget target, DetectionOption newDetectionOption) {
@@ -237,8 +266,6 @@ public class PageOperationsPanel extends Panel {
         ajaxButton.setVisible(sortMode.equals(ClusterObjectUtils.SORT.NONE));
         return ajaxButton;
     }
-
-    String state = "START";
 
     private void loadMiningTableData(SORT sortMode) {
         RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();

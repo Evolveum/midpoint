@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -66,6 +66,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     public PageFocusDetails() {
         super();
+    }
+
+    public PageFocusDetails(PrismObject<F> focus, List<BusinessRoleApplicationDto> patternDeltas) {
+        super(focus, patternDeltas);
     }
 
     public PageFocusDetails(PageParameters pageParameters) {
@@ -313,7 +317,6 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     protected void collectObjectsForPreview(Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap) {
         modelContextMap.put(getModelPrismObject(), getProgressPanel().getPreviewResult());
     }
-
 
     @Override
     public void continueEditing(AjaxRequestTarget target) {

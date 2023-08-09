@@ -266,12 +266,24 @@ public class PageCluster extends PageAdmin {
                 repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Min unique members")) {
                     @Override
                     protected IModel<String> getValueModel() {
-                        return Model.of(String.valueOf(clusterOptions.getMinUniqueGroupCount()));
+                        return Model.of(String.valueOf(clusterOptions.getMinUniqueMembersCount()));
                     }
 
                     @Override
                     protected IModel<String> getHelpModel() {
                         return createStringResource("RoleMining.session.option.min.unique.members");
+                    }
+                }.setOutputMarkupId(true));
+
+                repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Min members count")) {
+                    @Override
+                    protected IModel<String> getValueModel() {
+                        return Model.of(String.valueOf(clusterOptions.getMinMembersCount()));
+                    }
+
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.session.option.min.members");
                     }
                 }.setOutputMarkupId(true));
 
