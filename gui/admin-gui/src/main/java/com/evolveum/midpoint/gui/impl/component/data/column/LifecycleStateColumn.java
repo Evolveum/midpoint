@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 public class LifecycleStateColumn<C extends Containerable> extends PrismPropertyWrapperColumn<C, String> {
@@ -27,13 +26,6 @@ public class LifecycleStateColumn<C extends Containerable> extends PrismProperty
 
     @Override
     protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-        LifecycleStatePanel panel =  new LifecycleStatePanel(componentId, (IModel<PrismPropertyWrapper<String>>) rowModel);
-        panel.add(AttributeAppender.append("class", "d-inline"));
-        return panel;
+        return new LifecycleStatePanel(componentId, (IModel<PrismPropertyWrapper<String>>) rowModel);
     }
-
-//    @Override
-//    public Component getHeader(String componentId) {
-//        return new Label(componentId, getPageBase().createStringResource("PrismPropertyWrapperColumn.column.mode"));
-//    }
 }
