@@ -197,7 +197,7 @@ public class SecurityHelper implements ModelAuditRecorder {
                 return null;
             }
 
-            return mergeSecurityPolicies(archetypeSecurityPolicy.asObjectable(), globalSecurityPolicy);
+            return mergeSecurityPolicies(archetypeSecurityPolicy, globalSecurityPolicy);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Cannot load archetype object, ", e);
         }
@@ -220,19 +220,19 @@ public class SecurityHelper implements ModelAuditRecorder {
 
     private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromArchetypes(PrismObject<F> focus, Task task,
             OperationResult result) throws SchemaException {
-        PrismObject<SecurityPolicyType> archetypeSecurityPolicy = searchSecurityPolicyFromArchetype(focus,
+        SecurityPolicyType archetypeSecurityPolicy = searchSecurityPolicyFromArchetype(focus,
                 "security policy", task, result);
         LOGGER.trace("Found archetype security policy: {}", archetypeSecurityPolicy);
         if (archetypeSecurityPolicy != null) {
-            SecurityPolicyType securityPolicyType = archetypeSecurityPolicy.asObjectable();
-            postProcessSecurityPolicy(securityPolicyType, task, result);
-            return securityPolicyType;
+//            SecurityPolicyType securityPolicyType = archetypeSecurityPolicy.asObjectable();
+            postProcessSecurityPolicy(archetypeSecurityPolicy, task, result);
+            return archetypeSecurityPolicy;
         } else {
             return null;
         }
     }
 
-    private <O extends ObjectType> PrismObject<SecurityPolicyType> searchSecurityPolicyFromArchetype(PrismObject<O> object,
+    private <O extends ObjectType> SecurityPolicyType searchSecurityPolicyFromArchetype(PrismObject<O> object,
             String shortDesc, Task task, OperationResult result) throws SchemaException {
         if (object == null) {
             LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
@@ -245,24 +245,24 @@ public class SecurityHelper implements ModelAuditRecorder {
         return loadArchetypeSecurityPolicy(structuralArchetype, shortDesc, task, result);
     }
 
-    private <O extends ObjectType> PrismObject<SecurityPolicyType> loadArchetypeSecurityPolicy(ArchetypeType archetype,
+    private SecurityPolicyType loadArchetypeSecurityPolicy(ArchetypeType archetype,
             String shortDesc, Task task, OperationResult result) throws SchemaException {
-        PrismObject<SecurityPolicyType> securityPolicy = null;
+        PrismObject<SecurityPolicyType> securityPolicy;
         ObjectReferenceType securityPolicyRef = archetype.getSecurityPolicyRef();
-        if (securityPolicyRef != null) {
-            try {
-                securityPolicy = objectResolver.resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
-            } catch (ObjectNotFoundException ex) {
-                LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", archetype.getName(),
-                        archetype.getOid());
-                return null;
-            }
+        if (securityPolicyRef == null) {
+            return null;
         }
-
-        return mergeSecurityPolicyWithSuperArchetype(archetype, securityPolicy, task, result);
+        try {
+            securityPolicy = objectResolver.resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
+        } catch (ObjectNotFoundException ex) {
+            LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", archetype.getName(),
+                    archetype.getOid());
+            return null;
+        }
+        return mergeSecurityPolicyWithSuperArchetype(archetype, securityPolicy.asObjectable(), task, result);
     }
 
-    private PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
+    private SecurityPolicyType mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, SecurityPolicyType securityPolicy,
             Task task, OperationResult result) {
         ArchetypeType superArchetype = null;
         try {
@@ -288,7 +288,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         if (superArchetypeSecurityPolicy == null) {
             return securityPolicy;
         }
-        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(securityPolicy, superArchetypeSecurityPolicy.asPrismObject());
+        SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicy, superArchetypeSecurityPolicy);
         return mergeSecurityPolicyWithSuperArchetype(superArchetype, mergedSecurityPolicy, task, result);
     }
 
@@ -303,8 +303,20 @@ public class SecurityHelper implements ModelAuditRecorder {
         if (lowLevelSecurityPolicy == null) {
             return topLevelSecurityPolicy.cloneWithoutId();
         }
-        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(lowLevelSecurityPolicy.asPrismObject(), topLevelSecurityPolicy.asPrismObject());
-        return mergedSecurityPolicy != null ? mergedSecurityPolicy.asObjectable() : null;
+
+        SecurityPolicyType mergedSecurityPolicy = lowLevelSecurityPolicy.cloneWithoutId();
+        AuthenticationsPolicyType mergedAuthentication = mergeSecurityPolicyAuthentication(lowLevelSecurityPolicy.getAuthentication(),
+                topLevelSecurityPolicy.getAuthentication());
+        mergedSecurityPolicy.setAuthentication(mergedAuthentication);
+        mergedSecurityPolicy.setCredentials(mergeCredentialsPolicy(lowLevelSecurityPolicy.getCredentials(),
+                topLevelSecurityPolicy.getCredentials()));
+        mergedSecurityPolicy.setCredentialsReset(mergeCredentialsReset(lowLevelSecurityPolicy.getCredentialsReset(),
+                topLevelSecurityPolicy.getCredentialsReset()));
+        mergedSecurityPolicy.setLoginNameRecovery(mergeLoginNameRecovery(lowLevelSecurityPolicy.getLoginNameRecovery(),
+                topLevelSecurityPolicy.getLoginNameRecovery()));
+//        return mergedSecurityPolicy.asPrismObject();
+//        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(lowLevelSecurityPolicy.asPrismObject(), topLevelSecurityPolicy.asPrismObject());
+        return mergedSecurityPolicy;// != null ? mergedSecurityPolicy.asObjectable() : null;
     }
 
     /**
@@ -313,29 +325,19 @@ public class SecurityHelper implements ModelAuditRecorder {
      * @param topLevelSecurityPolicy    means the security policy referenced from super archetype
      * @return
      */
-    private PrismObject<SecurityPolicyType> mergeSecurityPolicies(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
-            PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
-        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
-            return null;
-        }
-        if (topLevelSecurityPolicy == null) {
-            return lowLevelSecurityPolicy.clone();
-        }
-        if (lowLevelSecurityPolicy == null) {
-            return topLevelSecurityPolicy.clone();
-        }
-        SecurityPolicyType mergedSecurityPolicy = lowLevelSecurityPolicy.asObjectable().cloneWithoutId();
-        AuthenticationsPolicyType mergedAuthentication = mergeSecurityPolicyAuthentication(lowLevelSecurityPolicy.asObjectable().getAuthentication(),
-                topLevelSecurityPolicy.asObjectable().getAuthentication());
-        mergedSecurityPolicy.setAuthentication(mergedAuthentication);
-        mergedSecurityPolicy.setCredentials(mergeCredentialsPolicy(lowLevelSecurityPolicy.asObjectable().getCredentials(),
-                topLevelSecurityPolicy.asObjectable().getCredentials()));
-        mergedSecurityPolicy.setCredentialsReset(mergeCredentialsReset(lowLevelSecurityPolicy.asObjectable().getCredentialsReset(),
-                topLevelSecurityPolicy.asObjectable().getCredentialsReset()));
-        mergedSecurityPolicy.setLoginNameRecovery(mergeLoginNameRecovery(lowLevelSecurityPolicy.asObjectable().getLoginNameRecovery(),
-                topLevelSecurityPolicy.asObjectable().getLoginNameRecovery()));
-        return mergedSecurityPolicy.asPrismObject();
-    }
+//    private PrismObject<SecurityPolicyType> mergeSecurityPoliciesss(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
+//            PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
+//        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
+//            return null;
+//        }
+//        if (topLevelSecurityPolicy == null) {
+//            return lowLevelSecurityPolicy.clone();
+//        }
+//        if (lowLevelSecurityPolicy == null) {
+//            return topLevelSecurityPolicy.clone();
+//        }
+//
+//    }
 
     private AuthenticationsPolicyType mergeSecurityPolicyAuthentication(AuthenticationsPolicyType lowLevelAuthentication, AuthenticationsPolicyType topLevelAuthentication) {
         if (lowLevelAuthentication == null && topLevelAuthentication == null) {

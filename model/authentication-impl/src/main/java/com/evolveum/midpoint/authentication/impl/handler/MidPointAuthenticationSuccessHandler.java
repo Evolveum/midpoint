@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -79,47 +81,47 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 
         String urlSuffix = AuthConstants.DEFAULT_PATH_AFTER_LOGIN;
         String authenticatedChannel = null;
-        if (authentication instanceof MidpointAuthentication mpAuthentication) {
-            ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
-            moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
-            if (mpAuthentication.getAuthenticationChannel() != null) {
-                authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
-                boolean continueSequence = false;
-                var securityPolicy = resolveSecurityPolicy(mpAuthentication);
-                var shouldUpdateMidpointAuthentication = shouldUpdateMidpointAuthentication(mpAuthentication, securityPolicy);
-                if (shouldUpdateMidpointAuthentication) {
-                    updateMidpointAuthentication(request, mpAuthentication, securityPolicy);
-                    if (!isCorrectlyConfigured(securityPolicy, mpAuthentication)) {
-                        moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
-                        getRedirectStrategy().sendRedirect(request, response, AuthConstants.DEFAULT_PATH_AFTER_LOGOUT);
-                        return;
-                    }
-                    continueSequence = true;
+        MidpointAuthentication mpAuthentication = AuthUtil.getMidpointAuthentication();
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+        moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
+        if (mpAuthentication.getAuthenticationChannel() != null) {
+            authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
+            boolean continueSequence = false;
+            var securityPolicy = resolveSecurityPolicy(mpAuthentication);
+            var shouldUpdateMidpointAuthentication = shouldUpdateMidpointAuthentication(mpAuthentication, securityPolicy);
+            if (shouldUpdateMidpointAuthentication) {
+                updateMidpointAuthentication(request, mpAuthentication, securityPolicy);
+                if (!isCorrectlyConfigured(securityPolicy, mpAuthentication)) {
+                    moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
+                    getRedirectStrategy().sendRedirect(request, response, AuthConstants.DEFAULT_PATH_AFTER_LOGOUT);
+                    return;
+                }
+                continueSequence = true;
+            }
+
+            if (mpAuthentication.isLast(moduleAuthentication) && !mpAuthentication.isAuthenticated()) {
+                urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication();
+                HttpSession session = request.getSession(false);
+                if (session != null) {
+                    request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", mpAuthentication.getAuthenticationExceptionIfExists());
                 }
 
-                if (mpAuthentication.isLast(moduleAuthentication) && !mpAuthentication.isAuthenticated()) {
-                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication();
-                    HttpSession session = request.getSession(false);
-                    if (session != null) {
-                        request.getSession().setAttribute("SPRING_SECURITY_LAST_EXCEPTION", mpAuthentication.getAuthenticationExceptionIfExists());
-                    }
-
+                getRedirectStrategy().sendRedirect(request, response, urlSuffix);
+                return;
+            }
+            if (mpAuthentication.isAuthenticated() && !continueSequence) {
+                urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
+                mpAuthentication.getAuthenticationChannel().postSuccessAuthenticationProcessing();
+                if (mpAuthentication.getAuthenticationChannel().isPostAuthenticationEnabled()) {
                     getRedirectStrategy().sendRedirect(request, response, urlSuffix);
                     return;
                 }
-                if (mpAuthentication.isAuthenticated() && !continueSequence) {
-                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
-                    mpAuthentication.getAuthenticationChannel().postSuccessAuthenticationProcessing();
-                    if (mpAuthentication.getAuthenticationChannel().isPostAuthenticationEnabled()) {
-                        getRedirectStrategy().sendRedirect(request, response, urlSuffix);
-                        return;
-                    }
-                } else {
-                    urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
-                }
+            } else {
+                urlSuffix = mpAuthentication.getAuthenticationChannel().getPathDuringProccessing();
             }
-            //TODO: record success?
         }
+            //TODO: record success?
+
 
         SavedRequest savedRequest = requestCache.getRequest(request, response);
         if (savedRequest != null && savedRequest.getRedirectUrl().contains(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/")) {

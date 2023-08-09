@@ -49,11 +49,6 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
 
 
     @Override
-    public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
-        return super.authenticate(originalAuthentication);
-    }
-
-    @Override
     public Authentication doAuthenticate(
             Authentication authentication,
             String enteredUsername,

@@ -26,11 +26,6 @@ public class HintAuthenticationProvider extends MidpointAbstractAuthenticationPr
     private static final Trace LOGGER = TraceManager.getTrace(HintAuthenticationProvider.class);
 
     @Override
-    public Authentication authenticate(Authentication originalAuthentication) throws AuthenticationException {
-        return super.authenticate(originalAuthentication);
-    }
-
-    @Override
     protected Authentication doAuthenticate(
             Authentication authentication,
             String enteredUsername,

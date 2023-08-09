@@ -95,6 +95,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      */
     private String archetypeOid;
 
+    /**
+     * Security policy which is used for authentication, at the beginning it might be a global security policy,
+     * but after each module authentication when we gather more information about user trying to authenticate,
+     * this security policy might be updated with correct one.
+     */
+    private SecurityPolicyType securityPolicy;
+
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
         this.sequence = sequence;
@@ -652,17 +659,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return token.getAuthorities();
     }
 
-//    public void recordAuthenticationToken(Authentication token) {
-//
-//            ModuleAuthentication moduleAuthentication = getProcessingModuleOrThrowException();
-//            Object principal = token.getPrincipal();
-//            if (principal instanceof MidPointPrincipal) {
-//                setPrincipal(principal);
-//            }
-//
-//            moduleAuthentication.setAuthentication(token);
-//    }
-
     public ModuleAuthentication getProcessingModuleOrThrowException() {
         ModuleAuthentication moduleAuthentication = getProcessingModuleAuthentication();
         if (moduleAuthentication == null) {
@@ -675,5 +671,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public void setToken(Authentication token) {
         ModuleAuthentication moduleAuthentication = getProcessingModuleOrThrowException();
         moduleAuthentication.setAuthentication(token);
+    }
+
+    public void setSecurityPolicy(SecurityPolicyType securityPolicy) {
+        this.securityPolicy = securityPolicy;
+    }
+
+    public SecurityPolicyType getSecurityPolicy() {
+        return securityPolicy;
     }
 }
