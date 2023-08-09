@@ -111,13 +111,12 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         if (principal != null) {
             authenticationRecorder.recordModuleAuthenticationAttemptFailure(principal, credentialsPolicy, connEnv);
         }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication mpAuthentication) {
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null) {
-                moduleAuthentication.setFailureData(new AutheticationFailedData(reason, username));
-            }
+        MidpointAuthentication mpAuthentication = AuthUtil.getMidpointAuthentication();
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+        if (moduleAuthentication != null) {
+            moduleAuthentication.setFailureData(new AutheticationFailedData(reason, username));
         }
+
     }
 
     protected void auditAuthenticationFailure(String username, ConnectionEnvironment connEnv, String reason) {
