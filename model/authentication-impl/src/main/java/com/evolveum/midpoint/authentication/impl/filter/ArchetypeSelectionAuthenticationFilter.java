@@ -11,6 +11,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.token.Arc
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -34,7 +35,7 @@ public class ArchetypeSelectionAuthenticationFilter extends AbstractAuthenticati
     public Authentication attemptAuthentication(
             HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        var archetypeOid = getArchetypeOidFromRequest(request);
+        var archetypeOid = StringUtils.defaultIfEmpty(getArchetypeOidFromRequest(request), null);
         var allowUndefinedArchetype = getAllowUndefinedArchetypeFromRequest(request);
         var authToken = createAuthenticationToken(archetypeOid, allowUndefinedArchetype);
 

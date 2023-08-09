@@ -450,7 +450,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
         LOGGER.trace("Determined archetype policy: {} (explicit archetype OID is: {})", policy, explicitArchetypeOid);
         String oid = policy != null ? getOid(policy.getObjectTemplateRef()) : null;
-        LOGGER.trace("Determined archetype OID: {}", oid);
+        LOGGER.trace("Determined object template OID: {}", oid);
         return oid != null ?
                 beans.archetypeManager.getExpandedObjectTemplate(oid, task.getExecutionMode(), result) : null;
     }
@@ -522,6 +522,10 @@ public class CorrelationServiceImpl implements CorrelationService {
             @Nullable String archetypeOid,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        //todo how to deal the situation when archetypeOid is null ? we need to take correlators
+        // from the default object template. should determineObjectTemplate method cope with this situation?
+        // and while getting default object template do we consider UserType to be default?
+
         ObjectTemplateType template = determineObjectTemplate(archetypeOid, null, task, result);
         //TODO //@NotNull correlation definition bean. probably shoudl be changed
         CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(
