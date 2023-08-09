@@ -10,6 +10,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.task.api.TaskManager;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,8 +50,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationSuccessHandler.class);
-    @Autowired
-    private AuthModuleRegistryImpl authModuleRegistry;
+
+    @Autowired private AuthModuleRegistryImpl authModuleRegistry;
+    @Autowired private TaskManager taskManager;
+    @Autowired private ModelInteractionService modelInteractionService;
+
     private String defaultTargetUrl;
 
     public MidPointAuthenticationSuccessHandler() {
@@ -76,9 +85,9 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
                 boolean continueSequence = false;
-                boolean newSecPolicy = isNewSecurityPolicyFound(mpAuthentication);
-                if (newSecPolicy) {
-                    SecurityPolicyType securityPolicy = ((MidPointPrincipal) mpAuthentication.getPrincipal()).getApplicableSecurityPolicy();
+                var securityPolicy = resolveSecurityPolicy(mpAuthentication);
+                var shouldUpdateMidpointAuthentication = shouldUpdateMidpointAuthentication(mpAuthentication, securityPolicy);
+                if (shouldUpdateMidpointAuthentication) {
                     updateMidpointAuthentication(request, mpAuthentication, securityPolicy);
                     if (!isCorrectlyConfigured(securityPolicy, mpAuthentication)) {
                         moduleAuthentication.setState(AuthenticationModuleState.FAILURE);
@@ -138,11 +147,28 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         super.onAuthenticationSuccess(request, response, authentication);
     }
 
-    private boolean isNewSecurityPolicyFound(MidpointAuthentication mpAuthentication) {
-        if (mpAuthentication.getPrincipal() == null || !(mpAuthentication.getPrincipal() instanceof MidPointPrincipal principal)) {
-            return false;
+    private SecurityPolicyType resolveSecurityPolicy(MidpointAuthentication mpAuthentication) {
+        if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal principal) {
+            SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
+            if (securityPolicy != null) {
+                return securityPolicy;
+            }
         }
-        SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
+        if (mpAuthentication.isArchetypeDefined()) {
+            try {
+                var operation = "loadSecurityPolicyForArchetype";
+                Task task = taskManager.createTaskInstance(operation);
+                OperationResult result = new OperationResult(operation);
+                var archetypeOid = mpAuthentication.getArchetypeOid();
+                return modelInteractionService.getSecurityPolicy(archetypeOid, task, result);
+            } catch (Exception ex) {
+                LOGGER.debug("Couldn't load security policy for archetype");
+            }
+        }
+        return null;
+    }
+
+    private boolean shouldUpdateMidpointAuthentication(MidpointAuthentication mpAuthentication, SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {
             return false;
         }
