@@ -529,6 +529,9 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> focus,
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        if (systemConfiguration == null) {
+            return null;
+        }
         return resolveGlobalSecurityPolicy(focus, systemConfiguration.asObjectable(), task, result);
     }
 
