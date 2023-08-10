@@ -11,6 +11,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -78,4 +79,8 @@ public class QAffectedObjects extends QContainer<MAffectedObjects, MTask> {
         super(MAffectedObjects.class, variable, schema, table);
     }
 
+    @Override
+    public BooleanExpression isOwnedBy(MTask ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
+    }
 }
