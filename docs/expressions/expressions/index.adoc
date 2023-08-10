@@ -537,30 +537,82 @@ Therefore the following two expressions are equivalent (assuming that user is se
 
 == Security
 
-=== Run As
+[#_privilege_elevation]
+=== Privilege Elevation (Run As, Run Privileged)
 
 Expressions are normally evaluated using the security principal of the user that initiated the operation.
-This is best security practice as the authorizations go deep into the system and close to the data.
-In this it unlikely that an expression would read data or initiate an operation that the user is not authorized for.
-Therefore the probability of a security breach is reduced.
+This is the best security practice, as the authorizations go deep into the system and close to the data.
+By doing this, it is unlikely that an expression would read data or initiate an operation that the user is not authorized for.
+Therefore, the probability of a security breach is reduced.
 
-However, there are some cases when an expression needs access to data or operations that the use do not usually has.
-Since midPoint 3.6 the expression can be executed with the identity of a different user:
+However, there are some cases when an expression needs access to data or operations beyond the user's authorization.
+Since midPoint 3.6, the expression can be executed with the identity of a different user, and since 4.8, a faster option of elevating the privileges only is available as well.
 
+==== How to Use Elevated Privileges
+++++
+{% include since.html since="4.8" %}
+++++
+
+The following example shows both options for privilege elevation.
+Although they can be used at the same time, you normally use only one of them.
+
+.An example of the current runAs/runPrivileged syntax
 [source,xml]
 ----
 <expression>
-    <runAsRef oid="e5e0f2fe-0aea-11e7-b02b-2b6815aa719e"/>
+    <privileges>
+        <runAsRef oid="e5e0f2fe-0aea-11e7-b02b-2b6815aa719e" type="UserType"/> <!--1-->
+        <runPrivileged>true</runPrivileged> <!--2-->
+    </privileges>
+    <script>
+        ....
+    </script>
+</expression>
+----
+<1> Switches the identity of the principal
+<2> Keeps the identity, elevates only the privileges
+
+==== Legacy Way of Privilege Escalation (from 3.6 to 4.7.x)
+
+.An example of the legacy runAs syntax
+[source,xml]
+----
+<expression>
+    <runAsRef oid="e5e0f2fe-0aea-11e7-b02b-2b6815aa719e"/> <!-- from 3.6 to 4.7 -->
     <script>
         ....
     </script>
 </expression>
 ----
 
-The expression above will be executed with authorizations of the user identified by OID `e5e0f2fe-0aea-11e7-b02b-2b6815aa719e`. If the expression executes any operations that are audited, then this identity will also be used for auditing.
+==== Effects of Privilege Escalation
+
+When `runAsRef` is used, the expression will be executed with the authorization of the object referenced.
+In the examples above, it will be the user identified by OID `e5e0f2fe-0aea-11e7-b02b-2b6815aa719e`.
 
 The variable `actor` that is present in most expressions still refers to the identity of the user that initiated the operations.
 This variable is not affected by the `runAs` configuration.
+
+When `runPrivileged` is used (since 4.8), the expression will be executed under the identity of the currently logged-in users.
+Their authorizations will be extended by including "allow all" (`http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all`) for the duration of expression evaluation.
+
+==== Performance Implications
+
+The use of `runAsRef` involves the login process, which can take considerable time.
+In some cases, the time needed may be in the range of tens of milliseconds.
+This may or may not be acceptable, e.g., for the evaluation of frequently used expressions.
+
+The use of `runPrivileged` should be much faster.
+
+==== Auditing
+
+Since 4.8, each audit record contains the `effectivePrincipalRef` item that contains the reference to the identity under which the operation took place.
+When `runAsRef` is used, the referenced identity is recorded.
+
+Also, `effectivePrivilegesModification` property is there, indicating whether privileges were modified with regard to the original ones defined in the repository.
+When `runPrivileged` is used, this property has a value of `fullElevation`.
+
+Please see xref:/midpoint/reference/security/privilege-elevation.adoc[] for more information.
 
 === Security of Script Expressions
 
