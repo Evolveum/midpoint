@@ -15,6 +15,16 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageCluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageMiningOperationNew;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -51,23 +61,43 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ClustersPanel extends Panel {
+@PanelType(name = "clusters")
+@PanelInstance(
+        identifier = "clusters",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.roleAnalysisClusterRef",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        )
+)
+public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
     String parentOid;
     String mode;
 
-    public ClustersPanel(String id, String parentOid, String mode) {
-        super(id);
+    public ClustersPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
+    }
+
+    public ClustersPanel(String id, String parentOid, String mode, ObjectDetailsModels<RoleAnalysisSessionType> model) {
+        super(id, model, null);
         this.parentOid = parentOid;
         this.mode = mode;
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
+    protected void initLayout() {
+        this.parentOid = getObjectWrapper().getOid();
+        this.mode = getPageParameterMode();
         addForm();
+    }
+
+    String getPageParameterMode() {
+        PageParameters params = getPageBase().getPageParameters();
+        return params.get(PageCluster.PARAMETER_MODE).toString();
     }
 
     public void addForm() {
@@ -354,7 +384,7 @@ public class ClustersPanel extends Panel {
                                         assert getParent != null;
 
                                         params.set(PageMiningOperation.PARENT_PARAMETER_OID, parentRef);
-                                        params.set(PageMiningOperation.CHILD_PARAMETER_OID, oid);
+                                        params.set(OnePageParameterEncoder.PARAMETER, oid);
 
                                         ((PageBase) getPage()).navigateToNext(PageMiningOperation.class, params);
 

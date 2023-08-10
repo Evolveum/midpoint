@@ -16,6 +16,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -343,7 +345,7 @@ public class MainPageMining extends PageAdmin {
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     PageParameters params = new PageParameters();
                                     params.set(PageCluster.PARAMETER_MODE, model.getObject().getValue().getClusterOptions().getProcessMode());
-                                    params.set(PageCluster.PARAMETER_PARENT_OID, model.getObject().getValue().getOid());
+                                    params.set(OnePageParameterEncoder.PARAMETER, model.getObject().getValue().getOid());
 
                                     ((PageBase) getPage()).navigateToNext(PageCluster.class, params);
                                 }

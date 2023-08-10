@@ -15,13 +15,23 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteDetectionPanel;
+
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -45,11 +55,24 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class PageOperationsPanel extends Panel {
+@PanelType(name = "operationsPanel")
+@PanelInstance(
+        identifier = "operationsPanel",
+        applicableForType = RoleAnalysisClusterType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisClusterType.operationsPanel",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 10
+        )
+)
+public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
     private static final String ID_PROCESS_BUTTON = "process_selections_id";
+
+    public static final String CHILD_PARAMETER_OID = "child_oid";
+    public static final String PARENT_PARAMETER_OID = "parent_oid";
 
     String state = "START";
 
@@ -81,18 +104,39 @@ public class PageOperationsPanel extends Panel {
     String sessionOid;
     String clusterOid;
 
-    public PageOperationsPanel(String id, String sessionOid, String clusterOid) {
-        super(id);
+    public PageOperationsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
+        super(id, model, config);
+    }
+
+    String getClusterOid() {
+        PageParameters params = getPageBase().getPageParameters();
+        return params.get(OnePageParameterEncoder.PARAMETER).toString();
+    }
+
+    String getSessionOid() {
+        PageParameters params = getPageBase().getPageParameters();
+        return params.get(PARENT_PARAMETER_OID).toString();
+    }
+
+    public PageOperationsPanel(String id, String sessionOid, String clusterOid, ObjectDetailsModels<RoleAnalysisClusterType> model) {
+        super(id, model, null);
         this.sessionOid = sessionOid;
         this.clusterOid = clusterOid;
     }
 
+//    @Override
+//    protected void onInitialize() {
+//        super.onInitialize();
+//
+//
+//
+//    }
+
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-
+    protected void initLayout() {
+        this.sessionOid = getSessionOid();
+        this.clusterOid = getClusterOid();
         initOperationPart();
-
     }
 
     private void initOperationPart() {

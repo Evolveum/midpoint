@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.LineFieldPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.ClusterSummaryPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.FormSessionPanel;
@@ -27,6 +28,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +49,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/miningOperation", matchUrlForSecurity = "/admin/miningOperation")
+                @Url(mountUrl = "/admin/miningOperation1", matchUrlForSecurity = "/admin/miningOperation1")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(
@@ -83,7 +85,7 @@ public class PageMiningOperation extends PageAdmin {
 
     String getPageParameterChildOid() {
         PageParameters params = getPageParameters();
-        return params.get(CHILD_PARAMETER_OID).toString();
+        return params.get(OnePageParameterEncoder.PARAMETER).toString();
     }
 
     String getPageParameterParentOid() {
@@ -97,6 +99,8 @@ public class PageMiningOperation extends PageAdmin {
         response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
     }
 
+    ObjectDetailsModels<RoleAnalysisClusterType> clusterModel;
+
     public PageMiningOperation() {
         super();
     }
@@ -108,6 +112,15 @@ public class PageMiningOperation extends PageAdmin {
         webMarkupContainer = new WebMarkupContainer(ID_CONTAINER);
         webMarkupContainer.setOutputMarkupId(true);
         add(webMarkupContainer);
+
+        LoadableDetachableModel<PrismObject<RoleAnalysisClusterType>> detachableModel = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObject<RoleAnalysisClusterType> load() {
+                return getClusterTypeObject((PageBase) getPage(), operationResult, getPageParameterChildOid());
+//                return clusterTypeObject.asObjectable();
+            }
+        };
+        clusterModel = new ObjectDetailsModels<>(detachableModel, PageMiningOperation.this);
 
         add(initSummaryPanel());
 
@@ -159,7 +172,7 @@ public class PageMiningOperation extends PageAdmin {
                             sessionOption = false;
 
                             ajaxRequestTarget.add(getPanel().replaceWith(new PageOperationsPanel(ID_PANEL,
-                                    getPageParameterParentOid(), getPageParameterChildOid()).setOutputMarkupId(true)));
+                                    getPageParameterParentOid(), getPageParameterChildOid(), clusterModel).setOutputMarkupId(true)));
                             ajaxRequestTarget.add(webMarkupContainer);
 
                             options.add(new AttributeModifier("class", "btn btn-default btn-sm"));
@@ -219,10 +232,23 @@ public class PageMiningOperation extends PageAdmin {
         operationPanel.setOutputMarkupId(true);
         add(operationPanel);
 
-        panel = new PageOperationsPanel(ID_PANEL, getPageParameterParentOid(), getPageParameterChildOid());
+
+        panel = new PageOperationsPanel(ID_PANEL, getPageParameterParentOid(), getPageParameterChildOid(), clusterModel);
         webMarkupContainer.add(panel);
 
     }
+
+
+
+//    String getPageParameterChildOid() {
+//        PageParameters params = getPageParameters();
+//        return params.get(CHILD_PARAMETER_OID).toString();
+//    }
+//
+//    String getPageParameterParentOid() {
+//        PageParameters params = getPageParameters();
+//        return params.get(PARENT_PARAMETER_OID).toString();
+//    }
 
     private Component createClusterOptionsPanel() {
         FormSessionPanel components = new FormSessionPanel(ID_PANEL, Model.of("Options")) {

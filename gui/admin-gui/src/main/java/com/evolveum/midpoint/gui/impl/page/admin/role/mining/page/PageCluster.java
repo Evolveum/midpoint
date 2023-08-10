@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.LineFieldPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.FormSessionPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.OperationPanel;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionStatisticType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
@@ -28,6 +30,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -73,7 +76,7 @@ public class PageCluster extends PageAdmin {
 
     String getPageParameterParentOid() {
         PageParameters params = getPageParameters();
-        return params.get(PARAMETER_PARENT_OID).toString();
+        return params.get(OnePageParameterEncoder.PARAMETER).toString();
     }
 
     String getPageParameterMode() {
@@ -96,6 +99,8 @@ public class PageCluster extends PageAdmin {
     AjaxIconButton options;
     AjaxIconButton statistic;
 
+    ObjectDetailsModels<RoleAnalysisSessionType> sessionModel;
+
     @Override
     protected void onInitialize() {
         super.onInitialize();
@@ -104,6 +109,15 @@ public class PageCluster extends PageAdmin {
         webMarkupContainer = new WebMarkupContainer(ID_CONTAINER);
         webMarkupContainer.setOutputMarkupId(true);
         add(webMarkupContainer);
+
+        LoadableDetachableModel<PrismObject<RoleAnalysisSessionType>> detachableModel = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObject<RoleAnalysisSessionType> load() {
+                return getSessionTypeObject((PageBase) getPage(), operationResult, getPageParameterParentOid());
+//                return clusterTypeObject.asObjectable();
+            }
+        };
+        sessionModel = new ObjectDetailsModels<>(detachableModel, PageCluster.this);
 
         OperationPanel operationPanel = new OperationPanel("operation_panel") {
 
@@ -153,7 +167,7 @@ public class PageCluster extends PageAdmin {
                             sessionOption = false;
 
                             ajaxRequestTarget.add(getPanel().replaceWith(new ClustersPanel(ID_PANEL, getPageParameterParentOid(),
-                                    getPageParameterMode()).setOutputMarkupId(true)));
+                                    getPageParameterMode(), sessionModel).setOutputMarkupId(true)));
                             ajaxRequestTarget.add(webMarkupContainer);
 
                             options.add(new AttributeModifier("class", "btn btn-default btn-sm"));
@@ -214,7 +228,7 @@ public class PageCluster extends PageAdmin {
         operationPanel.setOutputMarkupId(true);
         add(operationPanel);
 
-        panel = new ClustersPanel(ID_PANEL, getPageParameterParentOid(), getPageParameterMode());
+        panel = new ClustersPanel(ID_PANEL, getPageParameterParentOid(), getPageParameterMode(), sessionModel);
         panel.setOutputMarkupId(true);
         webMarkupContainer.add(panel);
     }

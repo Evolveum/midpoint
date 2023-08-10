@@ -203,6 +203,55 @@ import java.util.List;
         type = "EventMarkInformationType",
         expanded = true
 )
+@PanelInstance(
+        identifier = "clusterStatistic",
+        applicableForType = RoleAnalysisClusterType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisClusterType.clusterStatistic",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 20
+        ),
+        containerPath = "clusterStatistic",
+        type = "RoleAnalysisClusterStatisticType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "detectionOption",
+        applicableForType = RoleAnalysisClusterType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisClusterType.detectionOption",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "detectionOption",
+        type = "RoleAnalysisDetectionOptionType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "sessionStatistic",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.sessionStatistic",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 20
+        ),
+        containerPath = "sessionStatistic",
+        type = "RoleAnalysisSessionStatisticType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "clusterOptions",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.clusterOptions",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "clusterOptions",
+        type = "RoleAnalysisSessionOptionType",
+        expanded = true
+)
+
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";

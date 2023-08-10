@@ -42,6 +42,40 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
 
+    //TODO authz + url
+    ROLE_MINING_DETAILS("/admin/miningOperation/**",
+            new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
+                    "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_ROLES_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.rolesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    //TODO authz + url
+    ROLE_MINING_DETAILS1("/admin/miningOperation1/**",
+            new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
+                    "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_ROLES_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.rolesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    //TODO authz + url
+    ROLE_MINING_SESSION_DETAILS("/admin/clusterTable/**",
+            new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
+                    "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_ROLES_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.rolesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    //TODO authz + url
+    ROLE_MINING_SESSION_DETAILS1("/admin/clusterTable1/**",
+            new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
+                    "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_ROLES_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.rolesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
+
+
     ORG_DETAILS("/admin/org/unit/**",
             new AuthorizationActionValue(AUTZ_UI_ORG_ALL_URL,
                     "PageAdminUsers.auth.orgAll.label", "PageAdminUsers.auth.orgAll.description"),
