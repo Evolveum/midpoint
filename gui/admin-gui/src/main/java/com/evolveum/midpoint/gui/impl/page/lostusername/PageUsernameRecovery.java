@@ -11,10 +11,16 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -25,6 +31,10 @@ import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.self.PageSelf;
+
+import java.io.IOException;
+import java.io.Serial;
+import java.net.URL;
 
 @PageDescriptor(
         urls = {
@@ -37,7 +47,10 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERNAME_RECOVERY_URL) })
 public class PageUsernameRecovery extends AbstractPageLogin {
 
-    private static final String ID_FOUND_USERS = "foundUsers";
+    @Serial private static final long serialVersionUID = 1L;
+
+    private static final String ID_USERNAME = "username";
+    private static final String ID_PHOTO = "photo";
 
 
     public PageUsernameRecovery() {
@@ -51,9 +64,32 @@ public class PageUsernameRecovery extends AbstractPageLogin {
 
     @Override
     protected void initCustomLayout() {
-        Label label = new Label(ID_FOUND_USERS, getAuthorizedUserLoginNameModel());
+        NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource());
+        add(img);
+
+        Label label = new Label(ID_USERNAME, getAuthorizedUserLoginNameModel());
         label.add(new VisibleBehaviour(this::isUserFound));
         add(label);
+    }
+
+    private AbstractResource getImageResource() {
+        byte[] photo = null;
+        if (isUserFound()) {
+            var guiProfile = getPrincipal().getCompiledGuiProfile();
+            photo = guiProfile.getJpegPhoto();
+        }
+        if (photo == null) {
+            URL defaultImage = this.getClass().getClassLoader().getResource("static/img/placeholder.png");
+            if (defaultImage == null) {
+                return null;
+            }
+            try {
+                photo = IOUtils.toByteArray(defaultImage);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        return new ByteArrayResource("image/jpeg", photo);
     }
 
     private IModel<String> getAuthorizedUserLoginNameModel() {

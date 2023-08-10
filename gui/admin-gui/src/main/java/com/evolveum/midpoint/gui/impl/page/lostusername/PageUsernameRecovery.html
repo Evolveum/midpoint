@@ -11,8 +11,14 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div wicket:id="foundUsers"/>
-
+    <div class="user-panel info-box my-3 pb-2 d-flex justify-content-start align-items-center">
+        <div class="image">
+            <img wicket:id="photo" class="user-image img-circle elevation-2"/>
+        </div>
+        <div class="info">
+            <div class="text-lg" wicket:id="username"/>
+        </div>
+    </div>
 </wicket:extend>
 
 </body>

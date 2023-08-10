@@ -93,9 +93,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
             FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        if (mpAuthentication == null) {
-            System.out.println("aaaauthentication is null");
-        }
 
         validateAuthenticationCanContinue(mpAuthentication, httpRequest);
 
