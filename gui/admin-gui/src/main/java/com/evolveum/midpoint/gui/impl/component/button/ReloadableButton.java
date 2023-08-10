@@ -122,7 +122,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
     }
 
     @Override
-    public final void onClick(AjaxRequestTarget target) {
+    public void onClick(AjaxRequestTarget target) {
         if (useConfirmationPopup()) {
             IModel<String> confirmModel = getConfirmMessage();
 
