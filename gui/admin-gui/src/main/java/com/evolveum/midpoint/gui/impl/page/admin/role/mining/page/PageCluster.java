@@ -204,7 +204,8 @@ public class PageCluster extends PageAdmin {
 
             @Override
             protected void executeDelete(AjaxRequestTarget target) {
-                PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject((PageBase) getPage(), getPageParameterParentOid());
+                PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject((PageBase) getPage(), operationResult,
+                        getPageParameterParentOid());
                 deleteSingleRoleAnalysisSession(operationResult, sessionTypeObject.asObjectable(),
                         (PageBase) getPage());
                 getPageBase().redirectBack();
@@ -223,7 +224,7 @@ public class PageCluster extends PageAdmin {
             @Override
             protected void addPanelButton(RepeatingView repeatingView) {
 
-                @NotNull RoleAnalysisSessionType sessionTypeObject = getSessionTypeObject((PageBase) getPage(),
+                @NotNull RoleAnalysisSessionType sessionTypeObject = getSessionTypeObject((PageBase) getPage(), operationResult,
                         getPageParameterParentOid()).asObjectable();
 
                 RoleAnalysisSessionOptionType clusterOptions = sessionTypeObject.getClusterOptions();
@@ -338,7 +339,7 @@ public class PageCluster extends PageAdmin {
             @Override
             protected void addPanelButton(RepeatingView repeatingView) {
 
-                @NotNull RoleAnalysisSessionType sessionTypeObject = getSessionTypeObject((PageBase) getPage(),
+                @NotNull RoleAnalysisSessionType sessionTypeObject = getSessionTypeObject((PageBase) getPage(), operationResult,
                         getPageParameterParentOid()).asObjectable();
 
                 RoleAnalysisSessionStatisticType sessionStatistics = sessionTypeObject.getSessionStatistic();
@@ -442,7 +443,8 @@ public class PageCluster extends PageAdmin {
     }
 
     private Panel initSummaryPanel() {
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject((PageBase) getPage(), getPageParameterParentOid());
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject((PageBase) getPage(), operationResult,
+                getPageParameterParentOid());
         return new SessionSummaryPanel("summary", Model.of(sessionTypeObject.asObjectable()), null);
     }
 

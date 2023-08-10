@@ -52,7 +52,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private void initLayout() {
 
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();
+        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), result,clusterOid).asObjectable();
         MiningOperationChunk miningOperationChunk = new PrepareChunkStructure().executeOperation(cluster, true, RoleAnalysisProcessModeType.valueOf(mode),
                 (PageBase) getPage(), result, state);
 

@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.test.DBSCANClusterer2;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
@@ -33,7 +34,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 public class UserBasedClustering implements Clusterable {
 
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions) {
+    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions,
+            OperationResult result, PageBase pageBase) {
 
         long start = startTimer(" prepare clustering object");
         int minIntersections = clusterOptions.getMinIntersections();
@@ -43,10 +45,8 @@ public class UserBasedClustering implements Clusterable {
         clusterOptions.setMinProperties(threshold);
         clusterOptions.setMinIntersections(minIntersections);
 
-        PageBase pageBase = clusterOptions.getPageBase();
         //roles //users
-        OperationResult operationResult = new OperationResult("ExecuteUserBasedClustering");
-        ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
+        ListMultimap<List<String>, String> chunkMap = loadData(result, pageBase,
                 threshold, maxProperties, clusterOptions.getQuery());
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
@@ -56,15 +56,18 @@ public class UserBasedClustering implements Clusterable {
 
         //TODO
         if (eps == 0.0) {
-            return new ClusterAlgorithmUtils().processExactMatch(pageBase, dataPoints, clusterOptions);
+            return new ClusterAlgorithmUtils().processExactMatch(pageBase, result, dataPoints, clusterOptions);
         }
         start = startTimer("clustering");
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minIntersections);
+//        DBSCANClusterer<DataPoint> dbscan = new DBSCANClusterer<>(eps, minGroupSize, distanceMeasure);
+//        List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);
+
         DBSCANClusterer<DataPoint> dbscan = new DBSCANClusterer<>(eps, minGroupSize, distanceMeasure);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);
         endTimer(start, "clustering");
 
-        return new ClusterAlgorithmUtils().processClusters(pageBase, dataPoints, clusters, clusterOptions);
+        return new ClusterAlgorithmUtils().processClusters(pageBase, result, dataPoints, clusters, clusterOptions);
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, PageBase pageBase,

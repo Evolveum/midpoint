@@ -132,7 +132,7 @@ public class ClusterObjectUtils {
         try {
 
             String clusterOid = roleAnalysisClusterType.getOid();
-            PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, roleAnalysisClusterType.getRoleAnalysisSessionRef().getOid());
+            PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, result, roleAnalysisClusterType.getRoleAnalysisSessionRef().getOid());
 
             List<ObjectReferenceType> roleAnalysisClusterRef = sessionTypeObject.asObjectable().getRoleAnalysisClusterRef();
 
@@ -170,7 +170,7 @@ public class ClusterObjectUtils {
     }
 
     public static void recomputeSessionStatic(OperationResult result, String sessionOid, @NotNull PageBase pageBase) {
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, sessionOid);
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, result, sessionOid);
 
         List<ObjectReferenceType> roleAnalysisClusterRef = sessionTypeObject.asObjectable().getRoleAnalysisClusterRef();
 
@@ -179,7 +179,7 @@ public class ClusterObjectUtils {
         double recomputeMeanDensity = 0;
         int recomputeProcessedObjectCount = 0;
         for (ObjectReferenceType referenceType : roleAnalysisClusterRef) {
-            RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject(pageBase, referenceType.getOid()).asObjectable();
+            RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject(pageBase, result, referenceType.getOid()).asObjectable();
             recomputeMeanDensity += clusterTypeObject.getClusterStatistic().getPropertiesDensity();
             recomputeProcessedObjectCount += clusterTypeObject.getClusterStatistic().getMemberCount();
         }
@@ -410,19 +410,19 @@ public class ClusterObjectUtils {
         return clusterTypePrismObject;
     }
 
-    public static @NotNull PrismObject<RoleAnalysisClusterType> getClusterTypeObject(@NotNull PageBase pageBase, String oid) {
-        OperationResult operationResult = new OperationResult("GetCluster");
+    public static @NotNull PrismObject<RoleAnalysisClusterType> getClusterTypeObject(@NotNull PageBase pageBase,
+            OperationResult result, String oid) {
         try {
-            return pageBase.getRepositoryService().getObject(RoleAnalysisClusterType.class, oid, null, operationResult);
+            return pageBase.getRepositoryService().getObject(RoleAnalysisClusterType.class, oid, null, result);
         } catch (ObjectNotFoundException | SchemaException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static @NotNull PrismObject<RoleAnalysisSessionType> getSessionTypeObject(@NotNull PageBase pageBase, String oid) {
-        OperationResult operationResult = new OperationResult("GetSession");
+    public static @NotNull PrismObject<RoleAnalysisSessionType> getSessionTypeObject(@NotNull PageBase pageBase,
+            OperationResult result, String oid) {
         try {
-            return pageBase.getRepositoryService().getObject(RoleAnalysisSessionType.class, oid, null, operationResult);
+            return pageBase.getRepositoryService().getObject(RoleAnalysisSessionType.class, oid, null, result);
         } catch (ObjectNotFoundException | SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -502,7 +502,6 @@ public class ClusterObjectUtils {
                     .replace(roleAnalysisDetectionOptionType.asPrismContainerValue())
                     .asItemDeltas());
             pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, clusterOid, modifications, result);
-
 
         } catch (Throwable e) {
             LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", clusterOid, e.getMessage(), e);
@@ -586,7 +585,7 @@ public class ClusterObjectUtils {
         return dateString + ", " + timeString;
     }
 
-    public static @NotNull PrismObject<RoleType> generateBusinessRole(PageBase pageBase, List<AssignmentType> assignmentTypes,String name) {
+    public static @NotNull PrismObject<RoleType> generateBusinessRole(PageBase pageBase, List<AssignmentType> assignmentTypes, String name) {
 
         PrismObject<RoleType> roleTypePrismObject = null;
         try {
@@ -605,7 +604,7 @@ public class ClusterObjectUtils {
         return roleTypePrismObject;
     }
 
-    public void generateUserAssignmentDeltas(){
+    public void generateUserAssignmentDeltas() {
 
     }
 }

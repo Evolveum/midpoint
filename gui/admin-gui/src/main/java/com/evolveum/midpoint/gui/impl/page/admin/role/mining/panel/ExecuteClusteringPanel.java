@@ -106,96 +106,98 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             protected void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
 
                 ClusteringAction clusteringAction = new ClusteringAction(clusterOptions.getMode());
-                List<PrismObject<RoleAnalysisClusterType>> clusters = clusteringAction.execute(clusterOptions);
+                PageBase pageBase = (PageBase) getPage();
+                Task task = pageBase.createSimpleTask("Execute clustering Action");
+                clusteringAction.execute(pageBase,clusterOptions, result,task);
 
-                RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption = getRoleAnalysisSessionFilterOption();
+//                RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption = getRoleAnalysisSessionFilterOption();
+//
+//                RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = getRoleAnalysisSessionDetectionOption();
 
-                RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = getRoleAnalysisSessionDetectionOption();
-
-                importRoleAnalysisClusteringResult(importResult, clusters, roleAnalysisSessionClusterOption,
-                        roleAnalysisSessionDetectionOption, clusterOptions.getName(), clusterOptions.getMode());
+//                importRoleAnalysisClusteringResult(importResult, clusters, roleAnalysisSessionClusterOption,
+//                        roleAnalysisSessionDetectionOption, clusterOptions.getName(), clusterOptions.getMode());
 
                 getPageBase().hideMainPopup(ajaxRequestTarget);
             }
 
-            @NotNull
-            private RoleAnalysisDetectionOptionType getRoleAnalysisSessionDetectionOption() {
-                RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = new RoleAnalysisDetectionOptionType();
-                roleAnalysisSessionDetectionOption.setDetectionMode(clusterOptions.getSearchMode());
-                roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
-                roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
-                roleAnalysisSessionDetectionOption.setMinMembersOccupancy(clusterOptions.getDefaultOccupancySearch());
-                roleAnalysisSessionDetectionOption.setMinPropertiesOccupancy(clusterOptions.getDefaultIntersectionSearch());
-                roleAnalysisSessionDetectionOption.setJaccardSimilarityThreshold(clusterOptions.getDefaultJaccardThreshold());
+//            @NotNull
+//            private RoleAnalysisDetectionOptionType getRoleAnalysisSessionDetectionOption() {
+//                RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = new RoleAnalysisDetectionOptionType();
+//                roleAnalysisSessionDetectionOption.setDetectionMode(clusterOptions.getSearchMode());
+//                roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
+//                roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
+//                roleAnalysisSessionDetectionOption.setMinMembersOccupancy(clusterOptions.getDefaultOccupancySearch());
+//                roleAnalysisSessionDetectionOption.setMinPropertiesOccupancy(clusterOptions.getDefaultIntersectionSearch());
+//                roleAnalysisSessionDetectionOption.setJaccardSimilarityThreshold(clusterOptions.getDefaultJaccardThreshold());
+//
+//                return roleAnalysisSessionDetectionOption;
+//            }
+//
+//            @NotNull
+//            private RoleAnalysisSessionOptionType getRoleAnalysisSessionFilterOption() {
+//                RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption = new RoleAnalysisSessionOptionType();
+//                if (clusterOptions.getQuery() != null) {
+//                    roleAnalysisSessionClusterOption.setFilter(clusterOptions.getQuery().toString());
+//                }
+//
+//                roleAnalysisSessionClusterOption.setProcessMode(clusterOptions.getMode());
+//                roleAnalysisSessionClusterOption.setSimilarityThreshold(clusterOptions.getSimilarity());
+//                roleAnalysisSessionClusterOption.setMinUniqueMembersCount(clusterOptions.getMinGroupSize());
+//                roleAnalysisSessionClusterOption.setMinMembersCount(clusterOptions.getMinMembers());
+//                roleAnalysisSessionClusterOption.setMinPropertiesCount(clusterOptions.getMinProperties());
+//                roleAnalysisSessionClusterOption.setMaxPropertiesCount(clusterOptions.getMaxProperties());
+//                roleAnalysisSessionClusterOption.setMinPropertiesOverlap(clusterOptions.getMinIntersections());
+//                return roleAnalysisSessionClusterOption;
+//            }
 
-                return roleAnalysisSessionDetectionOption;
-            }
-
-            @NotNull
-            private RoleAnalysisSessionOptionType getRoleAnalysisSessionFilterOption() {
-                RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption = new RoleAnalysisSessionOptionType();
-                if (clusterOptions.getQuery() != null) {
-                    roleAnalysisSessionClusterOption.setFilter(clusterOptions.getQuery().toString());
-                }
-
-                roleAnalysisSessionClusterOption.setProcessMode(clusterOptions.getMode());
-                roleAnalysisSessionClusterOption.setSimilarityThreshold(clusterOptions.getSimilarity());
-                roleAnalysisSessionClusterOption.setMinUniqueMembersCount(clusterOptions.getMinGroupSize());
-                roleAnalysisSessionClusterOption.setMinMembersCount(clusterOptions.getMinMembers());
-                roleAnalysisSessionClusterOption.setMinPropertiesCount(clusterOptions.getMinProperties());
-                roleAnalysisSessionClusterOption.setMaxPropertiesCount(clusterOptions.getMaxProperties());
-                roleAnalysisSessionClusterOption.setMinPropertiesOverlap(clusterOptions.getMinIntersections());
-                return roleAnalysisSessionClusterOption;
-            }
-
-            private void importRoleAnalysisClusteringResult(OperationResult result,
-                    List<PrismObject<RoleAnalysisClusterType>> clusters,
-                    RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption,
-                    RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption,
-                    String name,
-                    RoleAnalysisProcessModeType processMode) {
-
-                List<ObjectReferenceType> roleAnalysisClusterRef = new ArrayList<>();
-
-                @NotNull PageBase pageBase = (PageBase) getPage();
-                int processedObjectCount = 0;
-
-                QName complexType;
-                if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                    complexType = RoleType.COMPLEX_TYPE;
-                } else {complexType = UserType.COMPLEX_TYPE;}
-
-                double meanDensity = 0;
-                for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
-                    RoleAnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistic();
-                    meanDensity += clusterStatistic.getPropertiesDensity();
-                    processedObjectCount += clusterStatistic.getMemberCount();
-
-                    ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-                    objectReferenceType.setOid(clusterTypePrismObject.getOid());
-                    objectReferenceType.setType(complexType);
-                    roleAnalysisClusterRef.add(objectReferenceType);
-                }
-
-                meanDensity = meanDensity / clusters.size();
-
-                RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType = new RoleAnalysisSessionStatisticType();
-                roleAnalysisSessionStatisticType.setProcessedObjectCount(processedObjectCount);
-                roleAnalysisSessionStatisticType.setMeanDensity(meanDensity);
-
-                ObjectReferenceType parentRef = importRoleAnalysisSessionObject(result, pageBase, roleAnalysisSessionClusterOption,
-                        roleAnalysisSessionStatisticType, roleAnalysisClusterRef, name);
-
-                Task task = pageBase.createSimpleTask("ImportClusterTypeObject");
-
-                try {
-                    for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
-                        importRoleAnalysisClusterObject(result, task, ((PageBase) getPage()), clusterTypePrismObject, parentRef, roleAnalysisSessionDetectionOption);
-                    }
-                } catch (NumberFormatException e) {
-                    throw new RuntimeException("Import RoleAnalysisCluster object failed" + e);
-                }
-            }
+//            private void importRoleAnalysisClusteringResult(OperationResult result,
+//                    List<PrismObject<RoleAnalysisClusterType>> clusters,
+//                    RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption,
+//                    RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption,
+//                    String name,
+//                    RoleAnalysisProcessModeType processMode) {
+//
+//                List<ObjectReferenceType> roleAnalysisClusterRef = new ArrayList<>();
+//
+//                @NotNull PageBase pageBase = (PageBase) getPage();
+//                int processedObjectCount = 0;
+//
+//                QName complexType;
+//                if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+//                    complexType = RoleType.COMPLEX_TYPE;
+//                } else {complexType = UserType.COMPLEX_TYPE;}
+//
+//                double meanDensity = 0;
+//                for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
+//                    RoleAnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistic();
+//                    meanDensity += clusterStatistic.getPropertiesDensity();
+//                    processedObjectCount += clusterStatistic.getMemberCount();
+//
+//                    ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+//                    objectReferenceType.setOid(clusterTypePrismObject.getOid());
+//                    objectReferenceType.setType(complexType);
+//                    roleAnalysisClusterRef.add(objectReferenceType);
+//                }
+//
+//                meanDensity = meanDensity / clusters.size();
+//
+//                RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType = new RoleAnalysisSessionStatisticType();
+//                roleAnalysisSessionStatisticType.setProcessedObjectCount(processedObjectCount);
+//                roleAnalysisSessionStatisticType.setMeanDensity(meanDensity);
+//
+//                ObjectReferenceType parentRef = importRoleAnalysisSessionObject(result, pageBase, roleAnalysisSessionClusterOption,
+//                        roleAnalysisSessionStatisticType, roleAnalysisClusterRef, name);
+//
+//                Task task = pageBase.createSimpleTask("ImportClusterTypeObject");
+//
+//                try {
+//                    for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
+//                        importRoleAnalysisClusterObject(result, task, ((PageBase) getPage()), clusterTypePrismObject, parentRef, roleAnalysisSessionDetectionOption);
+//                    }
+//                } catch (NumberFormatException e) {
+//                    throw new RuntimeException("Import RoleAnalysisCluster object failed" + e);
+//                }
+//            }
 
         };
 
@@ -213,6 +215,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
     public Form<?> getDefaultDetectionForm() {
         return (Form<?>) get("default_intersection_option_form");
     }
+
     public void defaultIntersectionForm() {
 
         Form<?> defaultDetectionForm = new Form<>("default_intersection_option_form");
@@ -725,7 +728,7 @@ public class ExecuteClusteringPanel extends BasePanel<String> implements Popupab
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
 
-                if(isEditMiningOption()){
+                if (isEditMiningOption()) {
                     return;
                 }
 

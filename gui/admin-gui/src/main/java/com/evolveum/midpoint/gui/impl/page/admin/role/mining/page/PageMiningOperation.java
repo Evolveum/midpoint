@@ -210,7 +210,7 @@ public class PageMiningOperation extends PageAdmin {
 
             @Override
             protected void executeDelete(AjaxRequestTarget target) {
-                PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject((PageBase) getPage(), getPageParameterChildOid());
+                PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject((PageBase) getPage(), operationResult, getPageParameterChildOid());
                 deleteSingleRoleAnalysisCluster(operationResult, clusterTypeObject.asObjectable(),
                         (PageBase) getPage());
                 getPageBase().redirectBack();
@@ -229,7 +229,7 @@ public class PageMiningOperation extends PageAdmin {
             @Override
             protected void addPanelButton(RepeatingView repeatingView) {
 
-                @NotNull RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject((PageBase) getPage(),
+                @NotNull RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject((PageBase) getPage(), operationResult,
                         getPageParameterChildOid()).asObjectable();
 
                 RoleAnalysisDetectionOptionType clusterOptions = clusterTypeObject.getDetectionOption();
@@ -318,7 +318,7 @@ public class PageMiningOperation extends PageAdmin {
             @Override
             protected void addPanelButton(RepeatingView repeatingView) {
 
-                @NotNull RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject((PageBase) getPage(),
+                @NotNull RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject((PageBase) getPage(), operationResult,
                         getPageParameterChildOid()).asObjectable();
 
                 RoleAnalysisClusterStatisticType clusterStatistic = clusterTypeObject.getClusterStatistic();
@@ -462,7 +462,8 @@ public class PageMiningOperation extends PageAdmin {
     }
 
     private Panel initSummaryPanel() {
-        PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject((PageBase) getPage(), getPageParameterChildOid());
+        PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject((PageBase) getPage(), operationResult,
+                getPageParameterChildOid());
         return new ClusterSummaryPanel("summary", Model.of(clusterTypeObject.asObjectable()), null);
     }
 

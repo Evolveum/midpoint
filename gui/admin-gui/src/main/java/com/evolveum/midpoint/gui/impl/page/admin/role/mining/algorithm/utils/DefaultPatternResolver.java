@@ -10,9 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.loadIntersections;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.loadDetectionOption;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionAction;
@@ -36,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class DefaultPatternResolver {
 
+    int bestRankedPatternCountThreshold = 10;
     RoleAnalysisProcessModeType roleAnalysisProcessModeType;
     QName processedObjectComplexType;
     QName propertiesComplexType;
@@ -120,7 +119,20 @@ public class DefaultPatternResolver {
         possibleBusinessRole = new DetectionAction(roleAnalysisSessionDetectionOptionType)
                 .executeDetection(miningRoleTypeChunks, miningUserTypeChunks, mode);
 
-        return loadIntersections(possibleBusinessRole, searchMode, processedObjectComplexType, propertiesComplexType);
+        possibleBusinessRole.sort(Comparator.comparing(DetectedPattern::getClusterMetric).reversed());
+
+        List<DetectedPattern> topPatterns = new ArrayList<>();
+
+        int index = 0;
+        for (DetectedPattern pattern : possibleBusinessRole) {
+            topPatterns.add(pattern);
+            index++;
+            if (index >= bestRankedPatternCountThreshold) {
+                break;
+            }
+        }
+
+        return loadIntersections(topPatterns, searchMode, processedObjectComplexType, propertiesComplexType);
     }
 
 }

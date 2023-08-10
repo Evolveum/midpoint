@@ -8,19 +8,19 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.MiningDataUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.importRoleAnalysisClusterObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.importRoleAnalysisSessionObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ListMultimap;
@@ -34,13 +34,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import javax.xml.namespace.QName;
+
 public class RoleBasedClustering implements Clusterable {
 
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions) {
-        PageBase pageBase = clusterOptions.getPageBase();
+    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions,
+            OperationResult result, PageBase pageBase) {
 
-//        ts2(clusterOptions.getPageBase());
         long start = startTimer(" prepare clustering object");
         int assignThreshold = clusterOptions.getMinProperties();
         int minIntersections = clusterOptions.getMinIntersections();
@@ -48,8 +49,7 @@ public class RoleBasedClustering implements Clusterable {
         int maxProperties = Math.max(clusterOptions.getMaxProperties(), threshold);
 
         ObjectFilter query = clusterOptions.getQuery();
-        OperationResult operationResult = new OperationResult("ExecuteRoleBasedClustering");
-        ListMultimap<List<String>, String> chunkMap = loadData(operationResult, pageBase,
+        ListMultimap<List<String>, String> chunkMap = loadData(result, pageBase,
                 threshold, maxProperties, query);
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
@@ -60,7 +60,7 @@ public class RoleBasedClustering implements Clusterable {
 
         //TODO
         if (eps == 0.0) {
-            return new ClusterAlgorithmUtils().processExactMatch(pageBase, dataPoints, clusterOptions);
+            return new ClusterAlgorithmUtils().processExactMatch(pageBase, result, dataPoints, clusterOptions);
         }
 
         int minGroupSize = clusterOptions.getMinGroupSize();
@@ -68,7 +68,8 @@ public class RoleBasedClustering implements Clusterable {
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);
         endTimer(start, "clustering");
 
-        return new ClusterAlgorithmUtils().processClusters(pageBase, dataPoints, clusters, clusterOptions);
+        return new ClusterAlgorithmUtils().processClusters(pageBase, result, dataPoints, clusters, clusterOptions);
+
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull PageBase pageBase,

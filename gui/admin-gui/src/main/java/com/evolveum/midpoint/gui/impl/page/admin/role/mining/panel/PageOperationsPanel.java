@@ -99,7 +99,7 @@ public class PageOperationsPanel extends Panel {
         miningRoleTypeChunks = new ArrayList<>();
         miningUserTypeChunks = new ArrayList<>();
 
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();
+        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), result, clusterOid).asObjectable();
 
         PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid((PageBase) getPage(),
                 sessionOid, new OperationResult("getParent"));
@@ -268,7 +268,7 @@ public class PageOperationsPanel extends Panel {
     }
 
     private void loadMiningTableData(SORT sortMode) {
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), clusterOid).asObjectable();
+        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), result, clusterOid).asObjectable();
 
         //TODO should only be used on a gui request?
         // In the case of large datasets, Jaccard sorting is
