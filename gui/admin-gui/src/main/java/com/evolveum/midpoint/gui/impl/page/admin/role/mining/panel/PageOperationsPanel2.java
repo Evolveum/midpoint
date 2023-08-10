@@ -10,30 +10,20 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.*;
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteDetectionPanel;
-
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionAction;
@@ -41,30 +31,33 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.De
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteDetectionPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningIntersectionTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningRoleBasedTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningUserBasedTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareChunkStructure;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareExpandStructure;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-//@PanelType(name = "operationsPanel")
-//@PanelInstance(
-//        identifier = "operationsPanel",
-//        applicableForType = RoleAnalysisClusterType.class,
-//        display = @PanelDisplay(
-//                label = "RoleAnalysisClusterType.operationsPanel",
-//                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-//                order = 10
-//        )
-//)
-public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+@PanelType(name = "clusterDetails")
+@PanelInstance(
+        identifier = "clusterDetails",
+        applicableForType = RoleAnalysisClusterType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisClusterType.operationsPanel",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 1
+        )
+)
+public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
@@ -98,36 +91,14 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
     List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
     List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
-    ClusterObjectUtils.SORT sortMode;
+    SORT sortMode;
 
-    String sessionOid;
-    String clusterOid;
-
-    public PageOperationsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
+    public PageOperationsPanel2(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
-    String getClusterOid() {
-        PageParameters params = getPageBase().getPageParameters();
-        return params.get(OnePageParameterEncoder.PARAMETER).toString();
-    }
-
-    String getSessionOid() {
-        PageParameters params = getPageBase().getPageParameters();
-        return params.get(PARENT_PARAMETER_OID).toString();
-    }
-
-    public PageOperationsPanel(String id, String sessionOid, String clusterOid, ObjectDetailsModels<RoleAnalysisClusterType> model) {
-        super(id, model, null);
-        this.sessionOid = sessionOid;
-        this.clusterOid = clusterOid;
-    }
-
-
     @Override
     protected void initLayout() {
-        this.sessionOid = getSessionOid();
-        this.clusterOid = getClusterOid();
         initOperationPart();
     }
 
@@ -135,10 +106,10 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         miningRoleTypeChunks = new ArrayList<>();
         miningUserTypeChunks = new ArrayList<>();
 
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), result, clusterOid).asObjectable();
+        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
 
         PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid((PageBase) getPage(),
-                sessionOid, new OperationResult("getParent"));
+                cluster.getRoleAnalysisSessionRef().getOid(), new OperationResult("getParent"));
         assert getParent != null;
         String processModeValue = getParent.asObjectable().getClusterOptions().getProcessMode().value();
         String searchModeValue = cluster.getDetectionOption().getDetectionMode().value();
@@ -195,7 +166,7 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
                 List<AssignmentType> roleList = new ArrayList<>();
                 for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
-                    if (miningRoleTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                    if (miningRoleTypeChunk.getStatus().equals(Status.ADD)) {
                         List<String> roles = miningRoleTypeChunk.getRoles();
                         for (String oid : roles) {
                             PrismObject<RoleType> roleTypeObject = getRoleTypeObject((PageBase) getPage(), oid, result);
@@ -214,7 +185,7 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
                 List<BusinessRoleApplicationDto> patternDeltas = new ArrayList<>();
 
                 for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
-                    if (miningUserTypeChunk.getStatus().equals(ClusterObjectUtils.Status.ADD)) {
+                    if (miningUserTypeChunk.getStatus().equals(Status.ADD)) {
                         List<String> users = miningUserTypeChunk.getUsers();
                         for (String userOid : users) {
                             PrismObject<UserType> userTypeObject = getUserTypeObject((PageBase) getPage(), userOid, result);
@@ -265,8 +236,7 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
                         updateMiningTable(target, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
 
-//                        replaceRoleAnalysisClusterDetectionOption(getPageParameterChildOid(),(PageBase) getPage(),newDetectionOption,result);
-                        replaceRoleAnalysisClusterDetection(clusterOid, (PageBase) getPage(), result,
+                        replaceRoleAnalysisClusterDetection(getObjectDetailsModels().getObjectWrapper().getOid(), (PageBase) getPage(), result,
                                 detectedPatternList, processMode, newDetectionOption);
                     }
 
@@ -288,7 +258,7 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                sortMode = ClusterObjectUtils.SORT.JACCARD;
+                sortMode = SORT.JACCARD;
 
                 miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
                 miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(sortMode);
@@ -299,12 +269,12 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         };
 
         ajaxButton.setOutputMarkupId(true);
-        ajaxButton.setVisible(sortMode.equals(ClusterObjectUtils.SORT.NONE));
+        ajaxButton.setVisible(sortMode.equals(SORT.NONE));
         return ajaxButton;
     }
 
     private void loadMiningTableData(SORT sortMode) {
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), result, clusterOid).asObjectable();
+        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
 
         //TODO should only be used on a gui request?
         // In the case of large datasets, Jaccard sorting is
@@ -345,10 +315,10 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
         if (resetStatus) {
             for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
-                miningRoleTypeChunk.setStatus(ClusterObjectUtils.Status.NEUTRAL);
+                miningRoleTypeChunk.setStatus(Status.NEUTRAL);
             }
             for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
-                miningUserTypeChunk.setStatus(ClusterObjectUtils.Status.NEUTRAL);
+                miningUserTypeChunk.setStatus(Status.NEUTRAL);
             }
         }
 

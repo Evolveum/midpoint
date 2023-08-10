@@ -228,7 +228,7 @@ import java.util.List;
         expanded = true
 )
 @PanelInstance(
-        identifier = "sessionStatistic",
+        identifier = "sessionStatistics",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionStatistic",

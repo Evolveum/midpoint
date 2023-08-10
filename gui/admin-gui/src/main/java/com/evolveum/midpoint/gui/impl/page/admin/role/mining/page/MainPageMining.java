@@ -76,6 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
                         label = "PageUsers.auth.users.view.label",
                         description = "PageUsers.auth.users.view.description")
         })
+
+//TODO rename to PageRoleAnalysisSessions
 public class MainPageMining extends PageAdmin {
     @Serial private static final long serialVersionUID = 1L;
 
@@ -171,38 +173,11 @@ public class MainPageMining extends PageAdmin {
             }
 
             @Override
-            protected boolean notContainsNameColumn(@NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> iColumns) {
-                return false;
-            }
-
-            @Override
             protected List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> createDefaultColumns() {
 
                 List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns = new ArrayList<>();
 
-                IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
-
-                column = new SelectableObjectNameColumn<>(createStringResource("ObjectType.name"), null, null, null) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-
-                        ParentClusterBasicDetailsPanel detailsPanel = new ParentClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                Model.of("TO DO: details"), rowModel) {
-                            @Override
-                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                super.onClose(ajaxRequestTarget);
-                            }
-                        };
-                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-                    }
-                };
-
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(getHeaderTitle("mode")) {
+                IColumn<SelectableBean<RoleAnalysisSessionType>, String> column = new AbstractExportableColumn<>(getHeaderTitle("mode")) {
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
@@ -334,51 +309,6 @@ public class MainPageMining extends PageAdmin {
                         return Model.of("");
                     }
 
-                };
-                columns.add(column);
-
-                column = new AbstractColumn<>(
-                        createStringResource("RoleMining.button.title.load")) {
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue().getName() != null) {
-
-                            AjaxIconButton ajaxButton = new AjaxIconButton(componentId, Model.of("fa fa-bars"),
-                                    createStringResource("RoleMining.cluster.table.load.operation.panel")) {
-                                @Override
-                                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    PageParameters params = new PageParameters();
-                                    params.set(PageCluster.PARAMETER_MODE, model.getObject().getValue().getClusterOptions().getProcessMode());
-                                    params.set(OnePageParameterEncoder.PARAMETER, model.getObject().getValue().getOid());
-
-                                    ((PageBase) getPage()).navigateToNext(PageCluster.class, params);
-                                }
-                            };
-
-                            ajaxButton.add(AttributeAppender.replace("class", " btn btn-default btn-sm d-flex "
-                                    + "justify-content-center align-items-center"));
-                            ajaxButton.add(new AttributeAppender("style", " width:40px; "));
-                            ajaxButton.setOutputMarkupId(true);
-
-                            cellItem.add(ajaxButton);
-
-                        } else {
-                            cellItem.add(new Label(componentId,
-                                    (Integer) null));
-                        }
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                    @Override
-                    public String getSortProperty() {
-                        return RoleAnalysisSessionType.F_NAME.toString();
-                    }
                 };
                 columns.add(column);
 

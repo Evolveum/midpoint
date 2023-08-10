@@ -12,41 +12,18 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.LineFieldPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.ClustersPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.FormSessionPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.OperationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.SessionSummaryPanel;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionStatisticType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serial;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
-
+//TODO correct authorizations
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/clusterTable", matchUrlForSecurity = "/admin/clusterTable")
+                @Url(mountUrl = "/admin/roleAnalysisSession", matchUrlForSecurity = "/admin/roleAnalysisSession")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(
@@ -58,12 +35,11 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
                 label = "PageRole.auth.role.label",
                 description = "PageRole.auth.role.description") })
 
-public class PageClusterNew extends AbstractPageObjectDetails<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+public class PageRoleAnalysisSession extends AbstractPageObjectDetails<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     public static final String PARAMETER_PARENT_OID = "id";
-    public static final String PARAMETER_MODE = "mode";
 
-    public PageClusterNew() {
+    public PageRoleAnalysisSession() {
         super();
     }
 

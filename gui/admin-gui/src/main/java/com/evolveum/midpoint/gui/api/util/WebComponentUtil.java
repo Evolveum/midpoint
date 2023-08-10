@@ -31,6 +31,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
@@ -267,6 +269,9 @@ public final class WebComponentUtil {
 
         OBJECT_DETAILS_PAGE_MAP.put(SimulationResultType.class, PageSimulationResult.class);
         OBJECT_DETAILS_PAGE_MAP.put(MarkType.class, PageMark.class);
+
+        OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisSessionType.class, PageRoleAnalysisSession.class);
+        OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisClusterType.class, PageRoleAnalysisCluster.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)

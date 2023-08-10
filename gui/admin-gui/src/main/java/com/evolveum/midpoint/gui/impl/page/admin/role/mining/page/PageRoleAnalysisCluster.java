@@ -9,47 +9,24 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.LineFieldPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.ClusterSummaryPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.FormSessionPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.OperationPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.PageOperationsPanel;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterStatisticType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionOptionType;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serial;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getScaleScript;
 
+//TODO correct authorizations
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/miningOperation1", matchUrlForSecurity = "/admin/miningOperation1")
+                @Url(mountUrl = "/admin/roleAnalysisCluster", matchUrlForSecurity = "/admin/roleAnalysisCluster")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(
@@ -61,7 +38,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.
                 label = "PageRole.auth.role.label",
                 description = "PageRole.auth.role.description") })
 
-public class PageMiningOperationNew extends AbstractPageObjectDetails<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     @Override
     public void renderHead(IHeaderResponse response) {
@@ -69,7 +46,7 @@ public class PageMiningOperationNew extends AbstractPageObjectDetails<RoleAnalys
         response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
     }
 
-    public PageMiningOperationNew() {
+    public PageRoleAnalysisCluster() {
         super();
     }
 

@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card">
+        <div class="card-body">
+            <input class="btn btn-default" type="submit" value="Business role mining"
+                    wicket:id="business_role_mining"/>
+
+            <input class="mr-4 btn btn-warning" type="submit" value="Sort by Jaccard (TODO)"
+                    wicket:id="jaccard_sort"/>
+
+            <div class="ml-4 btn btn-default"
+                    wicket:id="process_selections_id"></div>
+        </div>
+    </div>
+
+
+    <div style="width:100%; max-height:800px;"
+            wicket:id="datatable_extra"></div>
+
+    <div style="width:100%;"
+            wicket:id="table_intersection"></div>
+</wicket:panel>
+</html>

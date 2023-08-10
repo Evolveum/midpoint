@@ -11,19 +11,15 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getColorClass;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageCluster;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageMiningOperationNew;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,11 +29,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -45,23 +39,17 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageMiningOperation;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ClusterBasicDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.work.ImageDetailsPanel;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.SelectableObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "clusters")
 @PanelInstance(
@@ -77,8 +65,6 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
-    String parentOid;
-    String mode;
 
     public ClustersPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -86,23 +72,10 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
     public ClustersPanel(String id, String parentOid, String mode, ObjectDetailsModels<RoleAnalysisSessionType> model) {
         super(id, model, null);
-        this.parentOid = parentOid;
-        this.mode = mode;
     }
 
     @Override
     protected void initLayout() {
-        this.parentOid = getObjectWrapper().getOid();
-        this.mode = getPageParameterMode();
-        addForm();
-    }
-
-    String getPageParameterMode() {
-        PageParameters params = getPageBase().getPageParameters();
-        return params.get(PageCluster.PARAMETER_MODE).toString();
-    }
-
-    public void addForm() {
         Form<?> form = new Form<>(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
@@ -110,24 +83,15 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
     }
 
     private ObjectQuery getCustomizeContentQuery() {
-
-        if (parentOid != null) {
-            return ((PageBase) getPage()).getPrismContext().queryFor(RoleAnalysisClusterType.class)
+        return getPrismContext().queryFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
-                    .ref(parentOid, RoleAnalysisSessionType.COMPLEX_TYPE)
+                    .ref(getObjectDetailsModels().getObjectWrapper().getOid(), RoleAnalysisSessionType.COMPLEX_TYPE)
                     .build();
-        }
-        return null;
     }
 
-    protected MainObjectListPanel<?> clusterTable() {
+    protected MainObjectListPanel<RoleAnalysisClusterType> clusterTable() {
 
-        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleAnalysisClusterType.class) {
-
-            @Override
-            protected boolean notContainsNameColumn(@NotNull List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> iColumns) {
-                return false;
-            }
+        MainObjectListPanel<RoleAnalysisClusterType> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleAnalysisClusterType.class) {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
@@ -157,38 +121,6 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns = new ArrayList<>();
 
                 IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
-
-                column = new SelectableObjectNameColumn<>(createStringResource("ObjectType.name"), null, null, null) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
-
-                        PageBase pageBase = (PageBase) getPage();
-                        OperationResult operationResult = new OperationResult("prepareObjects");
-                        List<PrismObject<FocusType>> elements = new ArrayList<>();
-
-                        List<ObjectReferenceType> elements1 = rowModel.getObject().getValue().getMember();
-                        for (ObjectReferenceType objectReferenceType : elements1) {
-                            elements.add(getFocusTypeObject(pageBase, objectReferenceType.getOid(), operationResult));
-                        }
-
-                        List<PrismObject<FocusType>> points = new ArrayList<>();
-
-                        ClusterBasicDetailsPanel detailsPanel = new ClusterBasicDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                Model.of("TO DO: details"), elements, points, mode) {
-                            @Override
-                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                super.onClose(ajaxRequestTarget);
-                            }
-                        };
-                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-
-                    }
-                };
-
-                columns.add(column);
 
                 column = new AbstractColumn<>(
                         createStringResource("RoleMining.cluster.table.members.count")) {
@@ -370,61 +302,6 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("RoleMining.cluster.table.load.operation.panel")) {
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-                        if (model.getObject().getValue() != null && model.getObject().getValue()
-                                .getClusterStatistic().getMemberCount() != null) {
-
-                            AjaxIconButton ajaxButton = new AjaxIconButton(componentId, Model.of("fa fa-bars"),
-                                    createStringResource("RoleMining.cluster.table.load.operation.panel")) {
-                                @Override
-                                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    String parentRef = model.getObject().getValue().getRoleAnalysisSessionRef().getOid();
-                                    if (parentRef != null) {
-                                        PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid(getPageBase(),
-                                                parentRef, new OperationResult("getParent"));
-                                        PageParameters params = new PageParameters();
-                                        String oid = model.getObject().getValue().asPrismObject().getOid();
-                                        assert getParent != null;
-
-                                        params.set(PageMiningOperation.PARENT_PARAMETER_OID, parentRef);
-                                        params.set(OnePageParameterEncoder.PARAMETER, oid);
-
-                                        ((PageBase) getPage()).navigateToNext(PageMiningOperation.class, params);
-
-                                    }
-                                }
-                            };
-
-                            ajaxButton.add(AttributeAppender.replace("class", " btn btn-default btn-sm d-flex "
-                                    + "justify-content-center align-items-center"));
-                            ajaxButton.add(new AttributeAppender("style", " width:40px; "));
-                            ajaxButton.setOutputMarkupId(true);
-
-                            cellItem.add(ajaxButton);
-
-                        } else {
-                            cellItem.add(new Label(componentId,
-                                    (Integer) null));
-                        }
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                    @Override
-                    public String getSortProperty() {
-                        return RoleAnalysisClusterType.F_CLUSTER_STATISTIC.toString();
-                    }
-                };
-                columns.add(column);
-
-                column = new AbstractColumn<>(
                         createStringResource("RoleMining.cluster.table.similar.image.popup")) {
 
                     @Override
@@ -439,7 +316,7 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), model.getObject().getValue().asPrismObject().getOid(), mode) {
+                                            Model.of("Image"), model.getObject().getValue().asPrismObject().getOid(), model.getObject().getValue().getDetectionOption().getDetectionMode().toString()) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);

@@ -49,7 +49,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/miningOperation1", matchUrlForSecurity = "/admin/miningOperation1")
+                @Url(mountUrl = "/admin/miningOperation", matchUrlForSecurity = "/admin/miningOperation")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(

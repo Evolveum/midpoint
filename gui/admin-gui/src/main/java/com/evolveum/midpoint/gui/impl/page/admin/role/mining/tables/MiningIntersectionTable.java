@@ -57,13 +57,13 @@ public class MiningIntersectionTable extends Panel {
     private static final String ID_DATATABLE = "datatable_extra";
 
     RoleAnalysisProcessModeType roleAnalysisProcessModeType;
-    String clusterOid;
+//    String clusterOid;
 
     public MiningIntersectionTable(String id, List<DetectedPattern> miningSets,
-            RoleAnalysisProcessModeType roleAnalysisProcessModeType, String clusterOid) {
+            RoleAnalysisProcessModeType roleAnalysisProcessModeType) {
         super(id);
         this.roleAnalysisProcessModeType = roleAnalysisProcessModeType;
-        this.clusterOid = clusterOid;
+//        this.clusterOid = clusterOid;
         RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(miningSets) {
 

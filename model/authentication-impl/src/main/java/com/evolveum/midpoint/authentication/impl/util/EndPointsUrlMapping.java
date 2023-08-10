@@ -51,7 +51,7 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
     //TODO authz + url
-    ROLE_MINING_DETAILS1("/admin/miningOperation1/**",
+    ROLE_MINING_DETAILS1("/admin/roleAnalysisCluster/**",
             new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
                     "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_ROLES_ALL_URL,
@@ -67,7 +67,7 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
     //TODO authz + url
-    ROLE_MINING_SESSION_DETAILS1("/admin/clusterTable1/**",
+    ROLE_MINING_SESSION_DETAILS1("/admin/roleAnalysisSession/**",
             new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
                     "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_ROLES_ALL_URL,
