@@ -375,6 +375,7 @@ public class SecurityUtil {
         return StringUtils.trim(split[0]);
     }
 
+    /** Consider using more benevolent {@link #getPrincipalIfExists()}. */
     public static MidPointPrincipal getPrincipalSilent() {
         try {
             return getPrincipal();

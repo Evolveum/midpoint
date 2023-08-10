@@ -35,6 +35,12 @@ public class ScriptingProfile extends AbstractSecurityProfile {
             AccessDecision.ALLOW,
             Map.of());
 
+    /** "Allow nothing" profile. */
+    private static final ScriptingProfile NONE = new ScriptingProfile(
+            SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
+            AccessDecision.DENY,
+            Map.of());
+
     private ScriptingProfile(
             @NotNull String identifier,
             @NotNull AccessDecision defaultDecision,
@@ -45,6 +51,10 @@ public class ScriptingProfile extends AbstractSecurityProfile {
 
     public static @NotNull ScriptingProfile full() {
         return FULL;
+    }
+
+    public static @NotNull ScriptingProfile none() {
+        return NONE;
     }
 
     public static ScriptingProfile of(@NotNull ScriptingProfileType bean) throws ConfigurationException {

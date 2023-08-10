@@ -13,40 +13,6 @@
         <autoassignEnabled>true</autoassignEnabled>
     </roleManagement>
     <expressions>
-        <!-- TODO re-enable this when the time comes; currently the whole processing fails because of uncompilable profiles -->
-        <!--<expressionProfile>-->
-        <!--    <identifier>faulty</identifier>-->
-        <!--    <description>-->
-        <!--        Intentionally "faulty" profile that references non-existing permission profile.-->
-        <!--    </description>-->
-        <!--    <decision>deny</decision>-->
-        <!--    <evaluator>-->
-        <!--        <type>asIs</type>-->
-        <!--        <decision>allow</decision>-->
-        <!--    </evaluator>-->
-        <!--    <evaluator>-->
-        <!--        <type>path</type>-->
-        <!--        <decision>allow</decision>-->
-        <!--    </evaluator>-->
-        <!--    <evaluator>-->
-        <!--        <type>value</type>-->
-        <!--        <decision>allow</decision>-->
-        <!--    </evaluator>-->
-        <!--    <evaluator>-->
-        <!--        <type>const</type>-->
-        <!--        <decision>allow</decision>-->
-        <!--    </evaluator>-->
-        <!--    <evaluator>-->
-        <!--        <type>script</type>-->
-        <!--        <decision>deny</decision>-->
-        <!--        <script>-->
-        <!--            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>-->
-        <!--            <decision>allow</decision>-->
-        <!--            <typeChecking>true</typeChecking>-->
-        <!--            <permissionProfile>NON-EXISTING</permissionProfile>-->
-        <!--        </script>-->
-        <!--    </evaluator>-->
-        <!--</expressionProfile>-->
         <expressionProfile>
             <identifier>restricted</identifier>
             <description>
@@ -80,6 +46,20 @@
                     <permissionProfile>script-restricted</permissionProfile>
                 </script>
             </evaluator>
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>trusted</identifier>
+            <decision>allow</decision>
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>little-trusted</identifier>
+            <documentation>Trusts but only so that a "simpleTrustedFunction" is allowed to be run.</documentation>
+            <decision>deny</decision> <!-- no expressions except for specified ones -->
+            <evaluator>
+                <type>function</type>
+                <decision>allow</decision>
+            </evaluator>
+            <functionLibraryProfile>little-trusted</functionLibraryProfile>
         </expressionProfile>
         <permissionProfile>
             <identifier>script-restricted</identifier>
@@ -208,6 +188,18 @@
                 <decision>allow</decision>
             </action>
         </scriptingProfile>
+        <functionLibrariesProfile>
+            <identifier>little-trusted</identifier>
+            <decision>deny</decision>
+            <library>
+                <ref oid="8752dce7-432a-48ad-aa10-1d4deb31dcba"/>
+                <decision>deny</decision>
+                <function>
+                    <name>simpleTrustedFunction</name>
+                    <decision>allow</decision>
+                </function>
+            </library>
+        </functionLibrariesProfile>
         <defaults>
             <scripting>restricted</scripting>
         </defaults>

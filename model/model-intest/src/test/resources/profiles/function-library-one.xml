@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<functionLibrary
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="8752dce7-432a-48ad-aa10-1d4deb31dcba">
+    <name>one</name>
+    <!-- archetype not provided -> default (full) expression profile -->
+    <function>
+        <name>simpleTrustedFunction</name>
+        <parameter>
+            <name>dummy</name>
+            <type>xsd:string</type>
+        </parameter>
+        <script>
+            <code>
+                com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom()
+            </code>
+        </script>
+    </function>
+</functionLibrary>
