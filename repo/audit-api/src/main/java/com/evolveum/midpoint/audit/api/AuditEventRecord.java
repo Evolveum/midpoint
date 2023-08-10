@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,10 +31,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -154,19 +152,15 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
      * to determine whether the action is allowed or not. Usually it is the same as initiator. But e.g. when "runAsRef" mechanism
      * is used for expression evaluation (or the like), the effective principal is the one that was used to evaluate
      * the expression.
-     *
-     * TODO determine the name
      */
     private PrismReferenceValue effectivePrincipalRef;
 
     /**
-     * True if the effective privileges used to execute the operation differ from the regular (declared) privileges
-     * of the {@link #effectivePrincipalRef}. This is usually the case when "runPrivileged" mechanism is used
-     * for expression evaluation (or the like).
-     *
-     * TODO determine the name ... effectiveAuthorizationsModified?
+     * Present if the effective privileges used to execute the operation differ or may differ from the regular
+     * (declared) privileges of the {@link #effectivePrincipalRef}. This is usually the case e.g. when "runPrivileged"
+     * mechanism is used for expression evaluation.
      */
-    private Boolean effectivePrivilegesModified;
+    private EffectivePrivilegesModificationType effectivePrivilegesModification;
 
     /**
      * (primary) target (object, the thing acted on): store OID, type, name.
@@ -371,12 +365,12 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         this.effectivePrincipalRef = effectivePrincipalRef;
     }
 
-    public Boolean isEffectivePrivilegesModified() {
-        return effectivePrivilegesModified;
+    public @Nullable EffectivePrivilegesModificationType getEffectivePrivilegesModification() {
+        return effectivePrivilegesModification;
     }
 
-    public void setEffectivePrivilegesModified(Boolean effectivePrivilegesModified) {
-        this.effectivePrivilegesModified = effectivePrivilegesModified;
+    public void setEffectivePrivilegesModification(EffectivePrivilegesModificationType value) {
+        this.effectivePrivilegesModification = value;
     }
 
     public PrismReferenceValue getTargetRef() {
@@ -666,7 +660,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         clone.nodeIdentifier = this.nodeIdentifier;
         clone.initiatorRef = this.initiatorRef;
         clone.effectivePrincipalRef = this.effectivePrincipalRef;
-        clone.effectivePrivilegesModified = this.effectivePrivilegesModified;
+        clone.effectivePrivilegesModification = this.effectivePrivilegesModification;
         clone.attorneyRef = this.attorneyRef;
         clone.outcome = this.outcome;
         clone.sessionIdentifier = this.sessionIdentifier;
@@ -692,7 +686,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
                 + " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
                 + " toid=" + taskOid + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
                 + ", I=" + formatReference(initiatorRef) + ", A=" + formatReference(attorneyRef)
-                + ", EP=" + formatReference(effectivePrincipalRef) + ", epm=" + effectivePrivilegesModified
+                + ", EP=" + formatReference(effectivePrincipalRef) + ", epm=" + effectivePrivilegesModification
                 + ", T=" + formatReference(targetRef) + ", TO=" + formatReference(targetOwnerRef) + ", et=" + eventType
                 + ", es=" + eventStage + ", D=" + deltas + ", ch=" + channel + ", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
@@ -744,7 +738,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatReference(initiatorRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Attorney", formatReference(attorneyRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Effective principal", formatReference(effectivePrincipalRef), indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "Effective privileges modified", effectivePrivilegesModified, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Effective privileges modification", effectivePrivilegesModification, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatReference(targetRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatReference(targetOwnerRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Type", eventType, indent + 1);

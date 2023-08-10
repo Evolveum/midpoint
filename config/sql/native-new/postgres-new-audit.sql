@@ -78,6 +78,8 @@ CREATE TYPE AuditEventTypeType AS ENUM ('GET_OBJECT', 'ADD_OBJECT', 'MODIFY_OBJE
 
 CREATE TYPE AuditEventStageType AS ENUM ('REQUEST', 'EXECUTION', 'RESOURCE');
 
+CREATE TYPE EffectivePrivilegesModificationType AS ENUM ('ELEVATION', 'FULL_ELEVATION', 'REDUCTION', 'OTHER');
+
 CREATE TYPE ChangeType AS ENUM ('ADD', 'MODIFY', 'DELETE');
 -- endregion
 
@@ -110,6 +112,10 @@ CREATE TABLE ma_audit_event (
     initiatorName TEXT,
     attorneyOid UUID,
     attorneyName TEXT,
+    effectivePrincipalOid UUID,
+    effectivePrincipalType ObjectType,
+    effectivePrincipalName TEXT,
+    effectivePrivilegesModification EffectivePrivilegesModificationType,
     targetOid UUID,
     targetType ObjectType,
     targetName TEXT,
@@ -354,4 +360,4 @@ limit 50;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_audit_change(4, $$ SELECT 1 $$, true);
+call apply_audit_change(5, $$ SELECT 1 $$, true);

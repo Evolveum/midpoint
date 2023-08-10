@@ -202,11 +202,11 @@
                         It is the subject of the operation. Authorizations of the initiator are
                         used to evaluate access to the operation. This is the entity who is formally
                         responsible for the operation. Although initiator is always a user in
-                        midPoint 3.7 and earlier, the initiator may be an organization in later
-                        midPoint versions.
+                        midPoint 3.7 and earlier, the initiator may be an organization, a role,
+                        or a service in later midPoint versions.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>c:FocusType</a:objectReferenceTargetType>
                         <a:displayName>AuditEventRecordType.initiatorRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -216,13 +216,44 @@
                     <xsd:documentation>
                         Attorney is the (physical) user who have executed the action.
                         This is the user that have logged-in to the user interface. This is the
-                        user that pressed the button to execute the action. This is always identity
-                        of a user and it will always be a user. It cannot be a company or any other
-                        virtual entity.
+                        user that pressed the button to execute the action.
+
+                        For the vast majority of cases, this is really an object of UserType. But sometimes it can be
+                        a ServiceType (or, very occasionally, maybe RoleType or OrgType - but this does not make
+                        much sense).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>c:FocusType</a:objectReferenceTargetType>
                         <a:displayName>AuditEventRecordType.attorneyRef</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="effectivePrincipalRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The effective principal that was used to execute the action.
+                        This is the subject whose authorizations were evaluated to determine whether the action is allowed or not.
+                        Usually it is the same as initiator. But e.g. when "runAsRef" mechanism is used for expression evaluation
+                        (or the like), the effective principal is the one that was used to evaluate the expression.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                        <a:objectReferenceTargetType>c:FocusType</a:objectReferenceTargetType>
+                        <a:displayName>AuditEventRecordType.effectivePrincipalRef</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="effectivePrivilegesModification" type="tns:EffectivePrivilegesModificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Present if the effective privileges used to execute the operation differ or may differ from the regular
+                         (declared) privileges of the "effectivePrincipalRef". This is usually the case e.g. when
+                        "runPrivileged" mechanism is used for expression evaluation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                        <a:objectReferenceTargetType>c:FocusType</a:objectReferenceTargetType>
+                        <a:displayName>AuditEventRecordType.effectivePrivilegesModification</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -647,6 +678,61 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RESOURCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="EffectivePrivilegesModificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How were the effective privileges modified?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="elevation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Privileges were elevated to some degree. It may or may not be the maximum degree (full authorization).
+                        Only if we are really sure, we set "fullElevation" value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ELEVATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fullElevation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Privileges were elevated to the maximum degree, i.e. to full authorization.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL_ELEVATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reduction">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Privileges were reduced to some degree.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REDUCTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="other">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Privileges were changed in a different way (maybe some reduced, others elevated).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OTHER"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

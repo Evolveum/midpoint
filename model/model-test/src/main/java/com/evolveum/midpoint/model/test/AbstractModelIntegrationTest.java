@@ -4754,7 +4754,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void loginSuperUser(MidPointPrincipal principal) {
-        principal.addExtraAuthorizationIfMissing(SecurityUtil.createPrivilegedAuthorization());
+        principal.addExtraAuthorizationIfMissing(SecurityUtil.createPrivilegedAuthorization(), true);
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
         securityContext.setAuthentication(createMpAuthentication(authentication));

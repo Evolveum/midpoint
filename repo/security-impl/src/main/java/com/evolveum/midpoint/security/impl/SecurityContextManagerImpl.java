@@ -187,7 +187,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
                 if (origPrincipal instanceof MidPointPrincipal midPointPrincipal) {
                     MidPointPrincipal newMidPointPrincipal =
                             midPointPrincipal.cloneWithAdditionalAuthorizations(
-                                    List.of(privilegedAuthorization));
+                                    List.of(privilegedAuthorization), true);
                     newPrincipal = newMidPointPrincipal;
                     newAuthorities = List.copyOf(newMidPointPrincipal.getAuthorities());
                 } else {

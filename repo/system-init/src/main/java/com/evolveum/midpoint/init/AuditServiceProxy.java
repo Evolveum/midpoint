@@ -39,7 +39,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 
@@ -173,8 +172,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             if (record.getEffectivePrincipalRef() == null) {
                 record.setEffectivePrincipal(principal.getFocusPrismObject());
             }
-            if (record.isEffectivePrivilegesModified() == null) {
-                record.setEffectivePrivilegesModified(principal.isAuthorizationsModified());
+            if (record.getEffectivePrivilegesModification() == null) {
+                record.setEffectivePrivilegesModification(principal.getEffectivePrivilegesModification());
             }
             if (record.getAttorneyRef() == null) {
                 record.setAttorney(principal.getAttorneyPrismObject());
