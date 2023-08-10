@@ -6,10 +6,9 @@
   -->
 
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="a2242707-43cd-4f18-b986-573cb468693d">
-    <name>restricted-role</name>
-    <documentation>Role whose expressions are evaluated in "restricted" profile.</documentation>
+    oid="655a32e0-aaa8-4163-9f4d-eee68a84a25d">
+    <name>little-trusted-task</name>
     <archetypePolicy>
-        <expressionProfile>restricted</expressionProfile>
+        <expressionProfile>little-trusted</expressionProfile>
     </archetypePolicy>
 </archetype>

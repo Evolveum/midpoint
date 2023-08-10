@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.test.RunFlag;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,6 +49,12 @@ import com.evolveum.midpoint.test.TestObject;
  * . `test1xx`: auto-assigned roles
  * . `test2xx`: various expressions in explicitly-assigned roles
  * . `test3xx`: bulk actions
+ *
+ * Expression profiles:
+ *
+ * . `restricted` - allows a lot of expressions, except with some limitations on Groovy method calls
+ * . `trusted` - no restrictions whatsoever
+ * . `little-trusted` - allows almost nothing; just an invocation of one specifically trusted library function
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -58,6 +65,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "profiles");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_ONE = TestObject.file(
+            TEST_DIR, "function-library-one.xml", "8752dce7-432a-48ad-aa10-1d4deb31dcba");
 
     private static final DummyTestResource RESOURCE_SIMPLE_TARGET = new DummyTestResource(
             TEST_DIR, "resource-simple-target.xml", "2003a0c3-62a3-413d-9941-6fecaef84a16", "simple-target");
@@ -74,6 +84,10 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<ArchetypeType> ARCHETYPE_RESTRICTED_ROLE = TestObject.file(
             TEST_DIR, "archetype-restricted-role.xml", "a2242707-43cd-4f18-b986-573cb468693d");
+    private static final TestObject<ArchetypeType> ARCHETYPE_TRUSTED_ROLE = TestObject.file(
+            TEST_DIR, "archetype-trusted-role.xml", "b162bbaa-d7f4-42ff-9f9c-754d495f9e52");
+    private static final TestObject<ArchetypeType> ARCHETYPE_LITTLE_TRUSTED_ROLE = TestObject.file(
+            TEST_DIR, "archetype-little-trusted-role.xml", "11733320-82a1-4a48-84d5-c7b551446a0b");
 
     // auto-assigned roles are initialized only in specific tests (and then deleted)
     private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_GOOD = TestObject.file(
@@ -106,12 +120,15 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final File FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-expression-execute-script.xml");
     private static final File FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER = new File(TEST_DIR, "scripting-notification-custom-handler.xml");
     private static final File FILE_SCRIPTING_SCRIPT_IN_QUERY = new File(TEST_DIR, "scripting-script-in-query.xml");
+    private static final File FILE_SCRIPTING_SCRIPT_IN_UNASSIGN_FILTER = new File(TEST_DIR, "scripting-script-in-unassign-filter.xml");
+
+    private static final File FILE_SCRIPTING_EXECUTE_SIMPLE_TRUSTED_FUNCTION = new File(TEST_DIR, "scripting-execute-simpleTrustedFunction.xml");
 
     private static final String DETAIL_REASON_MESSAGE =
             "Access to Groovy method com.evolveum.midpoint.model.intest.TestExpressionProfiles#boom denied"
                     + " (applied expression profile 'restricted')";
 
-    private static boolean boomed;
+    private static final RunFlag BOOMED_FLAG = new RunFlag();
 
     @Autowired private ScriptingService scriptingService;
 
@@ -122,11 +139,14 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         RESOURCE_SIMPLE_TARGET.initAndTest(this, initTask, initResult);
 
         initTestObjects(initTask, initResult,
+                FUNCTION_LIBRARY_ONE,
+                ARCHETYPE_RESTRICTED_ROLE,
+                ARCHETYPE_TRUSTED_ROLE,
+                ARCHETYPE_LITTLE_TRUSTED_ROLE,
                 METAROLE_DUMMY,
                 ROLE_UNRESTRICTED,
                 ROLE_SCRIPTING,
                 USER_JOE,
-                ARCHETYPE_RESTRICTED_ROLE,
                 ROLE_RESTRICTED_GOOD,
                 ROLE_RESTRICTED_BAD_FOCUS_MAPPING,
                 ROLE_RESTRICTED_BAD_CONSTRUCTION_MAPPING,
@@ -168,7 +188,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_GOOD.oid);
         }
 
-        assertNotBoomed(); // only by mistake, as the role does not involve such a call
+        // only by mistake, as the role does not involve such a call
+        BOOMED_FLAG.assertNotSet();
     }
 
     /** This checks that filter expressions are not supported - hence, safe. :) */
@@ -196,7 +217,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION.oid);
         }
 
-        assertNotBoomed();
+        BOOMED_FLAG.assertNotSet();
     }
 
     /** Non-compliant script in mapping expression. */
@@ -237,7 +258,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION.oid);
         }
 
-        assertNotBoomed();
+        BOOMED_FLAG.assertNotSet();
     }
 
     /** Non-compliant script in mapping condition. */
@@ -330,7 +351,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             assertFailure(result);
         }
 
-        assertNotBoomed();
+        BOOMED_FLAG.assertNotSet();
     }
 
     /** "Incorrect" restricted role is used: bad mapping in construction. */
@@ -367,7 +388,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             assertFailure(result);
         }
 
-        assertNotBoomed();
+        BOOMED_FLAG.assertNotSet();
 
         and("the object is really not in repo");
         assertObjectDoesntExist(RoleType.class, role.oid);
@@ -428,35 +449,79 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 RoleType.F_INDUCEMENT.append(333L));
     }
 
-    // TODO test300: execution with known origin
-
+    /** Executing script directly with the `trusted` origin. Should succeed. */
     @Test
-    public void test300BulkActionWithKnownOrigin() {
-        // TODO
+    public void test300BulkActionWithKnownOrigin() throws CommonException, IOException {
+        runPositiveBulkActionTest(FILE_SCRIPTING_EXECUTE_SCRIPT, ARCHETYPE_TRUSTED_ROLE);
     }
 
-    /** Executing script directly. */
+    /** Executing script directly (with the default profile). Should fail. */
     @Test
     public void test310UntrustedBulkExecutingScriptDirectly() throws CommonException, IOException {
         runNegativeBulkActionTest(FILE_SCRIPTING_EXECUTE_SCRIPT);
     }
 
-    /** Executing script via expression. */
+    /** Executing script via expression (with the default profile). Should fail. */
     @Test
     public void test315UntrustedBulkExecutingScriptViaExpression() throws CommonException, IOException {
         runNegativeBulkActionTest(FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT);
     }
 
-    /** Executing script via notification. */
+    /** Executing script via notification (with the default profile). Should fail. */
     @Test
     public void test320UntrustedBulkExecutingScriptViaNotification() throws CommonException, IOException {
         runNegativeNotificationBulkActionTest(FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER);
     }
 
-    /** Executing script via search filter. */
+    /** Executing script via search filter (with the default profile). Should fail. */
     @Test
     public void test325UntrustedBulkExecutingScriptViaSearchFilter() throws CommonException, IOException {
         runNegativeBulkActionTest(FILE_SCRIPTING_SCRIPT_IN_QUERY);
+    }
+
+    /** Executing script via filter in `unassign` action. Should fail. */
+    @Test
+    public void test330UntrustedBulkExecutingScriptViaUnassignFilter() throws CommonException, IOException {
+        runNegativeBulkActionTest(FILE_SCRIPTING_SCRIPT_IN_UNASSIGN_FILTER);
+    }
+
+    /** Executing script in trusted library function. Should succeed. */
+    @Test
+    public void test350LittleTrustedLibraryCall() throws CommonException, IOException {
+        runPositiveBulkActionTest(FILE_SCRIPTING_EXECUTE_SIMPLE_TRUSTED_FUNCTION, ARCHETYPE_LITTLE_TRUSTED_ROLE);
+    }
+
+    private void runPositiveBulkActionTest(File file, TestObject<ArchetypeType> archetype) throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        given("unprivileged user is logged in");
+        login(USER_JOE.getNameOrig());
+
+        when("bulk action is executed");
+        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        scriptingService.evaluateExpression(
+                ExecuteScriptConfigItem.of(
+                        script,
+                        originForArchetype(archetype)),
+                VariablesMap.emptyMap(),
+                false,
+                task, result);
+        assertSuccess(result);
+
+        and("'boomed' flag is set");
+        BOOMED_FLAG.assertSet();
+    }
+
+    private ConfigurationItemOrigin originForArchetype(TestObject<ArchetypeType> archetype) {
+        return ConfigurationItemOrigin.inObject(
+                        new RoleType()
+                                .assignment(archetype.assignmentTo())
+                                .archetypeRef(archetype.ref())
+                                .roleMembershipRef(archetype.ref()),
+                        ItemPath.EMPTY_PATH)
+                .toApproximate();
     }
 
     private void runNegativeBulkActionTest(File file) throws CommonException, IOException {
@@ -487,12 +552,13 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         }
 
         and("not boomed");
-        assertNotBoomed();
+        BOOMED_FLAG.assertNotSet();
     }
 
     /**
      * Different from {@link #runNegativeBulkActionTest(File)} in that the exception is not thrown (notifications don't do that)
      */
+    @SuppressWarnings("SameParameterValue")
     private void runNegativeNotificationBulkActionTest(File file) throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -512,7 +578,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 task, result);
 
         then("not boomed");
-        assertNotBoomed();
+        BOOMED_FLAG.assertNotSet();
 
         and("result is an error");
         assertFailure(result);
@@ -529,18 +595,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     public static void boom() {
         // We intentionally do not throw an exception here
-        LOGGER.error("This shouldn't have happened!");
-        boomed = true;
+        BOOMED_FLAG.set();
     }
 
     private static void resetBoomed() {
-        boomed = false;
-    }
-
-    private static void assertNotBoomed() {
-        if (boomed) {
-            throw new AssertionError("Boomed!");
-        }
+        BOOMED_FLAG.reset();
     }
 
     // TODO move upwards

@@ -104,16 +104,18 @@ public class ExpressionEvaluationContext {
     private VariableProducer variableProducer;
 
     /**
-     * Optional. If not specified then it will be added at the start of expression evaluation.
-     * Might be used to override the profile specified in Expression.
+     * Optional when the context is created. If not specified at that time, then it will be set here at the start
+     * of expression evaluation from the {@link Expression}.
      */
     private ExpressionProfile expressionProfile;
 
     /**
      * Evaluator profile for specific expression evaluator in question. It is computed
      * on the start of expression evaluation.
+     *
+     * Set to nonsense value just to make sure it will get correctly initialized.
      */
-    private ExpressionEvaluatorProfile expressionEvaluatorProfile;
+    private ExpressionEvaluatorProfile expressionEvaluatorProfile = ExpressionEvaluatorProfile.forbidden();
 
     /**
      * Computes value metadata in given situation.
@@ -177,7 +179,7 @@ public class ExpressionEvaluationContext {
         return expressionEvaluatorProfile;
     }
 
-    void setExpressionEvaluatorProfile(ExpressionEvaluatorProfile expressionEvaluatorProfile) {
+    public void setExpressionEvaluatorProfile(ExpressionEvaluatorProfile expressionEvaluatorProfile) {
         this.expressionEvaluatorProfile = expressionEvaluatorProfile;
     }
 

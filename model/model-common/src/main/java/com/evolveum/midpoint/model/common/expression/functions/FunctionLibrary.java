@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
@@ -111,5 +113,10 @@ public class FunctionLibrary {
         return new FunctionLibraryBinding(
                 getName(),
                 new LibraryFunctionExecutor(this, expressionFactory));
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public @NotNull PrismObject<FunctionLibraryType> getLibraryObject() {
+        return libraryBean.asPrismObject();
     }
 }

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.embedded;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
@@ -15,8 +13,8 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.embedded;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
@@ -25,11 +23,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.controller.tasks.ActivityExecutor;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +54,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.controller.tasks.ActivityExecutor;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
@@ -77,7 +71,12 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -99,7 +98,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
@@ -1800,16 +1801,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         OperationResult result = parentResult.createMinorSubresult(SUBMIT_TASK_FROM_TEMPLATE);
         try {
-            MidPointPrincipal principal = securityContextManager.getPrincipal();
-            if (principal == null) {
-                throw new SecurityViolationException("No current user");
-            }
-            TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid,
-                    createCollection(createExecutionPhase()), opTask, result).asObjectable();
+            var principalRef = SecurityUtil.getPrincipalRequired().toObjectReference();
+            TaskType newTask = modelService.getObject(
+                    TaskType.class, templateTaskOid, createCollection(createExecutionPhase()), opTask, result)
+                    .asObjectable();
             newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
             newTask.setOid(null);
             newTask.setTaskIdentifier(null);
-            newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
+            newTask.setOwnerRef(principalRef);
             newTask.setExecutionState(RUNNABLE);
             newTask.setSchedulingState(READY);
             for (Item<?, ?> extensionItem : extensionItems) {
@@ -1838,6 +1837,40 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 .findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
         List<Item<?, ?>> extensionItems = ObjectTypeUtil.mapToExtensionItems(extensionValues, extDef, prismContext);
         return submitTaskFromTemplate(templateTaskOid, extensionItems, opTask, parentResult);
+    }
+
+    public @NotNull String submitTaskFromTemplate(
+            @NotNull String templateOid,
+            @NotNull ActivityCustomization customization,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws CommonException {
+        OperationResult result = parentResult.createMinorSubresult(SUBMIT_TASK_FROM_TEMPLATE);
+        try {
+            TaskType newTask =
+                    modelService
+                            .getObject(TaskType.class, templateOid, createCollection(createExecutionPhase()), task, result)
+                            .asObjectable();
+
+            if (newTask.getOwnerRef() != null) {
+                LOGGER.warn("Ignoring owner {} of the task template {}; the current user will be used as the task owner",
+                        newTask.getOwnerRef(), newTask);
+            }
+            newTask.setOwnerRef(null);
+
+            newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
+            newTask.setOid(null);
+            newTask.setTaskIdentifier(null);
+
+            return submit(
+                    customization.applyTo(newTask),
+                    ActivitySubmissionOptions.create().withTaskTemplate(newTask),
+                    task, result);
+
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't submit task from template: " + t.getMessage(), t);
+            throw t;
+        }
     }
 
     @Override

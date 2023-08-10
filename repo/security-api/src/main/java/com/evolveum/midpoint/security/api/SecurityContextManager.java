@@ -39,8 +39,15 @@ public interface SecurityContextManager {
     /**
      * Returns principal representing the currently logged-in user.
      * Assumes that the user is logged-in. Otherwise an exception is thrown.
+     *
+     * @see SecurityUtil#getPrincipal()
+     * @see SecurityUtil#getPrincipalIfExists()
+     * @see SecurityUtil#getPrincipalRequired()
+     * @see SecurityUtil#getPrincipalOidIfAuthenticated()
      */
-    MidPointPrincipal getPrincipal() throws SecurityViolationException;
+    default MidPointPrincipal getPrincipal() throws SecurityViolationException {
+        return SecurityUtil.getPrincipal();
+    }
 
     /**
      * Returns OID of the current principal. After login is complete, the returned OID is the same as

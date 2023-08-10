@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -73,15 +76,24 @@ public class LibraryFunctionExecutor {
 
             LOGGER.trace("function to execute {}", function);
 
-            ExpressionEvaluationContext context = createExpressionEvaluationContext(function, params);
+            var task = ScriptExpressionEvaluationContext.getTaskRequired();
             D outputDefinition = ExpressionEvaluationUtil.prepareFunctionOutputDefinition(function);
-            Expression<V, D> expression =
-                    functionLibraryManager.createFunctionExpression(function, outputDefinition, context, result);
 
-            PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, result);
+            ExpressionProfile functionExpressionProfile =
+                    functionLibraryManager.determineFunctionExpressionProfile(library, result);
+
+            Expression<V, D> expression =
+                    functionLibraryManager.createFunctionExpression(
+                            function, outputDefinition, functionExpressionProfile, task, result);
+
+            ExpressionEvaluationContext functionEvaluationContext =
+                    createFunctionEvaluationContext(function, functionExpressionProfile, params, task);
+
+            PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(functionEvaluationContext, result);
             LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
-            return ExpressionEvaluationUtil.getSingleRealValue(outputTriple, outputDefinition, context.getContextDescription());
+            return ExpressionEvaluationUtil.getSingleRealValue(
+                    outputTriple, outputDefinition, functionEvaluationContext.getContextDescription());
 
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
                 ConfigurationException | SecurityViolationException e) {
@@ -89,8 +101,8 @@ public class LibraryFunctionExecutor {
         }
     }
 
-    private @NotNull ExpressionEvaluationContext createExpressionEvaluationContext(
-            FunctionConfigItem function, Map<String, Object> params)
+    private @NotNull ExpressionEvaluationContext createFunctionEvaluationContext(
+            FunctionConfigItem function, ExpressionProfile functionExpressionProfile, Map<String, Object> params, Task task)
             throws SchemaException, ConfigurationException {
         VariablesMap variables = new VariablesMap();
         if (MapUtils.isNotEmpty(params)) {
@@ -106,7 +118,8 @@ public class LibraryFunctionExecutor {
                         null,
                         variables,
                         "custom function execute",
-                        ScriptExpressionEvaluationContext.getTaskRequired());
+                        task);
+        context.setExpressionProfile(functionExpressionProfile);
         context.setExpressionFactory(expressionFactory);
         return context;
     }

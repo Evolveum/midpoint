@@ -11,9 +11,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager;
 
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager.FunctionInLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.LibraryFunctionExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationUtil;
 import com.evolveum.midpoint.schema.config.*;
+
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +31,6 @@ import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpression
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -78,10 +80,18 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
         try {
-            var function = functionLibraryManager.getFunction(functionCallCI, context.getContextDescription(), result);
+            FunctionInLibrary function =
+                    functionLibraryManager.getFunction(functionCallCI, context.getContextDescription(), result);
+
+            ExpressionProfile functionExpressionProfile =
+                    functionLibraryManager.determineFunctionExpressionProfile(function.library(), result);
+
             Expression<V, D> functionExpression =
-                    functionLibraryManager.createFunctionExpression(function, outputDefinition, context, result);
-            ExpressionEvaluationContext functionEvaluationContext = createFunctionEvaluationContext(function, context, result);
+                    functionLibraryManager.createFunctionExpression(
+                            function.function(), outputDefinition, functionExpressionProfile, context.getTask(), result);
+
+            ExpressionEvaluationContext functionEvaluationContext =
+                    createFunctionEvaluationContext(function, functionExpressionProfile, context, result);
 
             return evaluateFunctionExpression(functionExpression, functionEvaluationContext, result);
         } catch (Throwable t) {
@@ -93,11 +103,10 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
     }
 
     private @NotNull ExpressionEvaluationContext createFunctionEvaluationContext(
-            FunctionConfigItem function, ExpressionEvaluationContext context, OperationResult parentResult)
+            FunctionInLibrary functionInLibrary, @NotNull ExpressionProfile functionExpressionProfile,
+            ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
-
-        ExpressionEvaluationContext functionContext = context.shallowClone();
 
         VariablesMap functionVariables = new VariablesMap();
 
@@ -112,15 +121,13 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
                 String shortDesc = "argument " + argumentName + " evaluation in " + context.getContextDescription();
 
                 // TODO find better name + simplify
-                D argumentValueDefinition = ExpressionEvaluationUtil.determineVariableOutputDefinition(function, argumentName);
-
-                // TODO: expression profile should be determined somehow
-                ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+                D argumentValueDefinition = ExpressionEvaluationUtil.determineVariableOutputDefinition(
+                        functionInLibrary.function(), argumentName);
 
                 Expression<V, D> argumentExpression = context.getExpressionFactory()
                         .makeExpression(
                                 argumentExpressionCI, argumentValueDefinition,
-                                expressionProfile,
+                                ExpressionProfile.none(), // a profile should be set in the context
                                 shortDesc, context.getTask(), argumentResult);
 
                 PrismValueDeltaSetTriple<V> argumentValueTriple = argumentExpression.evaluate(context, argumentResult);
@@ -139,7 +146,11 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             }
         }
 
+        ExpressionEvaluationContext functionContext = context.shallowClone();
         functionContext.setVariables(functionVariables);
+        functionContext.setExpressionProfile(functionExpressionProfile);
+        // to be sure it gets initialized correctly
+        functionContext.setExpressionEvaluatorProfile(ExpressionEvaluatorProfile.forbidden());
         return functionContext;
     }
 

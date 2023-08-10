@@ -6,8 +6,8 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      oid="16c7a275-83b5-44c7-9b37-0114a56efb2b">
-    <name>scripting</name>
+    oid="4cbaf4a6-bf40-4b86-9e77-98398c36d383">
+    <name>unprivileged</name>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript</action>

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.common.expression.functions;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -16,14 +17,13 @@ import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.config.FunctionConfigItem;
 import com.evolveum.midpoint.schema.config.FunctionExpressionEvaluatorConfigItem;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,6 +60,7 @@ public class FunctionLibraryManager implements Cache {
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ExpressionProfileManager expressionProfileManager;
 
     /** Indexed by OID. The collection is immutable. */
     private volatile Map<String, FunctionLibrary> cachedLibraries;
@@ -132,7 +133,7 @@ public class FunctionLibraryManager implements Cache {
     /**
      * Finds a function by name. See {@link FunctionLibrary#findFunction(String, Collection, String)} for details.
      */
-    public @NotNull FunctionConfigItem getFunction(
+    public @NotNull FunctionInLibrary getFunction(
             @NotNull FunctionExpressionEvaluatorConfigItem functionCall,
             @NotNull String contextDesc,
             @NotNull OperationResult result)
@@ -143,7 +144,9 @@ public class FunctionLibraryManager implements Cache {
             throw new ConfigurationException(
                     "No function library with OID %s found in %s".formatted(libraryOid, contextDesc));
         }
-        return library.findFunction(functionCall.getFunctionName(), functionCall.getArgumentNames(), contextDesc);
+        return new FunctionInLibrary(
+                library.findFunction(functionCall.getFunctionName(), functionCall.getArgumentNames(), contextDesc),
+                library);
     }
 
     private @Nullable FunctionLibrary findLibrary(@NotNull String libraryOid, @NotNull OperationResult result)
@@ -161,14 +164,17 @@ public class FunctionLibraryManager implements Cache {
     }
 
     public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createFunctionExpression(
-            FunctionConfigItem function, D outputDefinition, ExpressionEvaluationContext context, OperationResult result)
+            FunctionConfigItem function,
+            D outputDefinition,
+            @NotNull ExpressionProfile functionExpressionProfile,
+            Task task,
+            OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException {
-        // TODO: expression profile should be determined from the function library archetype
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
         return expressionFactory
-                .makeExpression(function, outputDefinition, expressionProfile,
-                        "function execution", context.getTask(), result);
+                .makeExpression(
+                        function, outputDefinition, functionExpressionProfile,
+                        "function execution", task, result);
     }
 
     @Override
@@ -205,5 +211,17 @@ public class FunctionLibraryManager implements Cache {
             emptyIfNull(this.cachedLibraryBindings)
                     .forEach(v -> LOGGER_CACHE_CONTENT.info("Cached function library binding: {}", v));
         }
+    }
+
+    /** TODO cache */
+    public @NotNull ExpressionProfile determineFunctionExpressionProfile(
+            @NotNull FunctionLibrary library, @NotNull OperationResult result) throws SchemaException, ConfigurationException {
+        return expressionProfileManager.determineExpressionProfile(
+                library.getLibraryObject(), result);
+    }
+
+    public record FunctionInLibrary(
+            @NotNull FunctionConfigItem function,
+            @NotNull FunctionLibrary library) {
     }
 }
