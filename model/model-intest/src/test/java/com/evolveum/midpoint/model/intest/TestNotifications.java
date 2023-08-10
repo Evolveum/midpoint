@@ -586,7 +586,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get", null,
+        Event event = new CustomEventImpl(
+                lightweightIdentifierGenerator, "get",
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -606,7 +607,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "post", null,
+        Event event = new CustomEventImpl(
+                lightweightIdentifierGenerator, "post",
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -635,7 +637,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         int messagesHandledOld = httpHandler.messagesHandled;
 
         when();
-        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "general-post", null,
+        Event event = new CustomEventImpl(
+                lightweightIdentifierGenerator, "general-post",
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -667,7 +670,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get-via-proxy", null,
+        Event event = new CustomEventImpl(
+                lightweightIdentifierGenerator, "get-via-proxy",
                 "hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
@@ -690,7 +694,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         prepareNotifications();
 
         when();
-        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "check-variables", null,
+        Event event = new CustomEventImpl(
+                lightweightIdentifierGenerator, "check-variables",
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 

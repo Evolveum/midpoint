@@ -35,6 +35,11 @@ public class ExpressionEvaluatorsProfile implements Serializable {
             AccessDecision.ALLOW,
             List.of());
 
+    /** "Allow none" profile. */
+    private static final ExpressionEvaluatorsProfile NONE = new ExpressionEvaluatorsProfile(
+            AccessDecision.DENY,
+            List.of());
+
     public ExpressionEvaluatorsProfile(
             @NotNull AccessDecision defaultDecision,
             @NotNull List<ExpressionEvaluatorProfile> evaluatorProfiles) {
@@ -44,6 +49,10 @@ public class ExpressionEvaluatorsProfile implements Serializable {
 
     public static @NotNull ExpressionEvaluatorsProfile full() {
         return FULL;
+    }
+
+    public static @NotNull ExpressionEvaluatorsProfile none() {
+        return NONE;
     }
 
     public @NotNull AccessDecision getDefaultDecision() {

@@ -39,10 +39,7 @@
             <selector>
                 <type>UserType</type>
                 <filter>
-                    <q:equal>
-                        <q:path>costCenter</q:path>
-                        <q:value>auto</q:value>
-                    </q:equal>
+                    <q:text>costCenter = "auto"</q:text>
                 </filter>
             </selector>
         </focus>

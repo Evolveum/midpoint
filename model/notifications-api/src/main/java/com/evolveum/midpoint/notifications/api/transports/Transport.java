@@ -8,9 +8,7 @@ package com.evolveum.midpoint.notifications.api.transports;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
 
@@ -42,7 +40,7 @@ public interface Transport<C extends GeneralTransportConfigurationType> {
      * * it would be best to deliver some "context" information to facilitate customizations on various levels,
      * e.g. to inform that notifications need to be redirected to different file than configured in the transport config.
      */
-    void send(Message message, @Deprecated String transportName, Event event, Task task, OperationResult parentResult);
+    void send(Message message, @Deprecated String transportName, SendingContext ctx, OperationResult parentResult);
 
     String getDefaultRecipientAddress(FocusType recipient);
 

@@ -14,8 +14,9 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -25,6 +26,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Manages (cached) expression profiles.
@@ -37,11 +42,26 @@ public class ExpressionProfileManager {
 
     @Autowired SystemObjectCache systemObjectCache;
     @Autowired ArchetypeManager archetypeManager;
+    @Autowired SecurityEnforcer securityEnforcer;
 
     /**
      * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
+     * If no explicit profile can be found, the {@link ExpressionProfile#full()} is returned.
+     * This is the legacy (pre-4.8) behavior.
      */
     public <O extends ObjectType> @NotNull ExpressionProfile determineExpressionProfile(
+            @NotNull PrismObject<O> object, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return Objects.requireNonNullElse(
+                determineExpressionProfileOrNull(object, result),
+                ExpressionProfile.full());
+    }
+
+    /**
+     * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
+     * If no explicit profile is defined, `null` is returned, allowing to plug in a custom default.
+     */
+    private <O extends ObjectType> @Nullable ExpressionProfile determineExpressionProfileOrNull(
             @NotNull PrismObject<O> object, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         Preconditions.checkNotNull(object, "Object is null"); // explicitly checking to avoid false 'null' profiles
@@ -49,14 +69,16 @@ public class ExpressionProfileManager {
         if (profileId != null) {
             return systemObjectCache.getExpressionProfile(profileId, result);
         } else {
-            return ExpressionProfile.full();
+            return null;
         }
     }
 
     /**
-     * We intentionally do not use {@link ArchetypeManager#determineArchetypePolicy(ObjectType, OperationResult)} method,
+     * Determines expression profile ID based on archetype policy for a given object.
+     *
+     * We intentionally do not use {@link ArchetypeManager#determineArchetypePolicy(ObjectType, OperationResult)} method here,
      * as it tries to merge the policy from all archetypes; and it's 1. slow, 2. unreliable, because of ignoring potential
-     * conflicts. Let's do it in more explicit way.
+     * conflicts. So, we do it in more explicit way.
      */
     private <O extends ObjectType> @Nullable String determineExpressionProfileId(
             @NotNull PrismObject<O> object, @NotNull OperationResult result)
@@ -81,6 +103,12 @@ public class ExpressionProfileManager {
         return objectPolicy != null ? objectPolicy.getExpressionProfile() : null;
     }
 
+    /**
+     * Determines {@link ExpressionProfile} for given configuration item origin.
+     *
+     * FIXME this is a transitory implementation: various unknown/external origins are treated as trustworthy.
+     *   This should be changed before expression profiles are declared fully functional.
+     */
     public @NotNull ExpressionProfile determineExpressionProfile(
             @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
@@ -90,12 +118,55 @@ public class ExpressionProfileManager {
             return determineExpressionProfile(inDelta.getTargetPrismObject(), result);
         } else if (origin instanceof ConfigurationItemOrigin.Generated) {
             return ExpressionProfile.full(); // Most probably OK
-        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
+        } else if (origin instanceof ConfigurationItemOrigin.Undetermined undetermined) {
+            stateCheck(!undetermined.isSafe(), "Safe undetermined origin cannot be used to derive expression profile");
             return ExpressionProfile.full(); // Later, we may throw an exception here
         } else if (origin instanceof ConfigurationItemOrigin.External) {
             return ExpressionProfile.full(); // FIXME we should perhaps return a restricted profile here (from the configuration?)
         } else {
             throw new AssertionError(origin);
         }
+    }
+
+    /**
+     * Special version of {@link #determineExpressionProfile(ConfigurationItemOrigin, OperationResult)}
+     * for scripting (bulk actions). It is not as permissive: some origins are banned, and the default for non-root users
+     * is the restricted profile.
+     */
+    public @NotNull ExpressionProfile determineScriptingExpressionProfile(
+            @NotNull ConfigurationItemOrigin origin, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        @Nullable ExpressionProfile profile;
+        if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
+            profile = determineExpressionProfileOrNull(inObject.getOriginatingPrismObject(), result);
+        } else if (origin instanceof ConfigurationItemOrigin.InDelta inDelta) {
+            profile = determineExpressionProfileOrNull(inDelta.getTargetPrismObject(), result);
+        } else if (origin instanceof ConfigurationItemOrigin.Generated) {
+            profile = ExpressionProfile.full(); // Most probably OK
+        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
+            throw new UnsupportedOperationException("Undetermined origin for scripting expressions is not supported");
+        } else if (origin instanceof ConfigurationItemOrigin.External) {
+            profile = null;
+        } else {
+            throw new AssertionError(origin);
+        }
+        if (profile != null) {
+            return profile;
+        }
+        // TODO use system configuration to determine legacy for privileged/unprivileged bulk actions
+        if (securityEnforcer.isAuthorizedAll(task, result)) {
+            return ExpressionProfile.full();
+        } else {
+            return ExpressionProfile.scriptingLegacyUnprivileged();
+        }
+    }
+
+    /**
+     * Origin for custom workflow notifications is blurred, because they travel from policy rules to object triggers.
+     * Hence, we should either disable them completely, or use a safe profile for them.
+     */
+    public @NotNull ExpressionProfile getProfileForCustomWorkflowNotifications(OperationResult result) {
+        return ExpressionProfile.full(); // FIXME!!!
     }
 }

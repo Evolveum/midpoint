@@ -7,13 +7,14 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordResetNotifierType;
@@ -25,18 +26,20 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
     private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
 
     @Override
-    public Class<PasswordResetNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<PasswordResetNotifierType> getEventHandlerConfigurationType() {
         return PasswordResetNotifierType.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(ModelEvent event, PasswordResetNotifierType configuration,
+    protected boolean quickCheckApplicability(
+            ConfigurationItem<? extends PasswordResetNotifierType> configuration,
+            EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) {
         // TODO generalize to FocusType
-        if (!event.hasFocusOfType(UserType.class)) {
+        if (!ctx.event().hasFocusOfType(UserType.class)) {
             LOGGER.trace(
-                    "PasswordResetNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
-                            + event.getClass());
+                    "PasswordResetNotifier is not applicable for this kind of event, continuing in the handler chain; "
+                            + "event class {}", ctx.getEventClass());
             return false;
         } else {
             return true;
@@ -44,8 +47,11 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
     }
 
     @Override
-    protected boolean checkApplicability(ModelEvent event, PasswordResetNotifierType configuration,
+    protected boolean checkApplicability(
+            ConfigurationItem<? extends PasswordResetNotifierType> notifierConfig,
+            EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) {
+        var event = ctx.event();
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
@@ -62,21 +68,27 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
     }
 
     @Override
-    protected String getSubject(ModelEvent event, PasswordResetNotifierType configuration, String transport,
-            Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends PasswordResetNotifierType> notifierConfig,
+            String transport,
+            EventProcessingContext<? extends ModelEvent> ctx,
+            OperationResult result) {
         return "Password reset";
     }
 
     @Override
-    protected String getBody(ModelEvent event, PasswordResetNotifierType generalNotifierType, String transport, Task task,
+    protected String getBody(
+            ConfigurationItem<? extends PasswordResetNotifierType> notifierConfig,
+            String transport,
+            EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) {
-        UserType userType = getUser(event);
+        UserType userType = getUser(ctx.event());
         return "Did you request password reset? If yes, click on the link below \n\n"
-                + createConfirmationLink(userType, generalNotifierType, result);
+                + createConfirmationLink(userType, notifierConfig, result);
     }
 
     @Override
-    public String getConfirmationLink(UserType userType) {
-        return getMidpointFunctions().createPasswordResetLink(userType);
+    public String getConfirmationLink(UserType user) {
+        return getMidpointFunctions().createPasswordResetLink(user);
     }
 }

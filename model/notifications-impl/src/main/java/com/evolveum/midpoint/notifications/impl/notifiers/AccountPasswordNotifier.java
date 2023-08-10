@@ -7,13 +7,16 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccountPasswordNotifierType;
-import org.springframework.stereotype.Component;
 
 @Component
 public class AccountPasswordNotifier extends AbstractGeneralNotifier<ResourceObjectEvent, AccountPasswordNotifierType> {
@@ -21,17 +24,21 @@ public class AccountPasswordNotifier extends AbstractGeneralNotifier<ResourceObj
     private static final Trace LOGGER = TraceManager.getTrace(AccountPasswordNotifier.class);
 
     @Override
-    public Class<ResourceObjectEvent> getEventType() {
+    public @NotNull Class<ResourceObjectEvent> getEventType() {
         return ResourceObjectEvent.class;
     }
 
     @Override
-    public Class<AccountPasswordNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<AccountPasswordNotifierType> getEventHandlerConfigurationType() {
         return AccountPasswordNotifierType.class;
     }
 
     @Override
-    protected boolean checkApplicability(ResourceObjectEvent event, AccountPasswordNotifierType configuration, OperationResult result) {
+    protected boolean checkApplicability(
+            ConfigurationItem<? extends AccountPasswordNotifierType> configuration,
+            EventProcessingContext<? extends ResourceObjectEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
@@ -44,14 +51,23 @@ public class AccountPasswordNotifier extends AbstractGeneralNotifier<ResourceObj
     }
 
     @Override
-    protected String getSubject(ResourceObjectEvent event, AccountPasswordNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends AccountPasswordNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ResourceObjectEvent> ctx,
+            OperationResult result) {
         return "Account password notification";
     }
 
     @Override
-    protected String getBody(ResourceObjectEvent event, AccountPasswordNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends AccountPasswordNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ResourceObjectEvent> ctx,
+            OperationResult result) {
         StringBuilder body = new StringBuilder();
 
+        var event = ctx.event();
         body.append("Password for account ");
         String name = event.getShadowName();
         if (name != null) {

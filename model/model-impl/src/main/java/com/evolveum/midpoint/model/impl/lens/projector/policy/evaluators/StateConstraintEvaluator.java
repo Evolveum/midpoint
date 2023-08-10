@@ -142,7 +142,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                         scriptingExpressionEvaluator.evaluateExpressionPrivileged(
                                 ExecuteScriptConfigItem.of(
                                         constraint.getExecuteScript(),
-                                        ConfigurationItemOrigin.undetermined()), // FIXME origin
+                                        ctx.policyRule.getRuleOrigin().toApproximate()),
                                 variables,
                                 ctx.task,
                                 result);

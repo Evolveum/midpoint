@@ -31,7 +31,7 @@ public class WorkItemAllocationEventImpl extends WorkItemEventImpl implements Wo
             @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase,
             @Nullable Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationInfo, sourceInfo,
-                approvalContext, aCase, null, timeBefore);
+                approvalContext, aCase, timeBefore);
     }
 
     @Override

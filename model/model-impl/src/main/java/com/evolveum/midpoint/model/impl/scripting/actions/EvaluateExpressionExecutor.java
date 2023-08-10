@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
@@ -53,9 +52,6 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
             throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
-        // TODO lift this restriction after expression profiles are implemented
-        checkRootAuthorization(context, globalResult, NAME);
-
         ExpressionType expressionBean = expressionHelper.getActionArgument(
                 ExpressionType.class, action,
                 EvaluateExpressionActionExpressionType.F_EXPRESSION, PARAM_EXPRESSION,
@@ -80,8 +76,6 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
 
         variables.put(ExpressionConstants.VAR_INPUT, inputTypedValue);
 
-        var expressionProfile = MiscSchemaUtil.getExpressionProfile();
-
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                 new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<>()
                         .lensContext(getLensContext(externalVariables))
@@ -94,7 +88,7 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
                     variables,
                     parameters.outputDefinition,
                     parameters.expressionBean,
-                    expressionProfile,
+                    context.getExpressionProfile(),
                     expressionFactory,
                     "in '" + NAME + "' action",
                     context.getTask(), result);

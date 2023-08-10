@@ -14,6 +14,8 @@ import java.util.Set;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
+
 import com.querydsl.sql.types.ArrayType;
 import com.querydsl.sql.types.EnumAsObjectType;
 import jakarta.annotation.PostConstruct;
@@ -86,6 +88,7 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(AdministrativeAvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(AuditEventStageType.class));
         querydslConfig.register(new EnumAsObjectType<>(AuditEventTypeType.class));
+        querydslConfig.register(new EnumAsObjectType<>(EffectivePrivilegesModificationType.class));
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(ChangeType.class)); // used in old audit
         querydslConfig.register(new EnumAsObjectType<>(ChangeTypeType.class));

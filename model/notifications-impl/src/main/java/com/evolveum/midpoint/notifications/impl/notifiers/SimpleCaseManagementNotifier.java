@@ -7,17 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.stereotype.Component;
-
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.CaseEvent;
 import com.evolveum.midpoint.notifications.api.events.CaseManagementEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
@@ -28,12 +18,22 @@ import com.evolveum.midpoint.notifications.impl.events.WorkItemEventImpl;
 import com.evolveum.midpoint.notifications.impl.events.WorkItemLifecycleEventImpl;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.stereotype.Component;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of a notifier dealing with case management events (related to both work items and cases).
@@ -44,12 +44,12 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
     private static final Trace LOGGER = TraceManager.getTrace(SimpleCaseManagementNotifier.class);
 
     @Override
-    public Class<CaseManagementEvent> getEventType() {
+    public @NotNull Class<CaseManagementEvent> getEventType() {
         return CaseManagementEvent.class;
     }
 
     @Override
-    public Class<SimpleWorkflowNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleWorkflowNotifierType> getEventHandlerConfigurationType() {
         return SimpleWorkflowNotifierType.class;
     }
 
@@ -73,12 +73,11 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
 
     @Override
     protected String getSubject(
-            @NotNull CaseManagementEvent event,
-            SimpleWorkflowNotifierType configuration,
+            ConfigurationItem<? extends SimpleWorkflowNotifierType> configuration,
             String transport,
-            Task task,
+            @NotNull EventProcessingContext<? extends CaseManagementEvent> ctx,
             OperationResult result) {
-        return getTitle(event);
+        return getTitle(ctx.event());
     }
 
     private String getTitle(@NotNull CaseManagementEvent event) {
@@ -142,12 +141,16 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
     }
 
     @Override
-    protected String getBody(CaseManagementEvent event, SimpleWorkflowNotifierType configuration,
-            String transport, Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends SimpleWorkflowNotifierType> configuration,
+            String transport,
+            @NotNull EventProcessingContext<? extends CaseManagementEvent> ctx,
+            OperationResult result) {
 
-        boolean techInfo = Boolean.TRUE.equals(configuration.isShowTechnicalInformation());
+        boolean techInfo = Boolean.TRUE.equals(configuration.value().isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
+        var event = ctx.event();
 
         body.append(getTitle(event));
         body.append("\n\n");
@@ -167,8 +170,7 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
         if (techInfo) {
             body.append("----------------------------------------\n");
             body.append("Technical information:\n\n");
-            if (event instanceof WorkItemEventImpl) {
-                WorkItemEventImpl workItemEvent = (WorkItemEventImpl) event;
+            if (event instanceof WorkItemEventImpl workItemEvent) {
                 body.append("WorkItem:\n")
                         .append(PrismUtil.serializeQuietly(prismContext, workItemEvent.getWorkItem()))
                         .append("\n");
@@ -191,8 +193,7 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
 
     private void appendGeneralInformation(StringBuilder sb, CaseManagementEvent event) {
         sb.append("Case name: ").append(event.getCaseName()).append("\n");
-        if (event instanceof WorkItemEventImpl) {
-            WorkItemEventImpl workItemEvent = (WorkItemEventImpl) event;
+        if (event instanceof WorkItemEventImpl workItemEvent) {
             sb.append("Work item: ").append(workItemEvent.getWorkItemName()).append("\n");
             appendStageInformation(sb, event);
             appendEscalationInformation(sb, workItemEvent);
@@ -350,24 +351,15 @@ public class SimpleCaseManagementNotifier extends AbstractGeneralNotifier<CaseMa
 
     private String getOperationPastTenseVerb(WorkItemOperationKindType operationKind) {
         if (operationKind == null) {
-            return "cancelled";        // OK?
+            return "cancelled"; // OK?
         }
-        switch (operationKind) {
-            case CLAIM:
-                return "claimed";
-            case RELEASE:
-                return "released";
-            case COMPLETE:
-                return "completed";
-            case DELEGATE:
-                return "delegated";
-            case ESCALATE:
-                return "escalated";
-            case CANCEL:
-                return "cancelled";
-            default:
-                throw new IllegalArgumentException("operation kind: " + operationKind);
-        }
+        return switch (operationKind) {
+            case CLAIM -> "claimed";
+            case RELEASE -> "released";
+            case COMPLETE -> "completed";
+            case DELEGATE -> "delegated";
+            case ESCALATE -> "escalated";
+            case CANCEL -> "cancelled";
+        };
     }
-
 }

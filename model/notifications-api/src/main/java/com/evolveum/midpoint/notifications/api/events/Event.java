@@ -202,12 +202,6 @@ public interface Event extends DebugDumpable, ShortDumpable, Serializable {
     String getStatusAsText();
 
     /**
-     * If needed, we can prescribe the handler that should process this event. It is recommended only for ad-hoc situations.
-     * A better is to define handlers in system configuration.
-     */
-    EventHandlerType getAdHocHandler();
-
-    /**
      * Returns plaintext focus password value, if known.
      * Beware: might not always work correctly:
      * 1. If the change execution was only partially successful, the value returned might or might not be stored in the repo

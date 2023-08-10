@@ -1609,20 +1609,26 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public String createRegistrationConfirmationLink(UserType userType) {
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
-        if (securityPolicy != null && securityPolicy.getAuthentication() != null
-                && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
+        if (securityPolicy != null
+                && securityPolicy.getAuthentication() != null
+                && securityPolicy.getAuthentication().getSequence() != null
+                && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
             if (selfRegistrationPolicy != null) {
                 String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence();
                 if (resetPasswordSequenceName != null) {
-                    String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                    String prefix = createPrefixLinkByAuthSequence(
+                            SchemaConstants.CHANNEL_SELF_REGISTRATION_URI,
+                            resetPasswordSequenceName,
+                            securityPolicy.getAuthentication().getSequence());
                     if (prefix != null) {
                         return createTokenConfirmationLink(prefix, userType);
                     }
                 }
             }
         }
-        return createTokenConfirmationLink(SchemaConstants.AUTH_MODULE_PREFIX + SchemaConstants.REGISTRATION_PREFIX, userType);
+        return createTokenConfirmationLink(
+                SchemaConstants.AUTH_MODULE_PREFIX + SchemaConstants.REGISTRATION_PREFIX, userType);
     }
 
     @Override
@@ -1741,11 +1747,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public String createPasswordResetLink(UserType userType) {
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(userType.asPrismObject());
-        if (securityPolicy != null && securityPolicy.getAuthentication() != null
-                && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
-            if (securityPolicy.getCredentialsReset() != null && securityPolicy.getCredentialsReset().getAuthenticationSequenceName() != null) {
+        if (securityPolicy != null
+                && securityPolicy.getAuthentication() != null
+                && securityPolicy.getAuthentication().getSequence() != null
+                && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
+            if (securityPolicy.getCredentialsReset() != null
+                    && securityPolicy.getCredentialsReset().getAuthenticationSequenceName() != null) {
                 String resetPasswordSequenceName = securityPolicy.getCredentialsReset().getAuthenticationSequenceName();
-                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_RESET_PASSWORD_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                String prefix = createPrefixLinkByAuthSequence(
+                        SchemaConstants.CHANNEL_RESET_PASSWORD_URI,
+                        resetPasswordSequenceName,
+                        securityPolicy.getAuthentication().getSequence());
                 if (prefix != null) {
                     return createTokenConfirmationLink(prefix, userType);
                 }

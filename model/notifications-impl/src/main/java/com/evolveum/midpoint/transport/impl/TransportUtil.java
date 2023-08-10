@@ -147,8 +147,11 @@ public class TransportUtil {
     public static SystemConfigurationType getSystemConfiguration(
             RepositoryService repositoryService, boolean errorIfNotFound, OperationResult result) {
         try {
-            return repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                    null, result).asObjectable();
+            return repositoryService
+                    .getObject(
+                            SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                            null, result)
+                    .asObjectable();
         } catch (ObjectNotFoundException | SchemaException e) {
             if (errorIfNotFound) {
                 LoggingUtils.logException(LOGGER,
@@ -161,7 +164,8 @@ public class TransportUtil {
         }
     }
 
-    private static boolean isRecipientAllowed(String recipient, GeneralTransportConfigurationType transportConfigurationType,
+    private static boolean isRecipientAllowed(
+            String recipient, GeneralTransportConfigurationType transportConfigurationType,
             Task task, OperationResult result, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, Trace logger) {
         if (optionsForFilteringRecipient(transportConfigurationType) > 1) {
             throw new IllegalArgumentException("Couldn't use more than one choice from 'blackList', 'whiteList' and 'recipientFilterExpression'");
@@ -204,11 +208,20 @@ public class TransportUtil {
         return true;
     }
 
-    public static void validateRecipient(List<String> allowedRecipient, List<String> forbiddenRecipient, List<String> recipients,
-            GeneralTransportConfigurationType transportConfigurationType, Task task, OperationResult result, ExpressionFactory expressionFactory,
-            ExpressionProfile expressionProfile, Trace logger) {
+    public static void validateRecipient(
+            List<String> allowedRecipient,
+            List<String> forbiddenRecipient,
+            List<String> recipients,
+            GeneralTransportConfigurationType transportConfigurationType,
+            Task task,
+            OperationResult result,
+            ExpressionFactory expressionFactory,
+            ExpressionProfile expressionProfile,
+            Trace logger) {
         for (String recipient : recipients) {
-            if (TransportUtil.isRecipientAllowed(recipient, transportConfigurationType, task, result, expressionFactory, expressionProfile, logger)) {
+            if (TransportUtil.isRecipientAllowed(
+                    recipient, transportConfigurationType, task, result,
+                    expressionFactory, expressionProfile, logger)) {
                 logger.debug("Recipient " + recipient + "is allowed");
                 allowedRecipient.add(recipient);
             } else {

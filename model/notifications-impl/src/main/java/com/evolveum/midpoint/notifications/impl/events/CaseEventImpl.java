@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 public class CaseEventImpl extends CaseManagementEventImpl implements CaseEvent {
 
     public CaseEventImpl(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, CaseType aCase) {
-        super(lightweightIdentifierGenerator, changeType, aCase.getApprovalContext(), aCase, null);
+        super(lightweightIdentifierGenerator, changeType, aCase.getApprovalContext(), aCase);
     }
 
     @Override

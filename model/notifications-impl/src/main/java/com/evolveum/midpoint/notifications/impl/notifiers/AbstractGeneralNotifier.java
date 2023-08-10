@@ -11,6 +11,10 @@ import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_REC
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +44,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,7 +51,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Base class for most notifiers.
+ * Base class for most notifiers, i.e. handlers that produce notifications out of events.
  */
 @Component
 public abstract class AbstractGeneralNotifier<E extends Event, N extends GeneralNotifierType>
@@ -70,7 +73,10 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     @Autowired private LocalizationService localizationService;
 
     @Override
-    public boolean processEvent(E event, N notifierConfiguration, Task task, OperationResult parentResult)
+    public boolean processEvent(
+            @NotNull ConfigurationItem<? extends N> notifierConfig,
+            @NotNull EventProcessingContext<? extends E> ctx,
+            @NotNull OperationResult parentResult)
             throws SchemaException {
 
         OperationResult result = parentResult.subresult(OP_PROCESS_EVENT)
@@ -78,19 +84,20 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 .addContext("notifier", this.getClass().getName())
                 .build();
         int messagesSent = 0;
+        E event = ctx.event();
         try {
-            logStart(getLogger(), event, notifierConfiguration);
+            logStart(getLogger(), notifierConfig, ctx);
 
             boolean applies = false;
-            if (!quickCheckApplicability(event, notifierConfiguration, result)) {
+            if (!quickCheckApplicability(notifierConfig, ctx, result)) {
                 // nothing to do -- an appropriate message should have been logged in quickCheckApplicability method
                 result.recordNotApplicable();
             } else {
-                if (aggregatedEventHandler.processEvent(event, notifierConfiguration, task, result)) {
-                    if (!checkApplicability(event, notifierConfiguration, result)) {
+                if (aggregatedEventHandler.processEvent(notifierConfig, ctx, result)) {
+                    if (!checkApplicability(notifierConfig, ctx, result)) {
                         // nothing to do -- an appropriate message should have been logged in checkApplicability method
                         result.recordNotApplicable();
-                    } else if (notifierConfiguration.getTransport().isEmpty()) {
+                    } else if (notifierConfig.value().getTransport().isEmpty()) {
                         getLogger().warn("No transports for this notifier, exiting without sending any notifications.");
                         result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No transports");
                     } else {
@@ -99,9 +106,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                         try {
                             VariablesMap variables = getDefaultVariables(event, result);
                             // TODO unify with transportConfig
-                            for (String transportName : notifierConfiguration.getTransport()) {
+                            for (String transportName : notifierConfig.value().getTransport()) {
                                 messagesSent += prepareAndSendMessages(
-                                        event, notifierConfiguration, variables, transportName, task, result);
+                                        notifierConfig, variables, transportName, ctx, result);
                             }
                         } finally {
                             reportNotificationEnd(event, result);
@@ -112,28 +119,29 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             logEnd(getLogger(), event, applies);
             return true; // not-applicable notifiers do not stop processing of other notifiers
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.addReturn("messagesSent", messagesSent);
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
     /** Creates recipient list and sends a message for each recipient. */
-    private int prepareAndSendMessages(E event, N notifierConfig, VariablesMap variables, String transportName,
-            Task task, OperationResult parentResult) throws SchemaException {
+    private int prepareAndSendMessages(
+            ConfigurationItem<? extends N> notifierConfig, VariablesMap variables, String transportName,
+            EventProcessingContext<? extends E> ctx, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.subresult(OP_PREPARE_AND_SEND)
                 .setMinor()
                 .addParam("transportName", transportName)
                 .addContext("notifier", this.getClass().getName())
                 .build();
         try {
+            var event = ctx.event();
             variables.put(ExpressionConstants.VAR_TRANSPORT_NAME, transportName, String.class);
             Transport<?> transport = transportService.getTransport(transportName);
 
-            List<RecipientExpressionResultType> recipients =
-                    getRecipients(event, notifierConfig, variables, task, result);
+            List<RecipientExpressionResultType> recipients = getRecipients(notifierConfig, variables, ctx, result);
             result.addArbitraryObjectCollectionAsContext("recipients", recipients);
 
             if (recipients.isEmpty()) {
@@ -154,8 +162,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
             int sentMessages = 0;
             for (RecipientExpressionResultType recipient : recipients) {
-                sentMessages += prepareAndSendMessage(event,
-                        notifierConfig, variables, transport, transportName, recipient, task, result);
+                sentMessages +=
+                        prepareAndSendMessage(notifierConfig, variables, transport, transportName, recipient, ctx, result);
             }
             return sentMessages;
         } catch (Throwable t) {
@@ -166,24 +174,26 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private int prepareAndSendMessage(E event, N notifierConfig, VariablesMap variables,
+    private int prepareAndSendMessage(
+            ConfigurationItem<? extends N> notifierConfig, VariablesMap variables,
             @NotNull Transport<?> transport, @Deprecated String transportName,
-            RecipientExpressionResultType recipient, Task task, OperationResult result)
+            RecipientExpressionResultType recipient,
+            EventProcessingContext<? extends E> ctx, OperationResult result)
             throws SchemaException {
         // TODO this is what we want in 4.6, parameter must go
         //  But this will also mean rewriting existing tests from legacy to new transport style.
         // String transportName = transport.getName();
 
-        String address = getRecipientAddress(event, transport, recipient, task, result);
+        String address = getRecipientAddress(transport, recipient, ctx, result);
         if (address == null) {
             getLogger().debug("Skipping notification as no recipient address was provided or determined for transport '{}'.", transportName);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided/determined for notifier or transport");
             return 0;
         }
 
-        MessageTemplateContentType messageTemplateContent = findMessageContent(notifierConfig, recipient, result);
+        MessageTemplateContentType messageTemplateContent = findMessageContent(notifierConfig.value(), recipient, result);
 
-        String body = getBody(event, notifierConfig, messageTemplateContent, variables, transportName, task, result);
+        String body = getBody(notifierConfig, messageTemplateContent, variables, transportName, ctx, result);
         if (body == null) {
             getLogger().debug("Skipping notification as null body was provided for transport '{}'.", transportName);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
@@ -197,50 +207,60 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             body += '\n' + subscriptionFooter;
         }
 
-        String contentType = notifierConfig.getContentType();
+        String contentType = notifierConfig.value().getContentType();
         if (contentType == null && messageTemplateContent != null) {
             contentType = messageTemplateContent.getContentType();
         }
         if (contentType == null) {
             // Message template does not have contentTypeExpression, no need to check.
-            contentType = getContentTypeFromExpression(event, notifierConfig, variables, task, result);
+            contentType = getContentTypeFromExpression(notifierConfig, variables, ctx, result);
         }
         if (contentType == null) {
             // default hardcoded in notifier classes
             contentType = getContentType();
         }
 
-        ExpressionType subjectExpression = notifierConfig.getSubjectExpression();
+        ExpressionType subjectExpression = notifierConfig.value().getSubjectExpression();
         if (subjectExpression == null && messageTemplateContent != null) {
             subjectExpression = messageTemplateContent.getSubjectExpression();
         }
         String subject;
         if (subjectExpression != null) {
-            subject = getStringFromExpression(event, variables, task, result, subjectExpression, "subject", false);
+            subject = getStringFromExpression(
+                    subjectExpression,
+                    ConfigurationItemOrigin.undeterminedSafe(), // TODO
+                    "subject",
+                    false,
+                    variables,
+                    ctx, result);
         } else {
-            String subjectPrefix = notifierConfig.getSubjectPrefix();
-            String defaultSubject = getSubject(event, notifierConfig, transportName, task, result);
+            String subjectPrefix = notifierConfig.value().getSubjectPrefix();
+            String defaultSubject = getSubject(notifierConfig, transportName, ctx, result);
             subject = Strings.isNullOrEmpty(subjectPrefix)
                     ? defaultSubject // can be null
                     : subjectPrefix + Strings.nullToEmpty(defaultSubject); // here we don't want nulls, but ""
         }
 
         List<NotificationMessageAttachmentType> attachments = new ArrayList<>();
-        ExpressionType attachmentExpression = notifierConfig.getAttachmentExpression();
+        ExpressionType attachmentExpression = notifierConfig.value().getAttachmentExpression();
         if (attachmentExpression == null && messageTemplateContent != null) {
             attachmentExpression = messageTemplateContent.getAttachmentExpression();
         }
 
         if (attachmentExpression != null) {
-            attachments.addAll(getAttachmentsFromExpression(event, attachmentExpression, variables, task, result));
+            attachments.addAll(
+                    getAttachmentsFromExpression(
+                            attachmentExpression,
+                            ConfigurationItemOrigin.undeterminedSafe(), // TODO
+                            variables,
+                            ctx, result));
         }
         if (messageTemplateContent != null) {
             attachments.addAll(messageTemplateContent.getAttachment());
         }
-        attachments.addAll(notifierConfig.getAttachment());
+        attachments.addAll(notifierConfig.value().getAttachment());
         if (attachments.isEmpty() && attachmentExpression == null) {
-            List<NotificationMessageAttachmentType> defaultAttachments =
-                    getAttachment(event, notifierConfig, transportName, task, result);
+            var defaultAttachments = getAttachment(notifierConfig, transportName, ctx, result);
             if (defaultAttachments != null) {
                 attachments.addAll(defaultAttachments);
             }
@@ -254,21 +274,23 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         message.setAttachments(attachments);
 
         // setting addressing information
-        message.setFrom(getFromFromExpression(event, notifierConfig, variables, task, result));
+        message.setFrom(getFromFromExpression(notifierConfig, variables, ctx, result));
         message.setTo(List.of(address));
-        message.setCc(getCcBccAddresses(notifierConfig.getCcExpression(),
-                variables, "notification cc-expression", task, result));
-        message.setBcc(getCcBccAddresses(notifierConfig.getBccExpression(),
-                variables, "notification bcc-expression", task, result));
+        message.setCc(getCcBccAddresses(notifierConfig.value().getCcExpression(),
+                variables, "notification cc-expression", ctx, result));
+        message.setBcc(getCcBccAddresses(notifierConfig.value().getBccExpression(),
+                variables, "notification bcc-expression", ctx, result));
 
         getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-        transport.send(message, transportName, event, task, result);
+        transport.send(
+                message, transportName, ctx.sendingContext(), result);
         return 1;
     }
 
     @Nullable
-    private String getRecipientAddress(E event, @NotNull Transport<?> transport,
-            RecipientExpressionResultType recipient, Task task, OperationResult result) {
+    private String getRecipientAddress(
+            @NotNull Transport<?> transport, RecipientExpressionResultType recipient,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
         String address = recipient.getAddress();
         if (address == null) {
             ObjectReferenceType recipientRef = recipient.getRecipientRef();
@@ -278,15 +300,15 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 //  and did not re-login.
                 Objectable object = recipientRef.asReferenceValue().getOriginObject();
                 if (object instanceof FocusType) {
-                    return getRecipientAddressFromFocus(event, transport, (FocusType) object, task, result);
+                    return getRecipientAddressFromFocus(transport, (FocusType) object, ctx, result);
                 }
             }
         }
         return address;
     }
 
-    private String getRecipientAddressFromFocus(E event,
-            Transport<?> transport, FocusType focus, Task task, OperationResult result) {
+    private String getRecipientAddressFromFocus(
+            Transport<?> transport, FocusType focus, EventProcessingContext<? extends E> ctx, OperationResult result) {
         GeneralTransportConfigurationType transportConfiguration = transport.getConfiguration();
         if (transportConfiguration != null) {
             // Null can happen for legacy and Dummy transport, but these don't support address from focus anyway.
@@ -294,37 +316,48 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             if (recipientAddressExpression != null) {
                 VariablesMap variables = new VariablesMap();
                 variables.put(VAR_RECIPIENT, focus, FocusType.class);
-                return getStringFromExpression(event, variables, task, result,
-                        recipientAddressExpression, "recipient address expression", true);
+                return getStringFromExpression(
+                        recipientAddressExpression,
+                        ConfigurationItemOrigin.undeterminedSafe(), // TODO
+                        "recipient address expression",
+                        true,
+                        variables, ctx, result);
             }
         }
         return transport.getDefaultRecipientAddress(focus);
     }
 
     @Nullable
-    private String getBody(E event, N notifierConfig, MessageTemplateContentType messageContent,
-            VariablesMap variables, String transportName, Task task, OperationResult result) throws SchemaException {
-        ExpressionType bodyExpression = notifierConfig.getBodyExpression();
+    private String getBody(
+            ConfigurationItem<? extends N> notifierConfig, MessageTemplateContentType messageContent,
+            VariablesMap variables, String transportName, EventProcessingContext<? extends E> ctx, OperationResult result)
+            throws SchemaException {
+        ExpressionType bodyExpression = notifierConfig.value().getBodyExpression();
         if (bodyExpression == null && messageContent != null) {
             bodyExpression = messageContent.getBodyExpression();
         }
         if (bodyExpression != null) {
-            return getBodyFromExpression(event, bodyExpression, variables, task, result);
+            return getBodyFromExpression(
+                    bodyExpression,
+                    ConfigurationItemOrigin.undeterminedSafe(), // TODO
+                    variables,
+                    ctx, result);
         } else {
             // default hardcoded in notifier classes
-            return getBody(event, notifierConfig, transportName, task, result);
+            return getBody(notifierConfig, transportName, ctx, result);
         }
     }
 
     @Nullable
     private MessageTemplateContentType findMessageContent(
-            N notifierConfig, RecipientExpressionResultType recipient, OperationResult result) {
-        ObjectReferenceType messageTemplateRef = notifierConfig.getMessageTemplateRef();
+            N notifierConfigBean, RecipientExpressionResultType recipient, OperationResult result) {
+        ObjectReferenceType messageTemplateRef = notifierConfigBean.getMessageTemplateRef();
         if (messageTemplateRef != null) {
-            MessageTemplateType messageTemplate = (MessageTemplateType) functions.getObject(messageTemplateRef, true, result);
+            MessageTemplateType messageTemplate =
+                    (MessageTemplateType) functions.getObject(messageTemplateRef, true, result);
             if (messageTemplate == null) {
                 getLogger().warn("Message template with OID {} not found, content will be constructed"
-                        + " from the notifier: {}", messageTemplateRef.getOid(), notifierConfig);
+                        + " from the notifier: {}", messageTemplateRef.getOid(), notifierConfigBean);
             } else {
                 MessageTemplateContentType content = messageTemplate.getDefaultContent();
                 ObjectReferenceType recipientRef = recipient.getRecipientRef();
@@ -385,29 +418,44 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     /**
      * Checks the event/notifier applicability _before_ nested filters are applied. So this check should be:
-     * 1) quick
-     * 2) safe - it should not make any assumptions about event content that would cause it to throw an exception
-     * 3) filter out events that obviously do not match the notifier - e.g. simpleUserNotifier should ensure that
+     *
+     * . quick
+     * . safe - it should not make any assumptions about event content that would cause it to throw an exception
+     * . filter out events that obviously do not match the notifier - e.g. simpleUserNotifier should ensure that
      * the focus type is really UserType; this allows nested filters to assume existence of
      * e.g. requestee.fullName element.
      */
-    protected boolean quickCheckApplicability(E event, N generalNotifierType, OperationResult result) {
+    protected boolean quickCheckApplicability(
+            ConfigurationItem<? extends N> notifierConfig,
+            EventProcessingContext<? extends E> ctx,
+            OperationResult result) {
         return true;
     }
 
     /**
      * Checks the event/notifier applicability _after_ nested filters are applied.
      */
-    protected boolean checkApplicability(E event, N generalNotifierType, OperationResult result) {
+    protected boolean checkApplicability(
+            ConfigurationItem<? extends N> notifierConfig,
+            EventProcessingContext<? extends E> ctx,
+            OperationResult result) {
         return true;
     }
 
-    protected String getSubject(E event, N generalNotifierType, String transport, Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends N> notifierConfig,
+            String transport,
+            EventProcessingContext<? extends E> ctx,
+            OperationResult result) {
         return null;
     }
 
     /** Returns default body if no body expression is used. */
-    protected String getBody(E event, N generalNotifierType, String transport, Task task, OperationResult result)
+    protected String getBody(
+            ConfigurationItem<? extends N> notifierConfig,
+            String transport,
+            EventProcessingContext<? extends E> ctx,
+            OperationResult result)
             throws SchemaException {
         return null;
     }
@@ -418,10 +466,14 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
      * explicitly means "no attachments".
      */
     protected List<NotificationMessageAttachmentType> getAttachment(
-            E event, N generalNotifierType, String transportName, Task task, OperationResult result) {
+            ConfigurationItem<? extends N> notifierConfig,
+            String transportName,
+            EventProcessingContext<? extends E> ctx,
+            OperationResult result) {
         return null;
     }
 
+    // TODO why are we limited to users here?
     protected UserType getDefaultRecipient(E event, OperationResult result) {
         ObjectType objectType = functions.getObject(event.getRequestee(), true, result);
         if (objectType instanceof UserType) {
@@ -435,12 +487,16 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return DEFAULT_LOGGER; // in case a subclass does not provide its own logger
     }
 
-    private List<RecipientExpressionResultType> getRecipients(E event,
-            N generalNotifierType, VariablesMap variables, Task task, OperationResult result) {
+    private List<RecipientExpressionResultType> getRecipients(
+            ConfigurationItem<? extends N> config, VariablesMap variables,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
+
+        var event = ctx.event();
         List<RecipientExpressionResultType> recipients = new ArrayList<>();
-        for (ExpressionType expressionType : generalNotifierType.getRecipientExpression()) {
+        for (ExpressionType expressionBean : config.value().getRecipientExpression()) {
             List<RecipientExpressionResultType> r = expressionHelper.evaluateRecipientExpressionChecked(
-                    expressionType, variables, "notification recipient", task, result);
+                    expressionBean, config.origin().toApproximate(), // TODO precise origin
+                    variables, "notification recipient", ctx, result);
             if (r != null) {
                 recipients.addAll(r);
             }
@@ -462,11 +518,14 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     @NotNull
-    private List<String> getCcBccAddresses(List<ExpressionType> expressions, VariablesMap variables,
-            String shortDesc, Task task, OperationResult result) {
+    private List<String> getCcBccAddresses(
+            List<ExpressionType> expressions, VariablesMap variables,
+            String shortDesc, EventProcessingContext<?> ctx, OperationResult result) {
         List<String> addresses = new ArrayList<>();
-        for (ExpressionType expressionType : expressions) {
-            List<String> r = evaluateExpressionChecked(expressionType, variables, shortDesc, task, result);
+        for (ExpressionType expression : expressions) {
+            List<String> r = evaluateExpressionChecked(
+                    expression, ConfigurationItemOrigin.undeterminedSafe(), // TODO origin
+                    variables, shortDesc, ctx, result);
             if (r != null) {
                 addresses.addAll(r);
             }
@@ -474,29 +533,48 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         return addresses;
     }
 
-    private String getFromFromExpression(E event, N generalNotifierType, VariablesMap variables,
-            Task task, OperationResult result) {
-        return getStringFromExpression(event, variables,
-                task, result, generalNotifierType.getFromExpression(), "from", true);
+    private String getFromFromExpression(
+            ConfigurationItem<? extends N> notifierConfig,
+            VariablesMap variables,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
+        return getStringFromExpression(
+                notifierConfig.value().getFromExpression(),
+                notifierConfig.origin().toApproximate(), // TODO precise origin
+                "from",
+                true,
+                variables,
+                ctx, result);
     }
 
-    private String getContentTypeFromExpression(E event, N generalNotifierType, VariablesMap variables,
-            Task task, OperationResult result) {
-        return getStringFromExpression(event, variables,
-                task, result, generalNotifierType.getContentTypeExpression(), "contentType", true);
+    private String getContentTypeFromExpression(
+            ConfigurationItem<? extends N> notifierConfig, VariablesMap variables,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
+        return getStringFromExpression(
+                notifierConfig.value().getContentTypeExpression(),
+                notifierConfig.origin().toApproximate(), // TODO precise origin
+                "contentType",
+                true,
+                variables,
+                ctx, result);
     }
 
-    private String getStringFromExpression(E event, VariablesMap variables,
-            Task task, OperationResult result, ExpressionType expression, String expressionTypeName, boolean canBeNull) {
+    private String getStringFromExpression(
+            @Nullable ExpressionType expression,
+            @NotNull ConfigurationItemOrigin origin,
+            String expressionTypeName,
+            boolean canBeNull,
+            VariablesMap variables,
+            @NotNull EventProcessingContext<?> ctx,
+            @NotNull OperationResult result) {
         if (expression != null) {
             List<String> resultValues = evaluateExpressionChecked(
-                    expression, variables, expressionTypeName + " expression", task, result);
+                    expression, origin, variables, expressionTypeName + " expression", ctx, result);
             if (resultValues == null || resultValues.isEmpty()) {
-                getLogger().debug(expressionTypeName + " expression for event " + event.getId() + " returned nothing.");
+                getLogger().debug(expressionTypeName + " expression for event " + ctx.getEventId() + " returned nothing.");
                 return canBeNull ? null : "";
             }
             if (resultValues.size() > 1) {
-                getLogger().warn(expressionTypeName + " expression for event " + event.getId() + " returned more than 1 item.");
+                getLogger().warn(expressionTypeName + " expression for event " + ctx.getEventId() + " returned more than 1 item.");
             }
             return resultValues.get(0);
         } else {
@@ -504,12 +582,13 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private String getBodyFromExpression(E event, @NotNull ExpressionType bodyExpression, VariablesMap variables,
-            Task task, OperationResult result) {
+    private String getBodyFromExpression(
+            @NotNull ExpressionType bodyExpression, @NotNull ConfigurationItemOrigin origin, VariablesMap variables,
+            EventProcessingContext<?> ctx, OperationResult result) {
         List<String> bodyList = evaluateExpressionChecked(
-                bodyExpression, variables, "body expression", task, result);
+                bodyExpression, origin, variables, "body expression", ctx, result);
         if (bodyList == null || bodyList.isEmpty()) {
-            getLogger().warn("Body expression for event {} returned nothing.", event.getId());
+            getLogger().warn("Body expression for event {} returned nothing.", ctx.getEventId());
             return null;
         } else {
             StringBuilder body = new StringBuilder();
@@ -520,12 +599,19 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private @NotNull List<NotificationMessageAttachmentType> getAttachmentsFromExpression(E event,
-            @NotNull ExpressionType attachmentExpression, VariablesMap variables, Task task, OperationResult result) {
-        List<NotificationMessageAttachmentType> attachment = expressionHelper.evaluateAttachmentExpressionChecked(
-                attachmentExpression, variables, "attachment expression", task, result);
+    private @NotNull List<NotificationMessageAttachmentType> getAttachmentsFromExpression(
+            @NotNull ExpressionType attachmentExpression,
+            @NotNull ConfigurationItemOrigin origin,
+            VariablesMap variables,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
+        List<NotificationMessageAttachmentType> attachment =
+                expressionHelper.evaluateAttachmentExpressionChecked(
+                        attachmentExpression,
+                        origin,
+                        variables, "attachment expression",
+                        ctx, result);
         if (attachment == null) {
-            getLogger().debug("attachment expression for event {} returned nothing.", event.getId());
+            getLogger().debug("attachment expression for event {} returned nothing.", ctx.getEventId());
             return List.of();
         }
         return attachment;

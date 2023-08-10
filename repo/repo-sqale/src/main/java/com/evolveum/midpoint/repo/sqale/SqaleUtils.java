@@ -40,7 +40,7 @@ public class SqaleUtils {
 
     public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 19;
 
-    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 4;
+    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 5;
 
     /**
      * Returns version from midPoint object as a number.

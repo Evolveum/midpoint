@@ -18,14 +18,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class WorkItemCustomEventImpl extends WorkItemEventImpl implements WorkItemCustomEvent {
 
-    public WorkItemCustomEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+    public WorkItemCustomEventImpl(
+            @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
             @NotNull ChangeType changeType,
             @NotNull CaseWorkItemType workItem,
             @Nullable SimpleObjectRef assignee, @Nullable WorkItemOperationSourceInfo sourceInfo,
-            @Nullable ApprovalContextType approvalContext, CaseType aCase,
-            @Nullable EventHandlerType handler) {
+            @Nullable ApprovalContextType approvalContext, CaseType aCase) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null,
-                sourceInfo, approvalContext, aCase, handler, null);
+                sourceInfo, approvalContext, aCase, null);
     }
 
     @Override

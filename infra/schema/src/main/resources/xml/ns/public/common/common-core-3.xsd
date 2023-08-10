@@ -12232,7 +12232,7 @@
             <xsd:element name="scripting" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for midPoint scripting language (bulk actions).
+                        Expression profile for midPoint scripting language (bulk actions) running under an unprivileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>

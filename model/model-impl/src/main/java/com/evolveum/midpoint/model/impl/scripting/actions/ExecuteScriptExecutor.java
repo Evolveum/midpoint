@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,6 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,9 +57,6 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
             throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
-        // TODO lift this restriction after expression profiles are implemented
-        checkRootAuthorization(context, globalResult, NAME);
-
         ScriptExpressionEvaluatorType script = expressionHelper.getActionArgument(
                 ScriptExpressionEvaluatorType.class, action,
                 ExecuteScriptActionExpressionType.F_SCRIPT, PARAM_SCRIPT, input, context, null,
@@ -82,12 +76,10 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile(); // TODO
-
         var scriptExpression = scriptExpressionFactory.createScriptExpression(
                 parameters.script,
                 parameters.outputDefinition,
-                expressionProfile,
+                context.getExpressionProfile(),
                 "script", result);
 
         VariablesMap variables = createVariables(externalVariables);

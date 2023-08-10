@@ -7,26 +7,28 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import java.util.List;
-import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.cases.api.CaseManager;
-
-import com.evolveum.midpoint.cases.api.events.CaseEventCreationListener;
-import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationInfo;
-import com.evolveum.midpoint.cases.api.events.WorkItemOperationInfo;
-import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
-
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.api.events.CaseEventCreationListener;
+import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationInfo;
+import com.evolveum.midpoint.cases.api.events.WorkItemOperationInfo;
+import com.evolveum.midpoint.cases.api.events.WorkItemOperationSourceInfo;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.events.*;
 import com.evolveum.midpoint.notifications.impl.util.EventHelper;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -44,9 +46,9 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
 
     private static final Trace LOGGER = TraceManager.getTrace(CaseEventCreationListenerImpl.class);
 
-    @Autowired private NotificationFunctions functions;
     @Autowired private LightweightIdentifierGenerator identifierGenerator;
     @Autowired private EventHelper eventHelper;
+    @Autowired private ExpressionProfileManager expressionProfileManager;
 
     // CaseManager is not required, because e.g. within model-test and model-intest we have no workflows.
     // However, during normal operation, it is expected to be available.
@@ -107,15 +109,31 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
     }
 
     @Override
-    public void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+    public void onWorkItemCustomEvent(
+            ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
             @NotNull WorkItemNotificationActionType notificationAction, WorkItemEventCauseInformationType cause,
             CaseType aCase, Task task, OperationResult result) {
-        WorkItemEventImpl event = new WorkItemCustomEventImpl(identifierGenerator, ChangeType.ADD, workItem,
+        WorkItemEventImpl event = new WorkItemCustomEventImpl(
+                identifierGenerator, ChangeType.ADD, workItem,
                 SimpleObjectRefImpl.create(assignee),
                 new WorkItemOperationSourceInfo(null, cause, notificationAction),
-                aCase.getApprovalContext(), aCase, notificationAction.getHandler());
+                aCase.getApprovalContext(), aCase);
         initializeWorkflowEvent(event, aCase);
-        eventHelper.processEvent(event, task, result);
+
+        EventHandlerConfigItem customHandlerCI;
+        ExpressionProfile customHandlerProfile;
+        EventHandlerType customHandler = notificationAction.getHandler();
+        if (customHandler != null) {
+            customHandlerCI =
+                    EventHandlerConfigItem.of(
+                            customHandler,
+                            ConfigurationItemOrigin.undeterminedSafe()); // FIXME
+            customHandlerProfile = expressionProfileManager.getProfileForCustomWorkflowNotifications(result);
+        } else {
+            customHandlerCI = null;
+            customHandlerProfile = null;
+        }
+        eventHelper.processEvent(event, customHandlerCI, customHandlerProfile, task, result);
     }
 
     @Override

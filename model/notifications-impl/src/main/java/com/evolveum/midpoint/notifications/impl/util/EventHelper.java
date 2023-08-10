@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.notifications.impl.util;
 
+import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,13 +32,27 @@ public class EventHelper {
     @Autowired private NotificationManager notificationManager;
 
     public void processEvent(Event event, Task task, OperationResult parentResult) {
+        processEvent(event, null, null, task, parentResult);
+    }
+
+    public void processEvent(
+            Event event,
+            EventHandlerConfigItem adHocEventHandler,
+            ExpressionProfile adHocEventExpressionProfile,
+            Task task,
+            OperationResult parentResult) {
         // It would be better if we could go without creating a subresult. However, we need to record
         // the exception, so it should be done so.
         OperationResult result = parentResult.subresult(OP_PROCESS_EVENT)
                 .setMinor()
                 .build();
         try {
-            notificationManager.processEvent(event, task, result);
+            notificationManager.processEvent(
+                    event,
+                    adHocEventHandler,
+                    adHocEventExpressionProfile,
+                    task,
+                    result);
         } catch (RuntimeException e) {
             result.recordFatalError("An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);

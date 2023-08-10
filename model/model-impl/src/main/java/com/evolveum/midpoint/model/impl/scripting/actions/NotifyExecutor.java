@@ -10,6 +10,10 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,28 +73,38 @@ public class NotifyExecutor extends BaseActionExecutor {
         boolean forWholeInput = expressionHelper.getActionArgument(Boolean.class, action,
                 NotifyActionExpressionType.F_FOR_WHOLE_INPUT, PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
 
-        if (handler != null) {
-            checkRootAuthorization(context, globalResult, NAME); // TODO explain that the reason is that handler is not null
-        }
+        EventHandlerConfigItem handlerConfigItem = handler != null ?
+                EventHandlerConfigItem.of(handler, ConfigurationItemOrigin.undeterminedSafe()) : null;
 
         requireNonNull(notificationManager, "Notification manager is unavailable");
         requireNonNull(customEventFactory, "Custom event factory is unavailable");
 
         AtomicInteger eventCount = new AtomicInteger();
         if (forWholeInput) {
-            CustomEvent event = customEventFactory.createEvent(subtype, handler, input.getData(), operation, status, context.getChannel());
-            notificationManager.processEvent(event, context.getTask(), globalResult);
+            CustomEvent event =
+                    customEventFactory.createEvent(subtype, input.getData(), operation, status, context.getChannel());
+            notificationManager.processEvent(
+                    event,
+                    handlerConfigItem,
+                    context.getExpressionProfile(),
+                    context.getTask(),
+                    globalResult);
             eventCount.incrementAndGet();
         } else {
             iterateOverItems(input, context, globalResult,
                     (value, item, result) -> {
-                        CustomEvent event = customEventFactory.createEvent(subtype, handler, value, operation, status, context.getChannel());
-                        notificationManager.processEvent(event, context.getTask(), result);
+                        CustomEvent event =
+                                customEventFactory.createEvent(subtype, value, operation, status, context.getChannel());
+                        notificationManager.processEvent(
+                                event,
+                                handlerConfigItem,
+                                context.getExpressionProfile(),
+                                context.getTask(),
+                                result);
                         eventCount.incrementAndGet();
                     },
-                    (value, exception) -> {
-                        context.println("Failed to notify on " + getDescription(value) + exceptionSuffix(exception));
-                    });
+                    (value, exception) ->
+                            context.println("Failed to notify on " + getDescription(value) + exceptionSuffix(exception)));
         }
         context.println("Produced " + eventCount.get() + " event(s)");
         return input;

@@ -84,25 +84,16 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         return t != null ? " (error: " + t.getClass().getSimpleName() + ": " + t.getMessage() + ")" : "";
     }
 
-    Throwable processActionException(Throwable e, String actionName, PrismValue value, ExecutionContext context) throws ScriptExecutionException {
+    Throwable processActionException(Throwable e, String actionName, PrismValue value, ExecutionContext context)
+            throws ScriptExecutionException {
         if (context.isContinueOnAnyError()) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute action '{}' on {}: {}", e,
                     actionName, value, e.getMessage());
             return e;
         } else {
-            throw new ScriptExecutionException("Couldn't execute action '" + actionName + "' on " + value + ": " + e.getMessage(), e);
-        }
-    }
-
-    void checkRootAuthorization(ExecutionContext context, OperationResult globalResult, String actionName)
-            throws ScriptExecutionException {
-        if (context.isPrivileged()) {
-            return;
-        }
-        try {
-            securityEnforcer.authorizeAll(context.getTask(), globalResult);
-        } catch (CommonException e) {
-            throw new ScriptExecutionException("You are not authorized to execute '" + actionName + "' action.");
+            throw new ScriptExecutionException(
+                    "Couldn't execute action '" + actionName + "' on " + value + ": " + e.getMessage(),
+                    e);
         }
     }
 
@@ -145,7 +136,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     }
 
     private ObjectType asObjectType(PrismValue value) {
-        return (ObjectType) ((PrismObjectValue) value).asObjectable();
+        return (ObjectType) ((PrismObjectValue<?>) value).asObjectable();
     }
 
     String getDescription(PrismValue value) {

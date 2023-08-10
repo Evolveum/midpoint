@@ -88,7 +88,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         var result = createOperationResult();
         var prepared = PreparedQuery.parse(UserType.class, "assignment/construction/resourceRef/@/name =  ?");
         prepared.bind(new PolyString("Dummy Resource"));
-
+        prepared.operationOptionsBuilder().distinct();
         // Search all
         var query = prepared.toTypedQuery();
         var list = modelService.searchObjects(prepared.toTypedQuery(),task, result);

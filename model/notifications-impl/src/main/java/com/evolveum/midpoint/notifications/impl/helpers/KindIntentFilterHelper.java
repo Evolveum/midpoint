@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.notifications.impl.helpers;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
@@ -20,26 +24,29 @@ public class KindIntentFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(KindIntentFilterHelper.class);
 
-    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig) {
+    public boolean processEvent(
+            ConfigurationItem<? extends BaseEventHandlerType> handlerConfig, EventProcessingContext<?> ctx) {
 
-        if (eventHandlerConfig.getObjectKind().isEmpty() && eventHandlerConfig.getObjectIntent().isEmpty()) {
+        List<ShadowKindType> kinds = handlerConfig.value().getObjectKind();
+        List<String> intents = handlerConfig.value().getObjectIntent();
+
+        if (kinds.isEmpty() && intents.isEmpty()) {
             return true;
         }
 
-        if (!(event instanceof ResourceObjectEvent)) {
-            return true;            // or should we return false?
+        if (!(ctx.event() instanceof ResourceObjectEvent resourceObjectEvent)) {
+            return true; // or should we return false?
         }
-        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
-        logStart(LOGGER, event, eventHandlerConfig, eventHandlerConfig.getStatus());
+        logStart(LOGGER, handlerConfig, ctx, DebugUtil.lazy(() -> "kinds: " + kinds + ", intents: " + intents));
 
         boolean retval = true;
 
-        if (!eventHandlerConfig.getObjectKind().isEmpty()) {
+        if (!kinds.isEmpty()) {
             retval = false;
-            for (ShadowKindType shadowKindType : eventHandlerConfig.getObjectKind()) {
+            for (ShadowKindType shadowKindType : kinds) {
                 if (shadowKindType == null) {
-                    LOGGER.warn("Filtering on null shadowKindType; filter = " + eventHandlerConfig);
+                    LOGGER.warn("Filtering on null shadowKindType; filter = " + handlerConfig);
                 } else if (resourceObjectEvent.isShadowKind(shadowKindType)) {
                     retval = true;
                     break;
@@ -49,11 +56,11 @@ public class KindIntentFilterHelper extends BaseNotificationHelper {
 
         if (retval) {
             // now check the intent
-            if (!eventHandlerConfig.getObjectIntent().isEmpty()) {
+            if (!intents.isEmpty()) {
                 retval = false;
-                for (String intent : eventHandlerConfig.getObjectIntent()) {
+                for (String intent : intents) {
                     if (intent == null) {
-                        LOGGER.warn("Filtering on null intent; filter = " + eventHandlerConfig);
+                        LOGGER.warn("Filtering on null intent; filter = " + handlerConfig);
                     } else if (resourceObjectEvent.isShadowIntent(intent)) {
                         retval = true;
                         break;
@@ -62,7 +69,7 @@ public class KindIntentFilterHelper extends BaseNotificationHelper {
             }
         }
 
-        logEnd(LOGGER, event, eventHandlerConfig, retval);
+        logEnd(LOGGER, handlerConfig, ctx, retval);
         return retval;
     }
 }

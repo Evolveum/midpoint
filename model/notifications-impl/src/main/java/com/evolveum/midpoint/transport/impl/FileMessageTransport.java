@@ -12,13 +12,12 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileTransportConfigurationType;
@@ -47,7 +46,7 @@ public class FileMessageTransport implements Transport<FileTransportConfiguratio
     }
 
     @Override
-    public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
+    public void send(Message message, String transportName, SendingContext ctx, OperationResult parentResult) {
         OperationResult result = parentResult.createMinorSubresult(DOT_CLASS + "send");
         String fileName = configuration.getFile();
         if (fileName == null) {

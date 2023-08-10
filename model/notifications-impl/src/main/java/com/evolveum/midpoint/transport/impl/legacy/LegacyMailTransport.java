@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.activation.FileDataSource;
@@ -26,15 +27,14 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.notifications.impl.util.MimeTypeUtil;
@@ -43,8 +43,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -76,7 +74,7 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
     protected ExpressionFactory expressionFactory;
 
     @Override
-    public void send(Message mailMessage, String transportName, Event event, Task task, OperationResult parentResult) {
+    public void send(Message mailMessage, String transportName, SendingContext ctx, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("mailMessage recipient(s)", mailMessage.getTo());
@@ -109,16 +107,17 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
         List<String> allowedRecipientBcc = new ArrayList<>();
         List<String> forbiddenRecipientBcc = new ArrayList<>();
 
+        var task = ctx.task();
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo,
                     mailMessage.getTo(), mailConfigurationType, task, result,
-                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+                    expressionFactory, ctx.expressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc,
                     mailMessage.getCc(), mailConfigurationType, task, result,
-                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+                    expressionFactory, ctx.expressionProfile(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc,
                     mailMessage.getBcc(), mailConfigurationType, task, result,
-                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+                    expressionFactory, ctx.expressionProfile(), LOGGER);
 
             if (redirectToFile != null) {
                 if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {

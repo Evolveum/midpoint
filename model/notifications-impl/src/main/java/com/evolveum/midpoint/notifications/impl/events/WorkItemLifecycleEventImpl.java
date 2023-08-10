@@ -22,13 +22,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 
 public class WorkItemLifecycleEventImpl extends WorkItemEventImpl implements WorkItemLifecycleEvent {
 
-    public WorkItemLifecycleEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+    public WorkItemLifecycleEventImpl(
+            @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
             @NotNull CaseWorkItemType workItem,
             @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
             @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
             @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator,
-                operationInfo, sourceInfo, approvalContext, aCase, null, null);
+                operationInfo, sourceInfo, approvalContext, aCase, null);
     }
 
     @Override
