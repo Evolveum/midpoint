@@ -30,6 +30,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -165,6 +166,11 @@ public class MainPageMining extends PageAdmin {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
                 menuItems.add(MainPageMining.this.createDeleteInlineMenu());
                 return menuItems;
+            }
+
+            @Override
+            protected boolean notContainsNameColumn(@NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> iColumns) {
+                return false;
             }
 
             @Override
