@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.tasks.simple;
 
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
@@ -66,6 +68,7 @@ public abstract class SimpleActivityHandler<
     @Autowired protected Clockwork clockwork;
     @Autowired protected ContextFactory contextFactory;
     @Autowired protected ScriptingService scriptingService;
+    @Autowired public ModelObjectResolver modelObjectResolver;
 
     @PostConstruct
     public void register() {

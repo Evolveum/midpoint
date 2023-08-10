@@ -57,6 +57,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getNoOp());
         addTypedParameters(values, definitions.getPropagation());
         addTypedParameters(values, definitions.getMultiPropagation());
+        addTypedParameters(values, definitions.getRoleMembershipManagement());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;

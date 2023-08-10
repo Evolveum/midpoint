@@ -2038,6 +2038,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="roleMembershipManagement" type="tns:RoleMembershipManagementWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Executes the "role membership management" activity.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
             </xsd:choice>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
                 <xsd:annotation>
@@ -6796,6 +6803,25 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Explicit enumeration of objects belonging to this object set.
+                                Functionally equivalent to "inOid" filter in "query".
+
+                                Mutually exclusive with "query".
+
+                                Limitation:
+                                1. All uses except for in "roleMembershipManagementWorkDefinition" are considered
+                                   experimental. (They should work but no guarantees there.)
+                                2. The list here is translated into "has OID" query, so it may not work adequately
+                                   for large lists of objects (e.g. thousands).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -9041,4 +9067,44 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityAffectedObjects" type="tns:ActivityAffectedObjectsType"/>
+
+    <xsd:complexType name="RoleMembershipManagementWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of "role membership management" activity. Currently, it assigns new members to a role,
+                and un-assigns legacy roles (induced by the business role) from them.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="roleRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Role whose membership we are going to manage.
+                                It must exist before execution of this activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="members" type="tns:ObjectSetType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Prospective members of the role.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
+                    <!-- "business" operation options i.e. what we actually want to do (assigning/unassigning members) -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="roleMembershipManagementWorkDefinition" type="tns:RoleMembershipManagementWorkDefinitionType"/>
 </xsd:schema>

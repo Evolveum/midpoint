@@ -6,18 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
-import java.io.IOException;
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
-import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
-import com.evolveum.midpoint.test.TestTask;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.File;
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,11 +20,15 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestResource;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests miscellaneous kinds of tasks that do not deserve their own test class.
@@ -59,6 +57,27 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             new TestTask(TEST_DIR, "task-execute-changes-single.xml", "300370ad-eb92-4b52-8db3-d5820e1366fa");
     private static final TestTask TASK_EXECUTE_CHANGES_MULTI =
             new TestTask(TEST_DIR, "task-execute-changes-multi.xml", "8427d4a9-f0cb-4771-ae51-c6979630068a");
+    private static final TestTask TASK_ROLE_MEMBERSHIP_MANAGEMENT_BASIC =
+            new TestTask(TEST_DIR, "task-role-membership-management-basic.xml", "07e8c51b-e5ae-496e-9b24-4f8701621c0d");
+
+    private static final TestObject<RoleType> ROLE_BUSINESS_1 = TestObject.file(
+            TEST_DIR, "role-business-1.xml", "b48628a2-a032-47c2-947d-adc51940e920");
+    private static final TestObject<RoleType> ROLE_APPLICATION_1 = TestObject.file(
+            TEST_DIR, "role-application-1.xml", "875e287f-dc5b-49d0-a9db-b792947868db");
+    private static final TestObject<RoleType> ROLE_APPLICATION_2 = TestObject.file(
+            TEST_DIR, "role-application-2.xml", "345bf8c5-3be8-4783-8cfc-4b9ae18c1daf");
+    private static final TestObject<UserType> USER_1 = TestObject.file(
+            TEST_DIR, "user-1.xml", "f1c3fbc4-85d6-4559-9a1e-647e3caa25df");
+    private static final TestObject<UserType> USER_2 = TestObject.file(
+            TEST_DIR, "user-2.xml", "3fc7d5bb-d1a6-446b-925e-5680afaa9df6");
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        initTestObjects(initTask, initResult,
+                ROLE_APPLICATION_1, ROLE_APPLICATION_2, ROLE_BUSINESS_1,
+                USER_1, USER_2);
+    }
 
     /**
      * MID-7277
@@ -219,7 +238,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     /** Tests the legacy form of "execute changes" task. */
     @Test
-    public void test150ExecuteChangesLegacy() throws CommonException, IOException {
+    public void test150ExecuteChangesLegacy() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -246,7 +265,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     /** Tests the "single-request" form of "execute changes" task. */
     @Test
-    public void test160ExecuteChangesSingle() throws CommonException, IOException {
+    public void test160ExecuteChangesSingle() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -533,5 +552,43 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         assertTask(aTask.getOid(), "after modification")
                 .display()
                 .assertAffectedObjects(expectedAffectedObjects2);
+    }
+
+    /** Just a basic run of roleMembershipManagement task, migrating members from application roles to a business role. */
+    @Test
+    public void test300RoleMembershipManagementBasic() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("task is run");
+        TASK_ROLE_MEMBERSHIP_MANAGEMENT_BASIC.init(this, task, result);
+        TASK_ROLE_MEMBERSHIP_MANAGEMENT_BASIC.rerun(result); // asserts success
+
+        then("users have business role but no application roles");
+        assertBusinessRoleAndNoApplicationRoles(USER_1.oid);
+        assertBusinessRoleAndNoApplicationRoles(USER_2.oid);
+
+        and("task is OK");
+        TASK_ROLE_MEMBERSHIP_MANAGEMENT_BASIC.assertAfter()
+                .display()
+                .assertProgress(2)
+                .rootActivityState()
+                .itemProcessingStatistics()
+                .assertTotalCounts(2, 0, 0);
+    }
+
+    private void assertBusinessRoleAndNoApplicationRoles(String oid) throws CommonException {
+        // @formatter:off
+        assertUserAfter(oid)
+                .assignments()
+                    .single()
+                        .assertRole(ROLE_BUSINESS_1.oid)
+                    .end()
+                .end()
+                .roleMembershipRefs()
+                    .assertRole(ROLE_BUSINESS_1.oid)
+                    .assertRole(ROLE_APPLICATION_1.oid)
+                    .assertRole(ROLE_APPLICATION_2.oid);
+        // @formatter:on
     }
 }

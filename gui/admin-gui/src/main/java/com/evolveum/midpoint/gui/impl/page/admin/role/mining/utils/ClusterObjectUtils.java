@@ -19,6 +19,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.roles.RoleManagementUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -476,13 +478,9 @@ public class ClusterObjectUtils {
     }
 
     public static List<String> getRolesOidInducements(PrismObject<RoleType> object) {
-        List<String> oidList;
-        List<AssignmentType> assignments = object.asObjectable().getInducement();
-        oidList = assignments.stream().map(AssignmentType::getTargetRef).filter(
-                        targetRef -> targetRef.getType().equals(AbstractRoleType.COMPLEX_TYPE))
-                .map(AbstractReferencable::getOid).sorted()
-                .collect(Collectors.toList());
-        return oidList;
+        return RoleManagementUtil.getInducedRolesOids(object.asObjectable()).stream()
+                .sorted() // do we need this?
+                .toList();
     }
 
     public static void recomputeRoleAnalysisClusterDetectionOptions(String clusterOid, PageBase pageBase,

@@ -18,6 +18,8 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class RepositoryObjectSetSpecificationImpl implements ObjectSetSpecification {
 
     @NotNull private final ObjectSetType objectSetBean;
@@ -32,6 +34,10 @@ public class RepositoryObjectSetSpecificationImpl implements ObjectSetSpecificat
 
     public QueryType getQueryBean() {
         return objectSetBean.getQuery();
+    }
+
+    public @NotNull List<ObjectReferenceType> getExplicitObjectReferences() {
+        return objectSetBean.getObjectRef();
     }
 
     @Override
