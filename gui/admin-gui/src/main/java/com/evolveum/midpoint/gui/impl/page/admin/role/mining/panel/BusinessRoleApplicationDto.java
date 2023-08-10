@@ -87,6 +87,8 @@ public class BusinessRoleApplicationDto implements Serializable {
         ObjectDelta<UserType> addDelta = addRoleAssignment(userOid, prismObjectRole, pageBase);
         deltas.add(addDelta);
 
+        // TODO consider using methods from RoleManagementUtil here
+
         List<String> userRolesAssignmentOids = getRolesOidAssignment(userObject);
         List<String> roleRolesAssignmentOids = getRolesOidInducements(prismObjectRole);
 

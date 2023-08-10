@@ -140,6 +140,7 @@ public class DeletionActivityHandler
             ObjectSetType objects = getWorkDefinition().getObjectSetSpecification();
             argCheck(objects.getType() != null, "Object type must be specified (this is a safety check)");
             argCheck(objects.getQuery() != null, "Object query must be specified (this is a safety check)");
+            // We could later support also explicit object references here
             checkRawModeSettings();
         }
 
