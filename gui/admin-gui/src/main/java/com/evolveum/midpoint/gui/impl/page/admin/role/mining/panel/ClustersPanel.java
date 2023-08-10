@@ -51,6 +51,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 public class ClustersPanel extends Panel {
 
     private static final String ID_DATATABLE = "datatable";
@@ -91,6 +93,11 @@ public class ClustersPanel extends Panel {
     protected MainObjectListPanel<?> clusterTable() {
 
         MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleAnalysisClusterType.class) {
+
+            @Override
+            protected boolean notContainsNameColumn(@NotNull List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> iColumns) {
+                return false;
+            }
 
             @Override
             protected ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
