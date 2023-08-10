@@ -7,16 +7,28 @@
 
 package com.evolveum.midpoint.gui.impl.page.lostusername;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
@@ -35,6 +47,8 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 import java.io.IOException;
 import java.io.Serial;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 @PageDescriptor(
         urls = {
@@ -49,12 +63,23 @@ public class PageUsernameRecovery extends AbstractPageLogin {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_USERNAME = "username";
+    private static final String DOT_CLASS = PageUsernameRecovery.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(PageUsernameRecovery.class);
+    private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
+
+    private static final String ID_LOGIN_NAME_PANEL = "loginNamePanel";
+    private static final String ID_LOGIN_NAME = "loginName";
     private static final String ID_PHOTO = "photo";
+    private static final String ID_CONFIGURED_ITEMS_PANEL = "configuredItemsPanel";
+    private static final String ID_ITEM_NAME = "itemName";
+    private static final String ID_ITEM_VALUE = "itemValue";
+
+    private LoadableModel<List<ItemPathType>> configuredItemsModel;
 
 
     public PageUsernameRecovery() {
         super();
+        initModels();
     }
 
     @Override
@@ -64,12 +89,50 @@ public class PageUsernameRecovery extends AbstractPageLogin {
 
     @Override
     protected void initCustomLayout() {
-        NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource());
-        add(img);
+        WebMarkupContainer loginNamePanel = new WebMarkupContainer(ID_LOGIN_NAME_PANEL);
+        loginNamePanel.setOutputMarkupId(true);
+        loginNamePanel.add(new VisibleBehaviour(() -> !configuredItemsExist()));
+        add(loginNamePanel);
 
-        Label label = new Label(ID_USERNAME, getAuthorizedUserLoginNameModel());
+        NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource());
+        loginNamePanel.add(img);
+
+        Label label = new Label(ID_LOGIN_NAME, getAuthorizedUserLoginNameModel());
         label.add(new VisibleBehaviour(this::isUserFound));
-        add(label);
+        loginNamePanel.add(label);
+
+        initConfiguredItemsPanel();
+    }
+
+    private void initModels() {
+        configuredItemsModel = new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ItemPathType> load() {
+                return loadConfiguredItemPathList();
+            }
+        };
+    }
+
+    private List<ItemPathType> loadConfiguredItemPathList() {
+        List<ItemPathType> configuredItems = new ArrayList<>();
+
+        var task = createSimpleTask(OPERATION_GET_SECURITY_POLICY);
+        var result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
+        try {
+            var securityPolicy = getModelInteractionService().getSecurityPolicy(getMidpointPrincipal().getFocusPrismObject(),
+                    getMidpointAuthentication().getArchetypeOid(), task, result);
+            var loginNameRecoveryConfig = securityPolicy.getLoginNameRecovery();
+            configuredItems = loginNameRecoveryConfig.getItemToDisplay();
+        } catch (Exception e) {
+            LOGGER.debug("Unable to load the configured items list for login recovery page, ", e);
+        }
+        return configuredItems;
+    }
+
+    private boolean configuredItemsExist() {
+        return configuredItemsModel != null && CollectionUtils.isNotEmpty(configuredItemsModel.getObject());
     }
 
     private AbstractResource getImageResource() {
@@ -98,13 +161,47 @@ public class PageUsernameRecovery extends AbstractPageLogin {
         return Model.of(loginName);
     }
 
+    private void initConfiguredItemsPanel() {
+        ListView<ItemPathType> configuredItemsPanel = new ListView<>(ID_CONFIGURED_ITEMS_PANEL, configuredItemsModel) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<ItemPathType> item) {
+                Label itemName = new Label(ID_ITEM_NAME, resolveItemName(item.getModelObject()));
+                item.add(itemName);
+
+                Label itemValue = new Label(ID_ITEM_VALUE, resolveItemValue(item.getModelObject()));
+                item.add(itemValue);
+            }
+        };
+        configuredItemsPanel.setOutputMarkupId(true);
+        configuredItemsPanel.add(new VisibleBehaviour(() -> isUserFound() && configuredItemsExist()));
+        add(configuredItemsPanel);
+    }
+
+    private IModel<String> resolveItemName(ItemPathType itemPath) {
+        return () -> {
+            ItemDefinition<?> def = new UserType().asPrismObject().getDefinition().findItemDefinition(itemPath.getItemPath());
+            return WebComponentUtil.getItemDefinitionDisplayNameOrName(def);
+        };
+    }
+
+    private IModel<String> resolveItemValue(ItemPathType itemPath) {
+        return () -> {
+            FocusType focus = getPrincipalFocus();
+            var value = focus.asPrismObject().findItem(itemPath.getItemPath()).getRealValue();
+            return value == null ? "" : value.toString();
+        };
+    }
+
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
         return createStringResource(getTitleKey());
     }
 
     private String getTitleKey() {
-        return isUserFound() ? "PageLoginRecoveryFinish.title.success" : "PageLoginRecoveryFinish.title.fail";
+        return isUserFound() ? "PageUsernameRecovery.title.success" : "PageUsernameRecovery.title.fail";
     }
 
     @Override
@@ -113,8 +210,13 @@ public class PageUsernameRecovery extends AbstractPageLogin {
     }
 
     private String getTitleDescriptionKey() {
-        return isUserFound() ?
-                "PageLoginRecoveryFinish.title.success.description" : "PageLoginRecoveryFinish.title.fail.description";
+        if (isUserFound() && configuredItemsExist()) {
+            return "PageUsernameRecovery.title.success.configuredItems.description";
+        }
+        if (isUserFound()) {
+            return "PageUsernameRecovery.title.success.description";
+        }
+        return "PageUsernameRecovery.title.fail.description";
     }
 
     private boolean isUserFound() {
