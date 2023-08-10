@@ -263,11 +263,6 @@ public class BasicTableSelector extends Panel {
     protected MainObjectListPanel<?> basicRoleHelperTable(int usersCount) {
 
         MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleType.class) {
-            @Override
-            public List<SelectableBean<RoleType>> isAnythingSelected(
-                    AjaxRequestTarget target, IModel<SelectableBean<RoleType>> selectedObject) {
-                return super.isAnythingSelected(target, selectedObject);
-            }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {

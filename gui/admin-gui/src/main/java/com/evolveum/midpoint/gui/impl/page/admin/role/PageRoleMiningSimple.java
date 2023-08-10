@@ -481,11 +481,6 @@ public class PageRoleMiningSimple extends PageAdmin {
     protected MainObjectListPanel<?> basicRoleHelperTable() {
 
         MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE_DETAILS, RoleType.class) {
-            @Override
-            public List<SelectableBean<RoleType>> isAnythingSelected(
-                    AjaxRequestTarget target, IModel<SelectableBean<RoleType>> selectedObject) {
-                return super.isAnythingSelected(target, selectedObject);
-            }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {

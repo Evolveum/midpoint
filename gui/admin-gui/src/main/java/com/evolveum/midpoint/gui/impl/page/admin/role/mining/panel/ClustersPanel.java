@@ -43,7 +43,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
+import com.evolveum.midpoint.web.component.data.column.SelectableObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -121,7 +121,7 @@ public class ClustersPanel extends Panel {
 
                 IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
 
-                column = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
+                column = new SelectableObjectNameColumn<>(createStringResource("ObjectType.name"), null, null, null) {
 
                     @Serial private static final long serialVersionUID = 1L;
 

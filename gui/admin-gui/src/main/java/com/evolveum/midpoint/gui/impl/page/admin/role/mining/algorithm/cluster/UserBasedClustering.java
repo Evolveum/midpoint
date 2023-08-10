@@ -15,21 +15,19 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.test.DBSCANClusterer2;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
 import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public class UserBasedClustering implements Clusterable {
 

@@ -47,7 +47,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
+import com.evolveum.midpoint.web.component.data.column.SelectableObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -174,7 +174,7 @@ public class MainPageMining extends PageAdmin {
 
                 IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
 
-                column = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
+                column = new SelectableObjectNameColumn<>(createStringResource("ObjectType.name"), null, null, null) {
 
                     @Serial private static final long serialVersionUID = 1L;
 
