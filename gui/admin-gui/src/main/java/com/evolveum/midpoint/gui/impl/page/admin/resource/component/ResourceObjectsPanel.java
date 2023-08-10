@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AssociationSearchItemWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.DurationWithOneElementPanel;
@@ -96,7 +97,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String DOT_CLASS = ResourceObjectsPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
     protected static final String OPERATION_RECLASSIFY_SHADOWS = DOT_CLASS + "reclassifyShadows";
-    protected static final String OPERATION_RELOAD_SHADOWS = DOT_CLASS + "reloadShadows";
 
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
@@ -108,9 +108,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private IModel<Boolean> showStatisticsModel = Model.of(false);
-
-    private AjaxSelfUpdatingTimerBehavior reloadedBehaviour;
-    private String taskOidForReloaded;
 
     public ResourceObjectsPanel(String id, ResourceDetailsModel resourceDetailsModel, ContainerPanelConfigurationType config) {
         super(id, resourceDetailsModel, config);
@@ -366,12 +363,15 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     protected abstract ShadowKindType getKind();
 
     private ObjectQuery getResourceContentQuery() {
-        ResourceObjectTypeDefinitionType objectType = getSelectedObjectType();
+        ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType == null) {
             return ObjectQueryUtil.createResourceAndKind(getObjectDetailsModels().getObjectType().getOid(), getKind());
         }
         try {
-            return ObjectQueryUtil.createResourceAndKindIntent(getObjectDetailsModels().getObjectType().getOid(), getKind(), objectType.getIntent());
+            return ObjectQueryUtil.createResourceAndKindIntent(
+                    getObjectDetailsModels().getObjectType().getOid(),
+                    getKind(),
+                    objectType.getIntent());
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot create query for resource content", e);
         }
@@ -433,7 +433,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 return "Reload objects on " + getObjectWrapperObject().asObjectable();
             }
         };
-        reload.add(new VisibleBehaviour(() -> getSelectedObjectType() != null));
+        reload.add(new VisibleBehaviour(() -> getSelectedObjectTypeDefinition() != null));
         return reload;
     }
 
@@ -489,7 +489,12 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private ResourceObjectTypeDefinitionType getSelectedObjectType() {
-        DropDownChoicePanel<ResourceObjectTypeDefinitionType> objectTypeSelector = getObjectTypeSelector();
+        ResourceObjectTypeDefinition objectTypeDefinition = getSelectedObjectTypeDefinition();
+        return objectTypeDefinition == null ? null : objectTypeDefinition.getDefinitionBean();
+    }
+
+    private ResourceObjectTypeDefinition getSelectedObjectTypeDefinition() {
+        DropDownChoicePanel<ResourceObjectTypeDefinition> objectTypeSelector = getObjectTypeSelector();
         if (objectTypeSelector != null && objectTypeSelector.getModel() != null) {
             return objectTypeSelector.getModel().getObject();
         }
@@ -497,7 +502,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private String getIntent() {
-        ResourceObjectTypeDefinitionType objectType = getSelectedObjectType();
+        ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType != null) {
             return objectType.getIntent();
         }
@@ -505,15 +510,15 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private QName getObjectClass() {
-        ResourceObjectTypeDefinitionType objectType = getSelectedObjectType();
+        ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType != null) {
-            return objectType.getDelineation() != null ? objectType.getDelineation().getObjectClass() : null;
+            return objectType.getObjectClassName();
         }
         return null;
     }
 
-    private DropDownChoicePanel<ResourceObjectTypeDefinitionType> getObjectTypeSelector() {
-        return (DropDownChoicePanel<ResourceObjectTypeDefinitionType>) get(ID_OBJECT_TYPE);
+    private DropDownChoicePanel<ResourceObjectTypeDefinition> getObjectTypeSelector() {
+        return (DropDownChoicePanel<ResourceObjectTypeDefinition>) get(ID_OBJECT_TYPE);
     }
 
     private ShadowTablePanel getShadowTable() {

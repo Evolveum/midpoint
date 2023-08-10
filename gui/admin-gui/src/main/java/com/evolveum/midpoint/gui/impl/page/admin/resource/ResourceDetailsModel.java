@@ -14,10 +14,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -125,32 +122,34 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
 
     }
 
-    public ResourceObjectTypeDefinitionType getDefaultObjectType(ShadowKindType kind) {
+    public ResourceObjectTypeDefinition getDefaultObjectType(ShadowKindType kind) {
         ResourceSchema resourceSchema = getResourceSchemaOrNothing();
         if (resourceSchema == null) {
             return null;
         }
         ResourceObjectDefinition defaultObjectType = resourceSchema.findDefaultDefinitionForKind(kind);
-        if (defaultObjectType != null) {
-            return defaultObjectType.getDefinitionBean();
+        if (defaultObjectType instanceof ResourceObjectTypeDefinition) {
+            return (ResourceObjectTypeDefinition) defaultObjectType;
         }
-        List<ResourceObjectTypeDefinitionType> objectTypes = getResourceObjectTypesDefinitions(kind);
+        List<? extends ResourceObjectTypeDefinition> objectTypes = getResourceObjectTypesDefinitions(kind);
         if (objectTypes.isEmpty()) {
             return null;
         }
         return objectTypes.iterator().next();
     }
 
-    public List<ResourceObjectTypeDefinitionType> getResourceObjectTypesDefinitions(ShadowKindType kind) {
+    public List<? extends ResourceObjectTypeDefinition> getResourceObjectTypesDefinitions(ShadowKindType kind) {
         ResourceSchema resourceSchema = getResourceSchemaOrNothing();
 
         if (resourceSchema == null) {
             return null;
         }
-        return resourceSchema.getObjectTypeDefinitions(kind)
-                .stream()
-                .map(ResourceObjectDefinition::getDefinitionBean)
-                .collect(Collectors.toList());
+
+        return resourceSchema.getObjectTypeDefinitions(kind);
+//        return resourceSchema.getObjectTypeDefinitions(kind)
+//                .stream()
+//                .map(ResourceObjectDefinition::getDefinitionBean)
+//                .collect(Collectors.toList());
     }
 
     public QName getDefaultObjectClass() {

@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObje
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -104,6 +106,15 @@ public abstract class ReloadableButton extends AjaxIconButton {
                 if (taskBean == null || WebComponentUtil.isClosedTask(taskBean.asObjectable())) {
                     stop(target);
                     taskOidForReloaded = null;
+                }
+                if (WebComponentUtil.isSuspendedTask(taskBean.asObjectable())) {
+                    OperationResult taskResult = OperationResult.createOperationResult(taskBean.asObjectable().getResult());
+                    if (taskResult != null && (taskResult.isFatalError() || taskResult.isPartialError())) {
+                        stop(target);
+                        pageBase.showResult(taskResult);
+                        target.add(pageBase.getFeedbackPanel());
+                        taskOidForReloaded = null;
+                    }
                 }
                 refresh(target);
             }
