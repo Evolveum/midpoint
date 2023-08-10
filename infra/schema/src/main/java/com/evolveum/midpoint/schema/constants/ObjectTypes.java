@@ -381,7 +381,7 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
 
-    public static Class<? extends ObjectType> getClassFromRestType(String restType) {
+    public static @NotNull Class<? extends ObjectType> getClassFromRestType(String restType) {
         Validate.notNull(restType, "Rest type must not be null.");
 
         for (ObjectTypes type : ObjectTypes.values()) {

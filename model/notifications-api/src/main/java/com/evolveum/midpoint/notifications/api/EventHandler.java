@@ -6,26 +6,35 @@
  */
 package com.evolveum.midpoint.notifications.api;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 
+/** Handles a single notification event. */
 public interface EventHandler<E extends Event, C extends BaseEventHandlerType> {
 
     /**
-     * @return true if we should continue with processing, false otherwise
+     * Processes event (embedded in the context) by the handler, represented by this object and provided configuration.
+     * Returns true if we should continue with processing of this event, false otherwise.
      */
-    boolean processEvent(E event, C eventHandlerType, Task task, OperationResult result) throws SchemaException;
+    boolean processEvent(
+            @NotNull ConfigurationItem<? extends C> handlerConfig,
+            @NotNull EventProcessingContext<? extends E> ctx,
+            @NotNull OperationResult result)
+            throws SchemaException;
 
     /**
-     * @return Type of events this handler is capable of handling.
+     * Returns type of events this handler is capable of handling.
      */
-    Class<E> getEventType();
+    @NotNull Class<E> getEventType();
 
     /**
-     * @return Type of configuration objects for this event handler. The handler is selected based on exact match of this type.
+     * Returns type of configuration objects for this event handler.
+     * The handler is selected based on exact match of this type.
      */
-    Class<? extends C> getEventHandlerConfigurationType();
+    @NotNull Class<? extends C> getEventHandlerConfigurationType();
 }

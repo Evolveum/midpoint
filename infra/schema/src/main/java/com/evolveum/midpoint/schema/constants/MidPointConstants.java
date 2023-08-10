@@ -39,15 +39,8 @@ public class MidPointConstants {
     public static final String PREFIX_NS_RI = "ri";
 
     public static final String FUNCTION_LIBRARY_BASIC_VARIABLE_NAME = "basic";
-    public static final String NS_FUNC_BASIC = NS_MIDPOINT_PUBLIC_PREFIX+"/function/basic-3";
-
-    public static final String FUNCTION_LIBRARY_MIDPOINT_VARIABLE_NAME = "midpoint";
-    public static final String NS_FUNC_MIDPOINT = NS_MIDPOINT_PUBLIC_PREFIX+"/function/midpoint-3";
-
     public static final String FUNCTION_LIBRARY_LOG_VARIABLE_NAME = "log";
-    public static final String NS_FUNC_LOG = NS_MIDPOINT_PUBLIC_PREFIX+"/function/log-3";
-
-    public static final String NS_FUNC_CUSTOM = NS_MIDPOINT_PUBLIC_PREFIX+"/function/custom-3";
+    public static final String FUNCTION_LIBRARY_REPORT_VARIABLE_NAME = "report";
 
     public static final String PROFILING_LOGGER_NAME = OperationExecutionLogger.PROFILING_LOGGER_NAME;
     public static final String JAVA_HOME_ENVIRONMENT_VARIABLE = "JAVA_HOME";

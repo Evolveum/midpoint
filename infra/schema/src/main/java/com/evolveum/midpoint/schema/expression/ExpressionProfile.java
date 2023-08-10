@@ -7,21 +7,15 @@
 package com.evolveum.midpoint.schema.expression;
 
 import java.io.Serializable;
-import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Profile for evaluation of expressions of a particular kind (e.g. script, path, value, etc).
+ * Profile for evaluation of "regular" expressions, scripting expressions, and function libraries.
  *
  * NOTE: This is pretty much throw-away implementation. Just the interface is important now.
  *
@@ -32,8 +26,20 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
     /** "Allow all" expression profile. Used to avoid `null` values that mean "not determined". */
     private static final ExpressionProfile FULL = new ExpressionProfile(
             SchemaConstants.FULL_EXPRESSION_PROFILE_ID,
-            AccessDecision.ALLOW,
-            List.of());
+            ExpressionEvaluatorsProfile.full(),
+            ScriptingProfile.full(), // TODO what about scripts etc that currently require #all authorization?
+            FunctionLibrariesProfile.full());
+
+    /**
+     * Profile that mimics the legacy non-root behavior for bulk actions:
+     * no expressions - this limits all of "execute-script", "notification" (with unsafe custom event handler), and
+     * the new "evaluate-expression" actions.
+     */
+    private static final ExpressionProfile SCRIPTING_LEGACY_UNPRIVILEGED = new ExpressionProfile(
+            SchemaConstants.LEGACY_UNPRIVILEGED_SCRIPTING_PROFILE_ID,
+            ExpressionEvaluatorsProfile.none(),
+            ScriptingProfile.full(), // actions without scripts/expressions are safe
+            FunctionLibrariesProfile.none());
 
     /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.
@@ -42,44 +48,52 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
      */
     @NotNull private final String identifier;
 
-    /** Default decision to be used if the suitable evaluator profile can be found. */
-    @NotNull private final AccessDecision defaultDecision;
+    @NotNull private final ExpressionEvaluatorsProfile evaluatorsProfile;
 
-    /** Profiles for individual evaluators (e.g. script, path, value, etc). Immutable. */
-    private final List<ExpressionEvaluatorProfile> evaluatorProfiles;
+    /** Profile for midPoint scripting language (bulk actions). */
+    @NotNull private final ScriptingProfile scriptingProfile;
+
+    /** Profile for using function libraries. */
+    @NotNull private final FunctionLibrariesProfile librariesProfile;
 
     public ExpressionProfile(
             @NotNull String identifier,
-            @NotNull AccessDecision defaultDecision,
-            List<ExpressionEvaluatorProfile> evaluatorProfiles) {
+            @NotNull ExpressionEvaluatorsProfile evaluatorsProfile,
+            @NotNull ScriptingProfile scriptingProfile,
+            @NotNull FunctionLibrariesProfile librariesProfile) {
         this.identifier = identifier;
-        this.defaultDecision = defaultDecision;
-        this.evaluatorProfiles = List.copyOf(evaluatorProfiles);
+        this.evaluatorsProfile = evaluatorsProfile;
+        this.scriptingProfile = scriptingProfile;
+        this.librariesProfile = librariesProfile;
     }
 
     public static @NotNull ExpressionProfile full() {
         return FULL;
     }
 
+    public static @NotNull ExpressionProfile scriptingLegacyUnprivileged() {
+        return SCRIPTING_LEGACY_UNPRIVILEGED;
+    }
+
     public @NotNull String getIdentifier() {
         return identifier;
     }
 
-    public @NotNull AccessDecision getDefaultDecision() {
-        return defaultDecision;
+    public @NotNull ScriptingProfile getScriptingProfile() {
+        return scriptingProfile;
     }
 
-    public @Nullable ExpressionEvaluatorProfile getEvaluatorProfile(@NotNull QName type) {
-        for (ExpressionEvaluatorProfile evaluatorProfile : evaluatorProfiles) {
-            if (QNameUtil.match(evaluatorProfile.getType(), type)) {
-                return evaluatorProfile;
-            }
-        }
-        return null;
+    public @NotNull FunctionLibrariesProfile getLibrariesProfile() {
+        return librariesProfile;
     }
 
     @Override
     public String toString() {
-        return "ExpressionProfile(" + identifier + ")";
+        return "ExpressionProfile(ID: %s; scripting: %s; libraries: %s)".formatted(
+                identifier, scriptingProfile.getIdentifier(), librariesProfile.getIdentifier());
+    }
+
+    public @NotNull ExpressionEvaluatorsProfile getEvaluatorsProfile() {
+        return evaluatorsProfile;
     }
 }

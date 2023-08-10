@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -190,7 +191,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
     }
 
     protected List<QName> getSupportedTargetList() {
-        return WebComponentUtil.createFocusTypeList();
+        return ObjectTypeListUtil.createFocusTypeList();
     }
 
     protected boolean isAllowedNotFoundObjectRef() {

@@ -323,6 +323,52 @@ call apply_change(15, $aa$
 ALTER TABLE m_resource ADD abstract BOOLEAN;
 $aa$);
 
+-- Task Affected Indexing (Changes to types)
+call apply_change(16, $aa$
+ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'AFFECTED_OBJECTS' AFTER 'ACCESS_CERTIFICATION_WORK_ITEM';
+$aa$);
+
+-- Task Affected Indexing (tables), empty now, replaced with change 19
+
+call apply_change(17, $$ SELECT 1 $$, true);
+
+
+-- Resource/super/resourceRef Indexing (tables)
+call apply_change(18, $aa$
+ALTER TABLE m_resource
+ADD COLUMN superRefTargetOid UUID,
+ADD COLUMN superRefTargetType ObjectType,
+ADD COLUMN superRefRelationId INTEGER REFERENCES m_uri(id);
+$aa$);
+
+-- Fixed upgrade for task indexing
+-- Drop tables should only affect development machines
+call apply_change(19, $aa$
+DROP TABLE IF EXISTS m_task_affected_resource_objects;
+DROP TABLE IF EXISTS m_task_affected_objects;
+
+CREATE TABLE m_task_affected_objects (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    containerType ContainerType GENERATED ALWAYS AS ('AFFECTED_OBJECTS') STORED
+     CHECK (containerType = 'AFFECTED_OBJECTS'),
+    activityId INTEGER REFERENCES m_uri(id),
+    type ObjectType,
+    archetypeRefTargetOid UUID,
+    archetypeRefTargetType ObjectType,
+    archetypeRefRelationId INTEGER REFERENCES m_uri(id),
+    objectClassId INTEGER REFERENCES m_uri(id),
+    resourceRefTargetOid UUID,
+    resourceRefTargetType ObjectType,
+    resourceRefRelationId INTEGER REFERENCES m_uri(id),
+    intent TEXT,
+    kind ShadowKindType,
+    PRIMARY KEY (ownerOid, cid)
+) INHERITS(m_container);
+
+$aa$)
+
+
+---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
 -- to match the number used in the last change here!

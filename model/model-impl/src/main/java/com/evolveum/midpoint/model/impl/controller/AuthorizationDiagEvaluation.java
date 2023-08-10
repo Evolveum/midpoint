@@ -79,11 +79,15 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         MidPointPrincipal newPrincipal = createPrincipalRaw(result);
-        for (AuthorizationType additionalAuthorizationBean : request.getAdditionalAuthorization()) {
-            newPrincipal.addAuthorization(
-                    Authorization.create(additionalAuthorizationBean, "additional authorization"));
+        List<Authorization> additionalAuthorizations = request.getAdditionalAuthorization().stream()
+                .map(bean -> Authorization.create(bean, "additional authorization"))
+                .toList();
+        if (additionalAuthorizations.isEmpty()) {
+            return newPrincipal;
+        } else {
+            // We are not sure if the elevation is total or partial.
+            return newPrincipal.cloneWithAdditionalAuthorizations(additionalAuthorizations, false);
         }
-        return newPrincipal;
     }
 
     /** Principal without any additional authorizations. */
@@ -103,7 +107,7 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
                         .oid(UUID.randomUUID().toString())
                         .name("Anonymous");
             }
-            return new MidPointPrincipal(focus);
+            return MidPointPrincipal.create(focus);
         } else {
             FocusType subject = b.modelObjectResolver.resolve(
                     subjectRef, FocusType.class, null, "subject", task, result);

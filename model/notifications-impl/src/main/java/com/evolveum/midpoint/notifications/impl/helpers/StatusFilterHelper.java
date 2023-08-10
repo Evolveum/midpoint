@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.notifications.impl.helpers;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
@@ -19,26 +22,28 @@ public class StatusFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(StatusFilterHelper.class);
 
-    public boolean processEvent(Event event, BaseEventHandlerType eventHandlerConfig) {
+    public boolean processEvent(
+            ConfigurationItem<? extends BaseEventHandlerType> handlerConfig, EventProcessingContext<?> ctx) {
 
-        if (eventHandlerConfig.getStatus().isEmpty()) {
+        List<EventStatusType> statuses = handlerConfig.value().getStatus();
+        if (statuses.isEmpty()) {
             return true;
         }
 
-        logStart(LOGGER, event, eventHandlerConfig, eventHandlerConfig.getStatus());
+        logStart(LOGGER, handlerConfig, ctx, statuses);
 
         boolean retval = false;
 
-        for (EventStatusType eventStatusType : eventHandlerConfig.getStatus()) {
-            if (eventStatusType == null) {
-                LOGGER.warn("Filtering on null eventStatusType; filter = " + eventHandlerConfig);
-            } else if (event.isStatusType(eventStatusType)) {
+        for (EventStatusType status : statuses) {
+            if (status == null) {
+                LOGGER.warn("Filtering on null eventStatusType; filter = " + handlerConfig);
+            } else if (ctx.event().isStatusType(status)) {
                 retval = true;
                 break;
             }
         }
 
-        logEnd(LOGGER, event, eventHandlerConfig, retval);
+        logEnd(LOGGER, handlerConfig, ctx, retval);
         return retval;
     }
 }

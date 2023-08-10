@@ -95,7 +95,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     private final QName relation1 = QName.valueOf("{https://random.org/ns}rel-1");
     private final QName relation2 = QName.valueOf("{https://random.org/ns}rel-2");
     private final String resourceOid = UUID.randomUUID().toString();
+
+    private String resource2Oid;
+
     private final String connectorHostOid = UUID.randomUUID().toString();
+
+    private final String archetypeOid = UUID.randomUUID().toString();
 
     private String markProtectedOid;
 
@@ -196,6 +201,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         task1Oid = repositoryService.addObject(
                 new TaskType().name("task-1")
                         .executionState(TaskExecutionStateType.RUNNABLE)
+                        .affectedObjects(new TaskAffectedObjectsType()
+                                .activity(new ActivityAffectedObjectsType()
+                                        .activityType(new QName(NS_C, "activity-1"))
+                                        .objects(new BasicObjectSetType()
+                                                .type(UserType.COMPLEX_TYPE)
+                                                .archetypeRef(archetypeOid, ArchetypeType.COMPLEX_TYPE))
+                                )
+                        )
                         .asPrismObject(),
                 null, result);
         task2Oid = repositoryService.addObject(
@@ -203,6 +216,15 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .executionState(TaskExecutionStateType.CLOSED)
                         .schedule(new ScheduleType()
                                 .recurrence(TaskRecurrenceType.RECURRING))
+                        .affectedObjects(new TaskAffectedObjectsType()
+                                .activity(new ActivityAffectedObjectsType()
+                                        .activityType(new QName(NS_C, "activity-2"))
+                                        .resourceObjects(new BasicResourceObjectSetType()
+                                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                                .kind(ShadowKindType.ACCOUNT)
+                                                .intent("default"))
+                                )
+                        )
                         .asPrismObject(),
                 null, result);
 
@@ -463,6 +485,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .connectorVersion("1.2.3")
                         .framework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN)
                         .asPrismObject(), null, result);
+
+
+        resource2Oid = repositoryService.addObject(
+                new ResourceType()
+                        .name("derived-resource")
+                        ._super(new SuperResourceDeclarationType().resourceRef(resourceOid, ResourceType.COMPLEX_TYPE))
+                .asPrismObject(), null, result);
 
         // objects for OID range tests
         List.of("00000000-1000-0000-0000-000000000000",
@@ -1245,6 +1274,82 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, F_NAME))
                         .eqPoly("creator"),
                 user1Oid);
+    }
+
+    @Test
+    public void test360TasksWhichAffectsResourceObjects() throws SchemaException {
+        // FIXME adapt this code to the new schema
+        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_RESOURCE_OBJECTS)
+                        .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
+                , task2Oid);
+
+        searchObjectTest( "matching exists filter for affects/activity with activity-2 type and resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY)
+                        .block()
+                            .item(ActivityAffectedObjectsType.F_ACTIVITY_TYPE).eq(new QName(NS_C, "activity-2"))
+                        .and()
+                            .exists(ActivityAffectedObjectsType.F_RESOURCE_OBJECTS)
+                            .block()
+                                .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
+                                .and()
+                                .item(BasicResourceObjectSetType.F_KIND).eq(ShadowKindType.ACCOUNT)
+                                .and()
+                                .item(BasicResourceObjectSetType.F_INTENT).eq("default")
+                            .endBlock()
+                        .endBlock()
+                , task2Oid);
+
+
+        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_RESOURCE_OBJECTS)
+                        .block()
+                        .item(BasicResourceObjectSetType.F_RESOURCE_REF).ref(resourceOid)
+                        .and()
+                        .item(BasicResourceObjectSetType.F_KIND).eq(ShadowKindType.ACCOUNT)
+                        .and()
+                        .item(BasicResourceObjectSetType.F_INTENT).eq("default")
+                        .endBlock()
+                , task2Oid);
+
+    }
+
+    @Test
+    public void test361TasksWhichAffectsUsersWithArchetype() throws SchemaException {
+        // FIXME adapt this code to the new schema
+        searchObjectTest( "matching exists filter for affects/objects, which references only type",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY)
+                        .item(ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                , task1Oid);
+
+        searchObjectTest( "equal filter for affects/objects/type, which references only type",
+                TaskType.class,
+                f -> f.item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                , task1Oid);
+
+
+        searchObjectTest( "matching exists filter for affects/resourceObjects, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_OBJECTS)
+                        .block()
+                        .item(BasicObjectSetType.F_ARCHETYPE_REF).ref(archetypeOid)
+                        .and()
+                        .item(BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                        .endBlock()
+                , task1Oid);
+
+    }
+
+    @Test
+    public void test370DerivedResource() throws SchemaException {
+        searchObjectTest("matching resource based on super resource",
+                ResourceType.class,
+                f -> f.item(ResourceType.F_SUPER, SuperResourceDeclarationType.F_RESOURCE_REF).ref(resourceOid),
+                resource2Oid);
     }
 
     // endregion

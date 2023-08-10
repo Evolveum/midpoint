@@ -8,10 +8,6 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QClusterObjectMapping;
-
-import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QParentClusterObjectMapping;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +27,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationWo
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QClusterObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QParentClusterObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
@@ -63,6 +61,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfigurationMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMarkMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.QAffectedObjectsMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
@@ -199,6 +198,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(SimulationResultType.COMPLEX_TYPE, QSimulationResultMapping.initSimulationResultMapping(repositoryContext))
                 .register(SimulationResultProcessedObjectType.COMPLEX_TYPE, QProcessedObjectMapping.initProcessedResultMapping(repositoryContext))
                 .register(MarkType.COMPLEX_TYPE, QMarkMapping.init(repositoryContext))
+                .register(QAffectedObjectsMapping.init(repositoryContext))
                 .seal();
 
         return repositoryContext;

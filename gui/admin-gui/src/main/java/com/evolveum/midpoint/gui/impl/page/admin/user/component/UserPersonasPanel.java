@@ -101,7 +101,7 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
             }
 
             @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, UserType object) {
+            protected void objectDetailsPerformed(UserType object) {
             }
 
             @Override

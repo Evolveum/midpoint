@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
@@ -93,10 +95,10 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                 throw new AssertionError("unexpected state constraint " + constraint.getName());
             }
         } catch (Throwable t) {
-            result.recordFatalError(t.getMessage(), t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -115,7 +117,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                 + (constraint.getExecuteScript() != null ? 1 : 0);
 
         if (count != 1) {
-            throw new SchemaException("Exactly one of filter, expression, messageExpression, executeScript element must be present.");
+            throw new SchemaException(
+                    "Exactly one of filter, expression, messageExpression, executeScript element must be present.");
         }
 
         PrismObject<?> object = ctx.getObject();
@@ -137,7 +140,12 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             try {
                 resultingContext =
                         scriptingExpressionEvaluator.evaluateExpressionPrivileged(
-                                constraint.getExecuteScript(), variables, ctx.task, result);
+                                ExecuteScriptConfigItem.of(
+                                        constraint.getExecuteScript(),
+                                        ctx.policyRule.getRuleOrigin().toApproximate()),
+                                variables,
+                                ctx.task,
+                                result);
             } catch (ScriptExecutionException e) {
                 throw new SystemException(e); // TODO
             }

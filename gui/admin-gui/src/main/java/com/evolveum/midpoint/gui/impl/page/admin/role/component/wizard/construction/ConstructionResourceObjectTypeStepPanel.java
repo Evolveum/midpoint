@@ -344,4 +344,9 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
             oldOidResource = resourceOid;
         }
     }
+
+    @Override
+    public String getStepId() {
+        return PANEL_TYPE;
+    }
 }

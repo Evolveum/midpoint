@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -16,7 +17,8 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.SimulationModeColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -29,6 +31,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -44,6 +49,7 @@ import org.apache.wicket.model.Model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author lskublik
@@ -218,6 +224,10 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
 
         IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
                 getMappingTypeDefinition();
+
+        IColumn<PrismContainerValueWrapper<MappingType>, String> iconColumns = createUsedIconColumn();
+        Optional.ofNullable(iconColumns).ifPresent(column -> columns.add(column));
+
         columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
                 mappingTypeDef,
                 MappingType.F_NAME,
@@ -232,24 +242,15 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
 
         columns.addAll(createCustomColumns());
 
-        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                mappingTypeDef,
-                MappingType.F_ENABLED,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-            @Override
-            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                Component header = super.createHeader(componentId, mainModel);
-                header.add(AttributeAppender.append("class", "d-table-row"));
-                return header;
-            }
-        });
 
-        columns.add(new SimulationModeColumn<>(getContainerModel(), getPageBase()));
+        columns.add(new LifecycleStateColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }
 
+    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn(){
+        return null;
+    };
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
     protected LoadableModel<PrismContainerDefinition<MappingType>> getMappingTypeDefinition() {
@@ -282,5 +283,58 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         buttons.add(newObjectSimpleButton);
 
         return buttons;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createInlineMenu() {
+        List<InlineMenuItem> items = new ArrayList<>();
+
+        ButtonInlineMenuItem changeLifecycle = new ButtonInlineMenuItem(
+                createStringResource("AttributeMappingsTable.button.changeLifecycle")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-heart-pulse");
+            }
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> isHeader;
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return createChangeLifecycleColumnAction();
+            }
+        };
+        items.add(changeLifecycle);
+        items.addAll(super.createInlineMenu());
+        return items;
+    }
+
+    private InlineMenuItemAction createChangeLifecycleColumnAction() {
+        return new InlineMenuItemAction(){
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<List<PrismContainerValueWrapper<MappingType>>> selected = () -> getSelectedItems();
+                if (selected.getObject().isEmpty()) {
+                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+                    target.add(getFeedbackPanel());
+                    return;
+                }
+                ChangeLifecycleSelectedMappingsPopup changePopup = new ChangeLifecycleSelectedMappingsPopup(
+                        getPageBase().getMainPopupBodyId(),
+                        selected) {
+                    @Override
+                    protected void applyChanges(AjaxRequestTarget target) {
+                        super.applyChanges(target);
+                        refreshTable(target);
+                    }
+                };
+
+                getPageBase().showMainPopup(changePopup, target);
+            }
+        };
     }
 }

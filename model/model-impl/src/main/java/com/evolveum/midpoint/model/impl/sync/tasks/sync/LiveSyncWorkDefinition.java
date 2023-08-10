@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
@@ -26,8 +25,9 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
     private final boolean updateLiveSyncTokenInDryRun;
     private final boolean updateLiveSyncTokenInPreviewMode;
 
-    LiveSyncWorkDefinition(WorkDefinitionBean source) {
-        var typedDefinition = (LiveSyncWorkDefinitionType) source.getBean();
+    LiveSyncWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+        super(info);
+        var typedDefinition = (LiveSyncWorkDefinitionType) info.getBean();
         resourceObjects = ResourceObjectSetUtil.fromConfiguration(typedDefinition.getResourceObjects());
         batchSize = typedDefinition.getBatchSize();
         updateLiveSyncTokenInPreviewMode = Boolean.TRUE.equals(typedDefinition.isUpdateLiveSyncTokenInPreviewMode());

@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.expression.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
@@ -28,7 +30,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
@@ -40,10 +42,6 @@ import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
@@ -86,8 +84,8 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
         Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
         Clock clock = new Clock();
-        Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>();
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         localizationService = LocalizationTestUtil.getLocalizationService();
         evaluator = createEvaluator(prismContext, protector);
@@ -321,14 +319,14 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 scriptExpressionfactory.getEvaluatorSimple(language), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));
-        ScriptExpressionProfile scriptExpressionProfile = createScriptExpressionProfile(language);
+        expression.setFunctionLibraryBindings(new ArrayList<>(scriptExpressionfactory.getBuiltInLibraryBindings()));
+        ScriptLanguageExpressionProfile scriptExpressionProfile = createScriptExpressionProfile(language);
         expression.setScriptExpressionProfile(scriptExpressionProfile);
         expression.setExpressionProfile(createExpressionProfile(scriptExpressionProfile));
         return expression;
     }
 
-    private ExpressionProfile createExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+    private ExpressionProfile createExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
         if (scriptExpressionProfile == null) {
             return null;
         }
@@ -340,11 +338,14 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
         return new ExpressionProfile(
                 this.getClass().getSimpleName(),
-                AccessDecision.DENY,
-                List.of(evaluatorProfile));
+                new ExpressionEvaluatorsProfile(
+                        AccessDecision.DENY,
+                        List.of(evaluatorProfile)),
+                ScriptingProfile.full(),
+                FunctionLibrariesProfile.full());
     }
 
-    protected ScriptExpressionProfile createScriptExpressionProfile(@NotNull String language) {
+    protected ScriptLanguageExpressionProfile createScriptExpressionProfile(@NotNull String language) {
         return null;
     }
 
@@ -364,7 +365,9 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     private <T> PrismPropertyValue<T> asScalar(
             List<PrismPropertyValue<T>> expressionResultList, String shortDesc) {
         if (expressionResultList.size() > 1) {
-            AssertJUnit.fail("Expression " + shortDesc + " produces a list of " + expressionResultList.size() + " while only expected a single value: " + expressionResultList);
+            AssertJUnit.fail(
+                    "Expression %s produces a list of %d while only expected a single value: %s".formatted(
+                            shortDesc, expressionResultList.size(), expressionResultList));
         }
         if (expressionResultList.isEmpty()) {
             return null;

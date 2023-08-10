@@ -7,23 +7,24 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.util.Date;
-
-import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignStageEvent;
 import com.evolveum.midpoint.notifications.impl.helpers.CertHelper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleCampaignStageNotifierType;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 /**
  * Various stage-level notifications.
@@ -36,17 +37,22 @@ public class SimpleCampaignStageNotifier extends AbstractGeneralNotifier<CertCam
     @Autowired private CertHelper certHelper;
 
     @Override
-    public Class<CertCampaignStageEvent> getEventType() {
+    public @NotNull Class<CertCampaignStageEvent> getEventType() {
         return CertCampaignStageEvent.class;
     }
 
     @Override
-    public Class<SimpleCampaignStageNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<SimpleCampaignStageNotifierType> getEventHandlerConfigurationType() {
         return SimpleCampaignStageNotifierType.class;
     }
 
     @Override
-    protected String getSubject(CertCampaignStageEvent event, SimpleCampaignStageNotifierType configuration, String transport, Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends SimpleCampaignStageNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends CertCampaignStageEvent> ctx,
+            OperationResult result) {
+        var event = ctx.event();
         String change;
         if (event.isAdd()) {
             change = "started";
@@ -63,9 +69,13 @@ public class SimpleCampaignStageNotifier extends AbstractGeneralNotifier<CertCam
     }
 
     @Override
-    protected String getBody(CertCampaignStageEvent event, SimpleCampaignStageNotifierType configuration, String transport,
-            Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends SimpleCampaignStageNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends CertCampaignStageEvent> ctx,
+            OperationResult result) {
         StringBuilder body = new StringBuilder();
+        var event = ctx.event();
         AccessCertificationCampaignType campaign = event.getCampaign();
 
         body.append("A certification campaign stage ");
@@ -107,7 +117,7 @@ public class SimpleCampaignStageNotifier extends AbstractGeneralNotifier<CertCam
         }
 
         body.append("\n");
-        certHelper.appendStatistics(body, campaign, task, result);
+        certHelper.appendStatistics(body, campaign, ctx.task(), result);
 
         body.append("\n\n");
         addRequesterAndChannelInformation(body, event, result);

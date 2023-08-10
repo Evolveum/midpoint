@@ -49,7 +49,8 @@ public class NotificationHelper {
         }
     }
 
-    public void notifyWorkItemCustom(@Nullable ObjectReferenceType assignee, CaseWorkItemType workItem,
+    public void notifyWorkItemCustom(
+            @Nullable ObjectReferenceType assignee, CaseWorkItemType workItem,
             WorkItemEventCauseInformationType cause, CaseType aCase,
             @NotNull WorkItemNotificationActionType notificationAction,
             Task opTask, OperationResult result) {

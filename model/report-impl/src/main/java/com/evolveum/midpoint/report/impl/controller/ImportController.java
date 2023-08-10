@@ -13,6 +13,9 @@ import java.nio.file.Paths;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -61,7 +64,7 @@ public class ImportController {
     private final CompiledObjectCollectionView compiledCollection;
 
     /** Import script of report. */
-    private final ExecuteScriptType script;
+    private final ExecuteScriptConfigItem script;
 
     /**
      * Columns for the report.
@@ -75,7 +78,8 @@ public class ImportController {
     private final SchemaRegistry schemaRegistry;
     private final LocalizationService localizationService;
 
-    public ImportController(@NotNull ReportType report,
+    public ImportController(
+            @NotNull ReportType report,
             @NotNull ReportServiceImpl reportService,
             CompiledObjectCollectionView compiledCollection) {
 
@@ -84,7 +88,18 @@ public class ImportController {
         this.schemaRegistry = reportService.getPrismContext().getSchemaRegistry();
         this.localizationService = reportService.getLocalizationService();
         this.compiledCollection = compiledCollection;
-        this.script = report.getBehavior() != null ? report.getBehavior().getImportScript() : null;
+        ReportBehaviorType behavior = report.getBehavior();
+        ExecuteScriptType importScript = behavior != null ? behavior.getImportScript() : null;
+        if (importScript != null) {
+            // We cannot use "embedded" origin for property real values, as they have no notion of the parent.
+            // Hence, we have to start with the origin "behavior" (containerable), and derive our origin from it.
+            ConfigurationItemOrigin origin =
+                    ConfigurationItemOrigin.embedded(behavior)
+                            .child(ReportBehaviorType.F_IMPORT_SCRIPT);
+            this.script = ExecuteScriptConfigItem.of(importScript, origin);
+        } else {
+            this.script = null;
+        }
         this.support = new CommonCsvSupport(report.getFileFormat());
     }
 
@@ -178,12 +193,13 @@ public class ImportController {
             }
             reportService.getModelService().importObject((PrismObject<ObjectType>) object, importOption, workerTask, result);
         } else {
-            evaluateImportScript(line, script, workerTask, result);
+            evaluateImportScript(line, workerTask, result);
         }
     }
 
-    private void evaluateImportScript(InputReportLine line, ExecuteScriptType script, RunningTask task, OperationResult result) throws CommonException {
-        reportService.getScriptingService().evaluateExpression(script, line.getVariables(), false, task, result);
+    private void evaluateImportScript(InputReportLine line, RunningTask task, OperationResult result) throws CommonException {
+        reportService.getScriptingService().evaluateExpression(
+                script, line.getVariables(), false, task, result);
     }
 
     private Object evaluateImportExpression(ExpressionType expression, TypedValue<?> typedValue, Task task, OperationResult result) {
@@ -306,13 +322,14 @@ public class ImportController {
     }
 
     private void processPropertyFromImportReport(Object objectFromExpression, TypedValue<?> typedValue,
-            Item<PrismPropertyValue<?>, PrismPropertyDefinition<?>> newItem, OperationResult result) throws SchemaException {
+            Item<PrismPropertyValue<?>, PrismPropertyDefinition<?>> newItem, OperationResult result) {
         if (objectFromExpression != null) {
             Collection<Object> realValues = new ArrayList<>();
             exportRealValuesFromObjectFromExpression(objectFromExpression, realValues);
             for (Object realValue : realValues) {
                 if (realValue != null) {
                     PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
+                    //noinspection unchecked,rawtypes
                     ((PrismProperty) newItem).addValue(newValue);
                 }
             }
@@ -333,6 +350,7 @@ public class ImportController {
                     continue;
                 }
                 PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(parsedObject);
+                //noinspection unchecked,rawtypes
                 ((PrismProperty) newItem).addValue(newValue);
             }
         }
@@ -341,6 +359,7 @@ public class ImportController {
     private void exportRealValuesFromObjectFromExpression(Object objectFromExpression, Collection<Object> realValues) {
         Collection<Object> collection;
         if (objectFromExpression instanceof Collection) {
+            //noinspection unchecked
             collection = (Collection<Object>) objectFromExpression;
         } else {
             collection = Collections.singletonList(objectFromExpression);
@@ -363,6 +382,7 @@ public class ImportController {
             if (realValue instanceof String) {
                 stringValues.add((String) realValue);
             } else {
+                //noinspection unchecked
                 stringValues.addAll((List<String>) realValue);
             }
         }

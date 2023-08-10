@@ -42,14 +42,15 @@ public class WorkItemEventImpl extends CaseManagementEventImpl implements WorkIt
     protected final WorkItemOperationSourceInfo sourceInfo;
     protected final Duration timeBefore;
 
-    WorkItemEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+    WorkItemEventImpl(
+            @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
             @NotNull CaseWorkItemType workItem,
             @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
             @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
             @Nullable ApprovalContextType approvalContext,
             @NotNull CaseType aCase,
-            @Nullable EventHandlerType handler, @Nullable Duration timeBefore) {
-        super(lightweightIdentifierGenerator, changeType, approvalContext, aCase, handler);
+            @Nullable Duration timeBefore) {
+        super(lightweightIdentifierGenerator, changeType, approvalContext, aCase);
         Validate.notNull(workItem);
         this.workItem = workItem;
         this.assignee = assignee;

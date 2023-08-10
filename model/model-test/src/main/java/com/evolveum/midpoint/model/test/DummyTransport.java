@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,20 +15,17 @@ import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DummyTransport implements Transport<GeneralTransportConfigurationType>, DebugDumpable {
 
@@ -51,7 +50,7 @@ public class DummyTransport implements Transport<GeneralTransportConfigurationTy
     }
 
     @Override
-    public void send(Message message, String name, Event event, Task task, OperationResult parentResult) {
+    public void send(Message message, String name, SendingContext ctx, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
 

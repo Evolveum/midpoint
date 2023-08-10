@@ -10,16 +10,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -51,9 +52,9 @@ public class ScriptExpression {
     private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
     private ObjectResolver objectResolver;
-    private Collection<FunctionLibrary> functions;
+    private Collection<FunctionLibraryBinding> functionLibraryBindings;
     private ExpressionProfile expressionProfile;
-    private ScriptExpressionProfile scriptExpressionProfile;
+    private ScriptLanguageExpressionProfile scriptExpressionProfile;
     private PrismContext prismContext;
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
@@ -80,12 +81,12 @@ public class ScriptExpression {
         this.objectResolver = objectResolver;
     }
 
-    public Collection<FunctionLibrary> getFunctions() {
-        return functions;
+    public Collection<FunctionLibraryBinding> getFunctionLibraryBindings() {
+        return functionLibraryBindings;
     }
 
-    public void setFunctions(Collection<FunctionLibrary> functions) {
-        this.functions = functions;
+    public void setFunctionLibraryBindings(Collection<FunctionLibraryBinding> functionLibraryBindings) {
+        this.functionLibraryBindings = functionLibraryBindings;
     }
 
     public ExpressionProfile getExpressionProfile() {
@@ -96,7 +97,7 @@ public class ScriptExpression {
         this.expressionProfile = expressionProfile;
     }
 
-    void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+    void setScriptExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
         this.scriptExpressionProfile = scriptExpressionProfile;
     }
 
@@ -120,8 +121,8 @@ public class ScriptExpression {
         if (context.getScriptBean() == null) {
             context.setScriptBean(scriptBean);
         }
-        if (context.getFunctions() == null) {
-            context.setFunctions(functions);
+        if (context.getFunctionLibraryBindings() == null) {
+            context.setFunctionLibraryBindings(functionLibraryBindings);
         }
         if (context.getExpressionProfile() == null) {
             context.setExpressionProfile(expressionProfile);

@@ -41,7 +41,7 @@ public class NinjaContext implements Closeable {
     private static final String REPOSITORY_SERVICE_BEAN = "repositoryService";
     private static final String AUDIT_SERVICE_BEAN = "auditService";
 
-    private static final String CTX_NINJA = "classpath:ctx-ninja.xml";
+    private static final String CTX_NINJA = "classpath*:ctx-ninja.xml";
 
     public final PrintStream out;
 
@@ -124,7 +124,11 @@ public class NinjaContext implements Closeable {
         this.log = log;
     }
 
-    private void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+    private synchronized void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+        if (applicationContext != null) {
+            // Guard if method is entered multiple times during multi-threaded invocation
+            return;
+        }
         if (applicationContextLevel == NinjaApplicationContextLevel.NONE) {
             throw new IllegalStateException("Application context shouldn't be initialized");
         }

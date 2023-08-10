@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.sync;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -35,7 +37,7 @@ public class LiveSyncActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                LiveSyncWorkDefinitionType.COMPLEX_TYPE,
+                LiveSyncWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_LIVE_SYNCHRONIZATION,
                 LiveSyncWorkDefinition.class, LiveSyncWorkDefinition::new, this);
     }
 

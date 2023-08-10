@@ -70,7 +70,7 @@ public class DistributedReportExportActivityHandler
     @PostConstruct
     public void register() {
         registry.register(
-                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE,
+                DistributedReportExportWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_DISTRIBUTED_REPORT_EXPORT,
                 DistributedReportExportWorkDefinition.class, DistributedReportExportWorkDefinition::new, this);
     }
 

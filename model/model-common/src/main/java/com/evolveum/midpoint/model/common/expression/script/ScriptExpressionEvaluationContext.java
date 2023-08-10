@@ -9,17 +9,20 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.Collection;
 import java.util.function.Function;
 
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The whole evaluation of a script: {@link ScriptExpressionEvaluatorType} compiled into {@link ScriptExpression} and evaluated.
@@ -40,9 +43,9 @@ public class ScriptExpressionEvaluationContext {
     private Function<Object, Object> additionalConvertor;
     private ScriptExpressionReturnTypeType suggestedReturnType;
     private ObjectResolver objectResolver;
-    private Collection<FunctionLibrary> functions;
+    private Collection<FunctionLibraryBinding> functionLibraryBindings;
     private ExpressionProfile expressionProfile;
-    private ScriptExpressionProfile scriptExpressionProfile;
+    private ScriptLanguageExpressionProfile scriptExpressionProfile;
 
     private ScriptExpression scriptExpression;
     private boolean evaluateNew = false;
@@ -101,12 +104,12 @@ public class ScriptExpressionEvaluationContext {
         this.objectResolver = objectResolver;
     }
 
-    public Collection<FunctionLibrary> getFunctions() {
-        return functions;
+    public Collection<FunctionLibraryBinding> getFunctionLibraryBindings() {
+        return functionLibraryBindings;
     }
 
-    public void setFunctions(Collection<FunctionLibrary> functions) {
-        this.functions = functions;
+    public void setFunctionLibraryBindings(Collection<FunctionLibraryBinding> functionLibraryBindings) {
+        this.functionLibraryBindings = functionLibraryBindings;
     }
 
     public ExpressionProfile getExpressionProfile() {
@@ -117,11 +120,11 @@ public class ScriptExpressionEvaluationContext {
         this.expressionProfile = expressionProfile;
     }
 
-    public ScriptExpressionProfile getScriptExpressionProfile() {
+    public ScriptLanguageExpressionProfile getScriptExpressionProfile() {
         return scriptExpressionProfile;
     }
 
-    public void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+    public void setScriptExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
         this.scriptExpressionProfile = scriptExpressionProfile;
     }
 
@@ -179,6 +182,24 @@ public class ScriptExpressionEvaluationContext {
 
     public static ScriptExpressionEvaluationContext getThreadLocal() {
         return THREAD_LOCAL_CONTEXT.get();
+    }
+
+    public static @NotNull ScriptExpressionEvaluationContext getThreadLocalRequired() {
+        return MiscUtil.stateNonNull(
+                THREAD_LOCAL_CONTEXT.get(),
+                "No ScriptExpressionEvaluationContext for current thread found");
+    }
+
+    public static @NotNull Task getTaskRequired() {
+        return MiscUtil.stateNonNull(
+                getThreadLocalRequired().getTask(),
+                "No task in ScriptExpressionEvaluationContext for the current thread found");
+    }
+
+    public static @NotNull OperationResult getOperationResultRequired() {
+        return MiscUtil.stateNonNull(
+                getThreadLocalRequired().getResult(),
+                "No operation result in ScriptExpressionEvaluationContext for the current thread found");
     }
 
     public ScriptEvaluationTraceType getTrace() {

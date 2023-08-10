@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -32,10 +33,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
@@ -62,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                         description = "PageAttorneySelection.auth.workItems.attorney.description")
         })
 public class PageAttorneySelection extends PageBase {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 
@@ -109,10 +108,10 @@ public class PageAttorneySelection extends PageBase {
             protected IColumn<SelectableBean<UserType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
                 return new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
+                    public void onClick(IModel<SelectableBean<UserType>> rowModel) {
                         UserType object = rowModel.getObject().getValue();
                         selectUserPerformed(object.getOid());
                     }
@@ -125,11 +124,6 @@ public class PageAttorneySelection extends PageBase {
                 columns.add(createNameColumn(null, null, null));
                 columns.addAll(PageAttorneySelection.this.initColumns());
                 return columns;
-            }
-
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return null;
             }
 
             @Override
@@ -189,7 +183,6 @@ public class PageAttorneySelection extends PageBase {
     private void selectUserPerformed(String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(PARAMETER_DONOR_OID, oid);
-        PageWorkItemsAttorney workItemsPage = new PageWorkItemsAttorney(parameters);
-        navigateToNext(workItemsPage);
+        navigateToNext(PageWorkItemsAttorney.class, parameters);
     }
 }

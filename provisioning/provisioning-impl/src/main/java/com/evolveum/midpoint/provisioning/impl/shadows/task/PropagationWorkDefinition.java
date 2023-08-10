@@ -7,25 +7,41 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
-import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropagationWorkDefinitionType;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class PropagationWorkDefinition extends AbstractWorkDefinition {
 
-    private final String resourceOid;
+    @NotNull private final String resourceOid;
 
-    PropagationWorkDefinition(@NotNull WorkDefinitionBean source) {
-        ObjectReferenceType resourceRef = ((PropagationWorkDefinitionType) source.getBean()).getResourceRef();
-        resourceOid = resourceRef != null ? resourceRef.getOid() : null;
+    PropagationWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) throws ConfigurationException {
+        super(info);
+        var typedDefinition = (PropagationWorkDefinitionType) info.getBean();
+        ObjectReferenceType resourceRef = typedDefinition.getResourceRef();
+        resourceOid = MiscUtil.configNonNull(
+                resourceRef != null ? resourceRef.getOid() : null,
+                "No resource OID specified");
     }
 
-    public String getResourceOid() {
+    public @NotNull String getResourceOid() {
         return resourceOid;
+    }
+
+    @Override
+    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+        return new TaskAffectedObjectsType()
+                .activity(new ActivityAffectedObjectsType()
+                        .activityType(getActivityTypeName())
+                        .resourceObjects(new BasicResourceObjectSetType()
+                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE))
+                );
     }
 
     @Override

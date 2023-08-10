@@ -162,7 +162,7 @@ public class PipelineData implements DebugDumpable {
         return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o)).collect(Collectors.toList());
     }
 
-    static @NotNull PipelineData parseFrom(ValueListType input, VariablesMap frozenInitialVariables, PrismContext prismContext) {
+    static @NotNull PipelineData parseFrom(ValueListType input, VariablesMap frozenInitialVariables) {
         PipelineData rv = new PipelineData();
         if (input != null) {
             for (Object object : input.getValue()) {
@@ -183,7 +183,7 @@ public class PipelineData implements DebugDumpable {
                     } else if (object instanceof Referencable) {
                         rv.addValue(((Referencable) object).asReferenceValue(), frozenInitialVariables);
                     } else {
-                        rv.addValue(prismContext.itemFactory().createPropertyValue(object), frozenInitialVariables);
+                        rv.addValue(PrismContext.get().itemFactory().createPropertyValue(object), frozenInitialVariables);
                     }
                 }
             }

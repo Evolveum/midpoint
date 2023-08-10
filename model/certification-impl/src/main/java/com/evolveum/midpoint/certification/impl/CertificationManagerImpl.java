@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
@@ -156,25 +157,22 @@ public class CertificationManagerImpl implements CertificationManager {
      * Take care when and where you call it. Child result is intentionally created only when a certification campaign
      * is to be started (to avoid useless creation of many empty records)
      */
-    <O extends ObjectType> void startAdHocCertifications(PrismObject<O> focus,
-            List<CertificationPolicyActionType> actions, Task task, OperationResult parentResult)
+    <O extends ObjectType> void startAdHocCertifications(
+            PrismObject<O> focus, List<PolicyActionConfigItem<CertificationPolicyActionType>> actions,
+            Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         Set<String> definitionOids = new HashSet<>();
-        for (CertificationPolicyActionType action : actions) {
-            if (action.getDefinitionRef() != null) {
-                for (ObjectReferenceType definitionRef : action.getDefinitionRef()) {
-                    if (definitionRef.getOid() != null) {
-                        definitionOids.add(definitionRef.getOid());
-                    } else {
-                        // TODO resolve dynamic reference
-                        LOGGER.warn(
-                                "Certification action having definition reference with no OID; the reference will be ignored: {}",
-                                definitionRef);
-                    }
+        for (var action : actions) {
+            for (ObjectReferenceType definitionRef : action.value().getDefinitionRef()) {
+                if (definitionRef.getOid() != null) {
+                    definitionOids.add(definitionRef.getOid());
+                } else {
+                    // TODO resolve dynamic reference
+                    LOGGER.warn(
+                            "Certification action having definition reference with no OID; the reference will be ignored: {}",
+                            definitionRef);
                 }
-            } else {
-                LOGGER.warn("Certification action without definition reference; will be ignored: {}", action);
             }
         }
         if (!definitionOids.isEmpty()) {
@@ -184,13 +182,16 @@ public class CertificationManagerImpl implements CertificationManager {
             try {
                 PrismObject<UserType> administrator = repositoryService
                         .getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
-                securityContextManager.runAs(() -> { // TODO reconsider this "runAs"
-                    for (String definitionOid : definitionOids) {
-                        startAdHocCertification(focus, definitionOid, task, result);
-                    }
-                    parentResult.computeStatus();
-                    return null;
-                }, administrator);
+                securityContextManager.runAs(
+                        (lResult) -> { // TODO reconsider this "runAs"
+                            for (String definitionOid : definitionOids) {
+                                startAdHocCertification(focus, definitionOid, task, lResult);
+                            }
+                            return null;
+                        },
+                        administrator,
+                        false,
+                        result);
             } catch (Throwable e) {
                 result.recordException(e);
                 throw e;

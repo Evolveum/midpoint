@@ -81,6 +81,8 @@ public class LoggerAuditServiceImpl implements AuditService {
                 ", nid=" + record.getNodeIdentifier() +
                 ", raddr=" + record.getRemoteHostAddress() +
                 ", I=" + formatReference(record.getInitiatorRef()) +
+                ", EP=" + formatReference(record.getEffectivePrincipalRef()) +
+                ", epm=" + record.getEffectivePrivilegesModification() +
                 ", T=" + formatReference(record.getTargetRef()) +
                 ", TO=" + formatReference(record.getTargetOwnerRef()) +
                 ", D=" + formatDeltaSummary(record.getDeltas()) +
@@ -181,5 +183,12 @@ public class LoggerAuditServiceImpl implements AuditService {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("searchObjectsIterative not supported");
+    }
+
+    @Override
+    public @NotNull RepositoryDiag getRepositoryDiag() {
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName(getClass().getSimpleName());
+        return diag;
     }
 }

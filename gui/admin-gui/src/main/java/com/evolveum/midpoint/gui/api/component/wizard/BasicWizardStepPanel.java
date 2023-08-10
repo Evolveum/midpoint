@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -29,6 +30,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_BACK = "back";
     private static final String ID_EXIT = "exit";
+
+    private static final String ID_CUSTOM_BUTTONS = "customButtons";
 
     private static final String ID_SUBMIT = "submit";
     private static final String ID_SUBMIT_LABEL = "submitLabel";
@@ -75,6 +78,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
                 onExitPerformed(target);
             }
         };
@@ -84,10 +88,15 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(exit);
         add(exit);
 
+        RepeatingView customButtons = new RepeatingView(ID_CUSTOM_BUTTONS);
+        add(customButtons);
+        initCustomButtons(customButtons);
+
         AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT) {
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
+                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
                 onSubmitPerformed(target);
             }
 
@@ -127,6 +136,9 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         Label nextLabel = new Label(ID_NEXT_LABEL, getNextLabelModel());
         next.add(nextLabel);
+    }
+
+    protected void initCustomButtons(RepeatingView customButtons) {
     }
 
     protected boolean isSubmitEnable() {

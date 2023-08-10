@@ -483,7 +483,10 @@ public class DashboardServiceImpl implements DashboardService {
             return null;
         }
         ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
-        return objectResolver.resolve(ref, ObjectCollectionType.class, null, "resolving collection from " + widget, task, result);
+        return objectResolver.resolve(
+                ref, ObjectCollectionType.class,
+                null,
+                "resolving collection from " + widget, task, result);
     }
 
     @Override

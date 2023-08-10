@@ -311,6 +311,9 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
     }
 
     private Class<?> getClassKeyForMergedClass(Class<?> typeClass) {
+        if (typeClass == null) {
+            return null;
+        }
         for (Class<?> key : MERGE_IDENTIFIERS.keySet()) {
             if (key.isAssignableFrom(typeClass)) {
                 return key;

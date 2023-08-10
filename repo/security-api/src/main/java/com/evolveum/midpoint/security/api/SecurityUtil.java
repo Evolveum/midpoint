@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -336,10 +337,9 @@ public class SecurityUtil {
      */
     public static HttpConnectionInformation getCurrentConnectionInformation() {
         RequestAttributes attr = RequestContextHolder.getRequestAttributes();
-        if (!(attr instanceof ServletRequestAttributes)) {
+        if (!(attr instanceof ServletRequestAttributes servletRequestAttributes)) {
             return null;
         }
-        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) attr;
         HttpServletRequest request = servletRequestAttributes.getRequest();
         HttpConnectionInformation rv = new HttpConnectionInformation();
         HttpSession session = request.getSession(false);
@@ -390,19 +390,32 @@ public class SecurityUtil {
         Authentication authentication = getAuthentication();
         if (authentication == null) {
             SecurityViolationException ex = new SecurityViolationException("No authentication");
+            // TODO should we really log this? Usually the one who catches the exception does that.
             LOGGER.error("No authentication", ex);
             throw ex;
         }
         Object principalObject = authentication.getPrincipal();
-        if (!(principalObject instanceof MidPointPrincipal)) {
-            if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
-                return null;
-            } else {
-                throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-                    MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
-            }
+        if (principalObject instanceof MidPointPrincipal midPointPrincipal) {
+            return midPointPrincipal;
+        } else if (authentication.getPrincipal() instanceof String &&
+                AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
+            return null;
+        } else {
+            throw new IllegalArgumentException(
+                    "Expected that spring security principal will be of type %s but it was %s".formatted(
+                            MidPointPrincipal.class.getName(), MiscUtil.getObjectName(principalObject)));
         }
-        return (MidPointPrincipal) principalObject;
+    }
+
+    /** Benevolent version of {@link #getPrincipal()} */
+    public static @Nullable MidPointPrincipal getPrincipalIfExists() {
+        var authentication = getAuthentication();
+        if (authentication == null) {
+            return null;
+        } else {
+            return authentication.getPrincipal() instanceof MidPointPrincipal midPointPrincipal ?
+                    midPointPrincipal : null;
+        }
     }
 
     /**

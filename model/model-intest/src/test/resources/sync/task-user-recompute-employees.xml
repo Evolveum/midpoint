@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="fb1b8d77-d2a6-4bc3-b771-ba2a4159dae7">
+    <name>user-recompute-employees</name>
+    <assignment>
+        <targetRef oid="77615e4c-b82e-4b3a-b265-5487a6ac016b" type="ArchetypeType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState> <!-- run on demand -->
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <archetypeRef oid="e3a9a6b9-17f6-4239-b935-6f88a655b9d7"/>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
+</task>

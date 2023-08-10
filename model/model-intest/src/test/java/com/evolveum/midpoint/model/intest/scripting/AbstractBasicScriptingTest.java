@@ -23,7 +23,13 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.intest.CommonArchetypes;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+
+import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -121,6 +127,10 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final String SCRIPTING_USERS_IN_BACKGROUND = "scripting-users-in-background";
     private static final String SCRIPTING_USERS_IN_BACKGROUND_ASSIGN = "scripting-users-in-background-assign";
 
+    private static final String SCRIPTING_USERS_VIA_EXPRESSION = "scripting-users-via-expression";
+    private static final String SCRIPTING_USERS_VIA_EXPRESSION_WITH_LIBRARY_FUNCTION =
+            "scripting-users-via-expression-with-library-function";
+
     private static final String GENERATE_PASSWORDS = "generate-passwords";
     private static final String GENERATE_PASSWORDS_2 = "generate-passwords-2";
     private static final String GENERATE_PASSWORDS_3 = "generate-passwords-3";
@@ -148,6 +158,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final TestTask TASK_CUSTOM_SCRIPTING =
             new TestTask(TEST_DIR, "task-custom-scripting.xml", "f3b3f5e1-b3fb-42d5-9676-fa8ab9e5b58c");
 
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_TEST = TestObject.file(
+            TEST_DIR, "function-library-test.xml", "724f2cce-c2d0-4a95-a67e-c922f9b806ab");
+
     @Autowired ScriptingExpressionEvaluator evaluator;
 
     @Override
@@ -155,6 +168,11 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
             throws Exception {
         super.initSystem(initTask, initResult);
         InternalMonitor.reset();
+
+        initTestObjects(initTask, initResult,
+                CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION,
+                CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION,
+                FUNCTION_LIBRARY_TEST);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
     }
@@ -170,6 +188,8 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
     abstract String getSuffix();
 
+    abstract boolean isNew();
+
     @Test
     public void test100EmptySequence() throws Exception {
         given();
@@ -179,7 +199,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExpressionSequenceType sequence = new ExpressionSequenceType();
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(sequence, task, result);
+        ExecutionContext output = evaluateExpression(sequence, task, result);
 
         then();
         dumpOutput(output, result);
@@ -197,7 +217,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExpressionPipelineType pipeline = new ExpressionPipelineType();
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(pipeline, task, result);
+        ExecutionContext output = evaluateExpression(pipeline, task, result);
 
         then();
         dumpOutput(output, result);
@@ -215,7 +235,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExecuteScriptType executeScript = parseExecuteScript(ECHO);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output = evaluateExpression(executeScript, task, result);
 
         then();
         dumpOutput(output, result);
@@ -224,6 +244,27 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         assertEquals("Unexpected # of items in output", 4, data.getData().size());
 
         // TODO check correct serialization
+    }
+
+    ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result)
+            throws ScriptExecutionException {
+        return evaluateExpression(ScriptingBeansUtil.asExecuteScriptCommand(expression), task, result);
+    }
+
+    ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result)
+            throws ScriptExecutionException {
+        return evaluateExpression(executeScript, VariablesMap.emptyMap(), task, result);
+    }
+
+    private ExecutionContext evaluateExpression(
+            ExecuteScriptType executeScript, VariablesMap variablesMap, Task task, OperationResult result)
+            throws ScriptExecutionException {
+        return evaluator.evaluateExpression(
+                ExecuteScriptConfigItem.of(executeScript, ConfigurationItemOrigin.generated()),
+                variablesMap,
+                false,
+                task,
+                result);
     }
 
     @Test
@@ -239,7 +280,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         tailer.setExpecteMessage("Custom message:");
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(logAction, task, result);
+        ExecutionContext output = evaluateExpression(logAction, task, result);
 
         then();
         dumpOutput(output, result);
@@ -260,7 +301,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -282,7 +323,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         variables.put("value2", "jack", String.class);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(executeScript, variables, false, task, result);
+        ExecutionContext output = evaluateExpression(executeScript, variables, task, result);
 
         then();
         dumpOutput(output, result);
@@ -305,7 +346,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_RESOURCES_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -324,7 +365,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_ROLES_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -342,7 +383,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_SHADOWS_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -361,7 +402,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_SHADOWS_NOFETCH);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -379,7 +420,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_ACCOUNTS_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -397,7 +438,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -415,7 +456,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_RESOLVE_NAMES_FOR_ROLE_MEMBERSHIP_REF_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -438,7 +479,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SEARCH_FOR_USERS_RESOLVE_ROLE_MEMBERSHIP_REF_FILE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -460,7 +501,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(DISABLE_JACK);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -479,7 +520,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(ENABLE_JACK);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -498,7 +539,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(DELETE_AND_ADD_JACK);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -518,7 +559,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(MODIFY_JACK);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -539,7 +580,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(MODIFY_JACK_BACK);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -571,7 +612,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         when("they are modified");
         ExecutionContext output =
-                evaluator.evaluateExpression(
+                evaluateExpression(
                         parseScriptingExpression(MODIFY_BROTHERS),
                         task,
                         result);
@@ -599,7 +640,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(RECOMPUTE_JACK);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -627,7 +668,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_CAPTAIN_AND_DUMMY_RED_TO_JACK);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -676,7 +717,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         when();
         try {
-            evaluator.evaluateExpression(expression, task, result);
+            evaluateExpression(expression, task, result);
             fail("unexpected success");
         } catch (ScriptExecutionException e) {
             displayExpectedException(e);
@@ -694,12 +735,14 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         when();
         Task task = taskManager.createTaskInstance();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-        evaluator.evaluateExpressionInBackground(expression, task, result);
-        waitForTaskFinish(task.getOid(), false);
-        task.refresh(result);
+        var taskOid = modelInteractionService.submitScriptingExpression(
+                ScriptingBeansUtil.asExecuteScriptCommand(expression), task, result);
+        waitForTaskFinish(taskOid, false);
 
         then();
-        assertSuccess(task.getResult());
+        assertTask(taskOid, "after")
+                .assertSuccess()
+                .assertClosed();
         assertUserAfterByUsername(USER_JACK_USERNAME)
                 .assignments()
                 .assertRole(ROLE_NICE_PIRATE_OID);
@@ -718,7 +761,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_PIRATE_MANAGER_TO_WILL);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -764,7 +807,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 .find();
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -798,7 +841,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(UNASSIGN_PIRATE_MANAGER_AND_OWNER_FROM_WILL);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -822,7 +865,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(UNASSIGN_DUMMY_RESOURCE_FROM_WILL);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -845,7 +888,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_PIRATE_RELATION_CAPTAIN_TO_WILL);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -873,7 +916,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 .assertHasSchema();
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -898,7 +941,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(TEST_DUMMY_RESOURCE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -920,7 +963,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         prepareNotifications();
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -946,7 +989,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         prepareNotifications();
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -976,9 +1019,29 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ScriptingExpressionType expression = parseScriptingExpression(SCRIPTING_USERS);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
+        assertAfter500(output, result);
+    }
+
+    @Test
+    public void test501ScriptingUsersViaExpression() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        ExecutionContext output = evaluateExpression(
+                parseScriptingExpression(SCRIPTING_USERS_VIA_EXPRESSION),
+                task,
+                result);
+
+        then();
+        assertAfter500(output, result);
+    }
+
+    private void assertAfter500(ExecutionContext output, OperationResult result) throws SchemaException {
         dumpOutput(output, result);
 
         assertSuccess(result);
@@ -994,8 +1057,37 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
             assertSuccess(item.getResult());
         }
         assertEquals("Unexpected OIDs in output",
-                Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_WILL_OID)),
+                Sets.newHashSet(List.of(
+                        USER_ADMINISTRATOR_OID,
+                        USER_JACK_OID,
+                        USER_BARBOSSA_OID,
+                        USER_GUYBRUSH_OID,
+                        USER_ELAINE_OID,
+                        USER_WILL_OID)),
                 realOids);
+    }
+
+    /** Changes the description of `administrator`. */
+    @Test
+    public void test503ScriptingUsersViaExpressionWithLibraryFunction() throws Exception {
+        skipIfNotNew();
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        ExecutionContext output = evaluateExpression(
+                parseScriptingExpression(SCRIPTING_USERS_VIA_EXPRESSION_WITH_LIBRARY_FUNCTION),
+                task,
+                result);
+
+        then();
+        dumpOutput(output, result);
+
+        assertSuccess(result);
+        assertUserAfter(USER_ADMINISTRATOR_OID)
+                .assertDescription("new description of administrator");
     }
 
     @Test
@@ -1118,7 +1210,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         modifySystemObjectInRepo(SecurityPolicyType.class, SECURITY_POLICY_OID, itemDeltas, result);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
+        ExecutionContext output = evaluateExpression(expression, task, result);
 
         then();
         dumpOutput(output, result);
@@ -1149,7 +1241,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExecuteScriptType executeScript = parseExecuteScript(GENERATE_PASSWORDS_2);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output = evaluateExpression(executeScript, task, result);
 
         then();
         dumpOutput(output, result);
@@ -1173,7 +1265,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExecuteScriptType executeScript = parseExecuteScript(GENERATE_PASSWORDS_3);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output = evaluateExpression(executeScript, task, result);
 
         then();
         dumpOutput(output, result);
@@ -1220,7 +1312,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 .addRealValues("group1", "group2", "group3");
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output = evaluateExpression(executeScript, task, result);
 
         then();
         dumpOutput(output, result);
@@ -1243,7 +1335,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExecuteScriptType exec = parseExecuteScript(START_TASKS_FROM_TEMPLATE);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output = evaluateExpression(exec, task, result);
 
         then();
         dumpOutput(output, result);
@@ -1328,7 +1420,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         ExecuteScriptType exec = parseExecuteScript(RESUME_SUSPENDED_TASKS);
 
         when();
-        ExecutionContext output = evaluator.evaluateExpression(exec, VariablesMap.emptyMap(), false, task, result);
+        ExecutionContext output = evaluateExpression(exec, task, result);
 
         then();
         dumpOutput(output, result);
@@ -1356,13 +1448,15 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         when();
         Task task = taskManager.createTaskInstance();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-        evaluator.evaluateExpressionInBackground(expression, task, result);
-        waitForTaskFinish(task.getOid(), false);
-        task.refresh(result);
+        var taskOid = modelInteractionService.submitScriptingExpression(
+                ScriptingBeansUtil.asExecuteScriptCommand(expression), task, result);
+        waitForTaskFinish(taskOid, false);
 
         then();
-        display(task.getResult());
-        TestUtil.assertSuccess(task.getResult());
+        assertTask(taskOid, "after")
+                .assertSuccess()
+                .assertClosed();
+
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("jack after password change", jack);
         assertEncryptedUserPassword(jack, PASSWORD_PLAINTEXT_1);
@@ -1542,4 +1636,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         return parseExecuteScript(getFile(name));
     }
 
+    private void skipIfNotNew() {
+        if (!isNew()) {
+            throw new SkipException("This test is only for new scripting expressions");
+        }
+    }
 }

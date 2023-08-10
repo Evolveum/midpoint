@@ -695,21 +695,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     @NotNull
-    public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = null;
         try {
             principal = securityContextManager.getPrincipal();
         } catch (SecurityViolationException e) {
-            LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
+            LOGGER.warn("Security violation while getting principal to get GUI config: {}", e.getMessage(), e);
         }
 
-        if (!(principal instanceof GuiProfiledPrincipal)) {
+        if (!(principal instanceof GuiProfiledPrincipal guiProfiledPrincipal)) {
             // May be used for unauthenticated user, error pages and so on
             return guiProfileCompiler.getGlobalCompiledGuiProfile(task, parentResult);
         } else {
-            CompiledGuiProfile profile = ((GuiProfiledPrincipal) principal).getCompiledGuiProfile();
+            CompiledGuiProfile profile = guiProfiledPrincipal.getCompiledGuiProfile();
             if (profile.isInvalid()) {
-                return guiProfiledPrincipalManager.refreshCompiledProfile(((GuiProfiledPrincipal) principal));
+                return guiProfiledPrincipalManager.refreshCompiledProfile(guiProfiledPrincipal);
             }
             return profile;
         }
@@ -2308,5 +2310,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @NotNull OperationResult result,
             @NotNull SimulationResultManager.SimulatedFunctionCall<X> functionCall) throws CommonException {
         return simulationResultManager.executeWithSimulationResult(mode, simulationDefinition, task, result, functionCall);
+    }
+
+    @Override
+    public void checkScriptingAuthorization(Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
     }
 }

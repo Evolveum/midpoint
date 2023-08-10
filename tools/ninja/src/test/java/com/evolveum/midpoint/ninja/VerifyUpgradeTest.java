@@ -52,7 +52,7 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
 
         when();
 
-        VerifyResult result = (VerifyResult) executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
+        MainResult mainResult = executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
                 "-v",
                 "-m", getMidpointHome(),
                 "verify",
@@ -63,8 +63,10 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
 
         then();
 
+        VerifyResult result = (VerifyResult) mainResult.result();
+
         Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(1L);
+        Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(11L);
 
         Assertions.assertThat(OUTPUT)
                 .exists()
@@ -124,23 +126,29 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
     public void test300VerifyObjects() throws Exception {
         given();
 
+        RepoAddOptions opts = new RepoAddOptions();
+        opts.setAllowUnencryptedValues(true);
+        opts.setOverwrite(true);
+
         Collection<File> files = FileUtils.listFiles(TARGET_FILES, new String[] { "xml" }, true);
         for (File file : files) {
             List<PrismObject<? extends Objectable>> objects = PrismTestUtil.parseObjectsCompat(file);
             for (PrismObject<? extends Objectable> object : objects) {
-                repository.addObject((PrismObject) object, RepoAddOptions.createOverwrite(), new OperationResult("add object"));
+                repository.addObject((PrismObject) object, opts, new OperationResult("add object"));
             }
         }
 
         when();
 
-        VerifyResult result = (VerifyResult) executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
+        MainResult mainResult = executeTest(NOOP_STREAM_VALIDATOR, EMPTY_STREAM_VALIDATOR,
                 "-v",
                 "-m", getMidpointHome(),
                 "verify",
                 "--report-style", "csv",
                 "--overwrite",
                 "--output", OUTPUT.getPath());
+
+        VerifyResult result = (VerifyResult) mainResult.result();
 
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getItemPriorityCount(UpgradePriority.OPTIONAL)).isEqualTo(1L);
@@ -152,6 +160,35 @@ public class VerifyUpgradeTest extends NinjaSpringTest {
         Assertions.assertThat(OUTPUT_DELTA)
                 .exists()
                 .isNotEmpty();
+
+        // todo more asserts
+    }
+
+    @Test
+    public void test400VerifyObjects() throws Exception {
+        given();
+
+        RepoAddOptions opts = new RepoAddOptions();
+        opts.setAllowUnencryptedValues(true);
+        opts.setOverwrite(true);
+
+        Collection<File> files = FileUtils.listFiles(TARGET_FILES, new String[] { "xml" }, true);
+        for (File file : files) {
+            List<PrismObject<? extends Objectable>> objects = PrismTestUtil.parseObjectsCompat(file);
+            for (PrismObject<? extends Objectable> object : objects) {
+                repository.addObject((PrismObject) object, opts, new OperationResult("add object"));
+            }
+        }
+
+        when();
+
+        MainResult mainResult = executeTest(NOOP_STREAM_VALIDATOR, NOOP_STREAM_VALIDATOR,
+                "-v",
+                "-m", getMidpointHome(),
+                "verify");
+
+        VerifyResult result = (VerifyResult) mainResult.result();
+        Assertions.assertThat(result).isNotNull();
 
         // todo more asserts
     }

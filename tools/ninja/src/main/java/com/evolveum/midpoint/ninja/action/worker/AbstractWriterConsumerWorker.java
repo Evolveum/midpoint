@@ -19,6 +19,8 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.apache.commons.io.IOUtils;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -36,7 +38,10 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
 
         init();
 
-        try (Writer writer = createWriter()) {
+        Writer writer = null;
+        try {
+            writer = createWriter();
+
             while (!shouldConsumerStop()) {
                 T object = null;
                 try {
@@ -61,6 +66,11 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
         } catch (NinjaException ex) {
             log.error(ex.getMessage(), ex);
         } finally {
+            if (options.getOutput() != null) {
+                // we don't want to close stdout, e.g. only if we were writing to file
+                IOUtils.closeQuietly(writer);
+            }
+
             markDone();
 
             if (isWorkersDone()) {

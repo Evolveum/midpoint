@@ -58,6 +58,9 @@ public abstract class SingleContainerPopupPanel<C extends Containerable> extends
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
+        getModelObject().setExpanded(true);
+        getModelObject().getValues().forEach(value -> value.setExpanded(true));
+        getModelObject().setShowEmpty(true, true);
         SingleContainerPanel<C> container = new SingleContainerPanel<C>(ID_CONTAINER, getModel(), getModelObject().getTypeName());
         container.setOutputMarkupId(true);
         mainForm.add(container);

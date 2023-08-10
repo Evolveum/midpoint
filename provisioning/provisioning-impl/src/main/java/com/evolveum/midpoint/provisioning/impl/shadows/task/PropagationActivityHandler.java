@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -38,7 +40,7 @@ public class PropagationActivityHandler implements ActivityHandler<PropagationWo
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                PropagationWorkDefinitionType.COMPLEX_TYPE,
+                PropagationWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_PROPAGATION,
                 PropagationWorkDefinition.class, PropagationWorkDefinition::new, this);
     }
 

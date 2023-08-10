@@ -51,6 +51,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -330,12 +332,17 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
-                setShowedByWizard(false);
-                PrismObject<AH> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
-                getObjectDetailsModels().reset();
-                getObjectDetailsModels().reloadPrismObjectModel(oldObject);
-                backToDetailsFromWizard(target);
-                getWizardBreadcrumbs().clear();
+                SerializableConsumer<AjaxRequestTarget> consumer = consumerTarget -> {
+                    setShowedByWizard(false);
+                    PrismObject<AH> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
+                    getObjectDetailsModels().reset();
+                    getObjectDetailsModels().reloadPrismObjectModel(oldObject);
+                    backToDetailsFromWizard(consumerTarget);
+                    getWizardBreadcrumbs().clear();
+                };
+
+                checkDeltasExitPerformed(consumer, target);
+
             }
 
             @Override
@@ -365,7 +372,9 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
-                navigateToNext(WebComponentUtil.getObjectListPage(getType()));
+                SerializableConsumer<AjaxRequestTarget> consumer =
+                        consumerTarget -> navigateToNext(WebComponentUtil.getObjectListPage(getType()));
+                checkDeltasExitPerformed(consumer, target);
             }
 
             @Override
@@ -389,6 +398,26 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 return result;
             }
         };
+    }
+
+    private void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
+
+        if (!hasUnsavedChanges(target)) {
+            consumer.accept(target);
+            return;
+        }
+        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getMainPopupBodyId(),
+                createStringResource("OperationalButtonsPanel.confirmBack")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                consumer.accept(target);
+            }
+        };
+
+        showMainPopup(confirmationPanel, target);
     }
 
     private void backToDetailsFromWizard(AjaxRequestTarget target) {

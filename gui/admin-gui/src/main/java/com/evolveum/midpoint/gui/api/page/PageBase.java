@@ -956,7 +956,7 @@ public abstract class PageBase extends PageAdminLTE {
         return true;
     }
 
-    protected String determineDataLanguage() {
+    public String determineDataLanguage() {
         CompiledGuiProfile config = getCompiledGuiProfile();
         if (config.getPreferredDataLanguage() != null) {
             if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())) {

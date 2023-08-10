@@ -8,12 +8,15 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -30,18 +33,19 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -57,19 +61,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.data.column.AuditSelectableLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -78,7 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Created by honchar
  */
 public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     static final Trace LOGGER = TraceManager.getTrace(AuditLogViewerPanel.class);
 
@@ -91,8 +90,10 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     }
 
     @Override
-    protected List<InlineMenuItem> createInlineMenu() {
-        return null;
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        ctx.setHistory(isObjectHistoryPanel());
+        return ctx;
     }
 
     @Override
@@ -100,31 +101,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         if (displayModel == null || customColumn == null) {
             return null;
         }
-        return new ContainerableNameColumn<>(displayModel, null, customColumn, expression, getPageBase()) {
-            @Override
-            protected IModel<String> getContainerName(SelectableBean<AuditEventRecordType> selectableBean) {
-                return () -> {
-                    AuditEventRecordType record = selectableBean == null ? null : selectableBean.getValue() ;
-                    if (record == null) {
-                        return null;
-                    }
-                    return WebComponentUtil.formatDate(record.getTimestamp());
-                };
-            }
-
-            @Override
-            public boolean isClickable(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                return unwrapModel(rowModel) != null;
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                AuditEventRecordType record = unwrapModel(rowModel);
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, record.getRepoId());
-                getPageBase().navigateToNext(PageAuditLogDetails.class, parameters);
-            }
-        };
+        return new AuditSelectableLinkColumn(displayModel, null, customColumn, expression, getPageBase());
     }
 
     @Override
@@ -201,14 +178,14 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
     @Override
     public List<AuditEventRecordType> getSelectedRealObjects() {
-        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
+        return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
     }
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
         CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(idButton) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getFilename() {
@@ -226,7 +203,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(idButton, WebComponentUtil.createCreateReportIcon(),
                 getPageBase().createStringResource("MainObjectListPanel.createReport")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -256,7 +233,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         if (AuditEventRecordType.F_INITIATOR_REF.equivalent(path)) {
             return new LinkColumn<>(createStringResource("AuditEventRecordType.initiatorRef"),
                     SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
@@ -290,7 +267,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             return new PropertyColumn<>(
                     createStringResource("PageAuditLogViewer.eventStageLabel"), AuditEventRecordType.F_EVENT_STAGE.getLocalPart(),
                     SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_EVENT_STAGE.getLocalPart()) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
@@ -306,7 +283,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
         if (AuditEventRecordType.F_EVENT_TYPE.equivalent(path)) {
             return new CompositedIconWithLabelColumn<>(createStringResource("PageAuditLogViewer.eventTypeLabel")) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected CompositedIcon getCompositedIcon(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
@@ -366,7 +343,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
             return new LinkColumn<>(createStringResource("AuditEventRecordType.targetRef"),
                     SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
@@ -399,7 +376,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
             return new LinkColumn<>(createStringResource("AuditEventRecordType.targetOwnerRef"),
                     SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
@@ -429,7 +406,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             return new PropertyColumn<>(
                     createStringResource("AuditEventRecordType.channel"), AuditEventRecordType.F_CHANNEL.getLocalPart(),
                     SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_CHANNEL.getLocalPart()) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public void populateItem(Item<ICellPopulator<SelectableBean<AuditEventRecordType>>> item, String componentId,
@@ -457,7 +434,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             return new PropertyColumn<>(
                     createStringResource("PageAuditLogViewer.outcomeLabel"), AuditEventRecordType.F_OUTCOME.getLocalPart(),
                     SelectableBeanImpl.F_VALUE + "." + AuditEventRecordType.F_OUTCOME.getLocalPart()) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {

@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -61,6 +60,11 @@ public class DeletionActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return DeletionWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_DELETION;
     }
 
     @Override
@@ -254,9 +258,10 @@ public class DeletionActivityHandler
         @NotNull private final ObjectSetType objects;
         @NotNull private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var typedDefinition = (DeletionWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects()); // Can contain search options.
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (DeletionWorkDefinitionType) info.getBean();
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects()); // Can contain search options.
             executionOptions = Objects.requireNonNullElseGet(
                     fromModelExecutionOptionsType(typedDefinition.getExecutionOptions()),
                     ModelExecuteOptions::create);
@@ -265,7 +270,7 @@ public class DeletionActivityHandler
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 

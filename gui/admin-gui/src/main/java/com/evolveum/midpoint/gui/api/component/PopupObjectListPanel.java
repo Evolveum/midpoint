@@ -12,13 +12,18 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.column.SelectableObjectNameColumn;
 import com.evolveum.midpoint.web.session.ObjectListStorage;
 
 import com.evolveum.midpoint.web.session.PageStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -98,15 +103,23 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     protected abstract ObjectQuery getCustomizeContentQuery();
 
     @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
-        onSelectPerformed(target, object);
-    }
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return new SelectableObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
+                customColumn, expression, getPageBase()) {
+            private static final long serialVersionUID = 1L;
 
-    @Override
-    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
-        return !isMultiselect();
-    }
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                O object = rowModel.getObject().getValue();
+                PopupObjectListPanel.this.onSelectPerformed(target, object);
+            }
 
+            @Override
+            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                return !PopupObjectListPanel.this.isMultiselect();
+            }
+        };
+    }
 
     @Override
     protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
@@ -178,5 +191,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     @Override
     protected boolean isCollectionViewPanelForCompiledView() {
         return false;
+    }
+
+    @Override
+    protected String getCollectionNameFromPageParameters() {
+        return null;
     }
 }

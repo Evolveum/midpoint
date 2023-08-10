@@ -9,10 +9,11 @@ package com.evolveum.midpoint.model.impl.scripting;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.model.impl.ModelBeans;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -47,33 +47,18 @@ public class VariablesUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(VariablesUtil.class);
 
-    static class VariableResolutionContext {
-        @NotNull final ExpressionFactory expressionFactory;
-        @NotNull final ObjectResolver objectResolver;
-        @NotNull final PrismContext prismContext;
-        final ExpressionProfile expressionProfile;
-        @NotNull final Task task;
-
-        VariableResolutionContext(@NotNull ExpressionFactory expressionFactory,
-                @NotNull ObjectResolver objectResolver, @NotNull PrismContext prismContext, ExpressionProfile expressionProfile, @NotNull Task task) {
-            this.expressionFactory = expressionFactory;
-            this.objectResolver = objectResolver;
-            this.prismContext = prismContext;
-            this.expressionProfile = expressionProfile;
-            this.task = task;
-        }
-    }
-
     // We create immutable versions of prism variables to avoid unnecessary downstream cloning
-    @NotNull
-    static VariablesMap initialPreparation(VariablesMap initialVariables,
-            ScriptingVariablesDefinitionType derivedVariables, ExpressionFactory expressionFactory, ObjectResolver objectResolver,
-            PrismContext prismContext, ExpressionProfile expressionProfile, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    static @NotNull VariablesMap initialPreparation(
+            VariablesMap initialVariables,
+            ScriptingVariablesDefinitionType derivedVariables,
+            ExpressionProfile expressionProfile,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         VariablesMap rv = new VariablesMap();
         addProvidedVariables(rv, initialVariables, task);
-        addDerivedVariables(rv, derivedVariables,
-                new VariableResolutionContext(expressionFactory, objectResolver, prismContext, expressionProfile, task), result);
+        addDerivedVariables(rv, derivedVariables, expressionProfile, task, result);
         return rv;
     }
 
@@ -87,8 +72,10 @@ public class VariablesUtil {
     }
 
     private static void addDerivedVariables(VariablesMap resultingVariables,
-            ScriptingVariablesDefinitionType definitions, VariableResolutionContext ctx, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ScriptingVariablesDefinitionType definitions, ExpressionProfile expressionProfile,
+            Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (definitions == null) {
             return;
         }
@@ -98,33 +85,35 @@ public class VariablesUtil {
             }
             String shortDesc = "scripting variable " + definition.getName();
             // TODO why the difference between path and others?
-            TypedValue valueAndDef;
+            TypedValue<?> valueAndDef;
             if (definition.getExpression().getExpressionEvaluator().size() == 1 &&
                     QNameUtil.match(SchemaConstantsGenerated.C_PATH, definition.getExpression().getExpressionEvaluator().get(0).getName())) {
-                valueAndDef = variableFromPathExpression(resultingVariables, definition.getExpression().getExpressionEvaluator().get(0), ctx, shortDesc, result);
+                valueAndDef = variableFromPathExpression(
+                        resultingVariables, definition.getExpression().getExpressionEvaluator().get(0), shortDesc, task, result);
             } else {
-                valueAndDef = variableFromOtherExpression(resultingVariables, definition, ctx, shortDesc, result);
+                valueAndDef =
+                        variableFromOtherExpression(resultingVariables, definition, expressionProfile, shortDesc, task, result);
             }
             putImmutableValue(resultingVariables, definition.getName(), valueAndDef);
         }
     }
 
-    private static TypedValue variableFromPathExpression(VariablesMap resultingVariables,
-            JAXBElement<?> expressionEvaluator, VariableResolutionContext ctx, String shortDesc, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private static TypedValue<?> variableFromPathExpression(VariablesMap resultingVariables,
+            JAXBElement<?> expressionEvaluator, String shortDesc, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         if (!(expressionEvaluator.getValue() instanceof ItemPathType)) {
             throw new IllegalArgumentException("Path expression: expected ItemPathType but got " + expressionEvaluator.getValue());
         }
-        ItemPath itemPath = ctx.prismContext.toPath((ItemPathType) expressionEvaluator.getValue());
+        ItemPath itemPath = PrismContext.get().toPath((ItemPathType) expressionEvaluator.getValue());
         return ExpressionUtil.resolvePathGetTypedValue(
                 itemPath,
                 createVariables(resultingVariables),
                 false,
                 null,
-                ctx.objectResolver,
+                ModelBeans.get().modelObjectResolver,
                 shortDesc,
-                ctx.task,
-                result);
+                task, result);
     }
 
     private static VariablesMap createVariables(VariablesMap variableMap) {
@@ -134,20 +123,22 @@ public class VariablesUtil {
         return rv;
     }
 
-    private static TypedValue variableFromOtherExpression(
+    private static TypedValue<?> variableFromOtherExpression(
             VariablesMap resultingVariables,
             ScriptingVariableDefinitionType definition,
-            VariableResolutionContext ctx,
+            ExpressionProfile expressionProfile,
             String shortDesc,
+            Task task,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, ctx, shortDesc);
-        Expression<PrismValue, ItemDefinition<?>> expression = ctx.expressionFactory
-                .makeExpression(definition.getExpression(), outputDefinition, ctx.expressionProfile, shortDesc, ctx.task, result);
-        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, ctx.task);
-        context.setExpressionFactory(ctx.expressionFactory);
+        ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, shortDesc);
+        ExpressionFactory expressionFactory = ModelBeans.get().expressionFactory;
+        Expression<PrismValue, ItemDefinition<?>> expression = expressionFactory
+                .makeExpression(definition.getExpression(), outputDefinition, expressionProfile, shortDesc, task, result);
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, task);
+        context.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<?> triple =
-                ExpressionUtil.evaluateAnyExpressionInContext(expression, context, ctx.task, result);
+                ExpressionUtil.evaluateAnyExpressionInContext(expression, context, task, result);
         Collection<?> resultingValues = triple.getNonNegativeValues();
         Object value;
         if (definition.getMaxOccurs() != null && outputDefinition.isSingleValue() // cardinality of outputDefinition is derived solely from definition.maxOccurs (if specified)
@@ -172,8 +163,8 @@ public class VariablesUtil {
         return rv;
     }
 
-    private static ItemDefinition<?> determineOutputDefinition(ScriptingVariableDefinitionType variableDefinition,
-            VariableResolutionContext ctx, String shortDesc) throws SchemaException {
+    private static ItemDefinition<?> determineOutputDefinition(
+            ScriptingVariableDefinitionType variableDefinition, String shortDesc) throws SchemaException {
         List<JAXBElement<?>> evaluators = variableDefinition.getExpression().getExpressionEvaluator();
         boolean isValue = !evaluators.isEmpty() && QNameUtil.match(evaluators.get(0).getName(), SchemaConstants.C_VALUE);
         QName elementName = new QName(variableDefinition.getName());
@@ -189,16 +180,17 @@ public class VariablesUtil {
             if (maxOccurs == null) {
                 maxOccurs = -1;             // to be safe
             }
-            return ctx.prismContext.getSchemaRegistry().createAdHocDefinition(elementName, variableDefinition.getType(), 0, maxOccurs);
+            return PrismContext.get().getSchemaRegistry().createAdHocDefinition(
+                    elementName, variableDefinition.getType(), 0, maxOccurs);
         }
         if (isValue) {
-            return StaticExpressionUtil.deriveOutputDefinitionFromValueElements(elementName, evaluators, shortDesc, ctx.prismContext);
+            return StaticExpressionUtil.deriveOutputDefinitionFromValueElements(elementName, evaluators, shortDesc);
         } else {
             throw new SchemaException("The type of scripting variable " + variableDefinition.getName() + " is not defined");
         }
     }
 
-    private static void putImmutableValue(VariablesMap map, String name, TypedValue valueAndDef) {
+    private static void putImmutableValue(VariablesMap map, String name, TypedValue<?> valueAndDef) {
         map.put(name, makeImmutable(valueAndDef));
     }
 
@@ -271,15 +263,13 @@ public class VariablesUtil {
             } else {
                 return value;
             }
-        } else if (value instanceof PrismValue) {
-            PrismValue pval = (PrismValue) value;
+        } else if (value instanceof PrismValue pval) {
             if (!pval.isImmutable()) {
                 return (T) pval.createImmutableClone();
             } else {
                 return (T) pval;
             }
-        } else if (value instanceof Item) {
-            Item item = (Item) value;
+        } else if (value instanceof Item<?, ?> item) {
             if (!item.isImmutable()) {
                 return (T) item.createImmutableClone();
             } else {

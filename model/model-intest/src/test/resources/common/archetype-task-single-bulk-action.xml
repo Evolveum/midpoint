@@ -59,4 +59,21 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <script>
+                        <code>
+                            return source.name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
 </archetype>

@@ -338,7 +338,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             return Collections.singletonList(selectedObject.getObject());
         } else {
             List<SelectableBean<F>> objects;
-            objects = focusListComponent.isAnythingSelected(target, selectedObject);
+            objects = focusListComponent.isAnythingSelected(selectedObject);
             if (objects.isEmpty()) {
                 parentPage.warn(parentPage.getString("FocusListInlineMenuHelper.message.nothingSelected"));
                 target.add(parentPage.getFeedbackPanel());

@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCloneable;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Objects;
@@ -179,7 +180,7 @@ public class OperationResult
         implements Serializable, DebugDumpable, ShortDumpable, Cloneable,
         OperationResultBuilder, Visitable<OperationResult> {
 
-    private static final long serialVersionUID = -2467406395542291044L;
+    @Serial private static final long serialVersionUID = -2467406395542291044L;
     private static final String VARIOUS_VALUES = "[various values]";
 
     private static final String TASK_OID_PREFIX = "taskOid:";
@@ -2448,6 +2449,51 @@ public class OperationResult
 
         for (OperationResult sub : getSubresults()) {
             sub.dumpIndent(sb, indent + 1, printStackTrace);
+        }
+    }
+
+    @Experimental
+    public void dumpBasicInfo(StringBuilder sb, String prefix, int indent) {
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append(prefix);
+        sb.append(operation);
+        sb.append(" (").append(status).append(")");
+        if (importance == MINOR) {
+            sb.append(", MINOR");
+        } else if (importance == MAJOR) {
+            sb.append(", MAJOR");
+        }
+        if (count > 1) {
+            sb.append(" x");
+            sb.append(count);
+        }
+        sb.append("\n");
+
+        for (Map.Entry<String, Collection<String>> entry : getParams().entrySet()) {
+            DebugUtil.indentDebugDump(sb, indent + 2);
+            sb.append("[p]");
+            sb.append(entry.getKey());
+            sb.append("=");
+            sb.append(dumpEntry(entry.getValue()));
+            sb.append("\n");
+        }
+
+        for (Map.Entry<String, Collection<String>> entry : getContext().entrySet()) {
+            DebugUtil.indentDebugDump(sb, indent + 2);
+            sb.append("[c]");
+            sb.append(entry.getKey());
+            sb.append("=");
+            sb.append(dumpEntry(entry.getValue()));
+            sb.append("\n");
+        }
+
+        for (Map.Entry<String, Collection<String>> entry : getReturns().entrySet()) {
+            DebugUtil.indentDebugDump(sb, indent + 2);
+            sb.append("[r]");
+            sb.append(entry.getKey());
+            sb.append("=");
+            sb.append(dumpEntry(entry.getValue()));
+            sb.append("\n");
         }
     }
 

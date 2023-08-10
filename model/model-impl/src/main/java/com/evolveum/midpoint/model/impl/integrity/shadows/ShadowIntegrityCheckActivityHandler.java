@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.integrity.shadows;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -44,7 +46,7 @@ public class ShadowIntegrityCheckActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE,
+                ShadowIntegrityCheckWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_SHADOW_INTEGRITY_CHECK,
                 ShadowIntegrityCheckWorkDefinition.class, ShadowIntegrityCheckWorkDefinition::new, this);
     }
 

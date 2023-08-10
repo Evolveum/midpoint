@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPopupPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
@@ -123,7 +124,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
                     }
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (item.getModelObject().getValues().iterator().next().getItems().size() == 1) {
+                        if (useEnabledAttribute(item)) {
                             try {
                                 item.getModelObject().findProperty(CapabilityType.F_ENABLED)
                                         .getValues().iterator().next().setRealValue(!isCapabilityEnabled(item.getModelObject()));
@@ -165,6 +166,19 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         };
         capabilities.setOutputMarkupId(true);
         add(capabilities);
+    }
+
+    private boolean useEnabledAttribute(ListItem<PrismContainerWrapper<CapabilityType>> item) {
+        if (item.getModelObject().getValues().iterator().next().getItems().size() == 2) {
+            try {
+                PrismPropertyWrapper<Object> manual = item.getModelObject().findProperty(AbstractWriteCapabilityType.F_MANUAL);
+                return manual != null;
+            } catch (SchemaException e) {
+                LOGGER.debug("Couldn't find property manual in capability " + item.getModelObject(), e);
+                return false;
+            }
+        }
+        return item.getModelObject().getValues().iterator().next().getItems().size() == 1;
     }
 
     private IModel<List<PrismContainerWrapper<CapabilityType>>> getContainers() {

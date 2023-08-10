@@ -9,9 +9,12 @@ package com.evolveum.midpoint.security.api;
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.FreezableList;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +29,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
@@ -49,7 +53,21 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     private ActivationStatusType effectiveActivationStatus;
 
     private Locale preferredLocale;
+
+    /**
+     * Current authorizations. Should be modified solely by methods in this class, e.g. {@link #addAuthorization(Authorization)}
+     * or {@link #addExtraAuthorizationIfMissing(Authorization, boolean)}.
+     *
+     * It would be the best if this list was immutable or at least freezable (e.g. using {@link FreezableList}).
+     * Unfortunately, it is currently not possible, because it has to be updated when the user session is refreshed.
+     */
     @NotNull private final List<Authorization> authorizations = new ArrayList<>();
+
+    /**
+     * Set if the authorizations may differ from the default ones of {@link #focus} (e.g., when "runPrivileged" is used).
+     * Not final because the {@link #authorizations} list is not immutable/freezable either.
+     */
+    @Nullable private EffectivePrivilegesModificationType effectivePrivilegesModification;
 
     private SecurityPolicyType applicableSecurityPolicy;
 
@@ -59,9 +77,24 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     private FocusType attorney;
     private MidPointPrincipal previousPrincipal;
 
-    public MidPointPrincipal(@NotNull FocusType focus) {
+    /** Use static factory methods when calling from the outside. */
+    protected MidPointPrincipal(@NotNull FocusType focus) {
         focusOid = MiscUtil.argNonNull(focus.getOid(), "No OID in principal focus object: %s", focus);
         setOrReplaceFocus(focus);
+    }
+
+    /** Returns a principal with a single privileged authorization; regardless of what authorizations the focus has. */
+    public static @NotNull MidPointPrincipal privileged(@NotNull FocusType focus) {
+        var principal = new MidPointPrincipal(focus);
+        principal.addExtraAuthorizationIfMissing(
+                SecurityUtil.createPrivilegedAuthorization(),
+                true);
+        return principal;
+    }
+
+    /** Returns a principal without authorizations. */
+    public static MidPointPrincipal create(@NotNull FocusType focus) {
+        return new MidPointPrincipal(focus);
     }
 
     @Override
@@ -69,8 +102,32 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         return Collections.unmodifiableList(authorizations);
     }
 
+    /** Use only during "regular" building or updating of a principal. Does NOT set {@link #effectivePrivilegesModification} flag. */
     public void addAuthorization(@NotNull Authorization authorization) {
         authorizations.add(authorization);
+    }
+
+    /**
+     * Use to add extra authorizations - it sets {@link #effectivePrivilegesModification} flag.
+     *
+     * The "if missing" will be (most of the time) a false positive match:
+     *
+     * . The authorization source will most probably differ between role-derived and artificial (runPrivileged) one;
+     * . Even if that would not be the case, any minor difference (like in name or description) would count as well.
+     *
+     * So, the full elevation would be signalled for the majority of cases even if the equivalent authorization was there.
+     */
+    public void addExtraAuthorizationIfMissing(@NotNull Authorization authorization, boolean full) {
+        if (!authorizations.contains(authorization)) {
+            authorizations.add(authorization);
+            if (full) {
+                effectivePrivilegesModification = EffectivePrivilegesModificationType.FULL_ELEVATION;
+            } else if (effectivePrivilegesModification != EffectivePrivilegesModificationType.REDUCTION) {
+                effectivePrivilegesModification = EffectivePrivilegesModificationType.ELEVATION;
+            } else {
+                effectivePrivilegesModification = EffectivePrivilegesModificationType.OTHER;
+            }
+        }
     }
 
     public void clearAuthorizations() {
@@ -159,6 +216,14 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         return getFocus().getOid();
     }
 
+    public @Nullable EffectivePrivilegesModificationType getEffectivePrivilegesModification() {
+        return effectivePrivilegesModification;
+    }
+
+    public void clearEffectivePrivilegesModification() {
+        this.effectivePrivilegesModification = null;
+    }
+
     /**
      * Real identity of the logged-in user. Used in cases when there is a
      * difference between logged-in user and the identity that is used to
@@ -168,8 +233,12 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
      * attorney is in this property. The user that was the target of the
      * switch is stored in the "user" property.
      */
-    public FocusType getAttorney() {
+    public @Nullable FocusType getAttorney() {
         return attorney;
+    }
+
+    public @Nullable PrismObject<? extends FocusType> getAttorneyPrismObject() {
+        return asPrismObject(attorney);
     }
 
     public void setAttorney(FocusType attorney) {
@@ -207,7 +276,16 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         return clone;
     }
 
+    /** Sets {@link #effectivePrivilegesModification} flag if needed. */
+    public MidPointPrincipal cloneWithAdditionalAuthorizations(
+            @NotNull List<Authorization> additionalAuthorizations, boolean full) {
+        MidPointPrincipal clone = clone();
+        additionalAuthorizations.forEach(a -> clone.addExtraAuthorizationIfMissing(a, full));
+        return clone;
+    }
+
     protected void copyValues(MidPointPrincipal clone) {
+        clone.effectivePrivilegesModification = this.effectivePrivilegesModification;
         clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
         clone.authorizations.addAll(authorizations);
         clone.effectiveActivationStatus = this.effectiveActivationStatus;

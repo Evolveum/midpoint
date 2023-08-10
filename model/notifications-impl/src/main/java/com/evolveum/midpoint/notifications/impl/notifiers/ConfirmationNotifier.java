@@ -9,8 +9,10 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,17 +34,13 @@ public abstract class ConfirmationNotifier<N extends ConfirmationNotifierType> e
     @Autowired private MidpointFunctions midpointFunctions;
 
     @Override
-    public Class<ModelEvent> getEventType() {
+    public @NotNull Class<ModelEvent> getEventType() {
         return ModelEvent.class;
     }
 
-    public String getConfirmationLink(UserType userType) {
-        throw new UnsupportedOperationException("Please implement in concrete notifier");
-    }
+    String createConfirmationLink(UserType userType, ConfigurationItem<? extends N> config, OperationResult result) {
 
-    String createConfirmationLink(UserType userType, N config, OperationResult result) {
-
-        RegistrationConfirmationMethodType confirmationMethod = config.getConfirmationMethod();
+        RegistrationConfirmationMethodType confirmationMethod = config.value().getConfirmationMethod();
         if (confirmationMethod == null) {
             return null;
         }
@@ -52,18 +50,18 @@ public abstract class ConfirmationNotifier<N extends ConfirmationNotifierType> e
                         .build());
 
         try {
-            switch (confirmationMethod) {
-                case LINK:
-                    return getConfirmationLink(userType);
-                case PIN:
-                    throw new UnsupportedOperationException("PIN confirmation not supported yes");
-    //                return getNonce(userType);
-                default:
-                    return null;
-            }
+            return switch (confirmationMethod) {
+                case LINK -> getConfirmationLink(userType);
+                case PIN -> throw new UnsupportedOperationException("PIN confirmation not supported yet");
+                default -> null;
+            };
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
+    }
+
+    public String getConfirmationLink(UserType user) {
+        throw new UnsupportedOperationException("Please implement in concrete notifier");
     }
 
     protected UserType getUser(ModelEvent event) {

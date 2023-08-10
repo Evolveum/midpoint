@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -43,7 +44,8 @@ public class InboundMappingOptionalConfigurationStepPanel
             MappingType.F_EXCLUSIVE,
             MappingType.F_AUTHORITATIVE,
             MappingType.F_CHANNEL,
-            MappingType.F_EXCEPT_CHANNEL
+            MappingType.F_EXCEPT_CHANNEL,
+            InboundMappingType.F_USE
     );
 
     public InboundMappingOptionalConfigurationStepPanel(ResourceDetailsModel model,

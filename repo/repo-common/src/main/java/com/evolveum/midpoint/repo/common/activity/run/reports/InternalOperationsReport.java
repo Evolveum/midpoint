@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.repo.common.activity.run.reports;
 
 import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
@@ -90,7 +89,7 @@ public class InternalOperationsReport extends AbstractReport {
             return;
         }
 
-        InternalOperationRecordType record = new InternalOperationRecordType(PrismContext.get())
+        InternalOperationRecordType record = new InternalOperationRecordType()
                 .operation(reportedResult.getOperation())
                 .qualifiers(concatenatedQualifiersLazy.get())
                 .operationKind(reportedResult.getOperationKind())

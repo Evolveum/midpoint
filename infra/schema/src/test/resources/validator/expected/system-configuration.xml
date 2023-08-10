@@ -5,6 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="3947d3b1-b6e8-46ec-b382-1bde67da6f07">
 
     <name>system-configuration</name>
@@ -112,9 +113,103 @@
     </roleManagement>
 
     <adminGuiConfiguration>
-        <userDashboardLink>
-            <targetUrl>https://google.com</targetUrl>
-        </userDashboardLink>
+        <homePage>
+            <identifier>user</identifier>
+            <type>c:UserType</type>
+            <widget>
+                <display>
+                    <icon>
+                        <cssClass>black red</cssClass>
+                    </icon>
+                </display>
+                <panelType>linkWidget</panelType>
+                <action>
+                    <identifier>link</identifier>
+                    <target>
+                        <targetUrl>https://google.com</targetUrl>
+                    </target>
+                </action>
+            </widget>
+            <widget>
+                <display>
+                    <label>Sample</label>
+                </display>
+                <panelType>linkWidget</panelType>
+                <action>
+                    <identifier>link</identifier>
+                    <target>
+                        <targetUrl>https://sample.com</targetUrl>
+                    </target>
+                </action>
+            </widget>
+            <widget>
+                <identifier>123</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+            <widget>
+                <identifier>456</identifier>
+                <visibility>vacant</visibility>
+            </widget>
+        </homePage>
+        <objectForms>
+            <objectForm>
+                <type>OrgType</type>
+                <formSpecification>
+                    <title>Transform</title>
+                    <panelClass>com.example.midpoint.gui.forms.ConfigurationTableTabPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView id="3">
+                <action id="4">
+                    <identifier>action1</identifier>
+                </action>
+                <action id="5">
+                    <identifier>action2</identifier>
+                </action>
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>oneLevel</defaultValue>
+                    </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>UserType</defaultValue>
+                    </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="7">
+                            <display>
+                                <label>sample1</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView id="6">
+                <searchBoxConfiguration>
+                    <scopeConfiguration>
+                        <defaultValue>subtree</defaultValue>
+                    </scopeConfiguration>
+                    <objectTypeConfiguration>
+                        <defaultValue>OrgType</defaultValue>
+                    </objectTypeConfiguration>
+                    <searchItems>
+                        <searchItem id="8">
+                            <display>
+                                <label>sample3</label>
+                            </display>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+        </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage id="10">
+                <type>UserType</type>
+                <container id="9">
+                    <identifier>123</identifier>
+                </container>
+            </objectDetailsPage>
+        </objectDetails>
         <accessRequest>
             <roleCatalog>
                 <roleCatalogRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="OrgType"/>

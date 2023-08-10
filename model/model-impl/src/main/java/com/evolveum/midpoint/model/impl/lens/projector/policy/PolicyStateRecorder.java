@@ -13,6 +13,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
@@ -123,10 +125,12 @@ class PolicyStateRecorder {
         ComputationResult cr = new ComputationResult();
         for (AssociatedPolicyRule rule : rulesToRecord) {
             cr.newPolicySituations.add(rule.getPolicySituation());
-            RecordPolicyActionType recordAction = rule.getEnabledAction(RecordPolicyActionType.class);
-            if (recordAction.getPolicyRules() != TriggeredPolicyRulesStorageStrategyType.NONE) {
-                PolicyRuleExternalizationOptions externalizationOptions = new PolicyRuleExternalizationOptions(
-                        recordAction.getPolicyRules(), false);
+            PolicyActionConfigItem<RecordPolicyActionType> recordAction = rule.getEnabledAction(RecordPolicyActionType.class);
+            assert recordAction != null;
+            var rulesStorageStrategy = recordAction.value().getPolicyRules();
+            if (rulesStorageStrategy != TriggeredPolicyRulesStorageStrategyType.NONE) {
+                PolicyRuleExternalizationOptions externalizationOptions =
+                        new PolicyRuleExternalizationOptions(rulesStorageStrategy, false);
                 rule.addToEvaluatedPolicyRuleBeans(
                         cr.newTriggeredRules, externalizationOptions, null, rule.getNewOwner());
             }

@@ -3,10 +3,11 @@ package com.evolveum.midpoint.ninja.util;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.impl.LogLevel;
 
 public final class ConsoleFormat {
 
-    public enum Level {
+    public enum Color {
 
         DEFAULT(Ansi.Color.DEFAULT),
 
@@ -18,9 +19,9 @@ public final class ConsoleFormat {
 
         ERROR(Ansi.Color.RED);
 
-        final Ansi.Color color;
+        public final Ansi.Color color;
 
-        Level(Ansi.Color color) {
+        Color(Ansi.Color color) {
             this.color = color;
         }
     }
@@ -29,7 +30,7 @@ public final class ConsoleFormat {
     }
 
     public static void setBatchMode(boolean batchMode) {
-        Ansi.setEnabled(batchMode);
+        Ansi.setEnabled(!batchMode);
     }
 
     public static String formatActionStartMessage(Action action) {
@@ -37,35 +38,50 @@ public final class ConsoleFormat {
         return Ansi.ansi().a("Starting ").fgGreen().a(operation).reset().toString();
     }
 
-    public static String formatSuccessMessageWithParameter(String message, Object parameter) {
-        return formatMessageWithParameter(message, parameter, Level.SUCCESS);
+    public static String formatMessageWithErrorParameters(String message, Object... parameters) {
+        return formatMessageWithParameter(message, parameters, Color.ERROR);
     }
 
-    public static String formatWarnMessageWithParameter(String message, Object parameter) {
-        return formatMessageWithParameter(message, parameter, Level.WARN);
+    public static String formatMessageWithWarningParameters(String message, Object... parameters) {
+        return formatMessageWithParameter(message, parameters, Color.WARN);
     }
 
-    public static String formatErrorMessageWithParameter(String message, Object parameter) {
-        return formatMessageWithParameter(message, parameter, Level.ERROR);
+    public static String formatMessageWithInfoParameters(String message, Object... parameters) {
+        return formatMessageWithParameter(message, parameters, Color.INFO);
     }
 
-    public static String formatInfoMessageWithParameter(String message, Object parameter) {
-        return formatMessageWithParameter(message, parameter, Level.INFO);
+    public static String formatMessageWithParameter(String message, Object[] parameters, Color level) {
+        String[] formatted = new String[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            formatted[i] = Ansi.ansi().fgBright(level.color).a(parameters[i]).reset().toString();
+        }
+
+        return NinjaUtils.printFormatted(message, formatted);
     }
 
-    public static String formatMessageWithParameter(String message, Object parameter, Level level) {
-        return Ansi.ansi().a(message).fg(level.color).a(parameter).reset().toString();
+    public static String formatSuccessMessage(String message) {
+        return formatMessage(message, Color.SUCCESS);
     }
 
-    public static String formatWarn(String message) {
-        return format(message, Level.WARN);
+    public static String formatMessage(String message, Color color) {
+        return Ansi.ansi().fgBright(color.color).a(message).reset().toString();
     }
 
-    public static String formatError(String message) {
-        return format(message, Level.ERROR);
+    public static String formatLogMessage(LogLevel level, String msg) {
+        return Ansi.ansi()
+                .reset()
+                .a("[").fgBright(level.color()).a(level.label()).reset().a("] ")
+                .a(msg)
+                .toString();
     }
 
-    public static String format(String message, Level level) {
-        return Ansi.ansi().fg(level.color).a(message).reset().toString();
+    /**
+     * Technically removes two lines, since {@Log.info} adds new line at the end of the message
+     */
+    public static String rewriteConsoleLine(String newLine) {
+        return Ansi.ansi()
+                .eraseLine(Ansi.Erase.ALL)
+                .cursorUpLine().eraseLine(Ansi.Erase.ALL)
+                .a(newLine).toString();
     }
 }

@@ -62,11 +62,12 @@ public class CustomCompositeActivityHandler implements ActivityHandler<Composite
 
     @Override
     public ArrayList<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, CustomCompositeActivityHandler> parent) {
+        var origin = parent.getWorkDefinition().getOrigin(); // We assume the child activities have the same (approximate) origin.
         return parent.getWorkDefinition().getComposition().getActivity().stream()
                 .sorted(Comparator.comparing(
                         ActivityDefinitionType::getOrder,
                         Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(definitionBean -> ActivityDefinition.createChild(definitionBean))
+                .map(definitionBean -> ActivityDefinition.createChild(definitionBean, origin))
                 .map(definition -> createChildActivity(definition, parent))
                 .collect(Collectors.toCollection(ArrayList::new));
     }

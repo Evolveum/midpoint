@@ -31,6 +31,15 @@ public class OperationResultAssert extends AbstractAssert<OperationResultAssert,
         return this;
     }
 
+    public OperationResultAssert isWarning() {
+        isNotNull();
+        actual.computeStatusIfUnknown();
+        if (!actual.isWarning()) {
+            failWithMessage("Expected operation result to be warning: %s", actual);
+        }
+        return this;
+    }
+
     public OperationResultAssert isFatalError() {
         isNotNull();
         actual.computeStatusIfUnknown();

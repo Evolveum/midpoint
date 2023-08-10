@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
 
 import org.jetbrains.annotations.NotNull;
@@ -72,17 +73,22 @@ public class ForeignPolicyRuleImpl implements AssociatedPolicyRule {
     }
 
     @Override
+    public boolean isEvaluated() {
+        return evaluatedPolicyRule.isEvaluated();
+    }
+
+    @Override
     public boolean containsEnabledAction(Class<? extends PolicyActionType> type) {
         return evaluatedPolicyRule.containsEnabledAction(type);
     }
 
     @Override
-    public <T extends PolicyActionType> T getEnabledAction(Class<T> type) {
+    public <T extends PolicyActionType> PolicyActionConfigItem<T> getEnabledAction(Class<T> type) {
         return evaluatedPolicyRule.getEnabledAction(type);
     }
 
     @Override
-    public @NotNull <T extends PolicyActionType> List<T> getEnabledActions(Class<T> type) {
+    public @NotNull <T extends PolicyActionType> List<? extends PolicyActionConfigItem<T>> getEnabledActions(Class<T> type) {
         return evaluatedPolicyRule.getEnabledActions(type);
     }
 

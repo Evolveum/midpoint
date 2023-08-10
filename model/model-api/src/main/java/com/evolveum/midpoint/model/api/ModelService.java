@@ -26,6 +26,7 @@ import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -477,6 +478,34 @@ public interface ModelService {
     <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)
                     throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+
+
+
+    default <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(TypedQuery<T> query,
+            Task task, OperationResult parentResult) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return searchObjects(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
+    }
+
+    default <T extends Containerable> SearchResultList<T> searchContainers(TypedQuery<T> query,
+            Task task, OperationResult parentResult) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return searchContainers(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
+    }
+
+    default <T extends ObjectType> Integer countObjects(TypedQuery<T> query,
+            Task task, OperationResult parentResult) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return countObjects(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
+    }
+
+
+    default <T extends Containerable> Integer countContainers(TypedQuery<T> query,
+            Task task, OperationResult parentResult) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return countContainers(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
+    }
+
 
     /**
      * <p>

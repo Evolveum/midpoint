@@ -6,26 +6,27 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
+import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-
-import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
-
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
-import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
-import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -59,11 +60,28 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
 
     @Override
     public VerifyResult execute() throws Exception {
+        VerifyResult result;
         if (!options.getFiles().isEmpty()) {
-            return verifyFiles();
+            result = verifyFiles();
+        } else {
+            result = super.execute();
         }
 
-        return super.execute();
+        log.info(
+                "Verification finished. {}, {}, {} optional issues found",
+                ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
+                ConsoleFormat.formatMessageWithWarningParameters("{} necessary", result.getNecessaryCount()),
+                result.getOptionalCount());
+
+        if (options.getOutput() != null) {
+            log.info("Verification report saved to '{}'", options.getOutput().getPath());
+
+            if (Objects.equals(VerifyOptions.ReportStyle.CSV, options.getReportStyle())) {
+                log.info("XML dump with delta for each item saved to '{}'", options.getOutput().getPath() + VerificationReporter.DELTA_FILE_NAME_SUFFIX);
+            }
+        }
+
+        return result;
     }
 
     private VerifyResult verifyFiles() throws IOException {

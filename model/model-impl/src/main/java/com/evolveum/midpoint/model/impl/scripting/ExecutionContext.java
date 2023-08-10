@@ -7,11 +7,19 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -19,12 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Context of a command execution.
@@ -34,7 +37,8 @@ public class ExecutionContext {
 
     /**
      * Are we pre-authorized for dangerous operations like Groovy script execution? See
-     * {@link ScriptingExpressionEvaluator#evaluateExpressionPrivileged(ExecuteScriptType, VariablesMap, Task, OperationResult)}.
+     * {@link ScriptingExpressionEvaluator#evaluateExpressionPrivileged(ExecuteScriptConfigItem,
+     * VariablesMap, Task, OperationResult)}.
      *
      * TEMPORARY. To be replaced.
      */
@@ -43,20 +47,32 @@ public class ExecutionContext {
     private final Task task;
     private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     private final StringBuilder consoleOutput = new StringBuilder();
-    private final Map<String, PipelineData> globalVariables = new HashMap<>();      // will probably remain unused
-    private final VariablesMap initialVariables;                             // used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use
-    private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
+    /** will probably remain unused */
+    private final Map<String, PipelineData> globalVariables = new HashMap<>();
+    /** used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use */
+    private final VariablesMap initialVariables;
+    /** used only when passing result to external clients (TODO do this more cleanly) */
+    private PipelineData finalOutput;
     private final boolean recordProgressAndIterationStatistics;
 
-    public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
+    /**
+     * Used for all evaluations in this context. The whole bulk action shares the same origin (it is a property, not a container),
+     * so everything has the same profile.
+     */
+    @NotNull private final ExpressionProfile expressionProfile;
+
+    public ExecutionContext(
+            ScriptingExpressionEvaluationOptionsType options, Task task,
             ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            boolean privileged, boolean recordProgressAndIterationStatistics, VariablesMap initialVariables) {
+            boolean privileged, boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
+            @NotNull ExpressionProfile expressionProfile) {
         this.options = options;
         this.task = task;
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
         this.privileged = privileged;
         this.initialVariables = initialVariables;
         this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
+        this.expressionProfile = expressionProfile;
     }
 
     public Task getTask() {
@@ -94,7 +110,8 @@ public class ExecutionContext {
     public void println(Object o) {
         consoleOutput.append(o).append("\n");
         if (o != null) {
-            LOGGER.debug("Script console message: {}", o);          // temporary, until some better way of logging bulk action executions is found
+            // temporary, until some better way of logging bulk action executions is found
+            LOGGER.debug("Script console message: {}", o);
         }
     }
 
@@ -133,7 +150,7 @@ public class ExecutionContext {
         }
     }
 
-    public void computeResults() {
+    void computeResults() {
         if (finalOutput != null) {
             finalOutput.getData().forEach(i -> i.computeResult());
         }
@@ -153,5 +170,9 @@ public class ExecutionContext {
 
     public QueryConverter getQueryConverter() {
         return getPrismContext().getQueryConverter();
+    }
+
+    public @NotNull ExpressionProfile getExpressionProfile() {
+        return expressionProfile;
     }
 }

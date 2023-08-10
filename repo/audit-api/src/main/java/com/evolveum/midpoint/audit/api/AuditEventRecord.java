@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,10 +31,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -133,7 +131,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
      * It is the subject of the operation. Authorizations of the initiator are used
      * to evaluate access to the operation. This is the entity who is formally responsible
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
-     * the initiator may be an organization in later midPoint versions.
+     * the initiator may be an organization, a role, or a service in later midPoint versions.
      */
     private PrismReferenceValue initiatorRef;
 
@@ -148,6 +146,21 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
      * much sense).
      */
     private PrismReferenceValue attorneyRef;
+
+    /**
+     * The effective principal that was used to execute the action. This is the subject whose authorizations were evaluated
+     * to determine whether the action is allowed or not. Usually it is the same as initiator. But e.g. when "runAsRef" mechanism
+     * is used for expression evaluation (or the like), the effective principal is the one that was used to evaluate
+     * the expression.
+     */
+    private PrismReferenceValue effectivePrincipalRef;
+
+    /**
+     * Present if the effective privileges used to execute the operation differ or may differ from the regular
+     * (declared) privileges of the {@link #effectivePrincipalRef}. This is usually the case e.g. when "runPrivileged"
+     * mechanism is used for expression evaluation.
+     */
+    private EffectivePrivilegesModificationType effectivePrivilegesModification;
 
     /**
      * (primary) target (object, the thing acted on): store OID, type, name.
@@ -331,8 +344,33 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
     /**
      * It is assumed the ref has oid, type and description set.
      */
+    @SuppressWarnings("unused") // just for completeness
     public void setAttorneyRef(PrismReferenceValue attorneyRef) {
         this.attorneyRef = attorneyRef;
+    }
+
+    public @Nullable PrismReferenceValue getEffectivePrincipalRef() {
+        return effectivePrincipalRef;
+    }
+
+    public void setEffectivePrincipal(@Nullable PrismObject<? extends FocusType> object) {
+        this.effectivePrincipalRef = object != null
+                ? createRefValueWithDescription(object)
+                : null;
+    }
+
+    /** It is assumed the ref has oid, type and description set. */
+    @SuppressWarnings("unused") // just for completeness
+    public void setEffectivePrincipalRef(PrismReferenceValue effectivePrincipalRef) {
+        this.effectivePrincipalRef = effectivePrincipalRef;
+    }
+
+    public @Nullable EffectivePrivilegesModificationType getEffectivePrivilegesModification() {
+        return effectivePrivilegesModification;
+    }
+
+    public void setEffectivePrivilegesModification(EffectivePrivilegesModificationType value) {
+        this.effectivePrivilegesModification = value;
     }
 
     public PrismReferenceValue getTargetRef() {
@@ -621,6 +659,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         clone.remoteHostAddress = this.remoteHostAddress;
         clone.nodeIdentifier = this.nodeIdentifier;
         clone.initiatorRef = this.initiatorRef;
+        clone.effectivePrincipalRef = this.effectivePrincipalRef;
+        clone.effectivePrivilegesModification = this.effectivePrivilegesModification;
         clone.attorneyRef = this.attorneyRef;
         clone.outcome = this.outcome;
         clone.sessionIdentifier = this.sessionIdentifier;
@@ -633,8 +673,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         clone.result = this.result;
         clone.parameter = this.parameter;
         clone.message = this.message;
-        clone.properties.putAll(properties);        // TODO deep clone?
-        clone.references.putAll(references);        // TODO deep clone?
+        clone.properties.putAll(properties); // TODO deep clone?
+        clone.references.putAll(references); // TODO deep clone?
         clone.resourceOids.addAll(resourceOids);
         clone.customColumnProperty.putAll(customColumnProperty);
         return clone;
@@ -646,6 +686,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
                 + " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
                 + " toid=" + taskOid + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
                 + ", I=" + formatReference(initiatorRef) + ", A=" + formatReference(attorneyRef)
+                + ", EP=" + formatReference(effectivePrincipalRef) + ", epm=" + effectivePrivilegesModification
                 + ", T=" + formatReference(targetRef) + ", TO=" + formatReference(targetOwnerRef) + ", et=" + eventType
                 + ", es=" + eventStage + ", D=" + deltas + ", ch=" + channel + ", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
@@ -674,7 +715,6 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
             return "null";
         }
         if (refVal.getObject() != null) {
-            //noinspection unchecked
             return formatObject(refVal.getObject());
         }
         return refVal.toString();
@@ -697,6 +737,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Remote Host Address", remoteHostAddress, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatReference(initiatorRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Attorney", formatReference(attorneyRef), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Effective principal", formatReference(effectivePrincipalRef), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Effective privileges modification", effectivePrivilegesModification, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatReference(targetRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatReference(targetOwnerRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Type", eventType, indent + 1);

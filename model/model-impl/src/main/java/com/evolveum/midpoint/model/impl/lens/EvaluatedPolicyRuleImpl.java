@@ -14,9 +14,12 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEv
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,23 +43,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.util.DebugUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * @author semancik
  *
  */
 public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedPolicyRule {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPolicyRuleImpl.class);
 
+    @NotNull private final AbstractPolicyRuleConfigItem<?> policyRuleCI;
     @NotNull private final PolicyRuleType policyRuleBean;
+
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
     /**
@@ -89,26 +96,37 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
 
     private int count;
 
+    /**
+     * Set to `true` after {@link #enabledActions} are computed.
+     * See {@link #computeEnabledActions(PolicyRuleEvaluationContext, PrismObject, Task, OperationResult)}.
+     */
     private boolean enabledActionsComputed;
 
-    // computed only when necessary (typically when triggered)
-    @NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();
+    /** True if evaluated. TODO deduplicate with {@link #enabledActionsComputed}. */
+    private boolean evaluated;
+
+    /**
+     * Filled in only if {@link #enabledActionsComputed} is `true`.
+     * Therefore, please use {@link #getEnabledActions()} to make sure the value returned is valid.
+     */
+    @NotNull private final List<PolicyActionConfigItem<?>> enabledActions = new ArrayList<>();
 
     public EvaluatedPolicyRuleImpl(
-            @NotNull PolicyRuleType policyRuleBean,
+            @NotNull AbstractPolicyRuleConfigItem<?> policyRuleCI,
             @NotNull String ruleId,
             @Nullable AssignmentPath assignmentPath,
             @NotNull TargetType targetType) {
-        this(policyRuleBean, ruleId, assignmentPath, null, targetType);
+        this(policyRuleCI, ruleId, assignmentPath, null, targetType);
     }
 
     public EvaluatedPolicyRuleImpl(
-            @NotNull PolicyRuleType policyRuleBean,
+            @NotNull AbstractPolicyRuleConfigItem<?> policyRuleCI,
             @NotNull String ruleId,
             @Nullable AssignmentPath assignmentPath,
             @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
             @NotNull TargetType targetType) {
-        this.policyRuleBean = policyRuleBean;
+        this.policyRuleCI = policyRuleCI;
+        this.policyRuleBean = policyRuleCI.value();
         this.ruleId = ruleId;
         this.assignmentPath = assignmentPath;
         this.evaluatedAssignment = evaluatedAssignment;
@@ -118,21 +136,25 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public EvaluatedPolicyRuleImpl clone() {
         return new EvaluatedPolicyRuleImpl(
-                CloneUtil.clone(policyRuleBean),
+                CloneUtil.cloneCloneable(policyRuleCI),
                 ruleId,
-                CloneUtil.clone(assignmentPath),
+                CloneUtil.cloneCloneable(assignmentPath),
                 evaluatedAssignment,
                 targetType);
     }
 
     @Override
     public String getName() {
-        return policyRuleBean.getName();
+        return policyRuleCI.getName();
     }
 
     @Override
     public @NotNull PolicyRuleType getPolicyRule() {
-        return policyRuleBean;
+        return policyRuleCI.value();
+    }
+
+    public @NotNull ConfigurationItemOrigin getRuleOrigin() {
+        return policyRuleCI.origin();
     }
 
     @Nullable
@@ -208,8 +230,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
                 //noinspection unchecked
                 collected.add((T) trigger);
             }
-            if (trigger instanceof EvaluatedCompositeTrigger) {
-                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+            if (trigger instanceof EvaluatedCompositeTrigger compositeTrigger) {
                 if (compositeTrigger.getConstraintKind() != PolicyConstraintKindType.NOT) {
                     collectTriggers(collected, compositeTrigger.getInnerTriggers(), type);
                 } else {
@@ -240,8 +261,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     @Override
     public @Nullable String getPolicySituation() {
         // TODO default situations depending on getTriggeredConstraintKinds
-        if (policyRuleBean.getPolicySituation() != null) {
-            return policyRuleBean.getPolicySituation();
+        String explicitSituation = policyRuleBean.getPolicySituation();
+        if (explicitSituation != null) {
+            return explicitSituation;
         }
 
         if (!triggers.isEmpty()) {
@@ -318,7 +340,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleBean, PrismContext.get(),
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleCI, PrismContext.get(),
                 PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
         debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
@@ -331,17 +353,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (!(o instanceof EvaluatedPolicyRuleImpl))
+        if (!(o instanceof EvaluatedPolicyRuleImpl that))
             return false;
-        EvaluatedPolicyRuleImpl that = (EvaluatedPolicyRuleImpl) o;
-        return java.util.Objects.equals(policyRuleBean, that.policyRuleBean) &&
-                Objects.equals(assignmentPath, that.assignmentPath) &&
-                Objects.equals(triggers, that.triggers);
+        return java.util.Objects.equals(policyRuleCI, that.policyRuleCI)
+                && Objects.equals(assignmentPath, that.assignmentPath)
+                && Objects.equals(triggers, that.triggers);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(policyRuleBean, assignmentPath, triggers);
+        return Objects.hash(policyRuleCI, assignmentPath, triggers);
     }
 
     @Override
@@ -455,7 +476,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @NotNull
-    public List<PolicyActionType> getEnabledActions() {
+    public List<? extends PolicyActionConfigItem<?>> getEnabledActions() {
+        stateCheck(enabledActionsComputed, "Enabled actions are not yet computed in %s", this);
         return enabledActions;
     }
 
@@ -467,8 +489,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         var.put(ExpressionConstants.VAR_USER, object, definition);
         var.put(ExpressionConstants.VAR_FOCUS, object, definition);
         var.put(ExpressionConstants.VAR_OBJECT, object, definition);
-        if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-            AssignmentPolicyRuleEvaluationContext<?> actx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
+        if (rctx instanceof AssignmentPolicyRuleEvaluationContext<?> actx) {
             PrismObject<?> target = actx.evaluatedAssignment.getTarget();
             var.put(ExpressionConstants.VAR_TARGET, target, target != null ? target.getDefinition() : getObjectDefinition());
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
@@ -504,7 +525,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
 
     @Override
     public boolean containsEnabledAction() {
-        return !enabledActions.isEmpty();
+        return !getEnabledActions().isEmpty();
     }
 
     @Override
@@ -513,42 +534,59 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     }
 
     @Override
-    public @NotNull <T extends PolicyActionType> List<T> getEnabledActions(Class<T> type) {
-        return PolicyRuleTypeUtil.filterActions(enabledActions, type);
+    public @NotNull <T extends PolicyActionType> List<? extends PolicyActionConfigItem<T>> getEnabledActions(Class<T> type) {
+        return PolicyRuleTypeUtil.filterActions(
+                getEnabledActions(),
+                type);
     }
 
     @Override
-    public <T extends PolicyActionType> T getEnabledAction(Class<T> type) {
-        List<T> actions = getEnabledActions(type);
+    public <T extends PolicyActionType> PolicyActionConfigItem<T> getEnabledAction(Class<T> type) {
+        var actions = getEnabledActions(type);
         return MiscUtil.extractSingleton(
                 actions,
                 () -> new IllegalStateException("More than one enabled policy action of class " + type + ": " + actions));
     }
 
+    /** Call only after "triggered" status was determined. */
     public void computeEnabledActions(
             @Nullable PolicyRuleEvaluationContext<?> rctx, PrismObject<?> object, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        LOGGER.trace("Computation of enabled actions starting");
-        List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleBean.getPolicyActions());
-        LOGGER.trace("Actions defined for policy rule: {}", allActions);
-        for (PolicyActionType action : allActions) {
-            if (action.getCondition() != null) {
+
+        stateCheck(!enabledActionsComputed, "Enabled actions already computed in %s", this);
+        assert enabledActions.isEmpty();
+
+        stateCheck(evaluated, "Rule was not evaluated in %s", this);
+
+        if (!isTriggered()) {
+            LOGGER.trace("Skipping computing enabled actions because the rule is not triggered");
+            enabledActionsComputed = true;
+            return;
+        }
+
+        List<PolicyActionConfigItem<?>> allActions = policyRuleCI.getAllActions();
+        LOGGER.trace("Computing enabled actions for {}; actions defined: {}", this, allActions);
+        for (PolicyActionConfigItem<?> action : allActions) {
+            ExpressionConfigItem condition = action.getCondition();
+            String actionName = action.getName();
+            String actionTypeName = action.getTypeName();
+            if (condition != null) {
                 VariablesMap variables = createVariablesMap(rctx, object);
                 if (!LensExpressionUtil.evaluateBoolean(
-                        action.getCondition(),
+                        condition.value(), // TODO full config item
                         variables,
                         rctx != null ? rctx.elementContext : null,
-                        "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")",
+                        "condition in action " + actionName + " (" + actionTypeName + ")",
                         task,
                         result)) {
-                    LOGGER.trace("Skipping action {} ({}) because the condition evaluated to false", action.getName(), action.getClass().getSimpleName());
+                    LOGGER.trace("Skipping action {} ({}) because the condition evaluated to false", actionName, actionTypeName);
                     continue;
                 } else {
-                    LOGGER.trace("Accepting action {} ({}) because the condition evaluated to true", action.getName(), action.getClass().getSimpleName());
+                    LOGGER.trace("Accepting action {} ({}) because the condition evaluated to true", actionName, actionTypeName);
                 }
             }
-            LOGGER.trace("Adding action {} ({}) into the enabled action list.", action, action.getClass().getSimpleName());
+            LOGGER.trace("Adding action {} ({}) into the enabled action list.", action, actionTypeName);
             enabledActions.add(action);
         }
         enabledActionsComputed = true;
@@ -608,18 +646,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         return targetType;
     }
 
-    @NotNull Collection<String> getTriggeredEventMarks() {
+    @NotNull Collection<String> getTriggeredEventMarksOids() {
         if (isTriggered()) {
-            return getAllEventMarks();
+            return getAllEventMarksOids();
         } else {
             return Set.of();
         }
     }
 
-    @NotNull Collection<String> getAllEventMarks() {
-        return policyRuleBean.getMarkRef().stream()
-                .map(AbstractReferencable::getOid)
-                .collect(Collectors.toSet());
+    @NotNull Collection<String> getAllEventMarksOids() {
+        return policyRuleCI.getEventMarksOids();
     }
 
     public void registerAsForeignRuleIfNeeded() {
@@ -637,5 +673,15 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     @Override
     public @NotNull EvaluatedPolicyRule getEvaluatedPolicyRule() {
         return this;
+    }
+
+    public void setEvaluated() {
+        stateCheck(!evaluated, "Already evaluated: %s", this);
+        evaluated = true;
+    }
+
+    @Override
+    public boolean isEvaluated() {
+        return evaluated;
     }
 }

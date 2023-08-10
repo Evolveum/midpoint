@@ -105,7 +105,7 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
 
     @SafeVarargs
     public final ElementContextAsserter<C, O, RA> assertEventMarks(TestObject<MarkType>... expectedMarks) {
-        assertEventMarks(expectedMarks, elementContext.getMatchingEventMarks());
+        assertEventMarks(expectedMarks, elementContext.getMatchingEventMarksOids());
         return this;
     }
 }

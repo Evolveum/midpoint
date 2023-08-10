@@ -80,7 +80,7 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 
         OperationResult opResult = new OperationResult("Modify object");
         try {
-            ObjectDelta<?> delta = cloned.diff(prismObject);
+            ObjectDelta<?> delta = prismObject.diff(cloned);
             Collection<? extends ItemDelta<?, ?>> modifications = delta.getModifications();
             RepoModifyOptions opts = modifications.isEmpty() ? RepoModifyOptions.createForceReindex() : new RepoModifyOptions();
 
@@ -90,9 +90,11 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
         } finally {
             opResult.computeStatusIfUnknown();
 
-            log.error(
-                    "Modification of '{} ({})' didn't finished with success\n{}",
-                    object.getName(), object.getOid(), opResult.shortDump());
+            if (!opResult.isSuccess()) {
+                log.error(
+                        "Modification of '{} ({})' didn't finished with success\n{}",
+                        object.getName(), object.getOid(), opResult.debugDumpLazily());
+            }
         }
     }
 }

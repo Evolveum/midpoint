@@ -52,7 +52,7 @@ public class CompositeMockActivityHandler
     @PostConstruct
     public void register() {
         registry.register(
-                CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME,
+                CompositeMockWorkDefinition.WORK_DEFINITION_TYPE_QNAME, CompositeMockWorkDefinition.WORK_DEFINITION_ITEM_QNAME,
                 CompositeMockWorkDefinition.class, CompositeMockWorkDefinition::new, this);
     }
 

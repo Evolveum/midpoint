@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:pipeline
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:search>
+        <s:type>UserType</s:type>
+        <s:query>
+            <q:filter>
+                <q:text>name = "administrator"</q:text>
+            </q:filter>
+        </s:query>
+    </s:search>
+    <s:evaluateExpression>
+        <s:expression>
+            <function>
+                <libraryRef oid="724f2cce-c2d0-4a95-a67e-c922f9b806ab"/>
+                <name>modify-user-description</name>
+                <parameter>
+                    <name>userOid</name>
+                    <expression>
+                        <script>
+                            <code>input.oid</code>
+                        </script>
+                    </expression>
+                </parameter>
+                <parameter>
+                    <name>description</name>
+                    <expression>
+                        <script>
+                            <code>"new description of ${input.name.orig}"</code>
+                        </script>
+                    </expression>
+                </parameter>
+            </function>
+        </s:expression>
+    </s:evaluateExpression>
+</s:pipeline>

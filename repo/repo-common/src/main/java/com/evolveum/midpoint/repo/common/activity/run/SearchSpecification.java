@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
-import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -23,7 +22,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * This object has writable fields, as it can be modified during activity run.
  *
  * There is a subclass dedicated to searching for objects on a resource (`ResourceSearchSpecification`).
+ *
+ * Note that the archetype present in {@link ObjectSetType} is intentionally not present here.
+ * If present, it is included in the query.
  *
  * @param <C> Type of items
  */
@@ -91,25 +95,33 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
     }
 
     @NotNull static <C extends Containerable> SearchSpecification<C> fromRepositoryObjectSetSpecification(
-            @NotNull RepositoryObjectSetSpecificationImpl objectSetSpecification) throws SchemaException {
+            @NotNull RepositoryObjectSetSpecificationImpl objectSetSpecification) throws SchemaException, ConfigurationException {
         //noinspection unchecked
         Class<C> containerType = (Class<C>) determineContainerType(objectSetSpecification);
         return new SearchSpecification<>(
                 containerType,
-                createObjectQuery(containerType, objectSetSpecification.getQueryBean()),
+                createObjectQuery(containerType, objectSetSpecification),
                 GetOperationOptionsUtil.optionsBeanToOptions(objectSetSpecification.getSearchOptionsBean()),
                 objectSetSpecification.isUseRepositoryDirectly());
     }
 
-    /**
-     * TODO move to prism-api
-     */
     private static @NotNull ObjectQuery createObjectQuery(
             @NotNull Class<? extends Containerable> containerType,
-            @Nullable QueryType query) throws SchemaException {
-        return Objects.requireNonNullElseGet(
-                PrismContext.get().getQueryConverter().createObjectQuery(containerType, query),
-                () -> PrismContext.get().queryFactory().createQuery());
+            @NotNull RepositoryObjectSetSpecificationImpl objectSetSpecification)
+            throws SchemaException, ConfigurationException {
+
+        PrismContext prismContext = PrismContext.get();
+        ObjectQuery bareQuery = ObjectQueryUtil.emptyIfNull(
+                prismContext.getQueryConverter().createObjectQuery(
+                        containerType, objectSetSpecification.getQueryBean()));
+        var archetypeOid = objectSetSpecification.getArchetypeOid();
+        if (archetypeOid != null) {
+            return ObjectQueryUtil.addConjunctions(bareQuery, prismContext.queryFor(containerType)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeOid)
+                    .buildFilter());
+        } else {
+            return bareQuery;
+        }
     }
 
     private static @NotNull Class<?> determineContainerType(@NotNull ObjectSetSpecification set) {
@@ -155,7 +167,7 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         this.searchOptions = searchOptions;
     }
 
-    public Boolean getUseRepository() {
+    Boolean getUseRepository() {
         return useRepository;
     }
 
@@ -163,7 +175,7 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
         return Boolean.TRUE.equals(getUseRepository());
     }
 
-    public void setUseRepository(@Nullable Boolean useRepository) {
+    void setUseRepository(@Nullable Boolean useRepository) {
         this.useRepository = useRepository;
     }
 

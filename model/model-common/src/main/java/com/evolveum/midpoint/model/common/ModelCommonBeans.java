@@ -11,6 +11,8 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -66,4 +68,6 @@ public class ModelCommonBeans {
     @Autowired public LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired public LocalizationService localizationService;
     @Autowired public ArchetypeManager archetypeManager;
+    @Autowired public ExpressionProfileManager expressionProfileManager;
+    @Autowired public FunctionLibraryManager functionLibraryManager;
 }

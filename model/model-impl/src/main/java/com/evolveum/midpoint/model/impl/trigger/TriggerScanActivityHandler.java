@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -45,7 +47,7 @@ public class TriggerScanActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                TriggerScanWorkDefinitionType.COMPLEX_TYPE,
+                TriggerScanWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_TRIGGER_SCAN,
                 TriggerScanWorkDefinition.class, TriggerScanWorkDefinition::new, this);
     }
 

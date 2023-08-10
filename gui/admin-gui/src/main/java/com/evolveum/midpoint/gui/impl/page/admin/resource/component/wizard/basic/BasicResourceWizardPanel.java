@@ -20,9 +20,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,38 +32,39 @@ import java.util.List;
  */
 public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, ResourceDetailsModel> {
 
-//    private static final String ID_FRAGMENT = "fragment";
-//    private static final String ID_TEMPLATE_FRAGMENT = "templateFragment";
-//    private static final String ID_TEMPLATE = "template";
-//    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-//    private static final String ID_MAIN_FORM = "mainForm";
-//    private static final String ID_WIZARD = "wizard";
-
-//    private final ResourceDetailsModel resourceModel;
+    private Model<ResourceTemplate.TemplateType> templateType = Model.of();
 
     public BasicResourceWizardPanel(String id, WizardPanelHelper<ResourceType, ResourceDetailsModel> helper) {
         super(id, helper);
-//        this.resourceModel = model;
     }
 
-//    @Override
-//    protected void onInitialize() {
-//        super.onInitialize();
-//        initLayout();
-//    }
 
     protected void initLayout() {
-        add(createChoiceFragment(createTemplatePanel()));
+        add(createChoiceFragment(createTemplateChoicePanel()));
+    }
+
+    private Component createTemplateChoicePanel() {
+        return new CreateResourceChoiceTemplatePanel(getIdOfChoicePanel(), getAssignmentHolderModel(), templateType) {
+            @Override
+            protected void onClickTile(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTemplatePanel());
+            }
+        };
     }
 
     protected CreateResourceTemplatePanel createTemplatePanel() {
-        return new CreateResourceTemplatePanel(getIdOfChoicePanel()) {
+        return new CreateResourceTemplatePanel(getIdOfChoicePanel(), templateType) {
 
             @Override
             protected void onTemplateSelectionPerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target) {
                 reloadObjectDetailsModel(newObject);
                 showWizardFragment(target, new WizardPanel(
                         getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+            }
+
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTemplateChoicePanel());
             }
         };
     }

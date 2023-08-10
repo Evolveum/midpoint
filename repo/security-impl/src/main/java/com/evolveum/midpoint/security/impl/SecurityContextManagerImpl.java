@@ -8,11 +8,15 @@ package com.evolveum.midpoint.security.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -93,92 +96,121 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     @Override
     public void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal) {
         // Make sure that constructor with authorities is used. Otherwise the context will not be authenticated.
-        Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
+        Authentication authentication =
+                new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
         setupPreAuthenticatedSecurityContext(authentication);
     }
 
     @Override
-    public void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
         MidPointPrincipal principal;
         if (userProfileService == null) {
             LOGGER.warn("No user profile service set up in SecurityEnforcer. "
                     + "This is OK in low-level tests but it is a serious problem in running system");
-            principal = new MidPointPrincipal(focus.asObjectable());
+            principal = MidPointPrincipal.create(focus.asObjectable());
         } else {
-            principal = userProfileService.getPrincipal(focus);
+            principal = userProfileService.getPrincipal(focus, result);
         }
         setupPreAuthenticatedSecurityContext(principal);
     }
 
+    private static Authentication getCurrentAuthentication() {
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
     @Override
-    public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        LOGGER.debug("Running {} as {}", producer, user);
-        Authentication origAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        setupPreAuthenticatedSecurityContext(user);
+    public <T> T runAs(
+            @NotNull ResultAwareProducer<T> producer,
+            @Nullable PrismObject<? extends FocusType> newPrincipalObject,
+            boolean privileged,
+            @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        LOGGER.debug("Running {} as {} (privileged: {})", producer, newPrincipalObject, privileged);
+        Authentication origAuthentication = getCurrentAuthentication();
         try {
-            return producer.run();
+            if (newPrincipalObject != null) {
+                setupPreAuthenticatedSecurityContext(newPrincipalObject, result);
+            }
+            if (privileged) {
+                loginAsPrivileged(getCurrentAuthentication());
+            }
+            return producer.get(result);
         } finally {
             SecurityContextHolder.getContext().setAuthentication(origAuthentication);
-            LOGGER.debug("Finished running {} as {}", producer, user);
+            LOGGER.debug("Finished running {} as {} (privileged: {})", producer, newPrincipalObject, privileged);
         }
     }
 
     private boolean isAnonymous(Authentication origAuthentication) {
-        if (origAuthentication instanceof AuthenticationAnonymousChecker) {
-            return ((AuthenticationAnonymousChecker)origAuthentication).isAnonymous();
+        if (origAuthentication instanceof AuthenticationAnonymousChecker authenticationAnonymousChecker) {
+            return authenticationAnonymousChecker.isAnonymous();
         }
-        if (origAuthentication instanceof AnonymousAuthenticationToken) {
-            return true;
-        }
-        return false;
+        return origAuthentication instanceof AnonymousAuthenticationToken;
     }
 
     @Override
-    public <T> T runPrivileged(Producer<T> producer) {
+    public <T> T runPrivileged(@NotNull Producer<T> producer) {
         LOGGER.debug("Running {} as privileged", producer);
-        Authentication origAuthentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Authentication origAuthentication = getCurrentAuthentication();
         LOGGER.trace("ORIG auth {}", origAuthentication);
 
-        // Try to reuse the original identity as much as possible. All we need to is add AUTZ_ALL
-        // to the list of authorities
-        Authorization privilegedAuthorization = SecurityUtil.createPrivilegedAuthorization();
-        Object newPrincipal = null;
-
-        if (origAuthentication != null) {
-            Object origPrincipal = origAuthentication.getPrincipal();
-            if (isAnonymous(origAuthentication)) {
-                newPrincipal = origPrincipal;
-            } else {
-                LOGGER.trace("ORIG principal {} ({})", origPrincipal, origPrincipal != null ? origPrincipal.getClass() : null);
-                if (origPrincipal != null) {
-                    if (origPrincipal instanceof MidPointPrincipal) {
-                        MidPointPrincipal newMidPointPrincipal = ((MidPointPrincipal)origPrincipal).clone();
-                        newMidPointPrincipal.addAuthorization(privilegedAuthorization);
-                        newPrincipal = newMidPointPrincipal;
-                    }
-                }
-            }
-
-            Collection<GrantedAuthority> newAuthorities = new ArrayList<>();
-            newAuthorities.addAll(origAuthentication.getAuthorities());
-            newAuthorities.add(privilegedAuthorization);
-            PreAuthenticatedAuthenticationToken newAuthorization = new PreAuthenticatedAuthenticationToken(newPrincipal, null, newAuthorities);
-
-            LOGGER.trace("NEW auth {}", newAuthorization);
-            SecurityContextHolder.getContext().setAuthentication(newAuthorization);
-        } else {
-            LOGGER.debug("No original authentication, do NOT setting any privileged security context");
-        }
-
-
         try {
+            loginAsPrivileged(origAuthentication);
             return producer.run();
         } finally {
             SecurityContextHolder.getContext().setAuthentication(origAuthentication);
             LOGGER.debug("Finished running {} as privileged", producer);
             LOGGER.trace("Security context after privileged operation: {}", SecurityContextHolder.getContext());
         }
+    }
 
+    /** Derives a "privileged" {@link Authentication} from the one provided (if there's any) and applies it. */
+    private void loginAsPrivileged(@Nullable Authentication origAuthentication) {
+
+        // Try to reuse the original identity as much as possible. All we need to is add AUTZ_ALL
+        // to the list of authorities
+        Authorization privilegedAuthorization = SecurityUtil.createPrivilegedAuthorization();
+
+        if (origAuthentication != null) {
+            Collection<GrantedAuthority> newAuthorities;
+            Object newPrincipal;
+            Object origPrincipal = origAuthentication.getPrincipal();
+            if (isAnonymous(origAuthentication)) {
+                newPrincipal = origPrincipal;
+                newAuthorities = createNewAuthorities(origAuthentication, privilegedAuthorization);
+            } else {
+                LOGGER.trace("ORIG principal {} ({})", origPrincipal, origPrincipal != null ? origPrincipal.getClass() : null);
+                if (origPrincipal instanceof MidPointPrincipal midPointPrincipal) {
+                    MidPointPrincipal newMidPointPrincipal =
+                            midPointPrincipal.cloneWithAdditionalAuthorizations(
+                                    List.of(privilegedAuthorization), true);
+                    newPrincipal = newMidPointPrincipal;
+                    newAuthorities = List.copyOf(newMidPointPrincipal.getAuthorities());
+                } else {
+                    newPrincipal = null;
+                    newAuthorities = createNewAuthorities(origAuthentication, privilegedAuthorization);
+                }
+            }
+
+            PreAuthenticatedAuthenticationToken newAuthorization =
+                    new PreAuthenticatedAuthenticationToken(newPrincipal, null, newAuthorities);
+
+            LOGGER.trace("NEW auth {}", newAuthorization);
+            SecurityContextHolder.getContext().setAuthentication(newAuthorization);
+        } else {
+            LOGGER.debug("No original authentication, do NOT setting any privileged security context");
+        }
+    }
+
+    private Collection<GrantedAuthority> createNewAuthorities(
+            Authentication origAuthentication, Authorization privilegedAuthorization) {
+        Collection<GrantedAuthority> newAuthorities = new ArrayList<>(origAuthentication.getAuthorities());
+        newAuthorities.add(privilegedAuthorization);
+        return newAuthorities;
     }
 
     @Override
@@ -190,6 +222,4 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     public HttpConnectionInformation getStoredConnectionInformation() {
         return connectionInformationThreadLocal.get();
     }
-
-
 }

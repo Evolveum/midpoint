@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.F_AND;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -113,27 +112,33 @@ abstract class PolicyRuleEvaluator {
                 .build();
         try {
             LOGGER.trace("Evaluating policy rule {} ({}) in {}", ruleShortString, ruleIdentifier, ctxShortDescription);
+
             PolicyConstraintsType constraints = rule.getPolicyConstraints();
             JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
+
             Collection<EvaluatedCompositeTrigger> compositeTriggers =
                     CompositeConstraintEvaluator.get().evaluate(conjunction, ctx, result);
             LOGGER.trace("Evaluated composite trigger(s) {} for ctx {}", compositeTriggers, ctx);
+
             var compositeTrigger = MiscUtil.extractSingleton(compositeTriggers); // currently always the case
             if (compositeTrigger != null && !compositeTrigger.getInnerTriggers().isEmpty()) {
                 ctx.triggerRuleIfNoExceptions(
                         getIndividualTriggers(compositeTrigger, constraints));
             }
+
+            rule.setEvaluated();
+            rule.computeEnabledActions(ctx, ctx.getObject(), ctx.task, result);
+
             boolean triggered = rule.isTriggered();
             LOGGER.trace("Policy rule triggered: {}", triggered);
             result.addReturn("triggered", triggered);
             if (triggered) {
-                rule.computeEnabledActions(ctx, ctx.getObject(), ctx.task, result);
                 result.addArbitraryObjectCollectionAsReturn("enabledActions", rule.getEnabledActions());
                 rule.registerAsForeignRuleIfNeeded();
             }
             traceRuleEvaluationResult(rule, ctx);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
@@ -150,7 +155,7 @@ abstract class PolicyRuleEvaluator {
             @NotNull EvaluatedCompositeTrigger trigger, @NotNull PolicyConstraintsType constraints) {
         // TODO reconsider this
         if (constraints.getName() == null && constraints.getPresentation() == null) {
-            return new ArrayList<>(trigger.getInnerTriggers());
+            return List.copyOf(trigger.getInnerTriggers());
         } else {
             return List.of(trigger);
         }

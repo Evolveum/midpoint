@@ -11,27 +11,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
-
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MGlobalMetadata;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QGlobalMetadata;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import jakarta.annotation.PostConstruct;
-
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
+
 import com.querydsl.sql.types.ArrayType;
 import com.querydsl.sql.types.EnumAsObjectType;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -39,6 +31,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.QuerydslJsonbType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MGlobalMetadata;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QGlobalMetadata;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItem;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
@@ -46,6 +40,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReferenceType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -54,6 +49,8 @@ import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -91,6 +88,7 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(AdministrativeAvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(AuditEventStageType.class));
         querydslConfig.register(new EnumAsObjectType<>(AuditEventTypeType.class));
+        querydslConfig.register(new EnumAsObjectType<>(EffectivePrivilegesModificationType.class));
         querydslConfig.register(new EnumAsObjectType<>(AvailabilityStatusType.class));
         querydslConfig.register(new EnumAsObjectType<>(ChangeType.class)); // used in old audit
         querydslConfig.register(new EnumAsObjectType<>(ChangeTypeType.class));
@@ -130,10 +128,14 @@ public class SqaleRepoContext extends SqlRepoContext {
     public void initialize() {
         // skip version check if option was defined or option value is "true" (equals ignore case)
         String skipVersionCheck = System.getProperty(MidpointConfiguration.MIDPOINT_SKIP_VERSION_CHECK + "1");
-        if ("".equals(skipVersionCheck) || BooleanUtils.isTrue(Boolean.parseBoolean(skipVersionCheck))) {
-            return;
+        if (BooleanUtils.isNotTrue(Boolean.parseBoolean(skipVersionCheck))) {
+            checkDBSchemaVersion();
         }
 
+        clearCaches();
+    }
+
+    private void checkDBSchemaVersion(){
         LOGGER.debug("Checking DB schema version.");
 
         try (JdbcSession session = this.newJdbcSession().startReadOnlyTransaction()) {
@@ -153,8 +155,6 @@ public class SqaleRepoContext extends SqlRepoContext {
 
             LOGGER.debug("DB schema version check OK.");
         }
-
-        clearCaches();
     }
 
     // This has nothing to do with "repo cache" which is higher than this.

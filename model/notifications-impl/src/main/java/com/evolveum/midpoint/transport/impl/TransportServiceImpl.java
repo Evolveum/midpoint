@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-import jakarta.annotation.PostConstruct;
 
+import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,18 +20,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.api.transports.TransportService;
-import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
+import com.evolveum.midpoint.notifications.api.transports.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeEvent;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.transport.impl.legacy.LegacyCustomTransport;
 import com.evolveum.midpoint.transport.impl.legacy.LegacyFileTransport;
 import com.evolveum.midpoint.transport.impl.legacy.LegacyMailTransport;
@@ -126,9 +121,9 @@ public class TransportServiceImpl implements TransportService {
     }
 
     @Override
-    public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
+    public void send(Message message, String transportName, SendingContext ctx, OperationResult parentResult) {
         Transport<?> transport = getTransport(transportName);
-        transport.send(message, transportName, event, task, parentResult);
+        transport.send(message, transportName, ctx, parentResult);
     }
 
     @Override

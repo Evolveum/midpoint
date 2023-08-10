@@ -28,6 +28,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
 
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
@@ -143,10 +145,6 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -219,7 +217,6 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.api.ChangesByState;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -297,6 +294,50 @@ public final class WebComponentUtil {
 
     public static RestartResponseException restartOnLoginPageException() {
         return new RestartResponseException(PageLogin.class);
+    }
+
+    public static void setTaskStateBeforeSave(
+            PrismObjectWrapper<TaskType> taskWrapper, boolean runEnabled, PageBase pageBase, AjaxRequestTarget target) {
+        try {
+            PrismPropertyWrapper<TaskExecutionStateType> executionState = taskWrapper.findProperty(ItemPath.create(TaskType.F_EXECUTION_STATE));
+            PrismPropertyWrapper<TaskSchedulingStateType> schedulingState = taskWrapper.findProperty(ItemPath.create(TaskType.F_SCHEDULING_STATE));
+            if (executionState == null || schedulingState == null) {
+                throw new SchemaException("Task cannot be set as running, no execution status or scheduling status present");
+            }
+
+            if (runEnabled) {
+                executionState.getValue().setRealValue(TaskExecutionStateType.RUNNABLE);
+                schedulingState.getValue().setRealValue(TaskSchedulingStateType.READY);
+            } else {
+                if (!ItemStatus.ADDED.equals(taskWrapper.getStatus())) {
+                    return;
+                }
+                executionState.getValue().setRealValue(TaskExecutionStateType.SUSPENDED);
+                schedulingState.getValue().setRealValue(TaskSchedulingStateType.SUSPENDED);
+            }
+
+            PrismReferenceWrapper<Referencable> taskOwner = taskWrapper.findReference(ItemPath.create(TaskType.F_OWNER_REF));
+            if (taskOwner == null) {
+                return;
+            }
+            PrismReferenceValueWrapperImpl<Referencable> taskOwnerValue = taskOwner.getValue();
+            if (taskOwnerValue == null) {
+                return;
+            }
+
+            if (taskOwnerValue.getNewValue() == null || taskOwnerValue.getNewValue().isEmpty()) {
+                GuiProfiledPrincipal guiPrincipal = AuthUtil.getPrincipalUser();
+                if (guiPrincipal == null) {
+                    //BTW something very strange must happened
+                    return;
+                }
+                FocusType focus = guiPrincipal.getFocus();
+                taskOwnerValue.setRealValue(ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT));
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error while finishing task settings.", e);
+            target.add(pageBase.getFeedbackPanel());
+        }
     }
 
     public enum AssignmentOrder {
@@ -806,155 +847,21 @@ public final class WebComponentUtil {
         return (int) l.longValue();
     }
 
-    // TODO: move to schema component
-    public static List<QName> createObjectTypeList() {
-        return createObjectTypesList().stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
-
-    }
-
-    public static List<ObjectTypes> createObjectTypesList() {
-        List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
-
-        return types.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
-
-            ObjectTypeGuiDescriptor decs1 = ObjectTypeGuiDescriptor.getDescriptor(type1);
-            ObjectTypeGuiDescriptor desc2 = ObjectTypeGuiDescriptor.getDescriptor(type2);
-
-            String localizedType1 = translate(decs1);
-            if (localizedType1 == null) {
-                localizedType1 = decs1.getLocalizationKey();
-            }
-            String localizedType2 = translate(desc2);
-            if (localizedType2 == null) {
-                localizedType2 = desc2.getLocalizationKey();
-            }
-
-            Collator collator = Collator.getInstance(getCurrentLocale());
-            collator.setStrength(Collator.PRIMARY);
-
-            return collator.compare(localizedType1, localizedType2);
-
-        }).collect(Collectors.toList());
-    }
-
-    private static String translate(ObjectTypeGuiDescriptor descriptor) {
-        MidPointApplication app = MidPointApplication.get();
-        String translatedValue = app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
-        return translatedValue != null ? translatedValue : descriptor.getLocalizationKey();
-    }
-
-    public static List<QName> createContainerableTypesQnameList() {
-        List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
-        List<QName> qnameList = types.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
-        //todo create enum for containerable types?
-        qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
-        qnameList.add(AccessCertificationCaseType.COMPLEX_TYPE);
-        qnameList.add(CaseWorkItemType.COMPLEX_TYPE);
-        return qnameList.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
-
-            String key1 = "ObjectType." + type1.getLocalPart();
-            String localizedType1 = createStringResourceStatic(key1).getString();
-            if (StringUtils.isEmpty(localizedType1) || localizedType1.equals(key1)) {
-                localizedType1 = type1.getLocalPart();
-            }
-            String key2 = "ObjectType." + type2.getLocalPart();
-            String localizedType2 = createStringResourceStatic(key2).getString();
-            if (StringUtils.isEmpty(localizedType2) || localizedType1.equals(key2)) {
-                localizedType2 = type2.getLocalPart();
-            }
-
-            Collator collator = Collator.getInstance(getCurrentLocale());
-            collator.setStrength(Collator.PRIMARY);
-
-            return collator.compare(localizedType1, localizedType2);
-
-        }).collect(Collectors.toList());
-    }
-
-    public static List<QName> createAssignmentHolderTypeQnamesList() {
-
-        List<ObjectTypes> objectTypes = createAssignmentHolderTypesList();
-        return objectTypes.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
-    }
-
-    public static List<ObjectTypes> createAssignmentHolderTypesList() {
-        return createObjectTypesList().stream().filter(type -> AssignmentHolderType.class.isAssignableFrom(type.getClassDefinition())).collect(Collectors.toList());
-    }
-
-    // TODO: move to schema component
-    public static List<QName> createFocusTypeList() {
-        return createFocusTypeList(false);
-    }
-
-    public static List<QName> createFocusTypeList(boolean includeAbstractType) {
-        List<QName> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(UserType.COMPLEX_TYPE);
-        focusTypeList.add(OrgType.COMPLEX_TYPE);
-        focusTypeList.add(RoleType.COMPLEX_TYPE);
-        focusTypeList.add(ServiceType.COMPLEX_TYPE);
-
-        if (includeAbstractType) {
-            focusTypeList.add(FocusType.COMPLEX_TYPE);
-        }
-
-        return focusTypeList;
-    }
-
-    // TODO: move to schema component
-    public static List<QName> createAbstractRoleTypeList() {
-        List<QName> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(AbstractRoleType.COMPLEX_TYPE);
-        focusTypeList.add(OrgType.COMPLEX_TYPE);
-        focusTypeList.add(RoleType.COMPLEX_TYPE);
-        focusTypeList.add(ServiceType.COMPLEX_TYPE);
-
-        return focusTypeList;
-    }
-
-    public static List<ObjectTypes> createAssignableTypesList() {
-        List<ObjectTypes> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(ObjectTypes.RESOURCE);
-        focusTypeList.add(ObjectTypes.ORG);
-        focusTypeList.add(ObjectTypes.ROLE);
-        focusTypeList.add(ObjectTypes.SERVICE);
-
-        return focusTypeList;
-    }
-
-    public static List<QName> createAvailableNewObjectsTypesList() {
-        List<QName> objectTypesList = new ArrayList<>();
-
-        OBJECT_DETAILS_PAGE_MAP.keySet().forEach(type -> {
-            if (type.equals(ShadowType.class) || type.equals(ValuePolicyType.class) || type.equals(CaseType.class)) {
-                return;
-            }
-            objectTypesList.add(ObjectTypes.getObjectType(type).getTypeQName());
-        });
-        return objectTypesList;
-    }
-
     public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
         if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createObjectTypeList();
+            return ObjectTypeListUtil.createObjectTypeList();
         }
 
         if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createAbstractRoleTypeList();
+            return ObjectTypeListUtil.createAbstractRoleTypeList();
         }
 
         if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createFocusTypeList();
+            return ObjectTypeListUtil.createFocusTypeList();
         }
 
         if (AssignmentHolderType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
-            return createAssignmentHolderTypeQnamesList();
+            return ObjectTypeListUtil.createAssignmentHolderTypeQnamesList();
         }
 
         return Collections.singletonList(targetTypeFromDef);
@@ -975,11 +882,11 @@ public final class WebComponentUtil {
         List<QName> concreteTypes = new ArrayList<>(types.size());
         for (Class<? extends O> type : types) {
             if (type == null || type.equals(ObjectType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, createObjectTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createObjectTypeList());
             } else if (type.equals(FocusType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, createFocusTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createFocusTypeList());
             } else if (type.equals(AbstractRoleType.class)) {
-                MiscUtil.addAllIfNotPresent(concreteTypes, createAbstractRoleTypeList());
+                MiscUtil.addAllIfNotPresent(concreteTypes, ObjectTypeListUtil.createAbstractRoleTypeList());
             } else {
                 MiscUtil.addIfNotPresent(concreteTypes, classToQName(prismContext, type));
             }
@@ -5535,7 +5442,7 @@ public final class WebComponentUtil {
 
             String target = "";
             VariableBindingDefinitionType targetv = mappingType.getTarget();
-            if (targetv != null) {
+            if (targetv != null && targetv.getPath() != null) {
                 target += targetv.getPath().toString();
             }
 
@@ -5732,6 +5639,26 @@ public final class WebComponentUtil {
 
     public static <O extends ObjectType> String getLabelForType(Class<O> type, boolean startsWithUppercase) {
         return translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type.getSimpleName(), startsWithUppercase));
+    }
+
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismContainerValueWrapper value) {
+        Collection<ItemDelta> deltas = List.of();
+        try {
+            deltas = value.getDeltas();
+        } catch (SchemaException e) {
+            //couldn't get deltas of items
+        }
+
+        if (!deltas.isEmpty()) {
+            new Toast()
+                    .warning()
+                    .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
+                    .icon("fa fa-exclamation")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.body").getString())
+                    .show(target);
+        }
     }
 
     /**

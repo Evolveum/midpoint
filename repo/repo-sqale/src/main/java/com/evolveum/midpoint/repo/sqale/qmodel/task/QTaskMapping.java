@@ -8,12 +8,13 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.*;
 
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.prism.path.PathSet;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -37,10 +38,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Mapping between {@link QTask} and {@link TaskType}.
@@ -101,6 +98,12 @@ public class QTaskMapping
 
         addNestedMapping(F_SCHEDULE, ScheduleType.class)
                 .addItemMapping(ScheduleType.F_RECURRENCE, enumMapper(q -> q.recurrence));
+
+        addNestedMapping(F_AFFECTED_OBJECTS, TaskAffectedObjectsType.class)
+                .addContainerTableMapping(
+                        TaskAffectedObjectsType.F_ACTIVITY,
+                        QAffectedObjectsMapping.init(repositoryContext),
+                        joinOn((t, ro) -> t.oid.eq(ro.ownerOid)));
     }
 
     @Override
@@ -208,6 +211,18 @@ public class QTaskMapping
         @Override
         public byte[] convertRealValue(Object realValue) {
             return context.repositoryContext().createFullResult((OperationResultType) realValue);
+        }
+    }
+
+    @Override
+    public void storeRelatedEntities(@NotNull MTask row, @NotNull TaskType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
+        super.storeRelatedEntities(row, schemaObject, jdbcSession);
+
+        var affects = schemaObject.getAffectedObjects();
+        if (affects != null) {
+            for (var activity : affects.getActivity()) {
+                QAffectedObjectsMapping.get().insert(activity, row, jdbcSession);
+            }
         }
     }
 }

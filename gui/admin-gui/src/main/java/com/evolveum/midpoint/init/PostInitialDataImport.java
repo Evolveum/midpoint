@@ -9,6 +9,10 @@ package com.evolveum.midpoint.init;
 import java.io.File;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
@@ -146,15 +150,24 @@ public class PostInitialDataImport extends DataImport {
 
         try {
             LOGGER.info("Starting post-initial execute script from file {}.", file.getName());
-            Object parsed = expression.getAnyValue().getValue();
+            ExecuteScriptType parsed =
+                    ScriptingBeansUtil.asExecuteScriptCommand(
+                            expression.getAnyValue().getValue());
+
             ScriptExecutionResult executionResult =
-                    parsed instanceof ExecuteScriptType ?
-                            scripting.evaluateExpression((ExecuteScriptType) parsed, VariablesMap.emptyMap(),
-                                    false, task, result) :
-                            scripting.evaluateExpression((ScriptingExpressionType) parsed, task, result);
+                    scripting.evaluateExpression(
+                            ExecuteScriptConfigItem.of(
+                                    parsed,
+                                    // TODO or should we create some "fully trusted origin"?
+                                    ConfigurationItemOrigin.external(SchemaConstants.CHANNEL_INIT_URI)),
+                            VariablesMap.emptyMap(),
+                            false,
+                            task,
+                            result);
             result.recordSuccess();
             result.addReturn("console", executionResult.getConsoleOutput());
-            LOGGER.info("Executed a script in {} as part of post-initial import. Output is:\n{}", file.getName(), executionResult.getConsoleOutput());
+            LOGGER.info("Executed a script in {} as part of post-initial import. Output is:\n{}",
+                    file.getName(), executionResult.getConsoleOutput());
             return true;
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script from file {}", ex, file.getName());

@@ -6,8 +6,16 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import jakarta.annotation.PreDestroy;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 
+import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;
 
@@ -17,8 +25,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MGlobalMetadata;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QGlobalMetadata;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -28,6 +41,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class SqaleServiceBase {
 
     protected final Trace logger = TraceManager.getTrace(getClass());
+
+    /**
+     * Name of the repository implementation.
+     * While public, the value is often copied because this service class is implementation
+     * detail for the rest of the midPoint.
+     */
+    public static final String REPOSITORY_IMPL_NAME = "Native";
 
     /**
      * Class name prefix for operation names, including the dot separator.
@@ -148,4 +168,102 @@ public class SqaleServiceBase {
         }
     }
     // endregion
+
+    @NotNull public RepositoryDiag getRepositoryDiag() {
+        logger.debug("Getting repository diagnostics.");
+
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName(REPOSITORY_IMPL_NAME);
+        diag.setImplementationDescription(
+                "Implementation that stores data in PostgreSQL database using JDBC with Querydsl.");
+
+        JdbcRepositoryConfiguration config = repositoryConfiguration();
+        diag.setDriverShortName(config.getDriverClassName());
+        diag.setRepositoryUrl(config.getJdbcUrl());
+        diag.setEmbedded(config.isEmbedded());
+
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+            if (!driver.getClass().getName().equals(config.getDriverClassName())) {
+                continue;
+            }
+
+            diag.setDriverVersion(driver.getMajorVersion() + "." + driver.getMinorVersion());
+        }
+
+        List<LabeledString> details = new ArrayList<>();
+        diag.setAdditionalDetails(details);
+        details.add(new LabeledString("dataSource", config.getDataSource()));
+
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            details.add(new LabeledString("transactionIsolation",
+                    getTransactionIsolation(jdbcSession.connection(), config)));
+
+            try {
+                Properties info = jdbcSession.connection().getClientInfo();
+                if (info != null) {
+                    for (String name : info.stringPropertyNames()) {
+                        details.add(new LabeledString("clientInfo." + name, info.getProperty(name)));
+                    }
+                }
+            } catch (SQLException e) {
+                details.add(new LabeledString("clientInfo-error", e.toString()));
+            }
+
+            long startMs = System.currentTimeMillis();
+            jdbcSession.executeStatement("select 1");
+            details.add(new LabeledString("select-1-round-trip-ms",
+                    String.valueOf(System.currentTimeMillis() - startMs)));
+
+            addGlobalMetadataInfo(jdbcSession, details);
+        }
+
+        details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
+
+        return diag;
+    }
+
+    private void addGlobalMetadataInfo(JdbcSession jdbcSession, List<LabeledString> details) {
+        List<MGlobalMetadata> list = jdbcSession.newQuery()
+                .from(QGlobalMetadata.DEFAULT)
+                .select(QGlobalMetadata.DEFAULT)
+                .fetch();
+
+        for (MGlobalMetadata metadata : list) {
+            details.add(new LabeledString(metadata.name, metadata.value));
+        }
+    }
+
+    private String getTransactionIsolation(
+            Connection connection, JdbcRepositoryConfiguration config) {
+        String value = config.getTransactionIsolation() != null ?
+                config.getTransactionIsolation().name() + "(read from repo configuration)" : null;
+
+        try {
+            switch (connection.getTransactionIsolation()) {
+                case Connection.TRANSACTION_NONE:
+                    value = "TRANSACTION_NONE (read from connection)";
+                    break;
+                case Connection.TRANSACTION_READ_COMMITTED:
+                    value = "TRANSACTION_READ_COMMITTED (read from connection)";
+                    break;
+                case Connection.TRANSACTION_READ_UNCOMMITTED:
+                    value = "TRANSACTION_READ_UNCOMMITTED (read from connection)";
+                    break;
+                case Connection.TRANSACTION_REPEATABLE_READ:
+                    value = "TRANSACTION_REPEATABLE_READ (read from connection)";
+                    break;
+                case Connection.TRANSACTION_SERIALIZABLE:
+                    value = "TRANSACTION_SERIALIZABLE (read from connection)";
+                    break;
+                default:
+                    value = "Unknown value in connection.";
+            }
+        } catch (Exception ex) {
+            //nowhere to report error (no operation result available)
+        }
+
+        return value;
+    }
 }

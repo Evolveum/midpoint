@@ -11,6 +11,8 @@
 
     <name>recomputation</name>
 
+    <category>some category</category>
+
     <activity>
         <work>
             <recomputation>
@@ -39,6 +41,7 @@
                 <interval>11</interval>
             </profiling>
         </reporting>
+        <executionMode>dryRun</executionMode>
     </activity>
     <modelOperationContext>
         <state>execution</state>
@@ -49,4 +52,6 @@
             <name>sample</name>
         </policyConstraints>
     </policyRule>
+
+    <recurrence>recurring</recurrence>
 </task>

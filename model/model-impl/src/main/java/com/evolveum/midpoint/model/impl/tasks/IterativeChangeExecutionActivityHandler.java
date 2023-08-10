@@ -13,6 +13,7 @@ import java.util.Collections;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
-import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -54,6 +55,11 @@ public class IterativeChangeExecutionActivityHandler
     @Override
     protected @NotNull QName getWorkDefinitionTypeName() {
         return IterativeChangeExecutionWorkDefinitionType.COMPLEX_TYPE;
+    }
+
+    @Override
+    protected @NotNull QName getWorkDefinitionItemName() {
+        return WorkDefinitionsType.F_ITERATIVE_CHANGE_EXECUTION;
     }
 
     @Override
@@ -131,28 +137,29 @@ public class IterativeChangeExecutionActivityHandler
 
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ObjectSetSpecificationProvider {
 
-        private final ObjectSetType objects;
-        private final ObjectDeltaType delta;
-        private final ModelExecuteOptions executionOptions;
+        @NotNull private final ObjectSetType objects;
+        @NotNull private final ObjectDeltaType delta;
+        @Nullable private final ModelExecuteOptions executionOptions;
 
-        MyWorkDefinition(@NotNull WorkDefinitionBean source) {
-            var typedDefinition = (IterativeChangeExecutionWorkDefinitionType) source.getBean();
-            objects = ObjectSetUtil.fromConfiguration(typedDefinition.getObjects());
+        MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
+            super(info);
+            var typedDefinition = (IterativeChangeExecutionWorkDefinitionType) info.getBean();
+            objects = ObjectSetUtil.emptyIfNull(typedDefinition.getObjects());
             delta = typedDefinition.getDelta();
             argCheck(delta != null, "No delta specified");
             executionOptions = fromModelExecutionOptionsType(typedDefinition.getExecutionOptions());
         }
 
         @Override
-        public ObjectSetType getObjectSetSpecification() {
+        public @NotNull ObjectSetType getObjectSetSpecification() {
             return objects;
         }
 
-        public ObjectDeltaType getDelta() {
+        public @NotNull ObjectDeltaType getDelta() {
             return delta;
         }
 
-        ModelExecuteOptions getExecutionOptions() {
+        @Nullable ModelExecuteOptions getExecutionOptions() {
             return executionOptions;
         }
 

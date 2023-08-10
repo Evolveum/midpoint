@@ -71,6 +71,7 @@ public abstract class SimpleActivityHandler<
     public void register() {
         handlerRegistry.register(
                 getWorkDefinitionTypeName(),
+                getWorkDefinitionItemName(),
                 getWorkDefinitionClass(),
                 getWorkDefinitionSupplier(),
                 this);
@@ -89,6 +90,8 @@ public abstract class SimpleActivityHandler<
     }
 
     protected abstract @NotNull QName getWorkDefinitionTypeName();
+
+    protected abstract @NotNull QName getWorkDefinitionItemName();
 
     protected abstract @NotNull Class<WD> getWorkDefinitionClass();
 

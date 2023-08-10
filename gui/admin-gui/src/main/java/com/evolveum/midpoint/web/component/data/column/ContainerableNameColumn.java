@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import java.util.Collection;
+import java.io.Serial;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -17,15 +17,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
@@ -36,8 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C extends Containerable> extends ConfigurableExpressionColumn<SR, C> {
-    private static final long serialVersionUID = 1L;
+public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C extends Containerable> extends AbstractNameColumn<SR, C> {
+    @Serial private static final long serialVersionUID = 1L;
 
     public ContainerableNameColumn(IModel<String> displayModel, String sortProperty, GuiObjectColumnType customColumn, ExpressionType expression, PageBase pageBase) {
         super(displayModel, sortProperty, customColumn, expression, pageBase);
@@ -54,7 +47,7 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
 
     protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SR> rowModel) {
         return new AjaxLinkPanel(componentId, labelModel) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -123,22 +116,6 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
     @Override
     protected String handleDefaultValue(SR selectableBean) {
         return getName(selectableBean);
-    }
-
-    @Override
-    protected void processVariables(VariablesMap variablesMap, C rowValue) {
-        variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
-    }
-
-    @Override
-    protected Collection<String> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-
-        return ExpressionUtil.evaluateStringExpression(
-                variablesMap, expression,
-                MiscSchemaUtil.getExpressionProfile(),
-                getPageBase().getExpressionFactory(),
-                "evaluate column expression", task, task.getResult());
     }
 
     @Override

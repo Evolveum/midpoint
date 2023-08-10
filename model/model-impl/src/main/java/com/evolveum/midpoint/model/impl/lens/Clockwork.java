@@ -106,7 +106,7 @@ public class Clockwork {
 
             return clockworkConflictResolver.resolveFocusConflictIfPresent(context, conflictResolutionContext, mode, task, result);
 
-        } catch (CommonException t) {
+        } catch (Throwable t) {
             result.recordException(t);
             throw t;
         } finally {

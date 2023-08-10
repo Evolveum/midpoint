@@ -78,9 +78,10 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
         return rv;
     }
 
-    @VisibleForTesting // NEVER use in production code!
-    public static AssignmentOrigin other() {
-        return new AssignmentOrigin(false, ConfigurationItemOrigin.detached());
+    /** Not in object, not virtual - to be used in tests. */
+    @VisibleForTesting
+    public static AssignmentOrigin other(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
+        return new AssignmentOrigin(false, configurationItemOrigin);
     }
 
     public static AssignmentOrigin virtual(@NotNull ConfigurationItemOrigin configurationItemOrigin) {

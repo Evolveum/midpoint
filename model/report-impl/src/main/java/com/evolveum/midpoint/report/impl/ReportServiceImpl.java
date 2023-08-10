@@ -12,6 +12,9 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.*;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -34,7 +37,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
@@ -83,6 +85,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ArchetypeManager archetypeManager;
+    @Autowired private ExpressionProfileManager expressionProfileManager;
 
     @Autowired private Clock clock;
     @Autowired private ModelService modelService;
@@ -132,9 +135,9 @@ public class ReportServiceImpl implements ReportService {
 
             ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                     scriptExpressionBean, context.getOutputDefinition(), context.getExpressionProfile(),
-                    expressionFactory, context.getContextDescription(), context.getResult());
+                    context.getContextDescription(), context.getResult());
 
-            scriptExpression.setFunctions(createFunctionLibraries(scriptExpression.getFunctions()));
+            scriptExpression.setFunctionLibraryBindings(createFunctionLibraries(scriptExpression.getFunctionLibraryBindings()));
 
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                     new ExpressionEnvironment(context.getTask(), context.getResult()));
@@ -149,14 +152,13 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private Collection<FunctionLibrary> createFunctionLibraries(Collection<FunctionLibrary> originalFunctions) {
-        FunctionLibrary midPointLib = new FunctionLibrary();
-        midPointLib.setVariableName("report");
-        midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-        midPointLib.setGenericFunctions(reportFunctions);
+    private Collection<FunctionLibraryBinding> createFunctionLibraries(Collection<FunctionLibraryBinding> originalFunctions) {
+        FunctionLibraryBinding reportLib = new FunctionLibraryBinding(
+                MidPointConstants.FUNCTION_LIBRARY_REPORT_VARIABLE_NAME,
+                reportFunctions);
 
-        Collection<FunctionLibrary> functions = new ArrayList<>(originalFunctions);
-        functions.add(midPointLib);
+        Collection<FunctionLibraryBinding> functions = new ArrayList<>(originalFunctions);
+        functions.add(reportLib);
         return functions;
     }
 
@@ -167,7 +169,7 @@ public class ReportServiceImpl implements ReportService {
     private ExpressionProfile determineExpressionProfile(
             @NotNull PrismObject<ReportType> report, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
-        return archetypeManager.determineExpressionProfile(report, result);
+        return expressionProfileManager.determineExpressionProfile(report, result);
     }
 
     private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report)
@@ -180,13 +182,14 @@ public class ReportServiceImpl implements ReportService {
                 findScriptExpressionProfile(expressionProfile, report));
     }
 
-    private @Nullable ScriptExpressionProfile findScriptExpressionProfile(
+    private @Nullable ScriptLanguageExpressionProfile findScriptExpressionProfile(
             ExpressionProfile expressionProfile, PrismObject<ReportType> report) {
         if (expressionProfile == null) {
             return null;
         }
+        ExpressionEvaluatorsProfile evaluatorsProfile = expressionProfile.getEvaluatorsProfile();
         ExpressionEvaluatorProfile scriptEvaluatorProfile =
-                expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+                evaluatorsProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
         if (scriptEvaluatorProfile == null) {
             return null;
         }

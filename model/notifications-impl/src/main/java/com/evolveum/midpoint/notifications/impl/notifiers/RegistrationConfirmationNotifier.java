@@ -8,14 +8,15 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationNotifierType;
@@ -27,18 +28,20 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
     private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
 
     @Override
-    public Class<RegistrationConfirmationNotifierType> getEventHandlerConfigurationType() {
+    public @NotNull Class<RegistrationConfirmationNotifierType> getEventHandlerConfigurationType() {
         return RegistrationConfirmationNotifierType.class;
     }
 
     @Override
-    protected boolean quickCheckApplicability(ModelEvent event, RegistrationConfirmationNotifierType configuration,
+    protected boolean quickCheckApplicability(
+            ConfigurationItem<? extends RegistrationConfirmationNotifierType> configuration,
+            EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) {
         // TODO generalize to FocusType
-        if (!event.hasFocusOfType(UserType.class)) {
+        if (!ctx.event().hasFocusOfType(UserType.class)) {
             LOGGER.trace(
-                    "RegistrationConfirmationNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
-                            + event.getClass());
+                    "RegistrationConfirmationNotifier is not applicable for this kind of event, continuing in the handler chain; "
+                            + "event class = {}", ctx.getEventClass());
             return false;
         } else {
             return true;
@@ -46,8 +49,11 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
     }
 
     @Override
-    protected boolean checkApplicability(ModelEvent event, RegistrationConfirmationNotifierType configuration,
+    protected boolean checkApplicability(
+            ConfigurationItem<? extends RegistrationConfirmationNotifierType> configuration,
+            EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) {
+        var event = ctx.event();
         if (!event.isSuccess()) {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
@@ -64,16 +70,22 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
     }
 
     @Override
-    protected String getSubject(ModelEvent event, RegistrationConfirmationNotifierType configuration, String transport,
-            Task task, OperationResult result) {
+    protected String getSubject(
+            ConfigurationItem<? extends RegistrationConfirmationNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ModelEvent> ctx,
+            OperationResult result) {
         return "Registration confirmation";
     }
 
     @Override
-    protected String getBody(ModelEvent event, RegistrationConfirmationNotifierType configuration, String transport,
-            Task task, OperationResult result) {
+    protected String getBody(
+            ConfigurationItem<? extends RegistrationConfirmationNotifierType> configuration,
+            String transport,
+            EventProcessingContext<? extends ModelEvent> ctx,
+            OperationResult result) {
 
-      UserType userType = getUser(event);
+      UserType userType = getUser(ctx.event());
 
         String plainTextPassword = "IhopeYouRememberYourPassword";
         try {
@@ -82,23 +94,20 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
             //ignore...????
         }
 
-        StringBuilder messageBuilder = new StringBuilder("Dear ");
-        messageBuilder.append(userType.getGivenName()).append(",\n")
-        .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
-        .append("\n")
-        .append(createConfirmationLink(userType, configuration, result))
-        .append("\n\n")
-        .append("After your account is activated, use following credentials to log in: \n")
-        .append("username: ")
-        .append(userType.getName().getOrig())
-        .append("password: ")
-        .append(plainTextPassword);
-
-        return messageBuilder.toString();
+        return "Dear " + userType.getGivenName() + ",\n"
+                + "your account was successfully created. To activate your account click on the following confirmation link. "
+                + "\n"
+                + createConfirmationLink(userType, configuration, result)
+                + "\n\n"
+                + "After your account is activated, use following credentials to log in: \n"
+                + "username: "
+                + userType.getName().getOrig()
+                + "password: "
+                + plainTextPassword;
     }
 
     @Override
-    public String getConfirmationLink(UserType userType) {
-        return getMidpointFunctions().createRegistrationConfirmationLink(userType);
+    public String getConfirmationLink(UserType user) {
+        return getMidpointFunctions().createRegistrationConfirmationLink(user);
     }
 }

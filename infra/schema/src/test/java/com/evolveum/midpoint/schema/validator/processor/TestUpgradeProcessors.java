@@ -103,7 +103,8 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
 
             String msg = "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
                     "\nUPDATED:\n" + PrismTestUtil.serializeObjectToString(updated) +
-                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original);
+                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original) +
+                    "\nDELTA:\n" + updated.diff(expected).debugDump();
 
             LOGGER.info(msg);
 
@@ -138,7 +139,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
         testUpgradeValidator("resource.xml", result -> {
             Assertions.assertThat(result.getItems())
                     .isNotNull()
-                    .hasSize(5);
+                    .hasSize(10);
 
             // todo assert items
         });
@@ -147,7 +148,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test20TestCaseTaskRef() throws Exception {
         testUpgradeValidator("case.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(1);
+            Assertions.assertThat(result.getItems()).hasSize(3);
 
             UpgradeValidationItem item = assertGetItem(result, new ProcessorMixin() {
             }.getIdentifier(CaseTaskRefProcessor.class));
@@ -165,7 +166,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(12);
+            Assertions.assertThat(result.getItems()).hasSize(23);
 
             UpgradeValidationItem item = assertGetItem(result, getProcessorIdentifier(RoleCatalogCollectionsProcessor.class));
             Assertions.assertThat(item.getDelta().getModifiedItems()).hasSize(2);
@@ -196,9 +197,9 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test50SecurityPolicy() throws Exception {
         testUpgradeValidator("security-policy.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(1);
+                    .hasSize(4);
 
-            Assertions.assertThat(result.hasChanges()).isFalse();
+            Assertions.assertThat(result.hasChanges()).isTrue();
         });
     }
 
@@ -206,7 +207,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test60TaskLivesync() throws Exception {
         testUpgradeValidator("task-livesync.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(2);
+                    .hasSize(3);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
@@ -216,7 +217,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test70Archetype() throws Exception {
         testUpgradeValidator("archetype.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(1);
+                    .hasSize(2);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
@@ -226,7 +227,17 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test80TaskRecomputation() throws Exception {
         testUpgradeValidator("task-recomputation.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(6);
+                    .hasSize(9);
+
+            Assertions.assertThat(result.hasChanges()).isTrue();
+        });
+    }
+
+    @Test
+    public void test100TaskNonIterative() throws Exception {
+        testUpgradeValidator("task-non-iterative.xml", result -> {
+            Assertions.assertThat(result.getItems())
+                    .hasSize(1);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });

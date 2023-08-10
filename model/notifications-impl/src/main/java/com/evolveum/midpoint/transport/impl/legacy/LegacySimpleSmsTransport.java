@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.HttpHost;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,8 +36,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
@@ -56,8 +56,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.transport.impl.TransportUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -88,7 +86,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
     @Autowired private Protector protector;
 
     @Override
-    public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
+    public void send(Message message, String transportName, SendingContext ctx, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
@@ -129,9 +127,11 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
         List<String> allowedRecipientTo = new ArrayList<>();
         List<String> forbiddenRecipientTo = new ArrayList<>();
 
+        var task = ctx.task();
         if (optionsForFilteringRecipient != 0) {
-            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), smsConfigurationType, task, result,
-                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(
+                    allowedRecipientTo, forbiddenRecipientTo, message.getTo(), smsConfigurationType, task, result,
+                    expressionFactory, ctx.expressionProfile(), LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty()) {
@@ -176,7 +176,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
         }
 
         List<String> to = message.getTo();
-        assert to.size() > 0;
+        assert !to.isEmpty();
 
         for (SmsGatewayConfigurationType smsGatewayConfigurationType : smsConfigurationType.getGateway()) {
             OperationResult resultForGateway = result.createSubresult(DOT_CLASS + "send.forGateway");
@@ -185,20 +185,22 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
                 VariablesMap variables = getDefaultVariables(from, to, message);
                 HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
                 ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), null);
-                String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
+                String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", ctx, result);
                 String proxyHost = smsGatewayConfigurationType.getProxyHost();
                 Integer proxyPort = smsGatewayConfigurationType.getProxyPort();
                 LOGGER.debug("Sending SMS to URL {} via proxy host {} and port {} (method {})", url, proxyHost, proxyPort, method);
                 if (url == null) {
                     throw new IllegalArgumentException("No URL specified");
                 }
-                List<String> headersList = evaluateExpressionsChecked(smsGatewayConfigurationType.getHeadersExpression(), variables,
-                        "sms gateway request headers", task, result);
+                List<String> headersList = evaluateExpressionsChecked(
+                        smsGatewayConfigurationType.getHeadersExpression(), variables,
+                        "sms gateway request headers", ctx, result);
                 LOGGER.debug("Using request headers:\n{}", headersList);
 
                 String encoding = defaultIfNull(smsGatewayConfigurationType.getBodyEncoding(), StandardCharsets.ISO_8859_1.name());
-                String body = evaluateExpressionChecked(smsGatewayConfigurationType.getBodyExpression(), variables,
-                        "sms gateway request body", task, result);
+                String body = evaluateExpressionChecked(
+                        smsGatewayConfigurationType.getBodyExpression(), variables,
+                        "sms gateway request body", ctx, result);
                 LOGGER.debug("Using request body text (encoding: {}):\n{}", encoding, body);
 
                 if (smsGatewayConfigurationType.getLogToFile() != null) {
@@ -304,10 +306,11 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
                 + "\n\nFor message:\n" + mailMessage.toString() + "\n\n";
     }
 
-    private String evaluateExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
-            String shortDesc, Task task, OperationResult result) {
+    private String evaluateExpressionChecked(
+            ExpressionType expressionType, VariablesMap VariablesMap,
+            String shortDesc, SendingContext ctx, OperationResult result) {
         try {
-            return evaluateExpression(expressionType, VariablesMap, false, shortDesc, task, result).get(0);
+            return evaluateExpression(expressionType, VariablesMap, false, shortDesc, ctx, result).get(0);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
                 ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
@@ -318,9 +321,9 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
 
     @NotNull
     private List<String> evaluateExpressionsChecked(ExpressionType expressionType, VariablesMap VariablesMap,
-            @SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
+            @SuppressWarnings("SameParameterValue") String shortDesc, SendingContext ctx, OperationResult result) {
         try {
-            return evaluateExpression(expressionType, VariablesMap, true, shortDesc, task, result);
+            return evaluateExpression(expressionType, VariablesMap, true, shortDesc, ctx, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
                 ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
@@ -331,8 +334,10 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
 
     // A little hack: for single-value cases we always return single-item list (even if the returned value is null)
     @NotNull
-    private List<String> evaluateExpression(ExpressionType expressionType, VariablesMap VariablesMap,
-            boolean multipleValues, String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+    private List<String> evaluateExpression(
+            ExpressionType expressionType, VariablesMap VariablesMap,
+            boolean multipleValues, String shortDesc, SendingContext ctx, OperationResult result)
+            throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (expressionType == null) {
             return multipleValues ? emptyList() : singletonList(null);
@@ -343,8 +348,10 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
             resultDef.setMaxOccurs(-1);
         }
 
+        var task = ctx.task();
+
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(expressionType, resultDef, ctx.expressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =

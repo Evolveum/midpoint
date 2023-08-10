@@ -1,10 +1,5 @@
 <query>
     <filter>
-        <org>
-            <orgRef>
-                <oid>c2e18f49-a3d0-425f-8670-293332a23a7f</oid> <!-- provide your OID here -->
-            </orgRef>
-            <scope>ONE_LEVEL</scope>
-        </org>
+        <text>. inOrg[ONE_LEVEL] 'c2e18f49-a3d0-425f-8670-293332a23a7f'</text> <!-- provide your OID here -->
     </filter>
 </query>

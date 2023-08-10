@@ -183,5 +183,5 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     @NotNull ModelContext<?> getModelContext();
 
     /** Returns OIDs of event marks determined for this focus/projection context. */
-    @NotNull Collection<String> getMatchingEventMarks();
+    @NotNull Collection<String> getMatchingEventMarksOids();
 }
