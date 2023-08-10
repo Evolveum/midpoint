@@ -10,6 +10,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
@@ -41,7 +42,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -59,17 +60,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by tchrapovic.
  */
-@PanelType(name = "modificationTarget")
-@PanelInstance(identifier = "modificationTarget",
-        applicableForType = AbstractRoleType.class,
-        display = @PanelDisplay(label = "pageAdminFocus.modificationTarget", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60))
-public class ModificationTargetPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, FocusDetailsModels<AR>> {
+//@PanelType(name = "modificationTarget")
+//@PanelInstance(identifier = "modificationTarget",
+//        applicableForType = AbstractRoleType.class,
+//        display = @PanelDisplay(label = "pageAdminFocus.modificationTarget", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60))
+public class ModificationTargetPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, AbstractRoleDetailsModel<AR>> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_MODIFICATION_TARGET_CONTAINER = "modificationTargetContainer";
     private static final String ID_MODIFICATION_TARGET_PANEL = "modificationTargetPanel";
 
-    public ModificationTargetPanel(String id, FocusDetailsModels<AR> focusWrapperModel, ContainerPanelConfigurationType config) {
+    public ModificationTargetPanel(String id, AbstractRoleDetailsModel<AR> focusWrapperModel, ContainerPanelConfigurationType config) {
         super(id, focusWrapperModel, config);
     }
 

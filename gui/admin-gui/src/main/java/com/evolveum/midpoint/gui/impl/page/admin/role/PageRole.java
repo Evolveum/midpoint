@@ -10,6 +10,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -22,7 +24,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.BusinessRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
@@ -42,9 +44,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
-public class PageRole extends PageAbstractRole<RoleType, FocusDetailsModels<RoleType>> {
+public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsModel<RoleType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
+
+    private List<BusinessRoleApplicationDto> patternDeltas;
 
     public PageRole() {
         super();
@@ -59,7 +63,22 @@ public class PageRole extends PageAbstractRole<RoleType, FocusDetailsModels<Role
     }
 
     public PageRole(PrismObject<RoleType> role, List<BusinessRoleApplicationDto> patternDeltas) {
-        super(role, patternDeltas);
+        super(role);
+        this.patternDeltas = patternDeltas;
+    }
+
+    @Override
+    protected AbstractRoleDetailsModel<RoleType> createObjectDetailsModels(PrismObject<RoleType> object) {
+        return new AbstractRoleDetailsModel<>(createPrismObjectModel(object), this);
+    }
+
+    @Override
+    protected void postProcessModel(AbstractRoleDetailsModel<RoleType> objectDetailsModels) {
+        if (patternDeltas != null && !patternDeltas.isEmpty()) {
+            objectDetailsModels.addPatternDeltas(patternDeltas);
+        }
+
+        patternDeltas = null;
     }
 
     @Override

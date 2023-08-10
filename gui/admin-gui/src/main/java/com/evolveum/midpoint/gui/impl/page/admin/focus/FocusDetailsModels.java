@@ -4,11 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
+package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
@@ -87,11 +89,11 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
     @Override
     protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
 
-        if (getPatternDeltas() == null || getPatternDeltas().isEmpty()) {
-            GuiObjectDetailsPageType guiObjectDetailsPageType = super.loadDetailsPageConfiguration().clone();
-            hiddeAssignmentTargetPanel(guiObjectDetailsPageType);
-            return guiObjectDetailsPageType;
-        }
+//        if (getPatternDeltas() == null || getPatternDeltas().isEmpty()) {
+//            GuiObjectDetailsPageType guiObjectDetailsPageType = super.loadDetailsPageConfiguration().clone();
+//            hiddeAssignmentTargetPanel(guiObjectDetailsPageType);
+//            return guiObjectDetailsPageType;
+//        }
 
         if (history) {
             GuiObjectDetailsPageType guiObjectDetailsPageType = super.loadDetailsPageConfiguration().clone();
@@ -109,26 +111,26 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         return super.loadDetailsPageConfiguration();
     }
 
-    private void hiddeAssignmentTargetPanel(GuiObjectDetailsPageType guiObjectDetailsPageType) {
-        List<ContainerPanelConfigurationType> containerPanelConfigurationTypeList = guiObjectDetailsPageType.getPanel();
-
-        for (ContainerPanelConfigurationType containerPanelConfigurationType : containerPanelConfigurationTypeList) {
-            String identifier = containerPanelConfigurationType
-                    .getIdentifier();
-
-            if (identifier == null) {
-                continue;
-            }
-
-            if (identifier.equals(PANEL_TYPE_MODIFICATION_TARGET)) {
-                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-            }
-        }
-
-        if (history) {
-            hiddeSpecificPanel(containerPanelConfigurationTypeList, visiblePanelIdentifierList());
-        }
-    }
+//    private void hiddeAssignmentTargetPanel(GuiObjectDetailsPageType guiObjectDetailsPageType) {
+//        List<ContainerPanelConfigurationType> containerPanelConfigurationTypeList = guiObjectDetailsPageType.getPanel();
+//
+//        for (ContainerPanelConfigurationType containerPanelConfigurationType : containerPanelConfigurationTypeList) {
+//            String identifier = containerPanelConfigurationType
+//                    .getIdentifier();
+//
+//            if (identifier == null) {
+//                continue;
+//            }
+//
+//            if (identifier.equals(PANEL_TYPE_MODIFICATION_TARGET)) {
+//                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+//            }
+//        }
+//
+//        if (history) {
+//            hiddeSpecificPanel(containerPanelConfigurationTypeList, visiblePanelIdentifierList());
+//        }
+//    }
 
     private void hiddeSpecificPanel(List<ContainerPanelConfigurationType> item, List<String> visiblePanelIdentifierList) {
         for (ContainerPanelConfigurationType containerPanelConfigurationType : item) {

@@ -19,6 +19,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.roles.RoleManagementUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -598,6 +600,8 @@ public class ClusterObjectUtils {
         RoleType role = roleTypePrismObject.asObjectable();
         role.setName(PolyStringType.fromOrig(name));
         role.getInducement().addAll(assignmentTypes);
+
+        role.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(), ObjectTypes.ARCHETYPE));
 
         return roleTypePrismObject;
     }

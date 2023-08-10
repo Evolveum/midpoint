@@ -169,14 +169,18 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                     if (miningRoleTypeChunk.getStatus().equals(Status.ADD)) {
                         List<String> roles = miningRoleTypeChunk.getRoles();
                         for (String oid : roles) {
+                            // can't we somehow cache this information? because loading role just to find out if they exist might be ineffective?
                             PrismObject<RoleType> roleTypeObject = getRoleTypeObject((PageBase) getPage(), oid, result);
                             if (roleTypeObject == null) {
                                 continue;
                             }
-                            AssignmentType assignment = new AssignmentType();
-                            assignment.setTargetRef(ObjectTypeUtil.createObjectRef(roleTypeObject.getOid(),
-                                    ObjectTypes.ABSTRACT_ROLE));
-                            roleList.add(assignment);
+                            //probably RoleType would be better, when we know that there will be role
+                            roleList.add(ObjectTypeUtil.createAssignmentTo(oid, ObjectTypes.ROLE));
+
+//                            AssignmentType assignment = new AssignmentType();
+//                            assignment.setTargetRef(ObjectTypeUtil.createObjectRef(roleTypeObject.getOid(),
+//                                    ObjectTypes.ABSTRACT_ROLE));
+//                            roleList.add(assignment);
                         }
                     }
                 }

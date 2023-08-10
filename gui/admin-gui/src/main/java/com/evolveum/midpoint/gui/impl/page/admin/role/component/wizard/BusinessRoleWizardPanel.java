@@ -10,14 +10,16 @@ import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.util.ArrayList;
@@ -26,11 +28,11 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, FocusDetailsModels<RoleType>> {
+public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, AbstractRoleDetailsModel<RoleType>> {
 
 
 
-    public BusinessRoleWizardPanel(String id, WizardPanelHelper<RoleType, FocusDetailsModels<RoleType>> helper) {
+    public BusinessRoleWizardPanel(String id, WizardPanelHelper<RoleType, AbstractRoleDetailsModel<RoleType>> helper) {
         super(id, helper);
     }
 
@@ -53,6 +55,35 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Focus
                 BusinessRoleWizardPanel.this.onExitPerformed(target);
             }
         });
+
+        List<BusinessRoleApplicationDto> patterns = getAssignmentHolderModel().getPatternDeltas();
+        if (CollectionUtils.isNotEmpty(patterns)) {
+            steps.add(new ExsitingAccessApplicationRoleStepPanel<>(getAssignmentHolderModel()) {
+
+                @Override
+                protected void onExitPerformed(AjaxRequestTarget target) {
+                    BusinessRoleWizardPanel.this.onExitPerformed(target);
+                }
+
+                @Override
+                public VisibleEnableBehaviour getBackBehaviour() {
+                    return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+                }
+            });
+
+            steps.add(new CandidateMembersPanel<>(getAssignmentHolderModel()) {
+
+                @Override
+                protected void onExitPerformed(AjaxRequestTarget target) {
+                    BusinessRoleWizardPanel.this.onExitPerformed(target);
+                }
+
+                @Override
+                public VisibleEnableBehaviour getBackBehaviour() {
+                    return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+                }
+            });
+        }
 
         steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()){
             @Override

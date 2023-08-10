@@ -95,9 +95,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
 
-        if (patternDeltas != null && !patternDeltas.isEmpty()) {
-            objectDetailsModels.addPatternDeltas(patternDeltas);
-        }
+//        if (patternDeltas != null && !patternDeltas.isEmpty()) {
+//            objectDetailsModels.addPatternDeltas(patternDeltas);
+//        }
+    }
+
+    protected void postProcessModel(ODM objectDetailsModels) {
+
     }
 
     public AbstractPageObjectDetails(PrismObject<O> object, List<BusinessRoleApplicationDto> patternDeltas) {
@@ -107,6 +111,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        postProcessModel(objectDetailsModels);
         initLayout();
     }
 
