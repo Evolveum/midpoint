@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectsPanel;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,7 +46,11 @@ public abstract class ReloadableButton extends AjaxIconButton {
     private final PageBase pageBase;
 
     public ReloadableButton(String id, PageBase pageBase) {
-        super(id, Model.of(""), pageBase.createStringResource("ReloadableButton.reload"));
+        this(id, pageBase, PageBase.createStringResourceStatic("ReloadableButton.reload"));
+    }
+
+    public ReloadableButton(String id, PageBase pageBase, IModel<String> buttonLabel) {
+        super(id, Model.of(""), buttonLabel);
         this.pageBase = pageBase;
     }
 
@@ -74,21 +80,13 @@ public abstract class ReloadableButton extends AjaxIconButton {
         };
     }
 
-    @Override
-    public void onClick(AjaxRequestTarget target) {
+    private void onClickReloadButton(AjaxRequestTarget target) {
         taskOidForReloaded = pageBase.taskAwareExecutor(target, OPERATION_RELOAD)
                 .withOpResultOptions(
                         OpResult.Options.create()
                                 .withHideSuccess(true)
                                 .withHideInProgress(true))
-                .run((task, result) -> pageBase.getModelInteractionService().submit(
-                        createActivityDefinition(),
-                        ActivitySubmissionOptions.create()
-                                .withTaskTemplate(new TaskType()
-                                        .name(getTaskName())
-                                        .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))),
-                        task, result)
-                );
+                .run(getTaskExecutor());
         reloadedBehaviour = new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(5)) {
 
             @Override
@@ -123,11 +121,50 @@ public abstract class ReloadableButton extends AjaxIconButton {
         refresh(target);
     }
 
+    @Override
+    public final void onClick(AjaxRequestTarget target) {
+        if (useConfirmationPopup()) {
+            IModel<String> confirmModel = getConfirmMessage();
+
+            ConfirmationPanel confirmationPanel = new ConfirmationPanel(pageBase.getMainPopupBodyId(), confirmModel) {
+                @Override
+                public void yesPerformed(AjaxRequestTarget target) {
+                    onClickReloadButton(target);
+                }
+            };
+            pageBase.showMainPopup(confirmationPanel, target);
+        } else {
+            onClickReloadButton(target);
+        }
+    }
+
+    protected IModel<String> getConfirmMessage() {
+        return Model.of("");
+    }
+
+    protected boolean useConfirmationPopup() {
+        return false;
+    }
+
+    protected TaskAwareExecutor.Executable<String> getTaskExecutor() {
+        return (task, result) -> pageBase.getModelInteractionService().submit(
+                createActivityDefinition(),
+                ActivitySubmissionOptions.create()
+                        .withTaskTemplate(new TaskType()
+                                .name(getTaskName())
+                                .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))),
+                task, result);
+    }
+
     protected abstract void refresh(AjaxRequestTarget target);
 
-    protected abstract ActivityDefinitionType createActivityDefinition() throws SchemaException;
+    protected ActivityDefinitionType createActivityDefinition() throws SchemaException {
+        return null;
+    }
 
-    protected abstract String getTaskName();
+    protected String getTaskName() {
+        return null;
+    }
 
     @Override
     protected void onComponentTag(ComponentTag tag) {
