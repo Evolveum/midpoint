@@ -126,8 +126,9 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
                 Expression<V, D> argumentExpression = context.getExpressionFactory()
                         .makeExpression(
-                                argumentExpressionCI, argumentValueDefinition,
-                                ExpressionProfile.none(), // a profile should be set in the context
+                                argumentExpressionCI,
+                                argumentValueDefinition,
+                                context.getExpressionProfile(), // this is the caller's profile
                                 shortDesc, context.getTask(), argumentResult);
 
                 PrismValueDeltaSetTriple<V> argumentValueTriple = argumentExpression.evaluate(context, argumentResult);
@@ -137,8 +138,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
                 functionVariables.addVariableDefinition(argumentName, argumentValue, argumentValueDefinition);
 
-            } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                    | ConfigurationException | SecurityViolationException e) {
+            } catch (Exception e) {
                 argumentResult.recordException("Failed to resolve argument: " + argumentName + ". Reason: " + e.getMessage(), e);
                 throw e;
             } finally {
