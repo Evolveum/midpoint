@@ -124,7 +124,11 @@ public class NinjaContext implements Closeable {
         this.log = log;
     }
 
-    private void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+    private synchronized void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+        if (applicationContext != null) {
+            // Guard if method is entered multiple times during multi-threaded invocation
+            return;
+        }
         if (applicationContextLevel == NinjaApplicationContextLevel.NONE) {
             throw new IllegalStateException("Application context shouldn't be initialized");
         }
