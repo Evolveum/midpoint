@@ -61,6 +61,26 @@
             </evaluator>
             <functionLibraryProfile>little-trusted</functionLibraryProfile>
         </expressionProfile>
+        <expressionProfile>
+            <identifier>little-trusted-variant</identifier>
+            <documentation>Trusts but only so that a "anotherTrustedFunction" is allowed to be run.</documentation>
+            <decision>deny</decision> <!-- no expressions except for specified ones -->
+            <evaluator>
+                <type>function</type>
+                <decision>allow</decision>
+            </evaluator>
+            <functionLibraryProfile>little-trusted-variant</functionLibraryProfile>
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>little-trusted-variant-two</identifier>
+            <documentation>Trusts but only so that functions from library `two` are allowed to be run.</documentation>
+            <decision>deny</decision> <!-- no expressions except for specified ones -->
+            <evaluator>
+                <type>function</type>
+                <decision>allow</decision>
+            </evaluator>
+            <functionLibraryProfile>little-trusted-variant-two</functionLibraryProfile>
+        </expressionProfile>
         <permissionProfile>
             <identifier>script-restricted</identifier>
             <decision>deny</decision>
@@ -198,6 +218,26 @@
                     <name>simpleTrustedFunction</name>
                     <decision>allow</decision>
                 </function>
+            </library>
+        </functionLibrariesProfile>
+        <functionLibrariesProfile>
+            <identifier>little-trusted-variant</identifier>
+            <decision>deny</decision>
+            <library>
+                <ref oid="8752dce7-432a-48ad-aa10-1d4deb31dcba"/>
+                <decision>deny</decision>
+                <function>
+                    <name>anotherTrustedFunction</name>
+                    <decision>allow</decision>
+                </function>
+            </library>
+        </functionLibrariesProfile>
+        <functionLibrariesProfile>
+            <identifier>little-trusted-variant-two</identifier>
+            <decision>deny</decision>
+            <library>
+                <ref oid="f28e0119-5dfe-4e6f-92d7-3a1ad5b1cc91"/>
+                <decision>allow</decision>
             </library>
         </functionLibrariesProfile>
         <defaults>

@@ -14,10 +14,20 @@
     <!-- archetype not provided -> default (full) expression profile -->
     <function>
         <name>simpleTrustedFunction</name>
+        <documentation>Allowed by `little-trusted` profile.</documentation>
         <parameter>
             <name>dummy</name>
             <type>xsd:string</type>
         </parameter>
+        <script>
+            <code>
+                com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom()
+            </code>
+        </script>
+    </function>
+    <function>
+        <name>anotherTrustedFunction</name>
+        <documentation>Allowed by `little-trusted-variant` profile.</documentation>
         <script>
             <code>
                 com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom()

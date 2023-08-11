@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.config.FunctionConfigItem;
 import com.evolveum.midpoint.schema.config.FunctionExpressionEvaluatorConfigItem;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -133,7 +134,7 @@ public class FunctionLibraryManager implements Cache {
     /**
      * Finds a function by name. See {@link FunctionLibrary#findFunction(String, Collection, String)} for details.
      */
-    public @NotNull FunctionInLibrary getFunction(
+    public @NotNull FunctionInLibrary findFunction(
             @NotNull FunctionExpressionEvaluatorConfigItem functionCall,
             @NotNull String contextDesc,
             @NotNull OperationResult result)
@@ -220,8 +221,33 @@ public class FunctionLibraryManager implements Cache {
                 library.getLibraryObject(), result);
     }
 
+    public void checkCallAllowed(
+            @NotNull FunctionInLibrary function,
+            // TODO change to not-null when profiles are ubiquitous
+            @Nullable ExpressionProfile expressionProfile) throws ConfigurationException, SecurityViolationException {
+        if (expressionProfile != null) {
+            var decision = expressionProfile.getLibrariesProfile().decideFunctionAccess(
+                    function.library.getOid(),
+                    function.function.getName());
+            if (decision != AccessDecision.ALLOW) {
+                throw new SecurityViolationException(
+                        "Access to function library method %s %s (applied expression profile '%s', libraries profile '%s')"
+                                .formatted(
+                                        function,
+                                        decision == AccessDecision.DENY ? "denied" : "not allowed",
+                                        expressionProfile.getIdentifier(),
+                                        expressionProfile.getLibrariesProfile().getIdentifier()));
+            }
+        }
+    }
+
     public record FunctionInLibrary(
             @NotNull FunctionConfigItem function,
             @NotNull FunctionLibrary library) {
+
+        @Override
+        public String toString() {
+            return function.value().getName() + " in " + library.getLibraryObject();
+        }
     }
 }

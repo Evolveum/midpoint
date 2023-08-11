@@ -27,6 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
+
 /**
  * A "parsed form" of a {@link FunctionLibraryType}.
  *
@@ -37,13 +39,18 @@ public class FunctionLibrary {
 
     private static final Trace LOGGER = TraceManager.getTrace(FunctionLibrary.class);
 
+    @NotNull private final String oid;
+
     /** The "raw" definition of the library. */
     @NotNull private final FunctionLibraryType libraryBean;
 
     /** An optimization: functions indexed by name. */
     @NotNull private final Multimap<String, FunctionConfigItem> functionsByName = ArrayListMultimap.create();
 
-    private FunctionLibrary(@NotNull FunctionLibraryType libraryBean) throws ConfigurationException {
+    private FunctionLibrary(
+            @NotNull String oid,
+            @NotNull FunctionLibraryType libraryBean) throws ConfigurationException {
+        this.oid = oid;
         this.libraryBean = libraryBean;
         for (ExpressionType functionBean : libraryBean.getFunction()) {
             // We cannot use "embedded" factory method here, because ExpressionType is not a Containerable - only a property.
@@ -58,9 +65,13 @@ public class FunctionLibrary {
     /**
      * Creates the library object from bean. Throws {@link ConfigurationException} for the most obvious problems.
      * (No detailed checks, though.)
+     *
+     * Library must have an OID.
      */
     public static FunctionLibrary of(@NotNull FunctionLibraryType bean) throws ConfigurationException {
-        return new FunctionLibrary(bean);
+        return new FunctionLibrary(
+                argNonNull(bean.getOid(), "Function Library has no OID %s", bean),
+                bean);
     }
 
     public @NotNull String getName() {
@@ -118,5 +129,9 @@ public class FunctionLibrary {
     @SuppressWarnings("WeakerAccess")
     public @NotNull PrismObject<FunctionLibraryType> getLibraryObject() {
         return libraryBean.asPrismObject();
+    }
+
+    public @NotNull String getOid() {
+        return oid;
     }
 }

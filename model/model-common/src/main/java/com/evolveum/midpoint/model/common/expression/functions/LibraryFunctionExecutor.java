@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager.FunctionInLibrary;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -73,6 +74,11 @@ public class LibraryFunctionExecutor {
         try {
             FunctionConfigItem function =
                     library.findFunction(functionName, paramNames, "custom function evaluation");
+
+            var callerProfile = ScriptExpressionEvaluationContext.getThreadLocalRequired().getExpressionProfile();
+            functionLibraryManager.checkCallAllowed(
+                    new FunctionInLibrary(function, library),
+                    callerProfile);
 
             LOGGER.trace("function to execute {}", function);
 

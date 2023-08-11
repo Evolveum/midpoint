@@ -81,7 +81,9 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
         try {
             FunctionInLibrary function =
-                    functionLibraryManager.getFunction(functionCallCI, context.getContextDescription(), result);
+                    functionLibraryManager.findFunction(functionCallCI, context.getContextDescription(), result);
+
+            functionLibraryManager.checkCallAllowed(function, context.getExpressionProfile());
 
             ExpressionProfile functionExpressionProfile =
                     functionLibraryManager.determineFunctionExpressionProfile(function.library(), result);
