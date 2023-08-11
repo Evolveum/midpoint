@@ -19,10 +19,12 @@ public class LoginRecoveryAuthenticationChannel extends AuthenticationChannelImp
         super(channel);
     }
 
+    @Override
     public String getChannelId() {
         return SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI;
     }
 
+    @Override
     public String getPathAfterSuccessfulAuthentication() {
         return "/loginRecovery";
     }

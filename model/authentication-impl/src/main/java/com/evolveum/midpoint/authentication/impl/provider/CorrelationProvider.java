@@ -77,7 +77,11 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             if (owner != null) {
                 return createAuthenticationToken(owner, focusType);
             }
-
+            if (correlationModuleAuthentication.isLastCorrelator()) {
+                var token = createAuthenticationToken(null, focusType);
+                token.setAuthenticated(false);
+                return token;
+            }
             CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
             correlationModuleAuthentication.addCandidateOwners(ownersMap);
 
