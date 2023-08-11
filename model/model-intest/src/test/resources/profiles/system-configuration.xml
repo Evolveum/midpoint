@@ -81,6 +81,20 @@
             </evaluator>
             <functionLibraryProfile>little-trusted-variant-two</functionLibraryProfile>
         </expressionProfile>
+        <expressionProfile>
+            <identifier>forbidden-generate-value-action</identifier>
+            <documentation>Allows all bulk actions except for `generate-value`.</documentation>
+            <decision>allow</decision> <!-- all expression evaluators -->
+            <scriptingProfile>forbidden-generate-value-action</scriptingProfile>
+            <!-- all function libraries -->
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>forbidden-generate-value-action-alt</identifier>
+            <documentation>Allows all bulk actions except for `generateValue` (alternative).</documentation>
+            <decision>allow</decision> <!-- all expression evaluators -->
+            <scriptingProfile>forbidden-generate-value-action-alt</scriptingProfile>
+            <!-- all function libraries -->
+        </expressionProfile>
         <permissionProfile>
             <identifier>script-restricted</identifier>
             <decision>deny</decision>
@@ -206,6 +220,22 @@
             <action>
                 <name>expression</name>
                 <decision>allow</decision>
+            </action>
+        </scriptingProfile>
+        <scriptingProfile>
+            <identifier>forbidden-generate-value-action</identifier>
+            <decision>allow</decision>
+            <action>
+                <name>generate-value</name>
+                <decision>deny</decision>
+            </action>
+        </scriptingProfile>
+        <scriptingProfile>
+            <identifier>forbidden-generate-value-action-alt</identifier>
+            <decision>allow</decision>
+            <action>
+                <name>generateValue</name>
+                <decision>deny</decision>
             </action>
         </scriptingProfile>
         <functionLibrariesProfile>

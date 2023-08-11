@@ -172,8 +172,9 @@ public class ScriptingExpressionEvaluator {
         } else if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Executing action {}", getActionType(action));
         }
-        return actionExecutorRegistry.getExecutor(action)
-                .execute(action, input, context, globalResult);
+        ActionExecutor executor = actionExecutorRegistry.getExecutor(action);
+        executor.checkExecutionAllowed(context);
+        return executor.execute(action, input, context, globalResult);
     }
 
     private PipelineData executePipeline(ExpressionPipelineType pipeline, PipelineData data, ExecutionContext context,

@@ -9,10 +9,12 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.GenerateValueActionExpressionType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -74,8 +76,14 @@ public class GenerateValueExecutor extends AbstractObjectBasedActionExecutor<Obj
     }
 
     @Override
-    String getActionName() {
+    @NotNull
+    String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_GENERATE_VALUE.getLocalPart();
     }
 
     @Override

@@ -29,7 +29,7 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
 
     @FunctionalInterface
     public interface ObjectProcessor<T extends ObjectType> {
-        void process(PrismObject<? extends T> object, PipelineItem item, OperationResult result) throws ScriptExecutionException, CommonException;
+        void process(PrismObject<? extends T> object, PipelineItem item, OperationResult result) throws CommonException;
     }
 
     @FunctionalInterface
@@ -55,18 +55,18 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
                         consumer.process(object, item, result);
                         operationsHelper.recordEnd(context, op, null, result);
                     } catch (Throwable e) {
-                        result.recordFatalError(e);
+                        result.recordException(e);
                         operationsHelper.recordEnd(context, op, e, result);
-                        Throwable exception = processActionException(e, getActionName(), value, context);
+                        Throwable exception = processActionException(e, getLegacyActionName(), value, context);
                         writer.write(object, exception);
                     }
                 }
                 operationsHelper.trimAndCloneResult(result, item.getResult());
             } catch (Throwable t) {
-                result.recordFatalError(t);
+                result.recordException(t);
                 throw t;
             } finally {
-                result.computeStatusIfUnknown(); // just in case (should be already computed)
+                result.close(); // just in case (should be already computed)
             }
         }
     }
@@ -74,19 +74,21 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
     @SuppressWarnings("ThrowableNotThrown")
     private PrismObject<T> castToObject(PrismValue value, Class<T> expectedType, ExecutionContext context)
             throws ScriptExecutionException {
-        if (value instanceof PrismObjectValue) {
-            PrismObjectValue objectValue = (PrismObjectValue) value;
+        if (value instanceof PrismObjectValue<?> objectValue) {
             Class<? extends Objectable> realType = objectValue.asObjectable().getClass();
             if (expectedType.isAssignableFrom(realType)) {
                 //noinspection unchecked
-                return objectValue.asPrismObject();
+                return (PrismObject<T>) objectValue.asPrismObject();
             } else {
-                processActionException(new ScriptExecutionException("Item is not a PrismObject of " + expectedType.getName()
-                        + "; it is " + realType.getName() + " instead"), getActionName(), value, context);
+                processActionException(
+                        new ScriptExecutionException(
+                                "Item is not a PrismObject of %s; it is %s instead".formatted(
+                                        expectedType.getName(), realType.getName())),
+                        getLegacyActionName(), value, context);
                 return null;
             }
         } else {
-            processActionException(new ScriptExecutionException("Item is not a PrismObject"), getActionName(), value, context);
+            processActionException(new ScriptExecutionException("Item is not a PrismObject"), getLegacyActionName(), value, context);
             return null;
         }
     }

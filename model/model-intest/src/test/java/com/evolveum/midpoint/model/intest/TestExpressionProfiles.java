@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
  * . `little-trusted` - allows almost nothing; just an invocation of one specifically trusted library function
  * . `little-trusted-variant` - as before, but allows a different function
  * . `little-trusted-variant-two` - as before, but allows a different function library (`two`)
+ * . `forbidden-generate-value-action`, `forbidden-generate-value-action-alt` - allows everything except `generate-value` action
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -61,6 +63,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    private static final TestObject<ValuePolicyType> VALUE_POLICY_TEST = TestObject.file(
+            TEST_DIR, "value-policy-test.xml", "cdea9694-1882-424e-abe6-70941e8fc882");
     private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_ONE = TestObject.file(
             TEST_DIR, "function-library-one.xml", "8752dce7-432a-48ad-aa10-1d4deb31dcba");
     private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_TWO = TestObject.file(
@@ -89,6 +93,10 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "archetype-little-trusted-variant-role.xml", "3f765457-3078-4759-ba5f-816a97a92f39");
     private static final TestObject<ArchetypeType> ARCHETYPE_LITTLE_TRUSTED_VARIANT_TWO_ROLE = TestObject.file(
             TEST_DIR, "archetype-little-trusted-variant-two-role.xml", "ae434551-4b41-4258-babb-e169b08ec27e");
+    private static final TestObject<ArchetypeType> ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ROLE = TestObject.file(
+            TEST_DIR, "archetype-forbidden-generate-value-action-role.xml", "f7714bb8-242e-41c7-bb81-d9cf78415873");
+    private static final TestObject<ArchetypeType> ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ALT_ROLE = TestObject.file(
+            TEST_DIR, "archetype-forbidden-generate-value-action-alt-role.xml", "b51a1997-d526-4d45-90d1-e978856e2630");
 
     // auto-assigned roles are initialized only in specific tests (and then deleted)
     private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_GOOD = TestObject.file(
@@ -124,6 +132,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final File FILE_SCRIPTING_SCRIPT_IN_UNASSIGN_FILTER = new File(TEST_DIR, "scripting-script-in-unassign-filter.xml");
 
     private static final File FILE_SCRIPTING_EXECUTE_SIMPLE_TRUSTED_FUNCTION = new File(TEST_DIR, "scripting-execute-simpleTrustedFunction.xml");
+    private static final File FILE_SCRIPTING_GENERATE_VALUE = new File(TEST_DIR, "scripting-generate-value.xml");
 
     private static final String DETAIL_REASON_MESSAGE =
             "Access to Groovy method com.evolveum.midpoint.model.intest.TestExpressionProfiles#boom denied"
@@ -140,6 +149,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         RESOURCE_SIMPLE_TARGET.initAndTest(this, initTask, initResult);
 
         initTestObjects(initTask, initResult,
+                VALUE_POLICY_TEST,
                 FUNCTION_LIBRARY_ONE,
                 FUNCTION_LIBRARY_TWO,
                 ARCHETYPE_RESTRICTED_ROLE,
@@ -147,6 +157,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ARCHETYPE_LITTLE_TRUSTED_ROLE,
                 ARCHETYPE_LITTLE_TRUSTED_VARIANT_ROLE,
                 ARCHETYPE_LITTLE_TRUSTED_VARIANT_TWO_ROLE,
+                ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ROLE,
+                ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ALT_ROLE,
                 METAROLE_DUMMY,
                 ROLE_UNRESTRICTED,
                 ROLE_SCRIPTING,
@@ -542,6 +554,59 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 "expression profile 'little-trusted-variant-two', libraries profile 'little-trusted-variant-two'");
     }
 
+
+    /**
+     * Executing `generate-value` is allowed by the default profile. Just a baseline test. Should succeed.
+     */
+    @Test
+    public void test360GenerateValueAllowed() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("unprivileged user is logged in");
+        login(USER_JOE.getNameOrig());
+
+        when("bulk action is executed");
+        var script = prismContext.parserFor(FILE_SCRIPTING_GENERATE_VALUE)
+                .xml()
+                .parseRealValue(ExecuteScriptType.class);
+        var executionResult = scriptingService.evaluateExpression(
+                ExecuteScriptConfigItem.of(script, ConfigurationItemOrigin.rest()),
+                VariablesMap.emptyMap(),
+                false,
+                task, result);
+        assertSuccess(result);
+
+        displayCollection("output", executionResult.getDataOutput());
+        //noinspection unchecked
+        var userAfter = (PrismObjectValue<UserType>) executionResult.getDataOutput().get(0).getValue();
+        assertThat(userAfter.asObjectable().getEmployeeNumber()).as("generated emp#").isNotNull();
+    }
+
+    /**
+     * Executing `generate-value` is forbidden by the `forbidden-generate-value-action` profile.
+     */
+    @Test
+    public void test364GenerateValueForbidden() throws CommonException, IOException {
+        runNegativeBulkActionTest(
+                FILE_SCRIPTING_GENERATE_VALUE,
+                originForArchetype(ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ROLE),
+                "Access to action 'generate-value' ('generateValue')",
+                "expression profile 'forbidden-generate-value-action', actions profile 'forbidden-generate-value-action'");
+    }
+
+    /**
+     * Executing `generate-value` is forbidden by the `forbidden-generate-value-action-alt` profile.
+     */
+    @Test
+    public void test368GenerateValueForbiddenAlt() throws CommonException, IOException {
+        runNegativeBulkActionTest(
+                FILE_SCRIPTING_GENERATE_VALUE,
+                originForArchetype(ARCHETYPE_FORBIDDEN_GENERATE_VALUE_ACTION_ALT_ROLE),
+                "Access to action 'generate-value' ('generateValue')",
+                "expression profile 'forbidden-generate-value-action-alt', actions profile 'forbidden-generate-value-action-alt'");
+    }
+
     private void runPositiveBulkActionTest(File file, ConfigurationItemOrigin origin) throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -599,6 +664,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                     .hasMessageContaining(msg2);
         }
 
+        // checking this, although not all bulk actions set this flag
         and("not boomed");
         BOOMED_FLAG.assertNotSet();
     }

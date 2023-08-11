@@ -610,7 +610,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         // TODO: check for user membership in an organization (later versions)
 
         OperationResult result = parentResult.createMinorSubresult(GET_AUTHENTICATIONS_POLICY);
-        return resolvePolicyTypeFromSecurityPolicy(SecurityPolicyType.F_AUTHENTICATION, user, task, result);
+        try {
+            return resolvePolicyTypeFromSecurityPolicy(SecurityPolicyType.F_AUTHENTICATION, user, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 
     @Override
@@ -618,8 +625,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // TODO: check for user membership in an organization (later versions)
         OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
-        return resolvePolicyTypeFromSecurityPolicy(SecurityPolicyType.F_FLOW, focus, task,
-                result);
+        try {
+            return resolvePolicyTypeFromSecurityPolicy(SecurityPolicyType.F_FLOW, focus, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 
     @Override
@@ -627,7 +640,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         // TODO: check for user membership in an organization (later versions)
 
         OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
-        return resolvePolicyTypeFromSecurityPolicy(SecurityPolicyType.F_CREDENTIALS, focus, task, result);
+        try {
+            return resolvePolicyTypeFromSecurityPolicy(SecurityPolicyType.F_CREDENTIALS, focus, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 
     private <C extends Containerable> C resolvePolicyTypeFromSecurityPolicy(
@@ -644,7 +664,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return null;
         }
         PrismContainerValue<C> containerValue = container.getValue();
-        parentResult.recordSuccess();
         return containerValue.asContainerable();
     }
 
@@ -655,22 +674,22 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
             if (systemConfiguration == null) {
-                result.recordNotApplicableIfUnknown();
+                result.recordNotApplicable("no system configuration");
                 return null;
             }
 
-            SecurityPolicyType securityPolicyType = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result);
-            if (securityPolicyType == null) {
-                result.recordNotApplicableIfUnknown();
+            SecurityPolicyType securityPolicy = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result);
+            if (securityPolicy == null) {
+                result.recordNotApplicable("no security policy");
                 return null;
             }
 
-            return securityPolicyType;
+            return securityPolicy;
         } catch (Throwable e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -992,94 +1011,104 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> void generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition,
-            Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
+    public <O extends ObjectType> void generateValue(
+            PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
-
-        ValuePolicyType valuePolicy;
         try {
-            valuePolicy = getValuePolicy(object, task, result);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException
-                | ConfigurationException | SecurityViolationException
-                | ExpressionEvaluationException e) {
-            LOGGER.error("Failed to get value policy for generating value. ", e);
-            result.recordFatalError("Error while getting value policy. Reason: " + e.getMessage(), e);
-            throw e;
-        }
-
-        Collection<PropertyDelta<?>> deltasToExecute = new ArrayList<>();
-        for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
-            OperationResult generateValueResult = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
-
-            LOGGER.trace("Default value policy: {}", valuePolicy);
+            ValuePolicyType valuePolicy;
             try {
-                generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
-            } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException
-                    | CommunicationException | ConfigurationException | SecurityViolationException e) {
-                LOGGER.error("Failed to generate value for {} ", policyItemDefinition, e);
-                generateValueResult.recordFatalError("Failed to generate value for " + policyItemDefinition + ". Reason: " + e.getMessage(), e);
-                policyItemDefinition.setResult(generateValueResult.createOperationResultType());
-                continue;
+                valuePolicy = getValuePolicy(object, task, result);
+            } catch (ObjectNotFoundException | SchemaException | CommunicationException
+                     | ConfigurationException | SecurityViolationException
+                     | ExpressionEvaluationException e) {
+                LOGGER.error("Failed to get value policy for generating value. ", e);
+                result.recordException("Error while getting value policy. Reason: " + e.getMessage(), e);
+                throw e;
             }
 
-            //TODO: not sure about the bulk actions here
-            ItemPath path = getPath(policyItemDefinition);
-            if (path == null) {
-                if (isExecute(policyItemDefinition)) {
-                    LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
-                    generateValueResult.recordFatalError(
-                            "No item path defined in the target for policy item definition. Cannot generate value");
-                    continue;
-                }
-            }
+            Collection<PropertyDelta<?>> deltasToExecute = new ArrayList<>();
+            for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
+                OperationResult generateValueResult = result.createSubresult(OPERATION_GENERATE_VALUE);
+                try {
 
-            PrismPropertyDefinition<?> propertyDef = null;
-            if (path != null) {
-                result.addArbitraryObjectAsParam("policyItemPath", path);
-
-                propertyDef = getItemDefinition(object, path);
-                if (propertyDef == null) {
-                    if (isExecute(policyItemDefinition)) {
-                        LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path,
-                                object);
-                        generateValueResult.recordFatalError("No definition for property " + path + " in object " + object
-                                + ". Is the path referencing prism property?");
+                    LOGGER.trace("Default value policy: {}", valuePolicy);
+                    try {
+                        generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
+                    } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException
+                             | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                        LOGGER.error("Failed to generate value for {} ", policyItemDefinition, e);
+                        generateValueResult.recordException(
+                                "Failed to generate value for " + policyItemDefinition + ". Reason: " + e.getMessage(), e);
+                        policyItemDefinition.setResult(generateValueResult.createOperationResultType());
                         continue;
                     }
 
+                    //TODO: not sure about the bulk actions here
+                    ItemPath path = getPath(policyItemDefinition);
+                    if (path == null) {
+                        if (isExecute(policyItemDefinition)) {
+                            LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
+                            generateValueResult.recordFatalError(
+                                    "No item path defined in the target for policy item definition. Cannot generate value");
+                            continue;
+                        }
+                    }
+
+                    PrismPropertyDefinition<?> propertyDef = null;
+                    if (path != null) {
+                        result.addArbitraryObjectAsParam("policyItemPath", path);
+
+                        propertyDef = getItemDefinition(object, path);
+                        if (propertyDef == null) {
+                            if (isExecute(policyItemDefinition)) {
+                                LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path,
+                                        object);
+                                generateValueResult.recordFatalError("No definition for property " + path + " in object " + object
+                                        + ". Is the path referencing prism property?");
+                                continue;
+                            }
+                        }
+                    }
+                    // end of not sure
+
+                    collectDeltasForGeneratedValuesIfNeeded(
+                            object, policyItemDefinition, deltasToExecute, path, propertyDef, generateValueResult);
+                } finally {
+                    generateValueResult.close();
                 }
             }
-            // end of not sure
-
-            collectDeltasForGeneratedValuesIfNeeded(object, policyItemDefinition, deltasToExecute, path, propertyDef, generateValueResult);
-            generateValueResult.computeStatusIfUnknown();
-        }
-        result.computeStatus();
-        if (!result.isAcceptable()) {
-            return;
-        }
-        try {
-            if (!deltasToExecute.isEmpty()) {
-                if (object == null) {
-                    LOGGER.error("Cannot execute changes for generated values, no object specified in request.");
-                    result.recordFatalError("Cannot execute changes for generated values, no object specified in request.");
-                    throw new SchemaException("Cannot execute changes for generated values, no object specified in request.");
-                }
-                String oid = object.getOid();
-                Class<O> clazz = (Class<O>) object.asObjectable().getClass();
-                modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
-
+            result.computeStatus();
+            if (!result.isAcceptable()) {
+                return;
             }
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException
-                | CommunicationException | ConfigurationException | ObjectAlreadyExistsException
-                | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
-            result.recordFatalError("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
-            throw e;
-        }
+            try {
+                if (!deltasToExecute.isEmpty()) {
+                    if (object == null) {
+                        LOGGER.error("Cannot execute changes for generated values, no object specified in request.");
+                        result.recordFatalError("Cannot execute changes for generated values, no object specified in request.");
+                        throw new SchemaException("Cannot execute changes for generated values, no object specified in request.");
+                    }
+                    String oid = object.getOid();
+                    Class<O> clazz = (Class<O>) object.asObjectable().getClass();
+                    modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
 
+                }
+            } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException
+                     | CommunicationException | ConfigurationException | ObjectAlreadyExistsException
+                     | PolicyViolationException | SecurityViolationException e) {
+                LOGGER.error("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
+                result.recordException("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
+                throw e;
+            }
+        } catch (Throwable t) {
+            result.recordException(t); // just in case it was not recorded inside
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 
     private boolean isExecute(PolicyItemDefinitionType policyItemDefinition) {
@@ -1167,13 +1196,22 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 //            throw new SchemaException("No value policy for " + targetPath);
         }
 
-        String newValue = policyProcessor.generate(targetPath, valuePolicy, 10, false, createOriginResolver(object, result),
-                "generating value for" + targetPath, task, result);
+        String newValue = policyProcessor.generate(
+                targetPath,
+                valuePolicy,
+                10,
+                false,
+                createOriginResolver(object, result),
+                "generating value for" + targetPath,
+                task,
+                result);
         policyItemDefinition.setValue(newValue);
     }
 
-    private ValuePolicyType resolveValuePolicy(PolicyItemDefinitionType policyItemDefinition, ValuePolicyType defaultPolicy,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private ValuePolicyType resolveValuePolicy(
+            PolicyItemDefinitionType policyItemDefinition, ValuePolicyType defaultPolicy, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         if (policyItemDefinition.getValuePolicyRef() != null) {
             LOGGER.trace("Trying to resolve value policy {} for policy item definition", policyItemDefinition);
             return objectResolver.resolve(policyItemDefinition.getValuePolicyRef(), ValuePolicyType.class, null,

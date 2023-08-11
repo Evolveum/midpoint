@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import static com.evolveum.midpoint.model.impl.scripting.actions.EvaluateExpressionExecutor.ExpressionEvaluationParameters;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -98,8 +99,13 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
     }
 
     @Override
-    String getActionName() {
+    @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_EVALUATE_EXPRESSION.getLocalPart();
     }
 
     static class ExpressionEvaluationParameters extends Parameters {
