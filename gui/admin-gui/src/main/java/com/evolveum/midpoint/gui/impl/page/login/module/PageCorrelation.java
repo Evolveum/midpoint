@@ -93,7 +93,7 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
 
         return paths
                 .stream()
-                .map(VerificationAttributeDto::new)
+                .map(itemPath -> new VerificationAttributeDto(createItemWrapper(itemPath)))
                 .collect(Collectors.toList());
     }
 
