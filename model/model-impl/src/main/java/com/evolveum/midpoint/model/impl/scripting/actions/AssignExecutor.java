@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AssignActionExpressionType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -55,7 +58,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
      * They are created by merging dynamically and statically defined parameters, resolving
      * filters in references, and so on.
      */
-    static class AssignParameters extends AssignmentOperationsExecutor.Parameters {
+    protected static class AssignParameters extends AssignmentOperationsExecutor.Parameters {
         private final List<ObjectReferenceType> targetRefs = new ArrayList<>();
         private final List<ConstructionType> constructions = new ArrayList<>();
     }
@@ -182,19 +185,19 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
 
     private Collection<ConstructionType> resourceRefsToConstructions(Collection<ObjectReferenceType> resourceRefs) {
         return resourceRefs.stream()
-                .map(ref -> new ConstructionType(prismContext).resourceRef(ref.clone()))
+                .map(ref -> new ConstructionType().resourceRef(ref.clone()))
                 .collect(Collectors.toList());
     }
 
     private Collection<AssignmentType> targetsToAssignments(Collection<ObjectReferenceType> targetRefs) {
         return targetRefs.stream()
-                .map(ref -> new AssignmentType(prismContext).targetRef(ref.clone()))
+                .map(ref -> new AssignmentType().targetRef(ref.clone()))
                 .collect(Collectors.toList());
     }
 
     private Collection<AssignmentType> constructionsToAssignments(Collection<ConstructionType> constructions) {
         return constructions.stream()
-                .map(c -> new AssignmentType(prismContext).construction(c.clone()))
+                .map(c -> new AssignmentType().construction(c.clone()))
                 .collect(Collectors.toList());
     }
 
@@ -213,7 +216,12 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
     }
 
     @Override
-    protected String getActionName() {
+    protected @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_ASSIGN.getLocalPart();
     }
 }

@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 /**
  * Handles task creation and activity execution requested by
@@ -59,7 +60,8 @@ public class ActivityExecutor {
         return b.securityContextManager.runPrivilegedChecked(
                 () -> {
                     var newTask = createExecutionTask()
-                            .executionState(RUNNABLE);
+                            .executionState(RUNNABLE)
+                            .schedulingState(READY);
                     if (newTask.getOwnerRef() == null) {
                         newTask.setOwnerRef(AuthUtil.getPrincipalRefRequired());
                     }

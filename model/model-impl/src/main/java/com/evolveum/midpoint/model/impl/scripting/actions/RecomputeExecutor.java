@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.RecomputeActionExpressionType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -96,7 +98,12 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
     }
 
     @Override
-    protected String getActionName() {
+    protected @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_RECOMPUTE.getLocalPart();
     }
 }

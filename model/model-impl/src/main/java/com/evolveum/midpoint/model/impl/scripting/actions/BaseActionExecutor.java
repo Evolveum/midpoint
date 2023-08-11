@@ -9,9 +9,11 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.statistics.Operation;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -67,6 +69,20 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected SchemaService schemaService;
+
+    /**
+     * Returns the name used to invoke this action in a dynamic way, e.g. `execute-script`, `generate-value`, etc.
+     *
+     * TODO should we really call this "legacy"? Not all actions have their "modern" names.
+     * */
+    abstract @NotNull String getLegacyActionName();
+
+    /**
+     * Returns the name used to invoke this action in a static way, e.g. `execute`, `generateValue`, etc.
+     *
+     * Not all actions have such a name; e.g. `reencrypt` has not.
+     */
+    abstract @Nullable String getConfigurationElementName();
 
     private String optionsSuffix(ModelExecuteOptions options) {
         return options.notEmpty() ? " " + options : "";
@@ -128,7 +144,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             } catch (Throwable ex) {
                 result.recordFatalError(ex);
                 operationsHelper.recordEnd(context, op, ex, result);
-                Throwable exception = processActionException(ex, getActionName(), value, context);
+                Throwable exception = processActionException(ex, getLegacyActionName(), value, context);
                 writer.write(value, exception);
             }
             operationsHelper.trimAndCloneResult(result, item.getResult());
@@ -147,8 +163,6 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         }
     }
 
-    abstract String getActionName();
-
     /**
      * Creates variables for script evaluation based on some externally-supplied variables,
      * plus some generic ones (prism context, actor).
@@ -163,5 +177,29 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         variables.registerAliasesFrom(externalVariables);
 
         return variables;
+    }
+
+    @Override
+    public void checkExecutionAllowed(ExecutionContext context) throws SecurityViolationException {
+
+        var expressionProfile = context.getExpressionProfile();
+        var scriptingProfile = expressionProfile.getScriptingProfile();
+
+        String legacyName = getLegacyActionName();
+        String modernName = getConfigurationElementName();
+        var decision = scriptingProfile.decideActionAccess(legacyName, modernName);
+        var names = modernName != null ?
+                "'%s' ('%s')".formatted(legacyName, modernName) :
+                "'%s'".formatted(legacyName);
+
+        if (decision != AccessDecision.ALLOW) {
+            throw new SecurityViolationException(
+                    "Access to action %s %s (applied expression profile '%s', actions profile '%s')"
+                            .formatted(
+                                    names,
+                                    decision == AccessDecision.DENY ? "denied" : "not allowed",
+                                    expressionProfile.getIdentifier(),
+                                    scriptingProfile.getIdentifier()));
+        }
     }
 }

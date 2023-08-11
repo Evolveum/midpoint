@@ -226,8 +226,12 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
     private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createConditionExpression()
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         if (evaluatorBean.getCondition() != null) {
-            return ExpressionUtil.createCondition(evaluatorBean.getCondition(), context.getExpressionProfile(),
-                    context.getExpressionFactory(), "condition in " + context.getContextDescription(), context.getTask(),
+            return ExpressionUtil.createCondition(
+                    evaluatorBean.getCondition(),
+                    context.getExpressionProfile(),
+                    context.getExpressionFactory(),
+                    "condition in " + context.getContextDescription(),
+                    context.getTask(),
                     parentResult);
         } else {
             return null;

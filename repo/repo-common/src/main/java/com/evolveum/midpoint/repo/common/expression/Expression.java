@@ -67,7 +67,10 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     /** Definition of the output item. Usually optional but may be required for some evaluators. */
     @Nullable private final D outputDefinition;
 
-    /** Expression profile restricting what may and what may not be invoked in the expression. */
+    /**
+     * Expression profile that is used as a default for {@link ExpressionEvaluationContext#expressionProfile};
+     * but also during expression initialization - TODO clarify this!
+     */
     @Nullable private final ExpressionProfile expressionProfile;
 
     /** The evaluator that contains the core of the processing. */

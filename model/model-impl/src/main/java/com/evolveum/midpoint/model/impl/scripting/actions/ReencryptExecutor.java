@@ -20,6 +20,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -92,7 +94,12 @@ public class ReencryptExecutor extends BaseActionExecutor {
     }
 
     @Override
-    String getActionName() {
+    @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @Nullable String getConfigurationElementName() {
+        return null;
     }
 }

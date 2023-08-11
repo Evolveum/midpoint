@@ -1247,8 +1247,11 @@ public class ExpressionUtil {
             return; // no restrictions
         }
         if (profile.getDecision() != AccessDecision.ALLOW) {
-            throw new SecurityViolationException("Access to evaluator " + evaluator.shortDebugDump() +
-                    " not allowed (expression profile: " + context.getExpressionProfile().getIdentifier() + ") in " + context.getContextDescription());
+            throw new SecurityViolationException(
+                    "Access to evaluator %s not allowed (expression profile: %s) in %s".formatted(
+                            evaluator.shortDebugDump(),
+                            context.getExpressionProfile().getIdentifier(),
+                            context.getContextDescription()));
         }
     }
 

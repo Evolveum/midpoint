@@ -68,4 +68,12 @@ public class FunctionLibrariesProfile extends AbstractSecurityProfile {
                                 bean.getDecision(), "No decision in libraries profile %s", bean.getIdentifier())),
                 Collections.unmodifiableMap(libraryProfileMap));
     }
+
+    public @NotNull AccessDecision decideFunctionAccess(@NotNull String libraryOid, @NotNull String functionName) {
+        var libraryProfile = libraryProfileMap.get(libraryOid);
+        if (libraryProfile == null) {
+            return getDefaultDecision();
+        }
+        return libraryProfile.decideFunctionAccess(functionName);
+    }
 }

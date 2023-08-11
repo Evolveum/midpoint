@@ -101,11 +101,6 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public MidPointPrincipal getPrincipal() throws SecurityViolationException {
-        return securityContextManager.getPrincipal();
-    }
-
-    @Override
     public String getPrincipalOid() {
         return securityContextManager.getPrincipalOid();
     }
