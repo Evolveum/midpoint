@@ -61,9 +61,18 @@ public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModel
             protected WrapperContext createWrapperContext() {
                 return getDetailsModel().createWrapperContext();
             }
+
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+                return AbstractFormWizardStepPanel.this.isVisibleSubContainer(c);
+            }
         };
         panel.setOutputMarkupId(true);
         add(panel);
+    }
+
+    protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+        return false;
     }
 
     protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {

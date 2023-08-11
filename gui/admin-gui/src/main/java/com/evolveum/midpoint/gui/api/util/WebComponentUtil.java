@@ -216,7 +216,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -3072,19 +3071,18 @@ public final class WebComponentUtil {
         target.add(pageBase.getFeedbackPanel());
     }
 
-    public static void switchObjectMode(
+    public static void saveObjectLifeCycle(
             @NotNull PrismObject<ResourceType> resource,
             String operation,
             AjaxRequestTarget target,
-            PageBase pageBase,
-            String lifecycleState) {
+            PageBase pageBase) {
         Task task = pageBase.createSimpleTask(operation);
         OperationResult parentResult = new OperationResult(operation);
 
         try {
             ObjectDelta<ResourceType> objectDelta = pageBase.getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(
-                            ResourceType.class, resource.getOid(), ResourceType.F_LIFECYCLE_STATE, lifecycleState);
+                            ResourceType.class, resource.getOid(), ResourceType.F_LIFECYCLE_STATE, resource.asObjectable().getLifecycleState());
 
             pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
 
