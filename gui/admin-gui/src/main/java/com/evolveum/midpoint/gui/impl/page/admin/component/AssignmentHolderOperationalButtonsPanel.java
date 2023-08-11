@@ -281,7 +281,8 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
     }
 
     private List<String> getArchetypeOidsListToAssign() {
-        List<String> archetypeOidsList = getFilteredArchetypeOidsList();
+        List<String> archetypeOidsList = WebComponentUtil.getArchetypeOidsListByHolderType(
+                getModelObject().getObject().getCompileTimeClass(), getPageBase());
 
         ObjectReferenceType archetypeRef = getObjectArchetypeRef();
         if (archetypeRef != null && StringUtils.isNotEmpty(archetypeRef.getOid())) {
@@ -290,20 +291,6 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
             }
         }
         return archetypeOidsList;
-    }
-
-    private List<String> getFilteredArchetypeOidsList() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_FILTERED_ARCHETYPES);
-        PrismObject obj = getModelObject().getObject();
-        List<String> oidsList = new ArrayList<>();
-        try {
-            List<ArchetypeType> filteredArchetypes = getPageBase().getModelInteractionService().getFilteredArchetypesByHolderType(obj, result);
-            oidsList = filteredArchetypes.stream().map(filteredArchetype -> filteredArchetype.getOid()).collect(Collectors.toList());
-        } catch (SchemaException ex) {
-            result.recordPartialError(ex.getLocalizedMessage());
-            LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
-        }
-        return oidsList;
     }
 
     protected String getMainPopupBodyId() {

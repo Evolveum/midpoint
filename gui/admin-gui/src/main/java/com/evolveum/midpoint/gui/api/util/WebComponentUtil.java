@@ -5800,4 +5800,25 @@ public final class WebComponentUtil {
         }
         return null;
     }
+
+    public static <O extends AssignmentHolderType> List<String> getArchetypeOidsListByHolderType(
+            Class<O> holderType, PageBase pageBase) {
+        OperationResult result = new OperationResult("loadArchetypeOidsListByHolderType");
+        List<String> oidsList = new ArrayList<>();
+        try {
+            List<ArchetypeType> filteredArchetypes =
+                    pageBase.getModelInteractionService().getFilteredArchetypesByHolderType(holderType, result);
+            oidsList = filteredArchetypes
+                    .stream()
+                    .map(filteredArchetype -> filteredArchetype.getOid())
+                    .collect(Collectors.toList());
+        } catch (SchemaException ex) {
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error(
+                    "Couldn't load assignment target specification for the object type {} , {}",
+                    holderType,
+                    ex.getLocalizedMessage());
+        }
+        return oidsList;
+    }
 }

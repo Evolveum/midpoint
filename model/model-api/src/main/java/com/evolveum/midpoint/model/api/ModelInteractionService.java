@@ -483,6 +483,8 @@ public interface ModelInteractionService {
      */
     <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(PrismObject<O> object, OperationResult result) throws SchemaException;
 
+    <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(Class<O> objectType, OperationResult result) throws SchemaException;
+
     /**
      * Returns data structure that contains information about possible assignment holders for a particular target object.
      * <p>

@@ -1886,13 +1886,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(PrismObject<O> object, OperationResult result) throws SchemaException {
+    public <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(
+            Class<O> objectType, OperationResult result) throws SchemaException {
         SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
         List<ArchetypeType> filteredArchetypes = new ArrayList<>();
         for (PrismObject<ArchetypeType> archetype : archetypes) {
             for (AssignmentType assignment : archetype.asObjectable().getAssignment()) {
                 for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
-                    if (isHolderType(assignmentRelation.getHolderType(), object)) {
+                    if (isHolderType(assignmentRelation.getHolderType(), objectType)) {
                         filteredArchetypes.add(archetype.asObjectable());
                     }
                 }
@@ -1902,6 +1903,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
         }
         return filteredArchetypes;
+    }
+
+    @Override
+    public <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(
+            PrismObject<O> object, OperationResult result) throws SchemaException {
+        return getFilteredArchetypesByHolderType(object.getCompileTimeClass(), result);
     }
 
     @Override
@@ -1963,15 +1970,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private <O extends AssignmentHolderType> boolean canBeAssignmentHolder(AssignmentRelationType assignmentRelation, PrismObject<O> holder) {
-        return isHolderType(assignmentRelation.getHolderType(), holder) && isHolderArchetype(assignmentRelation.getHolderArchetypeRef(), holder);
+        return isHolderType(assignmentRelation.getHolderType(), holder.getCompileTimeClass())
+                && isHolderArchetype(assignmentRelation.getHolderArchetypeRef(), holder);
     }
 
-    private <O extends AssignmentHolderType> boolean isHolderType(List<QName> requiredHolderTypes, PrismObject<O> holder) {
+    private <O extends AssignmentHolderType> boolean isHolderType(List<QName> requiredHolderTypes, Class<O> holderType) {
         if (requiredHolderTypes.isEmpty()) {
             return true;
         }
         for (QName requiredHolderType : requiredHolderTypes) {
-            if (MiscSchemaUtil.canBeAssignedFrom(requiredHolderType, holder.getCompileTimeClass())) {
+            if (MiscSchemaUtil.canBeAssignedFrom(requiredHolderType, holderType)) {
                 return true;
             }
         }
