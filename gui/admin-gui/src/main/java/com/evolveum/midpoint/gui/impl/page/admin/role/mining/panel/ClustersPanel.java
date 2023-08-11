@@ -247,7 +247,9 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                         double maxMetric = 0;
                         if (detection != null) {
                             for (RoleAnalysisDetectionPatternType roleAnalysisDetectionType : detection) {
-                                maxMetric = Math.max(maxMetric, roleAnalysisDetectionType.getClusterMetric());
+                                if(roleAnalysisDetectionType.getClusterMetric() != null) {
+                                    maxMetric = Math.max(maxMetric, roleAnalysisDetectionType.getClusterMetric());
+                                }
                             }
                         }
 

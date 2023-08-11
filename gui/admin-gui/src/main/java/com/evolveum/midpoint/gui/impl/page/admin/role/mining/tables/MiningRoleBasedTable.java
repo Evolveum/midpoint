@@ -65,7 +65,7 @@ public class MiningRoleBasedTable extends Panel {
 
     public MiningRoleBasedTable(String id,
             List<MiningRoleTypeChunk> roles, List<MiningUserTypeChunk> users, boolean sortable, double frequency,
-            DetectedPattern intersection, double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
+            DetectedPattern intersection, double maxFrequency, RoleAnalysisDetectionModeType searchMode, List<ObjectReferenceType> reductionObjects) {
         super(id);
 
         fromCol = 1;
@@ -92,7 +92,7 @@ public class MiningRoleBasedTable extends Panel {
         }
 
         SpecialBoxedTablePanel<MiningUserTypeChunk> table = generateTable(provider, roles, frequency,
-                intersection, maxFrequency, searchMode);
+                intersection, maxFrequency, searchMode, reductionObjects);
         add(table);
     }
 
@@ -101,10 +101,10 @@ public class MiningRoleBasedTable extends Panel {
 
     public SpecialBoxedTablePanel<MiningUserTypeChunk> generateTable(RoleMiningProvider<MiningUserTypeChunk> provider,
             List<MiningRoleTypeChunk> roles, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
+            double maxFrequency, RoleAnalysisDetectionModeType searchMode, List<ObjectReferenceType> reductionObjects) {
 
         SpecialBoxedTablePanel<MiningUserTypeChunk> table = new SpecialBoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumns(roles, frequency, intersection, maxFrequency, searchMode),
+                ID_DATATABLE, provider, initColumns(roles, frequency, intersection, maxFrequency, searchMode, reductionObjects),
                 null, true, true, specialColumnCount) {
             @Override
             public void onChange(String value, AjaxRequestTarget target) {
@@ -112,7 +112,7 @@ public class MiningRoleBasedTable extends Panel {
                 String[] rangeParts = value.split(" - ");
                 fromCol = Integer.parseInt(rangeParts[0]);
                 toCol = Integer.parseInt(rangeParts[1]);
-                getTable().replaceWith(generateTable(provider, roles, frequency, intersection, maxFrequency, searchMode));
+                getTable().replaceWith(generateTable(provider, roles, frequency, intersection, maxFrequency, searchMode, reductionObjects));
                 target.add(getTable().setOutputMarkupId(true));
             }
 
@@ -123,7 +123,7 @@ public class MiningRoleBasedTable extends Panel {
                 toCol = Math.min(value, specialColumnCount);
                 valueTitle = "0 - " + toCol;
 
-                getTable().replaceWith(generateTable(provider, roles, frequency, intersection, maxFrequency, searchMode));
+                getTable().replaceWith(generateTable(provider, roles, frequency, intersection, maxFrequency, searchMode, reductionObjects));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(getScaleScript());
                 return value;
@@ -151,7 +151,7 @@ public class MiningRoleBasedTable extends Panel {
     }
 
     public List<IColumn<MiningUserTypeChunk, String>> initColumns(List<MiningRoleTypeChunk> roles, double minFrequency,
-            DetectedPattern intersection, double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
+            DetectedPattern intersection, double maxFrequency, RoleAnalysisDetectionModeType searchMode, List<ObjectReferenceType> reductionObjects) {
 
         List<IColumn<MiningUserTypeChunk, String>> columns = new ArrayList<>();
 
@@ -321,11 +321,20 @@ public class MiningRoleBasedTable extends Panel {
 
                     List<String> elements = roleChunk.getRoles();
 
+                    String color = null;
+                    for (ObjectReferenceType ref : reductionObjects) {
+                        if (elements.contains(ref.getOid())) {
+                            color = " table-info";
+                            break;
+                        }
+                    }
+
                     DisplayType displayType = GuiDisplayTypeUtil.createDisplayType(
                             WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
 
                     String title = roleChunk.getChunkName();
 
+                    String finalColor = color;
                     return new AjaxLinkTruncatePanelAction(componentId,
                             createStringResource(title), createStringResource(title), displayType,
                             new LoadableDetachableModel<>() {
@@ -347,6 +356,11 @@ public class MiningRoleBasedTable extends Panel {
                             }
                             resetTable(target);
                             return roleChunk.getStatus();
+                        }
+
+                        @Override
+                        protected String getColor() {
+                            return finalColor;
                         }
 
                         @Override

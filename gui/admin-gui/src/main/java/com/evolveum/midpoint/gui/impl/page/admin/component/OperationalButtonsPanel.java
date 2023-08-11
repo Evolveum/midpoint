@@ -13,6 +13,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -161,7 +162,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     private void createSaveButton(RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
-                getPageBase().createStringResource("PageBase.button.save")) {
+                saveButtonTitle()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -188,6 +189,9 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         }
     }
 
+    protected StringResourceModel saveButtonTitle(){
+        return getPageBase().createStringResource("PageBase.button.save");
+    }
     protected void savePerformed(AjaxRequestTarget target) {
 
     }

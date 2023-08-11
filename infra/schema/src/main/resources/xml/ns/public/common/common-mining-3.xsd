@@ -108,6 +108,17 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="reductionObject" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Applied business roles.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisClusterType.reductionObjects</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -441,7 +452,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisSessionOptionType.minPropertiesCount</a:displayName>
+                        <a:displayName>RoleAnalysisSessionOptionType.maxPropertiesCount</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

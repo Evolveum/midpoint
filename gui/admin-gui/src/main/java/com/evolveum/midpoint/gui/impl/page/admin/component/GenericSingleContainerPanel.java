@@ -240,10 +240,10 @@ import java.util.List;
         expanded = true
 )
 @PanelInstance(
-        identifier = "clusterOptions",
+        identifier = "sessionOptions",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.clusterOptions",
+                label = "RoleAnalysisSessionType.sessionOptions",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
                 order = 30
         ),

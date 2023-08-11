@@ -63,8 +63,6 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
     private static final String ID_PROCESS_BUTTON = "process_selections_id";
 
-    public static final String CHILD_PARAMETER_OID = "child_oid";
-    public static final String PARENT_PARAMETER_OID = "parent_oid";
 
     String state = "START";
 
@@ -97,6 +95,8 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
         super(id, model, config);
     }
 
+    List<ObjectReferenceType> reductionObjects = new ArrayList<>();
+
     @Override
     protected void initLayout() {
         initOperationPart();
@@ -107,6 +107,11 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
         miningUserTypeChunks = new ArrayList<>();
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+        reductionObjects = cluster.getReductionObject();
+
+        for (ObjectReferenceType referenceType : reductionObjects) {
+            System.out.println(referenceType.getOid());
+        }
 
         PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid((PageBase) getPage(),
                 cluster.getRoleAnalysisSessionRef().getOid(), new OperationResult("getParent"));
@@ -185,7 +190,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                     }
                 }
 
-                PrismObject<RoleType> roleTypePrismObject = generateBusinessRole((PageBase) getPage(), roleList, "new role");
+                PrismObject<RoleType> roleTypePrismObject = generateBusinessRole((PageBase) getPage(), roleList, "");
                 List<BusinessRoleApplicationDto> patternDeltas = new ArrayList<>();
 
                 for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
@@ -194,7 +199,9 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                         for (String userOid : users) {
                             PrismObject<UserType> userTypeObject = getUserTypeObject((PageBase) getPage(), userOid, result);
                             if (userTypeObject != null) {
-                                patternDeltas.add(new BusinessRoleApplicationDto(userTypeObject, roleTypePrismObject,
+                                String clusterOid = getObjectDetailsModels().getObjectType().getOid();
+                                patternDeltas.add(new BusinessRoleApplicationDto(clusterOid, userTypeObject,
+                                        roleTypePrismObject,
                                         (PageBase) getPage()));
                             }
                         }
@@ -348,7 +355,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
     public MiningUserBasedTable generateMiningUserBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection, double maxFrequency) {
-        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
+        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode, reductionObjects) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
@@ -378,7 +385,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
             double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
-        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
+        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode, reductionObjects) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);

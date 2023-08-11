@@ -10,21 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.*;
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteDetectionPanel;
-
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,6 +22,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionAction;
@@ -41,6 +31,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.De
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ExecuteDetectionPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningIntersectionTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningRoleBasedTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningUserBasedTable;
@@ -52,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //@PanelType(name = "operationsPanel")
@@ -219,7 +211,7 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
                         for (String userOid : users) {
                             PrismObject<UserType> userTypeObject = getUserTypeObject((PageBase) getPage(), userOid, result);
                             if (userTypeObject != null) {
-                                patternDeltas.add(new BusinessRoleApplicationDto(userTypeObject, roleTypePrismObject,
+                                patternDeltas.add(new BusinessRoleApplicationDto(clusterOid,userTypeObject, roleTypePrismObject,
                                         (PageBase) getPage()));
                             }
                         }
@@ -374,7 +366,7 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
     public MiningUserBasedTable generateMiningUserBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection, double maxFrequency) {
-        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
+        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode, new ArrayList<>()) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
@@ -404,7 +396,7 @@ public class PageOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClu
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
             double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
-        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode) {
+        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode, new ArrayList<>()) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);

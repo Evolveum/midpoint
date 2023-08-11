@@ -63,6 +63,13 @@ public class MiningIntersectionTable extends Panel {
             RoleAnalysisProcessModeType roleAnalysisProcessModeType) {
         super(id);
         this.roleAnalysisProcessModeType = roleAnalysisProcessModeType;
+
+        if (miningSets.size() == 1) {
+            double clusterMetric = miningSets.get(0).getClusterMetric();
+            if (clusterMetric == 0.0) {
+                miningSets = new ArrayList<>();
+            }
+        }
 //        this.clusterOid = clusterOid;
         RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(miningSets) {

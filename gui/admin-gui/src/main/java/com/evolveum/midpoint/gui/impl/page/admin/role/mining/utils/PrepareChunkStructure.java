@@ -7,6 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
+
+import java.io.Serializable;
+import java.util.*;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
@@ -15,16 +24,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
-
 public class PrepareChunkStructure implements MiningStructure, Serializable {
+
+    private static final String BUSINESS_ROLE_ARCHETYPE_OID = "00000000-0000-0000-0000-000000000321";
 
     public MiningOperationChunk executeOperation(@NotNull RoleAnalysisClusterType cluster, boolean fullProcess,
             RoleAnalysisProcessModeType mode, PageBase pageBase, OperationResult result, String state) {
@@ -343,6 +345,40 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
                     chunkName = role.getName().toString();
                 }
             }
+
+//            Status status = Status.NEUTRAL;
+//
+//            if (rolesSize == 1) {
+//                String role = roles.get(0);
+//                PrismObject<RoleType> object;
+//                try {
+//                     object = pageBase.getRepositoryService().getObject(RoleType.class, role, null, result);
+//                } catch (ObjectNotFoundException | SchemaException e) {
+//                    throw new RuntimeException(e);
+//                }
+//                List<AssignmentType> assignment = object.asObjectable().getAssignment();
+//                for (AssignmentType assignmentObject : assignment) {
+//                    ObjectReferenceType targetRef = assignmentObject.getTargetRef();
+//
+//                    if (targetRef == null) {
+//                        continue;
+//                    }
+//
+//                    QName objectType = targetRef.getType();
+//                    String oid = targetRef.getOid();
+//
+//                    if (objectType == null || oid == null) {
+//                        continue;
+//                    }
+//
+//                    if (objectType.equals(ArchetypeType.COMPLEX_TYPE)) {
+//                        if (oid.equals(BUSINESS_ROLE_ARCHETYPE_OID)) {
+//                            status =
+//                        }
+//                    }
+//                }
+//            }
+
             miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, Status.NEUTRAL));
         }
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);

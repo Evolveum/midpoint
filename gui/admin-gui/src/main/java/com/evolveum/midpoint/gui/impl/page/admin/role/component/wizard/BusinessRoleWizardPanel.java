@@ -44,7 +44,7 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
-        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()){
+        steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
@@ -83,20 +83,26 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                     return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
                 }
             });
+
+            steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()) {
+                @Override
+                protected void onSubmitPerformed(AjaxRequestTarget target) {
+                    super.onSubmitPerformed(target);
+                    BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+                }
+
+                @Override
+                protected boolean isSubmitEnable() {
+                    return getHelper().getDetailsModel().getPatternDeltas() != null;
+                }
+
+                @Override
+                protected void onExitPerformed(AjaxRequestTarget target) {
+                    BusinessRoleWizardPanel.this.onExitPerformed(target);
+                }
+            });
+
         }
-
-        steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()){
-            @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
-                super.onSubmitPerformed(target);
-                BusinessRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                BusinessRoleWizardPanel.this.onExitPerformed(target);
-            }
-        });
 
         return steps;
     }

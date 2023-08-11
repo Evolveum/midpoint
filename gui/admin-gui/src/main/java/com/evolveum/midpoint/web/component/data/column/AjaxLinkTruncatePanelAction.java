@@ -42,6 +42,9 @@ public class AjaxLinkTruncatePanelAction extends Panel {
         super(id);
 
         WebMarkupContainer webMarkupContainer = new WebMarkupContainer("container");
+        if(getColor() != null) {
+            webMarkupContainer.add(new AttributeAppender("class", getColor()));
+        }
         webMarkupContainer.setOutputMarkupId(true);
         webMarkupContainer.setOutputMarkupPlaceholderTag(true);
         webMarkupContainer.add(new AttributeAppender("class",getCssContainer()));
@@ -76,6 +79,9 @@ public class AjaxLinkTruncatePanelAction extends Panel {
         initLayout(status,webMarkupContainer);
     }
 
+    protected String getColor(){
+        return null;
+    }
     public boolean isEnabled() {
         return true;
     }

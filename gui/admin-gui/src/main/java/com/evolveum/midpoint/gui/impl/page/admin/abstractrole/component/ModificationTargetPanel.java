@@ -313,6 +313,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                             @Override
                             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                 model.getObject().setInclude(!model.getObject().isInclude());
+                                getObjectDetailsModels().setPatternDeltas(provider.getAvailableData());
                                 ajaxRequestTarget.add(this);
                                 getTable().replaceWith(generateTable(provider));
                                 ajaxRequestTarget.add(getTable().setOutputMarkupId(true));

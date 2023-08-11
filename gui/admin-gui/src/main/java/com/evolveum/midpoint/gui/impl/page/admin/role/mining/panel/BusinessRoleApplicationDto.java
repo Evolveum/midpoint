@@ -40,7 +40,13 @@ public class BusinessRoleApplicationDto implements Serializable {
     boolean include;
     int unassignedCount;
 
-    public BusinessRoleApplicationDto(PrismObject<UserType> prismObjectUser, PrismObject<RoleType> prismRoleObject,
+    public String getClusterOid() {
+        return clusterOid;
+    }
+
+    String clusterOid;
+
+    public BusinessRoleApplicationDto(String clusterOid, PrismObject<UserType> prismObjectUser, PrismObject<RoleType> prismRoleObject,
             List<ObjectDelta<? extends ObjectType>> objectDeltas,
             int assignedCount, int unassignedCount, boolean include) {
         this.prismObjectUser = prismObjectUser;
@@ -52,9 +58,10 @@ public class BusinessRoleApplicationDto implements Serializable {
         this.include = include;
     }
 
-    public BusinessRoleApplicationDto(@NotNull PrismObject<UserType> prismObjectUser,
+    public BusinessRoleApplicationDto(String clusterOid, @NotNull PrismObject<UserType> prismObjectUser,
             @NotNull PrismObject<RoleType> prismObjectRole, PageBase pageBase) {
         prepareUserDeltas(prismObjectUser, prismObjectRole, pageBase);
+        this.clusterOid = clusterOid;
     }
 
     private List<DeltaDto> prepareDeltaDtos(List<ObjectDelta<? extends ObjectType>> objectDeltas) {

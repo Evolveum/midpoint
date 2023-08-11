@@ -64,7 +64,7 @@ public class MiningUserBasedTable extends Panel {
 
     public MiningUserBasedTable(String id, List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
+            double maxFrequency, RoleAnalysisDetectionModeType searchMode, List<ObjectReferenceType> reductionObjects) {
         super(id);
 
         fromCol = 1;
@@ -91,7 +91,7 @@ public class MiningUserBasedTable extends Panel {
         }
 
         SpecialBoxedTablePanel<MiningRoleTypeChunk> table = generateTable(provider, users, frequency,
-                intersection, maxFrequency, searchMode);
+                intersection, maxFrequency, searchMode, reductionObjects);
 
         add(table);
     }
@@ -101,10 +101,10 @@ public class MiningUserBasedTable extends Panel {
 
     public SpecialBoxedTablePanel<MiningRoleTypeChunk> generateTable(RoleMiningProvider<MiningRoleTypeChunk> provider,
             List<MiningUserTypeChunk> users, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
+            double maxFrequency, RoleAnalysisDetectionModeType searchMode, List<ObjectReferenceType> reductionObjects) {
 
         SpecialBoxedTablePanel<MiningRoleTypeChunk> table = new SpecialBoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumns(users, frequency, intersection, maxFrequency, searchMode),
+                ID_DATATABLE, provider, initColumns(users, frequency, intersection, maxFrequency, searchMode, reductionObjects),
                 null, true, true, specialColumnCount) {
             @Override
             public void onChange(String value, AjaxRequestTarget target) {
@@ -112,7 +112,7 @@ public class MiningUserBasedTable extends Panel {
                 valueTitle = value;
                 fromCol = Integer.parseInt(rangeParts[0]);
                 toCol = Integer.parseInt(rangeParts[1]);
-                getTable().replaceWith(generateTable(provider, users, frequency, intersection, maxFrequency, searchMode));
+                getTable().replaceWith(generateTable(provider, users, frequency, intersection, maxFrequency, searchMode, reductionObjects));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(getScaleScript());
             }
@@ -124,7 +124,7 @@ public class MiningUserBasedTable extends Panel {
                 toCol = Math.min(value, specialColumnCount);
                 valueTitle = "0 - " + toCol;
 
-                getTable().replaceWith(generateTable(provider, users, frequency, intersection, maxFrequency, searchMode));
+                getTable().replaceWith(generateTable(provider, users, frequency, intersection, maxFrequency, searchMode, reductionObjects));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(getScaleScript());
                 return value;
@@ -151,7 +151,7 @@ public class MiningUserBasedTable extends Panel {
     }
 
     public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users, double minFrequency,
-            DetectedPattern intersection, double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
+            DetectedPattern intersection, double maxFrequency, RoleAnalysisDetectionModeType searchMode, List<ObjectReferenceType> reductionObjects) {
 
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
 
@@ -190,6 +190,13 @@ public class MiningUserBasedTable extends Panel {
                 item.add(new AttributeAppender("style", " width:150px"));
 
                 List<String> elements = rowModel.getObject().getRoles();
+
+                for (ObjectReferenceType ref : reductionObjects) {
+                    if (elements.contains(ref.getOid())) {
+                        item.add(new AttributeAppender("class", " table-info"));
+                        break;
+                    }
+                }
 
                 updateFrequencyUserBased(rowModel, minFrequency, maxFrequency);
 
