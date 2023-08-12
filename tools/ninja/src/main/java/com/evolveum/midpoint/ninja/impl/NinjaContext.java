@@ -251,6 +251,16 @@ public class NinjaContext implements Closeable {
         return base.isVerbose();
     }
 
+    public boolean isBatchMode() {
+        BaseOptions base = getOptions(BaseOptions.class);
+        return base.isBatchMode();
+    }
+
+    public boolean isUserMode() {
+        // TODO: Maybe we should better distinguish between user interactive mode and script mode
+        return !isBatchMode();
+    }
+
     public Charset getCharset() {
         BaseOptions base = getOptions(BaseOptions.class);
         String charset = base.getCharset();
