@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -137,6 +139,10 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
     private Map<UUID, Set<SkipUpgradeItem>> loadVerificationFile() throws IOException {
         File verification = options.getVerification();
         if (verification == null || !verification.exists() || !verification.isFile()) {
+            // FIXME: Add log explanation, what is happening
+            if (context.isUserMode()) {
+                log.warn("Upgrade objects started without verification report, all neccessary non-manual changes will be accepted.");
+            }
             return Collections.emptyMap();
         }
 
@@ -190,5 +196,15 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
             new UpgradeObjectsConsumerWorker<>(skipUpgradeItems, context, options, queue, operation).run();
             return null;
         };
+    }
+
+    protected void handleResultOnFinish(OperationStatus operation, String finishMessage) {
+        super.handleResultOnFinish(operation, finishMessage);
+        OperationResult result = operation.getResult();
+        if (result.isAcceptable() && context.isUserMode()) {
+            log.info("Objects were successfully upgraded.");
+            log.info("If you want to continue to continue with upgrade, please run:"
+                    + "ninja.sh upgrade-distribution.");
+        }
     }
 }
