@@ -33,6 +33,10 @@ public final class ConsoleFormat {
         Ansi.setEnabled(!batchMode);
     }
 
+    public static boolean isBatchMode() {
+        return Ansi.isEnabled();
+    }
+
     public static String formatActionStartMessage(Action action) {
         String operation = action.getOperationName();
         return Ansi.ansi().a("Starting ").fgGreen().a(operation).reset().toString();
@@ -73,6 +77,10 @@ public final class ConsoleFormat {
                 .a("[").fgBright(level.color()).a(level.label()).reset().a("] ")
                 .a(msg)
                 .toString();
+    }
+
+    public static String formatCommand(String message) {
+        return Ansi.ansi().fgBright(Ansi.Color.WHITE).a(message).reset().toString();
     }
 
     /**
