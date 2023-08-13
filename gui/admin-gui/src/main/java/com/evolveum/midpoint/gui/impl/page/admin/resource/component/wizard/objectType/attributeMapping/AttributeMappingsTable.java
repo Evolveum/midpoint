@@ -64,7 +64,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         super(id, valueModel, config, MappingType.class);
     }
 
-    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
+    protected final PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
         try {
             PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
                     getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
@@ -84,6 +84,8 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
             } else {
                 newValueWrapper = wrapper.getValue();
             }
+
+            newValueWrapper.findProperty(MappingType.F_STRENGTH).getValue().setRealValue(MappingStrengthType.STRONG);
 
             createVirtualItemInMapping(newValueWrapper);
 

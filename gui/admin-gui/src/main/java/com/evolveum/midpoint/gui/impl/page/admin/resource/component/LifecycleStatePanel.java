@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -25,6 +26,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -257,45 +259,7 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
         return choices;
     }
 
-    private IModel<String> createLabelModel() {
-        return () -> {
-            String key = "SimulationMode.undefined";
-            try {
-                String lifecycle = getModelObject().getValue().getRealValue();
-                if (StringUtils.isEmpty(lifecycle)) {
-                    lifecycle = SchemaConstants.LIFECYCLE_ACTIVE;
-                }
-
-                if (SchemaConstants.LIFECYCLE_ACTIVE.equals(lifecycle)
-                        || SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycle)) {
-                    key = "SimulationMode." + lifecycle;
-                }
-            } catch (SchemaException e) {
-                LOGGER.error("Couldn't get value from " + getModelObject(), e);
-            }
-            return getString(key);
-        };
-    }
-
-    private void updateState(String lifecycleActive) {
-        try {
-            getModelObject().getValue().setRealValue(lifecycleActive);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't get value from " + getModelObject(), e);
-        }
-    }
-
-    private boolean isToggleModeButtonVisible(@NotNull String expectedLifecycleState) {
-        try {
-            String lifecycleState = getModelObject().getValue().getRealValue();
-            if (StringUtils.isEmpty(lifecycleState)) {
-                lifecycleState = SchemaConstants.LIFECYCLE_ACTIVE;
-            }
-
-            return !expectedLifecycleState.equals(lifecycleState);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't get value from " + getModelObject(), e);
-        }
-        return false;
+    protected FormComponent getBaseFormPanel(){
+        return (FormComponent) get(ID_PANEL);
     }
 }

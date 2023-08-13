@@ -139,20 +139,26 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     }
 
     protected IModel<List<PrismContainerWrapper<? extends Containerable>>> createContainersModel() {
-        ContainerPanelConfigurationType config = getPanelConfiguration();
-        if (config == null) {
-            return Model.ofList(List.of());
-        }
-
         return new LoadableDetachableModel<>() {
             @Override
             protected List<PrismContainerWrapper<? extends Containerable>> load() {
+                ContainerPanelConfigurationType config = getPanelConfiguration();
                 PrismContainerValueWrapper<C> modelObject = getModelObject();
                 List<PrismContainerWrapper<? extends Containerable>> containers = modelObject.getContainers(getPanelConfiguration(), getPageBase());
-                containers.removeIf(c -> !c.isVirtual() || c.getIdentifier() == null);
+
+                if (config == null) {
+                    containers.removeIf(c -> c.isVirtual()  || !isVisibleSubContainer(c));
+                } else {
+                    containers.removeIf(c -> (c.isVirtual() && c.getIdentifier() == null) || !isVisibleSubContainer(c));
+                }
+
                 return containers;
             }
         };
+    }
+
+    protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+        return false;
     }
 
     @Override

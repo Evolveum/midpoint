@@ -49,7 +49,7 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
 
             @Override
             protected ObjectFilter createCustomFilter() {
-                return getParentWrapper().getFilter();
+                return getParentWrapper().getFilter(getPageBase());
             }
 
             @Override

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -45,6 +46,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 @PanelType(name = "resourceUncategorized")
 @PanelInstance(identifier = "resourceUncategorized", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
@@ -117,6 +119,7 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+                provider.setTaskConsumer(createProviderSearchTaskCustomizer());
                 return provider;
 //                return ResourceUncategorizedPanel.this.createProvider(getSearchModel(), (CompiledShadowCollectionView) getObjectCollectionView());
             }
@@ -160,6 +163,10 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    protected Consumer<Task> createProviderSearchTaskCustomizer() {
+        return null;
     }
 
     protected boolean isEnabledInlineMenu() {
