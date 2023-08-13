@@ -110,10 +110,10 @@ public class ScriptingExpressionEvaluator {
             context.computeResults();
             return context;
         } catch (CommonException | RuntimeException e) {
-            result.recordException("Couldn't execute script", e);
+            result.recordException("Couldn't execute script: " + e.getMessage(), e);
             throw new ScriptExecutionException("Couldn't execute script: " + e.getMessage(), e);
         } catch (Throwable t) {
-            result.recordException("Couldn't execute script", t);
+            result.recordException("Couldn't execute script: " + t.getMessage(), t);
             throw t;
         }
     }
