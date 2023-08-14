@@ -104,7 +104,6 @@ public class DefaultPatternResolver {
 
         List<DetectedPattern> possibleBusinessRole;
         RoleAnalysisProcessModeType mode = clusterOptions.getMode();
-        RoleAnalysisDetectionModeType searchMode = clusterOptions.getSearchMode();
 
         MiningOperationChunk miningOperationChunk = new PrepareChunkStructure().executeOperation(clusterType, false,
                 roleAnalysisProcessModeType,
@@ -132,7 +131,7 @@ public class DefaultPatternResolver {
             }
         }
 
-        return loadIntersections(topPatterns, searchMode, processedObjectComplexType, propertiesComplexType);
+        return loadIntersections(topPatterns, processedObjectComplexType, propertiesComplexType);
     }
 
 }

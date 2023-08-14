@@ -66,22 +66,6 @@ public class ClusterObjectUtils {
 
     }
 
-    public enum DETECT implements Serializable {
-        FULL("full"),
-        PARTIAL("skip large"),
-        NONE("none");
-
-        private final String displayString;
-
-        DETECT(String displayString) {
-            this.displayString = displayString;
-        }
-
-        public String getDisplayString() {
-            return displayString;
-        }
-
-    }
 
     public enum Status implements Serializable {
         NEUTRAL("fa fa-plus"),
@@ -530,9 +514,7 @@ public class ClusterObjectUtils {
                 clusterOptions.getDefaultMinFrequency(),
                 clusterOptions.getDefaultMaxFrequency(),
                 group,
-                intersection,
-                clusterOptions.getSearchMode(),
-                clusterOptions.getDefaultJaccardThreshold()
+                intersection
         );
     }
 
@@ -543,9 +525,7 @@ public class ClusterObjectUtils {
                 clusterOptions.getMinFrequencyThreshold(),
                 clusterOptions.getMaxFrequencyThreshold(),
                 clusterOptions.getMinMembersOccupancy(),
-                clusterOptions.getMinPropertiesOccupancy(),
-                clusterOptions.getDetectionMode(),
-                clusterOptions.getJaccardSimilarityThreshold()
+                clusterOptions.getMinPropertiesOccupancy()
         );
     }
 
@@ -569,10 +549,8 @@ public class ClusterObjectUtils {
             DetectionOption detectionOption, OperationResult result) {
 
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
-        roleAnalysisDetectionOptionType.setJaccardSimilarityThreshold(detectionOption.getJaccardSimilarityThreshold());
         roleAnalysisDetectionOptionType.setMinFrequencyThreshold(detectionOption.getMinFrequencyThreshold());
         roleAnalysisDetectionOptionType.setMaxFrequencyThreshold(detectionOption.getMaxFrequencyThreshold());
-        roleAnalysisDetectionOptionType.setDetectionMode(detectionOption.getSearchMode());
         roleAnalysisDetectionOptionType.setMinMembersOccupancy(detectionOption.getMinOccupancy());
         roleAnalysisDetectionOptionType.setMinPropertiesOccupancy(detectionOption.getMinPropertiesOverlap());
 
@@ -603,8 +581,7 @@ public class ClusterObjectUtils {
             propertiesComplexType = UserType.COMPLEX_TYPE;
         }
 
-        List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypes = loadIntersections(detectedPatterns,
-                detectionOption.getSearchMode(), processedObjectComplexType, propertiesComplexType);
+        List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypes = loadIntersections(detectedPatterns, processedObjectComplexType, propertiesComplexType);
 
         Collection<PrismContainerValue<?>> collection = new ArrayList<>();
         for (RoleAnalysisDetectionPatternType clusterDetectionType : roleAnalysisClusterDetectionTypes) {

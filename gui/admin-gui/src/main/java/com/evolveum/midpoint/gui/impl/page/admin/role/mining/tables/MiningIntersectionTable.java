@@ -135,31 +135,6 @@ public class MiningIntersectionTable extends Panel {
 
         });
 
-        columns.add(new AbstractColumn<>(getHeaderTitle("type")) {
-
-            @Override
-            public String getSortProperty() {
-                return DetectedPattern.F_TYPE;
-            }
-
-            @Override
-            public boolean isSortable() {
-                return true;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
-                    IModel<DetectedPattern> rowModel) {
-
-                item.add(new Label(componentId, rowModel.getObject().getSearchMode()));
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(componentId, getHeaderTitle("type"));
-            }
-
-        });
 
         columns.add(new AbstractColumn<>(getIntersectionHeaderTitle()) {
 

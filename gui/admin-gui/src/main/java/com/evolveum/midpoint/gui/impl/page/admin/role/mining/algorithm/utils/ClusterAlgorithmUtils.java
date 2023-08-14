@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ExtractPatternUtils.addDetectedObjectIntersection;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ExtractPatternUtils.addDetectedObjectJaccard;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
@@ -19,18 +18,17 @@ import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 
 import com.google.common.collect.ListMultimap;
-
 import org.apache.commons.math3.ml.clustering.Cluster;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterStatistic;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -227,12 +225,12 @@ public class ClusterAlgorithmUtils {
         RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic);
 
         boolean detect = true;
-        DETECT detectMode = clusterOptions.getDetect();
-        if (detectMode.equals(DETECT.PARTIAL)) {
+        RoleAnalysisDetectionProcessType detectMode = clusterOptions.getDetect();
+        if (detectMode.equals(RoleAnalysisDetectionProcessType.PARTIAL)) {
             if (clusterStatistic.getPropertiesCount() > 300 || clusterStatistic.getMembersCount() > 300) {
                 detect = false;
             }
-        } else if (detectMode.equals(DETECT.NONE)) {
+        } else if (detectMode.equals(RoleAnalysisDetectionProcessType.SKIP)) {
             detect = false;
         }
         return generateClusterObject(pageBase, result, clusterStatistic, clusterOptions, roleAnalysisClusterStatisticType, detect);
@@ -318,7 +316,6 @@ public class ClusterAlgorithmUtils {
     public static List<DetectedPattern> transformDefaultPattern(RoleAnalysisClusterType clusterType) {
         List<RoleAnalysisDetectionPatternType> defaultDetection = clusterType.getDetectionPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
-        RoleAnalysisDetectionModeType searchMode = clusterType.getDetectionOption().getDetectionMode();
 
         for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
 
@@ -335,28 +332,20 @@ public class ClusterAlgorithmUtils {
                 properties.add(objectReferenceType.getOid());
             }
 
-            if (searchMode.equals(RoleAnalysisDetectionModeType.JACCARD)) {
-                mergedIntersection.add(addDetectedObjectJaccard(properties, members, null));
-            } else {
-                mergedIntersection.add(addDetectedObjectIntersection(properties,
-                        members, null));
-            }
+            mergedIntersection.add(addDetectedObjectIntersection(properties,
+                    members, null));
+
         }
 
         return mergedIntersection;
     }
 
-    public static List<RoleAnalysisDetectionPatternType> loadIntersections(List<DetectedPattern> possibleBusinessRole,
-            RoleAnalysisDetectionModeType searchMode, QName processedObjectComplexType, QName propertiesComplexType) {
+    public static List<RoleAnalysisDetectionPatternType> loadIntersections(List<DetectedPattern> possibleBusinessRole, QName processedObjectComplexType, QName propertiesComplexType) {
         List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
 
-        if (searchMode.equals(RoleAnalysisDetectionModeType.JACCARD)) {
-            loadJaccardIntersection(possibleBusinessRole,
-                    roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
-        } else {
-            loadSimpleIntersection(possibleBusinessRole,
-                    roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
-        }
+        loadSimpleIntersection(possibleBusinessRole,
+                roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
+
         return roleAnalysisClusterDetectionTypeList;
     }
 

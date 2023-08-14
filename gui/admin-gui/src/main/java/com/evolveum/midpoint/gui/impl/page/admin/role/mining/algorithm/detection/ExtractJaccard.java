@@ -29,7 +29,7 @@ public class ExtractJaccard implements DetectionOperation {
         double maxFrequency = roleAnalysisSessionDetectionOptionType.getMaxFrequencyThreshold();
         int minIntersection = roleAnalysisSessionDetectionOptionType.getMinPropertiesOverlap();
         int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinOccupancy();
-        double similarity = roleAnalysisSessionDetectionOptionType.getJaccardSimilarityThreshold();
+        double similarity = 0.8;
 
         List<DetectedPattern> detectedPatterns = new ArrayList<>();
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
@@ -123,7 +123,7 @@ public class ExtractJaccard implements DetectionOperation {
         double maxFrequency = roleAnalysisSessionDetectionOptionType.getMaxFrequencyThreshold();
         int minIntersection = roleAnalysisSessionDetectionOptionType.getMinPropertiesOverlap();
         int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinOccupancy();
-        double similarity = roleAnalysisSessionDetectionOptionType.getJaccardSimilarityThreshold();
+        double similarity = 0.8;
 
         List<DetectedPattern> intersections = new ArrayList<>();
         List<MiningUserTypeChunk> preparedObjects = new ArrayList<>();

@@ -12,26 +12,71 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.util.convert.ConversionException;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
-public class RangeSliderPanel extends Panel {
-
+public class RangeSliderPanel extends InputPanel {
     private static final String ID_TEXT_FIELD = "slider_label";
     private static final String ID_SLIDER = "slider";
-    Integer sliderSimilarityValue;
+    Integer sliderSimilarityValue = 80;
 
     public RangeSliderPanel(String id) {
         super(id);
+
+//        sliderSimilarityValue = getDefaultValue();
+
+//        TextField<String> sliderLabel = new TextField<>(ID_TEXT_FIELD, new LoadableModel<>() {
+//            @Override
+//            protected String load() {
+//                return sliderSimilarityValue + "%";
+//            }
+//        }) {
+//
+//            @Override
+//            public FormComponent<String> setModelObject(String object) {
+//                return super.setModelObject(object);
+//            }
+//        };
+//        sliderLabel.setOutputMarkupId(true);
+//        sliderLabel.setEnabled(false);
+//        add(sliderLabel);
+//
+//        FormComponent<Integer> slider = new FormComponent<>(ID_SLIDER, Model.of(sliderSimilarityValue)) {
+//            @Override
+//            protected void onInitialize() {
+//                super.onInitialize();
+//                add(new AjaxFormComponentUpdatingBehavior("input") {
+//                    @Override
+//                    protected void onUpdate(AjaxRequestTarget target) {
+//                        sliderSimilarityValue = Integer.valueOf(getFormComponent().getValue());
+//                        target.add(sliderLabel);
+//                    }
+//                });
+//            }
+//        };
+//        slider.add(new AttributeModifier("min", getMinValue()));
+//        slider.add(new AttributeModifier("max", getMaxValue()));
+//        slider.add(new AttributeModifier("value", getDefaultValue()));
+//        slider.add(new AttributeModifier("style", "width:" + getSliderWidth() + getSliderWidthUnit()));
+//        add(slider);
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
+    private ItemRealValueModel<Double> model;
 
-        sliderSimilarityValue = getDefaultValue();
+    public RangeSliderPanel(String id, ItemRealValueModel<Double> realValueModel) {
+        super(id);
+
+        model = realValueModel;
+
+        if (model.getObject() == null) {
+            model.setObject(80.0);
+            sliderSimilarityValue = 80;
+        } else {
+            sliderSimilarityValue = model.getObject().intValue();
+        }
 
         TextField<String> sliderLabel = new TextField<>(ID_TEXT_FIELD, new LoadableModel<>() {
             @Override
@@ -42,25 +87,51 @@ public class RangeSliderPanel extends Panel {
         sliderLabel.setOutputMarkupId(true);
         sliderLabel.setEnabled(false);
         add(sliderLabel);
-        FormComponent<Integer> slider = new FormComponent<>(ID_SLIDER, Model.of(sliderSimilarityValue)) {
+
+        FormComponent<Double> slider = new FormComponent<>(ID_SLIDER, model) {
+            @Override
+            public void convertInput() {
+                String input = getInput();
+                if (input != null && !input.isEmpty()) {
+                    Double value = Double.parseDouble(input);
+                    setConvertedInput(value);
+                }
+            }
+
+            @Override
+            protected Double convertValue(String[] value) throws ConversionException {
+                return super.convertValue(value);
+            }
+
             @Override
             protected void onInitialize() {
                 super.onInitialize();
                 add(new AjaxFormComponentUpdatingBehavior("input") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        sliderSimilarityValue = Integer.valueOf(getFormComponent().getValue());
+//                        realValueModel.getObject().setSimilarityThreshold(Double.parseDouble(getFormComponent().getValue()) / (double) 100);
+                        sliderSimilarityValue = Integer.valueOf(getBaseFormComponent().getValue());
+                        getBaseFormComponent().getValue();
                         target.add(sliderLabel);
                     }
                 });
             }
         };
-        slider.add(new AttributeModifier("min", getMinValue()));
-        slider.add(new AttributeModifier("max", getMaxValue()));
+        slider.add(new AttributeModifier("min", getMinValueD()));
+        slider.add(new AttributeModifier("max", getMaxValueD()));
         slider.add(new AttributeModifier("value", getDefaultValue()));
         slider.add(new AttributeModifier("style", "width:" + getSliderWidth() + getSliderWidthUnit()));
         add(slider);
+    }
 
+    @Override
+    public FormComponent<Double> getBaseFormComponent() {
+        return (FormComponent<Double>) get(ID_SLIDER);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
     }
 
     public int getMinValue() {
@@ -83,8 +154,16 @@ public class RangeSliderPanel extends Panel {
         return "px";
     }
 
-    public FormComponent<?> getSliderFormComponent() {
-        return (FormComponent<?>) get(ID_SLIDER);
+    public double getMinValueD() {
+        return 0;
+    }
+
+    public double getMaxValueD() {
+        return 100;
+    }
+
+    public FormComponent<Double> getSliderFormComponent() {
+        return (FormComponent<Double>) get(ID_SLIDER);
     }
 
     public TextField<?> getTextFieldFormComponent() {

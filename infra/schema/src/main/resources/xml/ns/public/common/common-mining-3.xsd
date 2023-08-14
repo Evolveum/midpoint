@@ -674,30 +674,15 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="jaccardSimilarityThreshold" type="xsd:double" minOccurs="0">
+            <xsd:element name="detectionProcessMode" type="tns:RoleAnalysisDetectionProcessType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            A similarity threshold used to find similar objects based on their properties.
-                            Only allowed in JACCARD search mode.
+                            Option for executing detection pattern.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.jaccardSimilarityThreshold</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="detectionMode" type="tns:RoleAnalysisDetectionModeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Business role search or detection mode.
-                            JACCARD - search by jaccard index.
-                            INTERSECTION - exact search by overlapping properties.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionOptionType.searchMode</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionOptionType.detectionProcessMode</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -739,10 +724,10 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="RoleAnalysisDetectionModeType">
+    <xsd:simpleType name="RoleAnalysisDetectionProcessType">
         <xsd:annotation>
             <xsd:documentation>
-                Detection mode for role analysis.
+                Role analysis detection processing mode.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -750,23 +735,33 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="jaccard">
+            <xsd:enumeration value="full">
                 <xsd:annotation>
                     <xsd:documentation>
-                        This mapping should be used during Jaccard search.
+                        This mapping should be used during detection pattern on all cluster objects.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="JACCARD"/>
+                        <jaxb:typesafeEnumMember name="FULL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="intersection">
+            <xsd:enumeration value="partial">
                 <xsd:annotation>
                     <xsd:documentation>
-                        This mapping should be used during intersection search.
+                        This mapping should be used for skiping potential large clustering objects.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INTERSECTION"/>
+                        <jaxb:typesafeEnumMember name="PARTIAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="skip">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used for skiping detection pattern on clustering objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

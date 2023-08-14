@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.MainPageMining;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,6 +43,8 @@ public class ClusteringAction {
     public void execute(@NotNull PageBase pageBase, @NotNull ClusterOptions clusterOptions,
             @NotNull OperationResult operationResult, @NotNull Task task) {
 
+        System.out.println(clusterOptions.getSimilarity());
+        clusterOptions.setSimilarity(clusterOptions.getSimilarity() / 100);
         RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption = getRoleAnalysisSessionFilterOption(clusterOptions);
 
         RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = getRoleAnalysisSessionDetectionOption(clusterOptions);
@@ -51,17 +55,19 @@ public class ClusteringAction {
         importObjects(clusterObjects, clusterOptions,
                 roleAnalysisSessionClusterOption, roleAnalysisSessionDetectionOption, pageBase, operationResult, task);
 
+        pageBase.setResponsePage(MainPageMining.class);
+
     }
 
     @NotNull
     private RoleAnalysisDetectionOptionType getRoleAnalysisSessionDetectionOption(ClusterOptions clusterOptions) {
         RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = new RoleAnalysisDetectionOptionType();
-        roleAnalysisSessionDetectionOption.setDetectionMode(clusterOptions.getSearchMode());
+//        roleAnalysisSessionDetectionOption.setDetectionMode(clusterOptions.getSearchMode());
         roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
         roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
         roleAnalysisSessionDetectionOption.setMinMembersOccupancy(clusterOptions.getDefaultOccupancySearch());
         roleAnalysisSessionDetectionOption.setMinPropertiesOccupancy(clusterOptions.getDefaultIntersectionSearch());
-        roleAnalysisSessionDetectionOption.setJaccardSimilarityThreshold(clusterOptions.getDefaultJaccardThreshold());
+        roleAnalysisSessionDetectionOption.setDetectionProcessMode(clusterOptions.getDetect());
 
         return roleAnalysisSessionDetectionOption;
     }
@@ -123,10 +129,10 @@ public class ClusteringAction {
         try {
             int counter = 1;
             for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
-                System.out.println("IMPORT CLUSTER: "+counter+"/"+clusters.size());
+                System.out.println("IMPORT CLUSTER: " + counter + "/" + clusters.size());
                 importRoleAnalysisClusterObject(result, task, pageBase, clusterTypePrismObject, parentRef,
                         roleAnalysisSessionDetectionOption);
-                System.out.println("END IMPORTING CLUSTER: "+counter+"/"+clusters.size());
+                System.out.println("END IMPORTING CLUSTER: " + counter + "/" + clusters.size());
                 counter++;
 
             }

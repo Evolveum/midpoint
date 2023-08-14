@@ -10,8 +10,11 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.SessionSummaryPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -19,6 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -35,12 +41,15 @@ import org.apache.wicket.model.IModel;
                 label = "PageRole.auth.role.label",
                 description = "PageRole.auth.role.description") })
 
-public class PageRoleAnalysisSession extends AbstractPageObjectDetails<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
-
-    public static final String PARAMETER_PARENT_OID = "id";
+public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+    boolean isEditPanel = false;
 
     public PageRoleAnalysisSession() {
         super();
+    }
+
+    public PageRoleAnalysisSession(boolean isEditPanel) {
+        this.isEditPanel=true;
     }
 
     @Override
@@ -65,6 +74,36 @@ public class PageRoleAnalysisSession extends AbstractPageObjectDetails<RoleAnaly
     @Override
     protected IModel<String> createPageTitleModel() {
         return createStringResource("RoleMining.page.cluster.title");
+    }
+
+
+    private boolean canShowWizard() {
+        return isEditPanel;
+    }
+    protected DetailsFragment createDetailsFragment() {
+
+        if (canShowWizard()) {
+            setShowedByWizard(true);
+            getObjectDetailsModels().reset();
+            return createRoleWizardFragment(SessionWizardPanel.class);
+        }
+
+        return super.createDetailsFragment();
+    }
+    private DetailsFragment createRoleWizardFragment(Class<? extends AbstractWizardPanel> clazz) {
+
+        return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRoleAnalysisSession.this) {
+            @Override
+            protected void initFragmentLayout() {
+                try {
+                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
+                    add(wizard);
+                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+
+                }
+            }
+        };
     }
 }
 

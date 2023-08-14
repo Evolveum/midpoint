@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -22,18 +21,15 @@ public class DetectedPattern implements Serializable {
     Set<String> members;
     Set<String> memberTypeObjectOccupation;
     Double clusterMetric;
-    RoleAnalysisDetectionModeType searchMode;
     Long id;
 
     public DetectedPattern(Set<String> properties, Set<String> members,
             double clusterMetric,
-            Set<String> memberTypeObjectOccupation,
-            RoleAnalysisDetectionModeType searchMode, Long id) {
+            Set<String> memberTypeObjectOccupation, Long id) {
         this.properties = properties;
         this.members = members;
         this.clusterMetric = clusterMetric;
         this.memberTypeObjectOccupation = memberTypeObjectOccupation;
-        this.searchMode = searchMode;
         this.id = id;
     }
 
@@ -55,10 +51,6 @@ public class DetectedPattern implements Serializable {
 
     public double getClusterMetric() {
         return clusterMetric;
-    }
-
-    public RoleAnalysisDetectionModeType getSearchMode() {
-        return searchMode;
     }
 
     public Set<String> getMemberTypeObjectOccupation() {

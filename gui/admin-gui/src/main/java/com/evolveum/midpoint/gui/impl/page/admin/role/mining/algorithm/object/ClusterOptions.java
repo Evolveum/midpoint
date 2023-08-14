@@ -10,12 +10,32 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionProcessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public class ClusterOptions implements Serializable {
+    public ClusterOptions(PageBase pageBase, double similarity, int minGroupSize, int minMembers, int minIntersections,
+            ObjectFilter query, int minProperties, int maxProperties, RoleAnalysisProcessModeType mode, String name, RoleAnalysisDetectionProcessType detect,
+            int defaultIntersectionSearch, int defaultOccupancySearch, double defaultMinFrequency,
+            double defaultMaxFrequency) {
+        this.pageBase = pageBase;
+        this.similarity = similarity;
+        this.minGroupSize = minGroupSize;
+        this.minMembers = minMembers;
+        this.minIntersections = minIntersections;
+        this.query = query;
+        this.minProperties = minProperties;
+        this.maxProperties = maxProperties;
+        this.mode = mode;
+        this.name = name;
+        this.detect = detect;
+        this.defaultIntersectionSearch = defaultIntersectionSearch;
+        this.defaultOccupancySearch = defaultOccupancySearch;
+        this.defaultMinFrequency = defaultMinFrequency;
+        this.defaultMaxFrequency = defaultMaxFrequency;
+    }
+
     private PageBase pageBase;
     private double similarity;
     private int minGroupSize;
@@ -25,20 +45,17 @@ public class ClusterOptions implements Serializable {
     private int minProperties;
     private int maxProperties;
     RoleAnalysisProcessModeType mode;
-    RoleAnalysisDetectionModeType searchMode;
     String name;
-    ClusterObjectUtils.DETECT detect;
+    RoleAnalysisDetectionProcessType detect;
 
     int defaultIntersectionSearch = 10;
     int defaultOccupancySearch = 5;
     double defaultMinFrequency = 0.3;
     double defaultMaxFrequency = 1;
-    double defaultJaccardThreshold = 0.8;
 
-    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessModeType mode, RoleAnalysisDetectionModeType searchMode) {
+    public ClusterOptions(PageBase pageBase, RoleAnalysisProcessModeType mode) {
         this.pageBase = pageBase;
         this.mode = mode;
-        this.searchMode = searchMode;
         setDefaultOptions(mode);
     }
 
@@ -163,22 +180,6 @@ public class ClusterOptions implements Serializable {
         this.defaultMaxFrequency = defaultMaxFrequency;
     }
 
-    public RoleAnalysisDetectionModeType getSearchMode() {
-        return searchMode;
-    }
-
-    public void setSearchMode(RoleAnalysisDetectionModeType searchMode) {
-        this.searchMode = searchMode;
-    }
-
-    public double getDefaultJaccardThreshold() {
-        return defaultJaccardThreshold;
-    }
-
-    public void setDefaultJaccardThreshold(double defaultJaccardThreshold) {
-        this.defaultJaccardThreshold = defaultJaccardThreshold;
-    }
-
     public int getMaxProperties() {
         return maxProperties;
     }
@@ -187,11 +188,11 @@ public class ClusterOptions implements Serializable {
         this.maxProperties = maxProperties;
     }
 
-    public ClusterObjectUtils.DETECT getDetect() {
+    public RoleAnalysisDetectionProcessType getDetect() {
         return detect;
     }
 
-    public void setDetect(ClusterObjectUtils.DETECT detect) {
+    public void setDetect(RoleAnalysisDetectionProcessType detect) {
         this.detect = detect;
     }
 

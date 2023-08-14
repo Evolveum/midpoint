@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,7 +35,6 @@ public class ExecuteDetectionPanel extends BasePanel<String> implements Popupabl
     private static final String ID_OCCUPANCY_THRESHOLD = "threshold_occupancy";
     private static final String ID_SIMILARITY_THRESHOLD = "threshold_similarity";
 
-    RoleAnalysisDetectionModeType searchModeSelected = RoleAnalysisDetectionModeType.INTERSECTION;
 
     public boolean isJaccardSearchMode() {
         return isJaccardDetection;
@@ -59,11 +57,7 @@ public class ExecuteDetectionPanel extends BasePanel<String> implements Popupabl
     protected void onInitialize() {
         super.onInitialize();
 
-        searchModeSelected = detectionOption.getSearchMode();
 
-        if (searchModeSelected.equals(RoleAnalysisDetectionModeType.JACCARD)) {
-            isJaccardDetection = true;
-        }
 
         Form<?> components = frequencyForm();
         components.setOutputMarkupId(true);
@@ -72,17 +66,15 @@ public class ExecuteDetectionPanel extends BasePanel<String> implements Popupabl
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel("search_mode_button", new LoadableModel<>() {
             @Override
             protected Object load() {
-                return Model.of(getSearchModeSelected().value().toUpperCase());
+                return Model.of(" ");
             }
         }) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isJaccardDetection) {
                     isJaccardDetection = false;
-                    searchModeSelected = RoleAnalysisDetectionModeType.INTERSECTION;
                 } else {
                     isJaccardDetection = true;
-                    searchModeSelected = RoleAnalysisDetectionModeType.JACCARD;
                 }
                 target.add(components);
                 target.add(this);
@@ -113,24 +105,17 @@ public class ExecuteDetectionPanel extends BasePanel<String> implements Popupabl
                 Model.of(detectionOption.getMinOccupancy()), getOccupancyHeaderTitle());
         form.add(minOccupancyField);
 
-        TextFieldLabelPanel jaccardField = generateFieldPanel(ID_SIMILARITY_THRESHOLD,
-                Model.of(detectionOption.getJaccardSimilarityThreshold()),
-                getString("RoleMining.cluster.table.column.header.similarity"));
-        jaccardField.add(new VisibleEnableBehaviour(this::isJaccardSearchMode));
-        form.add(jaccardField);
+
 
         AjaxSubmitLink ajaxSubmitLink = new AjaxSubmitLink(ID_FREQUENCY_SUBMIT, form) {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
 
-                detectionOption.setSearchMode(searchModeSelected);
                 detectionOption.setMinFrequencyThreshold((double) minFreqField.getBaseFormComponent().getModelObject());
                 detectionOption.setMaxFrequencyThreshold((double) maxFreqField.getBaseFormComponent().getModelObject());
                 detectionOption.setMinPropertiesOverlap((Integer) minIntersectionField.getBaseFormComponent().getModelObject());
                 detectionOption.setMinOccupancy((Integer) minOccupancyField.getBaseFormComponent().getModelObject());
-                if (isJaccardSearchMode()) {
-                    detectionOption.setJaccardSimilarityThreshold((Double) jaccardField.getBaseFormComponent().getModelObject());
-                }
+
 
                 performAction(target, detectionOption);
 
@@ -196,9 +181,6 @@ public class ExecuteDetectionPanel extends BasePanel<String> implements Popupabl
         return new StringResourceModel("RoleMining.members.execute.search.panel.title");
     }
 
-    public RoleAnalysisDetectionModeType getSearchModeSelected() {
-        return searchModeSelected;
-    }
 
     protected String getIntersectionHeaderTitle() {
         if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.ROLE)) {

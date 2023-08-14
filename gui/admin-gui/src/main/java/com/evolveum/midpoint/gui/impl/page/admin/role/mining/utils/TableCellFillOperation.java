@@ -13,7 +13,6 @@ import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -110,27 +109,20 @@ public class TableCellFillOperation {
     }
 
     public static void updateRoleBasedTableData(Item<ICellPopulator<MiningUserTypeChunk>> cellItem, String componentId,
-            IModel<MiningUserTypeChunk> model, List<String> rowRoles, RoleAnalysisDetectionModeType searchMode,
+            IModel<MiningUserTypeChunk> model, List<String> rowRoles,
             ClusterObjectUtils.Status colStatus, List<String> colRoles, DetectedPattern intersection,
             MiningRoleTypeChunk roleChunk) {
-        if (searchMode.equals(RoleAnalysisDetectionModeType.INTERSECTION)) {
+
             intersectionModeRoleProcess(cellItem, componentId, model, rowRoles, colStatus, colRoles, intersection, roleChunk);
-        } else {
-            List<String> rowUsers = model.getObject().getUsers();
-            jaccardModeRoleProcess(cellItem, componentId, model, rowUsers, rowRoles, colStatus, colRoles, intersection, roleChunk);
-        }
+
     }
 
     public static void updateUserBasedTableData(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,
-            IModel<MiningRoleTypeChunk> model, List<String> rowUsers, RoleAnalysisDetectionModeType searchMode,
+            IModel<MiningRoleTypeChunk> model, List<String> rowUsers,
             List<String> colUsers, DetectedPattern intersection,
             ClusterObjectUtils.Status colStatus, MiningUserTypeChunk userChunk) {
-        if (searchMode.equals(RoleAnalysisDetectionModeType.INTERSECTION)) {
             intersectionModeUserProcess(cellItem, componentId, model, rowUsers, colUsers, intersection, colStatus, userChunk);
-        } else {
-            List<String> rowRoles = model.getObject().getRoles();
-            jaccardModeUserProcess(cellItem, componentId, model, rowUsers, rowRoles, colStatus, colUsers, intersection, userChunk);
-        }
+
     }
 
     private static void intersectionModeUserProcess(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem, String componentId,

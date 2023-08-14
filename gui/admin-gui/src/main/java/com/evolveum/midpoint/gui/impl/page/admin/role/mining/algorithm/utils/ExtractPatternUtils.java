@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionModeType;
 
 public class ExtractPatternUtils {
 
@@ -20,8 +19,7 @@ public class ExtractPatternUtils {
                 properties,
                 members,
                 members.size() * properties.size(),
-                allPropertiesOccupation,
-                RoleAnalysisDetectionModeType.JACCARD,null);
+                allPropertiesOccupation,null);
     }
 
     public static DetectedPattern addDetectedObjectIntersection(Set<String> properties, Set<String> members,
@@ -30,7 +28,6 @@ public class ExtractPatternUtils {
                 properties,
                 members,
                 members.size() * properties.size(),
-                allPropertiesOccupation,
-                RoleAnalysisDetectionModeType.INTERSECTION,null);
+                allPropertiesOccupation,null);
     }
 }

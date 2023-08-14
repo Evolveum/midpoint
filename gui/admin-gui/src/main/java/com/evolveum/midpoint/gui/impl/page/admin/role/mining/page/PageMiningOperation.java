@@ -275,7 +275,7 @@ public class PageMiningOperation extends PageAdmin {
                 repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Jaccard similarity")) {
                     @Override
                     protected IModel<String> getValueModel() {
-                        return Model.of(String.valueOf(clusterOptions.getJaccardSimilarityThreshold()));
+                        return Model.of(String.valueOf(0.0));
                     }
 
                     @Override
@@ -286,7 +286,7 @@ public class PageMiningOperation extends PageAdmin {
                 repeatingView.add(new LineFieldPanel(repeatingView.newChildId(), Model.of("Detection mode")) {
                     @Override
                     protected IModel<String> getValueModel() {
-                        return Model.of(clusterOptions.getDetectionMode().value().toUpperCase());
+                        return Model.of("");
                     }
 
                     @Override

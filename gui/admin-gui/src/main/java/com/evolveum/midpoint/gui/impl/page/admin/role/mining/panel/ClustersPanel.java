@@ -17,6 +17,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -317,8 +318,12 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
+                                    ObjectReferenceType roleAnalysisSessionRef = model.getObject().getValue().getRoleAnalysisSessionRef();
+                                    PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject((PageBase) getPage(), new OperationResult("getP"), roleAnalysisSessionRef.getOid());
                                     ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                            Model.of("Image"), model.getObject().getValue().asPrismObject().getOid(), model.getObject().getValue().getDetectionOption().getDetectionMode().toString()) {
+                                            Model.of("Image"),
+                                            model.getObject().getValue().asPrismObject().getOid(),
+                                            sessionTypeObject.asObjectable().getClusterOptions().getProcessMode().value()) {
                                         @Override
                                         public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                             super.onClose(ajaxRequestTarget);

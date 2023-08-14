@@ -71,7 +71,6 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
     double maxFrequency = 1.0;
     Integer minIntersection = 10;
 
-    RoleAnalysisDetectionModeType searchMode = RoleAnalysisDetectionModeType.INTERSECTION;
     RoleAnalysisProcessModeType processMode;
 
     DetectionOption detectionOption;
@@ -117,8 +116,6 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                 cluster.getRoleAnalysisSessionRef().getOid(), new OperationResult("getParent"));
         assert getParent != null;
         String processModeValue = getParent.asObjectable().getClusterOptions().getProcessMode().value();
-        String searchModeValue = cluster.getDetectionOption().getDetectionMode().value();
-        searchMode = RoleAnalysisDetectionModeType.fromValue(searchModeValue);
         processMode = RoleAnalysisProcessModeType.fromValue(processModeValue);
 
         Integer elementsCount = cluster.getClusterStatistic().getMemberCount();
@@ -133,10 +130,9 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
         if (cluster.getDetectionOption() != null) {
             detectionOption = loadDetectionOption(cluster.getDetectionOption());
         } else {
-            detectionOption = new DetectionOption(0.3, 1, 5, 10, searchMode, 0.8);
+            detectionOption = new DetectionOption(0.3, 1, 5, 10);
         }
 
-        searchMode = detectionOption.getSearchMode();
         minFrequency = detectionOption.getMinFrequencyThreshold();
         minOccupancy = detectionOption.getMinOccupancy();
         maxFrequency = detectionOption.getMaxFrequencyThreshold();
@@ -148,7 +144,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
         endTimer(start, "LOAD DATA");
 
         start = startTimer("LOAD TABLE");
-        loadMiningTable(miningRoleTypeChunks, miningUserTypeChunks, detectionOption.getSearchMode());
+        loadMiningTable(miningRoleTypeChunks, miningUserTypeChunks);
         endTimer(start, "LOAD TABLE");
 
         add(generateTableIntersection(ID_DATATABLE_INTERSECTIONS, detectedPatternList).setOutputMarkupId(true));
@@ -235,7 +231,6 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                         detectedPatternList = new DetectionAction(newDetectionOption).executeDetection(miningRoleTypeChunks,
                                 miningUserTypeChunks, processMode);
 
-                        searchMode = newDetectionOption.getSearchMode();
                         minFrequency = newDetectionOption.getMinFrequencyThreshold();
                         maxFrequency = newDetectionOption.getMaxFrequencyThreshold();
                         minIntersection = newDetectionOption.getMinPropertiesOverlap();
@@ -245,7 +240,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                                 detectedPatternList));
                         target.add(getIntersectionTable().setOutputMarkupId(true));
 
-                        updateMiningTable(target, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                        updateMiningTable(target, true, miningRoleTypeChunks, miningUserTypeChunks);
 
                         replaceRoleAnalysisClusterDetection(getObjectDetailsModels().getObjectWrapper().getOid(), (PageBase) getPage(), result,
                                 detectedPatternList, processMode, newDetectionOption);
@@ -274,7 +269,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                 miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
                 miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(sortMode);
 
-                updateMiningTable(target, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                updateMiningTable(target, true, miningRoleTypeChunks, miningUserTypeChunks);
                 target.add(this.setVisible(false));
             }
         };
@@ -305,11 +300,10 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
     }
 
-    private void loadMiningTable(List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks,
-            RoleAnalysisDetectionModeType searchMode) {
+    private void loadMiningTable(List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks) {
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, null, maxFrequency, searchMode);
+                    miningUserTypeChunks, false, minFrequency, null, maxFrequency);
             boxedTablePanel.setOutputMarkupId(true);
             add(boxedTablePanel);
         } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
@@ -321,7 +315,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
     }
 
-    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus, RoleAnalysisDetectionModeType searchMode,
+    private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus,
             List<MiningRoleTypeChunk> miningRoleTypeChunks, List<MiningUserTypeChunk> miningUserTypeChunks) {
 
         if (resetStatus) {
@@ -335,7 +329,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(miningRoleTypeChunks,
-                    miningUserTypeChunks, false, minFrequency, intersection, maxFrequency, searchMode);
+                    miningUserTypeChunks, false, minFrequency, intersection, maxFrequency);
             boxedTablePanel.setOutputMarkupId(true);
             getMiningRoleBasedTable().replaceWith(boxedTablePanel);
             target.appendJavaScript(getScaleScript());
@@ -355,10 +349,10 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
     public MiningUserBasedTable generateMiningUserBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection, double maxFrequency) {
-        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode, reductionObjects) {
+        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, reductionObjects) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                updateMiningTable(target, false, miningRoleTypeChunks, miningUserTypeChunks);
             }
 
             @Override
@@ -376,7 +370,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                     compressMode = "COMPRESS MODE";
                 }
                 loadMiningTableData(sortMode);
-                updateMiningTable(ajaxRequestTarget, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                updateMiningTable(ajaxRequestTarget, false, miningRoleTypeChunks, miningUserTypeChunks);
                 ajaxRequestTarget.add(this);
             }
         };
@@ -384,11 +378,11 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
-            double maxFrequency, RoleAnalysisDetectionModeType searchMode) {
-        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, searchMode, reductionObjects) {
+            double maxFrequency ) {
+        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, reductionObjects) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
-                updateMiningTable(target, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                updateMiningTable(target, false, miningRoleTypeChunks, miningUserTypeChunks);
             }
 
             @Override
@@ -407,7 +401,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
                 }
                 loadMiningTableData(sortMode);
 
-                updateMiningTable(ajaxRequestTarget, false, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                updateMiningTable(ajaxRequestTarget, false, miningRoleTypeChunks, miningUserTypeChunks);
                 ajaxRequestTarget.add(this);
             }
         };
@@ -420,7 +414,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
             protected void onLoad(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
                 intersection = rowModel.getObject();
 
-                updateMiningTable(ajaxRequestTarget, true, searchMode, miningRoleTypeChunks, miningUserTypeChunks);
+                updateMiningTable(ajaxRequestTarget, true, miningRoleTypeChunks, miningUserTypeChunks);
                 processButton.setVisible(true);
                 ajaxRequestTarget.add(processButton);
             }

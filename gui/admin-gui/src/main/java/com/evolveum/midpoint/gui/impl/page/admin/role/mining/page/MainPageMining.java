@@ -16,13 +16,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -32,7 +28,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -42,15 +37,11 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.ExecuteClusteringPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.ParentClusterBasicDetailsPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.SelectableObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -319,14 +310,16 @@ public class MainPageMining extends PageAdmin {
             protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation,
                     CompiledObjectCollectionView collectionView) {
 
-                ExecuteClusteringPanel detailsPanel = new ExecuteClusteringPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("New cluster")) {
-                    @Override
-                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                        super.onClose(ajaxRequestTarget);
-                    }
-                };
-                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                setResponsePage(new PageRoleAnalysisSession(true));
+
+//                ExecuteClusteringPanel detailsPanel = new ExecuteClusteringPanel(((PageBase) getPage()).getMainPopupBodyId(),
+//                        Model.of("New cluster")) {
+//                    @Override
+//                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+//                        super.onClose(ajaxRequestTarget);
+//                    }
+//                };
+//                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
             }
 
             @Override
