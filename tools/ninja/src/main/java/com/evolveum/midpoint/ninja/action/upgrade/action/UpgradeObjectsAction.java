@@ -202,9 +202,10 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         super.handleResultOnFinish(operation, finishMessage);
         OperationResult result = operation.getResult();
         if (result.isAcceptable() && context.isUserMode()) {
+            log.info("");
             log.info("Objects were successfully upgraded.");
-            log.info("If you want to continue to continue with upgrade, please run:"
-                    + "ninja.sh upgrade-distribution.");
+            log.info("");
+            log.info("If you want to continue to continue with upgrade, please run: ninja.sh upgrade-distribution.");
         }
     }
 }
