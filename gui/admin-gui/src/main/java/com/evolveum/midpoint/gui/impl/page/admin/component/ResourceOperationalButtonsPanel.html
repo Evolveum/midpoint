@@ -13,10 +13,10 @@
             <legend><wicket:message key="ResourceOperationalButtonsPanel.buttons.resource"/></legend>
             <a class="mr-2 btn btn-default btn-sm" wicket:id="resourceButtons"/>
         </fieldset>
-        <wicket:enclosure child="modeButtons">
+        <wicket:enclosure child="lifecycleStatePanel">
             <fieldset class="objectButtons">
-                <legend><wicket:message key="OperationalButtonsPanel.buttons.mode"/></legend>
-                <a class="mr-2 btn btn-default btn-sm" wicket:id="modeButtons"/>
+                <legend><wicket:message key="ObjectType.lifecycleState"/></legend>
+                <div class="mr-2" wicket:id="lifecycleStatePanel"/>
             </fieldset>
         </wicket:enclosure>
     </wicket:extend>

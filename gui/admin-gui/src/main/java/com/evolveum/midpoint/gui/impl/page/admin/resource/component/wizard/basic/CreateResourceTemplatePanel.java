@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -147,12 +148,14 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 @Nullable PrismObject<ResourceType> resource =
                         WebModelServiceUtils.loadObject(ResourceType.class, resourceTemplate.getOid(), getPageBase(), task, result);
                 PrismObject<ResourceType> obj = resource.cloneComplex(CloneStrategy.REUSE);
+                obj.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).addRealValue(SchemaConstants.LIFECYCLE_PROPOSED);
                 onTemplateSelectionPerformed(obj, target);
                 return;
             }
 
             PrismObjectDefinition<ResourceType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(getType());
             PrismObject<ResourceType> obj = def.instantiate();
+            obj.asObjectable().lifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
 
             if (resourceTemplate != null) {
                 if (TemplateType.CONNECTOR.equals(resourceTemplate.getTemplateType())) {

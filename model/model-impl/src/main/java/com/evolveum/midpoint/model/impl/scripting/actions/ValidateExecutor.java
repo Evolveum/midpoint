@@ -14,6 +14,8 @@ import jakarta.annotation.PostConstruct;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationResultType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -92,7 +94,12 @@ public class ValidateExecutor extends BaseActionExecutor {
     }
 
     @Override
-    String getActionName() {
+    @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @Nullable String getConfigurationElementName() {
+        return null;
     }
 }

@@ -99,10 +99,19 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
         ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
         item.getModel().getObject().setExpanded(true);
-        VerticalFormDefaultContainerablePanel<C> panel = new VerticalFormDefaultContainerablePanel<C>("value", item.getModel(), settings);
+        VerticalFormDefaultContainerablePanel<C> panel = new VerticalFormDefaultContainerablePanel<C>("value", item.getModel(), settings) {
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+                return VerticalFormPrismContainerPanel.this.isVisibleSubContainer(c);
+            }
+        };
         panel.setOutputMarkupId(true);
         item.add(panel);
         return panel;
+    }
+
+    protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+        return false;
     }
 
     protected boolean getHeaderVisibility() {

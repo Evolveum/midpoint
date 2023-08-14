@@ -90,6 +90,11 @@ public class ResourceTaskCreator {
         return this;
     }
 
+    public ResourceTaskCreator withCoordinates(QName objectClass) {
+        this.objectClass = objectClass;
+        return this;
+    }
+
     public ResourceTaskCreator withExecutionMode(ExecutionModeType executionMode) {
         this.executionMode = executionMode;
         return this;

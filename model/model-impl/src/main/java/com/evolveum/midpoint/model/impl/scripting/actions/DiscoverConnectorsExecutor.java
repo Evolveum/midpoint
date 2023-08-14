@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -61,7 +63,8 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             OperationResult globalResult) throws ScriptExecutionException, SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
-        boolean rebind = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_REBIND_RESOURCES, input, context, false, PARAM_REBIND_RESOURCES, globalResult);
+        boolean rebind = expressionHelper.getArgumentAsBoolean(
+                expression.getParameter(), PARAM_REBIND_RESOURCES, input, context, false, PARAM_REBIND_RESOURCES, globalResult);
 
         PipelineData output = PipelineData.createEmpty();
 
@@ -69,7 +72,8 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             PrismValue value = item.getValue();
             OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
-            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
+            if (value instanceof PrismObjectValue && ((PrismObjectValue<?>) value).asObjectable() instanceof ConnectorHostType) {
+                //noinspection unchecked,rawtypes
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 Set<ConnectorType> newConnectors;
                 Operation op = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
@@ -107,7 +111,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
     private void rebindConnectors(Set<ConnectorType> newConnectors, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         Map<String,String> rebindMap = new HashMap<>();
         for (ConnectorType connectorType : newConnectors) {
-            determineConnectorMappings(rebindMap, connectorType, context, result);
+            determineConnectorMappings(rebindMap, connectorType, result);
         }
         LOGGER.trace("Connector rebind map: {}", rebindMap);
         rebindResources(rebindMap, context, result);
@@ -139,7 +143,8 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
         }
     }
 
-    private void determineConnectorMappings(Map<String,String> rebindMap, ConnectorType connectorType, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    private void determineConnectorMappings(Map<String,String> rebindMap, ConnectorType connectorType, OperationResult result)
+            throws ScriptExecutionException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Finding obsolete versions for connector: {}", connectorType.asPrismObject().debugDump());
@@ -176,7 +181,13 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
     }
 
     @Override
-    String getActionName() {
+    @NotNull
+    String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @Nullable String getConfigurationElementName() {
+        return null; // no static configuration
     }
 }

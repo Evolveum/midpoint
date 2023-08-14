@@ -15,8 +15,13 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 /**
  * Executes an action of a given type. Instances of this type must be registered with ScriptingExpressionEvaluator.
  */
-@FunctionalInterface
 public interface ActionExecutor {
+
+    /**
+     * Checks if the execution is allowed; we may put this inside the {@link #execute(ActionExpressionType, PipelineData,
+     * ExecutionContext, OperationResult)} method later, if needed.
+     */
+    void checkExecutionAllowed(ExecutionContext context) throws SecurityViolationException;
 
     /**
      * Executes given action command.
@@ -34,5 +39,6 @@ public interface ActionExecutor {
      *                     individual pipeline items processing.)
      */
     PipelineData execute(ActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
+            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 }

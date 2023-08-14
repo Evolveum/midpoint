@@ -8,10 +8,13 @@
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import java.util.Collection;
+
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
@@ -71,8 +74,7 @@ public class ResolveExecutor extends BaseActionExecutor {
 
     private void resolveReference(ExecutionContext context, Collection<SelectorOptions<GetOperationOptions>> options,
             PipelineData output, PipelineItem item, PrismValue value, OperationResult result) throws ScriptExecutionException {
-        if (value instanceof PrismReferenceValue) {
-            PrismReferenceValue prismReferenceValue = (PrismReferenceValue) value;
+        if (value instanceof PrismReferenceValue prismReferenceValue) {
             String oid = prismReferenceValue.getOid();
             QName targetTypeQName = prismReferenceValue.getTargetType();
             if (targetTypeQName == null) {
@@ -98,7 +100,12 @@ public class ResolveExecutor extends BaseActionExecutor {
     }
 
     @Override
-    String getActionName() {
+    @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_RESOLVE_REFERENCE.getLocalPart();
     }
 }

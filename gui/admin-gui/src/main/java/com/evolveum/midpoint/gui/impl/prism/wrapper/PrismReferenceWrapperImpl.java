@@ -7,10 +7,14 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -29,6 +33,8 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
         implements PrismReferenceWrapper<R> {
 
     private ObjectFilter filter;
+
+    private BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> filterFunction;
     private Set<SearchItemType> predefinedSearchItems = new HashSet<>();
 //    private Set<SerializableSupplier<FilterableSearchItemWrapper>> specialItemFunctions = Collections.emptySet();
     private boolean onlyForDeltaComputation;
@@ -72,13 +78,21 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public ObjectFilter getFilter() {
+    public ObjectFilter getFilter(PageBase pageBase) {
+        if (filterFunction != null) {
+            return filterFunction.apply(PrismReferenceWrapperImpl.this, pageBase);
+        }
         return filter;
     }
 
     @Override
     public void setFilter(ObjectFilter filter) {
         this.filter = filter;
+    }
+
+    @Override
+    public void setFilter(BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> filterFunction) {
+        this.filterFunction = filterFunction;
     }
 
     @Override

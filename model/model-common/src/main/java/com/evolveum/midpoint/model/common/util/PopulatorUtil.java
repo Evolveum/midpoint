@@ -110,7 +110,8 @@ public class PopulatorUtil {
 
         String expressionDesc = "expression in populate expression in " + contextDescription;
         ExpressionFactory expressionFactory = context.getExpressionFactory();
-        Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, context.getExpressionProfile(),
+        Expression<IV,ID> expression = expressionFactory.makeExpression(
+                expressionType, propOutputDefinition, context.getExpressionProfile(),
                 expressionDesc, task, result);
         ExpressionEvaluationContext localContext = new ExpressionEvaluationContext(null, variables, expressionDesc, task);
         localContext.setExpressionFactory(expressionFactory);

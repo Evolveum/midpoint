@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityExecutionModeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.model.IModel;
@@ -64,5 +65,13 @@ public class TaskExecutionWizardPanel extends AbstractFormWizardStepPanel<TaskDe
     @Override
     public String getStepId() {
         return SIMULATE_PANEL_TYPE;
+    }
+
+    @Override
+    protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+        if (c != null && c.getItemName().equivalent(ActivityExecutionModeDefinitionType.F_CONFIGURATION_TO_USE)) {
+            return true;
+        }
+        return false;
     }
 }

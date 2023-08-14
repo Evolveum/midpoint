@@ -7,28 +7,22 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AssociationSearchItemWrapper;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.input.DurationWithOneElementPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -36,9 +30,7 @@ import jakarta.xml.bind.JAXBElement;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -64,7 +56,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -74,7 +65,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ResourceObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -88,15 +78,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
-import org.jetbrains.annotations.Nullable;
-
 public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectsPanel.class);
     private static final String DOT_CLASS = ResourceObjectsPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
     protected static final String OPERATION_RECLASSIFY_SHADOWS = DOT_CLASS + "reclassifyShadows";
-    protected static final String OPERATION_RELOAD_SHADOWS = DOT_CLASS + "reloadShadows";
 
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
@@ -108,9 +95,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private IModel<Boolean> showStatisticsModel = Model.of(false);
-
-    private AjaxSelfUpdatingTimerBehavior reloadedBehaviour;
-    private String taskOidForReloaded;
 
     public ResourceObjectsPanel(String id, ResourceDetailsModel resourceDetailsModel, ContainerPanelConfigurationType config) {
         super(id, resourceDetailsModel, config);
@@ -366,12 +350,15 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     protected abstract ShadowKindType getKind();
 
     private ObjectQuery getResourceContentQuery() {
-        ResourceObjectTypeDefinitionType objectType = getSelectedObjectType();
+        ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType == null) {
             return ObjectQueryUtil.createResourceAndKind(getObjectDetailsModels().getObjectType().getOid(), getKind());
         }
         try {
-            return ObjectQueryUtil.createResourceAndKindIntent(getObjectDetailsModels().getObjectType().getOid(), getKind(), objectType.getIntent());
+            return ObjectQueryUtil.createResourceAndKindIntent(
+                    getObjectDetailsModels().getObjectType().getOid(),
+                    getKind(),
+                    objectType.getIntent());
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot create query for resource content", e);
         }
@@ -433,33 +420,60 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 return "Reload objects on " + getObjectWrapperObject().asObjectable();
             }
         };
-        reload.add(new VisibleBehaviour(() -> getSelectedObjectType() != null));
+        reload.add(new VisibleBehaviour(() -> getSelectedObjectTypeDefinition() != null));
         return reload;
     }
 
     private AjaxIconButton createReclassifyButton(String buttonId) {
-        AjaxIconButton reclassify = new AjaxIconButton(buttonId, Model.of("fa fa-rotate-right"),
-                createStringResource("ResourceCategorizedPanel.button.reclassify")) {
+
+        ReloadableButton reclassify = new ReloadableButton(
+                buttonId, getPageBase(), createStringResource("ResourceCategorizedPanel.button.reclassify")) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                IModel<String> confirmModel;
+            protected void refresh(AjaxRequestTarget target) {
+                target.add(getShadowTable());
+            }
 
-                confirmModel = getPageBase().createStringResource(
+            @Override
+            protected TaskAwareExecutor.Executable<String> getTaskExecutor() {
+                return createReclassifyTask();
+            }
+
+            @Override
+            protected boolean useConfirmationPopup() {
+                return true;
+            }
+
+            @Override
+            protected IModel<String> getConfirmMessage() {
+                return getPageBase().createStringResource(
                         "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
                         getObjectClass() != null ? getObjectClass().getLocalPart() : null);
-
-                ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
-                    @Override
-                    public void yesPerformed(AjaxRequestTarget target) {
-                        createReclassifyTask(target);
-                        getShadowTable().startRefreshing(target);
-                        target.add(getShadowTable());
-                    }
-                };
-                getPageBase().showMainPopup(confirmationPanel, target);
             }
         };
+
+//        AjaxIconButton reclassify = new AjaxIconButton(buttonId, Model.of("fa fa-rotate-right"),
+//                createStringResource("ResourceCategorizedPanel.button.reclassify")) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                IModel<String> confirmModel;
+//
+//                confirmModel = getPageBase().createStringResource(
+//                        "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
+//                        getObjectClass() != null ? getObjectClass().getLocalPart() : null);
+//
+//                ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
+//                    @Override
+//                    public void yesPerformed(AjaxRequestTarget target) {
+//                        createReclassifyTask(target);
+//                        getShadowTable().startRefreshing(target);
+//                        target.add(getShadowTable());
+//                    }
+//                };
+//                getPageBase().showMainPopup(confirmationPanel, target);
+//            }
+//        };
         reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
         reclassify.setOutputMarkupId(true);
         reclassify.showTitleAsLabel(true);
@@ -467,29 +481,30 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return reclassify;
     }
 
-    private void createReclassifyTask(AjaxRequestTarget target) throws RestartResponseException {
-        getPageBase().taskAwareExecutor(target, OPERATION_RECLASSIFY_SHADOWS)
-                .runVoid((task, result) -> {
-                    ResourceType resource = getObjectWrapperObject().asObjectable();
-                    ResourceTaskCreator.forResource(resource, getPageBase())
-                            .ofFlavor(SynchronizationTaskFlavor.IMPORT)
-                            .withCoordinates(
-                                    getKind(),
-                                    getIntent(),
-                                    getObjectClass())
-                            .withExecutionMode(ExecutionModeType.PREVIEW)
-                            .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
-                            .withSubmissionOptions(
-                                    ActivitySubmissionOptions.create()
-                                            .withTaskTemplate(new TaskType()
-                                                    .name("Reclassifying objects on " + resource.getName())
-                                                    .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))))
-                            .submit(task, result);
-                });
+    private TaskAwareExecutor.Executable<String> createReclassifyTask() throws RestartResponseException {
+        return (task, result) -> {
+            ResourceType resource = getObjectWrapperObject().asObjectable();
+            return ResourceTaskCreator.forResource(resource, getPageBase())
+                    .ofFlavor(SynchronizationTaskFlavor.IMPORT)
+                    .withCoordinates(getObjectClass())
+                    .withExecutionMode(ExecutionModeType.PREVIEW)
+                    .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
+                    .withSubmissionOptions(
+                            ActivitySubmissionOptions.create()
+                                    .withTaskTemplate(new TaskType()
+                                            .name("Reclassifying objects on " + resource.getName())
+                                            .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))))
+                    .submit(task, result);
+        };
     }
 
     private ResourceObjectTypeDefinitionType getSelectedObjectType() {
-        DropDownChoicePanel<ResourceObjectTypeDefinitionType> objectTypeSelector = getObjectTypeSelector();
+        ResourceObjectTypeDefinition objectTypeDefinition = getSelectedObjectTypeDefinition();
+        return objectTypeDefinition == null ? null : objectTypeDefinition.getDefinitionBean();
+    }
+
+    private ResourceObjectTypeDefinition getSelectedObjectTypeDefinition() {
+        DropDownChoicePanel<ResourceObjectTypeDefinition> objectTypeSelector = getObjectTypeSelector();
         if (objectTypeSelector != null && objectTypeSelector.getModel() != null) {
             return objectTypeSelector.getModel().getObject();
         }
@@ -497,7 +512,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private String getIntent() {
-        ResourceObjectTypeDefinitionType objectType = getSelectedObjectType();
+        ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType != null) {
             return objectType.getIntent();
         }
@@ -505,15 +520,15 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private QName getObjectClass() {
-        ResourceObjectTypeDefinitionType objectType = getSelectedObjectType();
+        ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
         if (objectType != null) {
-            return objectType.getDelineation() != null ? objectType.getDelineation().getObjectClass() : null;
+            return objectType.getObjectClassName();
         }
         return null;
     }
 
-    private DropDownChoicePanel<ResourceObjectTypeDefinitionType> getObjectTypeSelector() {
-        return (DropDownChoicePanel<ResourceObjectTypeDefinitionType>) get(ID_OBJECT_TYPE);
+    private DropDownChoicePanel<ResourceObjectTypeDefinition> getObjectTypeSelector() {
+        return (DropDownChoicePanel<ResourceObjectTypeDefinition>) get(ID_OBJECT_TYPE);
     }
 
     private ShadowTablePanel getShadowTable() {

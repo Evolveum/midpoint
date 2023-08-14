@@ -9,6 +9,7 @@
       oid="16c7a275-83b5-44c7-9b37-0114a56efb2b">
     <name>scripting</name>
     <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript</action>
     </authorization>
 </role>

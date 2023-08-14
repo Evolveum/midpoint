@@ -10,19 +10,18 @@ package com.evolveum.midpoint.schema.util.task.work;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 public class WorkDefinitionUtil {
 
@@ -93,5 +92,66 @@ public class WorkDefinitionUtil {
         return workDefinitionBeanCollection.stream()
                 .map(WorkDefinitionBean::getBeanTypeName)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Replaces the query in "object set" in given work definition.
+     *
+     * Preliminary implementation.
+     */
+    public static void replaceObjectSetQuery(@NotNull WorkDefinitionsType def, @Nullable QueryType query) {
+        if (updateQuery(def.getIterativeScripting(), query)) {
+            return;
+        }
+        if (updateQuery(def.getIterativeChangeExecution(), query)) {
+            return;
+        }
+        if (updateQuery(def.getRecomputation(), query)) {
+            return;
+        }
+        if (updateQuery(def.getObjectIntegrityCheck(), query)) {
+            return;
+        }
+        if (updateQuery(def.getReindexing(), query)) {
+            return;
+        }
+        if (updateQuery(def.getTriggerScan(), query)) {
+            return;
+        }
+        if (updateQuery(def.getFocusValidityScan(), query)) {
+            return;
+        }
+        if (updateQuery(def.getDeletion(), query)) {
+            return;
+        }
+        throw new IllegalArgumentException("The query cannot be replaced in the work definition: " + def);
+    }
+
+    private static <D extends ObjectSetBasedWorkDefinitionType> boolean updateQuery(
+            D workDef, @Nullable QueryType query) {
+        return updateQuery(
+                workDef,
+                ObjectSetBasedWorkDefinitionType::getObjects,
+                ObjectSetBasedWorkDefinitionType::setObjects,
+                query);
+    }
+
+    private static <D extends AbstractWorkDefinitionType> boolean updateQuery(
+            D workDef,
+            Function<D, ObjectSetType> objectsGetter,
+            BiConsumer<D, ObjectSetType> objectsSetter,
+            @Nullable QueryType query) {
+        if (workDef == null) {
+            return false;
+        }
+        ObjectSetType objects = objectsGetter.apply(workDef);
+        if (objects == null) {
+            objects = new ObjectSetType()
+                    .query(query);
+            objectsSetter.accept(workDef, objects);
+        } else {
+            objects.setQuery(query);
+        }
+        return true;
     }
 }

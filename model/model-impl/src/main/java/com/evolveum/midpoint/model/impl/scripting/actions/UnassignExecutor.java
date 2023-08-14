@@ -10,9 +10,6 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.schema.util.roles.RoleManagementUtil;
-
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -147,19 +144,16 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
         return variables;
     }
 
-    /** Roughly related: {@link RoleManagementUtil#getMatchingAssignments(List, Collection)}. */
     @SuppressWarnings("SimplifiableIfStatement")
     private boolean matches(AssignmentType existingAssignment, UnassignParameters parameters, ObjectFilter resolvedFilter)
             throws SchemaException {
         ObjectReferenceType targetRef = existingAssignment.getTargetRef();
-        if (targetRef != null
-                && matchesOid(targetRef.getOid(), parameters.dynamicRoleRefs)
+        if (targetRef != null && matchesOid(targetRef.getOid(), parameters.dynamicRoleRefs)
                 && matchesRelation(targetRef.getRelation(), parameters.dynamicRelations)) {
             return true;
         }
         ConstructionType construction = existingAssignment.getConstruction();
-        if (construction != null
-                && construction.getResourceRef() != null
+        if (construction != null && construction.getResourceRef() != null
                 && matchesOid(construction.getResourceRef().getOid(), parameters.dynamicResourceRefs)) {
             return true;
         }
