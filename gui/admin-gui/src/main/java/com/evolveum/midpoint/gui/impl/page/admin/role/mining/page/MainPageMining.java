@@ -16,6 +16,16 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -167,6 +177,19 @@ public class MainPageMining extends PageAdmin {
             protected List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> createDefaultColumns() {
 
                 List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns = new ArrayList<>();
+
+                LoadableModel<PrismContainerDefinition<RoleAnalysisSessionType>> containerDefinitionModel
+                        = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisSessionType.class);
+
+                PrismPropertyWrapperColumn<RoleAnalysisSessionType, Object> roleAnalysisSessionTypeObjectPrismPropertyWrapperColumn = new PrismPropertyWrapperColumn<>(containerDefinitionModel,
+                        ItemPath.create(RoleAnalysisSessionType.F_CLUSTER_OPTIONS,
+                                RoleAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD),
+                        AbstractItemWrapperColumn.ColumnType.STRING, getPageBase());
+
+                columns.add((IColumn) new PrismPropertyWrapperColumn<RoleAnalysisSessionType, String>(containerDefinitionModel,
+                        ItemPath.create(RoleAnalysisSessionType.F_CLUSTER_OPTIONS,
+                                RoleAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD),
+                        AbstractItemWrapperColumn.ColumnType.STRING,getPageBase()));
 
                 IColumn<SelectableBean<RoleAnalysisSessionType>, String> column = new AbstractExportableColumn<>(getHeaderTitle("mode")) {
 

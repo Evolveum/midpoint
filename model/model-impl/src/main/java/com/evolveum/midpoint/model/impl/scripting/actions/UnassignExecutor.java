@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.UnassignActionExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -148,12 +151,14 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     private boolean matches(AssignmentType existingAssignment, UnassignParameters parameters, ObjectFilter resolvedFilter)
             throws SchemaException {
         ObjectReferenceType targetRef = existingAssignment.getTargetRef();
-        if (targetRef != null && matchesOid(targetRef.getOid(), parameters.dynamicRoleRefs)
+        if (targetRef != null
+                && matchesOid(targetRef.getOid(), parameters.dynamicRoleRefs)
                 && matchesRelation(targetRef.getRelation(), parameters.dynamicRelations)) {
             return true;
         }
         ConstructionType construction = existingAssignment.getConstruction();
-        if (construction != null && construction.getResourceRef() != null
+        if (construction != null
+                && construction.getResourceRef() != null
                 && matchesOid(construction.getResourceRef().getOid(), parameters.dynamicResourceRefs)) {
             return true;
         }
@@ -172,7 +177,12 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     }
 
     @Override
-    protected String getActionName() {
+    protected @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_UNASSIGN.getLocalPart();
     }
 }
