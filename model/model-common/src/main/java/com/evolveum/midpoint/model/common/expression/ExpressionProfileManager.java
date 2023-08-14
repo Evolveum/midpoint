@@ -19,6 +19,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DefaultExpressionProfilesConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.google.common.base.Preconditions;
@@ -154,12 +155,39 @@ public class ExpressionProfileManager {
         if (profile != null) {
             return profile;
         }
-        // TODO use system configuration to determine legacy for privileged/unprivileged bulk actions
         if (securityEnforcer.isAuthorizedAll(task, result)) {
+            return getPrivilegedScriptingProfile(result);
+        } else {
+            return getUnprivilegedScriptingProfile(result);
+        }
+    }
+
+    private @NotNull ExpressionProfile getPrivilegedScriptingProfile(@NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+        var defaults = getDefaults(result);
+        var defaultScriptingProfileId = defaults != null ? defaults.getPrivilegedScripting() : null;
+        if (defaultScriptingProfileId != null) {
+            return systemObjectCache.getExpressionProfile(defaultScriptingProfileId, result);
+        } else {
             return ExpressionProfile.full();
+        }
+    }
+
+    private @NotNull ExpressionProfile getUnprivilegedScriptingProfile(@NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+        var defaults = getDefaults(result);
+        var defaultScriptingProfileId = defaults != null ? defaults.getScripting() : null;
+        if (defaultScriptingProfileId != null) {
+            return systemObjectCache.getExpressionProfile(defaultScriptingProfileId, result);
         } else {
             return ExpressionProfile.scriptingLegacyUnprivileged();
         }
+    }
+
+    private DefaultExpressionProfilesConfigurationType getDefaults(@NotNull OperationResult result) throws SchemaException {
+        var config = systemObjectCache.getSystemConfigurationBean(result);
+        var expressions = config != null ? config.getExpressions() : null;
+        return expressions != null ? expressions.getDefaults() : null;
     }
 
     /**
