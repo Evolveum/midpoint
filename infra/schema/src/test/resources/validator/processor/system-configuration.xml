@@ -87,9 +87,6 @@
                     <searchItems>
                         <searchItem id="8">
                             <displayName>sample2</displayName>
-                            <display>
-                                <label>sample3</label>
-                            </display>
                         </searchItem>
                     </searchItems>
                 </searchBoxConfiguration>
