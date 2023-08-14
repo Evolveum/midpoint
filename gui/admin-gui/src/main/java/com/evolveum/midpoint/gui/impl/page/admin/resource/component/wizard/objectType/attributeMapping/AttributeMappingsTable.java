@@ -226,7 +226,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         columns.add(new CheckBoxHeaderColumn<>());
 
         IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
-                WebComponentUtil.getContainerDefinitionModel(MappingType.class);
+                getMappingTypeDefinition();
 
         IColumn<PrismContainerValueWrapper<MappingType>, String> iconColumns = createUsedIconColumn();
         Optional.ofNullable(iconColumns).ifPresent(column -> columns.add(column));
@@ -255,6 +255,10 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         return null;
     };
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
+
+    protected final LoadableModel<PrismContainerDefinition<MappingType>> getMappingTypeDefinition() {
+        return WebComponentUtil.getContainerDefinitionModel(MappingType.class);
+    }
 
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
