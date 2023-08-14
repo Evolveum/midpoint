@@ -149,7 +149,8 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 if (config == null) {
                     containers.removeIf(c -> c.isVirtual()  || !isVisibleSubContainer(c));
                 } else {
-                    containers.removeIf(c -> (c.isVirtual() && c.getIdentifier() == null) || !isVisibleSubContainer(c));
+                    containers.removeIf(c -> (c.isVirtual() && c.getIdentifier() == null)
+                            || (!c.isVirtual() && !isVisibleSubContainer(c)));
                 }
 
                 return containers;
