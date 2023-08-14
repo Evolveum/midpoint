@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -225,7 +226,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         columns.add(new CheckBoxHeaderColumn<>());
 
         IModel<PrismContainerDefinition<MappingType>> mappingTypeDef =
-                getMappingTypeDefinition();
+                WebComponentUtil.getContainerDefinitionModel(MappingType.class);
 
         IColumn<PrismContainerValueWrapper<MappingType>, String> iconColumns = createUsedIconColumn();
         Optional.ofNullable(iconColumns).ifPresent(column -> columns.add(column));
@@ -254,15 +255,6 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         return null;
     };
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
-
-    protected LoadableModel<PrismContainerDefinition<MappingType>> getMappingTypeDefinition() {
-        return new LoadableModel<>() {
-            @Override
-            protected PrismContainerDefinition<MappingType> load() {
-                return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(MappingType.class);
-            }
-        };
-    }
 
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {

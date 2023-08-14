@@ -5755,4 +5755,13 @@ public final class WebComponentUtil {
         }
         return oidsList;
     }
+
+    public static <C extends Containerable> LoadableModel<PrismContainerDefinition<C>> getContainerDefinitionModel(Class<C> clazz) {
+        return new LoadableModel<>() {
+            @Override
+            protected PrismContainerDefinition<C> load() {
+                return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
+            }
+        };
+    }
 }

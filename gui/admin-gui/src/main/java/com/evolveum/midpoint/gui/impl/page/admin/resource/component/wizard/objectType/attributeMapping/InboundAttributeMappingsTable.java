@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
@@ -25,6 +26,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,6 +38,29 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
             String id, IModel<PrismContainerValueWrapper<P>> valueModel,
             ContainerPanelConfigurationType config) {
         super(id, valueModel, config);
+    }
+
+    enum UsedFor {
+        CORRELATION(InboundMappingUseType.CORRELATION,
+                "text-warning fa fa-code-branch",
+                "InboundAttributeMappingsTable.usedForCorrelation"),
+        SYNCHRONIZATION(InboundMappingUseType.SYNCHRONIZATION,
+                "text-warning fa fa-rotate",
+                "InboundAttributeMappingsTable.usedForSynchronization"),
+        ALL(InboundMappingUseType.ALL,
+                "text-info fa fa-retweet",
+                "InboundAttributeMappingsTable.usedForAll");
+
+        private final InboundMappingUseType type;
+        private final String icon;
+
+        private final String tooltip;
+
+        UsedFor(InboundMappingUseType type, String icon, String tooltip) {
+            this.type = type;
+            this.icon = icon;
+            this.tooltip = tooltip;
+        }
     }
 
     @Override
@@ -67,13 +92,19 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
                 PrismContainerValueWrapper<MappingType> mapping = rowModel.getObject();
                 MappingType mappingBean = mapping.getRealValue();
-                if (mappingBean instanceof InboundMappingType
-                        && InboundMappingUseType.CORRELATION.equals(((InboundMappingType) mappingBean).getUse())) {
-                    return new DisplayType()
-                            .tooltip("InboundAttributeMappingsTable.usedForCorrelation")
-                            .beginIcon()
-                            .cssClass("text-warning fa fa-code-branch")
-                            .end();
+
+                InboundMappingUseType mappingUsed = ((InboundMappingType) mappingBean).getUse();
+                if (mappingUsed == null) {
+                    mappingUsed = InboundMappingUseType.ALL;
+                }
+                for (UsedFor usedFor : Arrays.stream(UsedFor.values()).toList()) {
+                    if (usedFor.type.equals(mappingUsed)) {
+                        return new DisplayType()
+                                .tooltip(usedFor.tooltip)
+                                .beginIcon()
+                                .cssClass(usedFor.icon)
+                                .end();
+                    }
                 }
                 return new DisplayType();
             }

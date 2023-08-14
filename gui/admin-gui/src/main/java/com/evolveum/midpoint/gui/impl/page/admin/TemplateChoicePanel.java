@@ -21,9 +21,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -89,7 +91,7 @@ public abstract class TemplateChoicePanel extends WizardChoicePanel<CompiledObje
             }
 
             protected VisibleEnableBehaviour getDescriptionBehaviour() {
-                return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+                return new VisibleBehaviour(() -> StringUtils.isNotEmpty(tileModel.getObject().getDescription()));
             }
 
             @Override
