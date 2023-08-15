@@ -448,7 +448,11 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 case EXECUTE_MIDPOINT:
                     queryPresent = StringUtils.isNotBlank(dto.getMidPointQuery()) || !dto.getMidPointQueryScript().getExpressionEvaluator().isEmpty();
                     if (queryPresent) {
-                        updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), dto.getMidPointQueryScript(), task, result);
+                        ExpressionType scriptQuery = null;
+                        if (dto.isScriptEnabled()) {
+                            scriptQuery = dto.getMidPointQueryScript();
+                        }
+                        updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), scriptQuery, task, result);
                     }
                     break;
                 default:
