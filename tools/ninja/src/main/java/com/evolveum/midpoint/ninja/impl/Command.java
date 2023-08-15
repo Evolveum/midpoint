@@ -54,7 +54,9 @@ public enum Command {
 
     UPGRADE_OBJECTS("upgrade-objects", UpgradeObjectsOptions.class, UpgradeObjectsAction.class),
 
-    PRE_UPGRADE_CHECK("pre-upgrade-check", PreUpgradeCheckOptions.class, PreUpgradeCheckAction.class);
+    PRE_UPGRADE_CHECK("pre-upgrade-check", PreUpgradeCheckOptions.class, PreUpgradeCheckAction.class),
+
+    HELP("help", HelpOptions.class, HelpAction.class);
 
     private final String commandName;
 

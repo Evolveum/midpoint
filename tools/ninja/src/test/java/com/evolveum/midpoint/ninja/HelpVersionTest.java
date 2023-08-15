@@ -9,6 +9,8 @@ package com.evolveum.midpoint.ninja;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
@@ -23,19 +25,42 @@ public class HelpVersionTest implements NinjaTestMixin {
 
     @Test
     public void test100FullHelp() throws Exception {
-        executeTest(list -> Assertions.assertThat(list).isNotEmpty(),
-                EMPTY_STREAM_VALIDATOR,
-                "-h");
+        validateHelp(null);
     }
 
     @Test
     public void test200HelpForCommands() throws Exception {
         for (Command command : Command.values()) {
-            executeTest(
-                    list -> Assertions.assertThat(list).isNotEmpty(),
-                    EMPTY_STREAM_VALIDATOR,
-                    "-h", command.getCommandName());
+            validateHelp(command.getCommandName());
         }
+    }
+
+    private void validateHelp(String command) throws Exception {
+
+        String[] args;
+        if (command == null) {
+            args = new String[] { "-h" };
+        } else {
+            args = new String[] { "-h", command };
+        }
+
+        List<String> result1 = new ArrayList<>();
+        executeTest(list -> result1.addAll(list),
+                EMPTY_STREAM_VALIDATOR,
+                args);
+
+        if (command == null) {
+            args = new String[] { "help" };
+        } else {
+            args = new String[] { "help", command };
+        }
+
+        List<String> result2 = new ArrayList<>();
+        executeTest(list -> result2.addAll(list),
+                EMPTY_STREAM_VALIDATOR,
+                args);
+
+        Assertions.assertThat(result1).isEqualTo(result2);
     }
 
     @Test

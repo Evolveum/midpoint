@@ -17,7 +17,11 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.beust.jcommander.IUsageFormatter;
 import com.beust.jcommander.JCommander;
+
+import com.evolveum.midpoint.ninja.impl.NinjaUsageFormatter;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -79,6 +83,7 @@ public class NinjaUtils {
         jc.setProgramName("java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar");
         jc.setColumnSize(110);
         jc.setAtFileCharset(Charset.forName(base.getCharset()));
+        jc.setUsageFormatter(new NinjaUsageFormatter(jc));
 
         return jc;
     }
@@ -305,6 +310,19 @@ public class NinjaUtils {
             matcher.appendReplacement(sb, Matcher.quoteReplacement(arg.toString()));
         }
         matcher.appendTail(sb);
+
+        return sb.toString();
+    }
+
+    public static String createHelp(JCommander jc, String parsedCommand) {
+        StringBuilder sb = new StringBuilder();
+
+        IUsageFormatter formatter = jc.getUsageFormatter();
+        if (parsedCommand != null) {
+            formatter.usage(parsedCommand, sb);
+        } else {
+            formatter.usage(sb);
+        }
 
         return sb.toString();
     }
