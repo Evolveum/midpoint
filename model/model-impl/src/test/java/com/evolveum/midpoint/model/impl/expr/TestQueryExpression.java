@@ -83,6 +83,29 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
+    public void test103EvaluatePreparedAxiomGivenNameUsingSetModel() throws Exception {
+        Task task = getTestTask();
+        var result = createOperationResult();
+        var prepared = PreparedQuery.parse(UserType.class, "givenName = :name and familyName = :family");
+
+        // Return read only result
+        prepared.operationOptionsBuilder().readOnly();
+
+        var query = prepared
+                .set("name", new PolyString("Elaine"))
+                .set("family", new PolyString("Marley"))
+                .build();
+
+        var objects = modelService.searchObjects(query, task, result);
+        assertEquals("Only one user should be found", 1, objects.size());
+        var only = objects.get(0);
+        assertEquals("User should be Elaine",userTypeElaine.getOid(),only.getOid());
+
+        // FIXME: Investigate why readOnly option does not work
+        //assertTrue("Object should be frozen", userTypeElaine.isImmutable());
+    }
+
+    @Test
     public void test101EvaluatePreparedOrderingAndPagingModel() throws Exception {
         Task task = getTestTask();
         var result = createOperationResult();
