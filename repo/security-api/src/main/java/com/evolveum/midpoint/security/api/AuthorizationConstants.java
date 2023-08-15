@@ -402,7 +402,7 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SELF_CREDENTIALS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfCredentials");
     public static final String AUTZ_UI_SELF_CREDENTIALS_URL = NS_AUTHORIZATION_UI + "#selfCredentials";
     public static final String AUTZ_UI_RESET_PASSWORD_URL = NS_AUTHORIZATION_UI + "#resetPassword";
-    public static final String AUTZ_UI_USERNAME_RECOVERY_URL = NS_AUTHORIZATION_UI + "#usernameRecovery";
+    public static final String AUTZ_UI_IDENTITY_RECOVERY_URL = NS_AUTHORIZATION_UI + "#identityRecovery";
 
     public static final QName AUTZ_UI_SELF_CONSENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfConsents");
     public static final String AUTZ_UI_SELF_CONSENTS_URL = NS_AUTHORIZATION_UI + "#selfConsents";

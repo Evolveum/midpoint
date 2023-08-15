@@ -219,7 +219,7 @@ public class SecurityUtils {
                 || securityPolicy.getAuthentication().getModules() == null) {
             return null;
         }
-        var policy = securityPolicy.getLoginNameRecovery();
+        var policy = securityPolicy.getIdentityRecovery();
         if (policy == null) {
             return null;
         }

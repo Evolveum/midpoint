@@ -63,7 +63,7 @@ public class CorrelationModuleFactory extends AbstractModuleFactory
         if (authenticationChannel == null) {
             return;
         }
-        if (!SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI.equals(authenticationChannel.getChannelId())) {
+        if (!SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI.equals(authenticationChannel.getChannelId())) {
             throw new IllegalArgumentException("Unsupported factory " + this.getClass().getSimpleName()
                     + " for channel " + authenticationChannel.getChannelId());
         }

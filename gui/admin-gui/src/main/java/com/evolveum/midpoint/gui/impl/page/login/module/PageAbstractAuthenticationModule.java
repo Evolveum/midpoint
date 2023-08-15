@@ -67,7 +67,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
-    private static final String ID_LOGIN_RECOVERY = "loginRecovery";
+    private static final String ID_IDENTITY_RECOVERY = "identityRecovery";
     private static final String ID_RESET_PASSWORD = "resetPassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
 
@@ -119,7 +119,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         add(form);
 
         SecurityPolicyType securityPolicy = loadSecurityPolicyType();
-        addLoginRecoveryLink(securityPolicy);
+        addIdentityRecoveryLink(securityPolicy);
         addForgotPasswordLink(securityPolicy);
         addRegistrationLink(securityPolicy);
 
@@ -163,9 +163,9 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         }
     }
 
-    private void addLoginRecoveryLink(SecurityPolicyType securityPolicy) {
-        String loginRecoveryUrl = getLoginRecoveryUrl(securityPolicy);
-        addExternalLink(ID_LOGIN_RECOVERY, loginRecoveryUrl);
+    private void addIdentityRecoveryLink(SecurityPolicyType securityPolicy) {
+        String identityRecoveryUrl = getIdentityRecoveryUrl(securityPolicy);
+        addExternalLink(ID_IDENTITY_RECOVERY, identityRecoveryUrl);
     }
 
     private void addExternalLink(String componentId, String linkUrl) {
@@ -190,12 +190,12 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     }
 
-    private String getLoginRecoveryUrl(SecurityPolicyType securityPolicy) {
-        var loginRecoveryPolicy = securityPolicy.getLoginNameRecovery();
-        if (loginRecoveryPolicy == null) {
+    private String getIdentityRecoveryUrl(SecurityPolicyType securityPolicy) {
+        var identityRecoveryPolicy = securityPolicy.getIdentityRecovery();
+        if (identityRecoveryPolicy == null) {
             return "";
         }
-        return getAuthLinkUrl(loginRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
+        return getAuthLinkUrl(identityRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
     }
 
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {

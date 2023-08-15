@@ -118,11 +118,11 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
 
     private boolean isUndefinedArchetypeAllowed() {
         var securityPolicy = resolveSecurityPolicy(null);
-        var loginNameRecoveryModule = SecurityUtils.getArchetypeSelectionAuthModule(securityPolicy);
-        if (loginNameRecoveryModule == null) {
+        var identityRecoveryModule = SecurityUtils.getArchetypeSelectionAuthModule(securityPolicy);
+        if (identityRecoveryModule == null) {
             return false;
         }
-        return Boolean.TRUE.equals(loginNameRecoveryModule.isAllowUndefinedArchetype());
+        return Boolean.TRUE.equals(identityRecoveryModule.isAllowUndefinedArchetype());
     }
 
     private void initArchetypeSelectionPanel(MidpointForm<?> form) {

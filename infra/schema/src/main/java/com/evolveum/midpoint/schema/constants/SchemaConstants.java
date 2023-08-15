@@ -457,8 +457,8 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_RESET_PASSWORD_URI = qNameToUri(CHANNEL_RESET_PASSWORD_QNAME);
 
 
-    public static final QName CHANNEL_LOGIN_RECOVERY_QNAME = new QName(NS_CHANNEL, "loginRecovery");
-    public static final String CHANNEL_LOGIN_RECOVERY_URI = qNameToUri(CHANNEL_LOGIN_RECOVERY_QNAME);
+    public static final QName CHANNEL_IDENTITY_RECOVERY_QNAME = new QName(NS_CHANNEL, "identityRecovery");
+    public static final String CHANNEL_IDENTITY_RECOVERY_URI = qNameToUri(CHANNEL_IDENTITY_RECOVERY_QNAME);
 
 
     // Catch-all channel for all user operations in user interface.

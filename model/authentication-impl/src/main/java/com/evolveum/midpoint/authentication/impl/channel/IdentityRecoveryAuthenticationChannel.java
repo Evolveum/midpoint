@@ -13,23 +13,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 import java.util.Collection;
 import java.util.Collections;
 
-public class LoginRecoveryAuthenticationChannel extends AuthenticationChannelImpl {
+public class IdentityRecoveryAuthenticationChannel extends AuthenticationChannelImpl {
 
-    public LoginRecoveryAuthenticationChannel(AuthenticationSequenceChannelType channel) {
+    public IdentityRecoveryAuthenticationChannel(AuthenticationSequenceChannelType channel) {
         super(channel);
     }
 
     public String getChannelId() {
-        return SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI;
+        return SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI;
     }
 
     public String getPathAfterSuccessfulAuthentication() {
-        return "/loginRecovery";
+        return "/identityRecovery";
     }
 
     @Override
     protected Collection<String> getAdditionalAuthoritiesList() {
-        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_USERNAME_RECOVERY_URL);
+        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_IDENTITY_RECOVERY_URL);
     }
 
 }
