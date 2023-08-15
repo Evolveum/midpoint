@@ -413,6 +413,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 beans.correlationServiceImpl.determineObjectTemplate(
                         syncCtx.getArchetypeOid(),
                         syncCtx.getPreFocus(),
+                        null,
                         task,
                         result));
     }

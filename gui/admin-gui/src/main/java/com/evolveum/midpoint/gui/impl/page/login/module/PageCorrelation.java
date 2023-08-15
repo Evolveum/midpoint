@@ -85,7 +85,7 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
         try {
             Task task = createAnonymousTask(OPERATION_DETERMINE_CORRELATOR_SETTINGS);
             paths = getCorrelationService().determineCorrelatorConfiguration(
-                    new CorrelatorDiscriminator(correlatorName, CorrelationUseType.USERNAME_RECOVERY), archetypeOid, task, task.getResult());
+                    new CorrelatorDiscriminator(correlatorName, CorrelationUseType.IDENTITY_RECOVERY), archetypeOid, task, task.getResult());
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Couldn't determine correlator configuration", e);
             paths = new PathSet();

@@ -205,7 +205,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 synchronizationPolicy.getObjectTypeDefinition(),
                 synchronizationPolicy,
                 preFocus,
-                determineObjectTemplate(synchronizationPolicy.getArchetypeOid(), preFocus, task, result),
+                determineObjectTemplate(synchronizationPolicy.getArchetypeOid(), preFocus, null, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
                 task);
@@ -359,7 +359,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 policy.getObjectTypeDefinition(),
                 policy,
                 preFocus,
-                determineObjectTemplate(policy.getArchetypeOid(), preFocus, task, result),
+                determineObjectTemplate(policy.getArchetypeOid(), preFocus, null, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
                 new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
                 task);
@@ -382,7 +382,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 preFocus,
                 archetypeOid,
                 candidateOids,
-                determineObjectTemplate(archetypeOid, preFocus, task, result),
+                determineObjectTemplate(archetypeOid, preFocus, null, task, result),
                 systemObjectCache.getSystemConfigurationBean(result),
                 discriminator,
                 task);
@@ -436,17 +436,20 @@ public class CorrelationServiceImpl implements CorrelationService {
      * @param explicitArchetypeOid If present, it overrides the archetype OID from the pre-focus (that may or may not be there).
      *                             Used for shadow correlation when specified by the synchronization policy.
      */
-    public ObjectTemplateType determineObjectTemplate(
+    public <F extends FocusType> ObjectTemplateType determineObjectTemplate(
             @Nullable String explicitArchetypeOid,
             @Nullable FocusType preFocus,
+            @Nullable Class<F> objectType,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        ArchetypePolicyType policy;
+        ArchetypePolicyType policy = null;
         if (explicitArchetypeOid != null) {
             policy = beans.archetypeManager.getPolicyForArchetype(explicitArchetypeOid, result);
-        } else {
+        } else if (preFocus != null) {
             policy = beans.archetypeManager.determineArchetypePolicy(preFocus, result);
+        } else if (objectType != null) {
+            policy =beans.archetypeManager.determineObjectPolicyConfiguration(objectType, result);
         }
         LOGGER.trace("Determined archetype policy: {} (explicit archetype OID is: {})", policy, explicitArchetypeOid);
         String oid = policy != null ? getOid(policy.getObjectTemplateRef()) : null;
@@ -526,7 +529,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         // from the default object template. should determineObjectTemplate method cope with this situation?
         // and while getting default object template do we consider UserType to be default?
 
-        ObjectTemplateType template = determineObjectTemplate(archetypeOid, null, task, result);
+        ObjectTemplateType template = determineObjectTemplate(archetypeOid, null, UserType.class, task, result);
         //TODO //@NotNull correlation definition bean. probably shoudl be changed
         CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(
                 new CorrelationDefinitionType(),

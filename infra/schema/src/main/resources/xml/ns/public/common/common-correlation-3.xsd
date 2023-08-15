@@ -245,13 +245,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="usernameRecovery">
+            <xsd:enumeration value="identityRecovery">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Correlator is used for username recovery functionality.
+                        Correlator is used for identity recovery functionality.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="USERNAME_RECOVERY"/>
+                        <jaxb:typesafeEnumMember name="IDENTITY_RECOVERY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
