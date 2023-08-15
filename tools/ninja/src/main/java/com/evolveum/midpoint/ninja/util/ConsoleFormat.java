@@ -1,11 +1,10 @@
 package com.evolveum.midpoint.ninja.util;
 
 import org.fusesource.jansi.Ansi;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.LogLevel;
-
-import javax.annotation.Nullable;
 
 public final class ConsoleFormat {
 
