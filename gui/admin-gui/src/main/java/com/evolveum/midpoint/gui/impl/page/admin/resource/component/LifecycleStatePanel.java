@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -236,8 +237,8 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
         return "";
     }
 
-    private List getChoices() {
-        List choices = new ArrayList();
+    private List<DisplayableValue<String>> getChoices() {
+        List<DisplayableValue<String>> choices = new ArrayList();
         String lookupOid = getModelObject().getPredefinedValuesOid();
         if (StringUtils.isEmpty(lookupOid)) {
             return choices;
@@ -256,6 +257,7 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
             choices.add(display);
         }
 
+        Collections.sort(choices, (r1, r2) -> );
         return choices;
     }
 
