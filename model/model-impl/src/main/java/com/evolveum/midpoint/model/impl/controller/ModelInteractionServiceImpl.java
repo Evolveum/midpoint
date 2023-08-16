@@ -1890,15 +1890,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                             .getObject(TaskType.class, templateOid, createCollection(createExecutionPhase()), task, result)
                             .asObjectable();
 
-            if (newTask.getOwnerRef() != null) {
-                LOGGER.warn("Ignoring owner {} of the task template {}; the current user will be used as the task owner",
-                        newTask.getOwnerRef(), newTask);
-            }
-            newTask.setOwnerRef(null);
-
             newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
             newTask.setOid(null);
             newTask.setTaskIdentifier(null);
+            newTask.setOwnerRef(null);
 
             return submit(
                     customization.applyTo(newTask),
@@ -1908,6 +1903,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         } catch (Throwable t) {
             result.recordFatalError("Couldn't submit task from template: " + t.getMessage(), t);
             throw t;
+        } finally {
+            result.close();
         }
     }
 

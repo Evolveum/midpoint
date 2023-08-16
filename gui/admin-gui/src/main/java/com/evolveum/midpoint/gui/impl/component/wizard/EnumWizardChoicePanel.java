@@ -65,7 +65,13 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     }
 
     protected void addDefaultTile(List<Tile<T>> list) {
-        list.add(createDefaultTile(getObjectType()));
+        if (addDefaultTile()) {
+            list.add(createDefaultTile(getObjectType()));
+        }
+    }
+
+    protected boolean addDefaultTile() {
+        return true;
     }
 
     @Override
@@ -106,7 +112,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
                 ).getString());
     }
 
-    private void goToObjectPerformed(QName type) {
+    protected void goToObjectPerformed(QName type) {
         Class<? extends ObjectType> typeClass = WebComponentUtil.qnameToClass(PrismContext.get(), type, ObjectType.class);
         if (typeClass == null) {
             return;

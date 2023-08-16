@@ -148,6 +148,9 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 @Nullable PrismObject<ResourceType> resource =
                         WebModelServiceUtils.loadObject(ResourceType.class, resourceTemplate.getOid(), getPageBase(), task, result);
                 PrismObject<ResourceType> obj = resource.cloneComplex(CloneStrategy.REUSE);
+                obj.setOid(null);
+                obj.asObjectable().template(null);
+                obj.asObjectable().setName(null);
                 obj.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).addRealValue(SchemaConstants.LIFECYCLE_PROPOSED);
                 onTemplateSelectionPerformed(obj, target);
                 return;
