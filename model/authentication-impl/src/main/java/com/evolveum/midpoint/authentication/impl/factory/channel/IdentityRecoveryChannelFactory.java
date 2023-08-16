@@ -7,24 +7,23 @@
 package com.evolveum.midpoint.authentication.impl.factory.channel;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.channel.LoginRecoveryAuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.channel.SelfRegistrationAuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.channel.IdentityRecoveryAuthenticationChannel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoginRecoveryChannelFactory extends AbstractChannelFactory {
+public class IdentityRecoveryChannelFactory extends AbstractChannelFactory {
 
     @Override
     public boolean match(String channelId) {
-        return SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI.equals(channelId);
+        return SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI.equals(channelId);
     }
 
     @Override
     public AuthenticationChannel createAuthChannel(AuthenticationSequenceChannelType channel) {
-        return new LoginRecoveryAuthenticationChannel(channel);
+        return new IdentityRecoveryAuthenticationChannel(channel);
     }
 
     @Override

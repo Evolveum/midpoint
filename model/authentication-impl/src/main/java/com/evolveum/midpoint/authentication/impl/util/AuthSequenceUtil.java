@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.util;
 
-import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,7 +72,7 @@ public class AuthSequenceUtil {
                 .put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI)
                 .put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI)
                 .put("invitation", SchemaConstants.CHANNEL_INVITATION_URI)
-                .put("loginRecovery", SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI)
+                .put("identityRecovery", SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI)
                 .build();
     }
 

@@ -67,7 +67,7 @@
                     </xsd:element>
                     <xsd:element name="credentialsReset" type="tns:CredentialsResetPolicyType" minOccurs="0">
                     </xsd:element>
-                    <xsd:element name="loginNameRecovery" type="tns:LoginNameRecoveryPolicyType" minOccurs="0">
+                    <xsd:element name="identityRecovery" type="tns:IdentityRecoveryPolicyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:since>4.8</a:since>
@@ -2299,11 +2299,11 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="LoginNameRecoveryPolicyType">
+    <xsd:complexType name="IdentityRecoveryPolicyType">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    Login name recovery management policy. It defines which authentication sequence should be used for login
+                    Identity recovery management policy. It defines which authentication sequence should be used for login
                     recovery procedure. For now, a username is considered to be a login name.
                 </p>
             </xsd:documentation>
@@ -2324,14 +2324,14 @@
             <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Free form description of the login name recovery policy.
+                        Free form description of the identity recovery policy.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="authenticationSequenceIdentifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines authentication sequence, which should be used for login name recovery.
+                        Defines authentication sequence, which should be used for identity recovery.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

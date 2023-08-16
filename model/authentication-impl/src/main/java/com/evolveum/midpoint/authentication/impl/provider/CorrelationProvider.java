@@ -114,7 +114,7 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             Set<String> candidatesOids,
             Class<? extends FocusType> focusType) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         Task task = taskManager.createTaskInstance("correlate");
-        task.setChannel(SchemaConstants.CHANNEL_LOGIN_RECOVERY_URI);
+        task.setChannel(SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI);
 
             //TODO cadidateOids as a parameter, + define somehow threshold - how many users migh be returned from the correlation
             return correlationService.correlate(

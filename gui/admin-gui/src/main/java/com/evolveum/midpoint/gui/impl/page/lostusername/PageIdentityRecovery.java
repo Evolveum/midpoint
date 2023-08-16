@@ -52,19 +52,19 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/loginRecovery", matchUrlForSecurity = "/loginRecovery")
+                @Url(mountUrl = "/identityRecovery", matchUrlForSecurity = "/identityRecovery")
         },
         action = {
                 @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                         label = PageSelf.AUTH_SELF_ALL_LABEL,
                         description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERNAME_RECOVERY_URL) })
-public class PageUsernameRecovery extends AbstractPageLogin {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_IDENTITY_RECOVERY_URL) })
+public class PageIdentityRecovery extends AbstractPageLogin {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageUsernameRecovery.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(PageUsernameRecovery.class);
+    private static final String DOT_CLASS = PageIdentityRecovery.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(PageIdentityRecovery.class);
     private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
 
     private static final String ID_LOGIN_NAME_PANEL = "loginNamePanel";
@@ -77,7 +77,7 @@ public class PageUsernameRecovery extends AbstractPageLogin {
     private LoadableModel<List<ItemPathType>> configuredItemsModel;
 
 
-    public PageUsernameRecovery() {
+    public PageIdentityRecovery() {
         super();
         initModels();
     }
@@ -123,8 +123,8 @@ public class PageUsernameRecovery extends AbstractPageLogin {
         try {
             var securityPolicy = getModelInteractionService().getSecurityPolicy(getMidpointPrincipal().getFocusPrismObject(),
                     getMidpointAuthentication().getArchetypeOid(), task, result);
-            var loginNameRecoveryConfig = securityPolicy.getLoginNameRecovery();
-            configuredItems = loginNameRecoveryConfig.getItemToDisplay();
+            var identityRecoveryConfig = securityPolicy.getIdentityRecovery();
+            configuredItems = identityRecoveryConfig.getItemToDisplay();
         } catch (Exception e) {
             LOGGER.debug("Unable to load the configured items list for login recovery page, ", e);
         }
@@ -201,7 +201,7 @@ public class PageUsernameRecovery extends AbstractPageLogin {
     }
 
     private String getTitleKey() {
-        return isUserFound() ? "PageUsernameRecovery.title.success" : "PageUsernameRecovery.title.fail";
+        return isUserFound() ? "PageIdentityRecovery.title.success" : "PageIdentityRecovery.title.fail";
     }
 
     @Override
@@ -211,12 +211,12 @@ public class PageUsernameRecovery extends AbstractPageLogin {
 
     private String getTitleDescriptionKey() {
         if (isUserFound() && configuredItemsExist()) {
-            return "PageUsernameRecovery.title.success.configuredItems.description";
+            return "PageIdentityRecovery.title.success.configuredItems.description";
         }
         if (isUserFound()) {
-            return "PageUsernameRecovery.title.success.description";
+            return "PageIdentityRecovery.title.success.description";
         }
-        return "PageUsernameRecovery.title.fail.description";
+        return "PageIdentityRecovery.title.fail.description";
     }
 
     private boolean isUserFound() {

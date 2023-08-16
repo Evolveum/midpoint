@@ -40,7 +40,7 @@
             </question>
         </securityQuestions>
     </credentials>
-    <loginNameRecovery>
+    <identityRecovery>
         <authenticationSequenceIdentifier></authenticationSequenceIdentifier>
-    </loginNameRecovery>
+    </identityRecovery>
 </securityPolicy>

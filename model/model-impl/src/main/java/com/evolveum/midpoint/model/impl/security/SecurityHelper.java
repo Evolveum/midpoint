@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -312,8 +310,8 @@ public class SecurityHelper implements ModelAuditRecorder {
                 topLevelSecurityPolicy.getCredentials()));
         mergedSecurityPolicy.setCredentialsReset(mergeCredentialsReset(lowLevelSecurityPolicy.getCredentialsReset(),
                 topLevelSecurityPolicy.getCredentialsReset()));
-        mergedSecurityPolicy.setLoginNameRecovery(mergeLoginNameRecovery(lowLevelSecurityPolicy.getLoginNameRecovery(),
-                topLevelSecurityPolicy.getLoginNameRecovery()));
+        mergedSecurityPolicy.setIdentityRecovery(mergeIdentityRecovery(lowLevelSecurityPolicy.getIdentityRecovery(),
+                topLevelSecurityPolicy.getIdentityRecovery()));
 //        return mergedSecurityPolicy.asPrismObject();
 //        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(lowLevelSecurityPolicy.asPrismObject(), topLevelSecurityPolicy.asPrismObject());
         return mergedSecurityPolicy;// != null ? mergedSecurityPolicy.asObjectable() : null;
@@ -529,8 +527,8 @@ public class SecurityHelper implements ModelAuditRecorder {
         return null;
     }
 
-    private LoginNameRecoveryPolicyType mergeLoginNameRecovery(LoginNameRecoveryPolicyType lowLevelRecoveryPolicy,
-            LoginNameRecoveryPolicyType topLevelRecoveryPolicy) {
+    private IdentityRecoveryPolicyType mergeIdentityRecovery(IdentityRecoveryPolicyType lowLevelRecoveryPolicy,
+            IdentityRecoveryPolicyType topLevelRecoveryPolicy) {
         if (lowLevelRecoveryPolicy != null) {
             return lowLevelRecoveryPolicy.cloneWithoutId();
         }
