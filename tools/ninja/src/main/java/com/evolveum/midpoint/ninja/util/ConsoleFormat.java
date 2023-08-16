@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.ninja.util;
 
 import org.fusesource.jansi.Ansi;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.LogLevel;
@@ -37,8 +38,12 @@ public final class ConsoleFormat {
         return Ansi.isEnabled();
     }
 
-    public static String formatActionStartMessage(Action action) {
+    public static @Nullable String formatActionStartMessage(Action action) {
         String operation = action.getOperationName();
+        if (operation == null) {
+            return null;
+        }
+
         return Ansi.ansi().a("Starting ").fgGreen().a(operation).reset().toString();
     }
 

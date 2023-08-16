@@ -37,10 +37,10 @@ public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<Reso
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
-                new WizardModel(createBasicSteps(getValueModel())))));
+                new WizardModel(createBasicSteps()))));
     }
 
-    private List<WizardStep> createBasicSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+    private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
         steps.add(new BasicSettingResourceObjectTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
