@@ -14,20 +14,25 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -43,6 +48,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.apache.wicket.model.PropertyModel;
 
 public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthentication> extends PageAbstractAuthenticationModule<MA> {
     @Serial private static final long serialVersionUID = 1L;
@@ -79,13 +86,6 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
     @Override
     protected void initModuleLayout(MidpointForm form) {
-        form.add(new AjaxFormSubmitBehavior(form, "onsubmit") {
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                super.onSubmit(target);
-            }
-        });
-
         HiddenField<String> verified = new HiddenField<>(ID_ATTRIBUTE_VALUES, attrValuesModel);
         verified.setOutputMarkupId(true);
         form.add(verified);
@@ -100,55 +100,57 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
             @Override
             protected void populateItem(ListItem<VerificationAttributeDto> item) {
-                item.add(createAttributePanel(item.getModelObject()));
+                createAttributePanel(item);
             }
         };
         attributesPanel.setOutputMarkupId(true);
         form.add(attributesPanel);
     }
 
-    private Component createAttributePanel(VerificationAttributeDto verificationAttributeDto) {
-        if (verificationAttributeDto == null || verificationAttributeDto.isEmptyPath()) {
-            return new WebMarkupContainer(ID_ATTRIBUTE_PANEL);
+    private void createAttributePanel(ListItem<VerificationAttributeDto> item) {
+        Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
+        item.add(attributeNameLabel);
+
+        var itemWrapper = item.getModelObject().getItemWrapper();
+        var valuePanel = new PrismPropertyValuePanel<PrismPropertyValueWrapper<?>>(ID_ATTRIBUTE_VALUE,
+                new PropertyModel<>(itemWrapper, "value"),
+                new ItemPanelSettingsBuilder().build()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected AjaxEventBehavior createEventBehavior() {
+                return new AjaxFormComponentUpdatingBehavior("change") {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        attrValuesModel.setObject(generateAttributeValuesString());
+                        target.add(getVerifiedField());
+                    }
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                        target.add(getFeedback());
+                    }
+                };
+            }
+        };
+        item.add(valuePanel);
+    }
+
+    private String resolveAttributeLabel(VerificationAttributeDto attribute) {
+        if (attribute == null) {
+            return "";
         }
-
-//        Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
-//        item.add(attributeNameLabel);
-//
-//        RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, new PropertyModel<>(item.getModel(), VerificationAttributeDto.F_VALUE));
-//        attributeValue.setOutputMarkupId(true);
-//        attributeValue.add(new AjaxFormComponentUpdatingBehavior("blur") {
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-//                attrValuesModel.setObject(generateAttributeValuesString());
-//                target.add(getVerifiedField());
-//            }
-//        });
-
-        Panel panel;
-        try {
-            var typeName = verificationAttributeDto.getItemWrapper().getTypeName();
-            var itemWrapper = verificationAttributeDto.getItemWrapper();
-            panel = initItemPanel(ID_ATTRIBUTE_PANEL, typeName, Model.of(itemWrapper), new ItemPanelSettingsBuilder().build());
-//            panel.visitChildren((component, visit) -> {
-//                if (component instanceof InputPanel) {
-//                    component.setOutputMarkupId(true);
-//                    component.add(new AjaxFormComponentUpdatingBehavior("blur") {
-//
-//                        @Override
-//                        protected void onUpdate(AjaxRequestTarget target) {
-//                            attrValuesModel.setObject(generateAttributeValuesString());
-//                            target.add(getVerifiedField());
-//
-//                        }
-//                    });
-//                }
-//            });
-
-        } catch (SchemaException e) {
-            return new ErrorPanel(ID_ATTRIBUTE_PANEL, Model.of("Cannot create panel."));
+        var path = attribute.getItemPath();
+        if (path == null) {
+            return "";
         }
-        return panel;
+        ItemDefinition<?> def = new UserType().asPrismObject().getDefinition().findItemDefinition(path);
+        var label = WebComponentUtil.getItemDefinitionDisplayNameOrName(def);
+        return StringUtils.isEmpty(label) ? path.toString() : label;
     }
 
     protected ItemWrapper<?, ?> createItemWrapper(ItemPath itemPath) {
@@ -178,13 +180,13 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
     private String generateAttributeValuesString() {
         JSONArray attrValues = new JSONArray();
         attributePathModel.getObject().forEach(entry -> {
-            Object value = entry.getValue();
+            PrismPropertyValueWrapper value = (PrismPropertyValueWrapper) entry.getValue();
             if (value == null) {
                 return;
             }
-            JSONObject json  = new JSONObject();
+            JSONObject json = new JSONObject();
             json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getItemPath());
-            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, value);
+            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, value.getRealValue());
             attrValues.put(json);
         });
         if (attrValues.length() == 0) {
@@ -193,4 +195,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         return attrValues.toString();
     }
 
+    private Component getVerifiedField() {
+        return getForm().get(ID_ATTRIBUTE_VALUES);
+    }
 }
