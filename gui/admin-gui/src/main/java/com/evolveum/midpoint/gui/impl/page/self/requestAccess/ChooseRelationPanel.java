@@ -7,45 +7,38 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
-import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
 
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.model.LoadableDetachableModel;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class ChooseRelationPanel extends BasePanel<List<QName>> {
 
-    private static final String DEFAULT_RELATION_ICON = "fa-solid fa-user";
-
     private static final String ID_LIST_CONTAINER = "listContainer";
     private static final String ID_LIST = "list";
     private static final String ID_TILE = "tile";
 
+    private IModel<List<RelationDefinitionType>> systemRelations;
 
     private LoadableModel<List<Tile<QName>>> relations;
 
@@ -66,6 +59,15 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
     }
 
     private void initModels() {
+        systemRelations = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<RelationDefinitionType> load() {
+                RelationRegistry registry = MidPointApplication.get().getRelationRegistry();
+                return registry.getRelationDefinitions();
+            }
+        };
+
         relations = new LoadableModel<>(false) {
 
             @Override
@@ -127,51 +129,13 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
     protected void onTileClick(AjaxRequestTarget target) {
     }
 
-    private String getDefaultRelationIcon(QName name) {
-        if (SchemaConstants.ORG_DEFAULT.equals(name)) {
-            return "fa-solid fa-user";
-        } else if (SchemaConstants.ORG_MANAGER.equals(name)) {
-            return "fa-solid fa-user-tie";
-        } else if (SchemaConstants.ORG_APPROVER.equals(name)) {
-            return "fa-solid fa-clipboard-check";
-        } else if (SchemaConstants.ORG_OWNER.equals(name)) {
-            return "fa-solid fa-crown";
-        }
-
-        return DEFAULT_RELATION_ICON;
-    }
-
     private Tile<QName> createTileForRelation(QName name) {
-        List<RelationDefinitionType> relations = getSystemRelations();
+        List<RelationDefinitionType> relations = systemRelations.getObject();
 
-        String icon = getDefaultRelationIcon(name);
-        String label = name.getLocalPart();
+        String icon = WebComponentUtil.getRelationIcon(name, relations);
+        PolyString label = WebComponentUtil.getRelationLabel(name, relations);
 
-        if (relations == null) {
-            return createTile(icon, label, name);
-        }
-
-        for (RelationDefinitionType rel : relations) {
-            if (!name.equals(rel.getRef())) {
-                continue;
-            }
-
-            DisplayType display = rel.getDisplay();
-            if (display == null) {
-                break;
-            }
-
-            IconType it = display.getIcon();
-            if (it != null && it.getCssClass() != null) {
-                icon = it.getCssClass();
-            }
-
-            label = WebComponentUtil.getTranslatedPolyString(display.getLabel());
-
-            break;
-        }
-
-        return createTile(icon, label, name);
+        return createTile(icon, LocalizationUtil.translatePolyString(label), name);
     }
 
     private Tile<QName> createTile(String icon, String label, QName value) {
@@ -192,21 +156,6 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
 
     public boolean isSelectedRelation() {
         return relations.getObject().stream().anyMatch(t -> t.isSelected());
-    }
-
-    private List<RelationDefinitionType> getSystemRelations() {
-        SystemConfigurationType sys = MidPointApplication.get().getSystemConfigurationIfAvailable();
-        if (sys == null) {
-            return null;
-        }
-
-        RoleManagementConfigurationType roleManagement = sys.getRoleManagement();
-        if (roleManagement == null) {
-            return null;
-        }
-
-        RelationsDefinitionType relations = roleManagement.getRelations();
-        return relations != null ? relations.getRelation() : null;
     }
 
     public List<Tile<QName>> getRelations() {

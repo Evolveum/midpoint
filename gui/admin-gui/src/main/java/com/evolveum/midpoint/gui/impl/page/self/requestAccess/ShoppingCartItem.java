@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,17 +39,33 @@ public class ShoppingCartItem implements Serializable, Comparable<ShoppingCartIt
     }
 
     public String getName() {
-        if (assignment == null || assignment.getTargetRef() == null) {
+        ObjectReferenceType ref = getTargetRef();
+        if (ref == null) {
             return null;
         }
-
-        ObjectReferenceType ref = assignment.getTargetRef();
         PolyStringType targetName = ref.getTargetName();
         if (targetName != null) {
             return targetName.getOrig();
         }
 
         return ref.getOid();
+    }
+
+    public QName getRelation() {
+        ObjectReferenceType ref = getTargetRef();
+        if (ref == null) {
+            return null;
+        }
+
+        return ref.getRelation();
+    }
+
+    private ObjectReferenceType getTargetRef() {
+        if (assignment == null || assignment.getTargetRef() == null) {
+            return null;
+        }
+
+        return assignment.getTargetRef();
     }
 
     @Override
