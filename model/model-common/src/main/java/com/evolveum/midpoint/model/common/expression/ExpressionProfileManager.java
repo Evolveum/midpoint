@@ -18,9 +18,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DefaultExpressionProfilesConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -87,21 +87,28 @@ public class ExpressionProfileManager {
 
         O objectable = object.asObjectable();
 
-        var structuralArchetype = // hopefully obtained from the cache
-                objectable instanceof AssignmentHolderType assignmentHolder ?
-                        archetypeManager.determineStructuralArchetype(assignmentHolder, result) : null;
+        // hopefully obtained from the cache
+        var archetypes = archetypeManager.determineArchetypes(objectable, result);
 
-        // The policy is (generally) cached, so this should be fast
-        var structuralArchetypePolicy = archetypeManager.getPolicyForArchetype(structuralArchetype, result);
-        if (structuralArchetypePolicy != null) {
-            var profileId = structuralArchetypePolicy.getExpressionProfile();
+        Set<String> idsFromArchetypes = new HashSet<>();
+        for (ArchetypeType archetype : archetypes) {
+            var policy = archetypeManager.getPolicyForArchetype(archetype, result);
+            var profileId = policy != null ? policy.getExpressionProfile() : null;
             if (profileId != null) {
-                return profileId;
+                idsFromArchetypes.add(profileId);
             }
         }
 
-        var objectPolicy = archetypeManager.determineObjectPolicyConfiguration(objectable, result);
-        return objectPolicy != null ? objectPolicy.getExpressionProfile() : null;
+        if (idsFromArchetypes.size() > 1) {
+            throw new ConfigurationException(
+                    "Multiple expression profile IDs for %s: %s".formatted(
+                            object, idsFromArchetypes));
+        } else if (idsFromArchetypes.size() == 1) {
+            return idsFromArchetypes.iterator().next();
+        } else {
+            var objectPolicy = archetypeManager.determineObjectPolicyConfiguration(objectable, result);
+            return objectPolicy != null ? objectPolicy.getExpressionProfile() : null;
+        }
     }
 
     /**
