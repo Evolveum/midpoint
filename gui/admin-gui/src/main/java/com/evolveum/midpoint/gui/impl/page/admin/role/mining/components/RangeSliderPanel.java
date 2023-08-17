@@ -21,60 +21,20 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 public class RangeSliderPanel extends InputPanel {
     private static final String ID_TEXT_FIELD = "slider_label";
     private static final String ID_SLIDER = "slider";
-    Integer sliderSimilarityValue = 80;
+    Integer sliderSimilarityValue;
 
-    public RangeSliderPanel(String id) {
-        super(id);
-
-//        sliderSimilarityValue = getDefaultValue();
-
-//        TextField<String> sliderLabel = new TextField<>(ID_TEXT_FIELD, new LoadableModel<>() {
-//            @Override
-//            protected String load() {
-//                return sliderSimilarityValue + "%";
-//            }
-//        }) {
-//
-//            @Override
-//            public FormComponent<String> setModelObject(String object) {
-//                return super.setModelObject(object);
-//            }
-//        };
-//        sliderLabel.setOutputMarkupId(true);
-//        sliderLabel.setEnabled(false);
-//        add(sliderLabel);
-//
-//        FormComponent<Integer> slider = new FormComponent<>(ID_SLIDER, Model.of(sliderSimilarityValue)) {
-//            @Override
-//            protected void onInitialize() {
-//                super.onInitialize();
-//                add(new AjaxFormComponentUpdatingBehavior("input") {
-//                    @Override
-//                    protected void onUpdate(AjaxRequestTarget target) {
-//                        sliderSimilarityValue = Integer.valueOf(getFormComponent().getValue());
-//                        target.add(sliderLabel);
-//                    }
-//                });
-//            }
-//        };
-//        slider.add(new AttributeModifier("min", getMinValue()));
-//        slider.add(new AttributeModifier("max", getMaxValue()));
-//        slider.add(new AttributeModifier("value", getDefaultValue()));
-//        slider.add(new AttributeModifier("style", "width:" + getSliderWidth() + getSliderWidthUnit()));
-//        add(slider);
-    }
-
-    private ItemRealValueModel<Double> model;
+    private final ItemRealValueModel<Double> model;
 
     public RangeSliderPanel(String id, ItemRealValueModel<Double> realValueModel) {
         super(id);
 
-        model = realValueModel;
+        this.model = realValueModel;
 
         if (model.getObject() == null) {
             model.setObject(80.0);
             sliderSimilarityValue = 80;
         } else {
+//            model.setObject(model.getObject() * 100.0);
             sliderSimilarityValue = model.getObject().intValue();
         }
 
@@ -109,7 +69,6 @@ public class RangeSliderPanel extends InputPanel {
                 add(new AjaxFormComponentUpdatingBehavior("input") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-//                        realValueModel.getObject().setSimilarityThreshold(Double.parseDouble(getFormComponent().getValue()) / (double) 100);
                         sliderSimilarityValue = Integer.valueOf(getBaseFormComponent().getValue());
                         getBaseFormComponent().getValue();
                         target.add(sliderLabel);
@@ -125,8 +84,8 @@ public class RangeSliderPanel extends InputPanel {
     }
 
     @Override
-    public FormComponent<Double> getBaseFormComponent() {
-        return (FormComponent<Double>) get(ID_SLIDER);
+    public FormComponent<?> getBaseFormComponent() {
+        return (FormComponent<?>) get(ID_SLIDER);
     }
 
     @Override
@@ -162,11 +121,4 @@ public class RangeSliderPanel extends InputPanel {
         return 100;
     }
 
-    public FormComponent<Double> getSliderFormComponent() {
-        return (FormComponent<Double>) get(ID_SLIDER);
-    }
-
-    public TextField<?> getTextFieldFormComponent() {
-        return (TextField<?>) get(ID_TEXT_FIELD);
-    }
 }

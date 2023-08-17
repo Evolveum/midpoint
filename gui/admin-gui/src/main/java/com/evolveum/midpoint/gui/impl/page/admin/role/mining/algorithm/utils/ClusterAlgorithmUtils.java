@@ -8,7 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ExtractPatternUtils.addDetectedObjectIntersection;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.createObjectReferences;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getSessionOptionType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
 
@@ -17,16 +18,16 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.DataPoint;
 
 import com.google.common.collect.ListMultimap;
-import org.apache.commons.math3.ml.clustering.Cluster;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.Cluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterStatistic;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,24 +38,24 @@ public class ClusterAlgorithmUtils {
 
     @NotNull
     public List<PrismObject<RoleAnalysisClusterType>> processClusters(PageBase pageBase, OperationResult result, List<DataPoint> dataPoints,
-            List<Cluster<DataPoint>> clusters, ClusterOptions clusterOptions) {
+            List<Cluster<DataPoint>> clusters, @NotNull RoleAnalysisSessionType session) {
         long start;
 
-        QName complexType = clusterOptions.getMode().equals(RoleAnalysisProcessModeType.ROLE)
+        QName complexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
                 : UserType.COMPLEX_TYPE;
 
         start = startTimer("generate clusters mp objects");
         List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, clusters.size())
                 .mapToObj(i -> prepareClusters(pageBase, result, clusters.get(i).getPoints(), String.valueOf(i),
-                        dataPoints, clusterOptions, complexType))
+                        dataPoints, session, complexType))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         endTimer(start, "generate clusters mp objects");
 
         start = startTimer("generate outliers mp objects");
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, result,
-                dataPoints, complexType);
+                dataPoints, complexType, session.getProcessMode());
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
@@ -63,10 +64,10 @@ public class ClusterAlgorithmUtils {
     @NotNull
     public List<PrismObject<RoleAnalysisClusterType>> processExactMatch(PageBase pageBase, OperationResult result,
             List<DataPoint> dataPoints,
-            ClusterOptions clusterOptions) {
+            @NotNull RoleAnalysisSessionType session) {
         long start;
 
-        QName processedObjectComplexType = clusterOptions.getMode().equals(RoleAnalysisProcessModeType.ROLE)
+        QName processedObjectComplexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
                 : UserType.COMPLEX_TYPE;
 
@@ -79,14 +80,15 @@ public class ClusterAlgorithmUtils {
         int size = dataPoints.size();
         List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
                 .mapToObj(i -> exactPrepareDataPoints(pageBase, result, dataPoints.get(i), String.valueOf(i),
-                        clusterOptions, dataPointsOutliers, processedObjectComplexType, propertiesComplexType))
+                        session, dataPointsOutliers, processedObjectComplexType, propertiesComplexType))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         endTimer(start, "generate clusters mp objects");
 
         start = startTimer("generate outliers mp objects");
-        PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, result, dataPoints, processedObjectComplexType);
+        PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, result, dataPoints,
+                processedObjectComplexType, session.getProcessMode());
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
@@ -97,12 +99,8 @@ public class ClusterAlgorithmUtils {
 
         for (List<String> points : chunkMap.keySet()) {
             List<String> elements = chunkMap.get(points);
-            double[] vectorPoints = new double[points.size()];
-            for (int i = 0; i < points.size(); i++) {
-                String point = points.get(i);
-                vectorPoints[i] = UUIDToDoubleConverter.convertUUid(point);
-            }
-            dataPoints.add(new DataPoint(vectorPoints, elements, points));
+
+            dataPoints.add(new DataPoint(new HashSet<>(elements), new HashSet<>(points)));
 
         }
         return dataPoints;
@@ -114,42 +112,47 @@ public class ClusterAlgorithmUtils {
         PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
         RepositoryService repositoryService = pageBase.getRepositoryService();
 
-        int totalPoints = 0;
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;
 
-        Set<String> elementsOids = new HashSet<>();
-        Set<String> occupiedPoints = new HashSet<>();
+        int totalAssignPropertiesRelation = 0;
+        int totalMembersCount = 0;
+
+        Set<String> membersOidsSet = new HashSet<>();
+        Set<String> propertiesOidsSet = new HashSet<>();
 
         for (DataPoint clusterDataPoint : clusterDataPoints) {
             allDataPoints.remove(clusterDataPoint);
-            List<String> points = clusterDataPoint.getPoints();
-            List<String> elements = clusterDataPoint.getElements();
-            elementsOids.addAll(elements);
-            occupiedPoints.addAll(points);
+            Set<String> properties = clusterDataPoint.getProperties();
+            Set<String> members = clusterDataPoint.getMembers();
+            membersOidsSet.addAll(members);
+            propertiesOidsSet.addAll(properties);
 
-            int pointsCount = points.size();
-            totalPoints += pointsCount;
-            minVectorPoint = Math.min(minVectorPoint, pointsCount);
-            maxVectorPoint = Math.max(maxVectorPoint, pointsCount);
+            int groupSize = members.size();
+            totalMembersCount += groupSize;
+
+            int occupyPointsCount = properties.size();
+            totalAssignPropertiesRelation += (occupyPointsCount * groupSize);
+            minVectorPoint = Math.min(minVectorPoint, occupyPointsCount);
+            maxVectorPoint = Math.max(maxVectorPoint, occupyPointsCount);
         }
 
-        Set<ObjectReferenceType> processedObjectsRef = createObjectReferences(elementsOids, complexType, repositoryService,
-                result);
+        int existingPropertiesInCluster = propertiesOidsSet.size();
 
-        int propertiesCount = occupiedPoints.size();
-
-        int membersCount = processedObjectsRef.size();
-
-        double meanPoints = (double) totalPoints / membersCount;
-
-        double density = Math.min((totalPoints / (double) (membersCount * propertiesCount)) * 100, 100);
-
-        if (propertiesCount == 0 || membersCount == 0) {
+        if (existingPropertiesInCluster == 0 || totalMembersCount == 0) {
             return null;
         }
 
-        return new ClusterStatistic(name, processedObjectsRef, membersCount, propertiesCount, minVectorPoint,
+        int allPossibleRelation = existingPropertiesInCluster * totalMembersCount;
+
+        double meanPoints = (double) totalAssignPropertiesRelation / totalMembersCount;
+
+        double density = Math.min((totalAssignPropertiesRelation / (double) allPossibleRelation) * 100, 100);
+
+        Set<ObjectReferenceType> processedObjectsRef = createObjectReferences(membersOidsSet, complexType, repositoryService,
+                result);
+
+        return new ClusterStatistic(name, processedObjectsRef, totalMembersCount, existingPropertiesInCluster, minVectorPoint,
                 maxVectorPoint, meanPoints, density);
     }
 
@@ -157,8 +160,8 @@ public class ClusterAlgorithmUtils {
             String clusterIndex, int threshold, List<DataPoint> dataPointsOutliers, QName processedObjectComplexType,
             QName propertiesComplexType, PageBase pageBase, OperationResult result) {
 
-        Set<String> elementsOids = new HashSet<>(clusterDataPoints.getElements());
-        Set<String> occupiedPoints = new HashSet<>(clusterDataPoints.getPoints());
+        Set<String> elementsOids = new HashSet<>(clusterDataPoints.getMembers());
+        Set<String> occupiedPoints = new HashSet<>(clusterDataPoints.getProperties());
 
         if (elementsOids.size() < threshold) {
             dataPointsOutliers.add(clusterDataPoints);
@@ -189,43 +192,44 @@ public class ClusterAlgorithmUtils {
     }
 
     private PrismObject<RoleAnalysisClusterType> exactPrepareDataPoints(PageBase pageBase, OperationResult result, DataPoint dataPointCluster,
-            String clusterIndex, ClusterOptions clusterOptions, List<DataPoint> dataPointsOutliers,
+            String clusterIndex, @NotNull RoleAnalysisSessionType session, List<DataPoint> dataPointsOutliers,
             QName processedObjectComplexType, QName propertiesComplexType) {
 
-        int minMembersCount = clusterOptions.getMinMembers();
-        int minGroupSize = clusterOptions.getMinGroupSize();
-        int threshold = Math.max(minMembersCount, minGroupSize);
-        ClusterStatistic clusterStatistic = exactStatisticLoad(dataPointCluster, clusterIndex, threshold,
+        AbstractAnalysisSessionOptionType sessionOptionType = getSessionOptionType(session);
+        int minMembersCount = sessionOptionType.getMinMembersCount();
+        ClusterStatistic clusterStatistic = exactStatisticLoad(dataPointCluster, clusterIndex, minMembersCount,
                 dataPointsOutliers, processedObjectComplexType, propertiesComplexType, pageBase, result);
 
         if (clusterStatistic != null) {
-            RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic);
+            AbstractAnalysisClusterStatistic roleAnalysisClusterStatisticType = ClusterObjectUtils.createClusterStatisticType(clusterStatistic, session.getProcessMode());
 
-            return generateClusterObject(pageBase, result, clusterStatistic, clusterOptions, roleAnalysisClusterStatisticType,
-                    true);
+            return generateClusterObject(pageBase, result, clusterStatistic, session, roleAnalysisClusterStatisticType,
+                    session.getProcessMode(), true);
         } else {return null;}
     }
 
     private PrismObject<RoleAnalysisClusterType> prepareClusters(PageBase pageBase, OperationResult result, List<DataPoint> dataPointCluster,
-            String clusterIndex, List<DataPoint> dataPoints, ClusterOptions clusterOptions, QName complexType) {
+            String clusterIndex, List<DataPoint> dataPoints, @NotNull RoleAnalysisSessionType session, QName complexType) {
 
         Set<String> elementsOids = new HashSet<>();
         for (DataPoint clusterDataPoint : dataPointCluster) {
-            List<String> elements = clusterDataPoint.getElements();
+            Set<String> elements = clusterDataPoint.getMembers();
             elementsOids.addAll(elements);
         }
 
-        if (elementsOids.size() < clusterOptions.getMinMembers()) {
+        AbstractAnalysisSessionOptionType sessionOptionType = getSessionOptionType(session);
+
+        if (elementsOids.size() < sessionOptionType.getMinMembersCount()) {
             return null;
         }
 
         ClusterStatistic clusterStatistic = statisticLoad(dataPointCluster, dataPoints, clusterIndex, complexType, pageBase, result);
 
         assert clusterStatistic != null;
-        RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic);
+        AbstractAnalysisClusterStatistic roleAnalysisClusterStatisticType = ClusterObjectUtils.createClusterStatisticType(clusterStatistic, session.getProcessMode());
 
         boolean detect = true;
-        RoleAnalysisDetectionProcessType detectMode = clusterOptions.getDetect();
+        RoleAnalysisDetectionProcessType detectMode = session.getDefaultDetectionOption().getDetectionProcessMode();
         if (detectMode.equals(RoleAnalysisDetectionProcessType.PARTIAL)) {
             if (clusterStatistic.getPropertiesCount() > 300 || clusterStatistic.getMembersCount() > 300) {
                 detect = false;
@@ -233,12 +237,12 @@ public class ClusterAlgorithmUtils {
         } else if (detectMode.equals(RoleAnalysisDetectionProcessType.SKIP)) {
             detect = false;
         }
-        return generateClusterObject(pageBase, result, clusterStatistic, clusterOptions, roleAnalysisClusterStatisticType, detect);
+        return generateClusterObject(pageBase, result, clusterStatistic, session, roleAnalysisClusterStatisticType, session.getProcessMode(), detect);
 
     }
 
     private PrismObject<RoleAnalysisClusterType> prepareOutlierClusters(PageBase pageBase, OperationResult result, List<DataPoint> dataPoints,
-            QName complexType) {
+            QName complexType, RoleAnalysisProcessModeType processMode) {
 
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;
@@ -249,9 +253,9 @@ public class ClusterAlgorithmUtils {
         Set<String> elementsOid = new HashSet<>();
         Set<String> pointsSet = new HashSet<>();
         for (DataPoint dataPoint : dataPoints) {
-            List<String> points = dataPoint.getPoints();
+            Set<String> points = dataPoint.getProperties();
             pointsSet.addAll(points);
-            elementsOid.addAll(dataPoint.getElements());
+            elementsOid.addAll(dataPoint.getMembers());
 
             int pointsSize = points.size();
             sumPoints += pointsSize;
@@ -279,33 +283,38 @@ public class ClusterAlgorithmUtils {
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, processedObjectsRef, elementSize,
                 pointsSize, minVectorPoint, maxVectorPoint, meanPoints, density);
 
-        RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic);
+        AbstractAnalysisClusterStatistic roleAnalysisClusterStatisticType = ClusterObjectUtils.createClusterStatisticType(clusterStatistic, processMode);
 
-        return generateClusterObject(pageBase, result, clusterStatistic, null, roleAnalysisClusterStatisticType, false);
+        return generateClusterObject(pageBase, result, clusterStatistic, null, roleAnalysisClusterStatisticType, processMode, false);
     }
 
     private @NotNull PrismObject<RoleAnalysisClusterType> generateClusterObject(PageBase pageBase, OperationResult result,
             ClusterStatistic clusterStatistic,
-            ClusterOptions clusterOptions,
-            RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType, boolean detectPattern) {
+            RoleAnalysisSessionType session,
+            AbstractAnalysisClusterStatistic roleAnalysisClusterStatisticType, RoleAnalysisProcessModeType processMode, boolean detectPattern) {
 
-        PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareClusterPrismObject(pageBase);
+        PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = ClusterObjectUtils.prepareClusterPrismObject(pageBase);
         assert clusterTypePrismObject != null;
 
         Set<ObjectReferenceType> members = clusterStatistic.getMembersRef();
 
         RoleAnalysisClusterType clusterType = clusterTypePrismObject.asObjectable();
         clusterType.setOid(String.valueOf(UUID.randomUUID()));
-        clusterType.setClusterStatistic(roleAnalysisClusterStatisticType);
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            clusterType.setClusterRoleBasedStatistic((RoleAnalysisClusterStatistic) roleAnalysisClusterStatisticType);
+        } else {
+            clusterType.setClusterUserBasedStatistic((UserAnalysisClusterStatistic) roleAnalysisClusterStatisticType);
+
+        }
         clusterType.getMember().addAll(members);
         clusterType.setName(clusterStatistic.getName());
 
-        if (clusterOptions != null && detectPattern) {
-            RoleAnalysisProcessModeType mode = clusterOptions.getMode();
+        if (session != null && detectPattern) {
+            RoleAnalysisProcessModeType mode = session.getProcessMode();
             DefaultPatternResolver defaultPatternResolver = new DefaultPatternResolver(mode);
 
             List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = defaultPatternResolver
-                    .loadPattern(clusterOptions, clusterStatistic, clusterType, pageBase, result);
+                    .loadPattern(session, clusterStatistic, clusterType, pageBase, result);
 
             clusterType.getDetectionPattern().addAll(roleAnalysisClusterDetectionTypeList);
         }
@@ -319,8 +328,8 @@ public class ClusterAlgorithmUtils {
 
         for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
 
-            List<ObjectReferenceType> propertiesRef = roleAnalysisClusterDetectionType.getPropertiesOccupancy();
-            List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getMemberOccupancy();
+            List<ObjectReferenceType> propertiesRef = roleAnalysisClusterDetectionType.getRolesOccupancy();
+            List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getUserOccupancy();
 
             Set<String> members = new HashSet<>();
             for (ObjectReferenceType objectReferenceType : membersObject) {
@@ -357,21 +366,21 @@ public class ClusterAlgorithmUtils {
             roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
 
             ObjectReferenceType objectReferenceType;
-            Set<String> members = detectedPattern.getMembers();
+            Set<String> members = detectedPattern.getUsers();
             for (String propertiesRef : members) {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef);
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMemberOccupancy().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getUserOccupancy().add(objectReferenceType);
 
             }
 
-            Set<String> properties = detectedPattern.getProperties();
+            Set<String> properties = detectedPattern.getRoles();
             for (String propertiesRef : properties) {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef);
                 objectReferenceType.setType(propertiesComplexType);
-                roleAnalysisClusterDetectionType.getPropertiesOccupancy().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getRolesOccupancy().add(objectReferenceType);
 
             }
 
@@ -388,21 +397,21 @@ public class ClusterAlgorithmUtils {
             roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
 
             ObjectReferenceType objectReferenceType;
-            Set<String> members = detectedPattern.getMembers();
+            Set<String> members = detectedPattern.getUsers();
             for (String memberRef : members) {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(memberRef);
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMemberOccupancy().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getUserOccupancy().add(objectReferenceType);
 
             }
 
-            Set<String> properties = detectedPattern.getProperties();
+            Set<String> properties = detectedPattern.getRoles();
             for (String propertiesRef : properties) {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef);
                 objectReferenceType.setType(propertiesComplexType);
-                roleAnalysisClusterDetectionType.getPropertiesOccupancy().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getRolesOccupancy().add(objectReferenceType);
             }
 
             roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getClusterMetric());

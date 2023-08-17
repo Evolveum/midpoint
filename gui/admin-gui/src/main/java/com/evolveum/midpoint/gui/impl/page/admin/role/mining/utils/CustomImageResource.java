@@ -35,9 +35,9 @@ public class CustomImageResource extends DynamicImageResource {
     int width;
     int height;
     MiningOperationChunk miningOperationChunk;
-    String mode;
+    RoleAnalysisProcessModeType mode;
 
-    public CustomImageResource(MiningOperationChunk miningOperationChunk, String mode) {
+    public CustomImageResource(MiningOperationChunk miningOperationChunk, RoleAnalysisProcessModeType mode) {
         this.miningOperationChunk = miningOperationChunk;
         this.mode = mode;
     }
@@ -45,12 +45,10 @@ public class CustomImageResource extends DynamicImageResource {
     @Override
     protected byte[] getImageData(Attributes attributes) {
 
-        RoleAnalysisProcessModeType mode1 = RoleAnalysisProcessModeType.valueOf(mode);
-
         BufferedImage image;
         Graphics2D graphics;
 
-        if (mode1.equals(RoleAnalysisProcessModeType.ROLE)) {
+        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
             List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
             List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.JACCARD);
             width = miningRoleTypeChunks.size();

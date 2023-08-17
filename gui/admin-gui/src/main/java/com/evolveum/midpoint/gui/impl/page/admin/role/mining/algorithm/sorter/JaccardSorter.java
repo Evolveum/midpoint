@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.sorter;
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.DataPoint;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
 
@@ -22,7 +22,7 @@ public class JaccardSorter {
         List<DataPoint> sorted = new ArrayList<>();
         List<DataPoint> remaining = new ArrayList<>(dataPoints);
 
-        remaining.sort(Comparator.comparingInt(set -> -set.getPoints().size()));
+        remaining.sort(Comparator.comparingInt(set -> -set.getProperties().size()));
 
         while (!remaining.isEmpty()) {
             DataPoint current = remaining.remove(0);
@@ -39,24 +39,24 @@ public class JaccardSorter {
                 for (int i = 1; i < sorted.size(); i++) {
                     DataPoint previous = sorted.get(i - 1);
                     DataPoint next = sorted.get(i);
-                    double similarity = jacquardSimilarity(current.getPoints(),
-                            previous.getPoints());
-                    double nextSimilarity = jacquardSimilarity(current.getPoints(),
-                            next.getPoints());
+                    double similarity = jacquardSimilarity(current.getProperties(),
+                            previous.getProperties());
+                    double nextSimilarity = jacquardSimilarity(current.getProperties(),
+                            next.getProperties());
 
                     if (Math.max(similarity, nextSimilarity) > maxSimilarity
                             && Math.min(similarity, nextSimilarity) >= jacquardSimilarity(
-                            previous.getPoints(), next.getPoints())) {
+                            previous.getProperties(), next.getProperties())) {
                         maxSimilarity = Math.max(similarity, nextSimilarity);
                         insertIndex = i;
                     }
                 }
 
                 if (insertIndex == -1) {
-                    if (jacquardSimilarity(current.getPoints(),
-                            sorted.get(0).getPoints())
-                            > jacquardSimilarity(sorted.get(0).getPoints(),
-                            sorted.get(1).getPoints())) {
+                    if (jacquardSimilarity(current.getProperties(),
+                            sorted.get(0).getProperties())
+                            > jacquardSimilarity(sorted.get(0).getProperties(),
+                            sorted.get(1).getProperties())) {
                         sorted.add(0, current);
                     } else {
                         sorted.add(current);
@@ -70,7 +70,7 @@ public class JaccardSorter {
         return sorted;
     }
 
-    private static double jacquardSimilarity(@NotNull List<String> set1, @NotNull List<String> set2) {
+    private static double jacquardSimilarity(@NotNull Set<String> set1, @NotNull Set<String> set2) {
         Set<String> union = new HashSet<>(set1);
         union.addAll(set2);
 

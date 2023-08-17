@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public class DetectionAction implements Serializable {
-    private DetectionOperation detectionType;
+    private final DetectionOperation detectionType;
 
     DetectionOption detectionOption;
 

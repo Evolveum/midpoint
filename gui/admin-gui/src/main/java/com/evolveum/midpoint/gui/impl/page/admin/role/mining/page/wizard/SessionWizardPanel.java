@@ -1,10 +1,23 @@
 /*
- * Copyright (C) 2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
@@ -14,26 +27,16 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.test.ClusteringAction;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.ClusteringAction;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.LoadableDetachableModel;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    private static final double DEFAULT_MIN_FREQUENCY = 0.3;
-    private static final double DEFAULT_MAX_FREQUENCY = 1.0;
+    private static final double DEFAULT_MIN_FREQUENCY = 30;
+    private static final double DEFAULT_MAX_FREQUENCY = 100;
 
     public SessionWizardPanel(String id, WizardPanelHelper<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> helper) {
         super(id, helper);
@@ -41,12 +44,21 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
 
     protected void initLayout() {
         getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
-        add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()))));
+
+        add(createChoiceFragment(new ProcessModeChoiceStepPanel(getIdOfChoicePanel(), getHelper().getDetailsModel()) {
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(),
+                        new WizardModel(createBasicSteps())));
+                super.onSubmitPerformed(target);
+            }
+
+        }));
+
     }
 
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
-
         steps.add(new BasicSessionInformationStepPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
@@ -57,30 +69,9 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
             protected void onExitPerformed(AjaxRequestTarget target) {
                 SessionWizardPanel.this.onExitPerformed(target);
             }
+
         });
 
-        PrismObject<RoleAnalysisClusterType> roleAnalysisClusterTypePrismObject =
-                new RoleAnalysisClusterType().asPrismObject();
-
-        LoadableDetachableModel<PrismObject<RoleAnalysisClusterType>> loadableDetachableModel = new LoadableDetachableModel<>() {
-            @Override
-            protected PrismObject<RoleAnalysisClusterType> load() {
-                return roleAnalysisClusterTypePrismObject;
-            }
-        };
-
-        AssignmentHolderDetailsModel<RoleAnalysisClusterType> assignmentHolderDetailsModel
-                = new AssignmentHolderDetailsModel<>(loadableDetachableModel, (PageBase) getPage());
-
-        RoleAnalysisSessionOptionType roleAnalysisSessionOptionType = new RoleAnalysisSessionOptionType();
-        roleAnalysisSessionOptionType.setSimilarityThreshold(80.0);
-        roleAnalysisSessionOptionType.setMinUniqueMembersCount(5);
-        roleAnalysisSessionOptionType.setMinMembersCount(10);
-        roleAnalysisSessionOptionType.setProcessMode(RoleAnalysisProcessModeType.USER);
-        roleAnalysisSessionOptionType.setMinPropertiesCount(10);
-        roleAnalysisSessionOptionType.setMaxPropertiesCount(100);
-        roleAnalysisSessionOptionType.setMinPropertiesOverlap(10);
-        getHelper().getDetailsModel().getObjectType().setClusterOptions(roleAnalysisSessionOptionType);
         steps.add(new SessionSimpleObjectsWizardPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
@@ -89,17 +80,24 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
 
             @Override
             public boolean onNextPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionType roleAnalysisSession = getHelper().getDetailsModel().getObjectType();
-                RoleAnalysisSessionOptionType clusterOptions = roleAnalysisSession.getClusterOptions();
-                RoleAnalysisClusterType roleAnalysisCluster = roleAnalysisClusterTypePrismObject.asObjectable();
-                roleAnalysisCluster.setDetectionOption(new RoleAnalysisDetectionOptionType());
-
-                RoleAnalysisDetectionOptionType detectionOption = roleAnalysisCluster.getDetectionOption();
-                detectionOption.setMinPropertiesOccupancy(clusterOptions.getMinPropertiesCount());
-                detectionOption.setMinMembersOccupancy(clusterOptions.getMinMembersCount());
-                detectionOption.setMinFrequencyThreshold(DEFAULT_MIN_FREQUENCY);
-                detectionOption.setMaxFrequencyThreshold(DEFAULT_MAX_FREQUENCY);
-                detectionOption.setDetectionProcessMode(RoleAnalysisDetectionProcessType.PARTIAL);
+//                RoleAnalysisSessionType roleAnalysisSession = getHelper().getDetailsModel().getObjectWrapper()
+//                        .getObject().asObjectable();
+//                AbstractAnalysisSessionOptionType sessionOptionType = getSessionOptionType(roleAnalysisSession);
+//                RoleAnalysisDetectionOptionType defaultDetectionOption = new RoleAnalysisDetectionOptionType();
+//                if (roleAnalysisSession.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+//                    defaultDetectionOption.setMinUserOccupancy(sessionOptionType.getMinPropertiesOverlap());
+//                    defaultDetectionOption.setMinRolesOccupancy(sessionOptionType.getMinMembersCount());
+//                } else {
+//                    defaultDetectionOption.setMinRolesOccupancy(sessionOptionType.getMinPropertiesOverlap());
+//                    defaultDetectionOption.setMinUserOccupancy(sessionOptionType.getMinMembersCount());
+//                }
+//
+//                defaultDetectionOption.setFrequencyRange(new RangeType()
+//                        .min(DEFAULT_MIN_FREQUENCY)
+//                        .max(DEFAULT_MAX_FREQUENCY));
+//                defaultDetectionOption.setDetectionProcessMode(RoleAnalysisDetectionProcessType.PARTIAL);
+//
+//                roleAnalysisSession.setDefaultDetectionOption(defaultDetectionOption);
                 return super.onNextPerformed(target);
             }
 
@@ -109,7 +107,7 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
             }
         });
 
-        steps.add(new SessionDetectionOptionsWizardPanel(assignmentHolderDetailsModel) {
+        steps.add(new SessionDetectionOptionsWizardPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
@@ -118,49 +116,37 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
 
-                //TODO just temporary. Add detect enum to schema and change clusteringAction.execute constructor.
-                RoleAnalysisSessionType roleAnalysisSession = getHelper().getDetailsModel().getObjectType();
-                RoleAnalysisClusterType roleAnalysisCluster = this.getDetailsModel().getObjectType();
-                RoleAnalysisSessionOptionType roleAnalysisSessionClusterOptions = roleAnalysisSession.getClusterOptions();
-                RoleAnalysisDetectionOptionType roleAnalysisClusterDetectionOption = roleAnalysisCluster.getDetectionOption();
-                RoleAnalysisProcessModeType processMode = roleAnalysisSessionClusterOptions.getProcessMode();
+//                RoleAnalysisSessionType roleAnalysisSession = getHelper().getDetailsModel().getObjectWrapper()
+//                        .getObject().asObjectable();
+//
+//                RoleAnalysisProcessModeType processMode = roleAnalysisSession.getProcessMode();
+//
+//                OperationResult operationResult = new OperationResult("ExecuteClustering");
+//                Task task = ((PageBase) getPage()).createSimpleTask("ExecuteClustering");
+//                ClusteringAction clusteringAction = new ClusteringAction(processMode);
+//                clusteringAction.execute((PageBase) getPage(), roleAnalysisSession, operationResult, task);
+                PrismObject<RoleAnalysisSessionType> session = getDetailsModel().getObjectWrapper().getObject();
 
-                ObjectFilter objectFilter = null;
+                OperationResult result = new OperationResult("ImportSessionObject");
+                Task task = getPageBase().createSimpleTask("Import Session object");
 
-                if (roleAnalysisSessionClusterOptions.getFilter() != null) {
-                    try {
-                        objectFilter = getPrismContext().createQueryParser()
-                                .parseFilter(FocusType.class, roleAnalysisSessionClusterOptions.getFilter());
-                    } catch (SchemaException e) {
-                        throw new RuntimeException(e);
-                    }
+                Collection<ObjectDelta<? extends ObjectType>> deltas;
+                try {
+                    deltas = getHelper().getDetailsModel().collectDeltas(result);
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
                 }
 
-                ClusterOptions clusterOptions = new ClusterOptions((PageBase) getPage(),
-                        roleAnalysisSessionClusterOptions.getSimilarityThreshold(),
-                        roleAnalysisSessionClusterOptions.getMinUniqueMembersCount(),
-                        roleAnalysisSessionClusterOptions.getMinMembersCount(),
-                        roleAnalysisSessionClusterOptions.getMinPropertiesOverlap(),
-                        objectFilter,
-                        roleAnalysisSessionClusterOptions.getMinPropertiesCount(),
-                        roleAnalysisSessionClusterOptions.getMaxPropertiesCount(),
-                        roleAnalysisSessionClusterOptions.getProcessMode(),
-                        roleAnalysisSession.getName().toString(),
-                        roleAnalysisClusterDetectionOption.getDetectionProcessMode(),
-                        roleAnalysisClusterDetectionOption.getMinMembersOccupancy(),
-                        roleAnalysisClusterDetectionOption.getMinPropertiesOccupancy(),
-                        roleAnalysisClusterDetectionOption.getMinFrequencyThreshold(),
-                        roleAnalysisClusterDetectionOption.getMaxFrequencyThreshold());
+                Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
+                        .executeChanges(deltas, false, task, result, target);
 
-                OperationResult operationResult = new OperationResult("ExecuteClustering");
-                Task task = ((PageBase) getPage()).createSimpleTask("ExecuteClustering");
+                RoleAnalysisProcessModeType processMode = session.asObjectable().getProcessMode();
+
+                String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
+                        RoleAnalysisSessionType.class);
+
                 ClusteringAction clusteringAction = new ClusteringAction(processMode);
-                clusteringAction.execute((PageBase) getPage(), clusterOptions, operationResult, task);
-
-//                com.evolveum.midpoint.gui.impl.page.admin.role.mining.test.ClusteringAction clusteringAction = new ClusteringAction(processMode);
-//                clusteringAction.execute((PageBase) getPage(), clusterOptions, operationResult, task);
-
-//                super.onSubmitPerformed(target);
+                clusteringAction.execute((PageBase) getPage(), sessionOid, result, task);
             }
 
             @Override

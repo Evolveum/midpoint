@@ -15,16 +15,18 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.SessionWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.SessionSummaryPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -49,7 +51,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     public PageRoleAnalysisSession(boolean isEditPanel) {
-        this.isEditPanel=true;
+        this.isEditPanel = true;
     }
 
     @Override
@@ -76,10 +78,10 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         return createStringResource("RoleMining.page.cluster.title");
     }
 
-
     private boolean canShowWizard() {
         return isEditPanel;
     }
+
     protected DetailsFragment createDetailsFragment() {
 
         if (canShowWizard()) {
@@ -90,6 +92,35 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
         return super.createDetailsFragment();
     }
+
+    @Override
+    public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
+        IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
+        RoleAnalysisProcessModeType processMode = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable().getProcessMode();
+
+        List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
+        for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
+            if (containerPanelConfigurationType.getIdentifier().equals("sessionOptions")) {
+                List<VirtualContainersSpecificationType> container = containerPanelConfigurationType.getContainer();
+
+                for (VirtualContainersSpecificationType virtualContainersSpecificationType : container) {
+                    if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                        if (virtualContainersSpecificationType.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_USER_MODE_OPTIONS)) {
+                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                        }
+                    } else {
+                        if (virtualContainersSpecificationType.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS)) {
+                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                        }
+                    }
+
+                }
+
+            }
+        }
+        return panelConfigurations;
+    }
+
     private DetailsFragment createRoleWizardFragment(Class<? extends AbstractWizardPanel> clazz) {
 
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRoleAnalysisSession.this) {
@@ -104,6 +135,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 }
             }
         };
+
     }
 }
 

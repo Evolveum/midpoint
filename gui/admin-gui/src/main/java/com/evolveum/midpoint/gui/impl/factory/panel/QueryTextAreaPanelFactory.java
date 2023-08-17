@@ -8,6 +8,9 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;

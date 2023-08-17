@@ -207,12 +207,25 @@ import java.util.List;
         identifier = "clusterStatistic",
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
-                label = "RoleAnalysisClusterType.clusterStatistic",
+                label = "RoleAnalysisClusterStatistic.clusterStatistic",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
                 order = 20
         ),
-        containerPath = "clusterStatistic",
-        type = "RoleAnalysisClusterStatisticType",
+        containerPath = "clusterUserBasedStatistic",
+        type = "UserAnalysisClusterStatistic",
+        expanded = true
+)
+
+@PanelInstance(
+        identifier = "clusterStatistic",
+        applicableForType = RoleAnalysisClusterType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisClusterStatistic.clusterStatistic",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 20
+        ),
+        containerPath = "clusterRoleBasedStatistic",
+        type = "RoleAnalysisClusterStatistic",
         expanded = true
 )
 @PanelInstance(
@@ -239,6 +252,7 @@ import java.util.List;
         type = "RoleAnalysisSessionStatisticType",
         expanded = true
 )
+
 @PanelInstance(
         identifier = "sessionOptions",
         applicableForType = RoleAnalysisSessionType.class,
@@ -247,8 +261,21 @@ import java.util.List;
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
                 order = 30
         ),
-        containerPath = "clusterOptions",
+        containerPath = "roleModeOptions",
         type = "RoleAnalysisSessionOptionType",
+        expanded = true
+)
+
+@PanelInstance(
+        identifier = "sessionOptions",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.sessionOptions",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "userModeOptions",
+        type = "UserAnalysisSessionOptionType",
         expanded = true
 )
 

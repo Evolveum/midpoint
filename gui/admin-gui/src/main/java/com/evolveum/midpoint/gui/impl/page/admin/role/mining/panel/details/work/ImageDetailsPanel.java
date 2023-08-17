@@ -6,13 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.work;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getParentClusterByOid;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getImageScaleScript;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getClusterTypeObject;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.CustomImageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareChunkStructure;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareExpandStructure;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -34,13 +39,11 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
     private static final String ID_IMAGE = "image";
 
     String clusterOid;
-    String mode;
     String state = "START";
     OperationResult result = new OperationResult("GetObject");
 
-    public ImageDetailsPanel(String id, IModel<String> messageModel, String clusterOid, String mode) {
+    public ImageDetailsPanel(String id, IModel<String> messageModel, String clusterOid) {
         super(id, messageModel);
-        this.mode = mode;
         this.clusterOid = clusterOid;
     }
 
@@ -53,12 +56,16 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
     private void initLayout() {
 
         RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), result,clusterOid).asObjectable();
-        MiningOperationChunk miningOperationChunk = new PrepareChunkStructure().executeOperation(cluster, true, RoleAnalysisProcessModeType.USER,
+        String oid = cluster.getRoleAnalysisSessionRef().getOid();
+        PrismObject<RoleAnalysisSessionType> parentClusterByOid = getParentClusterByOid((PageBase) getPage(), oid, result);
+        RoleAnalysisProcessModeType processMode = parentClusterByOid.asObjectable().getProcessMode();
+
+        MiningOperationChunk miningOperationChunk = new PrepareExpandStructure().executeOperation(cluster, true, RoleAnalysisProcessModeType.USER,
                 (PageBase) getPage(), result, state);
 
         CustomImageResource imageResource;
 
-        imageResource = new CustomImageResource(miningOperationChunk, mode);
+        imageResource = new CustomImageResource(miningOperationChunk, processMode);
 
         Image image = new Image(ID_IMAGE, imageResource);
 

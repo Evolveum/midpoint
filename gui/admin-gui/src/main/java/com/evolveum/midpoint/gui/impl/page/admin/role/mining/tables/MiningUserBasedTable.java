@@ -62,8 +62,10 @@ public class MiningUserBasedTable extends Panel {
     int toCol;
     int specialColumnCount;
 
+
+
     public MiningUserBasedTable(String id, List<MiningRoleTypeChunk> roles,
-            List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
+            List<MiningUserTypeChunk> users, boolean sortable, double minFrequency, DetectedPattern intersection,
             double maxFrequency, List<ObjectReferenceType> reductionObjects) {
         super(id);
 
@@ -90,7 +92,7 @@ public class MiningUserBasedTable extends Panel {
             provider.setSort(UserType.F_NAME.toString(), SortOrder.ASCENDING);
         }
 
-        SpecialBoxedTablePanel<MiningRoleTypeChunk> table = generateTable(provider, users, frequency,
+        SpecialBoxedTablePanel<MiningRoleTypeChunk> table = generateTable(provider, users, minFrequency,
                 intersection, maxFrequency, reductionObjects);
 
         add(table);
@@ -211,7 +213,7 @@ public class MiningUserBasedTable extends Panel {
                             objects.add(getFocusTypeObject((PageBase) getPage(), s, result));
                         }
                         MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                Model.of("Analyzed members details panel"), objects, "ROLE") {
+                                Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.ROLE) {
                             @Override
                             public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                 super.onClose(ajaxRequestTarget);
@@ -363,7 +365,7 @@ public class MiningUserBasedTable extends Panel {
                                 objects.add(getFocusTypeObject((PageBase) getPage(), s, result));
                             }
                             MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of("Analyzed members details panel"), objects, "ROLE") {
+                                    Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.USER) {
                                 @Override
                                 public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                     super.onClose(ajaxRequestTarget);

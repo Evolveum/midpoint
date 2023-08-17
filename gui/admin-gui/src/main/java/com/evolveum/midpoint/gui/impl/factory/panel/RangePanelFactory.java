@@ -1,35 +1,27 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RangeSliderPanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import jakarta.annotation.PostConstruct;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RangeSimplePanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
+import java.io.Serializable;
 
 @Component
-public class RangePanelFactory extends AbstractInputGuiComponentFactory<Double> {
+public class RangePanelFactory extends AbstractInputGuiComponentFactory<RangeType> {
 
     @PostConstruct
     public void register() {
@@ -38,35 +30,23 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<Double> 
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return RoleAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD.equals(wrapper.getItemName());
+        return RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE.equals(wrapper.getItemName())
+                || AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE.equals(wrapper.getItemName());
     }
 
     @Override
-    protected InputPanel getPanel(PrismPropertyPanelContext<Double> panelCtx) {
-        List<QName> typesList;
-//        if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())
-//                || ItemPath.create(
-//                        ResourceType.F_SCHEMA_HANDLING,
-//                        SchemaHandlingType.F_OBJECT_TYPE,
-//                        ResourceObjectTypeDefinitionType.F_FOCUS,
-//                        ResourceObjectFocusSpecificationType.F_TYPE)
-//                .equivalent(panelCtx.unwrapWrapperModel().getPath().namedSegmentsOnly())) {
-//            typesList = ObjectTypeListUtil.createFocusTypeList();
-//        } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
-//                && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
-//                (ObjectCollectionType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass())
-//                        || GuiObjectListViewType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass()))) {
-//            typesList = ObjectTypeListUtil.createContainerableTypesQnameList();
-//        } else {
-//            typesList = ObjectTypeListUtil.createObjectTypeList();
-//        }
+    protected InputPanel getPanel(PrismPropertyPanelContext<RangeType> panelCtx) {
+        ItemName itemName = panelCtx.unwrapWrapperModel().getItemName();
 
+        double max;
+        if (RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE.equals(itemName)) {
+            max = 100.0;
+        } else {
+            max = 1000.0;
+        }
 
-
-        RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(panelCtx.getComponentId(),panelCtx.getRealValueModel());
-//        DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-//                Model.ofList(typesList), new QNameObjectTypeChoiceRenderer(), true);
-        rangeSliderPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        RangeSimplePanel rangeSliderPanel = new RangeSimplePanel(panelCtx.getComponentId(),
+                new PropertyModel<>(panelCtx.getItemWrapperModel(), "value"), max);
         rangeSliderPanel.setOutputMarkupId(true);
         return rangeSliderPanel;
     }
@@ -76,5 +56,8 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<Double> 
         return 10000;
     }
 
-
+    @Override
+    public void configure(PrismPropertyPanelContext<RangeType> panelCtx, org.apache.wicket.Component component) {
+//        super.configure(panelCtx, component);
+    }
 }

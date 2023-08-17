@@ -9,8 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.loadIntersections;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisClusterStatistic.F_MEMBER_COUNT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterStatisticType.F_MEMBER_COUNT;
 
 import java.io.Serializable;
 import java.util.*;
@@ -20,6 +20,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.roles.RoleManagementUtil;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterStatistic;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -65,7 +65,6 @@ public class ClusterObjectUtils {
         }
 
     }
-
 
     public enum Status implements Serializable {
         NEUTRAL("fa fa-plus"),
@@ -171,7 +170,7 @@ public class ClusterObjectUtils {
         }
 
         RoleAnalysisSessionType sessionObject = session.asObjectable();
-        return sessionObject.getClusterOptions().getProcessMode();
+        return sessionObject.getProcessMode();
     }
 
     public static void clusterMigrationRecompute(OperationResult result,
@@ -184,7 +183,14 @@ public class ClusterObjectUtils {
                 return;
             }
             RoleAnalysisClusterType clusterObject = cluster.asObjectable();
-            Integer memberCount = clusterObject.getClusterStatistic().getMemberCount();
+
+            ItemName fClusterUserBasedStatistic;
+            if (clusterObject.getClusterUserBasedStatistic() != null) {
+                fClusterUserBasedStatistic = RoleAnalysisClusterType.F_CLUSTER_USER_BASED_STATISTIC;
+            } else {
+                fClusterUserBasedStatistic = RoleAnalysisClusterType.F_CLUSTER_ROLE_BASED_STATISTIC;
+            }
+            Integer memberCount = getClusterStatisticsType(clusterObject).getMemberCount();
 
             RoleAnalysisProcessModeType processMode = resolveClusterProcessMode(pageBase, result, cluster);
             if (processMode == null) {
@@ -221,7 +227,7 @@ public class ClusterObjectUtils {
                         .asItemDelta());
 
                 modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
-                        .item(RoleAnalysisClusterType.F_CLUSTER_STATISTIC, F_MEMBER_COUNT).replace(memberCount + 1)
+                        .item(fClusterUserBasedStatistic, F_MEMBER_COUNT).replace(memberCount + 1)
                         .asItemDelta());
             }
 
@@ -242,8 +248,8 @@ public class ClusterObjectUtils {
         int recomputeProcessedObjectCount = 0;
         for (ObjectReferenceType referenceType : roleAnalysisClusterRef) {
             RoleAnalysisClusterType clusterTypeObject = getClusterTypeObject(pageBase, result, referenceType.getOid()).asObjectable();
-            recomputeMeanDensity += clusterTypeObject.getClusterStatistic().getPropertiesDensity();
-            recomputeProcessedObjectCount += clusterTypeObject.getClusterStatistic().getMemberCount();
+            recomputeMeanDensity += getClusterStatisticsType(clusterTypeObject).getPropertiesDensity();
+            recomputeProcessedObjectCount += getClusterStatisticsType(clusterTypeObject).getMemberCount();
         }
 
         RoleAnalysisSessionStatisticType recomputeSessionStatistic = new RoleAnalysisSessionStatisticType();
@@ -265,15 +271,16 @@ public class ClusterObjectUtils {
     }
 
     public static @NotNull ObjectReferenceType importRoleAnalysisSessionObject(OperationResult result, @NotNull PageBase pageBase,
-            RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption,
+            RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption,
+            AbstractAnalysisSessionOptionType roleAnalysisSessionClusterOption,
             RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType,
             List<ObjectReferenceType> roleAnalysisClusterRef,
-            String name) {
+            String name, RoleAnalysisProcessModeType processModeType) {
         Task task = pageBase.createSimpleTask("Import RoleAnalysisSessionOption object");
 
-        PrismObject<RoleAnalysisSessionType> roleAnalysisSessionPrismObject = generateParentClusterObject(pageBase,
+        PrismObject<RoleAnalysisSessionType> roleAnalysisSessionPrismObject = generateParentClusterObject(pageBase, roleAnalysisSessionDetectionOption,
                 roleAnalysisSessionClusterOption, roleAnalysisClusterRef,
-                roleAnalysisSessionStatisticType, name);
+                roleAnalysisSessionStatisticType, name, processModeType);
 
         ModelService modelService = pageBase.getModelService();
         modelService.importObject(roleAnalysisSessionPrismObject, null, task, result);
@@ -285,10 +292,11 @@ public class ClusterObjectUtils {
     }
 
     public static PrismObject<RoleAnalysisSessionType> generateParentClusterObject(PageBase pageBase,
-            RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption,
+            RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption,
+            AbstractAnalysisSessionOptionType roleAnalysisSessionClusterOption,
             List<ObjectReferenceType> roleAnalysisClusterRef,
             RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType,
-            String name
+            String name, RoleAnalysisProcessModeType processModeType
     ) {
 
         PrismObject<RoleAnalysisSessionType> roleAnalysisSessionPrismObject = null;
@@ -305,7 +313,15 @@ public class ClusterObjectUtils {
         roleAnalysisSession.setName(PolyStringType.fromOrig(name));
         roleAnalysisSession.getRoleAnalysisClusterRef().addAll(roleAnalysisClusterRef);
         roleAnalysisSession.setSessionStatistic(roleAnalysisSessionStatisticType);
-        roleAnalysisSession.setClusterOptions(roleAnalysisSessionClusterOption);
+        roleAnalysisSession.setProcessMode(processModeType);
+        roleAnalysisSession.setDefaultDetectionOption(roleAnalysisSessionDetectionOption);
+
+        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
+            roleAnalysisSession.setRoleModeOptions((RoleAnalysisSessionOptionType) roleAnalysisSessionClusterOption);
+        } else {
+            roleAnalysisSession.setUserModeOptions((UserAnalysisSessionOptionType) roleAnalysisSessionClusterOption);
+        }
+
         return roleAnalysisSessionPrismObject;
     }
 
@@ -412,16 +428,54 @@ public class ClusterObjectUtils {
         return existingObjectOid;
     }
 
-    public static RoleAnalysisClusterStatisticType createClusterStatisticType(ClusterStatistic clusterStatistic) {
-        RoleAnalysisClusterStatisticType roleAnalysisClusterStatisticType = new RoleAnalysisClusterStatisticType();
-        roleAnalysisClusterStatisticType.setMemberCount(clusterStatistic.getMembersCount());
-        roleAnalysisClusterStatisticType.setPropertiesCount(clusterStatistic.getPropertiesCount());
-        roleAnalysisClusterStatisticType.setPropertiesMean(clusterStatistic.getPropertiesMean());
-        roleAnalysisClusterStatisticType.setPropertiesDensity(clusterStatistic.getPropertiesDensity());
-        roleAnalysisClusterStatisticType.setPropertiesMinOccupancy(clusterStatistic.getMinVectorPoint());
-        roleAnalysisClusterStatisticType.setPropertiesMaxOccupancy(clusterStatistic.getMaxVectorPoint());
+    public static AbstractAnalysisClusterStatistic createClusterStatisticType(ClusterStatistic clusterStatistic, RoleAnalysisProcessModeType processMode) {
+        AbstractAnalysisClusterStatistic abstractAnalysisClusterStatistic;
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            abstractAnalysisClusterStatistic = new RoleAnalysisClusterStatistic();
+        } else {
+            abstractAnalysisClusterStatistic = new UserAnalysisClusterStatistic();
+        }
 
-        return roleAnalysisClusterStatisticType;
+        abstractAnalysisClusterStatistic.setMemberCount(clusterStatistic.getMembersCount());
+        abstractAnalysisClusterStatistic.setPropertiesCount(clusterStatistic.getPropertiesCount());
+        abstractAnalysisClusterStatistic.setPropertiesMean(clusterStatistic.getPropertiesMean());
+        abstractAnalysisClusterStatistic.setPropertiesDensity(clusterStatistic.getPropertiesDensity());
+        abstractAnalysisClusterStatistic.setPropertiesRange(new RangeType()
+                .min((double) clusterStatistic.getMinVectorPoint())
+                .max((double) clusterStatistic.getMaxVectorPoint()));
+
+        return abstractAnalysisClusterStatistic;
+    }
+
+    public static AbstractAnalysisSessionOptionType getSessionOptionType(RoleAnalysisSessionType roleAnalysisSession) {
+        if (roleAnalysisSession == null || roleAnalysisSession.getProcessMode() == null) {
+            return null;
+        }
+
+        if (roleAnalysisSession.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+            return roleAnalysisSession.getRoleModeOptions();
+        }
+        return roleAnalysisSession.getUserModeOptions();
+    }
+
+    public static AbstractAnalysisClusterStatistic getClusterStatisticsType(RoleAnalysisClusterType roleAnalysisCluster) {
+        if (roleAnalysisCluster == null) {
+            return null;
+        }
+
+        if (roleAnalysisCluster.getClusterRoleBasedStatistic() != null) {
+            return roleAnalysisCluster.getClusterRoleBasedStatistic();
+        }
+        return roleAnalysisCluster.getClusterUserBasedStatistic();
+    }
+
+    public static ItemName getSessionOptionItemName(RoleAnalysisSessionType roleAnalysisSession) {
+
+        if (roleAnalysisSession.getRoleModeOptions() != null) {
+            return RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS;
+        }
+
+        return RoleAnalysisSessionType.F_USER_MODE_OPTIONS;
     }
 
     @Nullable
@@ -506,26 +560,27 @@ public class ClusterObjectUtils {
     }
 
     @NotNull
-    public static DetectionOption loadDetectionOption(@NotNull ClusterOptions clusterOptions) {
-        int group = Math.min(clusterOptions.getDefaultOccupancySearch(), clusterOptions.getMinGroupSize());
-        int intersection = Math.min(clusterOptions.getDefaultIntersectionSearch(), clusterOptions.getMinIntersections());
+    public static DetectionOption loadDetectionOption(RoleAnalysisSessionType session) {
+        RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
 
         return new DetectionOption(
-                clusterOptions.getDefaultMinFrequency(),
-                clusterOptions.getDefaultMaxFrequency(),
-                group,
-                intersection
+                defaultDetectionOption.getFrequencyRange().getMin(),
+                defaultDetectionOption.getFrequencyRange().getMax(),
+                defaultDetectionOption.getMinUserOccupancy(),
+                defaultDetectionOption.getMinRolesOccupancy()
         );
     }
 
     @NotNull
-    public static DetectionOption loadDetectionOption(@NotNull RoleAnalysisDetectionOptionType clusterOptions) {
+    public static DetectionOption loadDetectionOption(@NotNull RoleAnalysisDetectionOptionType detectionOptionType) {
 
+        Double min = detectionOptionType.getFrequencyRange().getMin();
+        Double max = detectionOptionType.getFrequencyRange().getMax();
         return new DetectionOption(
-                clusterOptions.getMinFrequencyThreshold(),
-                clusterOptions.getMaxFrequencyThreshold(),
-                clusterOptions.getMinMembersOccupancy(),
-                clusterOptions.getMinPropertiesOccupancy()
+                min,
+                max,
+                detectionOptionType.getMinUserOccupancy(),
+                detectionOptionType.getMinRolesOccupancy()
         );
     }
 
@@ -545,14 +600,46 @@ public class ClusterObjectUtils {
                 .toList();
     }
 
+    public static void modifySessionAfterClustering(ObjectReferenceType sessionRef,
+            RoleAnalysisSessionStatisticType sessionStatistic,
+            Collection<ObjectReferenceType> roleAnalysisClusterRef,
+            PageBase pageBase, OperationResult result) {
+
+        try {
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_SESSION_STATISTIC)
+                    .replace(sessionStatistic)
+                    .asItemDelta());
+
+            List<PrismReferenceValue> referenceValues = new ArrayList<>();
+            for (ObjectReferenceType referenceType : roleAnalysisClusterRef) {
+                referenceValues.add(referenceType.asReferenceValue().clone());
+            }
+
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_ROLE_ANALYSIS_CLUSTER_REF)
+                    .replace(referenceValues)
+                    .asItemDelta());
+
+            pageBase.getRepositoryService().modifyObject(RoleAnalysisSessionType.class, sessionRef.getOid(), modifications, result);
+
+        } catch (Throwable e) {
+            LOGGER.error("Error while modify  RoleAnalysisSessionType {}, {}", sessionRef, e.getMessage(), e);
+        }
+
+    }
+
     public static void recomputeRoleAnalysisClusterDetectionOptions(String clusterOid, PageBase pageBase,
             DetectionOption detectionOption, OperationResult result) {
 
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
-        roleAnalysisDetectionOptionType.setMinFrequencyThreshold(detectionOption.getMinFrequencyThreshold());
-        roleAnalysisDetectionOptionType.setMaxFrequencyThreshold(detectionOption.getMaxFrequencyThreshold());
-        roleAnalysisDetectionOptionType.setMinMembersOccupancy(detectionOption.getMinOccupancy());
-        roleAnalysisDetectionOptionType.setMinPropertiesOccupancy(detectionOption.getMinPropertiesOverlap());
+        roleAnalysisDetectionOptionType.setFrequencyRange(new RangeType()
+                .max(detectionOption.getMinFrequencyThreshold())
+                .min(detectionOption.getMaxFrequencyThreshold()));
+        roleAnalysisDetectionOptionType.setMinUserOccupancy(detectionOption.getMinUsers());
+        roleAnalysisDetectionOptionType.setMinRolesOccupancy(detectionOption.getMinRoles());
 
         try {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)

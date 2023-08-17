@@ -19,12 +19,12 @@ public class Tools {
     public static String getColorClass(String density) {
         double densityValue = Double.parseDouble(density);
 
-        if (densityValue >= 80) {
-            return "bg-danger text-center";
-        } else if (densityValue > 40) {
-            return "bg-warning text-center";
-        } else {
+        if (densityValue >= 60) {
+            return "bg-success text-center";
+        } else if (densityValue > 30) {
             return "bg-info text-center";
+        } else {
+            return "bg-secondary text-center";
         }
 
     }

@@ -152,7 +152,7 @@ public class MiningIntersectionTable extends Panel {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getMembers().size()));
+                item.add(new Label(componentId, rowModel.getObject().getUsers().size()));
             }
 
             @Override
@@ -178,7 +178,7 @@ public class MiningIntersectionTable extends Panel {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getProperties().size()));
+                item.add(new Label(componentId, rowModel.getObject().getRoles().size()));
             }
 
             @Override
@@ -338,7 +338,7 @@ public class MiningIntersectionTable extends Panel {
             OperationResult result, PageBase pageBase) {
 
         Set<String> membersOidList = new HashSet<>();
-        Set<String> detectedProperties = detectedPattern.getProperties();
+        Set<String> detectedProperties = detectedPattern.getRoles();
 
         if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.USER)) {
             ResultHandler<UserType> resultHandler = (object, parentResult) -> {

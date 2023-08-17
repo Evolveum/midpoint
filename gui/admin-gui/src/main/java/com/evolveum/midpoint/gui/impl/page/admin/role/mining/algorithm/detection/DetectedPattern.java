@@ -17,17 +17,17 @@ public class DetectedPattern implements Serializable {
 
     public static final String F_TYPE = "searchMode";
 
-    Set<String> properties;
-    Set<String> members;
+    Set<String> roles;
+    Set<String> users;
     Set<String> memberTypeObjectOccupation;
     Double clusterMetric;
     Long id;
 
-    public DetectedPattern(Set<String> properties, Set<String> members,
+    public DetectedPattern(Set<String> roles, Set<String> users,
             double clusterMetric,
             Set<String> memberTypeObjectOccupation, Long id) {
-        this.properties = properties;
-        this.members = members;
+        this.roles = roles;
+        this.users = users;
         this.clusterMetric = clusterMetric;
         this.memberTypeObjectOccupation = memberTypeObjectOccupation;
         this.id = id;
@@ -41,12 +41,12 @@ public class DetectedPattern implements Serializable {
         this.id = id;
     }
 
-    public Set<String> getProperties() {
-        return properties;
+    public Set<String> getRoles() {
+        return roles;
     }
 
-    public Set<String> getMembers() {
-        return members;
+    public Set<String> getUsers() {
+        return users;
     }
 
     public double getClusterMetric() {

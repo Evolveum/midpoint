@@ -10,13 +10,21 @@
 <wicket:panel>
 
 
-    <label class="sr-only" for="inlineForm"></label>
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <div wicket:id="details" class="input-group-text"></div>
-        </div>
-        <input wicket:id="input" class="form-control" id="inlineForm" type="text"/>
+    <div class="mb-3 d-flex">
+         <span wicket:id="details"></span>
+        <input class="form-control form-control-sm" id="formFileSm" type="text" wicket:id="input">
     </div>
+
+
+    <!--    -->
+
+    <!--    <label class="sr-only" for="inlineForm"></label>-->
+    <!--    <div class="input-group">-->
+    <!--        <div class="input-group-prepend">-->
+    <!--            <div wicket:id="details" class="input-group-text"></div>-->
+    <!--        </div>-->
+    <!--        <input wicket:id="input" class="form-control form-control-sm" id="inlineForm" type="text"/>-->
+    <!--    </div>-->
 
 </wicket:panel>
 </html>

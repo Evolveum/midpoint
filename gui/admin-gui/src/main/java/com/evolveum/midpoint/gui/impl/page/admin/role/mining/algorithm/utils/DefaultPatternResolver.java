@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.loadIntersections;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getSessionOptionType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.loadDetectionOption;
 
 import java.util.*;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareChunkS
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterStatistic;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
@@ -52,14 +52,16 @@ public class DefaultPatternResolver {
     }
 
     public List<RoleAnalysisDetectionPatternType> loadPattern(
-            @NotNull ClusterOptions clusterOptions,
+            RoleAnalysisSessionType session,
             @NotNull ClusterStatistic clusterStatistic,
             @NotNull RoleAnalysisClusterType clusterType,
             @NotNull PageBase pageBase,
             @NotNull OperationResult result) {
 
         List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
-        if (clusterOptions.getSimilarity() == 1) {
+        AbstractAnalysisSessionOptionType sessionOption = getSessionOptionType(session);
+
+        if (sessionOption.getSimilarityThreshold() == 100) {
 
             RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
 
@@ -69,7 +71,7 @@ public class DefaultPatternResolver {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(propertiesRef.getOid());
                 objectReferenceType.setType(propertiesComplexType);
-                roleAnalysisClusterDetectionType.getPropertiesOccupancy().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getRolesOccupancy().add(objectReferenceType);
             }
 
             Set<ObjectReferenceType> members = clusterStatistic.getMembersRef();
@@ -77,7 +79,7 @@ public class DefaultPatternResolver {
                 objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setOid(processedObjectOid.getOid());
                 objectReferenceType.setType(processedObjectComplexType);
-                roleAnalysisClusterDetectionType.getMemberOccupancy().add(objectReferenceType);
+                roleAnalysisClusterDetectionType.getUserOccupancy().add(objectReferenceType);
             }
 
             int propertiesCount = properties.size();
@@ -86,7 +88,7 @@ public class DefaultPatternResolver {
             roleAnalysisClusterDetectionType.setClusterMetric((double) propertiesCount * membersCount);
             roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType);
         } else {
-            List<RoleAnalysisDetectionPatternType> clusterDetectionTypeList = resolveDefaultIntersection(clusterOptions,
+            List<RoleAnalysisDetectionPatternType> clusterDetectionTypeList = resolveDefaultIntersection(session,
                     clusterType, pageBase, result);
             roleAnalysisClusterDetectionTypeList.addAll(clusterDetectionTypeList);
 
@@ -98,12 +100,12 @@ public class DefaultPatternResolver {
     String state = "START";
 
     private List<RoleAnalysisDetectionPatternType> resolveDefaultIntersection(
-            @NotNull ClusterOptions clusterOptions,
+            RoleAnalysisSessionType session,
             @NotNull RoleAnalysisClusterType clusterType,
             @NotNull PageBase pageBase, @NotNull OperationResult operationResult) {
 
         List<DetectedPattern> possibleBusinessRole;
-        RoleAnalysisProcessModeType mode = clusterOptions.getMode();
+        RoleAnalysisProcessModeType mode = session.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = new PrepareChunkStructure().executeOperation(clusterType, false,
                 roleAnalysisProcessModeType,
@@ -113,7 +115,7 @@ public class DefaultPatternResolver {
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
                 ClusterObjectUtils.SORT.NONE);
 
-        DetectionOption roleAnalysisSessionDetectionOptionType = loadDetectionOption(clusterOptions);
+        DetectionOption roleAnalysisSessionDetectionOptionType = loadDetectionOption(session);
 
         possibleBusinessRole = new DetectionAction(roleAnalysisSessionDetectionOptionType)
                 .executeDetection(miningRoleTypeChunks, miningUserTypeChunks, mode);

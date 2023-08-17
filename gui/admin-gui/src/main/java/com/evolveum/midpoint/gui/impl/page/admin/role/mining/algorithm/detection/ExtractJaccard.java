@@ -27,8 +27,8 @@ public class ExtractJaccard implements DetectionOperation {
 
         double minFrequency = roleAnalysisSessionDetectionOptionType.getMinFrequencyThreshold();
         double maxFrequency = roleAnalysisSessionDetectionOptionType.getMaxFrequencyThreshold();
-        int minIntersection = roleAnalysisSessionDetectionOptionType.getMinPropertiesOverlap();
-        int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinOccupancy();
+        int minIntersection = roleAnalysisSessionDetectionOptionType.getMinRoles();
+        int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinUsers();
         double similarity = 0.8;
 
         List<DetectedPattern> detectedPatterns = new ArrayList<>();
@@ -121,8 +121,8 @@ public class ExtractJaccard implements DetectionOperation {
 
         double minFrequency = roleAnalysisSessionDetectionOptionType.getMinFrequencyThreshold();
         double maxFrequency = roleAnalysisSessionDetectionOptionType.getMaxFrequencyThreshold();
-        int minIntersection = roleAnalysisSessionDetectionOptionType.getMinPropertiesOverlap();
-        int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinOccupancy();
+        int minIntersection = roleAnalysisSessionDetectionOptionType.getMinRoles();
+        int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinUsers();
         double similarity = 0.8;
 
         List<DetectedPattern> intersections = new ArrayList<>();

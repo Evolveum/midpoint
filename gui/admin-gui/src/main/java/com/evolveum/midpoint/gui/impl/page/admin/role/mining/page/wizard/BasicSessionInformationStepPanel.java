@@ -1,29 +1,25 @@
 /*
- * Copyright (C) 2022 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
+
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.visit.ClassVisitFilter;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.visit.ClassVisitFilter;
 
 /**
  * @author lskublik
@@ -54,7 +50,8 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
         return wrapper -> {
             if (wrapper.getItemName().equals(RoleAnalysisSessionType.F_ROLE_ANALYSIS_CLUSTER_REF)
                     || wrapper.getItemName().equals(RoleAnalysisSessionType.F_LIFECYCLE_STATE)
-                    || wrapper.getItemName().equals(RoleAnalysisSessionType.F_INDESTRUCTIBLE)){
+                    || wrapper.getItemName().equals(RoleAnalysisSessionType.F_INDESTRUCTIBLE)
+                    || wrapper.getItemName().equivalent(RoleAnalysisSessionType.F_PROCESS_MODE)) {
                 return ItemVisibility.HIDDEN;
             }
 
@@ -70,7 +67,7 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
         }, new ClassVisitFilter(Form.class) {
             @Override
             public boolean visitObject(Object object) {
-                return super.visitObject(object) && "mainForm".equals(((Form)object).getId());
+                return super.visitObject(object) && "mainForm".equals(((Form) object).getId());
             }
         });
         super.onBeforeRender();

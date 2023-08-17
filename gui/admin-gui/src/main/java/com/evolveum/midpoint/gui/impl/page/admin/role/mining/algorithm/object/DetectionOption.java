@@ -5,12 +5,10 @@ import java.io.Serializable;
 
 public class DetectionOption implements Serializable {
 
-
-
     double minFrequencyThreshold;
-    Integer minOccupancy;
+    Integer minUsers;
     double maxFrequencyThreshold;
-    Integer minPropertiesOverlap;
+    Integer minRoles;
 
     public double getMinFrequencyThreshold() {
         return minFrequencyThreshold;
@@ -20,12 +18,12 @@ public class DetectionOption implements Serializable {
         this.minFrequencyThreshold = minFrequencyThreshold;
     }
 
-    public Integer getMinOccupancy() {
-        return minOccupancy;
+    public Integer getMinUsers() {
+        return minUsers;
     }
 
-    public void setMinOccupancy(Integer minOccupancy) {
-        this.minOccupancy = minOccupancy;
+    public void setMinUsers(Integer minUsers) {
+        this.minUsers = minUsers;
     }
 
     public double getMaxFrequencyThreshold() {
@@ -36,21 +34,19 @@ public class DetectionOption implements Serializable {
         this.maxFrequencyThreshold = maxFrequencyThreshold;
     }
 
-    public Integer getMinPropertiesOverlap() {
-        return minPropertiesOverlap;
+    public Integer getMinRoles() {
+        return minRoles;
     }
 
-    public void setMinPropertiesOverlap(Integer minPropertiesOverlap) {
-        this.minPropertiesOverlap = minPropertiesOverlap;
+    public void setMinRoles(Integer minRoles) {
+        this.minRoles = minRoles;
     }
 
 
-
-
-    public DetectionOption(double minFrequencyThreshold, double maxFrequencyThreshold, Integer minOccupancy, Integer minPropertiesOverlap) {
+    public DetectionOption(double minFrequencyThreshold, double maxFrequencyThreshold, Integer minUsers, Integer minRoles) {
         this.minFrequencyThreshold = minFrequencyThreshold;
-        this.minOccupancy = minOccupancy;
         this.maxFrequencyThreshold = maxFrequencyThreshold;
-        this.minPropertiesOverlap = minPropertiesOverlap;
+        this.minUsers = minUsers;
+        this.minRoles = minRoles;
     }
 }

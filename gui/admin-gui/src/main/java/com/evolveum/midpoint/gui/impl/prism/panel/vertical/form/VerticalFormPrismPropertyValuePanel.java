@@ -39,41 +39,79 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
         super.onInitialize();
         Component valuePanel = getValuePanel();
         if (valuePanel instanceof InputPanel) {
-            FormComponent baseFormComponent = ((InputPanel) valuePanel).getBaseFormComponent();
-            baseFormComponent.add(AttributeAppender.append("class", () -> {
-                if (baseFormComponent.hasErrorMessage()) {
-                    return INVALID_FIELD_CLASS;
-                }
-                return "";
-            }));
-            baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
-
-                private boolean lastValidationWasError = false;
-
-                @Override
-                protected void onComponentTag(ComponentTag tag) {
-                    super.onComponentTag(tag);
-                    if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
-                        lastValidationWasError = true;
+            ((InputPanel) valuePanel).getFormComponents().forEach((baseFormComponent) -> {
+                baseFormComponent.add(AttributeAppender.append("class", () -> {
+                    if (baseFormComponent.hasErrorMessage()) {
+                        return INVALID_FIELD_CLASS;
                     }
-                }
+                    return "";
+                }));
+                baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
 
-                private static final long serialVersionUID = 1L;
+                    private boolean lastValidationWasError = false;
 
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    if (lastValidationWasError) {
-                        lastValidationWasError = false;
+                    @Override
+                    protected void onComponentTag(ComponentTag tag) {
+                        super.onComponentTag(tag);
+                        if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
+                            lastValidationWasError = true;
+                        }
+                    }
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        if (lastValidationWasError) {
+                            lastValidationWasError = false;
+                            updateFeedbackPanel(target);
+                            target.focusComponent(null);
+                        }
+                    }
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
                         updateFeedbackPanel(target);
-                        target.focusComponent(null);
                     }
-                }
+                });
 
-                @Override
-                protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                    updateFeedbackPanel(target);
-                }
             });
+
+//            FormComponent baseFormComponent = ((InputPanel) valuePanel).getBaseFormComponent();
+//            baseFormComponent.add(AttributeAppender.append("class", () -> {
+//                if (baseFormComponent.hasErrorMessage()) {
+//                    return INVALID_FIELD_CLASS;
+//                }
+//                return "";
+//            }));
+//            baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
+//
+//                private boolean lastValidationWasError = false;
+//
+//                @Override
+//                protected void onComponentTag(ComponentTag tag) {
+//                    super.onComponentTag(tag);
+//                    if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
+//                        lastValidationWasError = true;
+//                    }
+//                }
+//
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                protected void onUpdate(AjaxRequestTarget target) {
+//                    if (lastValidationWasError) {
+//                        lastValidationWasError = false;
+//                        updateFeedbackPanel(target);
+//                        target.focusComponent(null);
+//                    }
+//                }
+//
+//                @Override
+//                protected void onError(AjaxRequestTarget target, RuntimeException e) {
+//                    updateFeedbackPanel(target);
+//                }
+//            });
 //            baseFormComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
     }
@@ -90,8 +128,7 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
         target.add(getFeedback());
         Component valuePanel = getValuePanel();
         if (valuePanel instanceof InputPanel) {
-            FormComponent baseFormComponent = ((InputPanel) valuePanel).getBaseFormComponent();
-            target.add(baseFormComponent);
+            ((InputPanel) valuePanel).getFormComponents().forEach(target::add);
         }
     }
 

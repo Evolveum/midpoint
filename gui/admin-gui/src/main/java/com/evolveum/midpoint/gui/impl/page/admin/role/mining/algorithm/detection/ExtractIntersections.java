@@ -19,12 +19,12 @@ public class ExtractIntersections implements DetectionOperation {
 
     @Override
     public List<DetectedPattern> performUserBasedDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            DetectionOption roleAnalysisSessionDetectionOptionType) {
+            DetectionOption detectionOption) {
 
-        double minFrequency = roleAnalysisSessionDetectionOptionType.getMinFrequencyThreshold();
-        double maxFrequency = roleAnalysisSessionDetectionOptionType.getMaxFrequencyThreshold();
-        int minIntersection = roleAnalysisSessionDetectionOptionType.getMinPropertiesOverlap();
-        int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinOccupancy();
+        double minFrequency = detectionOption.getMinFrequencyThreshold() / 100;
+        double maxFrequency = detectionOption.getMaxFrequencyThreshold() / 100;
+        int minIntersection = detectionOption.getMinUsers();
+        int minOccupancy = detectionOption.getMinRoles();
 
         List<DetectedPattern> intersections = new ArrayList<>();
         List<MiningRoleTypeChunk> preparedObjects = new ArrayList<>();
@@ -123,10 +123,11 @@ public class ExtractIntersections implements DetectionOperation {
     @Override
     public List<DetectedPattern> performRoleBasedDetection(List<MiningUserTypeChunk> miningUserTypeChunks,
             DetectionOption roleAnalysisSessionDetectionOptionType) {
-        double minFrequency = roleAnalysisSessionDetectionOptionType.getMinFrequencyThreshold();
-        double maxFrequency = roleAnalysisSessionDetectionOptionType.getMaxFrequencyThreshold();
-        int minIntersection = roleAnalysisSessionDetectionOptionType.getMinPropertiesOverlap();
-        int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinOccupancy();
+        double minFrequency = roleAnalysisSessionDetectionOptionType.getMinFrequencyThreshold() / 100;
+        double maxFrequency = roleAnalysisSessionDetectionOptionType.getMaxFrequencyThreshold() / 100;
+
+        int minIntersection = roleAnalysisSessionDetectionOptionType.getMinRoles();
+        int minOccupancy = roleAnalysisSessionDetectionOptionType.getMinUsers();
 
         List<DetectedPattern> intersections = new ArrayList<>();
         List<MiningUserTypeChunk> preparedObjects = new ArrayList<>();

@@ -7,74 +7,74 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.MiningDataUtils.getExistingRolesOidsSet;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.MiningDataUtils.getUserBasedRoleToUserMap;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
 
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserAnalysisSessionOptionType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import com.google.common.collect.ListMultimap;
-import org.apache.commons.math3.ml.clustering.Cluster;
-import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
-import org.apache.commons.math3.ml.distance.DistanceMeasure;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DataPoint;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
-public class UserBasedClustering implements Clusterable {
+import org.jetbrains.annotations.NotNull;
+
+public class UserBasedClustering implements Mining {
 
     @Override
-    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(ClusterOptions clusterOptions,
+    public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
             OperationResult result, PageBase pageBase) {
 
         long start = startTimer(" prepare clustering object");
-        int minIntersections = clusterOptions.getMinIntersections();
-        int assignThreshold = clusterOptions.getMinProperties();
-        int threshold = Math.max(assignThreshold, minIntersections);
-        int maxProperties = Math.max(clusterOptions.getMaxProperties(), threshold);
-        clusterOptions.setMinProperties(threshold);
-        clusterOptions.setMinIntersections(minIntersections);
+
+        UserAnalysisSessionOptionType sessionOptionType = session.getUserModeOptions();
+
+        int minRolesOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
+        int maxRolesOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
 
         //roles //users
         ListMultimap<List<String>, String> chunkMap = loadData(result, pageBase,
-                threshold, maxProperties, clusterOptions.getQuery());
+                minRolesOccupancy, maxRolesOccupancy, sessionOptionType.getQuery());
         List<DataPoint> dataPoints = ClusterAlgorithmUtils.prepareDataPoints(chunkMap);
         endTimer(start, "prepare clustering object. Objects count: " + dataPoints.size());
 
-        double eps = 1 - clusterOptions.getSimilarity();
-        int minGroupSize = clusterOptions.getMinGroupSize();
+        double similarityThreshold = sessionOptionType.getSimilarityThreshold();
+        double similarityDifference = 1 - (similarityThreshold / 100);
 
-        //TODO
-        if (eps == 0.0) {
-            return new ClusterAlgorithmUtils().processExactMatch(pageBase, result, dataPoints, clusterOptions);
+        if (similarityDifference == 0.00) {
+            return new ClusterAlgorithmUtils().processExactMatch(pageBase, result, dataPoints, session);
         }
         start = startTimer("clustering");
-        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minIntersections);
-//        DBSCANClusterer<DataPoint> dbscan = new DBSCANClusterer<>(eps, minGroupSize, distanceMeasure);
-//        List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);
 
-        DBSCANClusterer<DataPoint> dbscan = new DBSCANClusterer<>(eps, minGroupSize, distanceMeasure);
+        int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
+        int minUsersCount = sessionOptionType.getMinMembersCount();
+
+        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
+        DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(similarityDifference,
+                minUsersCount, distanceMeasure);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints);
         endTimer(start, "clustering");
 
-        return new ClusterAlgorithmUtils().processClusters(pageBase, result, dataPoints, clusters, clusterOptions);
+        return new ClusterAlgorithmUtils().processClusters(pageBase, result, dataPoints, clusters, session);
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, PageBase pageBase,
-            int minProperties, int maxProperties, ObjectFilter userQuery) {
+            int minProperties, int maxProperties, SearchFilterType userQuery) {
 
-        Set<String> existingRolesOidsSet = getExistingRolesOidsSet(result, pageBase);
+        Set<String> existingRolesOidsSet = MiningDataUtils.getExistingRolesOidsSet(result, pageBase);
 
         //role //user
-        return getUserBasedRoleToUserMap(result, pageBase, minProperties, maxProperties, userQuery, existingRolesOidsSet);
+        return MiningDataUtils.getUserBasedRoleToUserMap(result, pageBase, minProperties, maxProperties, userQuery, existingRolesOidsSet);
     }
 
 }

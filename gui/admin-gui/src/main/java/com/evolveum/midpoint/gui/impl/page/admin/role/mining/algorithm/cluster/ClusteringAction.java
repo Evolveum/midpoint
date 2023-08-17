@@ -9,103 +9,69 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterOptions;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.MainPageMining;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysis;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.importRoleAnalysisClusterObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.importRoleAnalysisSessionObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
 
 public class ClusteringAction {
 
-    private Clusterable clusterable;
+    private Mining mining;
 
     public ClusteringAction(RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            this.clusterable = new UserBasedClustering();
+            this.mining = new UserBasedClustering();
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            this.clusterable = new RoleBasedClustering();
+            this.mining = new RoleBasedClustering();
         }
     }
 
-    public void execute(@NotNull PageBase pageBase, @NotNull ClusterOptions clusterOptions,
-            @NotNull OperationResult operationResult, @NotNull Task task) {
+    public void execute(@NotNull PageBase pageBase, String sessionOid,
+            @NotNull OperationResult result, @NotNull Task task) {
 
-        System.out.println(clusterOptions.getSimilarity());
-        clusterOptions.setSimilarity(clusterOptions.getSimilarity() / 100);
-        RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption = getRoleAnalysisSessionFilterOption(clusterOptions);
+        PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(pageBase, result, sessionOid);
+        if (prismSession != null) {
+            RoleAnalysisSessionType session = prismSession.asObjectable();
+            List<PrismObject<RoleAnalysisClusterType>> clusterObjects = mining.executeClustering(session,
+                    result, pageBase);
 
-        RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = getRoleAnalysisSessionDetectionOption(clusterOptions);
+            importObjects(clusterObjects, session, pageBase, result, task);
 
-        List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(clusterOptions,
-                operationResult, pageBase);
-
-        importObjects(clusterObjects, clusterOptions,
-                roleAnalysisSessionClusterOption, roleAnalysisSessionDetectionOption, pageBase, operationResult, task);
-
-        pageBase.setResponsePage(MainPageMining.class);
-
-    }
-
-    @NotNull
-    private RoleAnalysisDetectionOptionType getRoleAnalysisSessionDetectionOption(ClusterOptions clusterOptions) {
-        RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption = new RoleAnalysisDetectionOptionType();
-//        roleAnalysisSessionDetectionOption.setDetectionMode(clusterOptions.getSearchMode());
-        roleAnalysisSessionDetectionOption.setMinFrequencyThreshold(clusterOptions.getDefaultMinFrequency());
-        roleAnalysisSessionDetectionOption.setMaxFrequencyThreshold(clusterOptions.getDefaultMaxFrequency());
-        roleAnalysisSessionDetectionOption.setMinMembersOccupancy(clusterOptions.getDefaultOccupancySearch());
-        roleAnalysisSessionDetectionOption.setMinPropertiesOccupancy(clusterOptions.getDefaultIntersectionSearch());
-        roleAnalysisSessionDetectionOption.setDetectionProcessMode(clusterOptions.getDetect());
-
-        return roleAnalysisSessionDetectionOption;
-    }
-
-    @NotNull
-    private RoleAnalysisSessionOptionType getRoleAnalysisSessionFilterOption(ClusterOptions clusterOptions) {
-        RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption = new RoleAnalysisSessionOptionType();
-        if (clusterOptions.getQuery() != null) {
-            roleAnalysisSessionClusterOption.setFilter(clusterOptions.getQuery().toString());
+            pageBase.setResponsePage(PageRoleAnalysis.class);
         }
-
-        roleAnalysisSessionClusterOption.setProcessMode(clusterOptions.getMode());
-        roleAnalysisSessionClusterOption.setSimilarityThreshold(clusterOptions.getSimilarity());
-        roleAnalysisSessionClusterOption.setMinUniqueMembersCount(clusterOptions.getMinGroupSize());
-        roleAnalysisSessionClusterOption.setMinMembersCount(clusterOptions.getMinMembers());
-        roleAnalysisSessionClusterOption.setMinPropertiesCount(clusterOptions.getMinProperties());
-        roleAnalysisSessionClusterOption.setMaxPropertiesCount(clusterOptions.getMaxProperties());
-        roleAnalysisSessionClusterOption.setMinPropertiesOverlap(clusterOptions.getMinIntersections());
-        return roleAnalysisSessionClusterOption;
     }
 
-    private void importObjects(List<PrismObject<RoleAnalysisClusterType>> clusters, ClusterOptions clusterOptions,
-            RoleAnalysisSessionOptionType roleAnalysisSessionClusterOption,
-            RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption,
-            PageBase pageBase, OperationResult result, Task task) {
-
+    private void importObjects(
+            List<PrismObject<RoleAnalysisClusterType>> clusters,
+            @NotNull RoleAnalysisSessionType session,
+            PageBase pageBase,
+            OperationResult result,
+            Task task
+    ) {
         List<ObjectReferenceType> roleAnalysisClusterRef = new ArrayList<>();
+        String sessionOid = session.getOid();
+
+        ObjectReferenceType sessionRef = new ObjectReferenceType();
+        sessionRef.setOid(sessionOid);
+        sessionRef.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
+        sessionRef.setTargetName(session.getName());
 
         int processedObjectCount = 0;
-
-        QName complexType;
-        if (clusterOptions.getMode().equals(RoleAnalysisProcessModeType.ROLE)) {
-            complexType = RoleType.COMPLEX_TYPE;
-        } else {complexType = UserType.COMPLEX_TYPE;}
+        QName complexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
+                ? RoleType.COMPLEX_TYPE
+                : UserType.COMPLEX_TYPE;
 
         double meanDensity = 0;
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
-            RoleAnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistic();
+            AbstractAnalysisClusterStatistic clusterStatistic = getClusterStatisticsType(clusterTypePrismObject.asObjectable());
             meanDensity += clusterStatistic.getPropertiesDensity();
             processedObjectCount += clusterStatistic.getMemberCount();
 
@@ -113,31 +79,28 @@ public class ClusteringAction {
             objectReferenceType.setOid(clusterTypePrismObject.getOid());
             objectReferenceType.setType(complexType);
             roleAnalysisClusterRef.add(objectReferenceType);
+
+            importRoleAnalysisClusterObject(result,
+                    task,
+                    pageBase,
+                    clusterTypePrismObject,
+                    sessionRef,
+                    session.getDefaultDetectionOption()
+            );
         }
 
         meanDensity = meanDensity / clusters.size();
 
-        RoleAnalysisSessionStatisticType roleAnalysisSessionStatisticType = new RoleAnalysisSessionStatisticType();
-        roleAnalysisSessionStatisticType.setProcessedObjectCount(processedObjectCount);
-        roleAnalysisSessionStatisticType.setMeanDensity(meanDensity);
+        RoleAnalysisSessionStatisticType sessionStatistic = new RoleAnalysisSessionStatisticType();
+        sessionStatistic.setProcessedObjectCount(processedObjectCount);
+        sessionStatistic.setMeanDensity(meanDensity);
 
-        System.out.println("IMPORT SESSION");
-
-        ObjectReferenceType parentRef = importRoleAnalysisSessionObject(result, pageBase, roleAnalysisSessionClusterOption,
-                roleAnalysisSessionStatisticType, roleAnalysisClusterRef, clusterOptions.getName());
-        System.out.println("SESSION IMPORTED");
-        try {
-            int counter = 1;
-            for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
-                System.out.println("IMPORT CLUSTER: " + counter + "/" + clusters.size());
-                importRoleAnalysisClusterObject(result, task, pageBase, clusterTypePrismObject, parentRef,
-                        roleAnalysisSessionDetectionOption);
-                System.out.println("END IMPORTING CLUSTER: " + counter + "/" + clusters.size());
-                counter++;
-
-            }
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Import RoleAnalysisCluster object failed" + e);
-        }
+        modifySessionAfterClustering(sessionRef,
+                sessionStatistic,
+                roleAnalysisClusterRef,
+                pageBase,
+                result
+        );
     }
+
 }

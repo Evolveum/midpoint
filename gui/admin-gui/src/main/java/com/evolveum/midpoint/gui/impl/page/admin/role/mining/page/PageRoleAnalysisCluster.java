@@ -14,12 +14,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.ClusterSummaryPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+
+import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getScaleScript;
 
@@ -46,6 +48,40 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
         response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
     }
 
+    @Override
+    public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
+        IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
+
+        UserAnalysisClusterStatistic clusterUserBasedStatistic = getObjectDetailsModels().getObjectType()
+                .getClusterUserBasedStatistic();
+
+        boolean isUserBased = clusterUserBasedStatistic != null;
+
+        List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
+        for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
+            if (containerPanelConfigurationType.getIdentifier().equals("clusterStatistic")) {
+                List<VirtualContainersSpecificationType> container = containerPanelConfigurationType.getContainer();
+
+                for (VirtualContainersSpecificationType virtualContainersSpecificationType : container) {
+                    if (!isUserBased) {
+                        if (virtualContainersSpecificationType.getPath().getItemPath()
+                                .equivalent(RoleAnalysisClusterType.F_CLUSTER_USER_BASED_STATISTIC)) {
+                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                        }
+                    } else {
+                        if (virtualContainersSpecificationType.getPath().getItemPath()
+                                .equivalent(RoleAnalysisClusterType.F_CLUSTER_ROLE_BASED_STATISTIC)) {
+                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                        }
+                    }
+
+                }
+
+            }
+        }
+        return panelConfigurations;
+    }
+
     public PageRoleAnalysisCluster() {
         super();
     }
@@ -64,6 +100,7 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
     protected Panel createSummaryPanel(String id, IModel<RoleAnalysisClusterType> summaryModel) {
         return new ClusterSummaryPanel(id, summaryModel, null);
     }
+
 
     @Override
     protected IModel<String> createPageTitleModel() {

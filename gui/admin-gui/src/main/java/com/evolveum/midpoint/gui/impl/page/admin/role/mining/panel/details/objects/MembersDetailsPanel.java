@@ -7,13 +7,33 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -27,57 +47,86 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkIconPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import javax.management.relation.Role;
 
 public class MembersDetailsPanel extends BasePanel<String> implements Popupable {
 
     List<PrismObject<FocusType>> elements;
-    String mode;
+    RoleAnalysisProcessModeType processModeType;
 
-    public MembersDetailsPanel(String id, IModel<String> messageModel, List<PrismObject<FocusType>> elements, String pageParameterMode) {
+    public MembersDetailsPanel(String id, IModel<String> messageModel, List<PrismObject<FocusType>> members,
+            RoleAnalysisProcessModeType processModeType) {
         super(id, messageModel);
-        this.elements = elements;
-        this.mode = pageParameterMode;
+        this.elements = members;
+        this.processModeType = processModeType;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        DisplayType displayType;
-        if (mode.equals("ROLE")) {
-            displayType = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+
+        Class<?> roleTypeClass;
+        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
+            roleTypeClass = RoleType.class;
+
         } else {
-            displayType = GuiDisplayTypeUtil.createDisplayType(
-                    WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+            roleTypeClass = UserType.class;
         }
-        ListView<PrismObject<FocusType>> listView = new ListView<>("list", elements) {
+
+        SelectableBeanObjectDataProvider<FocusType> selectableBeanObjectDataProvider = new SelectableBeanObjectDataProvider<>(
+                this, Set.of()) {
+
             @Override
-            protected void populateItem(ListItem<PrismObject<FocusType>> listItem) {
-                PrismObject<FocusType> modelObject = listItem.getModelObject();
-                listItem.add(new AjaxLinkIconPanel("object",
-                        createStringResource(modelObject.getName()),
-                        createStringResource(modelObject.getName()), displayType) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
+            protected List searchObjects(Class type, ObjectQuery query, Collection collection, Task task, OperationResult result) {
+                Integer offset = query.getPaging().getOffset();
+                Integer maxSize = query.getPaging().getMaxSize();
 
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getOid());
+                return elements.subList(offset, offset + maxSize).stream().map(element -> element.asObjectable()).toList();
+            }
 
-                        if (mode.equals("ROLE")) {
-                            ((PageBase) getPage()).navigateToNext(PageRole.class, parameters);
-                        }else {
-                            ((PageBase) getPage()).navigateToNext(PageUser.class, parameters);
-                        }
-                    }
-
-                });
+            @Override
+            protected Integer countObjects(Class<FocusType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommonException {
+                return elements.size();
             }
         };
-        add(listView);
+
+        MainObjectListPanel<FocusType> table = new MainObjectListPanel<>("table", FocusType.class, null) {
+
+            @Override
+            protected IColumn<SelectableBean<FocusType>, String> createCheckboxColumn() {
+                return null;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return null;
+            }
+
+            @Override
+            protected Class<FocusType> getDefaultType() {
+                return (Class<FocusType>) roleTypeClass;
+            }
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return false;
+            }
+
+            @Override
+            protected List<Component> createToolbarButtonsList(String buttonId) {
+                return List.of();
+            }
+
+            @Override
+            protected ISelectableDataProvider<SelectableBean<FocusType>> createProvider() {
+                return selectableBeanObjectDataProvider;
+            }
+
+        };
+
+        table.setOutputMarkupId(true);
+        add(table);
 
     }
 
@@ -87,23 +136,22 @@ public class MembersDetailsPanel extends BasePanel<String> implements Popupable 
 
     @Override
     public int getWidth() {
-        return 200;
+        return 70;
     }
-
 
     @Override
     public int getHeight() {
-        return 400;
+        return 70;
     }
 
     @Override
     public String getWidthUnit() {
-        return "px";
+        return "%";
     }
 
     @Override
     public String getHeightUnit() {
-        return "px";
+        return "%";
     }
 
     @Override
@@ -113,6 +161,9 @@ public class MembersDetailsPanel extends BasePanel<String> implements Popupable 
 
     @Override
     public StringResourceModel getTitle() {
-        return new StringResourceModel("RoleMining.members.details.panel.title");
+        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
+            return new StringResourceModel("RoleMining.members.details.panel.title.roles");
+        }
+        return new StringResourceModel("RoleMining.members.details.panel.title.users");
     }
 }

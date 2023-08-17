@@ -63,10 +63,14 @@ public class MiningRoleBasedTable extends Panel {
     int toCol;
     int specialColumnCount;
 
+    double frequency;
+
     public MiningRoleBasedTable(String id,
             List<MiningRoleTypeChunk> roles, List<MiningUserTypeChunk> users, boolean sortable, double frequency,
             DetectedPattern intersection, double maxFrequency, List<ObjectReferenceType> reductionObjects) {
         super(id);
+
+        this.frequency = frequency / 100;
 
         fromCol = 1;
         toCol = 100;
@@ -204,7 +208,7 @@ public class MiningRoleBasedTable extends Panel {
                             objects.add(getFocusTypeObject((PageBase) getPage(), s, result));
                         }
                         MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                Model.of("Analyzed members details panel"), objects, "USER") {
+                                Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.USER) {
                             @Override
                             public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                 super.onClose(ajaxRequestTarget);
@@ -371,7 +375,7 @@ public class MiningRoleBasedTable extends Panel {
                                 objects.add(getFocusTypeObject((PageBase) getPage(), s, result));
                             }
                             MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of("Analyzed members details panel"), objects, "ROLE") {
+                                    Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.ROLE) {
                                 @Override
                                 public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                     super.onClose(ajaxRequestTarget);

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
@@ -13,6 +13,9 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,40 +60,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 order = 1
         )
 )
-public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
     private static final String ID_PROCESS_BUTTON = "process_selections_id";
 
-
     String state = "START";
-
-    double minFrequency = 0.3;
-    Integer minOccupancy = 5;
-    double maxFrequency = 1.0;
-    Integer minIntersection = 10;
-
-    RoleAnalysisProcessModeType processMode;
-
+    double minFrequency;
+    int minOccupancy;
+    double maxFrequency;
+    int minIntersection;
     DetectionOption detectionOption;
-
     List<DetectedPattern> detectedPatternList = new ArrayList<>();
     AjaxButton processButton;
     DetectedPattern intersection = null;
     boolean compress = true;
-
     String compressMode = "COMPRESS MODE";
-
     OperationResult result = new OperationResult("GetObject");
 
     MiningOperationChunk miningOperationChunk;
-
     List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
     List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
+    RoleAnalysisProcessModeType processMode;
     SORT sortMode;
 
-    public PageOperationsPanel2(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
+    public PageClusterOperationsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -109,17 +104,19 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
         reductionObjects = cluster.getReductionObject();
 
         for (ObjectReferenceType referenceType : reductionObjects) {
-            System.out.println(referenceType.getOid());
+            if (referenceType.getOid() == null) {
+                reductionObjects = new ArrayList<>();
+            }
         }
 
         PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid((PageBase) getPage(),
                 cluster.getRoleAnalysisSessionRef().getOid(), new OperationResult("getParent"));
         assert getParent != null;
-        String processModeValue = getParent.asObjectable().getClusterOptions().getProcessMode().value();
+        String processModeValue = getParent.asObjectable().getProcessMode().value();
         processMode = RoleAnalysisProcessModeType.fromValue(processModeValue);
 
-        Integer elementsCount = cluster.getClusterStatistic().getMemberCount();
-        Integer pointsCount = cluster.getClusterStatistic().getPropertiesCount();
+        Integer elementsCount = getClusterStatisticsType(cluster).getMemberCount();
+        Integer pointsCount = getClusterStatisticsType(cluster).getPropertiesCount();
         int max = Math.max(elementsCount, pointsCount);
 
         if (max <= 500) {
@@ -134,9 +131,9 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
         }
 
         minFrequency = detectionOption.getMinFrequencyThreshold();
-        minOccupancy = detectionOption.getMinOccupancy();
+        minOccupancy = detectionOption.getMinUsers();
         maxFrequency = detectionOption.getMaxFrequencyThreshold();
-        minIntersection = detectionOption.getMinPropertiesOverlap();
+        minIntersection = detectionOption.getMinRoles();
 
         long start = startTimer("LOAD DATA");
         detectedPatternList = transformDefaultPattern(cluster);
@@ -222,8 +219,10 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
             @Override
             public void onClick(AjaxRequestTarget target) {
 
+                PrismContainerWrapperModel<RoleAnalysisClusterType, RoleAnalysisDetectionOptionType> detectionOptionsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), RoleAnalysisClusterType.F_DETECTION_OPTION);
+
                 ExecuteDetectionPanel detailsPanel = new ExecuteDetectionPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("Analyzed members details panel"), processMode, detectionOption) {
+                        Model.of("Analyzed members details panel"), detectionOptionsModel, detectionOption) {
                     @Override
                     public void performAction(AjaxRequestTarget target, DetectionOption newDetectionOption) {
                         intersection = null;
@@ -233,8 +232,8 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
                         minFrequency = newDetectionOption.getMinFrequencyThreshold();
                         maxFrequency = newDetectionOption.getMaxFrequencyThreshold();
-                        minIntersection = newDetectionOption.getMinPropertiesOverlap();
-                        minOccupancy = newDetectionOption.getMinOccupancy();
+                        minIntersection = newDetectionOption.getMinRoles();
+                        minOccupancy = newDetectionOption.getMinUsers();
                         detectionOption = newDetectionOption;
                         getIntersectionTable().replaceWith(generateTableIntersection(ID_DATATABLE_INTERSECTIONS,
                                 detectedPatternList));
@@ -349,7 +348,7 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
     public MiningUserBasedTable generateMiningUserBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection, double maxFrequency) {
-        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, reductionObjects) {
+        return new MiningUserBasedTable(ID_DATATABLE, roles, users, sortable, frequency / 100, intersection, maxFrequency / 100, reductionObjects) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false, miningRoleTypeChunks, miningUserTypeChunks);
@@ -378,8 +377,8 @@ public class PageOperationsPanel2 extends AbstractObjectMainPanel<RoleAnalysisCl
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(List<MiningRoleTypeChunk> roles,
             List<MiningUserTypeChunk> users, boolean sortable, double frequency, DetectedPattern intersection,
-            double maxFrequency ) {
-        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency, intersection, maxFrequency, reductionObjects) {
+            double maxFrequency) {
+        return new MiningRoleBasedTable(ID_DATATABLE, roles, users, sortable, frequency / 100, intersection, maxFrequency / 100, reductionObjects) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false, miningRoleTypeChunks, miningUserTypeChunks);

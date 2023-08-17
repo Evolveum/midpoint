@@ -51,9 +51,9 @@ public class TableCellFillOperation {
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowRoles, colRoles, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getMembers() != null) {
-                Set<String> roles = intersection.getMembers();
-                Set<String> users = intersection.getProperties();
+            if (intersection != null && intersection.getUsers() != null) {
+                Set<String> roles = intersection.getUsers();
+                Set<String> users = intersection.getRoles();
 
                 boolean containsAllRowUsers = users.containsAll(new HashSet<>(rowUsers));
 
@@ -85,8 +85,8 @@ public class TableCellFillOperation {
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowRoles, colRoles, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getMembers() != null) {
-                Set<String> roles = intersection.getMembers();
+            if (intersection != null && intersection.getUsers() != null) {
+                Set<String> roles = intersection.getUsers();
                 boolean found = new HashSet<>(roles).containsAll(colRoles) && new HashSet<>(rowRoles).containsAll(roles);
 
                 if (found) {
@@ -134,8 +134,8 @@ public class TableCellFillOperation {
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowUsers, colUsers, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getMembers() != null) {
-                Set<String> users = intersection.getMembers();
+            if (intersection != null && intersection.getUsers() != null) {
+                Set<String> users = intersection.getUsers();
                 boolean found = users != null && new HashSet<>(users).containsAll(colUsers) && new HashSet<>(rowUsers).containsAll(users);
 
                 if (found) {
@@ -165,9 +165,9 @@ public class TableCellFillOperation {
         if (status.equals(ClusterObjectUtils.Status.DISABLE) || colStatus.equals(ClusterObjectUtils.Status.DISABLE)) {
             filledCell(cellItem, componentId, rowUsers, colUsers, "bg-danger", "");
         } else if (status.equals(ClusterObjectUtils.Status.NEUTRAL) || colStatus.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-            if (intersection != null && intersection.getProperties() != null) {
-                Set<String> roles = intersection.getProperties();
-                Set<String> users = intersection.getMembers();
+            if (intersection != null && intersection.getRoles() != null) {
+                Set<String> roles = intersection.getRoles();
+                Set<String> users = intersection.getUsers();
                 if (roles.containsAll(new HashSet<>(rowRoles))) {
                     if (users.containsAll(new HashSet<>(colUsers))) {
                         if (new HashSet<>(rowUsers).containsAll(new HashSet<>(colUsers))) {
