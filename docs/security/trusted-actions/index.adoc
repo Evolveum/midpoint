@@ -26,11 +26,11 @@ To execute a Groovy script (or any other, like Velocity, JavaScript, and so on) 
 See bug:MID-6913[] for more information.
 
 === Solution Overview
-The solution lies in determining the origin of any expression or bulk action, and execute it under corresponding _expression profile_.
+The solution is based on determining the origin of any expression or bulk action, and execute it under corresponding _expression profile_.
 
-Expression profile determines what instruments (bulk actions, expression evaluators, function libraries and their functions, scripting languages, packages, classes, methods) are available to given expression or bulk action.
+Expression profile limits the instruments (bulk actions, expression evaluators, function libraries and their functions, scripting languages, packages, classes, methods) available to given expression or bulk action.
 
-This enables the administrator to give more facilities (even very dangerous ones) into the hands of more knowledgeable and/or trustworthy persons, while still allowing less knowledgeable and/or trustworthy ones to write expressions and bulk actions, although limiting them to a more safe subset of available features.
+This enables the administrator to give more facilities (even very dangerous ones) into the hands of more knowledgeable and/or trustworthy persons, while still allowing less knowledgeable and/or trustworthy ones to write some expressions and bulk actions, although limiting them to a more safe subset of available features.
 
 === Solution Details
 A custom action references a task template, like this:
@@ -59,8 +59,8 @@ The task template looks like an ordinary task, with the following limitations:
 .. iterative change execution,
 .. recomputation.
 +
-Some activities will work in 4.8, but their use does not make much sense in this context.
-These are: object integrity check, reindexing, trigger scan, focus validity scan, and deletion.
+(Some other activities will work in 4.8, but their use does not make much sense in this context.
+These are: object integrity check, reindexing, trigger scan, focus validity scan, and deletion.)
 . The object set definition should be empty.
 It will be filled-in based on the objects selected.
 
@@ -92,13 +92,15 @@ It will be filled-in based on the objects selected.
     </activity>
 </task>
 ----
-<1> The activity that will be executed after task template instantiation
-<2> Groovy code that would be prevented from being run if the user is not an administrator
-<3> Archetype that specifies a custom expression profile for this template and tasks derived from it
+<1> The activity that will be executed after task template instantiation.
+<2> Groovy code to be executed.
+Note that this code is prevented from being run if the user is not an administrator.
+(Unless an expression profile is set.)
+<3> Archetype that specifies a custom expression profile for this template and tasks derived from it.
 
 During instantiation of this task template, `iterativeScripting` will be enhanced by adding `objects` item pointing to the object or objects selected by the user.
 Before 4.8, running the Groovy code would require administrator privileges.
-However, since 4.8 we can specify the expression profile for this task template (and hence for tasks created from it), by pointing to an archetype like this:
+However, since 4.8 we can specify the expression profile for this task template (and hence for tasks created from it), by using an archetype like this:
 
 .Listing 3. An archetype for trusted tasks
 [source,xml]
@@ -113,7 +115,8 @@ However, since 4.8 we can specify the expression profile for this task template 
 ----
 
 The `trusted` expression profile should be defined in such a way that it would allow Groovy scripts to be run.
-It can be done e.g. simply by allowing anything:
+It can be done e.g. simply by allowing anything.
+The definition is part of the system configuration:
 
 .Listing 4. Definition of the `trusted` expression profile in the system configuration
 [source,xml]
@@ -138,7 +141,7 @@ However, the script has no limitations what it may call.
 Hence, it can call e.g. `midpoint.repositoryService.getObject` method, and obtain any object without checking the authorizations.
 (Not speaking about standard Java API methods to run arbitrary OS command.)
 
-In this way, by creating task templates with the appropriate archetype, you allow even unprivileged users to run arbitrary code.
+In this way, by creating task templates with the appropriate archetype, you allow even unprivileged users to run arbitrary code - prepared by trusted persons.
 
 WARNING: The security of this approach rests on the fact that the authorizations do not allow unprivileged users to create tasks with arbitrary activity definitions and arbitrary archetypes.
 Otherwise, any such user could circumvent the security measures by using an archetype with any expression profile they would wish, allowing to run arbitrary code.
@@ -154,7 +157,8 @@ Otherwise, any such user could circumvent the security measures by using an arch
 === Improving the Solution: Limiting the Features a Task can Directly Use
 
 To provide additional layer of security, the archetype of the task template may allow a limited set of features.
-This means that even if an attacker was allowed to create tasks with this archetype, they would not obtain access to arbitrary script execution.
+This means that even if an attacker was able to create tasks with this archetype, they would not obtain access to arbitrary script execution.
+
 The most reasonable approach would be to allow only an invocation of a single library function (or a small set of functions), providing the functionality needed.
 
 Let us have a look at such a profile:
@@ -185,7 +189,7 @@ Let us have a look at such a profile:
                 <ref oid="17b5b255-c71e-4a67-8e42-349862e295ac"/>
                 <decision>deny</decision> <!--1-->
                 <function>
-                    <name>reset-ad-password</name> <!--5-->
+                    <name>resetAdPassword</name> <!--5-->
                     <decision>allow</decision>
                 </function>
             </library>
@@ -214,7 +218,7 @@ The task template archetype should now reference this new profile:
 ----
 
 Of course, the task template itself will now look different.
-Instead of containing Groovy code, it should call a library function to do the work.
+Instead of containing Groovy code directly, it should call a library function to do the work.
 
 .Listing 6. A task template for resetting AD password that uses a library function
 [source,xml]
@@ -255,8 +259,8 @@ Instead of containing Groovy code, it should call a library function to do the w
 <2> Calls a function `resetAdPassword` in library `17b5b255-c71e-4a67-8e42-349862e295ac`
 <3> Passes the input as the value for the `user` parameter
 
-The function library itself is quite ordinary.
-It will contain the same Groovy code as was present in the original task template.
+The function library is quite ordinary.
+It contains the same Groovy code as was present in the original task template.
 
 .Listing 7. The function library
 [source,xml]
@@ -282,8 +286,11 @@ It will contain the same Groovy code as was present in the original task templat
 ==== Discussion
 The security of this approach is improved.
 Even if someone would be able to create a task with archetype `trusted-functions-only-task`, the only thing they would be able to execute, is the single trusted function.
+If privilege elevation is not used, and that function calls only the standard midPoint API, no real harm should be done.
 
-It is expected that the function would not provide features like dynamic code execution (e.g., interpreting its parameter values as a code that should be executed), so its use would be most probably safe.
+NOTE: In theory, if the function would be written in such a way that it would take values of its parameters and derive the executable code from them, this could still be a security hole.
+Fortunately, such a code probably cannot be written "by mistake".
+Hence, assuming that the author of the library is a trustworthy person, this approach is really safe.
 
 === Improving the Solution Further: Limiting the Privileges Needed
 
@@ -292,7 +299,7 @@ Assuming that standard midPoint API (e.g., `midpoint` object) is used, the autho
 So, if the script is going to execute an action like password reset for an arbitrary user, the logged-in principal must have appropriate authorizations.
 
 This may or may not be convenient.
-There are situation where we want to limit the general authorizations of the respective users, and allow them to execute specific actions (like resetting AD passwords) only; and only via that particular GUI action.
+There are situation where we want to limit the general authorizations of the respective users, and allow them to execute specific actions (like resetting AD passwords) only; and, moreover, do that only via that particular GUI action.
 
 This is somewhat similar to "setUid" bit in Unix.
 We allow anyone to call a specific library function.
