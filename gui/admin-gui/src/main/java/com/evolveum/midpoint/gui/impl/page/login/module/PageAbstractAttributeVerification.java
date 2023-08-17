@@ -181,7 +181,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         JSONArray attrValues = new JSONArray();
         attributePathModel.getObject().forEach(entry -> {
             PrismPropertyValueWrapper value = (PrismPropertyValueWrapper) entry.getValue();
-            if (value == null) {
+            if (value == null || value.getRealValue() == null) {
                 return;
             }
             JSONObject json = new JSONObject();

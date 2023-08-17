@@ -9,6 +9,9 @@ package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -57,18 +60,24 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
             System.out.println("Error while creating new object");
             return new UserType();
         }
-        try {
-            for (Map.Entry<ItemPath, String> entry : attributes.entrySet()) {
-                    PrismProperty<String> item = newObject.findOrCreateProperty(entry.getKey());
-//                    PrismPropertyValue<?> pValue = PrismContext.get().itemFactory().createPropertyValue(entry.getValue());
-                    item.addRealValue(entry.getValue());
+        for (Map.Entry<ItemPath, String> entry : attributes.entrySet()) {
+            try {
+                PrismProperty item = newObject.findOrCreateProperty(entry.getKey());
+                item.addRealValue(convertValueIfNecessary((PrismPropertyDefinition) item.getDefinition(), entry.getValue()));
+            } catch (SchemaException e) {
+                System.out.println("Error while adding attributes to object");
+                //throw new RuntimeException(e);
+                //TODO logging?
             }
-
-        } catch (SchemaException e) {
-            System.out.println("Error while adding attributes to object");
-            //throw new RuntimeException(e);
-            //TODO logging?
         }
+
         return newObject.asObjectable();
+    }
+
+    private Object convertValueIfNecessary(PrismPropertyDefinition def, String value) {
+        if (QNameUtil.match(DOMUtil.XSD_DATETIME, def.getTypeName())) {
+            return XmlTypeConverter.createXMLGregorianCalendar(value);
+        }
+        return value;
     }
 }

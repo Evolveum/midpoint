@@ -35,7 +35,7 @@ public class PageAttributeVerification extends PageAbstractAttributeVerification
         AttributeVerificationModuleAuthentication module = getAuthenticationModuleConfiguration();
         List<ItemPath> moduleAttributes = module.getPathsToVerify();
         return moduleAttributes.stream()
-                .map(itemPath -> new VerificationAttributeDto(createItemWrapper(itemPath)))
+                .map(itemPath -> new VerificationAttributeDto(createItemWrapper(itemPath), itemPath))
                 .collect(Collectors.toList());
     }
 

@@ -17,9 +17,11 @@ import java.io.Serializable;
 public class VerificationAttributeDto implements Serializable {
 
     private final ItemWrapper<?, ?> itemWrapper;
+    private final ItemPath itemPath;
 
-    public VerificationAttributeDto(@NotNull ItemWrapper<?, ?> itemWrapper) {
+    public VerificationAttributeDto(@NotNull ItemWrapper<?, ?> itemWrapper, ItemPath itemPath) {
         this.itemWrapper = itemWrapper;
+        this.itemPath = itemPath;
     }
 
     public ItemWrapper<?, ?> getItemWrapper() {
@@ -35,11 +37,7 @@ public class VerificationAttributeDto implements Serializable {
     }
 
     public ItemPath getItemPath() {
-        return itemWrapper.getPath();
+        return itemPath;
     }
 
-    public boolean isEmptyPath() {
-        var itemPath = itemWrapper.getPath();
-        return itemPath == null || itemPath.isEmpty();
-    }
 }
