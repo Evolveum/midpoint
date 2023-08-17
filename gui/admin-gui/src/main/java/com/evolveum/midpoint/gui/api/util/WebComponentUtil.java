@@ -24,20 +24,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
-
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
-
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.model.api.ActivityCustomization;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -99,6 +85,7 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
@@ -120,14 +107,19 @@ import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemp
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
 import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageShadow;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
+import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
@@ -143,6 +135,10 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -186,6 +182,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -208,6 +205,7 @@ import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -230,6 +228,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public final class WebComponentUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(WebComponentUtil.class);
+
+    private static final String DEFAULT_RELATION_ICON = "fa-solid fa-user";
 
     private static final String KEY_BOOLEAN_NULL = "Boolean.NULL";
     private static final String KEY_BOOLEAN_TRUE = "Boolean.TRUE";
@@ -2106,6 +2106,68 @@ public final class WebComponentUtil {
         return displayType.getLabel();
     }
 
+    public static RelationDefinitionType getRelationDefinition(QName relation, List<RelationDefinitionType> relations) {
+        if (relations == null) {
+            return null;
+        }
+
+        for (RelationDefinitionType rel : relations) {
+            if (relation.equals(rel.getRef())) {
+                return rel;
+            }
+        }
+
+        return null;
+    }
+
+    public static String getRelationIcon(QName relation, List<RelationDefinitionType> relations) {
+        final String defaultIcon = getDefaultRelationIcon(relation);
+
+        RelationDefinitionType rel = getRelationDefinition(relation, relations);
+        if (rel == null || rel.getDisplay() == null) {
+            return defaultIcon;
+        }
+
+        DisplayType display = rel.getDisplay();
+
+        IconType it = display.getIcon();
+        if (it == null || it.getCssClass() == null) {
+            return defaultIcon;
+        }
+
+        return it.getCssClass();
+    }
+
+    public static PolyString getRelationLabel(QName relation, List<RelationDefinitionType> relations) {
+        final PolyString defaultLabel = new PolyString(relation.getLocalPart());
+
+        RelationDefinitionType rel = getRelationDefinition(relation, relations);
+        if (rel == null) {
+            return defaultLabel;
+        }
+
+        DisplayType display = rel.getDisplay();
+        if (display == null || display.getLabel() == null) {
+            return defaultLabel;
+        }
+
+        return display.getLabel().toPolyString();
+    }
+
+    public static String getDefaultRelationIcon(QName name) {
+        if (SchemaConstants.ORG_DEFAULT.equals(name)) {
+            return "fa-solid fa-user";
+        } else if (SchemaConstants.ORG_MANAGER.equals(name)) {
+            return "fa-solid fa-user-tie";
+        } else if (SchemaConstants.ORG_APPROVER.equals(name)) {
+            return "fa-solid fa-clipboard-check";
+        } else if (SchemaConstants.ORG_OWNER.equals(name)) {
+            return "fa-solid fa-crown";
+        }
+
+        return DEFAULT_RELATION_ICON;
+    }
+
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
 
@@ -2661,6 +2723,7 @@ public final class WebComponentUtil {
     public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {
         return OBJECT_LIST_PAGE_MAP.get(type);
     }
+
     public static Class<? extends PageBase> getPageHistoryDetailsPage(Class<?> page) {
         return OBJECT_HISTORY_PAGE_MAP.get(page);
     }
@@ -5674,7 +5737,7 @@ public final class WebComponentUtil {
 
         if (object.getParentContainerValue(ResourceActivationDefinitionType.class) != null
                 || object.getParentContainerValue(ResourcePasswordDefinitionType.class) != null) {
-            if (QNameUtil.match(def.getTypeName(), MappingType.COMPLEX_TYPE)){
+            if (QNameUtil.match(def.getTypeName(), MappingType.COMPLEX_TYPE)) {
 
                 PrismContainerValueWrapper parent =
                         object.getParentContainerValue(ResourceBidirectionalMappingType.class);
@@ -5730,7 +5793,7 @@ public final class WebComponentUtil {
         PrismObject<LookupTableType> prismLookupTable =
                 WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
         if (prismLookupTable != null) {
-            return  prismLookupTable.asObjectable();
+            return prismLookupTable.asObjectable();
         }
         return null;
     }
