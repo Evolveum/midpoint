@@ -34,6 +34,11 @@ public class ValueBasedDefinitionLookupsImpl {
 
     private static final Set<ItemPath> RESOURCE_KIND_INTENT_PATHS = ImmutableSet.of(ShadowType.F_RESOURCE_REF, ShadowType.F_KIND, ShadowType.F_INTENT);
 
+    /**
+     * Value Lookup helper for Shadow
+     *
+     *
+     **/
     private ValueBasedDefinitionLookupHelper shadowLookupByKindAndIntent = new ValueBasedDefinitionLookupHelper() {
 
         @Override
@@ -84,9 +89,6 @@ public class ValueBasedDefinitionLookupsImpl {
                     // Suppress and return null?
                     return null;
                 }
-
-
-
             }
             // We did not successfully found schema, do not override
             return null;

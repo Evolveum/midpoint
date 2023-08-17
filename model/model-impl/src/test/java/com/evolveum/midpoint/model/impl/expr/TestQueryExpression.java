@@ -188,7 +188,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         var result = modelService.searchObjects(query, getTestTask(), createOperationResult());
         assertNotNull(result);
         assertEquals("Only one result", 1, result.size());
-        assertEquals("Barbossa should be found, since he is rum drinker", userTypeBarbossa.getOid(), result.get(0).getOid());
+        assertEquals("Barbossa should be found, since he is rum drinker", ACCOUNT_HBARBOSSA_DUMMY_OID, result.get(0).getOid());
 
     }
 
