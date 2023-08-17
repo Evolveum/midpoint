@@ -1752,8 +1752,8 @@ th.debug-list-buttons {
 
 .request-access-wizard {
   & .simple-tile {
-    width: 250px;
-    height: 250px;
+    width: 220px;
+    height: 220px;
   }
 
   & .role-catalog-tiles-table .catalog-tile-panel {
@@ -1847,7 +1847,7 @@ th.debug-list-buttons {
 
   .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
       color: $value;
-      background-color: mix(#ffffff00, $value, 85%);
+      background-color: mix(#ffffff, $value, 85%);
       border-color: $value;
 
       option {

@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.query.TypedQuery;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -528,14 +530,21 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
         ObjectQuery queryWithExprEvaluated = null;
         if (midPointQueryScript != null) {
-            PrismPropertyValue<ObjectQuery> filterValue = ExpressionUtil.evaluateExpression(new VariablesMap(), null, midPointQueryScript,
+            PrismPropertyValue<?> filterValue = ExpressionUtil.evaluateExpression(new VariablesMap(), null, midPointQueryScript,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "", task, task.getResult());
-            queryWithExprEvaluated = filterValue.getRealValue();
-
-            queryText = prismContext.querySerializer().serialize(queryWithExprEvaluated.getFilter()).filterText();
-            getModelObject().setMidPointQuery(queryText);
+            if (filterValue != null) {
+                var realValue = filterValue.getRealValue();
+                if (realValue instanceof ObjectQuery objQuery) {
+                    queryWithExprEvaluated = objQuery;
+                } else if (realValue instanceof TypedQuery<?> typed) {
+                    queryWithExprEvaluated = typed.toObjectQuery();
+                }
+                if (queryWithExprEvaluated != null) {
+                    queryText = prismContext.querySerializer().serialize(queryWithExprEvaluated.getFilter()).filterText();
+                    getModelObject().setMidPointQuery(queryText);
+                }
+            }
         }
-
         if (queryWithExprEvaluated == null) {
             ObjectFilter filter = prismContext.createQueryParser().parseFilter(clazz, queryText);
             ObjectQuery objectQuery = prismContext.queryFactory().createQuery(filter);

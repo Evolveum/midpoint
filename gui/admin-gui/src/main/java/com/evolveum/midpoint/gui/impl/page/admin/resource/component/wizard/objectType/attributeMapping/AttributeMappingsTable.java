@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -255,13 +256,8 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
     };
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
-    protected LoadableModel<PrismContainerDefinition<MappingType>> getMappingTypeDefinition() {
-        return new LoadableModel<>() {
-            @Override
-            protected PrismContainerDefinition<MappingType> load() {
-                return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(MappingType.class);
-            }
-        };
+    protected final LoadableModel<PrismContainerDefinition<MappingType>> getMappingTypeDefinition() {
+        return WebComponentUtil.getContainerDefinitionModel(MappingType.class);
     }
 
     @Override
