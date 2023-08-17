@@ -37,7 +37,7 @@ However, Evolveum does *not*  maintain any localization or translation, except f
 The translation work is done by Evolveum partners, customers, midPoint community users and so on.
 There is a significant number of translations and every single one was contributed by midPoint community.
 The translation process itself is coordinated by the community.
-Translation coordinator is Petr Gašpark, the effort is supported by AMI Praha.
+Translation coordinator is Jan Mokráček, the effort is supported by AMI Praha.
 
 This arrangement was not part of the original plan.
 It has naturally evolved over the years when midPoint community offered more and more translations.
@@ -68,7 +68,7 @@ The easiest way to help with midPoint localization is to use link:https://app.tr
 Just create a free account on Transifex and request to join the midPoint localization team.
 Any work that you do on Transifex will be synchronized to localization files in midPoint source code repositories.
 
-In case of any questions please contact link:https://app.transifex.com/user/profile/petr.gasparik/[Petr Gašpark] who coordinates the translation effort.
+In case of any questions please contact link:https://app.transifex.com/user/profile/jan.mokracek/[Jan Mokráček] who coordinates the translation effort.
 
 
 == Localization Of Diagnostics
