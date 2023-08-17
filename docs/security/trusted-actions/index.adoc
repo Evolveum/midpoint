@@ -1,0 +1,339 @@
+= Execution of Trusted Code by Unprivileged Users
+:page-since: 4.8
+:page-toc: top
+
+== Introduction
+
+#TODO#
+
+== Custom GUI Actions
+
+=== Problem
+The xref:/midpoint/reference/admin-gui/admin-gui-config/#custom-actions-for-object-lists[custom GUI actions for object lists] are currently implemented using task templates.
+Such a template often invokes a bulk action that calls a Groovy script that does the work needed.
+For example, the action in question may be "Reset AD password" (for a given user).
+The Groovy script takes a user, determines their account on specific resource (AD), and then prepares and executes a credentials change for that account.
+
+If the action is executed by a user possessing `#all` authorization (e.g., the administrator), everything works fine.
+However, less privileged users (e.g., operators) are forbidden from executing that action.
+
+The reason lies in the (simple, safe, but imprecise and thus over-cautious) security model in midPoint 4.7.x and earlier:
+In general, Groovy scripts are dangerous, because they can be used to execute arbitrary code within a Java virtual machine - and therefore, on the host operating system.
+The only limits are those of the user running the JVM.
+As the midPoint before 4.8 did not recognize the origin of the code being executed, it employed a simple rule:
+To execute a Groovy script (or any other, like Velocity, JavaScript, and so on) from within bulk action, one has to be an administrator.
+
+See bug:MID-6913[] for more information.
+
+=== Solution Overview
+The solution lies in determining the origin of any expression or bulk action, and execute it under corresponding _expression profile_.
+
+Expression profile determines what instruments (bulk actions, expression evaluators, function libraries and their functions, scripting languages, packages, classes, methods) are available to given expression or bulk action.
+
+This enables the administrator to give more facilities (even very dangerous ones) into the hands of more knowledgeable and/or trustworthy persons, while still allowing less knowledgeable and/or trustworthy ones to write expressions and bulk actions, although limiting them to a more safe subset of available features.
+
+=== Solution Details
+A custom action references a task template, like this:
+
+.Listing 1. A custom action for resetting AD password
+[source,xml]
+----
+<objectCollectionView>
+    <identifier>allUsers</identifier>
+    <type>UserType</type>
+    <action>
+        <name>reset-ad-password</name>
+        <display>
+            <label>Reset AD password</label>
+        </display>
+        <taskTemplateRef oid="a8fa6004-1ad7-445b-a546-bdc1a83e4b2b"/>
+    </action>
+    <!-- ... -->
+</objectCollectionView>
+----
+
+The task template looks like an ordinary task, with the following limitations:
+
+. It should be activity-based task, with a single activity from the list of supported ones:
+.. iterative scripting,
+.. iterative change execution,
+.. recomputation.
++
+Some activities will work in 4.8, but their use does not make much sense in this context.
+These are: object integrity check, reindexing, trigger scan, focus validity scan, and deletion.
+. The object set definition should be empty.
+It will be filled-in based on the objects selected.
+
+.Listing 2. A task template for resetting AD password
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+    oid="a801db00-cd4b-4998-a08b-3b964b9d7cf1">
+    <name>template-reset-ad-password</name>
+    <assignment> <!--3-->
+        <targetRef oid="a314bb8c-969a-4836-b9b5-53c13567faec" type="ArchetypeType"/>
+    </assignment>
+    <executionState>waiting</executionState>
+    <activity>
+        <work>
+            <iterativeScripting> <!--1-->
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:script>
+                            <code> <!--2-->
+                                ... Groovy code to find the projection on AD resource (if any), and reset the password there ...
+                            </code>
+                        </s:script>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+    </activity>
+</task>
+----
+<1> The activity that will be executed after task template instantiation
+<2> Groovy code that would be prevented from being run if the user is not an administrator
+<3> Archetype that specifies a custom expression profile for this template and tasks derived from it
+
+During instantiation of this task template, `iterativeScripting` will be enhanced by adding `objects` item pointing to the object or objects selected by the user.
+Before 4.8, running the Groovy code would require administrator privileges.
+However, since 4.8 we can specify the expression profile for this task template (and hence for tasks created from it), by pointing to an archetype like this:
+
+.Listing 3. An archetype for trusted tasks
+[source,xml]
+----
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="a314bb8c-969a-4836-b9b5-53c13567faec">
+    <name>trusted-task</name>
+    <archetypePolicy>
+        <expressionProfile>trusted</expressionProfile>
+    </archetypePolicy>
+</archetype>
+----
+
+The `trusted` expression profile should be defined in such a way that it would allow Groovy scripts to be run.
+It can be done e.g. simply by allowing anything:
+
+.Listing 4. Definition of the `trusted` expression profile in the system configuration
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <!-- ... -->
+    <expressions>
+        <expressionProfile>
+            <identifier>trusted</identifier>
+            <decision>allow</decision> <!--1-->
+        </expressionProfile>
+    </expressions>
+</systemConfiguration>
+----
+<1> What is not explicitly specified, is allowed, i.e. everything.
+
+==== Discussion
+
+Note that this expression profile does _not_ make the script running with full midPoint privileges.
+For example, if the script executes `midpoint.getObject` call, the authorizations of the current principal are fully checked.
+However, the script has no limitations what it may call.
+Hence, it can call e.g. `midpoint.repositoryService.getObject` method, and obtain any object without checking the authorizations.
+(Not speaking about standard Java API methods to run arbitrary OS command.)
+
+In this way, by creating task templates with the appropriate archetype, you allow even unprivileged users to run arbitrary code.
+
+WARNING: The security of this approach rests on the fact that the authorizations do not allow unprivileged users to create tasks with arbitrary activity definitions and arbitrary archetypes.
+Otherwise, any such user could circumvent the security measures by using an archetype with any expression profile they would wish, allowing to run arbitrary code.
+
+// Since 4.8, the expression profile is determined for each bulk action upon its execution.
+// The default expression profile used to run bulk actions by non-root users _forbids_ using expressions, including Groovy scripts.
+// This behavior is more or less equivalent to the one present before 4.8.
+//
+// For actions residing in repository objects, the profile is based on the structural archetype of the object.
+// Hence, if the task template (and, therefore, the task created by its instantiation) has an archetype that points to an expression profile allowing the execution of Groovy scripts, any such task will be able to run them.
+// The security of the solution will then be achieved by _not_ allowing unprivileged users to create arbitrary tasks, in particular, tasks with that archetype.
+
+=== Improving the Solution: Limiting the Features a Task can Directly Use
+
+To provide additional layer of security, the archetype of the task template may allow a limited set of features.
+This means that even if an attacker was allowed to create tasks with this archetype, they would not obtain access to arbitrary script execution.
+The most reasonable approach would be to allow only an invocation of a single library function (or a small set of functions), providing the functionality needed.
+
+Let us have a look at such a profile:
+
+.Listing 5. Definition of the `trusted-functions-only` expression profile in the system configuration
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <!-- ... -->
+    <expressions>
+        <expressionProfile>
+            <identifier>trusted-functions-only</identifier>
+            <decision>deny</decision> <!--1-->
+            <evaluator>
+                <type>function</type> <!--2-->
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator> <!--3-->
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            <functionLibraryProfile>trusted-functions-only</functionLibraryProfile> <!--4-->
+        </expressionProfile>
+        <functionLibrariesProfile>
+            <identifier>trusted-functions-only</identifier> <!--4-->
+            <decision>deny</decision> <!--1-->
+            <library>
+                <ref oid="17b5b255-c71e-4a67-8e42-349862e295ac"/>
+                <decision>deny</decision> <!--1-->
+                <function>
+                    <name>reset-ad-password</name> <!--5-->
+                    <decision>allow</decision>
+                </function>
+            </library>
+        </functionLibrariesProfile>
+    </expressions>
+</systemConfiguration>
+----
+<1> What is not explicitly specified, is denied.
+<2> This allows to call library functions (stored in `FunctionLibraryType` objects).
+<3> This allows to provide parameter values as path expressions (necessary to be able to call any function with parameters).
+<4> Limits the library functions that can be called.
+<5> This is the trusted function that can be called.
+
+The task template archetype should now reference this new profile:
+
+.Listing 6. An archetype for tasks that can call trusted library functions
+[source,xml]
+----
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="93651a38-b1d5-4e53-8da6-628adfb85941">
+    <name>trusted-functions-only-task</name>
+    <archetypePolicy>
+        <expressionProfile>trusted-functions-only</expressionProfile>
+    </archetypePolicy>
+</archetype>
+----
+
+Of course, the task template itself will now look different.
+Instead of containing Groovy code, it should call a library function to do the work.
+
+.Listing 6. A task template for resetting AD password that uses a library function
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+    oid="472ffb27-5b99-43e7-9c5c-fc0f453b3e89">
+    <name>template-reset-ad-password-improved</name>
+    <assignment>
+        <targetRef oid="93651a38-b1d5-4e53-8da6-628adfb85941" type="ArchetypeType"/>
+    </assignment>
+    <executionState>waiting</executionState>
+    <activity>
+        <work>
+            <iterativeScripting>
+                <scriptExecutionRequest>
+                    <s:evaluateExpression>
+                        <s:expression> <!--1-->
+                            <function> <!--2-->
+                                <libraryRef oid="17b5b255-c71e-4a67-8e42-349862e295ac"/>
+                                <name>resetAdPassword</name>
+                                <parameter>
+                                    <name>user</name> <!--3-->
+                                    <expression>
+                                        <path>$input</path>
+                                    </expression>
+                                </parameter>
+                            </function>
+                        </s:expression>
+                    </s:evaluateExpression>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+    </activity>
+</task>
+----
+<1> Evaluates arbitrary expression (new in 4.8)
+<2> Calls a function `resetAdPassword` in library `17b5b255-c71e-4a67-8e42-349862e295ac`
+<3> Passes the input as the value for the `user` parameter
+
+The function library itself is quite ordinary.
+It will contain the same Groovy code as was present in the original task template.
+
+.Listing 7. The function library
+[source,xml]
+----
+<functionLibrary xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="17b5b255-c71e-4a67-8e42-349862e295ac">
+    <name>library</name>
+    <function>
+        <name>resetAdPassword</name>
+        <parameter>
+            <name>user</name>
+            <type>UserType</type>
+        </parameter>
+        <script>
+            <code>
+                ... Groovy code to find the projection on AD resource (if any), and reset the password there ...
+            </code>
+        </script>
+    </function>
+</functionLibrary>
+----
+
+==== Discussion
+The security of this approach is improved.
+Even if someone would be able to create a task with archetype `trusted-functions-only-task`, the only thing they would be able to execute, is the single trusted function.
+
+It is expected that the function would not provide features like dynamic code execution (e.g., interpreting its parameter values as a code that should be executed), so its use would be most probably safe.
+
+=== Improving the Solution Further: Limiting the Privileges Needed
+
+In the above scenario we manipulated the features (scripting, calling library functions, and so on) that the specific code is able to use.
+Assuming that standard midPoint API (e.g., `midpoint` object) is used, the authorization of logged-in user is still fully applied.
+So, if the script is going to execute an action like password reset for an arbitrary user, the logged-in principal must have appropriate authorizations.
+
+This may or may not be convenient.
+There are situation where we want to limit the general authorizations of the respective users, and allow them to execute specific actions (like resetting AD passwords) only; and only via that particular GUI action.
+
+This is somewhat similar to "setUid" bit in Unix.
+We allow anyone to call a specific library function.
+The function will run with elevated privileges and/or under different user identity.
+And the function is responsible to make sure that nothing wrong happens, e.g., by strictly enforcing what individual users can and cannot do.
+
+The following example will show such a function:
+
+.Listing 8. The function library with "runPrivileged" method
+[source,xml]
+----
+<functionLibrary xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="17b5b255-c71e-4a67-8e42-349862e295ac">
+    <name>library</name>
+    <function>
+        <name>resetAdPasswordPrivileged</name>
+        <parameter>
+            <name>user</name>
+            <type>UserType</type>
+        </parameter>
+        <privileges> <!--1-->
+            <runPrivileged>true</runPrivileged>
+        </privileges>
+        <script>
+            <code>
+                ... Groovy code to check the identity of the caller ... <!--2-->
+                ... Groovy code to find the projection on AD resource (if any), and reset the password there ...
+            </code>
+        </script>
+    </function>
+</functionLibrary>
+----
+<1> Causes the function to execute with full privileges (authorizations).
+<2> Additional code that checks that only appropriate users can execute this function.
+
+Please see xref:../privilege-elevation.adoc[] for more information about privilege elevation feature.
+
+== Scripting Policy Actions
+
+#TODO#
+
+== For More Information
+
+#TODO#
