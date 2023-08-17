@@ -58,6 +58,7 @@ public class ArchetypeSelectionAuthenticationProvider extends MidpointAbstractAu
     private void saveArchetypeToMidpointAuthentication(String archetypeOid) {
         MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
         authentication.setArchetypeOid(archetypeOid);
+        authentication.setArchetypeSelected(true);
     }
 
     @Override

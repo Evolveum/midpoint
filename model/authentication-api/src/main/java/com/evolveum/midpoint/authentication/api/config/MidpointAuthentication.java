@@ -94,6 +94,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      * functionality).
      */
     private String archetypeOid;
+    private boolean archetypeSelected;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -641,8 +642,12 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return archetypeOid;
     }
 
+    public void setArchetypeSelected(boolean archetypeSelected) {
+        this.archetypeSelected = archetypeSelected;
+    }
+
     public boolean isArchetypeDefined() {
-        return StringUtils.isNotEmpty(archetypeOid);
+        return StringUtils.isNotEmpty(archetypeOid) || archetypeSelected;
     }
 
     public Collection<? extends GrantedAuthority> resolveAuthorities(Authentication token) {
@@ -665,5 +670,5 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         ModuleAuthentication moduleAuthentication = getProcessingModuleOrThrowException();
         moduleAuthentication.setAuthentication(token);
     }
-    
+
 }
