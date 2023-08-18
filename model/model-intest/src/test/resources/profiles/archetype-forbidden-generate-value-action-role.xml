@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="f7714bb8-242e-41c7-bb81-d9cf78415873">
+    <name>forbidden-generate-value-action-role</name>
+    <archetypePolicy>
+        <expressionProfile>forbidden-generate-value-action</expressionProfile>
+    </archetypePolicy>
+</archetype>

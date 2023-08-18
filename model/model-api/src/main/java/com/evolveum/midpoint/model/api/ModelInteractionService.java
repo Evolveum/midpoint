@@ -458,6 +458,17 @@ public interface ModelInteractionService {
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
+     * Submits a task from template (pointed to by `templateOid`), customizing it according to given
+     * {@link ActivityCustomization}. The template must be compatible with the customization required.
+     */
+    @NotNull String submitTaskFromTemplate(
+            @NotNull String templateOid,
+            @NotNull ActivityCustomization customization,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws CommonException;
+
+    /**
      * Efficiently determines information about archetype policy applicable for a particular object.
      * Returns null if no archetype policy is applicable.
      * This is a "one stop" method for archetype policy in the GUI. The method returns archetype policy even
@@ -489,6 +500,8 @@ public interface ModelInteractionService {
      * can be assigned according to holderType.
      */
     <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(PrismObject<O> object, OperationResult result) throws SchemaException;
+
+    <O extends AssignmentHolderType> List<ArchetypeType> getFilteredArchetypesByHolderType(Class<O> objectType, OperationResult result) throws SchemaException;
 
     /**
      * Returns data structure that contains information about possible assignment holders for a particular target object.

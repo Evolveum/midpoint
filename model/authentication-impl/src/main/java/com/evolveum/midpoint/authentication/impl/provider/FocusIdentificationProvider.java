@@ -57,12 +57,12 @@ public class FocusIdentificationProvider extends MidpointAbstractAuthenticationP
         }
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        if (!(authentication instanceof FocusVerificationToken)) {
+        if (!(authentication instanceof FocusVerificationToken focusVerificationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
-        Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getDetails();
+        Map<ItemPath, String> attrValuesMap = focusVerificationToken.getDetails(); //TODO should not be details
         if (attrValuesMap == null || attrValuesMap.isEmpty()) {
             // E.g. no user name or other required property provided when resetting the password.
             // Hence DEBUG, not ERROR, and BadCredentialsException, not AuthenticationServiceException.

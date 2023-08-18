@@ -9,8 +9,10 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static java.util.Collections.singleton;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
@@ -49,8 +51,13 @@ public class ResumeTaskExecutor extends AbstractObjectBasedActionExecutor<TaskTy
     }
 
     @Override
-    String getActionName() {
+    @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_RESUME_TASK.getLocalPart();
     }
 
     @Override

@@ -45,10 +45,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
             String enteredUsername,
             List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) {
-//        if (!(authentication.getPrincipal() instanceof MidPointPrincipal)) {
-//            return authentication; //TODO should not be exception?
-//        }
-//        String enteredUsername = ((MidPointPrincipal) authentication.getPrincipal()).getUsername();
+
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
         if (enteredUsername == null) {
             LOGGER.error("No username provided in the authentication token");
@@ -57,12 +54,12 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        if (!(authentication instanceof AttributeVerificationToken)) {
+        if (!(authentication instanceof AttributeVerificationToken attributeVerificationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
-        Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getCredentials();
+        Map<ItemPath, String> attrValuesMap = attributeVerificationToken.getCredentials();
         AttributeVerificationAuthenticationContext authContext = new AttributeVerificationAuthenticationContext(enteredUsername,
                 focusType, attrValuesMap, requireAssignment, channel);
         Authentication token = getEvaluator().authenticate(connEnv, authContext);

@@ -9,7 +9,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="d-flex flex-column align-items-center mt-5">
-        <h2 class="mb-3" wicket:id="text"/>
+        <h2 class="mb-4 font-weight-bold" wicket:id="text"/>
         <h5 class="text-center text-secondary mb-5" wicket:id="subText"/>
     <div wicket:id="feedbackContainer" class="col-12 p-0 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
@@ -25,11 +25,11 @@
         <div wicket:id="table" class="col-12 p-0 "/>
     </div>
     <div class="d-flex gap-3 justify-content-center mt-5">
-        <a class="btn btn-outline-primary" wicket:id="back">
+        <a class="btn text-primary" wicket:id="back">
             <i class="fas fa-arrow-left mr-2"></i>
             <wicket:message key="WizardHeader.back"/>
         </a>
-        <a class="btn btn-outline-primary" wicket:id="exit">
+        <a class="btn btn-default" wicket:id="exit">
             <i class="fas fa-right-from-bracket mr-2"></i>
             <wicket:message key="WizardPanel.exit"/>
         </a>
@@ -37,7 +37,7 @@
             <i class="fas fa-check mr-2"/>
             <span wicket:id="submitLabel"/>
         </a>
-        <a class="btn btn-success" wicket:id="next">
+        <a class="btn btn-primary" wicket:id="next">
             <wicket:message key="WizardHeader.next"/>
             <span wicket:id="nextLabel"/>
             <i class="fas fa-arrow-right ml-2"></i>
@@ -47,6 +47,6 @@
     </wicket:panel>
 <wicket:fragment wicket:id="footerFragment">
     <span class="my-auto"><wicket:message key="ConstructionGroupStepPanel.searchOnResourceButton.help"/></span>
-    <a class="btn btn-primary ml-3" wicket:id="searchOnResourceButton"><wicket:message key="ConstructionGroupStepPanel.searchOnResourceButton"/></a>
+    <a class="btn btn-primary ml-3" wicket:id="searchOnResourceButton"/>
 </wicket:fragment>
 </html>

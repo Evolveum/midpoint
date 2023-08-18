@@ -73,31 +73,6 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
         };
         summaryTagList.add(summaryTag);
 
-        SummaryTag<ResourceType> modeTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void initialize(ResourceType object) {
-                String lifecycleState = getModelObject().getLifecycleState();
-                if (StringUtils.isEmpty(lifecycleState)) {
-                    lifecycleState = SchemaConstants.LIFECYCLE_ACTIVE;
-                }
-
-                if (!SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)
-                        && !SchemaConstants.LIFECYCLE_ACTIVE.equals(lifecycleState)) {
-                    setHideTag(true);
-                    return;
-                } else {
-                    setHideTag(false);
-                }
-
-                String mode = ResourceSummaryPanel.this.getString("SimulationMode." + lifecycleState);
-                setLabel(ResourceSummaryPanel.this.getString("ObjectSummaryPanel.mode", mode));
-                setIconCssClass("fa fa-dna");
-            }
-        };
-        summaryTagList.add(modeTag);
-
         SummaryTag<ResourceType> templateTag = new SummaryTag<ResourceType>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 

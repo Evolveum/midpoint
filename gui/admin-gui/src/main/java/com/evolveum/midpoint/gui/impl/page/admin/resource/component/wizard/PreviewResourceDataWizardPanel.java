@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
@@ -17,6 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.Serializable;
+import java.util.function.Consumer;
 
 /**
  * @author lskublik
@@ -65,6 +70,11 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
             @Override
             protected boolean isEnabledInlineMenu() {
                 return false;
+            }
+
+            @Override
+            protected Consumer<Task> createProviderSearchTaskCustomizer() {
+                return (Consumer<Task> & Serializable) (task) -> task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
             }
         };
         table.setOutputMarkupId(true);

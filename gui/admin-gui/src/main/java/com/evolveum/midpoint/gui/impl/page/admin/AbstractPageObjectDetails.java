@@ -206,7 +206,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         };
     }
 
-    protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+    public boolean hasUnsavedChanges(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
 
         try {

@@ -35,7 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCo
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -130,8 +129,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             connectorFactories = new ArrayList<>(connectorFactoryBeanNames.length);
             for (String connectorFactoryBeanName: connectorFactoryBeanNames) {
                 Object bean = springContext.getBean(connectorFactoryBeanName);
-                if (bean instanceof ConnectorFactory) {
-                    ConnectorFactory connFactory = (ConnectorFactory)bean;
+                if (bean instanceof ConnectorFactory connFactory) {
                     connectorFactories.add(connFactory);
                     connFactory.registerDiscoveryListener(this);
                 } else {
@@ -442,15 +440,6 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         return connectorWithSchema;
     }
 
-    public Set<ConnectorType> initialDiscoverLocalConnectors(OperationResult parentResult) {
-        // TODO: Here we should mark all local connectors inactive?
-        inactivateLocalConnectors(parentResult);
-
-        return discoverLocalConnectors(parentResult);
-    }
-
-
-
     public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
         try {
             // Postpone discovery
@@ -537,10 +526,9 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     private void inactivateLocalConnectors(OperationResult parentResult) {
         // Walk all connectors, mark them inactive
 
-        ObjectQuery query = null;
         SearchResultList<PrismObject<ConnectorType>> allConnectors;
         try {
-            allConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, parentResult);
+            allConnectors = repositoryService.searchObjects(ConnectorType.class, null, null, parentResult);
 
         } catch (SchemaException e) {
             // FIXME: Fail properly
@@ -668,7 +656,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             LOGGER.trace("Found repository connectors:\n{}", DebugUtil.debugDump(foundConnectors, 1));
         }
 
-        if (foundConnectors.size() == 0) {
+        if (foundConnectors.isEmpty()) {
             // Nothing found, the connector is not in the repo
             return null;
         }

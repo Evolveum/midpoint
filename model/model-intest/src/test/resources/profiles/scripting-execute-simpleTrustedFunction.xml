@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:executeScript
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:evaluateExpression>
+        <s:forWholeInput>true</s:forWholeInput>
+        <s:expression>
+            <function>
+                <libraryRef oid="8752dce7-432a-48ad-aa10-1d4deb31dcba"/>
+                <name>simpleTrustedFunction</name>
+                <!-- dummy parameter is intentionally ignored; we have no rights to run "asIs" evaluator here anyway -->
+            </function>
+        </s:expression>
+    </s:evaluateExpression>
+</s:executeScript>

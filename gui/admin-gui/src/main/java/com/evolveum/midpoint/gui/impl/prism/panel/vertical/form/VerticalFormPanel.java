@@ -105,6 +105,11 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     protected String getIcon() {
                         return VerticalFormPanel.this.getIcon();
                     }
+
+                    @Override
+                    protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+                        return VerticalFormPanel.this.isVisibleSubContainer(c);
+                    }
                 };
             }
 
@@ -132,6 +137,10 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         };
         singleContainer.setOutputMarkupId(true);
         add(singleContainer);
+    }
+
+    protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+        return false;
     }
 
     protected IModel<String> getTitleModel() {

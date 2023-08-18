@@ -36,7 +36,6 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
 
     private PageBase page;
 
-
     public RelationPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
 

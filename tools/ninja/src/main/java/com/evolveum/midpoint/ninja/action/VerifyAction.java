@@ -61,12 +61,19 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
     @Override
     public VerifyResult execute() throws Exception {
         VerifyResult result;
+        if (options.getOutput() != null) {
+            log.info("Verification report will be saved to '{}'", options.getOutput().getPath());
+        } else if (context.isUserMode()) {
+            log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradability status of deprecated items.");
+            log.warn("It is recommended to review this report and actions for proper upgrade procedure.");
+        }
         if (!options.getFiles().isEmpty()) {
             result = verifyFiles();
         } else {
             result = super.execute();
         }
 
+        log.info("");
         log.info(
                 "Verification finished. {}, {}, {} optional issues found",
                 ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
@@ -78,6 +85,15 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
 
             if (Objects.equals(VerifyOptions.ReportStyle.CSV, options.getReportStyle())) {
                 log.info("XML dump with delta for each item saved to '{}'", options.getOutput().getPath() + VerificationReporter.DELTA_FILE_NAME_SUFFIX);
+            }
+
+            // FIXME: ADD links (do not display in batch mode)
+            // FIXME: Could We could try to infer script name?
+            if (context.isUserMode()) {
+                log.info("");
+                log.info("Please see documentation for use of verification report in upgrade process and modify it accordingly.");
+                log.info("After you've reviewed verification report and marked changes to skip you can continue upgrade process "
+                        + "with running 'ninja.sh upgrade-objects --verification-file \"{}\"'", options.getOutput().getPath());
             }
         }
 

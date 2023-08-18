@@ -40,23 +40,6 @@ public class ExpressionConfigItem
         return new ExpressionConfigItem(bean, originProvider.origin(bean));
     }
 
-    // TODO remove
-//    public @Nullable ObjectReferenceType getRunAsRef() throws ConfigurationException {
-//        var value = value();
-//        var privileges = value.getPrivileges();
-//        var legacyRunAsRef = value.getRunAsRef();
-//        if (privileges != null) {
-//            if (legacyRunAsRef != null) {
-//                throw new ConfigurationException(
-//                        "Both privileges and legacy runAsRef are present in " + fullDescription());
-//            } else {
-//                return privileges.getRunAsRef();
-//            }
-//        } else {
-//            return legacyRunAsRef;
-//        }
-//    }
-
     public @Nullable ExecutionPrivilegesSpecificationType getPrivileges() throws ConfigurationException {
         return getPrivileges(
                 value().getRunAsRef(),

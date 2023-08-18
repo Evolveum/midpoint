@@ -28,7 +28,7 @@ public abstract class MidpointAbstractAuthenticationProvider extends AbstractAut
     private static final Trace LOGGER = TraceManager.getTrace(MidpointAbstractAuthenticationProvider.class);
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
+    protected final Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }

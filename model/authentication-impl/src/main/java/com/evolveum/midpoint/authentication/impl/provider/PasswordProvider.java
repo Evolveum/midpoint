@@ -54,16 +54,9 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
     protected Authentication doAuthenticate(Authentication authentication, String enteredUsername, List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
-//        String enteredUsername = getEnteredUsername(authentication);
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
-
-        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
-            LOGGER.error("Unsupported authentication {}", authentication);
-            throw new AuthenticationServiceException("web.security.provider.unavailable");
-
-        }
 
         String enteredPassword = (String) authentication.getCredentials();
 

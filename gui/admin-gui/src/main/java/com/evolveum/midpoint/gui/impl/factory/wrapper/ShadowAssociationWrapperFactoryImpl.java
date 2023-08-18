@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -234,8 +235,10 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             PrismReference shadowAss = fillInShadowReference(def, item);
 
             PrismReferenceWrapper shadowReference = (PrismReferenceWrapper) referenceWrapperFactory.createWrapper(shadowValueWrapper, shadowAss, shadowAss.isEmpty() ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED, context);
-            shadowReference.setFilter(WebComponentUtil.createAssociationShadowRefFilter(def,
-                    getPrismContext(), context.getResource().getOid()));
+            shadowReference.setFilter(WebComponentUtil.createAssociationShadowRefFilter(
+                    def,
+                    getPrismContext(),
+                    context.getResource().getOid()));
             shadowReferences.add(shadowReference);
         }
 

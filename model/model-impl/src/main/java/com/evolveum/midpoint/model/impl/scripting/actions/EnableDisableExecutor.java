@@ -7,18 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import static com.evolveum.midpoint.schema.util.ScriptingBeansUtil.getActionType;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
-
-import jakarta.annotation.PostConstruct;
-
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -28,22 +21,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.DisableActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.EnableActionExpressionType;
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 
 /**
  * Implements "enable" and "disable" actions.
  * It is ObjectType-typed just because it handles both FocusType and ShadowType objects.
  */
-@Component
-public class EnableDisableExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
-
-    private static final String NAME_ENABLE = "enable";
-    private static final String NAME_DISABLE = "disable";
-
-    @PostConstruct
-    public void init() {
-        actionExecutorRegistry.register(NAME_ENABLE, EnableActionExpressionType.class, this);
-        actionExecutorRegistry.register(NAME_DISABLE, DisableActionExpressionType.class, this);
-    }
+public abstract class EnableDisableExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
     @Override
     public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
@@ -52,34 +40,39 @@ public class EnableDisableExecutor extends AbstractObjectBasedActionExecutor<Obj
 
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
-        boolean isEnable = NAME_ENABLE.equals(getActionType(action));
 
         iterateOverObjects(input, context, globalResult,
                 (object, item, result) ->
-                        enableOrDisable(object.asObjectable(), dryRun, options, isEnable, context, result),
+                        enableOrDisable(object.asObjectable(), dryRun, options, context, result),
                 (object, exception) ->
-                        context.println("Failed to " + (isEnable?"enable":"disable") + object + drySuffix(dryRun) + exceptionSuffix(exception))
+                        context.println("Failed to " + getVerb() + " " + object + drySuffix(dryRun) + exceptionSuffix(exception))
         );
 
         return input;
     }
 
-    private void enableOrDisable(ObjectType object, boolean dryRun, ModelExecuteOptions options, boolean isEnable,
+    abstract String getVerb();
+
+    abstract String getVerbPast();
+
+    abstract ActivationStatusType getTargetStatus();
+
+    private void enableOrDisable(
+            ObjectType object, boolean dryRun, ModelExecuteOptions options,
             ExecutionContext context, OperationResult result) throws ScriptExecutionException, SchemaException {
         if (object instanceof FocusType || object instanceof ShadowType) {
-            ObjectDelta<? extends ObjectType> delta = createEnableDisableDelta(object, isEnable);
+            ObjectDelta<? extends ObjectType> delta = createEnableDisableDelta(object);
             operationsHelper.applyDelta(delta, options, dryRun, context, result);
-            context.println((isEnable ? "Enabled " : "Disabled ") + object + optionsSuffix(options, dryRun));
+            context.println(getVerbPast() + " " + object + optionsSuffix(options, dryRun));
         } else {
             throw new ScriptExecutionException("Object is not a FocusType nor ShadowType: " + object);
         }
     }
 
-    private ObjectDelta<? extends ObjectType> createEnableDisableDelta(ObjectType object, boolean isEnable)
+    private ObjectDelta<? extends ObjectType> createEnableDisableDelta(ObjectType object)
             throws SchemaException {
         return prismContext.deltaFor(object.getClass())
-                .item(PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
-                    .replace(isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED)
+                .item(PATH_ACTIVATION_ADMINISTRATIVE_STATUS).replace(getTargetStatus())
                 .asObjectDelta(object.getOid());
     }
 
@@ -88,8 +81,76 @@ public class EnableDisableExecutor extends AbstractObjectBasedActionExecutor<Obj
         return ObjectType.class;
     }
 
-    @Override
-    String getActionName() {
-        return "enable-disable";
+    @Component
+    static class Enable extends EnableDisableExecutor {
+
+        private static final String NAME = "enable";
+
+        @PostConstruct
+        public void init() {
+            actionExecutorRegistry.register(NAME, EnableActionExpressionType.class, this);
+        }
+
+        @Override
+        @NotNull
+        String getLegacyActionName() {
+            return NAME;
+        }
+
+        @Override
+        @NotNull String getConfigurationElementName() {
+            return SchemaConstantsGenerated.SC_ENABLE.getLocalPart();
+        }
+
+        @Override
+        String getVerb() {
+            return "enabled";
+        }
+
+        @Override
+        String getVerbPast() {
+            return "Enabled";
+        }
+
+        @Override
+        ActivationStatusType getTargetStatus() {
+            return ActivationStatusType.ENABLED;
+        }
+    }
+
+    @Component
+    static class Disable extends EnableDisableExecutor {
+
+        private static final String NAME = "disable";
+
+        @PostConstruct
+        public void init() {
+            actionExecutorRegistry.register(NAME, DisableActionExpressionType.class, this);
+        }
+        @Override
+        @NotNull
+        String getLegacyActionName() {
+            return NAME;
+        }
+
+        @Override
+        @NotNull String getConfigurationElementName() {
+            return SchemaConstantsGenerated.SC_DISABLE.getLocalPart();
+        }
+
+        @Override
+        String getVerb() {
+            return "disable";
+        }
+
+        @Override
+        String getVerbPast() {
+            return "Disabled";
+        }
+
+        @Override
+        ActivationStatusType getTargetStatus() {
+            return ActivationStatusType.DISABLED;
+        }
     }
 }

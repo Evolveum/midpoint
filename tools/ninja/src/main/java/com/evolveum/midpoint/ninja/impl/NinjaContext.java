@@ -124,7 +124,11 @@ public class NinjaContext implements Closeable {
         this.log = log;
     }
 
-    private void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+    private synchronized void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+        if (applicationContext != null) {
+            // Guard if method is entered multiple times during multi-threaded invocation
+            return;
+        }
         if (applicationContextLevel == NinjaApplicationContextLevel.NONE) {
             throw new IllegalStateException("Application context shouldn't be initialized");
         }
@@ -245,6 +249,16 @@ public class NinjaContext implements Closeable {
     public boolean isVerbose() {
         BaseOptions base = getOptions(BaseOptions.class);
         return base.isVerbose();
+    }
+
+    public boolean isBatchMode() {
+        BaseOptions base = getOptions(BaseOptions.class);
+        return base.isBatchMode();
+    }
+
+    public boolean isUserMode() {
+        // TODO: Maybe we should better distinguish between user interactive mode and script mode
+        return !isBatchMode();
     }
 
     public Charset getCharset() {

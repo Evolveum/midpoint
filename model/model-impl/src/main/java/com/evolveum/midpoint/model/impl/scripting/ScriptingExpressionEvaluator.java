@@ -110,10 +110,10 @@ public class ScriptingExpressionEvaluator {
             context.computeResults();
             return context;
         } catch (CommonException | RuntimeException e) {
-            result.recordException("Couldn't execute script", e);
+            result.recordException("Couldn't execute script: " + e.getMessage(), e);
             throw new ScriptExecutionException("Couldn't execute script: " + e.getMessage(), e);
         } catch (Throwable t) {
-            result.recordException("Couldn't execute script", t);
+            result.recordException("Couldn't execute script: " + t.getMessage(), t);
             throw t;
         }
     }
@@ -172,8 +172,9 @@ public class ScriptingExpressionEvaluator {
         } else if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Executing action {}", getActionType(action));
         }
-        return actionExecutorRegistry.getExecutor(action)
-                .execute(action, input, context, globalResult);
+        ActionExecutor executor = actionExecutorRegistry.getExecutor(action);
+        executor.checkExecutionAllowed(context);
+        return executor.execute(action, input, context, globalResult);
     }
 
     private PipelineData executePipeline(ExpressionPipelineType pipeline, PipelineData data, ExecutionContext context,

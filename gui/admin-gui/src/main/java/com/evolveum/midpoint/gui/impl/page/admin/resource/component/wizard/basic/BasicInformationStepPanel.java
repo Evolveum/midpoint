@@ -81,7 +81,7 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Resou
             if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)
                     || wrapper.getItemName().equals(ResourceType.F_TEMPLATE)
                     || wrapper.getItemName().equals(ResourceType.F_ABSTRACT)
-                    || wrapper.getItemName().equals(ResourceType.F_LIFECYCLE_STATE)){
+                    || wrapper.getItemName().equals(ResourceType.F_SCRIPTS)){
                 return ItemVisibility.HIDDEN;
             }
             return ItemVisibility.AUTO;

@@ -56,7 +56,7 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
 
             @Override
             protected ObjectFilter createCustomFilter() {
-                return getParentWrapper().getFilter();
+                return getParentWrapper().getFilter(getPageBase());
             }
 
             @Override

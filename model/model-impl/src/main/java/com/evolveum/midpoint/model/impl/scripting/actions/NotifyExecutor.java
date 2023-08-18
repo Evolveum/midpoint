@@ -11,11 +11,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
 
 import jakarta.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -111,7 +113,12 @@ public class NotifyExecutor extends BaseActionExecutor {
     }
 
     @Override
-    String getActionName() {
+    @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_NOTIFY.getLocalPart();
     }
 }

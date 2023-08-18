@@ -7,12 +7,9 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
 import java.io.PrintWriter;
+import java.io.Serial;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
@@ -138,7 +135,10 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -166,7 +166,6 @@ import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
-import com.evolveum.midpoint.schema.util.task.work.ObjectSetUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -215,7 +214,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -230,6 +228,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public final class WebComponentUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(WebComponentUtil.class);
+
+    private static final String DEFAULT_RELATION_ICON = "fa-solid fa-user";
 
     private static final String KEY_BOOLEAN_NULL = "Boolean.NULL";
     private static final String KEY_BOOLEAN_TRUE = "Boolean.TRUE";
@@ -2112,6 +2112,68 @@ public final class WebComponentUtil {
         return displayType.getLabel();
     }
 
+    public static RelationDefinitionType getRelationDefinition(QName relation, List<RelationDefinitionType> relations) {
+        if (relations == null) {
+            return null;
+        }
+
+        for (RelationDefinitionType rel : relations) {
+            if (relation.equals(rel.getRef())) {
+                return rel;
+            }
+        }
+
+        return null;
+    }
+
+    public static String getRelationIcon(QName relation, List<RelationDefinitionType> relations) {
+        final String defaultIcon = getDefaultRelationIcon(relation);
+
+        RelationDefinitionType rel = getRelationDefinition(relation, relations);
+        if (rel == null || rel.getDisplay() == null) {
+            return defaultIcon;
+        }
+
+        DisplayType display = rel.getDisplay();
+
+        IconType it = display.getIcon();
+        if (it == null || it.getCssClass() == null) {
+            return defaultIcon;
+        }
+
+        return it.getCssClass();
+    }
+
+    public static PolyString getRelationLabel(QName relation, List<RelationDefinitionType> relations) {
+        final PolyString defaultLabel = new PolyString(relation.getLocalPart());
+
+        RelationDefinitionType rel = getRelationDefinition(relation, relations);
+        if (rel == null) {
+            return defaultLabel;
+        }
+
+        DisplayType display = rel.getDisplay();
+        if (display == null || display.getLabel() == null) {
+            return defaultLabel;
+        }
+
+        return display.getLabel().toPolyString();
+    }
+
+    public static String getDefaultRelationIcon(QName name) {
+        if (SchemaConstants.ORG_DEFAULT.equals(name)) {
+            return "fa-solid fa-user";
+        } else if (SchemaConstants.ORG_MANAGER.equals(name)) {
+            return "fa-solid fa-user-tie";
+        } else if (SchemaConstants.ORG_APPROVER.equals(name)) {
+            return "fa-solid fa-clipboard-check";
+        } else if (SchemaConstants.ORG_OWNER.equals(name)) {
+            return "fa-solid fa-crown";
+        }
+
+        return DEFAULT_RELATION_ICON;
+    }
+
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
 
@@ -2667,6 +2729,7 @@ public final class WebComponentUtil {
     public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {
         return OBJECT_LIST_PAGE_MAP.get(type);
     }
+
     public static Class<? extends PageBase> getPageHistoryDetailsPage(Class<?> page) {
         return OBJECT_HISTORY_PAGE_MAP.get(page);
     }
@@ -3077,19 +3140,18 @@ public final class WebComponentUtil {
         target.add(pageBase.getFeedbackPanel());
     }
 
-    public static void switchObjectMode(
+    public static void saveObjectLifeCycle(
             @NotNull PrismObject<ResourceType> resource,
             String operation,
             AjaxRequestTarget target,
-            PageBase pageBase,
-            String lifecycleState) {
+            PageBase pageBase) {
         Task task = pageBase.createSimpleTask(operation);
         OperationResult parentResult = new OperationResult(operation);
 
         try {
             ObjectDelta<ResourceType> objectDelta = pageBase.getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(
-                            ResourceType.class, resource.getOid(), ResourceType.F_LIFECYCLE_STATE, lifecycleState);
+                            ResourceType.class, resource.getOid(), ResourceType.F_LIFECYCLE_STATE, resource.asObjectable().getLifecycleState());
 
             pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
 
@@ -3336,97 +3398,36 @@ public final class WebComponentUtil {
                 @Override
                 public InlineMenuItemAction initAction() {
                     return new ColumnMenuAction<SelectableBean<ObjectType>>() {
-                        private static final long serialVersionUID = 1L;
+                        @Serial private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            OperationResult result = new OperationResult(operation);
-                            try {
-                                Collection<String> oids;
-                                if (getRowModel() != null) {
-                                    oids = Collections.singletonList(getRowModel().getObject().getValue().getOid());
-                                } else {
-                                    oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
-                                            .stream()
-                                            .map(o -> o.getOid())
-                                            .filter(Objects::nonNull)
-                                            .collect(Collectors.toSet());
-                                }
-                                if (!oids.isEmpty()) {
-                                    @NotNull Item<PrismValue, ItemDefinition<?>> extensionQuery = prepareExtensionValues(oids);
-
-                                    MidPointPrincipal principal = pageBase.getPrincipal();
-                                    if (principal == null) {
-                                        throw new SecurityViolationException("No current user");
-                                    }
-                                    // TODO deduplicate with ModelInteractionService.submitTaskFromTemplate
-                                    //  (after improving that method)
-                                    TaskType newTask = pageBase.getModelService().getObject(TaskType.class, templateOid,
-                                            createCollection(createExecutionPhase()), pageBase.createSimpleTask(operation), result).asObjectable();
-                                    newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
-                                    newTask.setOid(null);
-                                    newTask.setTaskIdentifier(null);
-                                    newTask.setOwnerRef(principal.toObjectReference());
-                                    newTask.setExecutionState(RUNNABLE);
-                                    newTask.setSchedulingState(READY);
-                                    newTask.asPrismObject().getOrCreateExtension().add(extensionQuery);
-                                    ObjectSetBasedWorkDefinitionType workDef = ObjectSetUtil.getObjectSetDefinitionFromTask(newTask);
-                                    QueryType query = (QueryType) extensionQuery.getRealValue();
-                                    ObjectSetType objectSet = workDef.getObjects();
-                                    if (objectSet == null) {
-                                        objectSet = new ObjectSetType();
-                                        objectSet.setType(ObjectType.COMPLEX_TYPE);
-                                    }
-                                    objectSet.setQuery(query);
-                                    workDef.setObjects(objectSet);
-                                    // TODO consider if the user needs to have authorization to add the task
-                                    ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
-                                    Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = saveTask(delta, result, pageBase);
-                                    String newTaskOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, newTask.asPrismObject());
-                                    newTask.setOid(newTaskOid);
-                                    newTask.setTaskIdentifier(newTaskOid);
-                                    result.setInProgress();
-                                    result.setBackgroundTaskOid(newTask.getOid());
-                                } else {
-                                    result.recordWarning(pageBase.createStringResource("WebComponentUtil.message.createMenuItemsFromActions.warning").getString());
-                                }
-                            } catch (Exception ex) {
-                                result.recordFatalError(result.getOperation(), ex);
-                                target.add(pageBase.getFeedbackPanel());
-                            } finally {
-                                pageBase.showResult(result);
-                                target.add(pageBase.getFeedbackPanel());
-                            }
+                            pageBase.taskAwareExecutor(target, operation)
+                                    .runVoid((task, result) -> {
+                                        Collection<String> oids;
+                                        if (getRowModel() != null) {
+                                            oids = Collections.singletonList(getRowModel().getObject().getValue().getOid());
+                                        } else {
+                                            oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
+                                                    .stream()
+                                                    .map(o -> o.getOid())
+                                                    .filter(Objects::nonNull)
+                                                    .collect(Collectors.toSet());
+                                        }
+                                        if (!oids.isEmpty()) {
+                                            pageBase.getModelInteractionService().submitTaskFromTemplate(
+                                                    templateOid,
+                                                    ActivityCustomization.forOids(oids),
+                                                    task, result);
+                                        } else {
+                                            result.recordWarning(
+                                                    pageBase.createStringResource(
+                                                                    "WebComponentUtil.message.createMenuItemsFromActions.warning")
+                                                            .getString());
+                                        }
+                                    });
                         }
                     };
-                }
-
-                /**
-                 * Extension values are task-dependent. Therefore, in the future we will probably make
-                 * this behaviour configurable. For the time being we assume that the task template will be
-                 * of "iterative task handler" type and so it will expect mext:objectQuery extension property.
-                 *
-                 * FIXME
-                 */
-
-                @NotNull
-                private Item<PrismValue, ItemDefinition<?>> prepareExtensionValues(Collection<String> oids) throws SchemaException {
-                    PrismContext prismContext = pageBase.getPrismContext();
-                    ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class)
-                            .id(oids.toArray(new String[0]))
-                            .build();
-                    QueryType queryBean = pageBase.getQueryConverter().createQueryType(objectQuery);
-                    PrismContainerDefinition<?> extDef = PrismContext.get().getSchemaRegistry()
-                            .findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
-                    ItemDefinition<Item<PrismValue, ItemDefinition<?>>> def = extDef != null
-                            ? extDef.findItemDefinition(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY)
-                            : null;
-                    if (def == null) {
-                        throw new SchemaException("No definition of " + SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY + " in the extension");
-                    }
-                    Item<PrismValue, ItemDefinition<?>> extensionItem = def.instantiate();
-                    extensionItem.add(prismContext.itemFactory().createValue(queryBean));
-                    return extensionItem;
                 }
             });
         });
@@ -5742,7 +5743,7 @@ public final class WebComponentUtil {
 
         if (object.getParentContainerValue(ResourceActivationDefinitionType.class) != null
                 || object.getParentContainerValue(ResourcePasswordDefinitionType.class) != null) {
-            if (QNameUtil.match(def.getTypeName(), MappingType.COMPLEX_TYPE)){
+            if (QNameUtil.match(def.getTypeName(), MappingType.COMPLEX_TYPE)) {
 
                 PrismContainerValueWrapper parent =
                         object.getParentContainerValue(ResourceBidirectionalMappingType.class);
@@ -5798,8 +5799,38 @@ public final class WebComponentUtil {
         PrismObject<LookupTableType> prismLookupTable =
                 WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
         if (prismLookupTable != null) {
-            return  prismLookupTable.asObjectable();
+            return prismLookupTable.asObjectable();
         }
         return null;
+    }
+
+    public static <O extends AssignmentHolderType> List<String> getArchetypeOidsListByHolderType(
+            Class<O> holderType, PageBase pageBase) {
+        OperationResult result = new OperationResult("loadArchetypeOidsListByHolderType");
+        List<String> oidsList = new ArrayList<>();
+        try {
+            List<ArchetypeType> filteredArchetypes =
+                    pageBase.getModelInteractionService().getFilteredArchetypesByHolderType(holderType, result);
+            oidsList = filteredArchetypes
+                    .stream()
+                    .map(filteredArchetype -> filteredArchetype.getOid())
+                    .collect(Collectors.toList());
+        } catch (SchemaException ex) {
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error(
+                    "Couldn't load assignment target specification for the object type {} , {}",
+                    holderType,
+                    ex.getLocalizedMessage());
+        }
+        return oidsList;
+    }
+
+    public static <C extends Containerable> LoadableModel<PrismContainerDefinition<C>> getContainerDefinitionModel(Class<C> clazz) {
+        return new LoadableModel<>() {
+            @Override
+            protected PrismContainerDefinition<C> load() {
+                return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
+            }
+        };
     }
 }

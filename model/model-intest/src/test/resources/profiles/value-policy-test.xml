@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<valuePolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             oid="cdea9694-1882-424e-abe6-70941e8fc882">
+    <name>test</name>
+    <stringPolicy>
+        <limitations>
+            <minLength>3</minLength>
+            <limit>
+                <minOccurs>3</minOccurs>
+                <maxOccurs>3</maxOccurs>
+                <characterClass>
+                    <value>1234567890</value>
+                </characterClass>
+            </limit>
+        </limitations>
+    </stringPolicy>
+</valuePolicy>

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,7 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -73,6 +73,29 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         prepared.operationOptionsBuilder().readOnly();
 
         var query = prepared.bind(new PolyString("Elaine"));
+        var objects = modelService.searchObjects(query, task, result);
+        assertEquals("Only one user should be found", 1, objects.size());
+        var only = objects.get(0);
+        assertEquals("User should be Elaine",userTypeElaine.getOid(),only.getOid());
+
+        // FIXME: Investigate why readOnly option does not work
+        //assertTrue("Object should be frozen", userTypeElaine.isImmutable());
+    }
+
+    @Test
+    public void test103EvaluatePreparedAxiomGivenNameUsingSetModel() throws Exception {
+        Task task = getTestTask();
+        var result = createOperationResult();
+        var prepared = PreparedQuery.parse(UserType.class, "givenName = :name and familyName = :family");
+
+        // Return read only result
+        prepared.operationOptionsBuilder().readOnly();
+
+        var query = prepared
+                .set("name", new PolyString("Elaine"))
+                .set("family", new PolyString("Marley"))
+                .build();
+
         var objects = modelService.searchObjects(query, task, result);
         assertEquals("Only one user should be found", 1, objects.size());
         var only = objects.get(0);
@@ -146,6 +169,27 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         var query = midpoint.queryFor(UserType.class, "givenName = 'Elaine'");
         var objects = midpoint.searchObjects(query);
         assertEquals("Wrong number of results", 1, objects.size());
+    }
+
+    @Test
+    public void test300EvaluateAxiomAgainstShadowAttributes() throws Exception {
+        var baseQuery = "attributes/drink = 'rum'";
+
+        try {
+            TypedQuery.parse(ShadowType.class, baseQuery);
+            fail("SchemaException should be thrown");
+        } catch (SchemaException e) {
+            assertMessageContains(e.getMessage(), "attributes/drink");
+        }
+        var coordinates = "resourceRef matches (oid = '10000000-0000-0000-0000-000000000004') "
+          + "and kind = 'account' and intent = 'default' )";
+
+        var query = TypedQuery.parse(ShadowType.class, baseQuery + " and " + coordinates);
+        var result = modelService.searchObjects(query, getTestTask(), createOperationResult());
+        assertNotNull(result);
+        assertEquals("Only one result", 1, result.size());
+        assertEquals("Barbossa should be found, since he is rum drinker", ACCOUNT_HBARBOSSA_DUMMY_OID, result.get(0).getOid());
+
     }
 
 

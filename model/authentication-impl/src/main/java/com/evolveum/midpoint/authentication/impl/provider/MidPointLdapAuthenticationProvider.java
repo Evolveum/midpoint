@@ -67,7 +67,7 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
     }
 
     private LdapAuthenticationProvider createAuthenticatorProvider(LdapAuthenticator authenticator){
-        return new LdapAuthenticationProvider(authenticator){
+        return new LdapAuthenticationProvider(authenticator) {
             @Override
             protected DirContextOperations doAuthentication(UsernamePasswordAuthenticationToken authentication) {
                     DirContextOperations originalDirContextOperations = super.doAuthentication(authentication);
@@ -119,16 +119,14 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
     protected void createSuccessfulAuthentication(UsernamePasswordAuthenticationToken authentication,
             Authentication authNCtx) {
         Object principal = authNCtx.getPrincipal();
-        if (!(principal instanceof MidPointPrincipal)) {
+        if (!(principal instanceof MidPointPrincipal midPointPrincipal)) {
             recordPasswordAuthenticationFailure(authentication.getName(), "not contains required assignment");
             throw new BadCredentialsException("LdapAuthentication.incorrect.value");
         }
-        MidPointPrincipal midPointPrincipal = (MidPointPrincipal) principal;
         FocusType focusType = midPointPrincipal.getFocus();
 
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (actualAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+        if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
             List<ObjectReferenceType> requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
             if (!AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(focusType, requireAssignment)) {
                 recordPasswordAuthenticationFailure(midPointPrincipal.getUsername(), "does not contain required assignment");

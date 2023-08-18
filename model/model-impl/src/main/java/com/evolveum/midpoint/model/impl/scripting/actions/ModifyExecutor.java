@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.exception.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -116,7 +118,13 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
     }
 
     @Override
-    String getActionName() {
+    @NotNull
+    String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_MODIFY.getLocalPart();
     }
 }

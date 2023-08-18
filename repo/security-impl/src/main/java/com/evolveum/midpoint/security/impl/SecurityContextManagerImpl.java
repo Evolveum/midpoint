@@ -53,11 +53,6 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     }
 
     @Override
-    public MidPointPrincipal getPrincipal() throws SecurityViolationException {
-        return SecurityUtil.getPrincipal();
-    }
-
-    @Override
     public String getPrincipalOid() {
         String oid = SecurityUtil.getPrincipalOidIfAuthenticated();
         if (oid != null) {

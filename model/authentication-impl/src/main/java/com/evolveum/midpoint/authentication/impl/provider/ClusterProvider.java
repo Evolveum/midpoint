@@ -74,7 +74,7 @@ public class ClusterProvider extends MidpointAbstractAuthenticationProvider {
             Authentication authentication,
             String enteredUsername,
             List requireAssignment, AuthenticationChannel channel, Class focusType) {
-//        String enteredUsername = (String) authentication.getPrincipal();
+
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);

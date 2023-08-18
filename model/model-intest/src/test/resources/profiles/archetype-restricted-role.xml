@@ -8,7 +8,7 @@
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="a2242707-43cd-4f18-b986-573cb468693d">
     <name>restricted-role</name>
-    <documentation>Role that evaluates all expressions in "restricted" profile.</documentation>
+    <documentation>Role whose expressions are evaluated in "restricted" profile.</documentation>
     <archetypePolicy>
         <expressionProfile>restricted</expressionProfile>
     </archetypePolicy>
