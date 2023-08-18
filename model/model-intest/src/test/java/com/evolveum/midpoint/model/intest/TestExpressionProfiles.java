@@ -325,17 +325,18 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("user with correct restricted role is added");
+        String name = getTestNameShort();
         UserType user = new UserType()
-                .name("test100")
+                .name(name)
                 .assignment(ROLE_RESTRICTED_GOOD.assignmentTo());
         var userOid = addObject(user.asPrismObject(), task, result);
 
         then("user is created");
         assertSuccess(result);
         assertUserAfter(userOid)
-                .assertDescription("My name is 'test100'")
+                .assertDescription("My name is '" + name + "'")
                 .assertLiveLinks(1);
-        assertDummyAccountByUsername(RESOURCE_SIMPLE_TARGET.name, "test100")
+        assertDummyAccountByUsername(RESOURCE_SIMPLE_TARGET.name, name)
                 .display();
     }
 

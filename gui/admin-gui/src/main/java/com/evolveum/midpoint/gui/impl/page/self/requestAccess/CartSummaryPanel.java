@@ -33,6 +33,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,6 +63,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -91,13 +95,27 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
     private final WizardModel wizard;
 
+    private IModel<List<RelationDefinitionType>> systemRelations;
+
     public CartSummaryPanel(String id, WizardModel wizard, IModel<RequestAccess> model, PageBase page) {
         super(id, model);
 
         this.wizard = wizard;
         this.page = page;
 
+        initModels();
         initLayout();
+    }
+
+    private void initModels() {
+        systemRelations = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<RelationDefinitionType> load() {
+                RelationRegistry registry = MidPointApplication.get().getRelationRegistry();
+                return registry.getRelationDefinitions();
+            }
+        };
     }
 
     @Override
@@ -402,7 +420,17 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
-                item.add(new Label(id, () -> model.getObject().getName()));
+                item.add(new Label(id, () -> {
+                    ShoppingCartItem cartItem = model.getObject();
+
+                    List<RelationDefinitionType> systemRelations = CartSummaryPanel.this.systemRelations.getObject();
+                    String relation = LocalizationUtil.translatePolyString(
+                            WebComponentUtil.getRelationLabel(cartItem.getRelation(), systemRelations));
+
+                    return LocalizationUtil.translate(
+                            "ShoppingCartPanel.accessNameValue", new Object[] {
+                                    cartItem.getName(), relation });
+                }));
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.selectedUsers")) {

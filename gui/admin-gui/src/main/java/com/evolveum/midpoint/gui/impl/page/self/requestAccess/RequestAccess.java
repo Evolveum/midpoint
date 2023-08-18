@@ -16,11 +16,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
-
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +25,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.*;
@@ -48,8 +44,10 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -93,6 +91,9 @@ public class RequestAccess implements Serializable {
 
     public static final String DEFAULT_MYSELF_IDENTIFIER = "myself";
 
+    /**
+     * This map contains real list of assignments that are requested for specific users.
+     */
     private final Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
     /**
@@ -100,10 +101,20 @@ public class RequestAccess implements Serializable {
      */
     private final Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
 
+    /**
+     * Map that contains list of current role memberships (before requesting) for specific user.
+     */
     private final Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
 
+    /**
+     * Assignments that we're added to shopping cart from role catalog.
+     * Not assigned to any user yet. Set is assigned as a whole to every new user for which we're requesting.
+     */
     private final Set<AssignmentType> templateAssignments = new HashSet<>();
 
+    /**
+     * Currently selected relation in request access wizard relation step.
+     */
     private QName relation;
 
     private QName defaultRelation;
@@ -241,6 +252,18 @@ public class RequestAccess implements Serializable {
         return assignments.stream().filter(a -> matchAssignments(a, assignment)).findFirst().orElse(null);
     }
 
+    private AssignmentConstraintsType getDefaultAssignmentConstraints() {
+        SystemConfigurationType config = MidPointApplication.get().getSystemConfigurationIfAvailable();
+        if (config == null || config.getRoleManagement() == null) {
+            return new AssignmentConstraintsType();
+        }
+
+        RoleManagementConfigurationType roleManagement = config.getRoleManagement();
+        AssignmentConstraintsType constraints = roleManagement.getDefaultAssignmentConstraints();
+
+        return constraints != null ? constraints : new AssignmentConstraintsType();
+    }
+
     /**
      * @param assignments list of assignments containing only targetRef and nothing else (without any activation, extension, etc.)
      */
@@ -248,6 +271,8 @@ public class RequestAccess implements Serializable {
         if (assignments == null || assignments.isEmpty()) {
             return;
         }
+
+        AssignmentConstraintsType assignmentConstraints = getDefaultAssignmentConstraints();    // todo use this also use this on role catalog panel
 
         // we can't use selectedAssignments.contains(a) here because selectedAssignments can contain items other than targetRef
         List<AssignmentType> filterNotYetSelected = assignments.stream()
@@ -346,13 +371,6 @@ public class RequestAccess implements Serializable {
             relation = defaultRelation;
         }
         this.relation = relation;
-
-        templateAssignments.forEach(a -> a.getTargetRef().setRelation(this.relation));
-        for (List<AssignmentType> list : requestItems.values()) {
-            list.forEach(a -> a.getTargetRef().setRelation(this.relation));
-        }
-
-        markConflictsDirty();
     }
 
     public QName getDefaultRelation() {
@@ -935,5 +953,10 @@ public class RequestAccess implements Serializable {
             list.remove(real);
             list.add(updated.clone());
         }
+    }
+
+    public boolean hasTemplateAssignment(ObjectReferenceType newTargetRef) {
+        return getTemplateAssignments().stream()
+                .anyMatch(a -> Objects.equals(newTargetRef, a.getTargetRef()));
     }
 }

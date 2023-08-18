@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.util.ScriptingBeansUtil.getActionType
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,12 +71,8 @@ public class ScriptingExpressionEvaluator {
     /**
      * Entry point for privileged execution.
      *
-     * Note that privileged execution means the `root` authorization is not checked for some sensitive operations like custom
-     * script execution.
-     *
-     * See {@link ExecutionContext#isPrivileged()}.
-     *
-     * TEMPORARY.
+     * The difference from the regular execution is in the default expression profile used.
+     * Here, it is {@link ExpressionProfile#full()} even for unprivileged users.
      */
     public ExecutionContext evaluateExpressionPrivileged(
             @NotNull ExecuteScriptConfigItem executeScript,
@@ -95,14 +93,14 @@ public class ScriptingExpressionEvaluator {
         var executeScriptBean = executeScript.value();
         try {
             var expressionProfile =
-                    expressionProfileManager.determineScriptingExpressionProfile(executeScript.origin(), task, result);
+                    expressionProfileManager.determineScriptingExpressionProfile(executeScript.origin(), privileged, task, result);
             VariablesMap frozenVariables = VariablesUtil.initialPreparation(
                     initialVariables, executeScriptBean.getVariables(),
                     expressionProfile, task, result);
             PipelineData inputPipeline = PipelineData.parseFrom(executeScriptBean.getInput(), frozenVariables);
             ExecutionContext context = new ExecutionContext(
                     executeScriptBean.getOptions(), task, this,
-                    privileged, recordProgressAndIterationStatistics, frozenVariables, expressionProfile);
+                    recordProgressAndIterationStatistics, frozenVariables, expressionProfile);
             PipelineData output = evaluateExpression(
                     executeScriptBean.getScriptingExpression().getValue(), inputPipeline, context, result);
             context.setFinalOutput(output);

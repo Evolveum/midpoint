@@ -53,7 +53,14 @@ public abstract class ActivityCustomization {
     /** Applies the customization. May directly modify the task template. */
     public abstract @NotNull ActivityDefinitionType applyTo(@NotNull TaskType taskTemplate);
 
-    /** Replacing the set of objects in the root activity. */
+    /**
+     * Replacing the set of objects in the root activity.
+     *
+     * Supported for iterative scripting, iterative change execution, recomputation, object integrity check, reindexing,
+     * trigger scan, focus validity scan, and deletion.
+     *
+     * See {@link WorkDefinitionUtil#replaceObjectSetQuery(WorkDefinitionsType, QueryType)}.
+     */
     public static class ObjectQuery extends ActivityCustomization {
         @Nullable
         private final QueryType query;

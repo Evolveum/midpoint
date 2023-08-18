@@ -58,35 +58,45 @@ public class ValidateExecutor extends BaseActionExecutor {
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
-            if (value instanceof PrismObjectValue && ((PrismObjectValue<?>) value).asObjectable() instanceof ResourceType) {
-                //noinspection unchecked
-                PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue<ResourceType>) value).asPrismObject();
-                ResourceType resourceType = resourceTypePrismObject.asObjectable();
-                Operation op = operationsHelper.recordStart(context, resourceType);
-                try {
-                    ValidationResult validationResult = resourceValidator.validate(resourceTypePrismObject, Scope.THOROUGH, null, context.getTask(), result);
-
-                    PrismContainerDefinition<ValidationResultType> pcd = prismContext.getSchemaRegistry()
-                            .findContainerDefinitionByElementName(SchemaConstantsGenerated.C_VALIDATION_RESULT);
-                    PrismContainer<ValidationResultType> pc = pcd.instantiate();
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
+            try {
+                if (value instanceof PrismObjectValue && ((PrismObjectValue<?>) value).asObjectable() instanceof ResourceType) {
                     //noinspection unchecked
-                    pc.add(validationResult.toValidationResultType().asPrismContainerValue());
+                    PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue<ResourceType>) value).asPrismObject();
+                    ResourceType resourceType = resourceTypePrismObject.asObjectable();
+                    Operation op = operationsHelper.recordStart(context, resourceType);
+                    try {
+                        ValidationResult validationResult = resourceValidator.validate(
+                                resourceTypePrismObject, Scope.THOROUGH, null, context.getTask(), result);
 
-                    context.println("Validated " + resourceTypePrismObject + ": " + validationResult.getIssues().size() + " issue(s)");
-                    operationsHelper.recordEnd(context, op, null, result);
-                    output.add(new PipelineItem(pc.getValue(), item.getResult()));
-                } catch (SchemaException|RuntimeException e) {
-                    operationsHelper.recordEnd(context, op, e, result);
-                    context.println("Error validation " + resourceTypePrismObject + ": " + e.getMessage());
+                        PrismContainerDefinition<ValidationResultType> pcd = prismContext.getSchemaRegistry()
+                                .findContainerDefinitionByElementName(SchemaConstantsGenerated.C_VALIDATION_RESULT);
+                        PrismContainer<ValidationResultType> pc = pcd.instantiate();
+                        //noinspection unchecked
+                        pc.add(validationResult.toValidationResultType().asPrismContainerValue());
+
+                        context.println("Validated %s: %d issue(s)".formatted(
+                                resourceTypePrismObject, validationResult.getIssues().size()));
+                        operationsHelper.recordEnd(context, op, null, result);
+                        output.add(new PipelineItem(pc.getValue(), item.getResult()));
+                    } catch (SchemaException | RuntimeException e) {
+                        operationsHelper.recordEnd(context, op, e, result);
+                        context.println("Error validation " + resourceTypePrismObject + ": " + e.getMessage());
+                        //noinspection ThrowableNotThrown
+                        processActionException(e, NAME, value, context);
+                        output.add(item);
+                    }
+                } else {
                     //noinspection ThrowableNotThrown
-                    processActionException(e, NAME, value, context);
-                    output.add(item);
+                    processActionException(
+                            new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
                 }
-            } else {
-                //noinspection ThrowableNotThrown
-                processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
+            } catch (Throwable t) {
+                result.recordException(t);
+                throw t;
+            } finally {
+                result.close();
             }
             operationsHelper.trimAndCloneResult(result, item.getResult());
         }

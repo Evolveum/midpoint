@@ -74,6 +74,19 @@ public class PreparedQuery<T> extends AbstractTypedQuery<T, PreparedQuery<T>> {
     }
 
     /**
+     *
+     *
+     * @param name
+     * @param realValue
+     * @return
+     * @throws SchemaException
+     */
+    public PreparedQuery<T> set(String name, Object realValue) throws SchemaException {
+        delegate.set(name, realValue);
+        return self();
+    }
+
+    /**
      * Binds multiple values and returns final Typed Query which will contain filter.
      *
      * @param args Real values to be bound to unbound placeholders in order of appearance. See {@link #bindValue(Object)} for more details.

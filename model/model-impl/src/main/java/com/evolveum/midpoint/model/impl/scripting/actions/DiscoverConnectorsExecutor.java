@@ -64,44 +64,56 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
         boolean rebind = expressionHelper.getArgumentAsBoolean(
-                expression.getParameter(), PARAM_REBIND_RESOURCES, input, context, false, PARAM_REBIND_RESOURCES, globalResult);
+                expression.getParameter(), PARAM_REBIND_RESOURCES, input, context, false,
+                PARAM_REBIND_RESOURCES, globalResult);
 
         PipelineData output = PipelineData.createEmpty();
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
-            if (value instanceof PrismObjectValue && ((PrismObjectValue<?>) value).asObjectable() instanceof ConnectorHostType) {
-                //noinspection unchecked,rawtypes
-                PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
-                Set<ConnectorType> newConnectors;
-                Operation op = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
-                Throwable exception = null;
-                try {
-                    newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
-                    operationsHelper.recordEnd(context, op, null, result);
-                } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
-                    operationsHelper.recordEnd(context, op, e, result);
-                    exception = processActionException(e, NAME, value, context);
-                    newConnectors = Collections.emptySet();
-                }
-                context.println((exception != null ? "Attempted to discover " : "Discovered " + newConnectors.size())
-                        + " new connector(s) from " + connectorHostTypePrismObject + exceptionSuffix(exception));
-                for (ConnectorType connectorType : newConnectors) {
-                    output.addValue(connectorType.asPrismObject().getValue(), item.getResult(), item.getVariables());
-                }
-                try {
-                    if (rebind) {
-                        rebindConnectors(newConnectors, context, result);
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
+            try {
+                if (value instanceof PrismObjectValue
+                        && ((PrismObjectValue<?>) value).asObjectable() instanceof ConnectorHostType) {
+                    //noinspection unchecked,rawtypes
+                    PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
+                    Set<ConnectorType> newConnectors;
+                    Operation op = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
+                    Throwable exception = null;
+                    try {
+                        newConnectors = modelService.discoverConnectors(
+                                connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
+                        operationsHelper.recordEnd(context, op, null, result);
+                    } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException |
+                            ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
+                        operationsHelper.recordEnd(context, op, e, result);
+                        exception = processActionException(e, NAME, value, context);
+                        newConnectors = Collections.emptySet();
                     }
-                } catch (ScriptExecutionException e) {
+                    context.println((exception != null ? "Attempted to discover " : "Discovered " + newConnectors.size())
+                            + " new connector(s) from " + connectorHostTypePrismObject + exceptionSuffix(exception));
+                    for (ConnectorType connectorType : newConnectors) {
+                        output.addValue(connectorType.asPrismObject().getValue(), item.getResult(), item.getVariables());
+                    }
+                    try {
+                        if (rebind) {
+                            rebindConnectors(newConnectors, context, result);
+                        }
+                    } catch (ScriptExecutionException e) {
+                        //noinspection ThrowableNotThrown
+                        processActionException(e, NAME, value, context); // TODO better message
+                    }
+                } else {
                     //noinspection ThrowableNotThrown
-                    processActionException(e, NAME, value, context); // TODO better message
+                    processActionException(
+                            new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
                 }
-            } else {
-                //noinspection ThrowableNotThrown
-                processActionException(new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
+            } catch (Throwable t) {
+                result.recordException(t);
+                throw t;
+            } finally {
+                result.close();
             }
             operationsHelper.trimAndCloneResult(result, item.getResult());
         }

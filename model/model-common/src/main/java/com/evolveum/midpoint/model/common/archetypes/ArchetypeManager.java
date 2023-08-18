@@ -189,9 +189,10 @@ public class ArchetypeManager implements Cache {
      */
     public ArchetypePolicyType determineArchetypePolicy(@Nullable ObjectType object, OperationResult result)
             throws SchemaException, ConfigurationException {
-        Set<String> archetypeOids = archetypeDeterminer.determineArchetypeOids(object);
-        List<ArchetypeType> archetypes = resolveArchetypeOids(archetypeOids, object, result);
-        return determineArchetypePolicy(archetypes, object, result);
+        return determineArchetypePolicy(
+                determineArchetypes(object, result),
+                object,
+                result);
     }
 
     /**

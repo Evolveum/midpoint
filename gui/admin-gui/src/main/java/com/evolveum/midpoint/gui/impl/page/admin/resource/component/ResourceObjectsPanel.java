@@ -398,21 +398,28 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
             @Override
             protected ActivityDefinitionType createActivityDefinition() throws SchemaException {
-                SelectExpressionType selectAction = new SelectExpressionType()
-                        .path(new ItemPathType(ItemPath.create(ShadowType.F_NAME)));
-                ExecuteScriptType script = new ExecuteScriptType()
-                        .scriptingExpression(
-                                new JAXBElement<>(
-                                        SchemaConstantsGenerated.SC_SELECT,
-                                        SelectExpressionType.class,
-                                        selectAction));
-                return ActivityDefinitionBuilder.create(new IterativeScriptingWorkDefinitionType()
-                                        .objects(new ObjectSetType()
-                                                .type(ShadowType.COMPLEX_TYPE)
-                                                .query(PrismContext.get().getQueryConverter()
-                                                        .createQueryType(getResourceContentQuery())))
-                                        .scriptExecutionRequest(script))
-                                .build();
+
+                ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
+                ShadowKindType kind;
+                String resourceOid;
+                String intent = null;
+                if (objectType == null) {
+                    resourceOid = getObjectDetailsModels().getObjectType().getOid();
+                    kind = getKind();
+                } else {
+                    resourceOid = objectType.getResourceOid();
+                    kind = objectType.getKind();
+                    intent = objectType.getIntent();
+                }
+
+                return ActivityDefinitionBuilder.create(new WorkDefinitionsType()
+                                ._import(new ImportWorkDefinitionType()
+                                        .resourceObjects(new ResourceObjectSetType()
+                                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                                .kind(kind)
+                                                .intent(intent))))
+                        .withExecutionMode(ExecutionModeType.NONE)
+                        .build();
             }
 
             @Override
