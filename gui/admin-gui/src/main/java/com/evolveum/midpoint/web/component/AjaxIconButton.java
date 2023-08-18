@@ -67,7 +67,7 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
             sb.append(title);
         } else {
             if (showTitleAsLabel) {
-                sb.append(title);
+                sb.append(" " + title);
             }
         }
 
