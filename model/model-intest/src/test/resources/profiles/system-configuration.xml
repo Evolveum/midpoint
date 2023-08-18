@@ -59,7 +59,7 @@
                 <type>function</type>
                 <decision>allow</decision>
             </evaluator>
-            <functionLibraryProfile>little-trusted</functionLibraryProfile>
+            <functionLibrariesProfile>little-trusted</functionLibrariesProfile>
         </expressionProfile>
         <expressionProfile>
             <identifier>little-trusted-variant</identifier>
@@ -69,7 +69,7 @@
                 <type>function</type>
                 <decision>allow</decision>
             </evaluator>
-            <functionLibraryProfile>little-trusted-variant</functionLibraryProfile>
+            <functionLibrariesProfile>little-trusted-variant</functionLibrariesProfile>
         </expressionProfile>
         <expressionProfile>
             <identifier>little-trusted-variant-two</identifier>
@@ -79,20 +79,20 @@
                 <type>function</type>
                 <decision>allow</decision>
             </evaluator>
-            <functionLibraryProfile>little-trusted-variant-two</functionLibraryProfile>
+            <functionLibrariesProfile>little-trusted-variant-two</functionLibrariesProfile>
         </expressionProfile>
         <expressionProfile>
             <identifier>forbidden-generate-value-action</identifier>
             <documentation>Allows all bulk actions except for `generate-value`.</documentation>
             <decision>allow</decision> <!-- all expression evaluators -->
-            <scriptingProfile>forbidden-generate-value-action</scriptingProfile>
+            <bulkActionsProfile>forbidden-generate-value-action</bulkActionsProfile>
             <!-- all function libraries -->
         </expressionProfile>
         <expressionProfile>
             <identifier>forbidden-generate-value-action-alt</identifier>
             <documentation>Allows all bulk actions except for `generateValue` (alternative).</documentation>
             <decision>allow</decision> <!-- all expression evaluators -->
-            <scriptingProfile>forbidden-generate-value-action-alt</scriptingProfile>
+            <bulkActionsProfile>forbidden-generate-value-action-alt</bulkActionsProfile>
             <!-- all function libraries -->
         </expressionProfile>
         <permissionProfile>
@@ -210,7 +210,7 @@
                 <decision>allow</decision>
             </class>
         </permissionProfile>
-        <scriptingProfile>
+        <bulkActionsProfile>
             <identifier>restricted</identifier>
             <description>
                 THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
@@ -221,23 +221,23 @@
                 <name>expression</name>
                 <decision>allow</decision>
             </action>
-        </scriptingProfile>
-        <scriptingProfile>
+        </bulkActionsProfile>
+        <bulkActionsProfile>
             <identifier>forbidden-generate-value-action</identifier>
             <decision>allow</decision>
             <action>
                 <name>generate-value</name>
                 <decision>deny</decision>
             </action>
-        </scriptingProfile>
-        <scriptingProfile>
+        </bulkActionsProfile>
+        <bulkActionsProfile>
             <identifier>forbidden-generate-value-action-alt</identifier>
             <decision>allow</decision>
             <action>
                 <name>generateValue</name>
                 <decision>deny</decision>
             </action>
-        </scriptingProfile>
+        </bulkActionsProfile>
         <functionLibrariesProfile>
             <identifier>little-trusted</identifier>
             <decision>deny</decision>

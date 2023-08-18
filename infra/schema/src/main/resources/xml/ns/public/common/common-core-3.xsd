@@ -11720,13 +11720,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="scriptingProfile" type="tns:ScriptingProfileType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="bulkActionsProfile" type="tns:BulkActionsProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Profiles concerning the use of scripting expressions (bulk actions).
+                        Profiles concerning the use of bulk actions.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationExpressionsType.scriptingProfile</a:displayName>
+                        <a:displayName>SystemConfigurationExpressionsType.bulkActionsProfile</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11737,7 +11737,7 @@
                         Profiles concerning the use of function libraries.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationExpressionsType.scriptingProfile</a:displayName>
+                        <a:displayName>SystemConfigurationExpressionsType.functionLibrariesProfile</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11811,20 +11811,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="scriptingProfile" type="xsd:string" minOccurs="0">
+            <xsd:element name="bulkActionsProfile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        ID of the scripting (bulk actions) profile to be used with this expression profile.
+                        ID of the bulk actions profile to be used with this expression profile.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ExpressionProfileType.scriptingProfile</a:displayName>
+                        <a:displayName>ExpressionProfileType.bulkActionsProfile</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="functionLibraryProfile" type="xsd:string" minOccurs="0">
+            <xsd:element name="functionLibrariesProfile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        ID of the function library profile to be used with this expression profile.
+                        ID of the function libraries profile to be used with this expression profile.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionProfileType.functionLibraryProfile</a:displayName>
@@ -12007,7 +12007,7 @@
                         that are not explicitly enumerated.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingProfileType.decision</a:displayName>
+                        <a:displayName>AbstractSecurityProfileType.decision</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12229,20 +12229,20 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="scripting" type="xsd:string">
+            <xsd:element name="bulkActions" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for midPoint scripting language (bulk actions) running under an unprivileged principal.
+                        Expression profile for midPoint bulk actions running under an unprivileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="privilegedScripting" type="xsd:string">
+            <xsd:element name="privilegedBulkActions" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for midPoint scripting language (bulk actions) running under a privileged principal.
+                        Expression profile for midPoint bulk actions running under a privileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
@@ -12263,10 +12263,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ScriptingProfileType">
+    <xsd:complexType name="BulkActionsProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                A profile concerning the use of bulk actions.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12276,13 +12276,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractSecurityProfileType">
                 <xsd:sequence>
-                    <xsd:element name="action" type="tns:ScriptingActionProfileType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="action" type="tns:BulkActionProfileType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Profiles regarding specific scripting action (assign, unassign, execute-script, ...).
+                                Profiles regarding specific action (assign, unassign, execute-script, ...).
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>ScriptingProfileType.action</a:displayName>
+                                <a:displayName>BulkActionsProfileType.action</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12293,10 +12293,10 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ScriptingActionProfileType">
+    <xsd:complexType name="BulkActionProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies restrictions and permissions for a specific scripting action.
+                Specifies restrictions and permissions for a specific bulk action.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12311,7 +12311,7 @@
                         Name of the action (assign, unassign, ...)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingActionProfileType.name</a:displayName>
+                        <a:displayName>BulkActionProfileType.name</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12321,7 +12321,7 @@
                         Free-form description (comment).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingActionProfileType.description</a:displayName>
+                        <a:displayName>BulkActionProfileType.description</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12332,7 +12332,7 @@
                         Decision for the action.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingActionProfileType.decision</a:displayName>
+                        <a:displayName>BulkActionProfileType.decision</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

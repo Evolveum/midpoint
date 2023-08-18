@@ -16,56 +16,56 @@ import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptingActionProfileType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptingProfileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BulkActionProfileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BulkActionsProfileType;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Specifies limitations on the use of a scripting actions. It is a compiled form of a {@link ScriptingProfileType}.
+ * Specifies limitations on the use of a scripting actions. It is a compiled form of a {@link BulkActionsProfileType}.
  *
  * Could be named also `ScriptingActionsProfile` but maybe it will contain more than actions in the future.
  */
-public class ScriptingProfile extends AbstractSecurityProfile {
+public class BulkActionsProfile extends AbstractSecurityProfile {
 
     /** Scripting actions profiles, keyed by action name (both legacy and modern ones can be used). Unmodifiable. */
-    @NotNull private final Map<String, ScriptingActionProfile> actionProfiles;
+    @NotNull private final Map<String, BulkActionProfile> actionProfiles;
 
     /** "Allow all" profile. */
-    private static final ScriptingProfile FULL = new ScriptingProfile(
+    private static final BulkActionsProfile FULL = new BulkActionsProfile(
             SchemaConstants.FULL_EXPRESSION_PROFILE_ID,
             AccessDecision.ALLOW,
             Map.of());
 
     /** "Allow nothing" profile. */
-    private static final ScriptingProfile NONE = new ScriptingProfile(
+    private static final BulkActionsProfile NONE = new BulkActionsProfile(
             SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
             AccessDecision.DENY,
             Map.of());
 
-    private ScriptingProfile(
+    private BulkActionsProfile(
             @NotNull String identifier,
             @NotNull AccessDecision defaultDecision,
-            @NotNull Map<String, ScriptingActionProfile> actionProfiles) {
+            @NotNull Map<String, BulkActionProfile> actionProfiles) {
         super(identifier, defaultDecision);
         this.actionProfiles = actionProfiles;
     }
 
-    public static @NotNull ScriptingProfile full() {
+    public static @NotNull BulkActionsProfile full() {
         return FULL;
     }
 
-    public static @NotNull ScriptingProfile none() {
+    public static @NotNull BulkActionsProfile none() {
         return NONE;
     }
 
-    public static ScriptingProfile of(@NotNull ScriptingProfileType bean) throws ConfigurationException {
+    public static BulkActionsProfile of(@NotNull BulkActionsProfileType bean) throws ConfigurationException {
         String identifier = MiscUtil.configNonNull(bean.getIdentifier(), "No identifier in scripting profile %s", bean);
-        Map<String, ScriptingActionProfile> actionProfileMap = new HashMap<>();
-        for (ScriptingActionProfileType actionBean : bean.getAction()) {
-            var actionProfile = ScriptingActionProfile.of(actionBean);
+        Map<String, BulkActionProfile> actionProfileMap = new HashMap<>();
+        for (BulkActionProfileType actionBean : bean.getAction()) {
+            var actionProfile = BulkActionProfile.of(actionBean);
             actionProfileMap.put(actionProfile.action(), actionProfile);
         }
-        return new ScriptingProfile(
+        return new BulkActionsProfile(
                 identifier,
                 AccessDecision.translate(
                         MiscUtil.configNonNull(

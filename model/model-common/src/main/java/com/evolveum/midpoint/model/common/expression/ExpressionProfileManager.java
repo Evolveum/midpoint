@@ -163,31 +163,31 @@ public class ExpressionProfileManager {
             return profile;
         }
         if (privileged || securityEnforcer.isAuthorizedAll(task, result)) {
-            return getPrivilegedScriptingProfile(result);
+            return getPrivilegedBulkActionsProfile(result);
         } else {
-            return getUnprivilegedScriptingProfile(result);
+            return getUnprivilegedBulkActionsProfile(result);
         }
     }
 
-    private @NotNull ExpressionProfile getPrivilegedScriptingProfile(@NotNull OperationResult result)
+    private @NotNull ExpressionProfile getPrivilegedBulkActionsProfile(@NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         var defaults = getDefaults(result);
-        var defaultScriptingProfileId = defaults != null ? defaults.getPrivilegedScripting() : null;
-        if (defaultScriptingProfileId != null) {
-            return systemObjectCache.getExpressionProfile(defaultScriptingProfileId, result);
+        var defaultProfileId = defaults != null ? defaults.getPrivilegedBulkActions() : null;
+        if (defaultProfileId != null) {
+            return systemObjectCache.getExpressionProfile(defaultProfileId, result);
         } else {
             return ExpressionProfile.full();
         }
     }
 
-    private @NotNull ExpressionProfile getUnprivilegedScriptingProfile(@NotNull OperationResult result)
+    private @NotNull ExpressionProfile getUnprivilegedBulkActionsProfile(@NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         var defaults = getDefaults(result);
-        var defaultScriptingProfileId = defaults != null ? defaults.getScripting() : null;
-        if (defaultScriptingProfileId != null) {
-            return systemObjectCache.getExpressionProfile(defaultScriptingProfileId, result);
+        var defaultProfileId = defaults != null ? defaults.getBulkActions() : null;
+        if (defaultProfileId != null) {
+            return systemObjectCache.getExpressionProfile(defaultProfileId, result);
         } else {
-            return ExpressionProfile.scriptingLegacyUnprivileged();
+            return ExpressionProfile.legacyUnprivilegedBulkActions();
         }
     }
 
