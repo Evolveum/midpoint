@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractAu
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.*;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.*;
 import org.springframework.util.Assert;
@@ -74,8 +75,13 @@ public final class OidcLoginConfigurer<B extends HttpSecurityBuilder<B>>
 
     @Override
     public void configure(B http) throws Exception {
+
         OidcAuthorizationRequestRedirectFilter authorizationRequestFilter = new OidcAuthorizationRequestRedirectFilter(
-                clientRegistrations, this.authorizationRequestBaseUri, auditProvider);
+                clientRegistrations,
+                this.authorizationRequestBaseUri,
+                auditProvider,
+                http.getSharedObject(SecurityContextRepository.class));
+
         authorizationRequestFilter.setAuthenticationFailureHandler(failureHandler);
         RequestCache requestCache = http.getSharedObject(RequestCache.class);
         if (requestCache != null) {

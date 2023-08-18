@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -131,20 +130,13 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
         return objectPostProcessor;
     }
 
-    public HttpSecurity getNewHttpSecurity() throws Exception {
+    public HttpSecurity getNewHttpSecurity(Map<Class<?>, Object> sharedObjects) throws Exception {
         AuthenticationManagerBuilder authenticationBuilder = new AuthenticationManagerBuilder(this.objectPostProcessor)
-                .parentAuthenticationManager(authenticationManager())
-                .authenticationProvider(provider);
+                .parentAuthenticationManager(authenticationManager());
 
-        HttpSecurity http = new HttpSecurity(this.objectPostProcessor, authenticationBuilder, createSharedObjects());
+        HttpSecurity http = new HttpSecurity(this.objectPostProcessor, authenticationBuilder, sharedObjects);
         configure(http);
         return http;
-    }
-
-    private Map<Class<?>, Object> createSharedObjects() {
-        Map<Class<?>, Object> sharedObjects = new HashMap<>();
-        sharedObjects.put(ApplicationContext.class, this.context);
-        return sharedObjects;
     }
 
     protected void configure(HttpSecurity http) throws Exception {
@@ -179,9 +171,13 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
     }
 
     protected AuthenticationManager authenticationManager() throws Exception {
-        if (!(authenticationManager.getProviders().contains(provider))) {
-            authenticationManager.getProviders().add(provider);
-        }
+
+        getConfiguration().getAuthenticationProviders().forEach(provider -> {
+            if (provider != null && !(authenticationManager.getProviders().contains(provider))) {
+                authenticationManager.getProviders().add(provider);
+            }
+        });
+
         return authenticationManager;
     }
 

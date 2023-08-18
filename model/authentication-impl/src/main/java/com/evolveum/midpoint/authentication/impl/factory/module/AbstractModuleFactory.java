@@ -90,9 +90,8 @@ public abstract class AbstractModuleFactory<
         CA moduleConfigurer = getObjectObjectPostProcessor()
                 .postProcess(configurer);
 
-        HttpSecurity http =  moduleConfigurer.getNewHttpSecurity();
+        HttpSecurity http =  moduleConfigurer.getNewHttpSecurity(sharedObjects);
         http.addFilterAfter(new RefuseUnauthenticatedRequestFilter(), SwitchUserFilter.class);
-        setSharedObjects(http, sharedObjects);
 
         SecurityFilterChain filter = http.build();
         postProcessFilter(filter, moduleConfigurer);
@@ -120,12 +119,6 @@ public abstract class AbstractModuleFactory<
 
     public Integer getOrder() {
         return 0;
-    }
-
-    protected void setSharedObjects(HttpSecurity http, Map<Class<?>, Object> sharedObjects) {
-        for (Map.Entry<Class<?>, Object> sharedObject : sharedObjects.entrySet()) {
-            http.setSharedObject((Class<? super Object>) sharedObject.getKey(), sharedObject.getValue());
-        }
     }
 
     protected void isSupportedChannel(AuthenticationChannel authenticationChannel) {

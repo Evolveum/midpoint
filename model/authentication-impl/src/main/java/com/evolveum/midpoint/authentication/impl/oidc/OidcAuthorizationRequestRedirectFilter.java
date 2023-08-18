@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.authentication.impl.oidc;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -26,6 +25,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.ThrowableAnalyzer;
@@ -46,8 +46,11 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
 
     private AuthenticationFailureHandler failureHandler;
 
+    private final SecurityContextRepository securityContextRepository;
+
     public OidcAuthorizationRequestRedirectFilter(ClientRegistrationRepository clientRegistrationRepository,
-            String authorizationRequestBaseUri, ModelAuditRecorder auditProvider) {
+            String authorizationRequestBaseUri, ModelAuditRecorder auditProvider, SecurityContextRepository securityContextRepository) {
+        this.securityContextRepository = securityContextRepository;
         this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
                 authorizationRequestBaseUri);
         this.auditProvider = auditProvider;
@@ -93,6 +96,7 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
             try {
                 OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request);
                 if (authorizationRequest != null) {
+                    this.securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
                     this.sendRedirectForAuthorization(request, response, authorizationRequest);
                     return;
                 }
@@ -117,6 +121,7 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
                         if (authorizationRequest == null) {
                             throw authzEx;
                         }
+                        this.securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
                         this.sendRedirectForAuthorization(request, response, authorizationRequest);
                         this.requestCache.saveRequest(request, response);
                     } catch (Exception failed) {
