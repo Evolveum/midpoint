@@ -22,7 +22,7 @@ public class PrismReferencePanelContext<R extends Referencable> extends ItemPane
     }
 
     public ObjectFilter getFilter() {
-        return unwrapWrapperModel().getFilter();
+        return unwrapWrapperModel().getFilter(getPageBase());
     }
 
 

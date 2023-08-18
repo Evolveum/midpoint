@@ -67,7 +67,7 @@ public class MidPointLdapAuthenticationProvider extends MidpointAbstractAuthenti
     }
 
     private LdapAuthenticationProvider createAuthenticatorProvider(LdapAuthenticator authenticator){
-        return new LdapAuthenticationProvider(authenticator){
+        return new LdapAuthenticationProvider(authenticator) {
             @Override
             protected DirContextOperations doAuthentication(UsernamePasswordAuthenticationToken authentication) {
                     DirContextOperations originalDirContextOperations = super.doAuthentication(authentication);

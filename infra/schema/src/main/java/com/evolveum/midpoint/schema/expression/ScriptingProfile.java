@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptingActionProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptingProfileType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Specifies limitations on the use of a scripting actions. It is a compiled form of a {@link ScriptingProfileType}.
@@ -26,13 +27,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptingProfileType
  */
 public class ScriptingProfile extends AbstractSecurityProfile {
 
-    /** Scripting actions profiles, keyed by action name. Unmodifiable. */
+    /** Scripting actions profiles, keyed by action name (both legacy and modern ones can be used). Unmodifiable. */
     @NotNull private final Map<String, ScriptingActionProfile> actionProfiles;
 
     /** "Allow all" profile. */
     private static final ScriptingProfile FULL = new ScriptingProfile(
             SchemaConstants.FULL_EXPRESSION_PROFILE_ID,
             AccessDecision.ALLOW,
+            Map.of());
+
+    /** "Allow nothing" profile. */
+    private static final ScriptingProfile NONE = new ScriptingProfile(
+            SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
+            AccessDecision.DENY,
             Map.of());
 
     private ScriptingProfile(
@@ -45,6 +52,10 @@ public class ScriptingProfile extends AbstractSecurityProfile {
 
     public static @NotNull ScriptingProfile full() {
         return FULL;
+    }
+
+    public static @NotNull ScriptingProfile none() {
+        return NONE;
     }
 
     public static ScriptingProfile of(@NotNull ScriptingProfileType bean) throws ConfigurationException {
@@ -62,7 +73,18 @@ public class ScriptingProfile extends AbstractSecurityProfile {
                 Collections.unmodifiableMap(actionProfileMap));
     }
 
-    public @NotNull Map<String, ScriptingActionProfile> getActionProfiles() {
-        return actionProfiles;
+    public @NotNull AccessDecision decideActionAccess(
+            @NotNull String legacyActionName, @Nullable String configurationElementName) {
+        var byLegacyName = actionProfiles.get(legacyActionName);
+        if (byLegacyName != null) {
+            return byLegacyName.decision();
+        }
+        if (configurationElementName != null) {
+            var byConfigurationElementName = actionProfiles.get(configurationElementName);
+            if (byConfigurationElementName != null) {
+                return byConfigurationElementName.decision();
+            }
+        }
+        return getDefaultDecision();
     }
 }

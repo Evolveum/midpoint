@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AddActionExpressionType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -75,7 +77,12 @@ public class AddExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
     }
 
     @Override
-    String getActionName() {
+    @NotNull String getLegacyActionName() {
         return NAME;
+    }
+
+    @Override
+    @NotNull String getConfigurationElementName() {
+        return SchemaConstantsGenerated.SC_ADD.getLocalPart();
     }
 }

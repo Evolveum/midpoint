@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -16,11 +17,16 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ResourceObjectTypeWizardPreviewPanel
@@ -44,7 +50,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel
     public enum ResourceObjectTypePreviewTileType implements TileEnum {
 
         BASIC("fa fa-circle"),
-        PREVIEW_DATA("fa fa-magnifying-glass"),
+//        PREVIEW_DATA("fa fa-magnifying-glass"),
         ATTRIBUTE_MAPPING("fa fa-retweet"),
         SYNCHRONIZATION_CONFIG("fa fa-arrows-rotate"),
         CORRELATION_CONFIG("fa fa-code-branch"),
@@ -66,8 +72,59 @@ public abstract class ResourceObjectTypeWizardPreviewPanel
     }
 
     @Override
+    protected boolean addDefaultTile() {
+        return false;
+    }
+
+    @Override
+    protected void addCustomButtons(RepeatingView buttons) {
+//        AjaxIconButton goToResource = new AjaxIconButton(
+//                buttons.newChildId(),
+//                Model.of("fa fa-server"),
+//                getPageBase().createStringResource(
+//                        "WizardChoicePanel.toObject" ,
+//                        WebComponentUtil.translateMessage(
+//                                ObjectTypeUtil.createTypeDisplayInformation(
+//                                        getObjectType().getLocalPart(), false)))) {
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                goToObjectPerformed(getObjectType());
+//            }
+//        };
+//        goToResource.showTitleAsLabel(true);
+//        goToResource.add(AttributeAppender.append("class", "btn btn-default"));
+//        buttons.add(goToResource);
+
+        AjaxIconButton previewData = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fa fa-magnifying-glass"),
+                getPageBase().createStringResource("ResourceObjectTypePreviewTileType.PREVIEW_DATA")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showPreviewDataObjectType(target);
+            }
+        };
+        previewData.showTitleAsLabel(true);
+        previewData.add(AttributeAppender.append("class", "btn btn-primary"));
+        buttons.add(previewData);
+    }
+
+    protected void showPreviewDataObjectType(AjaxRequestTarget target) {
+    }
+
+    @Override
     protected IModel<String> getExitLabel() {
         return getPageBase().createStringResource("ResourceObjectTypeWizardPreviewPanel.exit");
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return false;
+    }
+
+    @Override
+    protected boolean isBackButtonVisible() {
+        return true;
     }
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {

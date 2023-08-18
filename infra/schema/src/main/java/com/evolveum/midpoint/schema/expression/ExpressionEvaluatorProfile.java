@@ -27,6 +27,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ExpressionEvaluatorProfile implements Serializable {
 
+    private static final ExpressionEvaluatorProfile FORBIDDEN = new ExpressionEvaluatorProfile(
+            new QName("dummy"), AccessDecision.DENY, List.of());
+
     /** Type of the expression evaluator, e.g. {@link SchemaConstantsGenerated#C_SCRIPT}. Beware, it may be unqualified. */
     @NotNull private final QName type;
 
@@ -44,6 +47,11 @@ public class ExpressionEvaluatorProfile implements Serializable {
         this.scriptLanguageProfiles =
                 scriptLanguageProfiles.stream()
                         .collect(Collectors.toUnmodifiableMap(p -> p.getLanguage(), p -> p));
+    }
+
+    /** Just to denote something that must be set before real use. */
+    public static @NotNull ExpressionEvaluatorProfile forbidden() {
+        return FORBIDDEN;
     }
 
     public @NotNull QName getType() {

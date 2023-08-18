@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<s:executeScript
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:api="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:pipeline>
+        <s:search>
+            <s:type>UserType</s:type>
+            <s:query>
+                <q:filter>
+                    <q:text>name = "administrator"</q:text>
+                </q:filter>
+            </s:query>
+        </s:search>
+        <s:generateValue>
+            <s:items>
+                <api:policyItemDefinition>
+                    <api:target>
+                        <api:path>employeeNumber</api:path>
+                    </api:target>
+                    <api:valuePolicyRef oid="cdea9694-1882-424e-abe6-70941e8fc882"/>
+                </api:policyItemDefinition>
+            </s:items>
+        </s:generateValue>
+    </s:pipeline>
+</s:executeScript>

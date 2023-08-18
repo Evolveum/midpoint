@@ -135,6 +135,20 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
 
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
 
+        AjaxIconButton back = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fa fa-right-from-bracket"),
+                getExitLabel()) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onExitPerformed(target);
+            }
+        };
+        back.showTitleAsLabel(true);
+        back.add(new VisibleBehaviour(() -> isBackButtonVisible()));
+        back.add(AttributeAppender.append("class", "btn text-primary"));
+        buttons.add(back);
+
         AjaxIconButton exit = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-right-from-bracket"),
@@ -165,6 +179,10 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         saveButton.add(new VisibleBehaviour(() -> isSubmitButtonVisible()));
         saveButton.add(AttributeAppender.append("class", "btn btn-success"));
         buttons.add(saveButton);
+    }
+
+    protected boolean isBackButtonVisible() {
+        return false;
     }
 
     protected String getCssForWidthOfFeedbackPanel() {

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 /**
@@ -25,7 +26,7 @@ import java.util.Collection;
  *
  * @param <T> Resulting item type
  */
-public class TypedQuery<T> extends AbstractTypedQuery<T,TypedQuery<T>> {
+public class TypedQuery<T> extends AbstractTypedQuery<T,TypedQuery<T>> implements Serializable {
 
     private ObjectFilter filter;
 

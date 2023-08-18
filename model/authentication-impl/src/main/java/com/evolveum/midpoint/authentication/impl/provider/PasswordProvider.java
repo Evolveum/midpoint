@@ -59,12 +59,6 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
-            LOGGER.error("Unsupported authentication {}", authentication);
-            throw new AuthenticationServiceException("web.security.provider.unavailable");
-
-        }
-
         String enteredPassword = (String) authentication.getCredentials();
 
         PasswordAuthenticationContext authContext = new PasswordAuthenticationContext(

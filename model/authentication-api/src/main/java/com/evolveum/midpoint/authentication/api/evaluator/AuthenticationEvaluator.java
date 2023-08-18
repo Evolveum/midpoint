@@ -43,31 +43,4 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
             throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
             CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
-//    /**
-//     * Only one part of authentication - check credentials
-//     *
-//     * @param connEnv
-//     * @param authnCtx
-//     * @return focus identify by authentication context, after successfully checking
-//     */
-//    @NotNull
-//    FocusType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
-//            throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
-//            CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
-
-    /**
-     * create authentication token for identity, but without checking credentials only find identity, check authorization
-     * and check required assignment
-     *
-     * @param connEnv
-     * @param authnCtx
-     * @return token with {@link com.evolveum.midpoint.security.api.MidPointPrincipal}
-     * @throws DisabledException when object found by authentication identifier is disabled
-     * @throws AuthenticationServiceException when occur some internal server error during authentication
-     * @throws UsernameNotFoundException when object not found by authentication identifier
-     */
-//    <AC extends AbstractAuthenticationContext> PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(
-//            ConnectionEnvironment connEnv, AC authnCtx)
-//            throws DisabledException, AuthenticationServiceException, UsernameNotFoundException;
-
 }

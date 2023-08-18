@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 
-public class PreAuthenticatedProvider extends MidpointAbstractAuthenticationProvider{
+public class PreAuthenticatedProvider extends MidpointAbstractAuthenticationProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(PreAuthenticatedProvider.class);
 
@@ -48,6 +48,7 @@ public class PreAuthenticatedProvider extends MidpointAbstractAuthenticationProv
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
+        //vyhodit tieto Ify
         if (!(authentication instanceof PreAuthenticatedAuthenticationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");

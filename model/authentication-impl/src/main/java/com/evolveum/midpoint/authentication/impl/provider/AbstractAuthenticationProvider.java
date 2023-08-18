@@ -140,8 +140,6 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
         mpAuthentication.setToken(token);
     }
 
-
-
     protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel) {
         ConnectionEnvironment connEnv;
         if (channel != null) {

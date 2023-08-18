@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.beust.jcommander.IUsageFormatter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import org.apache.commons.io.IOUtils;
@@ -122,7 +121,10 @@ public class Main {
             try {
                 action.init(context, options);
 
-                context.getLog().info(ConsoleFormat.formatActionStartMessage(action));
+                String startMessage = ConsoleFormat.formatActionStartMessage(action);
+                if (startMessage != null) {
+                    context.getLog().info(startMessage);
+                }
 
                 Object result = action.execute();
                 if (result instanceof ActionResult) {
@@ -200,15 +202,8 @@ public class Main {
     }
 
     private void printHelp(JCommander jc, String parsedCommand) {
-        StringBuilder sb = new StringBuilder();
+        String help = NinjaUtils.createHelp(jc, parsedCommand);
 
-        IUsageFormatter formatter = jc.getUsageFormatter();
-        if (parsedCommand != null) {
-            formatter.usage(parsedCommand, sb);
-        } else {
-            formatter.usage(sb);
-        }
-
-        out.println(sb);
+        out.println(help);
     }
 }

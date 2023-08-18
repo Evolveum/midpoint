@@ -22,7 +22,9 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         File tempDirectory = options.getTempDirectory() != null ?
                 options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
 
+
         FileUtils.forceMkdir(tempDirectory);
+        // FIXME: Should we log pre-upgrade checks
 
         // pre-upgrade checks
         if (!options.isSkipPreCheck()) {
@@ -81,9 +83,11 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         File distributionDirectory = downloadResult.getDistributionDirectory();
 
         // upgrade repository
+        log.info("Starting repository database structure upgrade");
         runUpgradeSql(RunSqlOptions.Mode.REPOSITORY, distributionDirectory);
 
         // upgrade audit
+        log.info("Starting audit database structure upgrade");
         runUpgradeSql(RunSqlOptions.Mode.AUDIT, distributionDirectory);
 
         // upgrade installation

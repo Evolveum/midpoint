@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="3f765457-3078-4759-ba5f-816a97a92f39">
+    <name>little-trusted-variant-role</name>
+    <archetypePolicy>
+        <expressionProfile>little-trusted-variant</expressionProfile>
+    </archetypePolicy>
+</archetype>

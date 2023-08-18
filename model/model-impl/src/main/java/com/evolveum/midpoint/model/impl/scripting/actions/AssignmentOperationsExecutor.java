@@ -93,8 +93,8 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
             ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException, SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
             ExpressionEvaluationException {
-        ActionParameterValueType roleParameterValue = expressionHelper.getArgument(action.getParameter(), PARAM_ROLE,
-                false, false, getActionName());
+        ActionParameterValueType roleParameterValue = expressionHelper.getArgument(
+                action.getParameter(), PARAM_ROLE, false, false, getLegacyActionName());
         if (roleParameterValue != null) {
             PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
             // if somebody wants to assign Org, he has to use full reference value (including object type)
@@ -108,8 +108,8 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
             ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException, SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
             ExpressionEvaluationException {
-        ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(action.getParameter(), PARAM_RESOURCE,
-                false, false, getActionName());
+        ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(
+                action.getParameter(), PARAM_RESOURCE, false, false, getLegacyActionName());
         if (resourceParameterValue != null) {
             PipelineData data = expressionHelper
                     .evaluateParameter(resourceParameterValue, null, input, context, globalResult);
@@ -123,7 +123,7 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
             OperationResult globalResult) throws ScriptExecutionException, SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Collection<String> relationSpecificationUris = expressionHelper.getArgumentValues(action.getParameter(), PARAM_RELATION,
-                false, false, getActionName(), input, context, String.class, globalResult);
+                false, false, getLegacyActionName(), input, context, String.class, globalResult);
         return relationSpecificationUris.stream()
                 .map(uri -> QNameUtil.uriToQName(uri, true))
                 .collect(Collectors.toSet());

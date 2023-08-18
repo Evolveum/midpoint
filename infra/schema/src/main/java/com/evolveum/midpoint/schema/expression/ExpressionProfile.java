@@ -42,6 +42,15 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             FunctionLibrariesProfile.none());
 
     /**
+     * Profile that forbids everything.
+     */
+    private static final ExpressionProfile NONE = new ExpressionProfile(
+            SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
+            ExpressionEvaluatorsProfile.none(),
+            ScriptingProfile.none(),
+            FunctionLibrariesProfile.none());
+
+    /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.
      *
      * @see ExpressionProfileType#getIdentifier()
@@ -69,6 +78,10 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
 
     public static @NotNull ExpressionProfile full() {
         return FULL;
+    }
+
+    public static @NotNull ExpressionProfile none() {
+        return NONE;
     }
 
     public static @NotNull ExpressionProfile scriptingLegacyUnprivileged() {
