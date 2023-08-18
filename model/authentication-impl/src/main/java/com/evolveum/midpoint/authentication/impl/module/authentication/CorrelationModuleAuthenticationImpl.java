@@ -15,8 +15,12 @@ import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +31,7 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     private int currentProcessingCorrelator;
 
     private CandidateOwnersMap candidateOwners = new CandidateOwnersMap();
+    private final List<ObjectType> owners = new ArrayList<>();
 
     public CorrelationModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.CORRELATION, sequenceModule);
@@ -77,4 +82,13 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
                 .map(CandidateOwner::getOid)
                 .collect(Collectors.toSet());
     }
+
+    public void addOwner(ObjectType owner) {
+        owners.add(owner);
+    }
+
+    public List<ObjectType> getOwners() {
+        return Collections.unmodifiableList(owners);
+    }
+
 }

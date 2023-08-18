@@ -12,7 +12,10 @@ import java.util.Map;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.authentication.impl.channel.IdentityRecoveryAuthenticationChannel;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+
+import com.evolveum.midpoint.security.api.Authorization;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -102,6 +105,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
 
         AuthenticationWrapper authWrapper = initAuthenticationWrapper(mpAuthentication, httpRequest);
+        initPrincipalService(mpAuthentication, authWrapper);
         if (authWrapper.isIgnoredLocalPath(httpRequest)) {
             chain.doFilter(request, response);
             return;
@@ -226,7 +230,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private AuthenticationWrapper initAuthenticationWrapper(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
-
         return new AuthenticationWrapper(
                 authenticationManager,
                 authModuleRegistry,
@@ -237,6 +240,18 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 .create(mpAuthentication, httpRequest, taskManager, authChannelRegistry);
     }
 
+    private void initPrincipalService(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper) {
+        if (mpAuthentication == null || authWrapper == null) {
+            return;
+        }
+        if (authWrapper.getAuthenticationChannel() instanceof IdentityRecoveryAuthenticationChannel channel) {
+            var identityRecoveryService = channel.getIdentityRecoveryService();
+            var midpointPrincipal = MidPointPrincipal.create(identityRecoveryService);
+            identityRecoveryService.getAuthorization().forEach(
+                    a -> midpointPrincipal.addAuthorization(Authorization.create(a, "identity recovery service")));
+            mpAuthentication.setPrincipal(midpointPrincipal);
+        }
+    }
 
 
     private boolean isPermitAllPage(HttpServletRequest request) {

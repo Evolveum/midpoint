@@ -62,7 +62,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
 
     private final IModel<String> archetypeOidModel = Model.of();
 
-    private LoadableDetachableModel<ArchetypeSelectionModuleAuthentication> archetypeSelectionModuleModel;
+    private LoadableModel<ArchetypeSelectionModuleAuthentication> archetypeSelectionModuleModel;
     private LoadableModel<List<Tile<ArchetypeType>>> tilesModel;
 
     public PageArchetypeSelection() {
@@ -76,7 +76,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
     }
 
     protected void initModels() {
-        archetypeSelectionModuleModel = new LoadableDetachableModel<>() {
+        archetypeSelectionModuleModel = new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -85,7 +85,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
             }
         };
 
-        tilesModel = new LoadableModel<List<Tile<ArchetypeType>>>() {
+        tilesModel = new LoadableModel<List<Tile<ArchetypeType>>>(false) {
             @Override
             protected List<Tile<ArchetypeType>> load() {
                 return loadTilesList();

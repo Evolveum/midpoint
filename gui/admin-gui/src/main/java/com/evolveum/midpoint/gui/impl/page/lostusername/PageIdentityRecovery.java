@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.lostusername;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,6 +35,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -48,7 +51,9 @@ import java.io.IOException;
 import java.io.Serial;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @PageDescriptor(
         urls = {
@@ -67,6 +72,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private static final Trace LOGGER = TraceManager.getTrace(PageIdentityRecovery.class);
     private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
 
+    private static final String ID_RECOVERED_IDENTITIES = "recoveredIdentities";
     private static final String ID_LOGIN_NAME_PANEL = "loginNamePanel";
     private static final String ID_LOGIN_NAME = "loginName";
     private static final String ID_PHOTO = "photo";
@@ -74,6 +80,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
 
+    private LoadableModel<List<UserType>> recoveredIdentitiesModel;
     private LoadableModel<List<ItemPathType>> configuredItemsModel;
 
 
@@ -89,22 +96,36 @@ public class PageIdentityRecovery extends AbstractPageLogin {
 
     @Override
     protected void initCustomLayout() {
-        WebMarkupContainer loginNamePanel = new WebMarkupContainer(ID_LOGIN_NAME_PANEL);
-        loginNamePanel.setOutputMarkupId(true);
-        loginNamePanel.add(new VisibleBehaviour(() -> !configuredItemsExist()));
-        add(loginNamePanel);
+        ListView<UserType> recoveredIdentitiesPanel = new ListView<>(ID_RECOVERED_IDENTITIES, recoveredIdentitiesModel) {
+            @Override
+            protected void populateItem(ListItem<UserType> item) {
+                WebMarkupContainer loginNamePanel = new WebMarkupContainer(ID_LOGIN_NAME_PANEL);
+                loginNamePanel.setOutputMarkupId(true);
+//                loginNamePanel.add(new VisibleBehaviour(() -> isSingleRecoveredIdentity() && !configuredItemsExist()));
+                item.add(loginNamePanel);
 
-        NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource());
-        loginNamePanel.add(img);
+                NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource(item.getModelObject()));
+                loginNamePanel.add(img);
 
-        Label label = new Label(ID_LOGIN_NAME, getAuthorizedUserLoginNameModel());
-        label.add(new VisibleBehaviour(this::isUserFound));
-        loginNamePanel.add(label);
+                Label label = new Label(ID_LOGIN_NAME, getAuthorizedUserLoginNameModel(item.getModelObject()));
+                loginNamePanel.add(label);
+            }
+        };
+        recoveredIdentitiesPanel.setOutputMarkupId(true);
+        add(recoveredIdentitiesPanel);
 
         initConfiguredItemsPanel();
     }
 
     private void initModels() {
+        recoveredIdentitiesModel = new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<UserType> load() {
+                return getRecoveredIdentities();
+            }
+        };
         configuredItemsModel = new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -118,10 +139,15 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private List<ItemPathType> loadConfiguredItemPathList() {
         List<ItemPathType> configuredItems = new ArrayList<>();
 
+        if (!isSingleRecoveredIdentity()) {
+            return configuredItems;
+        }
+
+        var user = getRecoveredIdentities().get(0);
         var task = createSimpleTask(OPERATION_GET_SECURITY_POLICY);
         var result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
         try {
-            var securityPolicy = getModelInteractionService().getSecurityPolicy(getMidpointPrincipal().getFocusPrismObject(),
+            var securityPolicy = getModelInteractionService().getSecurityPolicy(user.asPrismObject(),
                     getMidpointAuthentication().getArchetypeOid(), task, result);
             var identityRecoveryConfig = securityPolicy.getIdentityRecovery();
             configuredItems = identityRecoveryConfig.getItemToDisplay();
@@ -132,14 +158,14 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private boolean configuredItemsExist() {
-        return configuredItemsModel != null && CollectionUtils.isNotEmpty(configuredItemsModel.getObject());
+        return false; //todo fix
+//        return configuredItemsModel != null && CollectionUtils.isNotEmpty(configuredItemsModel.getObject());
     }
 
-    private AbstractResource getImageResource() {
+    private AbstractResource getImageResource(UserType user) {
         byte[] photo = null;
-        if (isUserFound()) {
-            var guiProfile = getPrincipal().getCompiledGuiProfile();
-            photo = guiProfile.getJpegPhoto();
+        if (user != null) {
+            photo = user.getJpegPhoto();
         }
         if (photo == null) {
             URL defaultImage = this.getClass().getClassLoader().getResource("static/img/placeholder.png");
@@ -155,10 +181,8 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         return new ByteArrayResource("image/jpeg", photo);
     }
 
-    private IModel<String> getAuthorizedUserLoginNameModel() {
-        var principal = getMidpointPrincipal();
-        var loginName = principal == null ? "" : principal.getUsername();
-        return Model.of(loginName);
+    private IModel<String> getAuthorizedUserLoginNameModel(UserType user) {
+        return Model.of(LocalizationUtil.translatePolyString(user.getName()));
     }
 
     private void initConfiguredItemsPanel() {
@@ -176,7 +200,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
             }
         };
         configuredItemsPanel.setOutputMarkupId(true);
-        configuredItemsPanel.add(new VisibleBehaviour(() -> isUserFound() && configuredItemsExist()));
+        configuredItemsPanel.add(new VisibleBehaviour(() -> recoveredIdentitiesExist() && configuredItemsExist()));
         add(configuredItemsPanel);
     }
 
@@ -201,7 +225,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private String getTitleKey() {
-        return isUserFound() ? "PageIdentityRecovery.title.success" : "PageIdentityRecovery.title.fail";
+        return recoveredIdentitiesExist() ? "PageIdentityRecovery.title.success" : "PageIdentityRecovery.title.fail";
     }
 
     @Override
@@ -210,31 +234,57 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private String getTitleDescriptionKey() {
-        if (isUserFound() && configuredItemsExist()) {
+        if (recoveredIdentitiesExist() && configuredItemsExist()) {
             return "PageIdentityRecovery.title.success.configuredItems.description";
         }
-        if (isUserFound()) {
+        if (recoveredIdentitiesExist()) {
             return "PageIdentityRecovery.title.success.description";
         }
         return "PageIdentityRecovery.title.fail.description";
     }
 
-    private boolean isUserFound() {
-        return getMidpointPrincipal() != null;
+    private boolean recoveredIdentitiesExist() {
+        return CollectionUtils.isNotEmpty(getRecoveredIdentities());
     }
 
-    private MidPointPrincipal getMidpointPrincipal() {
-        var mpAuthentication = getMidpointAuthentication();
-        var principal = mpAuthentication.getPrincipal();
-        if (principal instanceof MidPointPrincipal) {
-            return (MidPointPrincipal) principal;
+    private boolean isSingleRecoveredIdentity() {
+        List<UserType> recoveredIdentities = getRecoveredIdentities();
+        return recoveredIdentities != null && recoveredIdentities.size() == 1;
+    }
+
+    private List<UserType> getRecoveredIdentities() {
+        var correlationModuleAuth = findCorrelationModuleAuthentication();
+        if (isSuccessfullyAuthenticated(correlationModuleAuth)) {
+            return correlationModuleAuth.getOwners()
+                    .stream()
+                    .filter(o -> o instanceof UserType)
+                    .map(o -> (UserType) o)
+                    .collect(Collectors.toList());
         }
-        return null;
+        return Collections.emptyList();
+    }
+
+    private CorrelationModuleAuthentication findCorrelationModuleAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
+            getSession().error(getString("No midPoint authentication is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        var correlationAuth = (CorrelationModuleAuthentication) mpAuthentication.getAuthentications()
+                .stream()
+                .filter(a -> a instanceof CorrelationModuleAuthentication)
+                .findFirst()
+                .orElse(null);
+        return correlationAuth;
+    }
+
+    private boolean isSuccessfullyAuthenticated(CorrelationModuleAuthentication auth) {
+        return auth != null && AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState());
     }
 
     private MidpointAuthentication getMidpointAuthentication() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
+        if (!(authentication instanceof MidpointAuthentication)) {
             getSession().error(getString("No midPoint authentication is found"));
             throw new RestartResponseException(PageError.class);
         }

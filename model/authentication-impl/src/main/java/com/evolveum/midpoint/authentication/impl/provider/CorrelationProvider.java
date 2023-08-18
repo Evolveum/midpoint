@@ -75,8 +75,15 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             ObjectType owner = correlationResult.getOwner();
 
             if (owner != null) {
+                correlationModuleAuthentication.addOwner(owner);
                 return createAuthenticationToken(owner, focusType);
             }
+            // TODO wrong-wrong just to test multi-users finish screen
+//            else if (correlationModuleAuthentication.isLastCorrelator()) {
+//                correlationResult.getCandidateOwnersMap().values()
+//                        .forEach(c -> correlationModuleAuthentication.addOwner(c.getObject()));
+//                return createAuthenticationToken(correlationModuleAuthentication.getOwners().get(0), focusType);
+//            }
 
             CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
             correlationModuleAuthentication.addCandidateOwners(ownersMap);
