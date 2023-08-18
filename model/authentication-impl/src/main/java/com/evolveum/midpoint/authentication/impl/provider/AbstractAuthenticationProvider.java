@@ -77,7 +77,6 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
             token = createNewAuthenticationToken(token, actualAuthentication.resolveAuthorities(token));
 
             writeAuthentication(processingAuthentication, actualAuthentication, token);
-//            actualAuthentication.recordAuthenticationToken(token);
 
             return actualAuthentication;
 

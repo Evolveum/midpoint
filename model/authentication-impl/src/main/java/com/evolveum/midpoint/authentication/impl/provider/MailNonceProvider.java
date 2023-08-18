@@ -86,15 +86,9 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
             List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
 
-//        String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
-
-        if (!(authentication instanceof MailNonceAuthenticationToken)) {
-            LOGGER.error("Unsupported authentication {}", authentication);
-            throw new AuthenticationServiceException("web.security.provider.unavailable");
-        }
 
         String nonce = (String) authentication.getCredentials();
 

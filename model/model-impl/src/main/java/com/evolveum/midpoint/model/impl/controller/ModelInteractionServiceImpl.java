@@ -710,9 +710,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 return null;
             }
 
-            SecurityPolicyType securityPolicyType = securityHelper.locateSecurityPolicy(focus, archetypeOid, systemConfiguration,
+            SecurityPolicyType securityPolicy = securityHelper.locateSecurityPolicy(focus, archetypeOid, systemConfiguration,
                     task, result);
-            if (securityPolicyType == null) {
+            if (securityPolicy == null) {
                 result.recordNotApplicable("no security policy");
                 return null;
             }

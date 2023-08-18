@@ -48,12 +48,6 @@ public class PreAuthenticatedProvider extends MidpointAbstractAuthenticationProv
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        //vyhodit tieto Ify
-        if (!(authentication instanceof PreAuthenticatedAuthenticationToken)) {
-            LOGGER.error("Unsupported authentication {}", authentication);
-            throw new AuthenticationServiceException("web.security.provider.unavailable");
-        }
-
         Authentication token = preAuthenticatedEvaluator.authenticate(connEnv, new
                 PreAuthenticationContext(enteredUsername, focusType, requireAssignment, channel));
 

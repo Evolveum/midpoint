@@ -59,12 +59,12 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
 
         ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        if (!(authentication instanceof SecurityQuestionsAuthenticationToken)) {
+        if (!(authentication instanceof SecurityQuestionsAuthenticationToken securityQuestionsAuthenticationToken)) {
             LOGGER.error("Unsupported authentication {}", authentication);
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
-        Map<String, String> answers = (Map<String, String>) authentication.getCredentials();
+        Map<String, String> answers = securityQuestionsAuthenticationToken.getCredentials();
         SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername,
                 focusType, answers, requireAssignment, channel);
 

@@ -42,11 +42,6 @@ public abstract class RemoteModuleProvider extends AbstractAuthenticationProvide
     @Autowired
     private ModelAuditRecorder auditProvider;
 
-//    @Override
-//    protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
-//        return authenticationEvaluator;
-//    }
-
     public ModelAuditRecorder getAuditProvider() {
         return auditProvider;
     }

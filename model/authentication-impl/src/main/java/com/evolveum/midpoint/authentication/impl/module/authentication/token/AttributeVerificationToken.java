@@ -27,7 +27,7 @@ public class AttributeVerificationToken extends AbstractAuthenticationToken {
     }
 
     @Override
-    public Object getCredentials() {
+    public Map<ItemPath, String> getCredentials() {
         return attributeValues;
     }
 
