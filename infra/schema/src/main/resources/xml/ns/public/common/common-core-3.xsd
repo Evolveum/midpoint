@@ -11727,6 +11727,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationExpressionsType.bulkActionsProfile</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11738,6 +11739,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationExpressionsType.functionLibrariesProfile</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11748,6 +11750,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationExpressionsType.defaults</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11821,6 +11824,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionProfileType.bulkActionsProfile</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11832,6 +11836,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionProfileType.functionLibraryProfile</a:displayName>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="privilegeElevation" type="tns:AuthorizationDecisionType" minOccurs="0" default="allow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the privilege elevation (runAsRef, runPrivileged) feature available?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ExpressionProfileType.privilegeElevation</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

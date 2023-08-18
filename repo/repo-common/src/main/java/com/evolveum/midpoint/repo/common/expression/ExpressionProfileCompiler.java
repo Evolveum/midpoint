@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -116,7 +117,11 @@ public class ExpressionProfileCompiler {
                         expressionProfileBean.getIdentifier(), "No identifier in profile: %s", expressionProfileBean),
                 evaluatorsProfile,
                 determineScriptingProfile(bulkActionsProfiles, expressionProfileBean.getBulkActionsProfile()),
-                determineLibrariesProfile(librariesProfiles, expressionProfileBean.getFunctionLibrariesProfile()));
+                determineLibrariesProfile(librariesProfiles, expressionProfileBean.getFunctionLibrariesProfile()),
+                AccessDecision.translate(
+                        Objects.requireNonNullElse(
+                                expressionProfileBean.getPrivilegeElevation(),
+                                AuthorizationDecisionType.ALLOW)));
     }
 
     private static @NotNull BulkActionsProfile determineScriptingProfile(

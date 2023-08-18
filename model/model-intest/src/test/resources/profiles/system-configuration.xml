@@ -52,6 +52,11 @@
             <decision>allow</decision>
         </expressionProfile>
         <expressionProfile>
+            <identifier>no-privilege-elevation</identifier>
+            <decision>allow</decision>
+            <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        <expressionProfile>
             <identifier>little-trusted</identifier>
             <documentation>Trusts but only so that a "simpleTrustedFunction" is allowed to be run.</documentation>
             <decision>deny</decision> <!-- no expressions except for specified ones -->
