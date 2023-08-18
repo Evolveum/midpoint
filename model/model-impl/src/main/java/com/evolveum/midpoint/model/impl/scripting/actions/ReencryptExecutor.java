@@ -56,37 +56,49 @@ public class ReencryptExecutor extends BaseActionExecutor {
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
-            if (value instanceof PrismObjectValue) {
-                @SuppressWarnings({"unchecked", "raw"})
-                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
-                ObjectType objectBean = prismObject.asObjectable();
-                Operation op = operationsHelper.recordStart(context, objectBean);
-                try {
-                    Collection<? extends ItemDelta<?, ?>> modifications = CryptoUtil.computeReencryptModifications(protector, prismObject);
-                    if (!modifications.isEmpty()) {
-                        result.addArbitraryObjectCollectionAsParam("modifications", modifications);
-                        if (dryRun) {
-                            context.println("Would reencrypt (this is dry run) " + prismObject.toString() + ": " + modifications.size() + " modification(s)");
-                        } else {
-                            cacheRepositoryService.modifyObject(objectBean.getClass(), objectBean.getOid(), modifications, result);
-                            context.println("Reencrypted " + prismObject + ": " + modifications.size() + " modification(s)");
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
+            try {
+                if (value instanceof PrismObjectValue) {
+                    //noinspection unchecked,rawtypes
+                    PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
+                    ObjectType objectBean = prismObject.asObjectable();
+                    Operation op = operationsHelper.recordStart(context, objectBean);
+                    try {
+                        Collection<? extends ItemDelta<?, ?>> modifications =
+                                CryptoUtil.computeReencryptModifications(protector, prismObject);
+                        if (!modifications.isEmpty()) {
+                            result.addArbitraryObjectCollectionAsParam("modifications", modifications);
+                            if (dryRun) {
+                                context.println("Would reencrypt (this is dry run) %s: %d modification(s)".formatted(
+                                        prismObject.toString(), modifications.size()));
+                            } else {
+                                cacheRepositoryService.modifyObject(
+                                        objectBean.getClass(), objectBean.getOid(), modifications, result);
+                                context.println(
+                                        "Reencrypted %s: %d modification(s)".formatted(
+                                                prismObject, modifications.size()));
+                            }
                         }
+                        result.computeStatus();
+                        operationsHelper.recordEnd(context, op, null, result);
+                    } catch (Throwable ex) {
+                        result.recordFatalError("Couldn't reencrypt object", ex);
+                        operationsHelper.recordEnd(context, op, ex, result);
+                        Throwable exception = processActionException(ex, NAME, value, context);
+                        context.println("Couldn't reencrypt " + prismObject + drySuffix(dryRun) + exceptionSuffix(exception));
                     }
-                    result.computeStatus();
-                    operationsHelper.recordEnd(context, op, null, result);
-                } catch (Throwable ex) {
-                    result.recordFatalError("Couldn't reencrypt object", ex);
-                    operationsHelper.recordEnd(context, op, ex, result);
-                    Throwable exception = processActionException(ex, NAME, value, context);
-                    context.println("Couldn't reencrypt " + prismObject.toString() + drySuffix(dryRun) + exceptionSuffix(exception));
+                    PrismPropertyValue<String> oidVal = prismContext.itemFactory().createPropertyValue(objectBean.getOid());
+                    output.add(new PipelineItem(oidVal, item.getResult()));
+                } else {
+                    //noinspection ThrowableNotThrown
+                    processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
                 }
-                PrismPropertyValue<String> oidVal = prismContext.itemFactory().createPropertyValue(objectBean.getOid());
-                output.add(new PipelineItem(oidVal, item.getResult()));
-            } else {
-                //noinspection ThrowableNotThrown
-                processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
+            } catch (Throwable t) {
+                result.recordException(t);
+                throw t;
+            } finally {
+                result.close();
             }
             operationsHelper.trimAndCloneResult(result, item.getResult());
         }

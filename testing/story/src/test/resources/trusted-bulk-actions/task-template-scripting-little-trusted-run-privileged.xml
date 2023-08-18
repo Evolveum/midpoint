@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+    oid="8a953d7f-49ad-42a5-8ef3-c0e2dcf64819">
+    <name>template-scripting-little-trusted-run-privileged</name>
+    <assignment>
+        <targetRef oid="655a32e0-aaa8-4163-9f4d-eee68a84a25d" type="ArchetypeType"/>
+    </assignment>
+    <executionState>waiting</executionState>
+    <activity>
+        <work>
+            <iterativeScripting>
+                <scriptExecutionRequest>
+                    <s:evaluateExpression>
+                        <s:expression>
+                            <function>
+                                <libraryRef oid="17b5b255-c71e-4a67-8e42-349862e295ac"/>
+                                <name>simpleTrustedFunctionRunPrivileged</name>
+                            </function>
+                        </s:expression>
+                    </s:evaluateExpression>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+    </activity>
+</task>

@@ -149,8 +149,8 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
     private void executeForWholeInput(
             PipelineData input, PipelineData output, P parameters, ExecutionContext context,
             OperationResult globalResult) throws ScriptExecutionException {
-        OperationResult result = operationsHelper.createActionResult(null, this, globalResult);
         context.checkTaskStop();
+        OperationResult result = operationsHelper.createActionResult(null, this, globalResult);
         try {
             TypedValue<PipelineData> inputTypedValue = new TypedValue<>(input, PipelineData.class);
             Object outObject = doSingleExecution(parameters, inputTypedValue, context.getInitialVariables(), context, result);
@@ -166,10 +166,12 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
             if (!parameters.quiet) {
                 context.println("Executed script/expression on the pipeline");
             }
-
         } catch (Throwable ex) {
+            result.recordException(ex);
             Throwable exception = processActionException(ex, getName(), null, context); // TODO value for error reporting (3rd parameter)
             context.println("Failed to execute script/expression on the pipeline" + exceptionSuffix(exception));
+        } finally {
+            result.close();
         }
         operationsHelper.trimAndCloneResult(result, null);
     }

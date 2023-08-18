@@ -139,10 +139,10 @@ public class ExpressionProfileManager {
     /**
      * Special version of {@link #determineExpressionProfile(ConfigurationItemOrigin, OperationResult)}
      * for scripting (bulk actions). It is not as permissive: some origins are banned, and the default for non-root users
-     * is the restricted profile.
+     * is the restricted profile (unless `privileged` is set to true - in order to provide backwards compatibility with 4.7).
      */
     public @NotNull ExpressionProfile determineScriptingExpressionProfile(
-            @NotNull ConfigurationItemOrigin origin, @NotNull Task task, @NotNull OperationResult result)
+            @NotNull ConfigurationItemOrigin origin, boolean privileged, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         @Nullable ExpressionProfile profile;
@@ -162,7 +162,7 @@ public class ExpressionProfileManager {
         if (profile != null) {
             return profile;
         }
-        if (securityEnforcer.isAuthorizedAll(task, result)) {
+        if (privileged || securityEnforcer.isAuthorizedAll(task, result)) {
             return getPrivilegedScriptingProfile(result);
         } else {
             return getUnprivilegedScriptingProfile(result);
