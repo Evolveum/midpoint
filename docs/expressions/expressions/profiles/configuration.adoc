@@ -24,7 +24,6 @@ If you are midPoint Platform subscriber and this feature is within the goals of 
 
 See xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles] page for a generic introduction to expression profile concepts.
 
-
 == Expression Profile Specification
 
 Expression profiles are defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]:
@@ -205,13 +204,71 @@ NOTE: The bulk actions are generally considered more-or-less safe, meaning that 
 For instance, if the access to `script` expression evaluator is forbidden, the `execute-script` bulk action does not need to be disabled, as it would not execute any script.
 Anyway, for better security, it may be helpful to restrict access to those that are not covered by model-level authorizations, like `discover-connectors`.
 
+NOTE: If `functionLibrariesProfile` is not set for given expression profile, the "allow all" profile for function libraries is used.
+The same is true for `bulkActionsProfile`.
+#TODO we should consider if the `default` decision should not be applied instead.#
+But this could break backwards compatibility, as the behavior in 4.7 and before (where these items are not available) is to allow all functions and actions.
+On the other hand, the profiles are experimental in 4.0-4.7 anyway, so maybe we don't need to take compatibility into account much.
+
+=== Privilege Elevation Settings
+
+There is an option to evaluate an expression either with elevated privileges, or under a different identity (see xref:/midpoint/reference/security/privilege-elevation.adoc[]).
+It can be dangerous if it's misused.
+Hence, the expression profile can disable this option by setting `privilegeElevation` property to `deny`:
+
+.Listing 3. Denying the use of privilege elevation feature
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <expressions>
+        ...
+        <expressionProfile>
+            <identifier>no-privilege-elevation</identifier>
+            <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        ...
+    </expressions>
+</systemConfiguration>
+----
+
+Note that if not explicitly specified, the privilege elevation feature is enabled. #TODO ok?#
+
 == Expression Profile Usage
 
-The primary usage pattern for expression profiles is in conjunction with xref:/midpoint/reference/schema/archetypes/[archetypes]. The idea is that archetype policy will identify expression profiles that should be applied to all the expression in archetyped objects.
-However, this use is planned for the future and it is not yet supported in midPoint 4.0.
+=== Archetypes
+++++
+{% include since.html since="4.8" %}
+++++
 
-Alternatively, expression profiles may be configured in defaultObjectPolicyConfiguration in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]:
+The primary usage pattern for expression profiles is in conjunction with xref:/midpoint/reference/schema/archetypes/[archetypes].
+The idea is that archetype policy will identify expression profiles that should be applied to all the expressions in archetyped objects.
+(In the future, midPoint may allow to specify different expression profiles for different parts of an object.)
 
+This is how an expression profile is specified for an archetype:
+
+.Listing 4. Specification of an expression profile within an archetype
+[source,xml]
+----
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="988c28d2-f879-4e07-a3cb-5ea7ad206146">
+    <name>trusted-role</name>
+    <archetypePolicy>
+        <expressionProfile>trusted</expressionProfile> <!--1-->
+    </archetypePolicy>
+</archetype>
+----
+<1> ID of the expression profile to be used.
+
+For more comprehensive example, please see xref:/midpoint/reference/security/trusted-actions/index.adoc[].
+
+=== Default Object Policy Configuration
+
+If archetype(s) for a given object do not point to an expression profile, midPoint looks at `defaultObjectPolicyConfiguration` in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration].
+
+An example:
+
+.Listing 5. Specification of an expression profile using object policy configuration
 [source,xml]
 ----
 <systemConfiguration>
@@ -224,8 +281,7 @@ Alternatively, expression profiles may be configured in defaultObjectPolicyConfi
 </systemConfiguration>
 ----
 
-This is also the method how to specify default expression profile for a particular type of an object.
-
+This is also the method how to specify default expression profile for a particular type of objects.
 
 == Security Considerations
 
@@ -240,7 +296,7 @@ But in case that this is not feasible, expression profiles may be useful.
 Please exercise extreme caution especially when dealing with permission profiles.
 Those profiles may get quite complex when it comes to Java platform itself.
 For example, many methods in `java.lang.System` object are very dangerous (e.g. `exit()` method).
-However, the same class contains methods that are reasonably safe and that are also quite frequently used (e.g.` currentTimeMillis()`).
+However, the same class contains methods that are reasonably safe and that are also quite frequently used (e.g.`currentTimeMillis()`).
 Therefore it often needed to cherry-pick the methods on a very fine level.
 And the situation is made worse by the script languages themselves, as they often extend the platform to make it more convenient for a user.
 For example, Groovy adds `execute(...)` method to `String` class that can be used to execute arbitrary process.
@@ -275,28 +331,139 @@ Please see xref:/midpoint/features/planned/expression-profiles/[Expression Profi
 
 == Limitations
 
-Expression profiles is currently a very limited feature.
-General infrastructure for expression profiles is implemented in midPoint core, however it is not applied to all expressions.
-In fact, the only type of expression that is constrained by expression profiles are expression in JasperReport reports used in midPoint - and even that is partial.
+=== Implementation in midPoint 4.8
+
+. Although the expression profile can be specified in any type of archetype (structural or auxiliary), for a given object, at most _one_ expression profile can be specified.
+If conflicting expression profile identifiers are found, an exception is raised.
+The reason is that we do not have a reasonable way for merging independently defined expression profiles yet.
+(This does not apply to super-archetypes.
+Here, the usual "child-overrides-parent-value" approach applies, i.e. if an expression profile is defined in super-archetype, the child can override that setting.)
+
+. The whole object has the same expression profile.
+
+. The coverage by expression profiles is *NOT COMPLETE*.
+This means that even if an object has attached an expression profile through its archetype, the profile may not be consistently applied to all expressions present in that object.
+
+What _is_ explicitly supported, though:
+
+. Profiles for bulk actions in task templates.
+. Profiles for bulk actions in policy rules in objects: both in conditions and actions of these rules.
+
+This means that the specified profiles are applied at bulk actions and any expressions contained in them for these cases.
+
+.Support for expression profiles for bulk actions
+[%autowidth]
+|===
+| Description | Covered path | Reference
+
+| Bulk action provided via GUI or REST
+| N/A
+| `test310UntrustedBulkExecutingScriptDirectly` and following tests
+
+| Bulk action in an iterative scripting task
+| `activity/work/iterativeScripting/scriptExecutionRequest`
+| `TestTrustedBulkActions.test100TemplateWithoutProfile`
+
+| Bulk action in policy constraint
+| `assignment/policyRule/policyConstraints/objectState/executeScript`
+| `TestTrustedBulkActions.test200PolicyRule`
+
+| Bulk action in policy action
+| `assignment/policyRule/policyActions/scriptExecution/executeScript`
+| `TestTrustedBulkActions.test200PolicyRule`
+|===
+
+As an *experimental feature*, the following expressions support expression profiles:
+
+.Support for expression profiles for expressions
+[%autowidth]
+|===
+| Description | Covered path | Reference
+
+| Role auto-assignment mapping expression
+| `autoassign/focus/mapping/expression`
+| `test120RestrictedRoleAutoBadMappingExpression`
+
+| Role auto-assignment mapping condition
+| `autoassign/focus/mapping/condition`
+| `test130RestrictedRoleAutoBadMappingCondition`
+
+| Induced focus mapping expression
+| `inducement/focusMappings/mapping/expression`
+| `test210RestrictedRoleBadFocusMapping`
+
+| Induced construction mapping expression
+| `inducement/construction/attribute/outbound/expression`
+| `test220RestrictedRoleBadConstructionMapping`
+
+| Assignment condition expression
+| `assignment/condition/expression`
+| `test230RestrictedRoleBadAssignmentCondition`
+
+| Inducement condition expression
+| `inducement/condition/expression`
+| `test240RestrictedRoleBadInducementCondition`
+
+| Role condition expression
+| `condition/expression` (in role)
+| `test245RestrictedRoleBadRoleCondition`
+
+| Filter in assignment target reference
+| `assignment/targetRef/filter/.../expression`
+| `test250RestrictedRoleBadAssignmentTargetFilter`
+
+| Filter in inducement target reference
+| `inducement/targetRef/filter/.../expression`
+| `test260RestrictedRoleBadInducementTargetFilter`
+
+| Explicit script in bulk action
+| `executeScript/.../execute`
+| `test310UntrustedBulkExecutingScriptDirectly`
+
+| Explicit expression in bulk action
+| `executeScript/.../evaluateExpression`
+| `test315UntrustedBulkExecutingScriptViaExpression`
+
+| Script embedded in a custom notification in bulk action
+| `executeScript/.../notify/handler/expressionFilter`
+| `test320UntrustedBulkExecutingScriptViaNotification`
+
+| Script in object query in `search` bulk action
+| `executeScript/.../search/query/filter/.../expression`
+| `test325UntrustedBulkExecutingScriptViaSearchFilter`
+
+| Script in filter in `unassign` bulk action
+| `executeScript/.../unassign/filter/.../expression`
+| `test330UntrustedBulkExecutingScriptViaUnassignFilter`
+
+|===
+
+NOTE: The `autoassign/focus/selector/filter` does not need expression profiles, because expressions are not supported at that place.
+See `test110RestrictedRoleAutoFilterExpression`.
+
+=== Implementation in midPoint 4.4.x - 4.7.x
+
+The only type of expression that is constrained by expression profiles are expressions in reports used in midPoint - and even that is partial.
 E.g. the ability to secure audit reports may not be complete currently.
+
+Support for expression profile identification in archetype policy is missing.
+
+=== Common Limitations
 
 For scripting evaluators, the only scripting language that can be constrained by a permission profile is Groovy.
 Other languages do not have this ability yet.
 And even Groovy is only constrained on a "compilation level" (see security considerations above).
 
-Support for expression profile identification in archetype policy is missing.
-
 There may be performance issues when using expression profiles, especially when used with big and complex permission profiles.
 The code is not yet optimized for performance.
 
-As of midPoint 4.0 we provide the expression profiles in "AS IS" form.
+We provide the expression profiles in "AS IS" form.
 We do not make any claims about security or insecurity of expression profiles.
 I.e. we do not claim that expression profiles are completely secure.
 If you are using expression profiles you are doing that completely on your own risk.
 Proper security testing is more than recommended in such case.
 
 See xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] for the details about our plans for the future of expression profiles.
-
 
 == See Also
 
