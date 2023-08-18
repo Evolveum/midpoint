@@ -70,6 +70,7 @@ public class JaccardSorter {
         return sorted;
     }
 
+    //TODO apply algorithm like JaccardDistanceMeasure (its more effective (test))
     private static double jacquardSimilarity(@NotNull Set<String> set1, @NotNull Set<String> set2) {
         Set<String> union = new HashSet<>(set1);
         union.addAll(set2);
@@ -79,8 +80,6 @@ public class JaccardSorter {
 
         return (double) intersection.size() / union.size();
     }
-
-
     public static @NotNull List<MiningUserTypeChunk> sortByFrequencyUserType(@NotNull List<MiningUserTypeChunk> dataPoints) {
         List<MiningUserTypeChunk> sorted = new ArrayList<>(dataPoints);
         sorted.sort(Comparator.comparingDouble(MiningUserTypeChunk::getFrequency).reversed());

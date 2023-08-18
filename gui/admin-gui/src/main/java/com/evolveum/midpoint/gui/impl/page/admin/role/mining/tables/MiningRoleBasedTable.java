@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.getScaleScript;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.tableStyle;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.getScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.applySquareTableCell;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.TableCellFillOperation.updateFrequencyRoleBased;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.TableCellFillOperation.updateRoleBasedTableData;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.TableCellFillOperation.updateFrequencyRoleBased;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.TableCellFillOperation.updateRoleBasedTableData;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
@@ -41,7 +41,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.MembersDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
@@ -63,14 +63,11 @@ public class MiningRoleBasedTable extends Panel {
     int toCol;
     int specialColumnCount;
 
-    double frequency;
 
     public MiningRoleBasedTable(String id,
-            List<MiningRoleTypeChunk> roles, List<MiningUserTypeChunk> users, boolean sortable, double frequency,
-            DetectedPattern intersection, double maxFrequency, List<ObjectReferenceType> reductionObjects) {
+            List<MiningRoleTypeChunk> roles, List<MiningUserTypeChunk> users, double minFrequency, double maxFrequency,
+            DetectedPattern intersection, List<ObjectReferenceType> reductionObjects, boolean sortable) {
         super(id);
-
-        this.frequency = frequency / 100;
 
         fromCol = 1;
         toCol = 100;
@@ -95,7 +92,7 @@ public class MiningRoleBasedTable extends Panel {
             provider.setSort(UserType.F_NAME.toString(), SortOrder.ASCENDING);
         }
 
-        SpecialBoxedTablePanel<MiningUserTypeChunk> table = generateTable(provider, roles, frequency,
+        SpecialBoxedTablePanel<MiningUserTypeChunk> table = generateTable(provider, roles, minFrequency,
                 intersection, maxFrequency, reductionObjects);
         add(table);
     }
@@ -148,7 +145,7 @@ public class MiningRoleBasedTable extends Panel {
             }
 
         };
-        table.setItemsPerPage(100);
+        table.setItemsPerPage(50);
         table.setOutputMarkupId(true);
 
         return table;
@@ -312,7 +309,7 @@ public class MiningRoleBasedTable extends Panel {
                 @Override
                 public void populateItem(Item<ICellPopulator<MiningUserTypeChunk>> cellItem,
                         String componentId, IModel<MiningUserTypeChunk> model) {
-                    tableStyle(cellItem);
+                    applySquareTableCell(cellItem);
                     List<String> rowRoles = model.getObject().getRoles();
                     ClusterObjectUtils.Status colStatus = roleChunk.getStatus();
                     updateRoleBasedTableData(cellItem, componentId, model, rowRoles,

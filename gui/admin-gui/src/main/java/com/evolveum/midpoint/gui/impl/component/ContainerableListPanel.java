@@ -108,7 +108,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private LoadableDetachableModel<Search<C>> searchModel;
 
-    private Collection<SelectorOptions<GetOperationOptions>> options;
+//    private Collection<SelectorOptions<GetOperationOptions>> options;
 
     private String additionalBoxCssClasses;
 
@@ -118,8 +118,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration;
 
     private ContainerPanelConfigurationType config;
-
-    boolean isRoleMining = false;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
@@ -139,16 +137,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         this.defaultType = defaultType;
 //        this.options = options;
         this.config = configurationType;
-
-    }
-
-    public ContainerableListPanel(String id, Class<C> defaultType, ContainerPanelConfigurationType configurationType,boolean isRoleMining) {
-        super(id);
-        this.defaultType = defaultType;
-//        this.options = options;
-        this.config = configurationType;
-        this.isRoleMining = isRoleMining;
-
     }
 
     @Override

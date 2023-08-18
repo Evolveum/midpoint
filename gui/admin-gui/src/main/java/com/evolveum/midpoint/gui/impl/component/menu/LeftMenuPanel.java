@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysis;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;

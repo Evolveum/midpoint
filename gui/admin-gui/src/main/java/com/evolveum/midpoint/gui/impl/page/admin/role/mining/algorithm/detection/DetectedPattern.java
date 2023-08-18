@@ -19,26 +19,13 @@ public class DetectedPattern implements Serializable {
 
     Set<String> roles;
     Set<String> users;
-    Set<String> memberTypeObjectOccupation;
     Double clusterMetric;
-    Long id;
 
     public DetectedPattern(Set<String> roles, Set<String> users,
-            double clusterMetric,
-            Set<String> memberTypeObjectOccupation, Long id) {
+            double clusterMetric) {
         this.roles = roles;
         this.users = users;
         this.clusterMetric = clusterMetric;
-        this.memberTypeObjectOccupation = memberTypeObjectOccupation;
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Set<String> getRoles() {
@@ -53,11 +40,4 @@ public class DetectedPattern implements Serializable {
         return clusterMetric;
     }
 
-    public Set<String> getMemberTypeObjectOccupation() {
-        return memberTypeObjectOccupation;
-    }
-
-    public void setMemberTypeObjectOccupation(Set<String> memberTypeObjectOccupation) {
-        this.memberTypeObjectOccupation = memberTypeObjectOccupation;
-    }
 }

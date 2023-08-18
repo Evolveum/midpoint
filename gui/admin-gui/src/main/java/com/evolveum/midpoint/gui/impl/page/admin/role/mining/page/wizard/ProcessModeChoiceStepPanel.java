@@ -27,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+
 @PanelType(name = "sw-process")
 @PanelInstance(identifier = "sw-process",
         applicableForType = RoleAnalysisSessionType.class,
@@ -49,6 +52,7 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     protected void addDefaultTile(List<Tile<ProcessMode>> list) {
 
     }
+
 
 
     @Override
@@ -77,9 +81,8 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
 
     public enum ProcessMode implements TileEnum {
-
-        ROLE("fa fa-circle"),
-        USER("fa fa-magnifying-glass");
+        ROLE(CLASS_OBJECT_ROLE_ICON),
+        USER(CLASS_OBJECT_USER_ICON);
 
         private final String icon;
 

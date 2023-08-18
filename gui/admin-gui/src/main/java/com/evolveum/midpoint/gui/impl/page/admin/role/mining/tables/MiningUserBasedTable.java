@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getFocusTypeObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.TableCellFillOperation.updateFrequencyUserBased;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.TableCellFillOperation.updateUserBasedTableData;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.TableCellFillOperation.updateFrequencyUserBased;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.TableCellFillOperation.updateUserBasedTableData;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.details.objects.MembersDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
@@ -146,7 +146,7 @@ public class MiningUserBasedTable extends Panel {
                 }
             }
         };
-        table.setItemsPerPage(100);
+        table.setItemsPerPage(50);
         table.setOutputMarkupId(true);
 
         return table;
@@ -318,7 +318,7 @@ public class MiningUserBasedTable extends Panel {
                 @Override
                 public void populateItem(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
                         String componentId, IModel<MiningRoleTypeChunk> model) {
-                    tableStyle(cellItem);
+                    applySquareTableCell(cellItem);
                     List<String> rowUsers = model.getObject().getUsers();
                     ClusterObjectUtils.Status colStatus = userChunk.getStatus();
                     updateUserBasedTableData(cellItem, componentId, model, rowUsers, colUsers, intersection, colStatus, userChunk);

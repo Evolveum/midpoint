@@ -31,7 +31,6 @@ public class ClusterStatistic implements Serializable {
         this.propertiesCount = propertiesCount;
         this.minVectorPoint = minVectorPoint;
         this.maxVectorPoint = maxVectorPoint;
-//        this.clusterSize = clusterSize;
         this.propertiesMean = propertiesMean;
         this.propertiesRef = null;
         this.propertiesDensity = propertiesDensity;
@@ -46,7 +45,6 @@ public class ClusterStatistic implements Serializable {
         this.propertiesCount = propertiesCount;
         this.minVectorPoint = minVectorPoint;
         this.maxVectorPoint = maxVectorPoint;
-//        this.clusterSize = clusterSize;
         this.propertiesMean = propertiesMean;
         this.propertiesRef = propertiesRef;
         this.propertiesDensity = propertiesDensity;
@@ -77,10 +75,6 @@ public class ClusterStatistic implements Serializable {
     public int getMaxVectorPoint() {
         return maxVectorPoint;
     }
-//
-//    public int getClusterSize() {
-//        return clusterSize;
-//    }
 
     public double getPropertiesMean() {
         return propertiesMean;

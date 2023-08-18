@@ -154,6 +154,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
+
     /**
      * Returns the mapper creating the boolean filter/delta processors from context.
      */

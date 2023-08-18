@@ -14,11 +14,11 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionAction;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionActionExecutor;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.PrepareChunkStructure;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.PrepareChunkStructure;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class DefaultPatternResolver {
 
-    int bestRankedPatternCountThreshold = 10;
+    private static final int MAX_PATTERN_INIT = 10;
     RoleAnalysisProcessModeType roleAnalysisProcessModeType;
     QName processedObjectComplexType;
     QName propertiesComplexType;
@@ -117,7 +117,7 @@ public class DefaultPatternResolver {
 
         DetectionOption roleAnalysisSessionDetectionOptionType = loadDetectionOption(session);
 
-        possibleBusinessRole = new DetectionAction(roleAnalysisSessionDetectionOptionType)
+        possibleBusinessRole = new DetectionActionExecutor(roleAnalysisSessionDetectionOptionType)
                 .executeDetection(miningRoleTypeChunks, miningUserTypeChunks, mode);
 
         possibleBusinessRole.sort(Comparator.comparing(DetectedPattern::getClusterMetric).reversed());
@@ -128,7 +128,7 @@ public class DefaultPatternResolver {
         for (DetectedPattern pattern : possibleBusinessRole) {
             topPatterns.add(pattern);
             index++;
-            if (index >= bestRankedPatternCountThreshold) {
+            if (index >= MAX_PATTERN_INIT) {
                 break;
             }
         }

@@ -7,13 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.endTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.startTimer;
 
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserAnalysisSessionOptionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -29,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 
 import org.jetbrains.annotations.NotNull;
 
-public class UserBasedClustering implements Mining {
+public class UserBasedClustering implements Clusterable {
 
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
@@ -71,10 +70,10 @@ public class UserBasedClustering implements Mining {
     private ListMultimap<List<String>, String> loadData(OperationResult result, PageBase pageBase,
             int minProperties, int maxProperties, SearchFilterType userQuery) {
 
-        Set<String> existingRolesOidsSet = MiningDataUtils.getExistingRolesOidsSet(result, pageBase);
+        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, pageBase);
 
         //role //user
-        return MiningDataUtils.getUserBasedRoleToUserMap(result, pageBase, minProperties, maxProperties, userQuery, existingRolesOidsSet);
+        return ClusterDataLoaderUtils.getUserBasedRoleToUserMap(result, pageBase, minProperties, maxProperties, userQuery, existingRolesOidsSet);
     }
 
 }

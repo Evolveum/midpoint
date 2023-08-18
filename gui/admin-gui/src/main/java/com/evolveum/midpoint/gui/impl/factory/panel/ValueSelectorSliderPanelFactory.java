@@ -34,29 +34,7 @@ public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFa
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<Double> panelCtx) {
-        List<QName> typesList;
-//        if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())
-//                || ItemPath.create(
-//                        ResourceType.F_SCHEMA_HANDLING,
-//                        SchemaHandlingType.F_OBJECT_TYPE,
-//                        ResourceObjectTypeDefinitionType.F_FOCUS,
-//                        ResourceObjectFocusSpecificationType.F_TYPE)
-//                .equivalent(panelCtx.unwrapWrapperModel().getPath().namedSegmentsOnly())) {
-//            typesList = ObjectTypeListUtil.createFocusTypeList();
-//        } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
-//                && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
-//                (ObjectCollectionType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass())
-//                        || GuiObjectListViewType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass()))) {
-//            typesList = ObjectTypeListUtil.createContainerableTypesQnameList();
-//        } else {
-//            typesList = ObjectTypeListUtil.createObjectTypeList();
-//        }
-
-
-
         RangeSliderPanel rangeSliderPanel = new RangeSliderPanel(panelCtx.getComponentId(),panelCtx.getRealValueModel());
-//        DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-//                Model.ofList(typesList), new QNameObjectTypeChoiceRenderer(), true);
         rangeSliderPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         rangeSliderPanel.setOutputMarkupId(true);
         return rangeSliderPanel;

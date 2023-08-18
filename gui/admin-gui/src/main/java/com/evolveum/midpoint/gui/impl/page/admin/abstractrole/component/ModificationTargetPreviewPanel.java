@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 public class ModificationTargetPreviewPanel extends BasePanel<String> implements Popupable {
 
-    private static final String ID_PANELS = "panels";
+    private static final String ID_PANELS = "changes_panel";
 
     List<DeltaDto> deltaDtos;
     IModel<List<VisualizationDto>> visualizationDto;
@@ -44,7 +44,7 @@ public class ModificationTargetPreviewPanel extends BasePanel<String> implements
     }
 
     protected void intiLayout() {
-        ChangesPanel changesPanel = new ChangesPanel("changes_panel", visualizationDto) {
+        ChangesPanel changesPanel = new ChangesPanel(ID_PANELS, visualizationDto) {
 
             @Override
             protected IModel<String> createTitle() {

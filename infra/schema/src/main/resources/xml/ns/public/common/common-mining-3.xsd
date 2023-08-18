@@ -74,7 +74,8 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="clusterUserBasedStatistic" type="c:UserAnalysisClusterStatistic" minOccurs="0">
+
+                    <xsd:element name="clusterStatistics" type="c:AnalysisClusterStatisticType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -82,25 +83,12 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>UserAnalysisClusterStatistic.clusterStatistic</a:displayName>
+                                <a:displayName>AnalysisClusterStatisticType.clusterStatistic</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="clusterRoleBasedStatistic" type="c:RoleAnalysisClusterStatistic" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    The container consists of statistical data about the cluster.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>RoleAnalysisClusterStatistic.clusterStatistic</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="detectionPattern" type="c:RoleAnalysisDetectionPatternType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="detectedPattern" type="c:RoleAnalysisDetectionPatternType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 It consists of a sheet of reference objects and their specifications in which matches are found
@@ -123,7 +111,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="reductionObject" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="resolvedPattern" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Applied business roles.
@@ -159,17 +147,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
-
-                    <xsd:element name="roleAnalysisClusterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Represents references to clusters (RoleAnalysisClusterType)
-                                    that are (intermediate) results of role analysis session.
-                                </p>
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
 
                     <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
                         <xsd:annotation>
@@ -217,7 +194,11 @@
                                     role analysis based on changing requirements or new insights gained during the analysis phase.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisSessionType.roleModeOptions</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
+
                     </xsd:element>
 
                     <xsd:element name="userModeOptions" type="c:UserAnalysisSessionOptionType" minOccurs="0">
@@ -237,7 +218,11 @@
                                     role analysis based on changing requirements or new insights gained during the analysis phase.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisSessionType.userModeOptions</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
+
                     </xsd:element>
 
                     <xsd:element name="sessionStatistic" type="c:RoleAnalysisSessionStatisticType" minOccurs="0">
@@ -251,6 +236,7 @@
                                 <a:displayName>RoleAnalysisSessionStatisticType.sessionStatistic</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
+
                     </xsd:element>
 
                     <xsd:element name="defaultDetectionOption" type="c:RoleAnalysisDetectionOptionType" minOccurs="0">
@@ -274,7 +260,7 @@
 
     <xsd:element name="roleAnalysisSession" type="tns:RoleAnalysisSessionType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="AbstractAnalysisClusterStatistic">
+    <xsd:complexType name="AnalysisClusterStatisticType">
         <xsd:annotation>
             <xsd:documentation>
                 The container consists of statistical data about role analysis cluster.
@@ -284,7 +270,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="memberCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="usersCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -296,7 +282,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="propertiesCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="rolesCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -309,7 +295,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="propertiesDensity" type="xsd:double" minOccurs="0">
+            <xsd:element name="membershipDensity" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -324,7 +310,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="propertiesMean" type="xsd:double" minOccurs="0">
+            <xsd:element name="membershipMean" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -336,7 +322,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="propertiesRange" type="tns:RangeType" minOccurs="0">
+            <xsd:element name="membershipRange" type="tns:RangeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -344,6 +330,16 @@
                             If the condition is not met, the object is excluded.
                             USER MODE - min role assign.
                             ROLE MODE - min members count.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="detectedReductionMetric" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -364,38 +360,8 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractAnalysisClusterStatisticType" type="tns:AbstractAnalysisClusterStatistic"/>
+    <xsd:element name="analysisClusterStatisticType" type="tns:AnalysisClusterStatisticType"/>
 
-    <xsd:complexType name="RoleAnalysisClusterStatistic">
-        <xsd:annotation>
-            <xsd:documentation>
-                The container consists of statistical data about role analysis cluster.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="c:AbstractAnalysisClusterStatistic"/>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="roleAnalysisClusterStatistic" type="tns:RoleAnalysisClusterStatistic"/>
-
-
-    <xsd:complexType name="UserAnalysisClusterStatistic">
-        <xsd:annotation>
-            <xsd:documentation>
-                The container consists of statistical data about role analysis cluster.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="c:AbstractAnalysisClusterStatistic"/>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="userAnalysisClusterStatistic" type="tns:UserAnalysisClusterStatistic"/>
 
 
     <xsd:complexType name="AbstractAnalysisSessionOptionType">
@@ -553,6 +519,21 @@
                 </xsd:annotation>
             </xsd:element>
 
+
+            <xsd:element name="clusterCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of cluster objects
+                            that are part of clusters belonging to role analysis session.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisSessionStatisticType.clusterCount</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="meanDensity" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -603,15 +584,6 @@
                         In the case of ROLE MODE, the list of roles (members) objects
                         that make up the given group. In the case of USER MODE,
                         the list of users (members) objects that make up the given group.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="memberTypeObjectOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        All objects of member type (not only from clustered objects).
-                        USER MODE (member) - user.
-                        ROLE MODE (member) - role.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

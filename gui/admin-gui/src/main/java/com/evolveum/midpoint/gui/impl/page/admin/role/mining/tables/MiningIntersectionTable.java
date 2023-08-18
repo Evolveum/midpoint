@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -34,6 +35,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.RoleMiningBoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -59,20 +60,13 @@ public class MiningIntersectionTable extends Panel {
     RoleAnalysisProcessModeType roleAnalysisProcessModeType;
 //    String clusterOid;
 
-    public MiningIntersectionTable(String id, List<DetectedPattern> miningSets,
+    public MiningIntersectionTable(String id, List<DetectedPattern> detectedPatternList,
             RoleAnalysisProcessModeType roleAnalysisProcessModeType) {
         super(id);
         this.roleAnalysisProcessModeType = roleAnalysisProcessModeType;
 
-        if (miningSets.size() == 1) {
-            double clusterMetric = miningSets.get(0).getClusterMetric();
-            if (clusterMetric == 0.0) {
-                miningSets = new ArrayList<>();
-            }
-        }
-//        this.clusterOid = clusterOid;
         RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(miningSets) {
+                this, new ListModel<>(detectedPatternList) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -85,9 +79,8 @@ public class MiningIntersectionTable extends Panel {
 
         provider.setSort(DetectedPattern.F_METRIC, SortOrder.DESCENDING);
 
-        RoleMiningBoxedTablePanel<DetectedPattern> table = new RoleMiningBoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumns(),
-                null, true, false);
+        BoxedTablePanel<DetectedPattern> table = new BoxedTablePanel<>(
+                ID_DATATABLE, provider, initColumns());
         table.setOutputMarkupId(true);
         table.getDataTable().setItemsPerPage(10);
         table.enableSavePageSize();
@@ -104,7 +97,6 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             protected DisplayType getIconDisplayType(IModel<DetectedPattern> rowModel) {
-
                 return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
             }
         });
@@ -124,8 +116,9 @@ public class MiningIntersectionTable extends Panel {
             @Override
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
-
-                item.add(new Label(componentId, rowModel.getObject().getClusterMetric()));
+                if (rowModel.getObject() != null) {
+                    item.add(new Label(componentId, rowModel.getObject().getClusterMetric()));
+                }
             }
 
             @Override
@@ -134,7 +127,6 @@ public class MiningIntersectionTable extends Panel {
             }
 
         });
-
 
         columns.add(new AbstractColumn<>(getIntersectionHeaderTitle()) {
 
@@ -152,7 +144,11 @@ public class MiningIntersectionTable extends Panel {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getUsers().size()));
+                if (rowModel.getObject() != null && rowModel.getObject().getUsers() != null) {
+                    item.add(new Label(componentId, rowModel.getObject().getUsers().size()));
+                } else {
+                    item.add(new EmptyPanel(componentId));
+                }
             }
 
             @Override
@@ -178,7 +174,11 @@ public class MiningIntersectionTable extends Panel {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
 
-                item.add(new Label(componentId, rowModel.getObject().getRoles().size()));
+                if (rowModel.getObject() != null && rowModel.getObject().getRoles() != null) {
+                    item.add(new Label(componentId, rowModel.getObject().getRoles().size()));
+                } else {
+                    item.add(new EmptyPanel(componentId));
+                }
             }
 
             @Override
@@ -209,32 +209,38 @@ public class MiningIntersectionTable extends Panel {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
 
-                AjaxButton ajaxButton = new AjaxButton(componentId,
-                        createStringResource("RoleMining.button.title.compute")) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        DetectedPattern rowModelObject = rowModel.getObject();
-                        Set<String> resolveFullOverlap = resolveTotalOccupancy(roleAnalysisProcessModeType, rowModelObject,
-                                new OperationResult("resolveFullOverlap"), (PageBase) getPage());
+                if (rowModel.getObject() == null) {
+                    item.add(new EmptyPanel(componentId));
+                } else {
+                    AjaxButton ajaxButton = new AjaxButton(componentId,
+                            createStringResource("RoleMining.button.title.compute")) {
+                        @Override
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            DetectedPattern rowModelObject = rowModel.getObject();
 
-                        if (resolveFullOverlap.size() > 0) {
-                            this.setDefaultModel(Model.of(resolveFullOverlap.size() + " (recompute)"));
-                            // TODO replaceMemberTypeObjectOccupation the current implementation is for testing and demonstration purposes
+                            Set<String> resolveFullOverlap = resolveTotalOccupancy(
+                                    roleAnalysisProcessModeType,
+                                    rowModelObject,
+                                    new OperationResult("resolveFullOverlap"),
+                                    (PageBase) getPage());
 
-//                            replaceRoleAnalysisClusterDetectionTotal(clusterOid, (PageBase) getPage(),
-//                                    new OperationResult("resolveFullOverlap"), roleAnalysisProcessModeType, rowModelObject,resolveFullOverlap);
+                            if (!resolveFullOverlap.isEmpty()) {
+                                this.setDefaultModel(Model.of(resolveFullOverlap.size() + " (recompute)"));
+                            }
+
+                            item.setOutputMarkupId(true);
+                            ajaxRequestTarget.add(item);
                         }
+                    };
 
-                        item.setOutputMarkupId(true);
-                        ajaxRequestTarget.add(item);
-                    }
-                };
-                ajaxButton.setOutputMarkupId(true);
-                ajaxButton.setEnabled(true);
-                ajaxButton.add(AttributeAppender.replace("class", " btn btn-primary btn-sm d-flex "
-                        + "justify-content-center align-items-center"));
-                ajaxButton.add(new AttributeAppender("style", " width:120px; "));
-                item.add(ajaxButton);
+                    ajaxButton.setOutputMarkupId(true);
+                    ajaxButton.setEnabled(true);
+                    ajaxButton.add(AttributeAppender.replace("class", " btn btn-primary btn-sm d-flex "
+                            + "justify-content-center align-items-center"));
+                    ajaxButton.add(new AttributeAppender("style", " width:120px; "));
+
+                    item.add(ajaxButton);
+                }
 
             }
 
@@ -265,19 +271,25 @@ public class MiningIntersectionTable extends Panel {
             @Override
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
+                if (rowModel.getObject() == null) {
+                    item.add(new EmptyPanel(componentId));
+                } else {
+                    AjaxButton ajaxButton = new AjaxButton(componentId,
+                            createStringResource("RoleMining.button.title.load")) {
+                        @Override
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            onLoad(ajaxRequestTarget, rowModel);
+                        }
+                    };
 
-                AjaxButton ajaxButton = new AjaxButton(componentId, createStringResource("RoleMining.button.title.load")) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        onLoad(ajaxRequestTarget, rowModel);
-                    }
-                };
+                    ajaxButton.add(AttributeAppender.replace("class", " btn btn-primary btn-sm d-flex "
+                            + "justify-content-center align-items-center"));
+                    ajaxButton.add(new AttributeAppender("style", " width:100px; "));
+                    ajaxButton.setOutputMarkupId(true);
 
-                ajaxButton.add(AttributeAppender.replace("class", " btn btn-primary btn-sm d-flex "
-                        + "justify-content-center align-items-center"));
-                ajaxButton.add(new AttributeAppender("style", " width:100px; "));
-                ajaxButton.setOutputMarkupId(true);
-                item.add(ajaxButton);
+                    item.add(ajaxButton);
+                }
+
             }
 
             @Override
@@ -295,11 +307,11 @@ public class MiningIntersectionTable extends Panel {
     }
 
     protected DataTable<?, ?> getDataTable() {
-        return ((RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
+        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
     }
 
-    protected RoleMiningBoxedTablePanel<?> getTable() {
-        return ((RoleMiningBoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
+    protected BoxedTablePanel<?> getTable() {
+        return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
     }
 
     protected StringResourceModel getHeaderTitle(String identifier) {

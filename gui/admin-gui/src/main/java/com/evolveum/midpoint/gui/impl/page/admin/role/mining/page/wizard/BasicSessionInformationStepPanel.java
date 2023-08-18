@@ -48,8 +48,7 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (wrapper.getItemName().equals(RoleAnalysisSessionType.F_ROLE_ANALYSIS_CLUSTER_REF)
-                    || wrapper.getItemName().equals(RoleAnalysisSessionType.F_LIFECYCLE_STATE)
+            if (wrapper.getItemName().equals(RoleAnalysisSessionType.F_LIFECYCLE_STATE)
                     || wrapper.getItemName().equals(RoleAnalysisSessionType.F_INDESTRUCTIBLE)
                     || wrapper.getItemName().equivalent(RoleAnalysisSessionType.F_PROCESS_MODE)) {
                 return ItemVisibility.HIDDEN;

@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getSessionOptionType;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.endTimer;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Tools.startTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.endTimer;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.startTimer;
 
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSessionOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -29,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
-public class RoleBasedClustering implements Mining {
+public class RoleBasedClustering implements Clusterable {
 
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
@@ -74,14 +72,14 @@ public class RoleBasedClustering implements Mining {
     private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull PageBase pageBase,
             int minProperties, int maxProperties, SearchFilterType userQuery) {
 
-        Set<String> existingRolesOidsSet = MiningDataUtils.getExistingRolesOidsSet(result, pageBase);
+        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, pageBase);
 
         //role //user
-        ListMultimap<String, String> roleToUserMap = MiningDataUtils.getRoleBasedRoleToUserMap(result, pageBase, userQuery,
+        ListMultimap<String, String> roleToUserMap = ClusterDataLoaderUtils.getRoleBasedRoleToUserMap(result, pageBase, userQuery,
                 existingRolesOidsSet);
 
         //user //role
-        return MiningDataUtils.getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
+        return ClusterDataLoaderUtils.getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
     }
 
 }

@@ -27,8 +27,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysisSession;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysisCluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;

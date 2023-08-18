@@ -13,21 +13,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection
 
 public class ExtractPatternUtils {
 
-    public static DetectedPattern addDetectedObjectJaccard(Set<String> properties, Set<String> members,
-            Set<String> allPropertiesOccupation) {
-        return new DetectedPattern(
-                properties,
-                members,
-                members.size() * properties.size(),
-                allPropertiesOccupation,null);
-    }
 
-    public static DetectedPattern addDetectedObjectIntersection(Set<String> properties, Set<String> members,
-            Set<String> allPropertiesOccupation) {
+
+    public static DetectedPattern prepareDetectedPattern(Set<String> properties, Set<String> members) {
         return new DetectedPattern(
                 properties,
                 members,
-                members.size() * properties.size(),
-                allPropertiesOccupation,null);
+                members.size() * properties.size());
     }
 }

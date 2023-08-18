@@ -14,7 +14,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.PageRoleAnalysis;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -24,13 +24,13 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 
 public class ClusteringAction {
 
-    private Mining mining;
+    private Clusterable clusterable;
 
     public ClusteringAction(RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            this.mining = new UserBasedClustering();
+            this.clusterable = new UserBasedClustering();
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            this.mining = new RoleBasedClustering();
+            this.clusterable = new RoleBasedClustering();
         }
     }
 
@@ -40,7 +40,7 @@ public class ClusteringAction {
         PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(pageBase, result, sessionOid);
         if (prismSession != null) {
             RoleAnalysisSessionType session = prismSession.asObjectable();
-            List<PrismObject<RoleAnalysisClusterType>> clusterObjects = mining.executeClustering(session,
+            List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(session,
                     result, pageBase);
 
             importObjects(clusterObjects, session, pageBase, result, task);
@@ -71,9 +71,14 @@ public class ClusteringAction {
 
         double meanDensity = 0;
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
-            AbstractAnalysisClusterStatistic clusterStatistic = getClusterStatisticsType(clusterTypePrismObject.asObjectable());
-            meanDensity += clusterStatistic.getPropertiesDensity();
-            processedObjectCount += clusterStatistic.getMemberCount();
+            AnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistics();
+            meanDensity += clusterStatistic.getMembershipDensity();
+            if (session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+                processedObjectCount += clusterStatistic.getRolesCount();
+            } else {
+                processedObjectCount += clusterStatistic.getUsersCount();
+
+            }
 
             ObjectReferenceType objectReferenceType = new ObjectReferenceType();
             objectReferenceType.setOid(clusterTypePrismObject.getOid());
@@ -94,6 +99,7 @@ public class ClusteringAction {
         RoleAnalysisSessionStatisticType sessionStatistic = new RoleAnalysisSessionStatisticType();
         sessionStatistic.setProcessedObjectCount(processedObjectCount);
         sessionStatistic.setMeanDensity(meanDensity);
+        sessionStatistic.setClusterCount(clusters.size());
 
         modifySessionAfterClustering(sessionRef,
                 sessionStatistic,

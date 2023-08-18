@@ -27,8 +27,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationWo
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QClusterObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QParentClusterObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
@@ -178,7 +178,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
-                .register(RoleAnalysisSessionType.COMPLEX_TYPE, QParentClusterObjectMapping.init(repositoryContext))
+                .register(RoleAnalysisSessionType.COMPLEX_TYPE, QSessionObjectMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.init(repositoryContext))
                 .register(SecurityPolicyType.COMPLEX_TYPE,

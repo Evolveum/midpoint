@@ -207,27 +207,15 @@ import java.util.List;
         identifier = "clusterStatistic",
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
-                label = "RoleAnalysisClusterStatistic.clusterStatistic",
+                label = "AnalysisClusterStatisticType.clusterStatistic",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
                 order = 20
         ),
-        containerPath = "clusterUserBasedStatistic",
-        type = "UserAnalysisClusterStatistic",
+        containerPath = "clusterStatistics",
+        type = "AnalysisClusterStatisticType",
         expanded = true
 )
 
-@PanelInstance(
-        identifier = "clusterStatistic",
-        applicableForType = RoleAnalysisClusterType.class,
-        display = @PanelDisplay(
-                label = "RoleAnalysisClusterStatistic.clusterStatistic",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 20
-        ),
-        containerPath = "clusterRoleBasedStatistic",
-        type = "RoleAnalysisClusterStatistic",
-        expanded = true
-)
 @PanelInstance(
         identifier = "detectionOption",
         applicableForType = RoleAnalysisClusterType.class,

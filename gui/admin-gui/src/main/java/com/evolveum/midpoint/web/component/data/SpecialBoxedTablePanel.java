@@ -397,7 +397,7 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
                 protected List<Integer> getPagingSizes() {
 
                     if (isRoleMining) {
-                        return List.of(new Integer[] { 100, 200, 400 });
+                        return List.of(new Integer[] { 50, 100,150,200 });
                     }
                     return super.getPagingSizes();
                 }

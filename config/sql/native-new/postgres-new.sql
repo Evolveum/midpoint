@@ -1168,8 +1168,12 @@ CREATE TABLE m_role_analysis_cluster_table (
         CHECK (objectType = 'ROLE_ANALYSIS_CLUSTER'),
         parentRefTargetOid UUID,
         parentRefTargetType ObjectType,
-        parentRefRelationId INTEGER REFERENCES m_uri(id)
-
+        parentRefRelationId INTEGER REFERENCES m_uri(id),
+        usersCount INTEGER,
+        rolesCount INTEGER,
+        membershipDensity DECIMAL,
+        membershipMean DECIMAL,
+        detectedReductionMetric DECIMAL
 )
     INHERITS (m_assignment_holder);
 
@@ -1180,20 +1184,23 @@ CREATE TRIGGER m_role_analysis_cluster_table_update_tr BEFORE UPDATE ON m_role_a
 CREATE TRIGGER m_role_analysis_cluster_table_oid_delete_tr AFTER DELETE ON m_role_analysis_cluster_table
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE INDEX m_role_analysis_cluster_table_roles_idx ON m_role_analysis_cluster_table USING gin (roles);
-CREATE INDEX m_role_analysis_cluster_table_similarGroups_idx ON m_role_analysis_cluster_table USING gin (similarGroups);
-CREATE INDEX m_role_analysis_cluster_table_identifier_idx ON m_role_analysis_cluster_table (identifier);
-CREATE INDEX m_role_analysis_cluster_table_riskLevel_idx ON m_role_analysis_cluster_table (riskLevel);
-CREATE INDEX m_role_analysis_cluster_table_rolesCount_idx ON m_role_analysis_cluster_table (rolesCount);
-CREATE INDEX m_role_analysis_cluster_table_membersCount_idx ON m_role_analysis_cluster_table (membersCount);
-CREATE INDEX m_role_analysis_cluster_table_similarGroupsCount_idx ON m_role_analysis_cluster_table (similarGroupsCount);
+CREATE INDEX m_role_analysis_cluster_table_parentRefTargetOid_idx ON m_role_analysis_cluster_table (parentRefTargetOid);
+CREATE INDEX m_role_analysis_cluster_table_parentRefTargetType_idx ON m_role_analysis_cluster_table (parentRefTargetType);
+CREATE INDEX m_role_analysis_cluster_table_parentRefRelationId_idx ON m_role_analysis_cluster_table (parentRefRelationId);
 
+
+CREATE TYPE RoleAnalysisProcessModeType AS ENUM ('ROLE', 'USER');
 
 CREATE TABLE m_role_analysis_session_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_SESSION') STORED
-        CHECK (objectType = 'ROLE_ANALYSIS_SESSION')
-
+        CHECK (objectType = 'ROLE_ANALYSIS_SESSION'),
+--        processedObjectCount INTEGER,
+--        clusterCount INTEGER,
+--        density DECIMAL,
+        similarityOption DECIMAL,
+        minMembersOption INTEGER,
+        overlapOption INTEGER
         )
     INHERITS (m_assignment_holder);
 
@@ -1204,11 +1211,6 @@ CREATE TRIGGER m_role_analysis_session_table_update_tr BEFORE UPDATE ON m_role_a
 CREATE TRIGGER m_role_analysis_session_table_oid_delete_tr AFTER DELETE ON m_role_analysis_session_table
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
---CREATE INDEX m_role_analysis_session_table_clustersRef_idx ON m_role_analysis_session_table USING gin (clustersRef);
---CREATE INDEX m_role_analysis_session_table_identifier_idx ON m_role_analysis_session_table (identifier);
---CREATE INDEX m_role_analysis_session_table_riskLevel_idx ON m_role_analysis_session_table (riskLevel);
---CREATE INDEX m_role_analysis_session_table_consist_idx ON m_role_analysis_session_table (consist);
---CREATE INDEX m_role_analysis_session_table_density_idx ON m_role_analysis_session_table (density);
 
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/

@@ -80,24 +80,6 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
 
             @Override
             public boolean onNextPerformed(AjaxRequestTarget target) {
-//                RoleAnalysisSessionType roleAnalysisSession = getHelper().getDetailsModel().getObjectWrapper()
-//                        .getObject().asObjectable();
-//                AbstractAnalysisSessionOptionType sessionOptionType = getSessionOptionType(roleAnalysisSession);
-//                RoleAnalysisDetectionOptionType defaultDetectionOption = new RoleAnalysisDetectionOptionType();
-//                if (roleAnalysisSession.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
-//                    defaultDetectionOption.setMinUserOccupancy(sessionOptionType.getMinPropertiesOverlap());
-//                    defaultDetectionOption.setMinRolesOccupancy(sessionOptionType.getMinMembersCount());
-//                } else {
-//                    defaultDetectionOption.setMinRolesOccupancy(sessionOptionType.getMinPropertiesOverlap());
-//                    defaultDetectionOption.setMinUserOccupancy(sessionOptionType.getMinMembersCount());
-//                }
-//
-//                defaultDetectionOption.setFrequencyRange(new RangeType()
-//                        .min(DEFAULT_MIN_FREQUENCY)
-//                        .max(DEFAULT_MAX_FREQUENCY));
-//                defaultDetectionOption.setDetectionProcessMode(RoleAnalysisDetectionProcessType.PARTIAL);
-//
-//                roleAnalysisSession.setDefaultDetectionOption(defaultDetectionOption);
                 return super.onNextPerformed(target);
             }
 
@@ -115,16 +97,6 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-
-//                RoleAnalysisSessionType roleAnalysisSession = getHelper().getDetailsModel().getObjectWrapper()
-//                        .getObject().asObjectable();
-//
-//                RoleAnalysisProcessModeType processMode = roleAnalysisSession.getProcessMode();
-//
-//                OperationResult operationResult = new OperationResult("ExecuteClustering");
-//                Task task = ((PageBase) getPage()).createSimpleTask("ExecuteClustering");
-//                ClusteringAction clusteringAction = new ClusteringAction(processMode);
-//                clusteringAction.execute((PageBase) getPage(), roleAnalysisSession, operationResult, task);
                 PrismObject<RoleAnalysisSessionType> session = getDetailsModel().getObjectWrapper().getObject();
 
                 OperationResult result = new OperationResult("ImportSessionObject");

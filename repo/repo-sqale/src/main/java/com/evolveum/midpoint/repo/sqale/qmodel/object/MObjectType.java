@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QClusterData;
-import com.evolveum.midpoint.repo.sqale.qmodel.cluster.QParentClusterData;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterData;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +79,7 @@ public enum MObjectType {
     RESOURCE(QResource.class, ResourceType.class),
     ROLE(QRole.class, RoleType.class),
     ROLE_ANALYSIS_CLUSTER(QClusterData.class, RoleAnalysisClusterType.class),
-    ROLE_ANALYSIS_SESSION(QParentClusterData.class, RoleAnalysisSessionType.class),
+    ROLE_ANALYSIS_SESSION(QSessionData.class, RoleAnalysisSessionType.class),
     SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
     SEQUENCE(QSequence.class, SequenceType.class),
     SERVICE(QService.class, ServiceType.class),

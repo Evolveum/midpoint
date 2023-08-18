@@ -10,8 +10,10 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,7 +24,11 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -36,19 +42,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.panel.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -57,13 +58,11 @@ import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by tchrapovic.
  */
-//@PanelType(name = "modificationTarget")
-//@PanelInstance(identifier = "modificationTarget",
-//        applicableForType = AbstractRoleType.class,
-//        display = @PanelDisplay(label = "pageAdminFocus.modificationTarget", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 60))
 public class ModificationTargetPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, AbstractRoleDetailsModel<AR>> {
     @Serial private static final long serialVersionUID = 1L;
 
@@ -90,6 +89,15 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             value.updateValue(inducement, (PageBase) getPage());
         }
 
+        RoleMiningProvider<BusinessRoleApplicationDto> provider = getAndUpdateProvider(patternDeltas);
+
+        BoxedTablePanel<BusinessRoleApplicationDto> table = generateTable(provider);
+
+        delegations.add(table);
+    }
+
+    @NotNull
+    private RoleMiningProvider<BusinessRoleApplicationDto> getAndUpdateProvider(List<BusinessRoleApplicationDto> patternDeltas) {
         RoleMiningProvider<BusinessRoleApplicationDto> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(patternDeltas) {
 
@@ -100,10 +108,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                 super.setObject(patternDeltas);
             }
         }, false);
-
-        BoxedTablePanel<BusinessRoleApplicationDto> table = generateTable(provider);
-
-        delegations.add(table);
+        return provider;
     }
 
     private BoxedTablePanel<BusinessRoleApplicationDto> getTable() {
@@ -114,7 +119,65 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
     private BoxedTablePanel<BusinessRoleApplicationDto> generateTable(RoleMiningProvider<BusinessRoleApplicationDto> provider) {
 
         BoxedTablePanel<BusinessRoleApplicationDto> table = new BoxedTablePanel<>(
-                ID_MODIFICATION_TARGET_PANEL, provider, initColumns(provider));
+                ID_MODIFICATION_TARGET_PANEL, provider, initColumns(provider)) {
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                //TODO add possibility to assign other candidate.
+                AjaxIconButton ajaxButton = new AjaxIconButton(id, Model.of(" fe fe-assignment"), createStringResource("idk")) {
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+                        CandidateAssignPanel detailsPanel = new CandidateAssignPanel(
+                                ((PageBase) getPage())
+                                        .getMainPopupBodyId(), getObjectDetailsModels().getPatternDeltas()) {
+                            @Override
+                            public void performAddOperation(AjaxRequestTarget ajaxRequestTarget, IModel<SelectableBean<UserType>> iModel) {
+                                List<AssignmentType> inducement;
+                                PrismObject<RoleType> role = (PrismObject<RoleType>) getObjectDetailsModels().getObjectWrapper().getObject();
+                                try {
+                                    inducement = getObjectDetailsModels()
+                                            .getObjectWrapper()
+                                            .getObjectApplyDelta()
+                                            .asObjectable()
+                                            .getInducement();
+
+                                } catch (SchemaException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                UserType user = iModel.getObject().getValue();
+
+                                BusinessRoleApplicationDto newValue = new BusinessRoleApplicationDto(
+                                        user.asPrismContainer(), role, getPageBase());
+                                newValue.updateValue(inducement, getPageBase());
+                                getObjectDetailsModels().getPatternDeltas().add(newValue);
+
+                                RoleMiningProvider<BusinessRoleApplicationDto> updatedProvider
+                                        = getAndUpdateProvider(getObjectDetailsModels().getPatternDeltas());
+
+                                getTable().replaceWith(generateTable(updatedProvider));
+                                ajaxRequestTarget.add(getTable().setOutputMarkupId(true));
+
+                            }
+
+                            @Override
+                            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                super.onClose(ajaxRequestTarget);
+                            }
+                        };
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, ajaxRequestTarget);
+
+                    }
+                };
+                ajaxButton.setOutputMarkupId(true);
+                return ajaxButton;
+            }
+
+            @Override
+            public Component getFooterButtonToolbar() {
+                return super.getFooterButtonToolbar();
+            }
+        };
+
         table.setOutputMarkupId(true);
 
         return table;
@@ -128,7 +191,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> cellItem, String componentId, IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> cellItem,
+                    String componentId, IModel<BusinessRoleApplicationDto> rowModel) {
                 changeBackgroundColorCell(cellItem, rowModel);
                 super.populateItem(cellItem, componentId, rowModel);
             }
@@ -156,7 +220,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> item, String componentId,
                     IModel<BusinessRoleApplicationDto> rowModel) {
 
-                AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(rowModel.getObject().getPrismObjectUser().getName())) {
+                AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId,
+                        Model.of(rowModel.getObject().getPrismObjectUser().getName())) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 

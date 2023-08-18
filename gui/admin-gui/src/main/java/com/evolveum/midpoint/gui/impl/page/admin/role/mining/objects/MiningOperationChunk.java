@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.SORT;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleUtils.jacquardSimilarity;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.SimilarityUtils.jacquardSimilarity;
 
 import java.io.Serializable;
 import java.util.ArrayList;
