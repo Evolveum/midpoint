@@ -219,6 +219,7 @@ Output of the last expression is considered to be the output of the whole sequen
 
 Other planned expression types: are constant expressions, initialization and use of variables, or filtering input values.
 
+[#_actions]
 === Actions
 
 An action modifies the input data (or acts on it in any other way).
@@ -226,12 +227,16 @@ An action modifies the input data (or acts on it in any other way).
 In addition to the input data, an action may have one or more parameters.
 For example, `assign` action must know the role or resource to be assigned; `modify` action must have the delta that has to be applied.
 
-Currently, there are the following actions:
+The following table presents currently implemented actions.
+Note that each action has "legacy name", under which it can be called in the traditional (dynamic way).
+The majority of actions also have "modern name", allowing them to be invoked in a more type-safe way, static way.
+Please see #TODO# for more information.
 
 [%autowidth]
 |===
-| Action | Description | Parameter | Description
+| Action (legacy name) | Modern name | Description | Parameter | Description
 
+| add
 | add
 | Adds an object coming as input to the repository, which must be a PrismObject.
 (++***++)
@@ -240,12 +245,14 @@ Currently, there are the following actions:
 
 
 | modify
+| modify
 | Modifies an object coming as input, which must be a PrismObject.
 (++*++) (++***++)
 | delta
 | Delta to be applied to the object.
 
 
+| delete
 | delete
 | Deletes an object coming as input, which must be a PrismObject.
 (++*++) (++***++)
@@ -254,12 +261,14 @@ Currently, there are the following actions:
 
 
 | enable, disable
+| enable, disable
 | Enables or disables an object coming as input (must be a FocusType or ShadowType).
 (++*++) (++***++)
 | -
 | -
 
 
+.3+| assign
 .3+| assign
 .3+| Assigns a role or a resource account to a FocusType.
 (++*++) (++***++)
@@ -278,6 +287,7 @@ Currently, there are the following actions:
 
 
 .3+| unassign
+.3+| unassign
 .3+| Unassigns a role or a resource account from a FocusType.
 (++*++) (++***++)
 | resource
@@ -294,12 +304,14 @@ Currently, there are the following actions:
 
 
 | recompute
+| recompute
 | Recomputes a user (must be PrismObject<UserType>). (++*++) (++***++)
 | -
 | -
 
 
 .3+| execute-script
+.3+| execute
 .3+| Executes a script against the input data.
 (Since midPoint 3.4.1)
 | script
@@ -317,6 +329,7 @@ It is in the form of URI, pointing to item name (e.g. user) or item type (e.g. U
 
 
 | resume
+| resume
 | Resumes a suspended task.
 | -
 | The task must be in a suspended state.
@@ -324,41 +337,48 @@ Since 3.7.2.
 
 
 | resolve
+| resolve
 | Resolves a reference, e.g. data coming from a c:linkRef, into a PrismObject.
 | noFetch
 | Whether noFetch option has to be applied (default: false).
 
 
 | purge-schema
+| purgeSchema
 | Removes all schema information from a given resource(s) coming as input (PrismObject<ResourceType>).
 | -
 | -
 
 
 | discover-connectors
+| -
 | Discovers all connectors on a given connector host(s), given as PrismObject<ConnectorHostType>.
 | rebindResources
 | Searches for all resources using now-outdated versions of newly discovered connectors and re-links them to current connectors.
 
 
 | test-resource
+| testResource
 | Tests a given resource(s) coming as input (PrismObject<ResourceType>).
 | -
 | -
 
 
 | validate
+| -
 | Validates a resource - i.e. provides a set of issues just like in Resource Wizard (since 3.5)
 | -
 | -
 
 
 | xref:/midpoint/reference/misc/bulk/actions/generate-value/[generate-value]
+| generateValue
 | Generates value(s) for object(s) coming as input.
 | items
 | Description of what and how to generate.
 
 
+.5+| notify
 .5+| notify
 .5+| Sends a notification event for each of objects at input (since 3.5) - i.e. it generates a custom Event with the content driven by action parameters.
 | subtype
@@ -387,6 +407,7 @@ Default is "add".
 
 
 .3+| log
+.3+| log
 .3+| Logs debugDump form of the data.
 | level
 | info (the default), debug or trace
@@ -412,6 +433,8 @@ Some simple examples of scripts in XML form can be found in *resources/scripting
 [TIP]
 ====
 Since 3.6, `executeScript` action and `notify` action (that contains custom handler) require superuser authorization, because they allow direct execution of user-supplied scripts (groovy, JavaScript, and so on).
+This is valid up to 4.7.
+Since 4.8, xref:/midpoint/reference/expressions/expressions/profiles/index.adoc[expression profiles] can be used to fine-tune what actions can be used in a given context.
 ====
 
 == Other features
