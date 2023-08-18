@@ -63,7 +63,7 @@ And in case that `script` evaluator is used, only Groovy can be used as a script
 
 Expression profiles are defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration.] That part is quite easy.
 But it is much more difficult to specify which expression should be constrained by which profile.
-Profile specification cannot part of expression itself.
+Profile specification cannot be a part of expression itself.
 In that case anyone that can modify an expression could also change the profile and there would be no security at all.
 Therefore the use of expression profiles is integrated with xref:/midpoint/reference/schema/archetypes/[archetypes]. Object archetype assignment does not usually change - and if it does it is quite an unusual and perhaps very special process.
 Usually only the system administrator has the rights to define archetype definitions.

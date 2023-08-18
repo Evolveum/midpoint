@@ -5,7 +5,7 @@
 == Introduction
 
 Before 4.8, bulk actions were executed in a limited mode for non-superuser principals.
-This caused some problems regarding custom GUI actions and scripting policy rules, as described in bug:MID-6913[] and bug:MID-7831[].
+This caused some problems regarding custom GUI actions and scripting (bulk action) policy rules, as described in bug:MID-6913[] and bug:MID-7831[].
 
 == Custom GUI Actions
 
@@ -336,7 +336,7 @@ The following example will show such a function:
 
 Please see xref:../privilege-elevation.adoc[] for more information about privilege elevation feature.
 
-== Scripting Policy Constraints and Actions
+== Scripting (Bulk Action) Policy Constraints and Actions
 
 When talking about policy rules, bulk actions can be present in two places: in `objectState`/`assignmentState` policy constraints and in `scriptExecution` policy actions.
 
@@ -354,8 +354,8 @@ An example:
         xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="128a5458-bcd4-4bf4-b110-664677e73aa4">
-    <name>role-with-scripting-action</name>
-    <assignment>
+    <name>role-with-bulk-actions</name>
+    <assignment> <!--1-->
         <targetRef oid="988c28d2-f879-4e07-a3cb-5ea7ad206146" type="ArchetypeType"/>
     </assignment>
     <assignment>
@@ -363,7 +363,7 @@ An example:
             <policyConstraints>
                 <objectState>
                     <executeScript>
-                        <s:execute>
+                        <s:execute> <!--2-->
                             <s:outputTypeName>xsd:boolean</s:outputTypeName>
                             <s:forWholeInput>true</s:forWholeInput>
                             <s:script>
@@ -380,7 +380,7 @@ An example:
             <policyActions>
                 <scriptExecution>
                     <executeScript>
-                        <s:execute>
+                        <s:execute> <!--3-->
                             <s:script>
                                 <code>
                                     log.info('focus = {}', focus)
@@ -396,6 +396,9 @@ An example:
     </assignment>
 </role>
 ----
+<1> An archetype providing the expression profile `trusted` (see right below)
+<2> The bulk action that executed (in this form) in 4.7 and earlier, because it did run with full feature set enabled.
+<3> However, this bulk action did not run in 4.7; and neither would not do in 4.8, unless the expression profile is set.
 
 The archetype provides the execution profile, for example:
 
