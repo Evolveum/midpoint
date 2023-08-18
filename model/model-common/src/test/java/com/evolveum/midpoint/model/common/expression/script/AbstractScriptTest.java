@@ -341,7 +341,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 new ExpressionEvaluatorsProfile(
                         AccessDecision.DENY,
                         List.of(evaluatorProfile)),
-                ScriptingProfile.full(),
+                BulkActionsProfile.full(),
                 FunctionLibrariesProfile.full());
     }
 

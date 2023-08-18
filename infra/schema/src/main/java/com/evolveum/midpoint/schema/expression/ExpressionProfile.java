@@ -15,9 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileTyp
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Profile for evaluation of "regular" expressions, scripting expressions, and function libraries.
- *
- * NOTE: This is pretty much throw-away implementation. Just the interface is important now.
+ * Profile for evaluation of "regular" expressions, bulk actions, and function libraries.
  *
  * @author Radovan Semancik
  */
@@ -27,7 +25,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
     private static final ExpressionProfile FULL = new ExpressionProfile(
             SchemaConstants.FULL_EXPRESSION_PROFILE_ID,
             ExpressionEvaluatorsProfile.full(),
-            ScriptingProfile.full(), // TODO what about scripts etc that currently require #all authorization?
+            BulkActionsProfile.full(),
             FunctionLibrariesProfile.full());
 
     /**
@@ -35,10 +33,10 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
      * no expressions - this limits all of "execute-script", "notification" (with unsafe custom event handler), and
      * the new "evaluate-expression" actions.
      */
-    private static final ExpressionProfile SCRIPTING_LEGACY_UNPRIVILEGED = new ExpressionProfile(
-            SchemaConstants.LEGACY_UNPRIVILEGED_SCRIPTING_PROFILE_ID,
+    private static final ExpressionProfile LEGACY_UNPRIVILEGED_BULK_ACTIONS = new ExpressionProfile(
+            SchemaConstants.LEGACY_UNPRIVILEGED_BULK_ACTIONS_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
-            ScriptingProfile.full(), // actions without scripts/expressions are safe
+            BulkActionsProfile.full(), // actions without scripts/expressions are safe
             FunctionLibrariesProfile.none());
 
     /**
@@ -47,7 +45,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
     private static final ExpressionProfile NONE = new ExpressionProfile(
             SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
-            ScriptingProfile.none(),
+            BulkActionsProfile.none(),
             FunctionLibrariesProfile.none());
 
     /**
@@ -60,7 +58,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
     @NotNull private final ExpressionEvaluatorsProfile evaluatorsProfile;
 
     /** Profile for midPoint scripting language (bulk actions). */
-    @NotNull private final ScriptingProfile scriptingProfile;
+    @NotNull private final BulkActionsProfile bulkActionsProfile;
 
     /** Profile for using function libraries. */
     @NotNull private final FunctionLibrariesProfile librariesProfile;
@@ -68,11 +66,11 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
     public ExpressionProfile(
             @NotNull String identifier,
             @NotNull ExpressionEvaluatorsProfile evaluatorsProfile,
-            @NotNull ScriptingProfile scriptingProfile,
+            @NotNull BulkActionsProfile bulkActionsProfile,
             @NotNull FunctionLibrariesProfile librariesProfile) {
         this.identifier = identifier;
         this.evaluatorsProfile = evaluatorsProfile;
-        this.scriptingProfile = scriptingProfile;
+        this.bulkActionsProfile = bulkActionsProfile;
         this.librariesProfile = librariesProfile;
     }
 
@@ -84,16 +82,16 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
         return NONE;
     }
 
-    public static @NotNull ExpressionProfile scriptingLegacyUnprivileged() {
-        return SCRIPTING_LEGACY_UNPRIVILEGED;
+    public static @NotNull ExpressionProfile legacyUnprivilegedBulkActions() {
+        return LEGACY_UNPRIVILEGED_BULK_ACTIONS;
     }
 
     public @NotNull String getIdentifier() {
         return identifier;
     }
 
-    public @NotNull ScriptingProfile getScriptingProfile() {
-        return scriptingProfile;
+    public @NotNull BulkActionsProfile getScriptingProfile() {
+        return bulkActionsProfile;
     }
 
     public @NotNull FunctionLibrariesProfile getLibrariesProfile() {
@@ -103,7 +101,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
     @Override
     public String toString() {
         return "ExpressionProfile(ID: %s; scripting: %s; libraries: %s)".formatted(
-                identifier, scriptingProfile.getIdentifier(), librariesProfile.getIdentifier());
+                identifier, bulkActionsProfile.getIdentifier(), librariesProfile.getIdentifier());
     }
 
     public @NotNull ExpressionEvaluatorsProfile getEvaluatorsProfile() {

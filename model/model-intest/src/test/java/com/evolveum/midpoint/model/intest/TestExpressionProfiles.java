@@ -479,7 +479,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 FILE_SCRIPTING_EXECUTE_SCRIPT,
                 ConfigurationItemOrigin.rest(),
                 "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedScripting");
+                "expression profile: ##legacyUnprivilegedBulkActions");
     }
 
     /** Executing script via expression (with the default profile). Should fail. */
@@ -489,7 +489,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT,
                 ConfigurationItemOrigin.rest(),
                 "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedScripting");
+                "expression profile: ##legacyUnprivilegedBulkActions");
     }
 
     /** Executing script via notification (with the default profile). Should fail. */
@@ -505,7 +505,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 FILE_SCRIPTING_SCRIPT_IN_QUERY,
                 ConfigurationItemOrigin.rest(),
                 "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedScripting");
+                "expression profile: ##legacyUnprivilegedBulkActions");
     }
 
     /** Executing script via filter in `unassign` action. Should fail. */
@@ -515,7 +515,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 FILE_SCRIPTING_SCRIPT_IN_UNASSIGN_FILTER,
                 ConfigurationItemOrigin.rest(),
                 "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedScripting");
+                "expression profile: ##legacyUnprivilegedBulkActions");
     }
 
     /**
@@ -702,7 +702,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         // these asserts may be fragile
         assertThat(result.getMessage())
                 .contains("Access to script expression evaluator not allowed")
-                .contains("expression profile: ##legacyUnprivilegedScripting")
+                .contains("expression profile: ##legacyUnprivilegedBulkActions")
                 .contains("in event filter expression");
     }
 

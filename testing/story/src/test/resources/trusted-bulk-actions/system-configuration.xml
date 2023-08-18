@@ -21,7 +21,7 @@
                 <type>function</type>
                 <decision>allow</decision>
             </evaluator>
-            <functionLibraryProfile>little-trusted</functionLibraryProfile>
+            <functionLibrariesProfile>little-trusted</functionLibrariesProfile>
         </expressionProfile>
         <functionLibrariesProfile>
             <identifier>little-trusted</identifier>
