@@ -11815,6 +11815,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         ID of the bulk actions profile to be used with this expression profile.
+                        If not specified, the "allow all" profile is assumed.
+                        (TODO - or should we take the "decision" property into account? But what about backwards
+                        compatibility? The same for `functionLibrariesProfile`.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionProfileType.bulkActionsProfile</a:displayName>
@@ -11825,6 +11828,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         ID of the function libraries profile to be used with this expression profile.
+                        If not specified, the "allow all" profile is assumed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionProfileType.functionLibraryProfile</a:displayName>
