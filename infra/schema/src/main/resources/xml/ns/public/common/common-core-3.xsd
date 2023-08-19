@@ -14473,9 +14473,6 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>RoleManagementConfigurationType.defaultAssignmentConstraints</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
