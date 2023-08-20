@@ -248,6 +248,7 @@ public interface ModelInteractionService {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException;
 
+    //TODO needs Class<F> type parameter
     <F extends FocusType> SecurityPolicyType getSecurityPolicy(
             PrismObject<F> focus, String archetypeOid, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException,

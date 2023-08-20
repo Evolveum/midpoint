@@ -15,11 +15,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -99,22 +99,16 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         ListView<UserType> recoveredIdentitiesPanel = new ListView<>(ID_RECOVERED_IDENTITIES, recoveredIdentitiesModel) {
             @Override
             protected void populateItem(ListItem<UserType> item) {
-                WebMarkupContainer loginNamePanel = new WebMarkupContainer(ID_LOGIN_NAME_PANEL);
-                loginNamePanel.setOutputMarkupId(true);
-//                loginNamePanel.add(new VisibleBehaviour(() -> isSingleRecoveredIdentity() && !configuredItemsExist()));
-                item.add(loginNamePanel);
-
-                NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource(item.getModelObject()));
-                loginNamePanel.add(img);
-
-                Label label = new Label(ID_LOGIN_NAME, getAuthorizedUserLoginNameModel(item.getModelObject()));
-                loginNamePanel.add(label);
+                initRecoveredIdentitiesPanel(item);
             }
         };
         recoveredIdentitiesPanel.setOutputMarkupId(true);
         add(recoveredIdentitiesPanel);
+    }
 
-        initConfiguredItemsPanel();
+    private void initRecoveredIdentitiesPanel(ListItem<UserType> item) {
+        initLoginNamePanel(item);
+        initConfiguredItemsPanel(item);
     }
 
     private void initModels() {
@@ -137,29 +131,26 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private List<ItemPathType> loadConfiguredItemPathList() {
-        List<ItemPathType> configuredItems = new ArrayList<>();
+        var archetypeOid = getMidpointAuthentication().getArchetypeOid();
+        return runPrivileged((Producer<List<ItemPathType>>) () -> {
+            List<ItemPathType> configuredItems = new ArrayList<>();
 
-        if (!isSingleRecoveredIdentity()) {
+            var task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
+            var result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
+            try {
+                var securityPolicy = getModelInteractionService().getSecurityPolicy(new UserType().asPrismObject(), archetypeOid,
+                        task, result);
+                var identityRecoveryConfig = securityPolicy.getIdentityRecovery();
+                configuredItems = identityRecoveryConfig.getItemToDisplay();
+            } catch (Exception e) {
+                LOGGER.debug("Unable to load the configured items list for identity recovery page, ", e);
+            }
             return configuredItems;
-        }
-
-        var user = getRecoveredIdentities().get(0);
-        var task = createSimpleTask(OPERATION_GET_SECURITY_POLICY);
-        var result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
-        try {
-            var securityPolicy = getModelInteractionService().getSecurityPolicy(user.asPrismObject(),
-                    getMidpointAuthentication().getArchetypeOid(), task, result);
-            var identityRecoveryConfig = securityPolicy.getIdentityRecovery();
-            configuredItems = identityRecoveryConfig.getItemToDisplay();
-        } catch (Exception e) {
-            LOGGER.debug("Unable to load the configured items list for login recovery page, ", e);
-        }
-        return configuredItems;
+        });
     }
 
     private boolean configuredItemsExist() {
-        return false; //todo fix
-//        return configuredItemsModel != null && CollectionUtils.isNotEmpty(configuredItemsModel.getObject());
+        return configuredItemsModel != null && CollectionUtils.isNotEmpty(configuredItemsModel.getObject());
     }
 
     private AbstractResource getImageResource(UserType user) {
@@ -181,40 +172,56 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         return new ByteArrayResource("image/jpeg", photo);
     }
 
-    private IModel<String> getAuthorizedUserLoginNameModel(UserType user) {
+    private void initLoginNamePanel(ListItem<UserType> item) {
+        WebMarkupContainer loginNamePanel = new WebMarkupContainer(ID_LOGIN_NAME_PANEL);
+        loginNamePanel.setOutputMarkupId(true);
+        loginNamePanel.add(new VisibleBehaviour(() -> recoveredIdentitiesExist() && !configuredItemsExist()));
+        item.add(loginNamePanel);
+
+        NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource(item.getModelObject()));
+        loginNamePanel.add(img);
+
+        Label label = new Label(ID_LOGIN_NAME, getUserLoginNameModel(item.getModelObject()));
+        loginNamePanel.add(label);
+    }
+
+    private IModel<String> getUserLoginNameModel(UserType user) {
         return Model.of(LocalizationUtil.translatePolyString(user.getName()));
     }
 
-    private void initConfiguredItemsPanel() {
+    private void initConfiguredItemsPanel(ListItem<UserType> userItem) {
+        var user = userItem.getModelObject();
         ListView<ItemPathType> configuredItemsPanel = new ListView<>(ID_CONFIGURED_ITEMS_PANEL, configuredItemsModel) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<ItemPathType> item) {
-                Label itemName = new Label(ID_ITEM_NAME, resolveItemName(item.getModelObject()));
-                item.add(itemName);
+            protected void populateItem(ListItem<ItemPathType> attributeItem) {
+                Label itemName = new Label(ID_ITEM_NAME, resolveItemName(user, attributeItem.getModelObject()));
+                itemName.setOutputMarkupId(true);
+                attributeItem.add(itemName);
 
-                Label itemValue = new Label(ID_ITEM_VALUE, resolveItemValue(item.getModelObject()));
-                item.add(itemValue);
+                Label itemValue = new Label(ID_ITEM_VALUE, resolveItemValue(user, attributeItem.getModelObject()));
+                itemValue.setOutputMarkupId(true);
+                attributeItem.add(itemValue);
             }
         };
         configuredItemsPanel.setOutputMarkupId(true);
         configuredItemsPanel.add(new VisibleBehaviour(() -> recoveredIdentitiesExist() && configuredItemsExist()));
-        add(configuredItemsPanel);
+        userItem.add(configuredItemsPanel);
     }
 
-    private IModel<String> resolveItemName(ItemPathType itemPath) {
+    private IModel<String> resolveItemName(UserType user, ItemPathType itemPath) {
         return () -> {
-            ItemDefinition<?> def = new UserType().asPrismObject().getDefinition().findItemDefinition(itemPath.getItemPath());
+            ItemDefinition<?> def = user.asPrismObject().getDefinition().findItemDefinition(itemPath.getItemPath());
             return WebComponentUtil.getItemDefinitionDisplayNameOrName(def);
         };
     }
 
-    private IModel<String> resolveItemValue(ItemPathType itemPath) {
+    private IModel<String> resolveItemValue(UserType user, ItemPathType itemPath) {
         return () -> {
-            FocusType focus = getPrincipalFocus();
-            var value = focus.asPrismObject().findItem(itemPath.getItemPath()).getRealValue();
+            var item = user.asPrismObject().findItem(itemPath.getItemPath());
+            var value = item != null ? item.getRealValue() : null;
             return value == null ? "" : value.toString();
         };
     }
