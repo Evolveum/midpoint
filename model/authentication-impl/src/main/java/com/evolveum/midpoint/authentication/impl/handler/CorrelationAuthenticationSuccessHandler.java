@@ -35,11 +35,11 @@ public class CorrelationAuthenticationSuccessHandler extends MidPointAuthenticat
         }
 
         ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-        if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal) {
-//            moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
-            super.onAuthenticationSuccess(request, response, authentication);
-            return;
-        }
+//        if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal) {
+////            moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
+//            super.onAuthenticationSuccess(request, response, authentication);
+//            return;
+//        }
 
 
         if (!(moduleAuthentication instanceof CorrelationModuleAuthenticationImpl correlationModuleAuthentication)) {

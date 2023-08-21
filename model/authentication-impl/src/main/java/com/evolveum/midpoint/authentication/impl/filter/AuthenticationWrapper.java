@@ -285,7 +285,8 @@ class AuthenticationWrapper {
             HttpServletRequest httpRequest) {
         List<AuthModule<?>> authModules;
         boolean processingDifferentSequence = processingDifferentAuthenticationSequence(mpAuthentication, this.sequence);
-        if (processingDifferentSequence || sequence.getModule().size() != mpAuthentication.getSequence().getModule().size()) {
+        if (processingDifferentSequence || sequence.getModule().size() != mpAuthentication.getSequence().getModule().size()
+                || StringUtils.isNotEmpty(mpAuthentication.getArchetypeOid())) {
             authenticationManager.getProviders().clear();
             //noinspection unchecked
             authModules = new AuthenticationSequenceModuleCreator<>(
@@ -300,6 +301,7 @@ class AuthenticationWrapper {
             if (processingDifferentSequence) {
                 clearAuthentication(httpRequest);
             }
+            updateMidpointAuthenticationModules(authModules, mpAuthentication);
         } else {
             authModules = mpAuthentication.getAuthModules();
         }
@@ -311,6 +313,13 @@ class AuthenticationWrapper {
         return mpAuthentication == null || !sequenceIdentifiersMatch(sequence, mpAuthentication.getSequence());
     }
 
+    private void updateMidpointAuthenticationModules(List<AuthModule<?>> authModules, MidpointAuthentication mpAuthentication) {
+        if (mpAuthentication == null) {
+            return;
+        }
+        mpAuthentication.getAuthModules().clear();
+        mpAuthentication.setAuthModules(authModules);
+    }
 
     private void clearAuthentication(HttpServletRequest httpRequest) {
         Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
