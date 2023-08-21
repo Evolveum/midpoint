@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -32,12 +33,12 @@ public class ExpressionProfileCompiler {
     public @NotNull ExpressionProfiles compile(@NotNull SystemConfigurationExpressionsType definition)
             throws SchemaException, ConfigurationException {
         var permissionProfiles = compilePermissionProfiles(definition.getPermissionProfile());
-        var scriptingProfiles = compileScriptingProfiles(definition.getScriptingProfile());
+        var bulkActionsProfiles = compileBulkActionsProfiles(definition.getBulkActionsProfile());
         var librariesProfiles = compileLibrariesProfiles(definition.getFunctionLibrariesProfile());
         return compileExpressionProfiles(
                 definition.getExpressionProfile(),
                 permissionProfiles,
-                scriptingProfiles,
+                bulkActionsProfiles,
                 librariesProfiles);
     }
 
@@ -59,18 +60,18 @@ public class ExpressionProfileCompiler {
                 bean.getClazz());
     }
 
-    private List<ScriptingProfile> compileScriptingProfiles(
-            List<ScriptingProfileType> beans) throws ConfigurationException {
-        List<ScriptingProfile> scriptingProfiles = new ArrayList<>();
-        for (ScriptingProfileType bean : beans) {
-            scriptingProfiles.add(compileScriptingProfile(bean));
+    private List<BulkActionsProfile> compileBulkActionsProfiles(
+            List<BulkActionsProfileType> beans) throws ConfigurationException {
+        List<BulkActionsProfile> bulkActionsProfiles = new ArrayList<>();
+        for (BulkActionsProfileType bean : beans) {
+            bulkActionsProfiles.add(compileScriptingProfile(bean));
         }
-        return scriptingProfiles;
+        return bulkActionsProfiles;
     }
 
-    private ScriptingProfile compileScriptingProfile(ScriptingProfileType bean)
+    private BulkActionsProfile compileScriptingProfile(BulkActionsProfileType bean)
             throws ConfigurationException {
-        return ScriptingProfile.of(bean);
+        return BulkActionsProfile.of(bean);
     }
 
     private List<FunctionLibrariesProfile> compileLibrariesProfiles(
@@ -86,13 +87,13 @@ public class ExpressionProfileCompiler {
     private ExpressionProfiles compileExpressionProfiles(
             List<ExpressionProfileType> expressionProfileBeans,
             List<ExpressionPermissionProfile> permissionProfiles,
-            List<ScriptingProfile> scriptingProfiles,
+            List<BulkActionsProfile> bulkActionsProfiles,
             List<FunctionLibrariesProfile> librariesProfiles)
             throws ConfigurationException {
         List<ExpressionProfile> expressionProfilesList = new ArrayList<>();
         for (ExpressionProfileType expressionProfileBean : expressionProfileBeans) {
             expressionProfilesList.add(
-                    compileExpressionProfile(expressionProfileBean, permissionProfiles, scriptingProfiles, librariesProfiles));
+                    compileExpressionProfile(expressionProfileBean, permissionProfiles, bulkActionsProfiles, librariesProfiles));
         }
         return new ExpressionProfiles(expressionProfilesList);
     }
@@ -100,7 +101,7 @@ public class ExpressionProfileCompiler {
     private @NotNull ExpressionProfile compileExpressionProfile(
             ExpressionProfileType expressionProfileBean,
             List<ExpressionPermissionProfile> permissionProfiles,
-            List<ScriptingProfile> scriptingProfiles,
+            List<BulkActionsProfile> bulkActionsProfiles,
             List<FunctionLibrariesProfile> librariesProfiles)
             throws ConfigurationException {
         List<ExpressionEvaluatorProfile> compiledEvaluatorProfiles = new ArrayList<>();
@@ -115,16 +116,20 @@ public class ExpressionProfileCompiler {
                 configNonNull(
                         expressionProfileBean.getIdentifier(), "No identifier in profile: %s", expressionProfileBean),
                 evaluatorsProfile,
-                determineScriptingProfile(scriptingProfiles, expressionProfileBean.getScriptingProfile()),
-                determineLibrariesProfile(librariesProfiles, expressionProfileBean.getFunctionLibraryProfile()));
+                determineScriptingProfile(bulkActionsProfiles, expressionProfileBean.getBulkActionsProfile()),
+                determineLibrariesProfile(librariesProfiles, expressionProfileBean.getFunctionLibrariesProfile()),
+                AccessDecision.translate(
+                        Objects.requireNonNullElse(
+                                expressionProfileBean.getPrivilegeElevation(),
+                                AuthorizationDecisionType.ALLOW)));
     }
 
-    private static @NotNull ScriptingProfile determineScriptingProfile(
-            List<ScriptingProfile> scriptingProfiles, String profileId) throws ConfigurationException {
+    private static @NotNull BulkActionsProfile determineScriptingProfile(
+            List<BulkActionsProfile> bulkActionsProfiles, String profileId) throws ConfigurationException {
         if (profileId == null) {
-            return ScriptingProfile.full();
+            return BulkActionsProfile.full();
         } else {
-            var matching = scriptingProfiles.stream()
+            var matching = bulkActionsProfiles.stream()
                     .filter(p -> p.getIdentifier().equals(profileId))
                     .toList();
             return MiscUtil.extractSingletonRequired(

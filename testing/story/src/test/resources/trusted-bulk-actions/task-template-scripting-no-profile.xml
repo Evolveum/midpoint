@@ -17,9 +17,10 @@
                 <scriptExecutionRequest>
                     <s:execute>
                         <s:script>
-                            <code>
-                                com.evolveum.midpoint.testing.story.TestTrustedScripts.FLAG.set()
-                                log.info('executed')
+                            <code>import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
+
+                            TestTrustedBulkActions.FLAG.set()
+                            log.info('executed')
                             </code>
                         </s:script>
                     </s:execute>

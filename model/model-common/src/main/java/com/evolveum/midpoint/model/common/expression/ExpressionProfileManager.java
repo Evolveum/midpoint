@@ -139,10 +139,10 @@ public class ExpressionProfileManager {
     /**
      * Special version of {@link #determineExpressionProfile(ConfigurationItemOrigin, OperationResult)}
      * for scripting (bulk actions). It is not as permissive: some origins are banned, and the default for non-root users
-     * is the restricted profile.
+     * is the restricted profile (unless `privileged` is set to true - in order to provide backwards compatibility with 4.7).
      */
     public @NotNull ExpressionProfile determineScriptingExpressionProfile(
-            @NotNull ConfigurationItemOrigin origin, @NotNull Task task, @NotNull OperationResult result)
+            @NotNull ConfigurationItemOrigin origin, boolean privileged, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         @Nullable ExpressionProfile profile;
@@ -162,32 +162,32 @@ public class ExpressionProfileManager {
         if (profile != null) {
             return profile;
         }
-        if (securityEnforcer.isAuthorizedAll(task, result)) {
-            return getPrivilegedScriptingProfile(result);
+        if (privileged || securityEnforcer.isAuthorizedAll(task, result)) {
+            return getPrivilegedBulkActionsProfile(result);
         } else {
-            return getUnprivilegedScriptingProfile(result);
+            return getUnprivilegedBulkActionsProfile(result);
         }
     }
 
-    private @NotNull ExpressionProfile getPrivilegedScriptingProfile(@NotNull OperationResult result)
+    private @NotNull ExpressionProfile getPrivilegedBulkActionsProfile(@NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         var defaults = getDefaults(result);
-        var defaultScriptingProfileId = defaults != null ? defaults.getPrivilegedScripting() : null;
-        if (defaultScriptingProfileId != null) {
-            return systemObjectCache.getExpressionProfile(defaultScriptingProfileId, result);
+        var defaultProfileId = defaults != null ? defaults.getPrivilegedBulkActions() : null;
+        if (defaultProfileId != null) {
+            return systemObjectCache.getExpressionProfile(defaultProfileId, result);
         } else {
             return ExpressionProfile.full();
         }
     }
 
-    private @NotNull ExpressionProfile getUnprivilegedScriptingProfile(@NotNull OperationResult result)
+    private @NotNull ExpressionProfile getUnprivilegedBulkActionsProfile(@NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         var defaults = getDefaults(result);
-        var defaultScriptingProfileId = defaults != null ? defaults.getScripting() : null;
-        if (defaultScriptingProfileId != null) {
-            return systemObjectCache.getExpressionProfile(defaultScriptingProfileId, result);
+        var defaultProfileId = defaults != null ? defaults.getBulkActions() : null;
+        if (defaultProfileId != null) {
+            return systemObjectCache.getExpressionProfile(defaultProfileId, result);
         } else {
-            return ExpressionProfile.scriptingLegacyUnprivileged();
+            return ExpressionProfile.legacyUnprivilegedBulkActions();
         }
     }
 

@@ -15,13 +15,13 @@
         </expressionProfile>
         <expressionProfile>
             <identifier>little-trusted</identifier>
-            <documentation>Trusts but only so that a "simpleTrustedFunction" is allowed to be run.</documentation>
+            <documentation>Trusts but only so that a "simpleTrustedFunction" and its cousin are allowed to be run.</documentation>
             <decision>deny</decision> <!-- no expressions except for specified ones -->
             <evaluator>
                 <type>function</type>
                 <decision>allow</decision>
             </evaluator>
-            <functionLibraryProfile>little-trusted</functionLibraryProfile>
+            <functionLibrariesProfile>little-trusted</functionLibrariesProfile>
         </expressionProfile>
         <functionLibrariesProfile>
             <identifier>little-trusted</identifier>
@@ -31,6 +31,10 @@
                 <decision>deny</decision>
                 <function>
                     <name>simpleTrustedFunction</name>
+                    <decision>allow</decision>
+                </function>
+                <function>
+                    <name>simpleTrustedFunctionRunPrivileged</name>
                     <decision>allow</decision>
                 </function>
             </library>

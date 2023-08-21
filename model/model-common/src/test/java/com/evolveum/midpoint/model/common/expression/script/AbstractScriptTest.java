@@ -341,8 +341,9 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 new ExpressionEvaluatorsProfile(
                         AccessDecision.DENY,
                         List.of(evaluatorProfile)),
-                ScriptingProfile.full(),
-                FunctionLibrariesProfile.full());
+                BulkActionsProfile.full(),
+                FunctionLibrariesProfile.full(),
+                AccessDecision.ALLOW);
     }
 
     protected ScriptLanguageExpressionProfile createScriptExpressionProfile(@NotNull String language) {

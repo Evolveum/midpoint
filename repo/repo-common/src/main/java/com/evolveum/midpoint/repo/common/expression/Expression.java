@@ -197,6 +197,9 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
                         }
                     };
                     boolean runPrivileged = Boolean.TRUE.equals(privileges.isRunPrivileged());
+                    if (runPrivileged || runAsFocus != null) {
+                        checkPrivilegeElevationAllowed(context.getExpressionProfile());
+                    }
                     outputTriple = securityContextManager.runAs(producer, runAsFocus, runPrivileged, result);
                 } catch (TunnelException te) {
                     if (te.getCause() instanceof ObjectNotFoundException objectNotFoundException) {
@@ -213,6 +216,17 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
         } catch (Throwable e) {
             traceFailure(context, processedVariables, e);
             throw e;
+        }
+    }
+
+    private void checkPrivilegeElevationAllowed(@Nullable ExpressionProfile expressionProfile) throws SecurityViolationException {
+        var decision = expressionProfile != null ? expressionProfile.getPrivilegeElevation() : AccessDecision.ALLOW;
+        if (decision != AccessDecision.ALLOW) {
+            throw new SecurityViolationException(
+                    "Access to privilege elevation feature %s (applied expression profile '%s')"
+                            .formatted(
+                                    decision == AccessDecision.DENY ? "denied" : "not allowed",
+                                    expressionProfile.getIdentifier()));
         }
     }
 

@@ -35,14 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
-    /**
-     * Are we pre-authorized for dangerous operations like Groovy script execution? See
-     * {@link ScriptingExpressionEvaluator#evaluateExpressionPrivileged(ExecuteScriptConfigItem,
-     * VariablesMap, Task, OperationResult)}.
-     *
-     * TEMPORARY. To be replaced.
-     */
-    private final boolean privileged;
     private final ScriptingExpressionEvaluationOptionsType options;
     private final Task task;
     private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -64,12 +56,11 @@ public class ExecutionContext {
     public ExecutionContext(
             ScriptingExpressionEvaluationOptionsType options, Task task,
             ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            boolean privileged, boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
+            boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
             @NotNull ExpressionProfile expressionProfile) {
         this.options = options;
         this.task = task;
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
-        this.privileged = privileged;
         this.initialVariables = initialVariables;
         this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
         this.expressionProfile = expressionProfile;
@@ -162,10 +153,6 @@ public class ExecutionContext {
 
     public PrismContext getPrismContext() {
         return scriptingExpressionEvaluator.getPrismContext();
-    }
-
-    public boolean isPrivileged() {
-        return privileged;
     }
 
     public QueryConverter getQueryConverter() {
