@@ -50,8 +50,7 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
             AuthenticationChannel channel, Class focusType) throws AuthenticationException {
         Authentication token;
-        if (authentication instanceof BearerTokenAuthenticationToken) {
-            BearerTokenAuthenticationToken oidcAuthenticationToken = (BearerTokenAuthenticationToken) authentication;
+        if (authentication instanceof BearerTokenAuthenticationToken oidcAuthenticationToken) {
             Authentication authenticationToken;
             try {
                 authenticationToken = oidcProvider.authenticate(oidcAuthenticationToken);
@@ -68,7 +67,7 @@ public class OidcResourceServerProvider extends RemoteModuleProvider {
                         LOGGER.debug("Username from jwt token don't contains value");
                         throw new AuthenticationServiceException("web.security.provider.invalid");
                     }
-                token = getPreAuthenticationToken(authentication, username, focusType, requireAssignment, channel);
+                token = getPreAuthenticationToken(username, focusType, requireAssignment, channel);
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);
                 LOGGER.debug("Authentication with oidc module failed: {}", e.getMessage());

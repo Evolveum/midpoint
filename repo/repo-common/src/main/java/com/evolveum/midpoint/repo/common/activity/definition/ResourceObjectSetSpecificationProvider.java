@@ -20,16 +20,16 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 /**
  * Work definition that can provide object set specification.
  *
- * It has to be aware of an activity type name because of the default implementation of {@link #getAffectedObjects()}.
+ * It has to be aware of an activity type name because of the default implementation of {@link #getAffectedObjectSetInformation()}.
  */
 public interface ResourceObjectSetSpecificationProvider
-        extends ActivityTypeNameAware, AffectedObjectsProvider, FailedObjectsSelectorProvider {
+        extends AffectedObjectSetProvider, FailedObjectsSelectorProvider {
 
     ResourceObjectSetType getResourceObjectSetSpecification();
 
     /** Provided here to avoid code duplication in individual work definition implementations. */
     @Override
-    default @NotNull TaskAffectedObjectsType getAffectedObjects() {
+    default @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
         ResourceObjectSetType set = getResourceObjectSetSpecification();
 
         // Currently, all object classes are in ri: namespace. (Otherwise we'd have a big problem,
@@ -37,16 +37,12 @@ public interface ResourceObjectSetSpecificationProvider
         QName rawClassName = set.getObjectclass();
         QName qualifiedClassName = rawClassName != null ? QNameUtil.qualifyIfNeeded(rawClassName, NS_RI) : null;
 
-        return new TaskAffectedObjectsType()
-                .activity(new ActivityAffectedObjectsType()
-                        .activityType(getActivityTypeName())
-                        .resourceObjects(new BasicResourceObjectSetType()
-                                .resourceRef(CloneUtil.cloneCloneable(set.getResourceRef())) // Consider keeping only the OID
-                                .kind(set.getKind())
-                                .intent(set.getIntent())
-                                .objectclass(qualifiedClassName)
-                        )
-                );
+        return AffectedObjectsInformation.ObjectSet.resource(
+                new BasicResourceObjectSetType()
+                        .resourceRef(CloneUtil.cloneCloneable(set.getResourceRef())) // Consider keeping only the OID
+                        .kind(set.getKind())
+                        .intent(set.getIntent())
+                        .objectclass(qualifiedClassName));
     }
 
     @Override

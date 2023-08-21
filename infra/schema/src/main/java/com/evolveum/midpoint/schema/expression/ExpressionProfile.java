@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema.expression;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
@@ -26,7 +27,8 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             SchemaConstants.FULL_EXPRESSION_PROFILE_ID,
             ExpressionEvaluatorsProfile.full(),
             BulkActionsProfile.full(),
-            FunctionLibrariesProfile.full());
+            FunctionLibrariesProfile.full(),
+            AccessDecision.ALLOW);
 
     /**
      * Profile that mimics the legacy non-root behavior for bulk actions:
@@ -37,7 +39,8 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             SchemaConstants.LEGACY_UNPRIVILEGED_BULK_ACTIONS_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
             BulkActionsProfile.full(), // actions without scripts/expressions are safe
-            FunctionLibrariesProfile.none());
+            FunctionLibrariesProfile.none(),
+            AccessDecision.DENY); // actually does not matter
 
     /**
      * Profile that forbids everything.
@@ -46,7 +49,8 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             SchemaConstants.NONE_EXPRESSION_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
             BulkActionsProfile.none(),
-            FunctionLibrariesProfile.none());
+            FunctionLibrariesProfile.none(),
+            AccessDecision.DENY); // actually does not matter
 
     /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.
@@ -63,15 +67,20 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
     /** Profile for using function libraries. */
     @NotNull private final FunctionLibrariesProfile librariesProfile;
 
+    /** Are privilege elevation features (e.g. `runAsRef`) allowed? */
+    @NotNull private final AccessDecision privilegeElevation;
+
     public ExpressionProfile(
             @NotNull String identifier,
             @NotNull ExpressionEvaluatorsProfile evaluatorsProfile,
             @NotNull BulkActionsProfile bulkActionsProfile,
-            @NotNull FunctionLibrariesProfile librariesProfile) {
+            @NotNull FunctionLibrariesProfile librariesProfile,
+            @NotNull AccessDecision privilegeElevation) {
         this.identifier = identifier;
         this.evaluatorsProfile = evaluatorsProfile;
         this.bulkActionsProfile = bulkActionsProfile;
         this.librariesProfile = librariesProfile;
+        this.privilegeElevation = privilegeElevation;
     }
 
     public static @NotNull ExpressionProfile full() {
@@ -106,5 +115,9 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
 
     public @NotNull ExpressionEvaluatorsProfile getEvaluatorsProfile() {
         return evaluatorsProfile;
+    }
+
+    public @NotNull AccessDecision getPrivilegeElevation() {
+        return privilegeElevation;
     }
 }

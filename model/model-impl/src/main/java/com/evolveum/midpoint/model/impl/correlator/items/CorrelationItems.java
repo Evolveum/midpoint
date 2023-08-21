@@ -76,6 +76,7 @@ class CorrelationItems implements DebugDumpable {
     ObjectQuery createIdentityQuery(
             @NotNull Class<? extends ObjectType> focusType,
             @Nullable String archetypeOid,
+            @NotNull Set<String> candidateOids,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException {
@@ -98,12 +99,21 @@ class CorrelationItems implements DebugDumpable {
         assert currentEnd != null;
 
         // Finally, we add a condition for archetype (if needed)
-        S_FilterExit end =
+        S_FilterExit afterArchetype =
                 archetypeOid != null ?
                         currentEnd.and().item(FocusType.F_ARCHETYPE_REF).ref(archetypeOid) :
                         currentEnd;
 
+        S_FilterExit end = appendCandidateFilter(afterArchetype, candidateOids);
+
         return end.build();
+    }
+
+    private S_FilterExit appendCandidateFilter(S_FilterExit end, Set<String> candidateOids) {
+        if (candidateOids.isEmpty()) {
+            return end;
+        }
+        return end.and().id(candidateOids.toArray(String[]::new));
     }
 
     @Override

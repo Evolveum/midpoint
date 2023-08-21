@@ -17,9 +17,9 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.*;
 import org.springframework.security.saml2.provider.service.web.authentication.OpenSaml4AuthenticationRequestResolver;
-import org.springframework.security.saml2.provider.service.web.authentication.Saml2AuthenticationRequestResolver;
 import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
@@ -64,7 +64,7 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
 
     public void init(B http) throws Exception {
         Saml2AuthenticationTokenConverter authenticationConverter = new Saml2AuthenticationTokenConverter(
-                (RelyingPartyRegistrationResolver) new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository));
+                new DefaultRelyingPartyRegistrationResolver(this.relyingPartyRegistrationRepository));
         this.saml2WebSsoAuthenticationFilter = new MidpointSaml2WebSsoAuthenticationFilter(authenticationConverter, this.loginProcessingUrl, auditProvider);
         this.setAuthenticationFilter(this.saml2WebSsoAuthenticationFilter);
         super.loginProcessingUrl(this.loginProcessingUrl);
@@ -82,12 +82,17 @@ public class MidpointSaml2LoginConfigurer<B extends HttpSecurityBuilder<B>> exte
     }
 
     public void configure(B http) throws Exception {
+
         OpenSaml4AuthenticationRequestResolver contextResolver = new OpenSaml4AuthenticationRequestResolver(
                 new DefaultRelyingPartyRegistrationResolver(
                         MidpointSaml2LoginConfigurer.this.relyingPartyRegistrationRepository));
         contextResolver.setRequestMatcher(new AntPathRequestMatcher(FILTER_PROCESSING_URL));
-        http.addFilter(new MidpointSaml2WebSsoAuthenticationRequestFilter(contextResolver));
+
+        http.addFilter(new MidpointSaml2WebSsoAuthenticationRequestFilter(
+                contextResolver, http.getSharedObject(SecurityContextRepository.class)));
+
         super.configure(http);
+
         if (this.authenticationManager != null) {
             this.saml2WebSsoAuthenticationFilter.setAuthenticationManager(this.authenticationManager);
         }

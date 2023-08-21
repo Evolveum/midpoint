@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -89,6 +90,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
         CorrelatorContext<?> correlatorContext =
                 CorrelatorContextCreator.createRootContext(
                         getCorrelationDefinitionBean(),
+                        new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
                         getObjectTemplate(),
                         ctx.getSystemConfiguration());
         PathSet paths = correlatorContext.getConfiguration().getCorrelationItemPaths();

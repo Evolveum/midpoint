@@ -456,6 +456,11 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_RESET_PASSWORD_QNAME = new QName(NS_CHANNEL, "resetPassword");
     public static final String CHANNEL_RESET_PASSWORD_URI = qNameToUri(CHANNEL_RESET_PASSWORD_QNAME);
 
+
+    public static final QName CHANNEL_IDENTITY_RECOVERY_QNAME = new QName(NS_CHANNEL, "identityRecovery");
+    public static final String CHANNEL_IDENTITY_RECOVERY_URI = qNameToUri(CHANNEL_IDENTITY_RECOVERY_QNAME);
+
+
     // Catch-all channel for all user operations in user interface.
     public static final String CHANNEL_USER_LOCAL = "user";
     public static final QName CHANNEL_USER_QNAME = new QName(NS_CHANNEL, "user");
@@ -464,7 +469,6 @@ public abstract class SchemaConstants {
     //GUI constants which are also used in the notifiers
     public static final String WORK_ITEM_URL_PREFIX = "/admin/workItem?pathParameter=";
     public static final String CASE_URL_PREFIX = "/admin/caseNew/";
-    public static final String REGISTRATION_CONFIRMATION_PREFIX = "/confirm/registration";  //todo remove in the future, seems to be an old implementation for self registration
     public static final String REGISTRATION_PREFIX = "/registration";
     public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
     public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";

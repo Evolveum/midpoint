@@ -205,11 +205,59 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="use" type="tns:CorrelationUseType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Determines when the correlation should be used. If not specified, synchronization is assumed.
+
+                                (TODO: maybe should be added to abstract correlator?)
+
+                                Note: For synchronization, only one correlator makes sense, but for username recovery, many
+                                correlators might be defined.
+
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="compositeCorrelator" type="tns:CompositeCorrelatorType"/>
+
+    <xsd:simpleType name="CorrelationUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes situations in which the correlator should be activated. E.g. only for synchronization. If not specified,
+                synchronization is assumed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="synchronization">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Correlator is used only during synchronizations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="identityRecovery">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Correlator is used for identity recovery functionality.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IDENTITY_RECOVERY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+           <!-- TODO later add option for progressive profile,...-->
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="AbstractCorrelatorType">
         <xsd:annotation>
@@ -1499,10 +1547,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0">
+            <xsd:element name="correlators" type="tns:CompositeCorrelatorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Correlator(s) for this object template.
+                        Correlator(s) for this object template. Multiple correlators might exist. It is therefore important
+                        to properly set "use" attribute to indicate which correlator should be used for which operation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

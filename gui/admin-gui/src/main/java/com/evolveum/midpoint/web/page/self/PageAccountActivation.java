@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,12 +30,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -80,7 +80,7 @@ public class PageAccountActivation extends PageBase {
     private boolean activated = false;
 
     @SpringBean(name = "passwordAuthenticationEvaluator")
-    private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
+    private AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> authenticationEvaluator;
 
     public PageAccountActivation(PageParameters params) {
 

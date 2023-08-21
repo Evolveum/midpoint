@@ -31,26 +31,15 @@ import java.io.Serializable;
 
 public class OidcClientModuleAuthenticationImpl extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
 
-    private InMemoryClientRegistrationRepository clientsRepository;
-
     public OidcClientModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.OIDC, sequenceModule);
         setType(ModuleType.REMOTE);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
     }
 
-    public InMemoryClientRegistrationRepository getClientsRepository() {
-        return clientsRepository;
-    }
-
-    public void setClientsRepository(InMemoryClientRegistrationRepository clientsRepository) {
-        this.clientsRepository = clientsRepository;
-    }
-
     @Override
     public ModuleAuthenticationImpl clone() {
         OidcClientModuleAuthenticationImpl module = new OidcClientModuleAuthenticationImpl(this.getSequenceModule());
-        module.setClientsRepository(this.getClientsRepository());
         module.setProviders(this.getProviders());
         Authentication actualAuth = SecurityContextHolder.getContext().getAuthentication();
         Authentication newAuthentication = this.getAuthentication();

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
@@ -13,9 +14,14 @@ import com.evolveum.midpoint.authentication.impl.filter.HttpBasicAuthenticationF
 import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpBasicAuthenticationModuleType;
+
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -29,22 +35,28 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpBasicModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class HttpBasicModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, HttpBasicAuthenticationModuleType> {
 
-    @Autowired
-    private ModelService model;
+    @Autowired private ModelService model;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
+    @Autowired private TaskManager taskManager;
 
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
+    public HttpBasicModuleWebSecurityConfigurer(HttpBasicAuthenticationModuleType module,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(module, sequenceSuffix, authenticationChannel, postProcessor, request, provider);
+    }
 
-    @Autowired
-    private SecurityContextManager securityContextManager;
 
-    @Autowired
-    private TaskManager taskManager;
-
-    public HttpBasicModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
+    @Override
+    protected ModuleWebSecurityConfigurationImpl buildConfiguration(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        return configuration;
     }
 
     @Override

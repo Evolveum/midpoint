@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.impl.provider.MidPointAbstractAuthenticationProvider;
+import com.evolveum.midpoint.authentication.impl.provider.AbstractAuthenticationProvider;
 
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -33,13 +33,13 @@ public class MidpointProviderManager implements AuthenticationManager {
 
     public Authentication authenticate(Authentication authentication)
             throws AuthenticationException {
-        Class<? extends Authentication> toTest = authentication.getClass();
+
         Authentication result = null;
         boolean debug = LOGGER.isDebugEnabled();
 
         for (AuthenticationProvider provider : getProviders()) {
-            if (provider instanceof MidPointAbstractAuthenticationProvider) {
-                if (! ((MidPointAbstractAuthenticationProvider)provider).supports(toTest, authentication)) {
+            if (provider instanceof AbstractAuthenticationProvider) {
+                if (! ((AbstractAuthenticationProvider)provider).supports(authentication)) {
                     continue;
                 }
 
@@ -63,7 +63,7 @@ public class MidpointProviderManager implements AuthenticationManager {
         if (result != null) {
             return result;
         }
-        throw new ProviderNotFoundException("No AuthenticationProvider found for " + toTest.getName());
+        throw new ProviderNotFoundException("No AuthenticationProvider found for " + authentication.getClass().getName());
     }
 
     private void copyDetails(Authentication source, Authentication dest) {

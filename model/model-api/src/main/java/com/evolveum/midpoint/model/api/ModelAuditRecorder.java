@@ -12,15 +12,14 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public interface ModelAuditRecorder {
 
-    void auditLoginSuccess(FocusType focus, ConnectionEnvironment connEnv);
-
-    void auditLoginSuccess(NodeType focus, ConnectionEnvironment connEnv);
+    void auditLoginSuccess(ObjectType object, ConnectionEnvironment connEnv);
 
     void auditLoginFailure(String username, FocusType focus, ConnectionEnvironment connEnv, String message);
 

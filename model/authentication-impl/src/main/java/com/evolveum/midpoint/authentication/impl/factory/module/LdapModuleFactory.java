@@ -6,49 +6,44 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
-import java.util.Map;
 import jakarta.servlet.ServletRequest;
-
-import com.evolveum.midpoint.authentication.impl.ldap.MidpointPrincipalContextMapper;
-import com.evolveum.midpoint.authentication.impl.provider.MidPointLdapAuthenticationProvider;
-import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
-import com.evolveum.midpoint.authentication.api.AuthModule;
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configurer.LdapWebSecurityConfigurer;
-import com.evolveum.midpoint.authentication.impl.module.authentication.LdapModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.configuration.LdapModuleWebSecurityConfiguration;
-
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.ldap.MidpointPrincipalContextMapper;
+import com.evolveum.midpoint.authentication.impl.module.authentication.LdapModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.configuration.LdapModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configurer.LdapWebSecurityConfigurer;
+import com.evolveum.midpoint.authentication.impl.provider.MidPointLdapAuthenticationProvider;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LdapAuthenticationModuleType;
 
 /**
  * @author skublik
  */
 @Component
-public class LdapModuleFactory extends AbstractModuleFactory {
+public class LdapModuleFactory extends AbstractModuleFactory<
+        LdapModuleWebSecurityConfiguration,
+        LdapWebSecurityConfigurer,
+        LdapAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractCredentialModuleFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LdapModuleFactory.class);
 
-    @Autowired
-    private Protector protector;
+    @Autowired private Protector protector;
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -56,30 +51,24 @@ public class LdapModuleFactory extends AbstractModuleFactory {
     }
 
     @Override
-    public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String sequenceSuffix,
-            ServletRequest request, Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel, AuthenticationSequenceModuleType sequenceModule) throws Exception {
+    protected LdapWebSecurityConfigurer createModuleConfigurer(LdapAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new LdapWebSecurityConfigurer(moduleType,
+                sequenceSuffix,
+                authenticationChannel,
+                objectPostProcessor,
+                request,
+                getProvider(moduleType));
+    }
 
-        if (!(moduleType instanceof LdapAuthenticationModuleType)) {
-            LOGGER.error("This factory support only LdapAuthenticationModuleType, but modelType is " + moduleType);
-            return null;
+    @Override
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType, LdapModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        LdapModuleAuthentication moduleAuthentication = new LdapModuleAuthentication(sequenceModule);
+        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
+        if (moduleType.getSearch() != null) {
+            moduleAuthentication.setNamingAttribute(moduleType.getSearch().getNamingAttr());
         }
-
-        isSupportedChannel(authenticationChannel);
-
-        LdapModuleWebSecurityConfiguration configuration = LdapModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
-        configuration.setSequenceSuffix(sequenceSuffix);
-
-        configuration.addAuthenticationProvider(getProvider((LdapAuthenticationModuleType)moduleType));
-
-        LdapWebSecurityConfigurer<LdapModuleWebSecurityConfiguration> module = createModule(configuration);
-        HttpSecurity http = getNewHttpSecurity(module);
-        setSharedObjects(http, sharedObjects);
-
-        ModuleAuthenticationImpl moduleAuthentication = createEmptyModuleAuthentication(
-                (LdapAuthenticationModuleType) moduleType, configuration, sequenceModule);
-        SecurityFilterChain filter = http.build();
-        return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        return moduleAuthentication;
     }
 
     private AuthenticationProvider getProvider(LdapAuthenticationModuleType moduleType){
@@ -115,18 +104,4 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         return provider;
     }
 
-    private LdapWebSecurityConfigurer<LdapModuleWebSecurityConfiguration> createModule(LdapModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfigurer<>(configuration));
-    }
-
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType,
-            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
-        LdapModuleAuthentication moduleAuthentication = new LdapModuleAuthentication(sequenceModule);
-        moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        if (moduleType.getSearch() != null) {
-            moduleAuthentication.setNamingAttribute(moduleType.getSearch().getNamingAttr());
-        }
-        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        return moduleAuthentication;
-    }
 }

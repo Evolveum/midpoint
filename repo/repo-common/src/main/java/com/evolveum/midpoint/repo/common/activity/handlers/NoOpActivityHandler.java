@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.handlers;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import com.google.common.base.MoreObjects;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -169,8 +171,8 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         }
 
         @Override
-        public TaskAffectedObjectsType getAffectedObjects() {
-            return null;
+        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+            return AffectedObjectsInformation.ObjectSet.notSupported();
         }
 
         @Override

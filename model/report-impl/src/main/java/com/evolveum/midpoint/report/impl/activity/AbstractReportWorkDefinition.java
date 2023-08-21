@@ -9,8 +9,9 @@ package com.evolveum.midpoint.report.impl.activity;
 
 import static com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractReportWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
 
 /**
  * Work definition for report export and imports.
@@ -45,9 +45,9 @@ public class AbstractReportWorkDefinition extends AbstractWorkDefinition {
     }
 
     @Override
-    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
         // Not supported for reports yet; it cannot be determined from the work definition alone, without analyzing the report.
-        return null;
+        return AffectedObjectsInformation.ObjectSet.notSupported();
     }
 
     @Override

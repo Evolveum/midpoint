@@ -71,17 +71,29 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createRoot(Task rootTask)
             throws SchemaException, ConfigurationException {
         ActivityDefinitionType definitionBean = rootTask.getRootActivityDefinitionOrClone();
+        if (definitionBean == null) {
+            throw new ConfigurationException("No activity definition in " + rootTask);
+        }
 
         ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObjectApproximate(
                 rootTask.getRawTaskObjectClonedIfNecessary().asObjectable(), TaskType.F_ACTIVITY);
 
+        ActivityDefinition<WD> definition = createActivityDefinition(definitionBean, origin);
+        if (definition == null) {
+            throw new ConfigurationException(
+                    "Root work definition cannot be obtained for %s: no supported activity definition is provided.".formatted(
+                            rootTask));
+        }
+        return definition;
+    }
+
+    public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createActivityDefinition(
+            @NotNull ActivityDefinitionType definitionBean, @NotNull ConfigurationItemOrigin origin)
+            throws SchemaException, ConfigurationException {
         WD rootWorkDefinition = WorkDefinition.fromBean(definitionBean, origin);
         if (rootWorkDefinition == null) {
-            throw new SchemaException(
-                    "Root work definition cannot be obtained for %s: no activity definition is provided.".formatted(rootTask));
+            return null;
         }
-        assert definitionBean != null;
-
         return createActivityDefinition(rootWorkDefinition, definitionBean);
     }
 
@@ -102,18 +114,17 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /**
      * Creates a definition for a child of a custom composite activity.
      *
-     * It is taken from the "activity" bean, combined with (compatible) information from "defaultWorkDefinition"
-     * beans all the way up.
+     * Currently, it is taken solely from the child activity definition bean.
      */
-    public static ActivityDefinition<?> createChild(
-            @NotNull ActivityDefinitionType bean, @NotNull ConfigurationItemOrigin origin) {
+    public static @NotNull ActivityDefinition<?> createChild(
+            @NotNull ActivityDefinitionType childDefBean, @NotNull ConfigurationItemOrigin childDefOrigin) {
         try {
-            AbstractWorkDefinition definition = WorkDefinition.fromBean(bean, origin);
+            AbstractWorkDefinition definition = WorkDefinition.fromBean(childDefBean, childDefOrigin);
             // TODO enhance with defaultWorkDefinition
             if (definition == null) {
-                throw new SchemaException("Child work definition is not present for " + bean);
+                throw new ConfigurationException("Child work definition is not present for " + childDefBean);
             }
-            return createActivityDefinition(definition, bean);
+            return createActivityDefinition(definition, childDefBean);
         } catch (SchemaException | ConfigurationException e) {
             throw new IllegalArgumentException("Couldn't create activity definition from a bean: " + e.getMessage(), e);
         }
@@ -226,6 +237,21 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
             return ((FailedObjectsSelectorProvider) workDefinition).getFailedObjectsSelector();
         } else {
             return null;
+        }
+    }
+
+    public @NotNull AffectedObjectsInformation getAffectedObjectsInformation() throws SchemaException, ConfigurationException {
+        if (workDefinition instanceof AffectedObjectsProvider affectedObjectsProvider) {
+            // If the definition does provide everything needed, we can use it.
+            return affectedObjectsProvider.getAffectedObjectsInformation();
+        } else {
+            // Otherwise, we need to complete the information ourselves.
+            var objectSet = workDefinition.getAffectedObjectSetInformation();
+            return AffectedObjectsInformation.simple(
+                    workDefinition.getActivityTypeName(),
+                    objectSet,
+                    executionModeDefinition.getMode(),
+                    executionModeDefinition.getPredefinedConfiguration());
         }
     }
 }

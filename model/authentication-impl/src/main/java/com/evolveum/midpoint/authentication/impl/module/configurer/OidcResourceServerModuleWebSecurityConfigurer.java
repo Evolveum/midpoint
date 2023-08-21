@@ -7,21 +7,33 @@
 
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.authentication.impl.module.configuration.JwtOidcResourceServerConfiguration;
+import com.evolveum.midpoint.authentication.impl.module.configuration.OpaqueTokenOidcResourceServerConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.oidc.OidcBearerTokenAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.provider.OidcResourceServerProvider;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcResourceServerAuthenticationModuleType;
+
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -30,22 +42,70 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  */
 
 public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModuleWebSecurityConfiguration>
-        extends ModuleWebSecurityConfigurer<C> {
+        extends ModuleWebSecurityConfigurer<C, OidcAuthenticationModuleType> {
 
-    @Autowired
-    private ModelService model;
+    @Autowired private ModelService model;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
+    @Autowired TaskManager taskManager;
 
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
+    public OidcResourceServerModuleWebSecurityConfigurer(OidcAuthenticationModuleType moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor,
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request, provider);
+    }
 
-    @Autowired
-    private SecurityContextManager securityContextManager;
+    @Override
+    protected C buildConfiguration(OidcAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        OidcResourceServerAuthenticationModuleType resourceServer = moduleType.getResourceServer();
+        if (resourceServer.getJwt() != null) {
+            return createJwtResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
+        }
+        if (resourceServer.getOpaqueToken() != null) {
+            return createOpaqueTokenResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
+        }
 
-    @Autowired
-    private TaskManager taskManager;
+        return createJwtResourceServerConfiguration(moduleType, resourceServer, sequenceSuffix);
+    }
 
-    public OidcResourceServerModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
+    private C createJwtResourceServerConfiguration(
+            AbstractAuthenticationModuleType moduleType,
+            OidcResourceServerAuthenticationModuleType resourceServer,
+            String sequenceSuffix) {
+
+        JwtOidcResourceServerConfiguration configuration =
+                JwtOidcResourceServerConfiguration.build(
+                        (OidcAuthenticationModuleType)moduleType,
+                        sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        if (resourceServer.getJwt() != null && resourceServer.getJwt().getNameOfUsernameClaim() != null) {
+            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getJwt().getNameOfUsernameClaim());
+        } else if (resourceServer.getNameOfUsernameClaim() != null) {
+            jwtAuthenticationConverter.setPrincipalClaimName(resourceServer.getNameOfUsernameClaim());
+        }
+        configuration.addAuthenticationProvider(getObjectPostProcessor().postProcess(
+                new OidcResourceServerProvider(configuration.getDecoder(), jwtAuthenticationConverter)));
+        return (C) configuration;
+    }
+
+    private C createOpaqueTokenResourceServerConfiguration(
+            AbstractAuthenticationModuleType moduleType,
+            OidcResourceServerAuthenticationModuleType resourceServer,
+            String sequenceSuffix) {
+        OpaqueTokenOidcResourceServerConfiguration configuration =
+                OpaqueTokenOidcResourceServerConfiguration.build(
+                        (OidcAuthenticationModuleType)moduleType,
+                        sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+
+        configuration.addAuthenticationProvider(getObjectPostProcessor().postProcess(
+                new OidcResourceServerProvider(configuration.getIntrospector())));
+        return (C) configuration;
     }
 
     @Override

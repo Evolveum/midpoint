@@ -19,6 +19,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.core.session.SessionRegistry;
 
+/**
+ * Class with configuration that we need before we start creating of authentication filters.
+ */
 @Configuration
 public class InitialSecurityConfiguration {
 

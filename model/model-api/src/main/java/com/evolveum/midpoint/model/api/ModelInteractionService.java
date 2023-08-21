@@ -241,8 +241,16 @@ public interface ModelInteractionService {
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
+    <F extends FocusType> NonceCredentialsPolicyType determineNonceCredentialsPolicy(
+            PrismObject<F> user,
+            String credentialsName,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException;
+
+    //TODO needs Class<F> type parameter
     <F extends FocusType> SecurityPolicyType getSecurityPolicy(
-            PrismObject<F> focus, Task task, OperationResult parentResult)
+            PrismObject<F> focus, String archetypeOid, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -568,6 +576,7 @@ public interface ModelInteractionService {
     <T> SearchSpec<T> getSearchSpecificationFromCollection(CompiledObjectCollectionView collection, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException;
+
 
     class SearchSpec<T> {
         public Class<T> type;

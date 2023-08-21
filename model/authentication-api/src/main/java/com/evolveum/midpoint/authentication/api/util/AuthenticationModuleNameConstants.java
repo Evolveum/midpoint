@@ -24,5 +24,7 @@ public class AuthenticationModuleNameConstants {
     public static final String OTHER = "Other";
     public static final String ATTRIBUTE_VERIFICATION = "AttrVerification";
     public static final String FOCUS_IDENTIFICATION = "FocusIdentification";
+    public static final String ARCHETYPE_SELECTION = "ArchetypeSelection";
+    public static final String CORRELATION = "Correlation";
     public static final String HINT = "Hint";
 }

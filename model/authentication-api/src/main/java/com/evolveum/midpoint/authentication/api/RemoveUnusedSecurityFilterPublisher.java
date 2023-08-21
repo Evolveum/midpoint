@@ -6,17 +6,15 @@
  */
 package com.evolveum.midpoint.authentication.api;
 
-import jakarta.annotation.PostConstruct;
+import java.util.List;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.List;
 
 /**
  * @author skublik
@@ -31,7 +29,7 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     private static RemoveUnusedSecurityFilterPublisher instance;
 
-    public void publishCustomEvent(final List<AuthModule> modules) {
+    public void publishCustomEvent(final List<AuthModule<?>> modules) {
         LOGGER.trace("Publishing RemoveUnusedSecurityFilterEvent event. With authentication modules: " + modules);
         RemoveUnusedSecurityFilterEventImpl customSpringEvent = new RemoveUnusedSecurityFilterEventImpl(this, modules);
         applicationEventPublisher.publishEvent(customSpringEvent);
@@ -48,15 +46,15 @@ public class RemoveUnusedSecurityFilterPublisher {
 
     private static class RemoveUnusedSecurityFilterEventImpl extends RemoveUnusedSecurityFilterEvent {
 
-        private final List<AuthModule> modules;
+        private final List<AuthModule<?>> modules;
 
-        RemoveUnusedSecurityFilterEventImpl(Object source, List<AuthModule> modules) {
+        RemoveUnusedSecurityFilterEventImpl(Object source, List<AuthModule<?>> modules) {
             super(source);
             this.modules = modules;
         }
 
         @Override
-        public List<AuthModule> getAuthModules() {
+        public List<AuthModule<?>> getAuthModules() {
             return modules;
         }
     }

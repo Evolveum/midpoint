@@ -605,11 +605,16 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<RA> assertAffectedObjects(
-            QName activityTypeName, String resourceOid, ShadowKindType kind, String intent, QName objectClassName) {
+            QName activityTypeName, String resourceOid, ShadowKindType kind, String intent, QName objectClassName,
+            ExecutionModeType executionMode, PredefinedConfigurationType predefinedConfiguration) {
         ActivityAffectedObjectsType activityAffected = getSingleActivityAffectedObjects();
         assertThat(activityAffected.getObjects()).as("objects").isNull();
         var resourceObjects = activityAffected.getResourceObjects();
         assertThat(activityAffected.getActivityType()).as("activity").isEqualTo(activityTypeName);
+        assertThat(activityAffected.getExecutionMode()).as("executionMode").isEqualTo(executionMode);
+        assertThat(activityAffected.getPredefinedConfigurationToUse())
+                .as("predefined configuration")
+                .isEqualTo(predefinedConfiguration);
         assertThat(Referencable.getOid(resourceObjects.getResourceRef()))
                 .as("resource OID")
                 .isEqualTo(resourceOid);

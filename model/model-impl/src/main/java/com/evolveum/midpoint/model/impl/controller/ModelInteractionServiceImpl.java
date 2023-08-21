@@ -39,6 +39,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.ModelInteractionService.SearchSpec;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -655,7 +656,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType securityPolicyType = getSecurityPolicy(focus, task, parentResult);
+        SecurityPolicyType securityPolicyType = getSecurityPolicy(focus, null, task, parentResult);
         if (securityPolicyType == null) {
             return null;
         }
@@ -667,9 +668,40 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return containerValue.asContainerable();
     }
 
+    public <F extends FocusType> NonceCredentialsPolicyType determineNonceCredentialsPolicy(
+            PrismObject<F> focus,
+            String nonceCredentialName,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException {
+
+        SecurityPolicyType securityPolicy = getSecurityPolicy(focus, null, task, parentResult);
+
+        if (securityPolicy == null) {
+            LOGGER.warn("No security policy, cannot process nonce credential"); //TODO correct level?
+            return null;
+        }
+        if (securityPolicy.getCredentials() == null) {
+            LOGGER.warn("No credential for security policy, cannot process nonce credential");
+            return null;
+        }
+        List<NonceCredentialsPolicyType> noncePolicies = securityPolicy.getCredentials().getNonce();
+        if (noncePolicies.isEmpty()) {
+            LOGGER.warn("No nonce credential for security policy, cannot process nonce credential");
+            return null;
+        }
+        for (NonceCredentialsPolicyType credential : securityPolicy.getCredentials().getNonce()) {
+            if (nonceCredentialName.equals(credential.getName())) {
+                return credential;
+            }
+        }
+        return null;
+    }
+
     @Override
-    public <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, Task task, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, String archetypeOid,
+            Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -678,7 +710,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 return null;
             }
 
-            SecurityPolicyType securityPolicy = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result);
+            SecurityPolicyType securityPolicy = securityHelper.locateSecurityPolicy(focus, archetypeOid, systemConfiguration,
+                    task, result);
             if (securityPolicy == null) {
                 result.recordNotApplicable("no security policy");
                 return null;
@@ -1373,13 +1406,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 //noinspection unchecked
                 PrismObject<? extends FocusType> focus = (PrismObject<? extends FocusType>) object;
                 if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_PASSWORD)) {
-                    evaluatorBuilder.securityPolicy(getSecurityPolicy(focus, task, parentResult));
+                    evaluatorBuilder.securityPolicy(getSecurityPolicy(focus, null, task, parentResult));
                     PrismContainer<PasswordType> passwordContainer = focus.findContainer(SchemaConstants.PATH_PASSWORD);
                     PasswordType password = passwordContainer != null ? passwordContainer.getValue().asContainerable() : null;
                     evaluatorBuilder.oldCredential(password);
                 } else if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_SECURITY_QUESTIONS)) {
                     LOGGER.trace("Setting security questions related policy.");
-                    SecurityPolicyType securityPolicy = getSecurityPolicy(focus, task, parentResult);
+                    SecurityPolicyType securityPolicy = getSecurityPolicy(focus, null, task, parentResult);
                     evaluatorBuilder.securityPolicy(securityPolicy);
                     PrismContainer<SecurityQuestionsCredentialsType> securityQuestionsContainer =
                             focus.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS);
@@ -1737,7 +1770,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         }
 
-        SecurityPolicyType securityPolicy = getSecurityPolicy(user, task, parentResult);
+        SecurityPolicyType securityPolicy = getSecurityPolicy(user, null, task, parentResult);
         CredentialsResetPolicyType resetPolicyType = securityPolicy.getCredentialsReset();
         //TODO: search according tot he credentialID and others
         if (resetPolicyType == null) {

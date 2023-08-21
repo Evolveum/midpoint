@@ -7,13 +7,11 @@
 package com.evolveum.midpoint.authentication.impl.channel;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author skublik
@@ -53,13 +51,7 @@ public class InvitationAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     @Override
-    public Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities) {
-        ArrayList<Authorization> newAuthorities = new ArrayList<>();
-        AuthorizationType authorizationBean = new AuthorizationType();
-        authorizationBean.getAction().add(AuthorizationConstants.AUTZ_UI_INVITATION_URL);
-        Authorization selfServiceCredentialsAuthz = new Authorization(authorizationBean);
-        newAuthorities.add(selfServiceCredentialsAuthz);
-        authorities.addAll(newAuthorities);
-        return authorities;
+    protected Collection<String> getAdditionalAuthoritiesList() {
+        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_INVITATION_URL);
     }
 }

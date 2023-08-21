@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="69d783c8-8b59-4b2f-988f-db6097b828c2">
+    <name>no-elevation-assignment-target-search-filter</name>
+    <assignment>
+        <targetRef oid="f2d01dd2-50b4-4d4d-babd-e00671923f2c" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <expression>
+                    <assignmentTargetSearch>
+                        <targetType>RoleType</targetType>
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <expression>
+                                    <privileges>
+                                        <runPrivileged>true</runPrivileged>
+                                    </privileges>
+                                    <script>
+                                        <code>'dummy'</code>
+                                    </script>
+                                </expression>
+                            </q:equal>
+                        </filter>
+                    </assignmentTargetSearch>
+                </expression>
+                <target>
+                    <path>assignment</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

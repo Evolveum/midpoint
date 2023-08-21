@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<service oid="00000000-0000-0000-0000-000000000610"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Identity recovery</name>
+    <description>Service intended for identity recovery flow. The necessary for this flow authorizations are granted within this service.</description>
+    <authorization>
+        <name>gui-identity-recovery-access</name>
+        <description>
+            Allow access to identity recovery results page.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#identityRecovery</action>
+    </authorization>
+</service>
