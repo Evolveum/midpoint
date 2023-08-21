@@ -47,7 +47,7 @@ public class ResourceTilePanel<O extends Serializable, T extends TemplateTile<O>
     protected void initLayout() {
         add(AttributeAppender.append(
                 "class",
-                "card selectable col-12 catalog-tile-panel d-flex flex-column align-items-center p-3 pb-5 pt-4 h-100 mb-0 btn"));
+                "card selectable col-12 catalog-tile-panel d-flex flex-column align-items-center p-3 pb-5 pt-4 h-100 mb-0"));
         setOutputMarkupId(true);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);

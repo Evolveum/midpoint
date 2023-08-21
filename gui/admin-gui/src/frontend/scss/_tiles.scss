@@ -9,15 +9,21 @@
  * Contains all styles for all kinds of tile panels
  */
 
+@mixin smooth-transition($duration, $important: "") {
+  $important-flag: if($important == "important", ' !important', '');
+
+  transition: all ease $duration#{$important-flag};
+  -webkit-transition: all ease $duration#{$important-flag};
+}
+
 @mixin tile {
   border: 2px solid $white;
   border-radius: $border-radius;
   background-color: $white;
-  transition: all ease 0.1s;
+  @include smooth-transition(0.1s);
 
   &.selectable {
     @include selectable-tile();
-    transition: all ease 0.1s;
   }
 }
 
@@ -25,16 +31,16 @@
   cursor: pointer;
 
   &:hover {
-    border: 2px solid $primary/*$input-border-color*/;
+    border: 2px solid $primary;
     border-radius: $border-radius;
-    transition: all ease 0.1s;
+    @include smooth-transition(0.1s);
   }
 
   &.active {
     border: 2px solid $primary;
     border-radius: $border-radius;
     background-color: mix($white, $primary, 85%);
-    transition: all ease 0.1s;
+    @include smooth-transition(0.1s);
   }
 }
 
@@ -42,24 +48,23 @@
   border-color: $secondary-alt;
   background-color: lighten($dark, 7.5%) !important;
   color: $white !important;
-  transition: all ease 0.1s;
+  @include smooth-transition(0.1s);
 
   &.selectable {
     @include selectable-tile-dark-mode();
-    transition: all ease 0.1s;
   }
 }
 
 @mixin selectable-tile-dark-mode {
   &:hover {
     border-color: $gray-400;
-    transition: all ease 0.1s;
+    @include smooth-transition(0.1s);
   }
 
   &.active {
     border-color: $primary-alt;
     background-color: rgba($primary-alt, 15%);
-    transition: all ease 0.1s;
+    @include smooth-transition(0.1s);
   }
 }
 

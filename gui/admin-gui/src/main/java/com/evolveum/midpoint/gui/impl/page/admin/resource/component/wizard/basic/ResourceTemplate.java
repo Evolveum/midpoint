@@ -36,8 +36,8 @@ public class ResourceTemplate implements Serializable {
 
     public enum TemplateType implements TileEnum {
         INHERIT_TEMPLATE(ResourceType.class, "fa fa-code-branch fa-rotate-180"),
-        CONNECTOR(ConnectorType.class, "fa fa-arrows-to-circle"),
-        COPY_FROM_TEMPLATE(ResourceType.class, "fa fa-clone");
+        CONNECTOR(ConnectorType.class, "fa-solid fa-pencil"),
+        COPY_FROM_TEMPLATE(ResourceType.class, "fa-regular fa-copy");
 
         private final Class<? extends AssignmentHolderType> type;
         private final String icon;
