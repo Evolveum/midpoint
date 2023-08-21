@@ -107,7 +107,7 @@ public class TaskCreationPopup extends BasePanel<ResourceObjectTypeDefinitionTyp
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
 
         AjaxIconButton createNewTask = new AjaxIconButton(ID_BUTTON_CREATE_NEW_TASK,
-                () -> "fa fa-arrow",
+                () -> "fa-solid fa-circle-plus",
                 createStringResource("TaskCreationPopup.createNewTask")) {
 
             @Override
