@@ -8,10 +8,11 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -143,8 +144,8 @@ public class NonIterativeScriptingActivityHandler
         }
 
         @Override
-        public @Nullable TaskAffectedObjectsType getAffectedObjects() {
-            return null; // not feasibly describable (only by some kind of "in oid" filter)
+        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+            return AffectedObjectsInformation.ObjectSet.notSupported(); // not feasibly describable
         }
 
         @Override

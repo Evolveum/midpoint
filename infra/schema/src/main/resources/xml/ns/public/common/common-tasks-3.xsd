@@ -586,7 +586,7 @@
                             <xsd:documentation>
                                 Searchable set of object set coordinates (e.g., resource + kind + intent for resource objects,
                                 or type + archetype for repository objects) for objects which are directly affected
-                                by the execution of this task.
+                                by the execution of this task. Includes information about execution mode.
 
                                 NOTE: This data are only for task indexing and searching purposes derived from activity definitions.
                                 This data are not canonical and for some edge-cases they may not be computed.
@@ -9003,6 +9003,9 @@
         <xsd:annotation>
             <xsd:documentation>
                 Objects affected by a simple activity.
+
+                Note that only selected activities are supported here.
+                Activity tailoring is not supported either.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -9038,6 +9041,31 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
+            <xsd:element name="executionMode" type="tns:ExecutionModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution mode for this activity: full, preview, dryRun, none, bucketAnalysis, ...
+                        See ActivityExecutionModeDefinitionType.mode.
+                        Should be always present, as "full" is the default value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ActivityAffectedObjectsType.executionMode</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="predefinedConfigurationToUse" type="tns:PredefinedConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Predefined configuration that is/was used for this activity.
+                        In current midPoint version it should be always present, as we do not allow specification of
+                        a configuration other than a predefined one.
+                        Later, it may be unspecified if no predefined configuration applies.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ActivityAffectedObjectsType.predefinedConfigurationToUse</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityAffectedObjects" type="tns:ActivityAffectedObjectsType"/>

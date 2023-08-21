@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.io.IOException;
 
 import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.test.TestTask;
@@ -219,7 +218,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     /** Tests the legacy form of "execute changes" task. */
     @Test
-    public void test150ExecuteChangesLegacy() throws CommonException, IOException {
+    public void test150ExecuteChangesLegacy() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -246,7 +245,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     /** Tests the "single-request" form of "execute changes" task. */
     @Test
-    public void test160ExecuteChangesSingle() throws CommonException, IOException {
+    public void test160ExecuteChangesSingle() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -338,7 +337,8 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .assertAffectedObjects(
                         WorkDefinitionsType.F_RECONCILIATION,
-                        RESOURCE_DUMMY_OID, kind, intent, ocName1Qualified);
+                        RESOURCE_DUMMY_OID, kind, intent, ocName1Qualified,
+                        ExecutionModeType.FULL, PredefinedConfigurationType.PRODUCTION);
 
         when("task definition is removed");
         executeChanges(
@@ -353,13 +353,19 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .assertNoAffectedObjects();
 
-        when("task is changed to import one");
+        when("task is changed to import one with development simulation mode");
         executeChanges(
                 deltaFor(TaskType.class)
                         .item(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK, WorkDefinitionsType.F_IMPORT)
                         .add(new ImportWorkDefinitionType()
                                 .resourceObjects(new ResourceObjectSetType()
                                         .objectclass(ocName1Qualified)))
+                        .item(TaskType.F_ACTIVITY, ActivityDefinitionType.F_EXECUTION, ActivityExecutionModeDefinitionType.F_MODE)
+                        .replace(ExecutionModeType.PREVIEW)
+                        .item(TaskType.F_ACTIVITY, ActivityDefinitionType.F_EXECUTION,
+                                ActivityExecutionModeDefinitionType.F_CONFIGURATION_TO_USE,
+                                ConfigurationSpecificationType.F_PREDEFINED)
+                        .replace(PredefinedConfigurationType.DEVELOPMENT)
                         .asObjectDelta(aTask.getOid()),
                 null, task, result);
 
@@ -368,7 +374,8 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .assertAffectedObjects(
                         WorkDefinitionsType.F_IMPORT,
-                        null, null, null, ocName1Qualified);
+                        null, null, null, ocName1Qualified,
+                        ExecutionModeType.PREVIEW, PredefinedConfigurationType.DEVELOPMENT);
 
         when("object class is changed");
         executeChanges(
@@ -387,7 +394,8 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .display()
                 .assertAffectedObjects(
                         WorkDefinitionsType.F_IMPORT,
-                        null, null, null, ocName2Qualified);
+                        null, null, null, ocName2Qualified,
+                        ExecutionModeType.PREVIEW, PredefinedConfigurationType.DEVELOPMENT);
 
         when("the definition is made invalid by addition of conflicting work definition");
         executeChanges(
@@ -414,7 +422,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     /** Checks affected objects management for composite activity. */
     @Test
-    public void test200TestAffectedObjectsComposite() throws CommonException {
+    public void test210TestAffectedObjectsComposite() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -446,13 +454,21 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                                                 ._import(new ImportWorkDefinitionType()
                                                         .resourceObjects(new ResourceObjectSetType()
                                                                 .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
-                                                                .objectclass(ocName1)))))
+                                                                .objectclass(ocName1))))
+                                        .execution(new ActivityExecutionModeDefinitionType()
+                                                .mode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                                                .configurationToUse(new ConfigurationSpecificationType()
+                                                        .predefined(PredefinedConfigurationType.DEVELOPMENT))))
                                 .activity(new ActivityDefinitionType()
                                         .id(300L)
                                         .work(new WorkDefinitionsType()
                                                 .recomputation(new RecomputationWorkDefinitionType()
                                                         .objects(new ObjectSetType()
-                                                                .type(QNameUtil.unqualify(UserType.COMPLEX_TYPE))))))));
+                                                                .type(QNameUtil.unqualify(UserType.COMPLEX_TYPE)))))
+                                        .executionMode(ExecutionModeType.PREVIEW) // legacy way
+                                )
+                        )
+                );
         addObject(aTask.asPrismObject(), task, result);
 
         then("affected objects are correct");
@@ -462,20 +478,24 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                         .resourceObjects(new BasicResourceObjectSetType()
                                 .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
                                 .kind(kind)
-                                .intent(intent)
-                        )
+                                .intent(intent))
+                        .executionMode(ExecutionModeType.FULL)
+                        .predefinedConfigurationToUse(PredefinedConfigurationType.PRODUCTION)
                 )
                 .activity(new ActivityAffectedObjectsType()
                         .activityType(WorkDefinitionsType.F_IMPORT)
                         .resourceObjects(new BasicResourceObjectSetType()
                                 .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
-                                .objectclass(ocName1Qualified)
-                        )
+                                .objectclass(ocName1Qualified))
+                        .executionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                        .predefinedConfigurationToUse(PredefinedConfigurationType.DEVELOPMENT)
                 )
                 .activity(new ActivityAffectedObjectsType()
                         .activityType(WorkDefinitionsType.F_RECOMPUTATION)
                         .objects(new ObjectSetType()
                                 .type(UserType.COMPLEX_TYPE))
+                        .executionMode(ExecutionModeType.PREVIEW)
+                        .predefinedConfigurationToUse(PredefinedConfigurationType.PRODUCTION)
                 );
 
         assertTask(aTask.getOid(), "after creation")
@@ -509,25 +529,31 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                         .resourceObjects(new BasicResourceObjectSetType()
                                 .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
                                 .kind(kind)
-                                .intent(intent)
-                        )
+                                .intent(intent))
+                        .executionMode(ExecutionModeType.FULL)
+                        .predefinedConfigurationToUse(PredefinedConfigurationType.PRODUCTION)
                 )
                 .activity(new ActivityAffectedObjectsType()
                         .activityType(WorkDefinitionsType.F_IMPORT)
                         .resourceObjects(new BasicResourceObjectSetType()
                                 .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
-                                .objectclass(ocName2Qualified)
-                        )
+                                .objectclass(ocName2Qualified))
+                        .executionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                        .predefinedConfigurationToUse(PredefinedConfigurationType.DEVELOPMENT)
                 )
                 .activity(new ActivityAffectedObjectsType()
                         .activityType(WorkDefinitionsType.F_RECOMPUTATION)
                         .objects(new ObjectSetType()
                                 .type(UserType.COMPLEX_TYPE))
+                        .executionMode(ExecutionModeType.PREVIEW)
+                        .predefinedConfigurationToUse(PredefinedConfigurationType.PRODUCTION)
                 )
                 .activity(new ActivityAffectedObjectsType()
                         .activityType(WorkDefinitionsType.F_RECOMPUTATION)
                         .objects(new ObjectSetType()
                                 .type(RoleType.COMPLEX_TYPE))
+                        .executionMode(ExecutionModeType.FULL)
+                        .predefinedConfigurationToUse(PredefinedConfigurationType.PRODUCTION)
                 );
 
         assertTask(aTask.getOid(), "after modification")

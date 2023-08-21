@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.cleanup;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +17,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
 
 public class CleanupWorkDefinition extends AbstractWorkDefinition {
 
@@ -33,8 +34,8 @@ public class CleanupWorkDefinition extends AbstractWorkDefinition {
     }
 
     @Override
-    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
-        return null; // not easily determinable
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+        return AffectedObjectsInformation.ObjectSet.notSupported(); // not easily determinable nor describable
     }
 
     @Override

@@ -7,8 +7,9 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
@@ -35,13 +36,10 @@ public class PropagationWorkDefinition extends AbstractWorkDefinition {
     }
 
     @Override
-    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
-        return new TaskAffectedObjectsType()
-                .activity(new ActivityAffectedObjectsType()
-                        .activityType(getActivityTypeName())
-                        .resourceObjects(new BasicResourceObjectSetType()
-                                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE))
-                );
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+        return AffectedObjectsInformation.ObjectSet.resource(
+                new BasicResourceObjectSetType()
+                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE));
     }
 
     @Override

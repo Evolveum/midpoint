@@ -19,10 +19,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Defines the work that is to be done within an activity.
  */
-public interface WorkDefinition extends ActivityTypeNameAware, AffectedObjectsProvider, DebugDumpable, Cloneable {
+public interface WorkDefinition extends AffectedObjectSetProvider, DebugDumpable, Cloneable {
+
+    /**
+     * Returns the activity type name, currently the same as the name of the respective configuration item e.g. `c:recomputation`.
+     */
+    @NotNull QName getActivityTypeName();
 
     /** Creates "parsed" work definition from the activity definition bean. */
     static @Nullable <WD extends AbstractWorkDefinition> WD fromBean(

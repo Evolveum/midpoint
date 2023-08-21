@@ -90,6 +90,17 @@ public class ActivityExecutionModeDefinition implements DebugDumpable, Cloneable
         return bean.getConfigurationToUse();
     }
 
+    /**
+     * Returns null if the configuration cannot be matched to a predefined one. So, e.g., when default config is used,
+     * {@link PredefinedConfigurationType#PRODUCTION} is returned.
+     */
+    @Nullable PredefinedConfigurationType getPredefinedConfiguration() {
+        var configurationSpecification = getConfigurationSpecification();
+        var explicit = configurationSpecification != null ? configurationSpecification.getPredefined() : null;
+        // Currently, there are only two options: either DEVELOPMENT or PRODUCTION. Nothing in between.
+        return Objects.requireNonNullElse(explicit, PredefinedConfigurationType.PRODUCTION);
+    }
+
     public TaskExecutionMode getTaskExecutionMode() throws ConfigurationException {
         ExecutionModeType mode = getMode();
         switch (mode) {
