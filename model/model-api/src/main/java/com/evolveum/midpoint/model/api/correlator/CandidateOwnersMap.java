@@ -42,6 +42,10 @@ public class CandidateOwnersMap implements Serializable, DebugDumpable {
         return map.values();
     }
 
+    public boolean isEmpty() {
+        return map.isEmpty();
+    }
+
     public Collection<CandidateOwner> selectWithConfidenceAtLeast(double threshold) {
         return map.values().stream()
                 .filter(candidateOwner -> candidateOwner.getConfidence() >= threshold)

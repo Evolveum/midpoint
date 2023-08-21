@@ -33,9 +33,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class CorrelationProvider extends MidpointAbstractAuthenticationProvider {
 
@@ -78,9 +76,12 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                 correlationModuleAuthentication.addOwner(owner);
                 return createAuthenticationToken(owner, focusType);
             } else if (correlationModuleAuthentication.isLastCorrelator()) {
-                correlationResult.getCandidateOwnersMap().values()
-                        .forEach(c -> correlationModuleAuthentication.addOwner(c.getObject()));
-                return createAuthenticationToken(correlationModuleAuthentication.getOwners().get(0), focusType);
+                CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
+                if (ownersMap != null && !ownersMap.isEmpty()) {
+                    correlationResult.getCandidateOwnersMap().values()
+                            .forEach(c -> correlationModuleAuthentication.addOwner(c.getObject()));
+                    return createAuthenticationToken(correlationModuleAuthentication.getOwners().get(0), focusType);    //todo FIXME
+                }
             }
 
             CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
