@@ -100,13 +100,13 @@ public class CorrelationServiceImpl implements CorrelationService {
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull FocusType preFocus,
             @Nullable String archetypeOid,
-            @NotNull Set<String> cadidateOdis,
+            @NotNull Set<String> candidateOids,
             @NotNull CorrelatorDiscriminator discriminator,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        CompleteContext ctx = getCompleteContext(preFocus, archetypeOid, cadidateOdis, discriminator, task, result);
+        CompleteContext ctx = getCompleteContext(preFocus, archetypeOid, candidateOids, discriminator, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
 

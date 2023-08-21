@@ -118,7 +118,8 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             CorrelationVerificationToken correlationToken,
             String archetypeOid,
             Set<String> candidatesOids,
-            Class<? extends FocusType> focusType) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            Class<? extends FocusType> focusType) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         Task task = taskManager.createTaskInstance("correlate");
         task.setChannel(SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI);
 

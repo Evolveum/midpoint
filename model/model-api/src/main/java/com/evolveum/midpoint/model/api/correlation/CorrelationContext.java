@@ -76,12 +76,21 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
     /** Returns the archetype for focus objects that the candidate(s) must possess. Null means "no restrictions".  */
     public abstract @Nullable String getArchetypeOid();
 
-    /** Returns candidate owners returned from previous correlator
-     *  If more than one correlator are defined to be used, they will
-     *  run separatelly. First correlator probably won't have any candidates to consider,
-     *  but every next correlator might consider a cadidate set from previous correlator
-     *  as a base for the search.
-     * @return
+    /**
+     * Returns candidate owners provided by previous correlator(s), if any.
+     *
+     * Background: If more child correlators are defined to be used, they will run separately (at least under
+     * the default implementation of the composite correlator), one after another. The original implementation executed
+     * each of the correlators independently, so that (typically) each of them issued its own query over all population
+     * of focus objects. The results were then combined by the composite correlator.
+     *
+     * However, there might be situations where subsequent correlators should just _refine_ the results returned
+     * by previous one(s). For that, we want to retain the relevant candidate owner(s) OID(s) in the context, and
+     * use that to limit search within those correlators.
+     *
+     * Empty set means "no previous candidates available", i.e. no restrictions will be applied.
+     *
+     * LIMITED USE. Currently used only "identification recovery" feature - for {@link Focus} context and `items` correlator.
      */
     public abstract @NotNull Set<String> getCandidateOids();
 
@@ -185,7 +194,7 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
 
         @Override
         public @NotNull Set<String> getCandidateOids() {
-            throw new UnsupportedOperationException("Not supported yet");
+            return Set.of();
         }
 
         @Override
@@ -243,7 +252,6 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
         @Override
         public @Nullable String getArchetypeOid() {
             return archetypeOid;
-//            throw new UnsupportedOperationException(); // TODO implement
         }
 
         @Override
