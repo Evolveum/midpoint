@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType.*;
+
 /**
  * Mapping between {@link QAuditDelta} and {@link ObjectDeltaOperationType}.
  */
@@ -48,6 +50,11 @@ public class QAuditDeltaMapping
     private QAuditDeltaMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ObjectDeltaOperationType.class, QAuditDelta.class, repositoryContext);
+        // FIXME: Add mappers
+        addItemMapping(F_RESOURCE_OID);
+        addItemMapping(F_SHADOW_INTENT);
+        addItemMapping(F_SHADOW_KIND);
+
     }
 
     @Override
@@ -71,6 +78,8 @@ public class QAuditDeltaMapping
             odo.setResourceName(new PolyStringType(
                     new PolyString(row.resourceNameOrig, row.resourceNameNorm)));
         }
+        odo.setShadowKind(row.shadowKind);
+        odo.setShadowIntent(row.shadowIntent);
 
         return odo;
     }

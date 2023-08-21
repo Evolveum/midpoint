@@ -13,6 +13,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+
+import com.google.common.collect.Table;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.ArrayPath;
 import org.jetbrains.annotations.NotNull;
@@ -114,6 +117,9 @@ public class QAuditEventRecordMapping
                 ctx -> new AuditPropertiesItemFilterProcessor(ctx, q -> q.properties)));
 
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
+
+        addRelationResolver(F_DELTA,
+                TableRelationResolver.usingJoin(QAuditDeltaMapping::get, (r,d) -> r.id.eq(d.recordId)));
     }
 
     @Override

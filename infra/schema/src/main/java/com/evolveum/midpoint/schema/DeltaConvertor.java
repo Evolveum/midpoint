@@ -147,6 +147,8 @@ public class DeltaConvertor {
         if (odoBean.getResourceName() != null) {
             odo.setObjectName(odoBean.getResourceName().toPolyString());
         }
+        odo.setShadowIntent(odoBean.getShadowIntent());
+        odo.setShadowKind(odoBean.getShadowKind());
         return odo;
     }
 
@@ -313,6 +315,8 @@ public class DeltaConvertor {
         if (odo.getResourceName() != null) {
             odoBean.setResourceName(new PolyStringType(odo.getResourceName()));
         }
+        odoBean.setShadowKind(odo.getShadowKind());
+        odoBean.setShadowIntent(odo.getShadowIntent());
     }
 
     private static ChangeTypeType convertChangeType(ChangeType changeType) {

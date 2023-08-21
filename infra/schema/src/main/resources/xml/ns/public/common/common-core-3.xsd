@@ -17866,6 +17866,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="shadowKind" type="tns:ShadowKindType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow kind of the shadow, that is related to this operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shadowIntent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow kind of the shadow, that is related to this operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -204,6 +204,8 @@ class RawChangesExecutor {
                 ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit;
                 odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
                 odoToAudit.setResourceName(ShadowUtil.getResourceName(shadow));
+                odoToAudit.setShadowKind(ShadowUtil.getKind(shadow));
+                odoToAudit.setShadowIntent(ShadowUtil.getIntent(shadow));
             }
         }
         return odoToAudit;
