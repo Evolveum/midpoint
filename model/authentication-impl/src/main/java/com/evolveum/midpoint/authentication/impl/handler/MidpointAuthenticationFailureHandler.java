@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -73,14 +72,14 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             //abort the authentication in case of requisite module fail
             if (!mpAuthentication.isLast(moduleAuthentication) &&
                     AuthenticationSequenceModuleNecessityType.REQUISITE.equals(moduleAuthentication.getNecessity())) {
-                saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
+                saveException(request, mpAuthentication.getAuthenticationExceptionIfExists());
                 getRedirectStrategy().sendRedirect(request, response,
                         mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication());
                 return;
             }
 
             if (mpAuthentication.isLast(moduleAuthentication) && !mpAuthentication.isAuthenticated()) {
-                saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
+                saveException(request, mpAuthentication.getAuthenticationExceptionIfExists());
 
             }
 

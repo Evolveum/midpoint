@@ -11,6 +11,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,12 +79,11 @@ class CorrelationProcessing<F extends FocusType> {
         this.syncCtx = syncCtx;
         this.task = syncCtx.getTask();
         this.beans = beans;
-        this.correlationContext = new CorrelationContext(
+        this.correlationContext = new CorrelationContext.Shadow(
                 syncCtx.getShadowedResourceObject(),
-                syncCtx.getPreFocus(),
                 syncCtx.getResource(),
                 syncCtx.getObjectDefinitionRequired(),
-                syncCtx.getObjectTemplateForCorrelation(),
+                syncCtx.getPreFocus(),
                 syncCtx.getSystemConfiguration(),
                 syncCtx.getTask());
         syncCtx.setCorrelationContext(correlationContext);
@@ -90,6 +91,7 @@ class CorrelationProcessing<F extends FocusType> {
                 beans.correlationServiceImpl.createRootCorrelatorContext(
                         syncCtx.getSynchronizationPolicyRequired(),
                         syncCtx.getObjectTemplateForCorrelation(),
+                        new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
                         syncCtx.getSystemConfigurationBean());
         this.thisCorrelationStart = XmlTypeConverter.createXMLGregorianCalendar();
     }

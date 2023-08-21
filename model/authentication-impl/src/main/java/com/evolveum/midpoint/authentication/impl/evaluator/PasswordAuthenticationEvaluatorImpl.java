@@ -16,7 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -27,16 +27,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @Component("passwordAuthenticationEvaluator")
-public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<PasswordType, PasswordAuthenticationContext> {
+public class PasswordAuthenticationEvaluatorImpl extends CredentialsAuthenticationEvaluatorImpl<PasswordType, PasswordAuthenticationContext> {
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getUsername())) {
-            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty login provided");
+            auditAuthenticationFailure(authCtx.getUsername(), connEnv, "empty login provided");
             throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
-            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+            auditAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
             throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
     }

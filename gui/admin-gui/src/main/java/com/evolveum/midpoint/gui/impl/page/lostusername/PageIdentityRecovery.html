@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <div wicket:id="recoveredIdentities">
+        <div wicket:id="loginNamePanel" class="user-panel info-box my-3 pb-2 d-flex justify-content-start align-items-center">
+            <div class="image">
+                <img wicket:id="photo" class="user-image img-circle elevation-2"/>
+            </div>
+            <div class="info">
+                <div class="text-lg" wicket:id="loginName"/>
+            </div>
+        </div>
+        <wicket:enclosure child="configuredItemsPanel">
+            <div class="user-panel info-box d-flex flex-column justify-content-start mt-5 col-12">
+                <div wicket:id="configuredItemsPanel" class="d-flex justify-content-start">
+                    <label class="col-md-5" wicket:id="itemName"></label>
+                    <div wicket:id="itemValue"/>
+                </div>
+            </div>
+        </wicket:enclosure>
+    </div>
+</wicket:extend>
+
+</body>
+</html>

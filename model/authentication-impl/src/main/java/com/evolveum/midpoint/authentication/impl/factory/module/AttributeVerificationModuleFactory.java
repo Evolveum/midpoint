@@ -6,20 +6,25 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
+import jakarta.servlet.ServletRequest;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.module.authentication.AttributeVerificationModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.authentication.AttributeVerificationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.AttributeVerificationModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.AttributeVerificationProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.stereotype.Component;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeVerificationAuthenticationModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 @Component
-public class AttributeVerificationModuleFactory extends AbstractCredentialModuleFactory
-        <LoginFormModuleWebSecurityConfiguration, AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration>> {
+public class AttributeVerificationModuleFactory extends AbstractModuleFactory<
+        LoginFormModuleWebSecurityConfiguration,
+        AttributeVerificationModuleWebSecurityConfigurer,
+        AttributeVerificationAuthenticationModuleType,
+        AttributeVerificationModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -27,37 +32,24 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
     }
 
     @Override
-    protected LoginFormModuleWebSecurityConfiguration createConfiguration(
-            AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        LoginFormModuleWebSecurityConfiguration configuration = LoginFormModuleWebSecurityConfiguration.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        return configuration;
+    protected AttributeVerificationModuleWebSecurityConfigurer createModuleConfigurer(
+            AttributeVerificationAuthenticationModuleType moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new AttributeVerificationModuleWebSecurityConfigurer(moduleType, sequenceSuffix,
+                authenticationChannel, objectPostProcessor, request,
+                new AttributeVerificationProvider());
     }
 
     @Override
-    protected AttributeVerificationModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration> createModule(
-            LoginFormModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new AttributeVerificationModuleWebSecurityConfigurer<>(configuration));
-    }
-
-    @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new AttributeVerificationProvider();
-    }
-
-    @Override
-    protected Class<? extends CredentialPolicyType> supportedClass() {
-        return null;    //todo for now we don't have credentials policy for attribute verification
-    }
-
-    @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
-        AttributeVerificationModuleAuthentication moduleAuthentication = new AttributeVerificationModuleAuthentication(sequenceModule);
+    protected AttributeVerificationModuleAuthenticationImpl createEmptyModuleAuthentication(AttributeVerificationAuthenticationModuleType moduleType,
+                                                                                            LoginFormModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
+        AttributeVerificationModuleAuthenticationImpl moduleAuthentication = new AttributeVerificationModuleAuthenticationImpl(sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
-        moduleAuthentication.setCredentialType(supportedClass());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
+        moduleAuthentication.setPathsToVerify(moduleType.getPath());
         return moduleAuthentication;
     }
 

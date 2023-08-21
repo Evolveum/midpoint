@@ -139,7 +139,7 @@ public class OidcClientProvider extends RemoteModuleProvider {
                     LOGGER.error("Oidc attribute, which define username don't contains value");
                     throw new AuthenticationServiceException("web.security.provider.invalid");
                 }
-                token = getPreAuthenticationToken(authentication, enteredUsername, focusType, requireAssignment, channel);
+                token = getPreAuthenticationToken(enteredUsername, focusType, requireAssignment, channel);
                 ((OAuth2LoginAuthenticationToken) authentication).setDetails(oidcAuthenticationToken.getPrincipal());
             } catch (AuthenticationException e) {
                 oidcModule.setAuthentication(oidcAuthenticationToken);

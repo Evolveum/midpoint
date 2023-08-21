@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.handler.AuditedLogoutHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
@@ -17,8 +18,13 @@ import com.evolveum.midpoint.authentication.impl.filter.MidpointUsernamePassword
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
+
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
@@ -28,28 +34,18 @@ import org.springframework.security.web.authentication.preauth.RequestAttributeA
  * @author skublik
  */
 
-public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration, MT extends AbstractAuthenticationModuleType> extends ModuleWebSecurityConfigurer<C, MT> {
 
-    @Autowired
-    private AuditedLogoutHandler auditedLogoutHandler;
+    @Autowired private SessionRegistry sessionRegistry;
 
-    @Autowired
-    private SessionRegistry sessionRegistry;
-
-    @Autowired
-    private Environment environment;
-
-    @Autowired(required = false)
-    private RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter;
-
-    @Autowired(required = false)
-    private LogoutFilter requestSingleLogoutFilter;
-
-    private final C configuration;
-
-    public LoginFormModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
-        this.configuration = configuration;
+    public LoginFormModuleWebSecurityConfigurer(MT moduleType,
+            String prefixOfSequence,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, prefixOfSequence, authenticationChannel, postProcessor, request, provider);
+//        this.configuration = getConfiguration();
     }
 
     @Override
@@ -74,11 +70,6 @@ public class LoginFormModuleWebSecurityConfigurer<C extends LoginFormModuleWebSe
 
     protected MidpointFormLoginConfigurer getMidpointFormLoginConfigurer() {
         return new MidpointFormLoginConfigurer<>(new MidpointUsernamePasswordAuthenticationFilter());
-    }
-
-    @Override
-    public C getConfiguration() {
-        return configuration;
     }
 
     protected SessionRegistry getSessionRegistry() {

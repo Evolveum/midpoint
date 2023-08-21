@@ -123,22 +123,36 @@ public class AuthUtil {
         return false;
     }
 
-    public static ModuleAuthentication getAuthenticatedModule() {
+    /**
+     * Convenient method to return instance of MidpointAuthentication if exists
+     * If not present, exception is thrown.
+     *
+     * TODO: maybe we wll need to change exception to return null
+     */
+    public static MidpointAuthentication getMidpointAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
+        }
+        return (MidpointAuthentication) authentication;
+    }
 
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+    public static ModuleAuthentication getAuthenticatedModule() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            MidpointAuthentication mpAuthentication = getMidpointAuthentication();
             for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
                 if (AuthenticationModuleState.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
                     return moduleAuthentication;
                 }
             }
-        } else {
-            String message = "Unsupported type " + (authentication == null ? null : authentication.getClass().getName())
-                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
-            throw new IllegalArgumentException(message);
-        }
-        return null;
+            return null;
+//        } else {
+//            String message = "Unsupported type " + (authentication == null ? null : authentication.getClass().getName())
+//                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
+//            throw new IllegalArgumentException(message);
+//        }
+//        return null;
     }
 
     @Nullable
@@ -152,21 +166,21 @@ public class AuthUtil {
     }
 
     private static ModuleAuthentication getProcessingModule(boolean required) {
-        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+//        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (actualAuthentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+        MidpointAuthentication mpAuthentication = getMidpointAuthentication();
+//        if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (required && moduleAuthentication == null) {
                 LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
                 throw new AuthenticationServiceException("web.security.flexAuth.module.null");
             }
             return moduleAuthentication;
-        } else if (required) {
-            LOGGER.error("Type of actual authentication in security context isn't MidpointAuthentication");
-            throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
-        }
-        return null;
+//        } else if (required) {
+//            LOGGER.error("Type of actual authentication in security context isn't MidpointAuthentication");
+//            throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
+//        }
+//        return null;
     }
 
     public static String stripEndingSlashes(String s) {
@@ -203,12 +217,13 @@ public class AuthUtil {
     }
 
     public static void clearMidpointAuthentication() {
-        Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (oldAuthentication instanceof MidpointAuthentication
-                && ((MidpointAuthentication) oldAuthentication).getAuthenticationChannel() != null
-                && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(((MidpointAuthentication) oldAuthentication).getAuthenticationChannel().getChannelId())) {
+        MidpointAuthentication oldAuthentication = getMidpointAuthentication();
+//        Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (oldAuthentication instanceof MidpointAuthentication
+                if (oldAuthentication.getAuthenticationChannel() != null
+                && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(oldAuthentication.getAuthenticationChannel().getChannelId())) {
             RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(
-                    ((MidpointAuthentication) oldAuthentication).getAuthModules());
+                    oldAuthentication.getAuthModules());
         }
         SecurityContextHolder.getContext().setAuthentication(null);
     }

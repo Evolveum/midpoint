@@ -19,5 +19,5 @@ public abstract class RemoveUnusedSecurityFilterEvent extends ApplicationEvent{
         super(source);
     }
 
-    public abstract List<AuthModule> getAuthModules();
+    public abstract List<AuthModule<?>> getAuthModules();
 }

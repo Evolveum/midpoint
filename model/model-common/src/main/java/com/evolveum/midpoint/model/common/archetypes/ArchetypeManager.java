@@ -326,6 +326,19 @@ public class ArchetypeManager implements Cache {
         }
     }
 
+    /** Determines default object policy configuration for the specified object type */
+    public <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+            @NotNull Class<O> objectClass, OperationResult result) throws SchemaException, ConfigurationException {
+        SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+        if (systemConfiguration == null) {
+            return null;
+        }
+        return determineObjectPolicyConfiguration(
+                objectClass,
+                null,
+                systemConfiguration);
+    }
+
     /** Determines legacy object policy configuration (from subtypes) */
     public ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
             ObjectType object, OperationResult result)

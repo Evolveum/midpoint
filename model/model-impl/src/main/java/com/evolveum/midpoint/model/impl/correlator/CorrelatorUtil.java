@@ -42,7 +42,7 @@ public class CorrelatorUtil {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
                 focus,
                 resourceObject,
-                correlationContext.getResource(),
+                correlationContext instanceof CorrelationContext.Shadow shadow ? shadow.getResource() : null,
                 correlationContext.getSystemConfiguration());
         variables.put(ExpressionConstants.VAR_CORRELATION_CONTEXT, correlationContext, CorrelationContext.class);
         variables.put(ExpressionConstants.VAR_CORRELATOR_STATE,

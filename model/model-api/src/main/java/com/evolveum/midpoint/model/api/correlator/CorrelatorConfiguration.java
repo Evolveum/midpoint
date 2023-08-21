@@ -286,6 +286,8 @@ public abstract class CorrelatorConfiguration implements Serializable {
         return all;
     }
 
+
+
     public PathSet getCorrelationItemPaths() {
         PathSet paths = new PathSet();
         for (CorrelatorConfiguration currentConfiguration : getAllConfigurationsDeeply()) {

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public interface Correlator {
 
     /**
-     * Finds matching focus object (or potentially matching objects) for given resource object.
+     * Finds matching focus object (or potentially matching objects) for given resource object or for the pre-focus object.
      *
      * We assume that the correlator is already configured. See {@link CorrelatorFactory}.
      *

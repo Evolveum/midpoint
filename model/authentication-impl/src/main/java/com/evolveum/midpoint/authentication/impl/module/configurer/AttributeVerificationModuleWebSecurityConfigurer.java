@@ -6,6 +6,13 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeVerificationAuthenticationModuleType;
+
+import jakarta.servlet.ServletRequest;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -18,10 +25,16 @@ import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationS
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 
-public class AttributeVerificationModuleWebSecurityConfigurer<C extends LoginFormModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class AttributeVerificationModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, AttributeVerificationAuthenticationModuleType> {
 
-    public AttributeVerificationModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
+    public AttributeVerificationModuleWebSecurityConfigurer(AttributeVerificationAuthenticationModuleType moduleType,
+            String sequenceSuffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> objectPostProcessor,
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, sequenceSuffix, authenticationChannel, objectPostProcessor, request, provider);
+
     }
 
     @Override

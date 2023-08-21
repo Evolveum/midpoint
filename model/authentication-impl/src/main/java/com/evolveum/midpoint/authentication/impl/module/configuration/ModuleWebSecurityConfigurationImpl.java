@@ -112,5 +112,4 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
         }
     }
 
-
 }

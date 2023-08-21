@@ -9,9 +9,7 @@ package com.evolveum.midpoint.authentication.impl.provider;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.evaluator.AttributeVerificationEvaluatorImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
-import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.AttributeVerificationAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.AttributeVerificationAuthenticationContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -23,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
@@ -41,43 +38,37 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
         return authenticationEvaluator;
     }
 
+
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
-            AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
-        if (!(authentication.getPrincipal() instanceof MidPointPrincipal)) {
-            return authentication;
-        }
-        String enteredUsername = ((MidPointPrincipal) authentication.getPrincipal()).getUsername();
+    protected Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List<ObjectReferenceType> requireAssignment,
+            AuthenticationChannel channel, Class<? extends FocusType> focusType) {
+
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
-
-        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
-
-        try {
-            Authentication token;
-            if (authentication instanceof AttributeVerificationToken) {
-                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getCredentials();
-                AttributeVerificationAuthenticationContext authContext = new AttributeVerificationAuthenticationContext(enteredUsername,
-                        focusType, attrValuesMap, requireAssignment);
-                if (channel != null) {
-                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
-                }
-                token = getEvaluator().authenticate(connEnv, authContext);
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
-            }
-
-            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-                    authentication.getClass().getSimpleName(), principal.getAuthorities());
-            return token;
-        } catch (AuthenticationException e) {
-            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
-            throw e;
+        if (enteredUsername == null) {
+            LOGGER.error("No username provided in the authentication token");
+            return authentication;  //TODO should not be exception?
         }
+
+        ConnectionEnvironment connEnv = createEnvironment(channel);
+
+        if (!(authentication instanceof AttributeVerificationToken attributeVerificationToken)) {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
+        }
+
+        Map<ItemPath, String> attrValuesMap = attributeVerificationToken.getCredentials();
+        AttributeVerificationAuthenticationContext authContext = new AttributeVerificationAuthenticationContext(enteredUsername,
+                focusType, attrValuesMap, requireAssignment, channel);
+        Authentication token = getEvaluator().authenticate(connEnv, authContext);
+
+        MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+        LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+                authentication.getClass().getSimpleName(), principal.getAuthorities());
+        return token;
+
     }
 
     @Override
@@ -96,7 +87,6 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
 
     @Override
     public Class<? extends CredentialPolicyType> getTypeOfCredential() {
-        return null; //todo
+        return AttributeVerificationCredentialsPolicyType.class;
     }
-
 }

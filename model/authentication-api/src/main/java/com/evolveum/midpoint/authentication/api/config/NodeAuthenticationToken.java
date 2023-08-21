@@ -12,5 +12,5 @@ package com.evolveum.midpoint.authentication.api.config;
  * @author skublik
  */
 
-public interface NodeAuthenticationToken{
+public interface NodeAuthenticationToken {
 }

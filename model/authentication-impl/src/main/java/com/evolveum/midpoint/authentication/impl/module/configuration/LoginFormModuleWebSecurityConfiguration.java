@@ -20,4 +20,8 @@ public class LoginFormModuleWebSecurityConfiguration extends ModuleWebSecurityCo
         configuration.validate();
         return (T) configuration;
     }
+
+    public static LoginFormModuleWebSecurityConfiguration build(){
+        return new LoginFormModuleWebSecurityConfiguration();
+    }
 }

@@ -59,14 +59,12 @@ public class PageRegistrationFinish extends PageRegistrationBase {
 
     private static final String ID_LABEL_SUCCESS = "successLabel";
     private static final String ID_LABEL_ERROR = "errorLabel";
-    private static final String ID_LINK_LOGIN = "linkToLogin";
     private static final String ID_SUCCESS_PANEL = "successPanel";
     private static final String ID_ERROR_PANEL = "errorPanel";
 
     private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + "assignDefaultRoles";
     private static final String OPERATION_ASSIGN_ADDITIONAL_ROLE = DOT_CLASS + "assignAdditionalRole";
     private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
-    private static final String OPERATION_CHECK_CREDENTIALS = DOT_CLASS + "checkCredentials";
     private static final String OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE = DOT_CLASS + "removeNonceAndSetLifecycleState";
 
     private static final long serialVersionUID = 1L;

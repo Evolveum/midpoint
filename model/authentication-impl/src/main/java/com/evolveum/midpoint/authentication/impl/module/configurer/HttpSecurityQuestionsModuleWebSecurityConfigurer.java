@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpSecurityQuestionsAuthenticationEntryPoint;
@@ -14,9 +15,14 @@ import com.evolveum.midpoint.authentication.impl.filter.HttpSecurityQuestionsAut
 import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpSecQAuthenticationModuleType;
+
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -30,7 +36,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author skublik
  */
 
-public class HttpSecurityQuestionsModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguration> extends ModuleWebSecurityConfigurer<C> {
+public class HttpSecurityQuestionsModuleWebSecurityConfigurer extends ModuleWebSecurityConfigurer<ModuleWebSecurityConfigurationImpl, HttpSecQAuthenticationModuleType> {
 
     @Autowired
     private ModelService model;
@@ -44,8 +50,20 @@ public class HttpSecurityQuestionsModuleWebSecurityConfigurer<C extends ModuleWe
     @Autowired
     private TaskManager taskManager;
 
-    public HttpSecurityQuestionsModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
+    public HttpSecurityQuestionsModuleWebSecurityConfigurer(HttpSecQAuthenticationModuleType moduleType,
+            String suffix,
+            AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, suffix, authenticationChannel, postProcessor, request, provider);
+    }
+
+    @Override
+    protected ModuleWebSecurityConfigurationImpl buildConfiguration(HttpSecQAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType, sequenceSuffix);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        return configuration;
     }
 
     @Override

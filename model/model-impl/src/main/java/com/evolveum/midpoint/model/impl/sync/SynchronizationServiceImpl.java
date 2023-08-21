@@ -411,8 +411,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         syncCtx.setObjectTemplateForCorrelation(
                 beans.correlationServiceImpl.determineObjectTemplate(
-                        syncCtx.getSynchronizationPolicy(),
+                        syncCtx.getArchetypeOid(),
                         syncCtx.getPreFocus(),
+                        null,
                         task,
                         result));
     }

@@ -7,27 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import java.io.Serial;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-
-import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -36,23 +27,42 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.schema.util.AuthenticationSequenceTypeUtil;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
- * @author lskublik
+ * Umbrella class for each page that should have the look and feel of login page.
+ *
+ * It is used as a base for:
+ *
+ * . self-management pages, such as self-registration, password reset, invitation,
+ * . authentication module pages
+ *
+ * This abstract page should not contain methods which are not used for both cases.
+ *
+ * Basic intention is to provide common layout, such as a styles and title and
+ * description of the page. Possibility to change locale and implementation for back button.
  */
 public abstract class AbstractPageLogin extends PageAdminLTE {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_SEQUENCE = "sequence";
     private static final String ID_PANEL_TITLE = "panelTitle";
     private static final String ID_PANEL_DESCRIPTION = "panelDescription";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
+    private static final String ID_BACK_BUTTON = "back";
+
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractPageLogin.class);
 
     public AbstractPageLogin(PageParameters parameters) {
         super(parameters);
@@ -71,18 +81,13 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-
         response.render(OnDomReadyHeaderItem.forScript("$(\"input[name='username']\").focus();"));
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initModels();
         initLayout();
-    }
-
-    protected void initModels() {
     }
 
     private void initLayout() {
@@ -101,6 +106,7 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
         sequence.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
         add(sequence);
+
         AjaxButton toDefault = new AjaxButton(ID_SWITCH_TO_DEFAULT_SEQUENCE, createStringResource("AbstractPageLogin.switchToDefault")) {
 
             @Override
@@ -111,41 +117,47 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         };
         toDefault.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
         add(toDefault);
+
         initCustomLayout();
 
         addFeedbackPanel();
 
         add(new LocaleTextPanel("locale"));
+
+        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed();
+            }
+        };
+        backButton.setOutputMarkupId(true);
+        backButton.add(new VisibleBehaviour(this::isBackButtonVisible));
+        add(backButton);
     }
 
-    protected IModel<String> getLoginPanelTitleModel() {
-        return Model.of();
-    }
+    protected abstract boolean isBackButtonVisible();
 
-    protected IModel<String> getLoginPanelDescriptionModel() {
-        return Model.of();
-    }
+    protected abstract void initCustomLayout();
+
+    protected abstract IModel<String> getLoginPanelTitleModel();
+
+    protected abstract IModel<String> getLoginPanelDescriptionModel();
 
     private String getSequenceName() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            AuthenticationSequenceType sequence = mpAuthentication.getSequence();
-            if (sequence != null && sequence.getChannel() != null
-                    && !Boolean.TRUE.equals(sequence.getChannel().isDefault())
-                    && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(sequence.getChannel().getChannelId())) {
-                return sequence.getDisplayName() != null ? sequence.getDisplayName() : getSequenceIdentifier(sequence);
-            }
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
+            return null;
         }
+        AuthenticationSequenceType sequence = mpAuthentication.getSequence();
+        if (!AuthenticationSequenceTypeUtil.isDefaultChannel(sequence)
+                && AuthenticationSequenceTypeUtil.hasChannelId(sequence, SecurityPolicyUtil.DEFAULT_CHANNEL)) {
+            return AuthenticationSequenceTypeUtil.getSequenceDisplayName(sequence);
 
+        }
         return null;
     }
-
-    private String getSequenceIdentifier(AuthenticationSequenceType seq) {
-        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
-    }
-
-    protected abstract void initCustomLayout();
 
     @Override
     protected void onConfigure() {
@@ -162,65 +174,23 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         if (ex == null) {
             return;
         }
-
-//        if (showErrorMessage()) {
-            String msg = ex.getMessage();
-            if (StringUtils.isEmpty(msg)) {
-                msg = "web.security.provider.unavailable";
-            }
-            String[] msgs = msg.split(";");
-            String message = getLocalizationService().translate(msgs[0], null, getLocale(), msgs[0]);
-            error(message);
-//        }
-        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-    }
-
-    private boolean showErrorMessage() {
-        return !previousPrecessedModuleHasRequisiteNecessity();
-    }
-
-    private boolean previousPrecessedModuleHasRequisiteNecessity() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            int index = mpAuthentication.getIndexOfProcessingModule(false);
-            if (index > 0) {
-                ModuleAuthentication module = mpAuthentication.getAuthModules().get(index - 1).getBaseModuleAuthentication();
-                return AuthenticationSequenceModuleNecessityType.REQUISITE.equals(module.getNecessity());
-            }
+        String msg = ex.getMessage();
+        if (StringUtils.isEmpty(msg)) {
+            msg = "web.security.provider.unavailable";
         }
-        return false;
-    }
 
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-        confirmAuthentication();
+        String[] msgs = msg.split(";");
+        for (String message : msgs) {
+            message = getLocalizationService().translate(message, null, getLocale(), message);
+            error(message);
+        }
+
+        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 
     @Override
     protected void onAfterRender() {
         super.onAfterRender();
-    }
-
-    protected void confirmAuthentication() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        boolean loginPageForAnotherModule = false;
-        if (authentication instanceof MidpointAuthentication) {
-            PageDescriptor descriptor = getClass().getAnnotation(PageDescriptor.class);
-            if (descriptor != null && !descriptor.authModule().isEmpty()) {
-                ModuleAuthentication module = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
-                if (module != null) {
-                    loginPageForAnotherModule = !module.getModuleTypeName().equals(descriptor.authModule());
-                }
-            }
-        }
-
-        if (authentication.isAuthenticated() || loginPageForAnotherModule) {
-            MidPointApplication app = getMidpointApplication();
-            throw new RestartResponseException(app.getHomePage());
-        }
     }
 
     protected void saveException(Exception exception) {
@@ -232,6 +202,11 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
 
     protected void cancelPerformed() {
         setResponsePage(getMidpointApplication().getHomePage());
+    }
+
+    protected boolean isModuleApplicable(ModuleAuthentication moduleAuthentication) {
+        return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getModuleTypeName())
+                || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getModuleTypeName()));
     }
 
 }

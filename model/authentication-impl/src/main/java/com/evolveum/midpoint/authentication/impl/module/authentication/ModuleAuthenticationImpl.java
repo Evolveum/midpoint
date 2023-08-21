@@ -25,6 +25,7 @@ import org.springframework.security.core.AuthenticationException;
 
 /**
  * @author skublik
+ *
  */
 
 public class ModuleAuthenticationImpl implements ModuleAuthentication {

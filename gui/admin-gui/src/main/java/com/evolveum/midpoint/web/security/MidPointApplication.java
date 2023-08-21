@@ -77,7 +77,7 @@ import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
 import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
 import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
 import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.PrismContext;

@@ -119,7 +119,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.PageOrgSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageRoleSelfProfile;
 import com.evolveum.midpoint.gui.impl.page.self.PageServiceSelfProfile;
@@ -439,14 +439,20 @@ public final class WebComponentUtil {
         return sb.toString();
     }
 
-    public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation, PageBase pageBase) {
+    public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation,
+            PageAdminLTE pageBase) {
+        return loadReferencedObjectList(refList, operation, pageBase.createSimpleTask(operation), pageBase);
+    }
+
+    public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation,
+            Task task, PageAdminLTE pageBase) {
         List<O> loadedObjectsList = new ArrayList<>();
         if (refList == null) {
             return loadedObjectsList;
         }
         refList.forEach(objectRef -> {
             OperationResult result = new OperationResult(operation);
-            PrismObject<O> loadedObject = WebModelServiceUtils.resolveReferenceNoFetch(objectRef, pageBase, pageBase.createSimpleTask(operation), result);
+            PrismObject<O> loadedObject = WebModelServiceUtils.resolveReferenceNoFetch(objectRef, pageBase, task, result);
             if (loadedObject != null) {
                 loadedObjectsList.add(loadedObject.asObjectable());
             }

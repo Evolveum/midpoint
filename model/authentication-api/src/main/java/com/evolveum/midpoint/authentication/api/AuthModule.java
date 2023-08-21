@@ -8,18 +8,22 @@ package com.evolveum.midpoint.authentication.api;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
+import org.springframework.security.authentication.AuthenticationProvider;
+
+import java.util.List;
+
 /**
  * Define authentication module created by module configuration, with all filters and configuration
  *
  * @author skublik
  */
 
-public interface AuthModule {
+public interface AuthModule<MA extends ModuleAuthentication> {
 
     /**
      * @return module authentication (result after authentication process)
      */
-    ModuleAuthentication getBaseModuleAuthentication();
+    MA getBaseModuleAuthentication();
 
     String getModuleIdentifier();
 
@@ -27,5 +31,7 @@ public interface AuthModule {
      * @return order of authentication module
      */
     Integer getOrder();
+
+    List<AuthenticationProvider> getAuthenticationProviders();
 
 }

@@ -22,9 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.SecurityQuestionsAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.evaluator.context.SecurityQuestionsAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,47 +41,40 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
     private static final Trace LOGGER = TraceManager.getTrace(SecurityQuestionProvider.class);
 
     @Autowired
-    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> questionAuthenticationEvaluator;
+    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext, UsernamePasswordAuthenticationToken> questionAuthenticationEvaluator;
 
     @Override
-    protected AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getEvaluator() {
+    protected AuthenticationEvaluator<SecurityQuestionsAuthenticationContext, UsernamePasswordAuthenticationToken> getEvaluator() {
         return questionAuthenticationEvaluator;
     }
 
     @Override
-    protected Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+    protected Authentication doAuthenticate(
+            Authentication authentication,
+            String enteredUsername,
+            List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException {
-        if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
-            return authentication;
-        }
-        String enteredUsername = (String) authentication.getPrincipal();
+
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnvironment(channel, authentication);
+        ConnectionEnvironment connEnv = createEnvironment(channel);
 
-        try {
-            Authentication token;
-            if (authentication instanceof SecurityQuestionsAuthenticationToken) {
-                Map<String, String> answers = (Map<String, String>) authentication.getCredentials();
-                SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername,
-                        focusType, answers, requireAssignment);
-                if (channel != null) {
-                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
-                }
-                token = getEvaluator().authenticate(connEnv, authContext);
-            } else {
-                LOGGER.error("Unsupported authentication {}", authentication);
-                throw new AuthenticationServiceException("web.security.provider.unavailable");
-            }
-
-            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-                    authentication.getClass().getSimpleName(), principal.getAuthorities());
-            return token;
-        } catch (AuthenticationException e) {
-            LOGGER.debug("Authentication failed for {}: {}", enteredUsername, e.getMessage());
-            throw e;
+        if (!(authentication instanceof SecurityQuestionsAuthenticationToken securityQuestionsAuthenticationToken)) {
+            LOGGER.error("Unsupported authentication {}", authentication);
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
+
+        Map<String, String> answers = securityQuestionsAuthenticationToken.getCredentials();
+        SecurityQuestionsAuthenticationContext authContext = new SecurityQuestionsAuthenticationContext(enteredUsername,
+                focusType, answers, requireAssignment, channel);
+
+        Authentication token = getEvaluator().authenticate(connEnv, authContext);
+
+        MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+        LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+                authentication.getClass().getSimpleName(), principal.getAuthorities());
+        return token;
+
     }
 
     @Override

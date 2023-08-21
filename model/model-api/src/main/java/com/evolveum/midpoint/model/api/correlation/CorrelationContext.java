@@ -21,6 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+
 /**
  * The context of the correlation and correlator state update operations.
  * (Both work on an object being synchronized. The use in the latter case is experimental, though.)
@@ -30,28 +32,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * Not to be confused with {@link CorrelatorContext} which describes the context of the whole {@link Correlator} lifespan.
  */
-public class CorrelationContext implements DebugDumpable, Cloneable {
-
-    /**
-     * Shadowed resource object to be correlated.
-     */
-    @NotNull private final ShadowType resourceObject;
+public abstract class CorrelationContext implements DebugDumpable, Cloneable {
 
     /**
      * Focus that was created using pre-mappings.
      * May be empty (but not null) e.g. if there are no such mappings.
      */
-    @NotNull private final FocusType preFocus;
-
-    /**
-     * Resource on which the correlated shadow resides.
-     */
-    @NotNull private final ResourceType resource;
-
-    /**
-     * Usually resource object type definition (~ schemaHandling section).
-     */
-    @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
+    @NotNull final FocusType preFocus;
 
     /**
      * System configuration to use during the correlation.
@@ -70,23 +57,12 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
     private AbstractCorrelatorStateType correlatorState;
 
     public CorrelationContext(
-            @NotNull ShadowType resourceObject,
             @NotNull FocusType preFocus,
-            @NotNull ResourceType resource,
-            @NotNull ResourceObjectDefinition objectDefinition,
-            @Nullable ObjectTemplateType currentObjectTemplate, // TODO remove?
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task) {
-        this.resourceObject = resourceObject;
         this.preFocus = preFocus;
-        this.resource = resource;
-        this.resourceObjectDefinition = objectDefinition;
         this.systemConfiguration = systemConfiguration;
         this.task = task;
-    }
-
-    public @NotNull ShadowType getResourceObject() {
-        return resourceObject;
     }
 
     public @NotNull FocusType getPreFocus() {
@@ -97,20 +73,17 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
         return preFocus.getClass();
     }
 
-    public @Nullable String getArchetypeOid() {
-        // Note that the archetype OID can be specified only on the object type. It is not supported
-        // for legacy synchronization definition. Therefore we may safely access it in the following way:
-        ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
-        return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
-    }
+    /** Returns the archetype for focus objects that the candidate(s) must possess. Null means "no restrictions".  */
+    public abstract @Nullable String getArchetypeOid();
 
-    public @NotNull ResourceType getResource() {
-        return resource;
-    }
-
-    public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
-        return resourceObjectDefinition;
-    }
+    /** Returns candidate owners returned from previous correlator
+     *  If more than one correlator are defined to be used, they will
+     *  run separatelly. First correlator probably won't have any candidates to consider,
+     *  but every next correlator might consider a cadidate set from previous correlator
+     *  as a base for the search.
+     * @return
+     */
+    public abstract @NotNull Set<String> getCandidateOids();
 
     public @Nullable SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
@@ -129,25 +102,21 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
     }
 
     @Override
-    public String toString() {
-        return "CorrelationContext("
-                + getFocusType().getSimpleName() + ", "
-                + resourceObjectDefinition.getHumanReadableName() + "@" + resource
-                + ')';
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "focusType", getFocusType(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
+        debugDumpSpecific(sb, indent);
         DebugUtil.debugDumpWithLabelLn(sb, "systemConfiguration", String.valueOf(systemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "correlatorState", correlatorState, indent + 1);
         return sb.toString();
     }
+
+    void debugDumpSpecific(StringBuilder sb, int indent) {
+        // Nothing to do here. To be overridden by subclasses.
+    }
+
+    public @NotNull abstract Shadow asShadowCtx();
 
     /**
      * A simple shallow clone. Use with care.
@@ -158,6 +127,141 @@ public class CorrelationContext implements DebugDumpable, Cloneable {
             return (CorrelationContext) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new SystemException(e);
+        }
+    }
+
+    /** Returns the object (e.g. shadow or focus) that is being correlated. Currently for logging purposes. */
+    @NotNull public abstract ObjectType getPrimaryCorrelatedObject();
+
+    /** Context for correlating a shadow to a set of matching focuses. */
+    public static class Shadow extends CorrelationContext {
+
+        /**
+         * Shadowed resource object to be correlated.
+         */
+        @NotNull private final ShadowType resourceObject;
+
+        /**
+         * Resource on which the correlated shadow resides.
+         */
+        @NotNull private final ResourceType resource;
+
+        /**
+         * Usually resource object type definition (~ schemaHandling section).
+         */
+        @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
+
+        public Shadow(
+                @NotNull ShadowType resourceObject,
+                @NotNull ResourceType resource,
+                @NotNull ResourceObjectDefinition resourceObjectDefinition,
+                @NotNull FocusType preFocus,
+                @Nullable SystemConfigurationType systemConfiguration,
+                @NotNull Task task) {
+            super(preFocus, systemConfiguration, task);
+            this.resourceObject = resourceObject;
+            this.resource = resource;
+            this.resourceObjectDefinition = resourceObjectDefinition;
+        }
+
+        public @NotNull ShadowType getResourceObject() {
+            return resourceObject;
+        }
+
+        public @NotNull ResourceType getResource() {
+            return resource;
+        }
+
+        public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
+            return resourceObjectDefinition;
+        }
+
+        public @Nullable String getArchetypeOid() {
+            // Note that the archetype OID can be specified only on the object type. It is not supported
+            // for legacy synchronization definition. Therefore we may safely access it in the following way:
+            ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
+            return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
+        }
+
+        @Override
+        public @NotNull Set<String> getCandidateOids() {
+            throw new UnsupportedOperationException("Not supported yet");
+        }
+
+        @Override
+        public @NotNull Shadow asShadowCtx() {
+            return this;
+        }
+
+        @Override
+        public @NotNull ObjectType getPrimaryCorrelatedObject() {
+            return resourceObject;
+        }
+
+        @Override
+        public String toString() {
+            return "CorrelationContext.Shadow("
+                    + getFocusType().getSimpleName() + ", "
+                    + resourceObjectDefinition.getHumanReadableName() + "@" + resource
+                    + ')';
+        }
+
+        @Override
+        void debugDumpSpecific(StringBuilder sb, int indent) {
+            DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
+        }
+    }
+
+    /**
+     * Context for correlating a focus to a set of matching focuses.
+     *
+     * TODO finish this class
+     */
+    public static class Focus extends CorrelationContext {
+
+        private final String archetypeOid;
+        private final Set<String> candidateOids;
+
+        public Focus(
+                @NotNull FocusType preFocus,
+                @Nullable String archetypeOid,
+                @NotNull Set<String> candidateOids,
+                @Nullable SystemConfigurationType systemConfiguration,
+                @NotNull Task task) {
+            super(preFocus, systemConfiguration, task);
+            this.archetypeOid = archetypeOid;
+            this.candidateOids = candidateOids;
+        }
+
+        @Override
+        public @NotNull Shadow asShadowCtx() {
+            throw new IllegalStateException("Focus context cannot be used as shadow context");
+        }
+
+        @Override
+        public @Nullable String getArchetypeOid() {
+            return archetypeOid;
+//            throw new UnsupportedOperationException(); // TODO implement
+        }
+
+        @Override
+        public @NotNull Set<String> getCandidateOids() {
+            return candidateOids;
+        }
+
+        @Override
+        public @NotNull ObjectType getPrimaryCorrelatedObject() {
+            return preFocus;
+        }
+
+        @Override
+        public String toString() {
+            return "CorrelationContext.Focus("
+                    + getFocusType().getSimpleName() + ", "
+                    + preFocus
+                    + ')';
         }
     }
 }

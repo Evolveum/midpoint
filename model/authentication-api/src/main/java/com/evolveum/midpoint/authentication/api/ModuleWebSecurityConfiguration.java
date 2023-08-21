@@ -11,7 +11,8 @@ import java.util.List;
 import org.springframework.security.authentication.AuthenticationProvider;
 
 /**
- * Define configuration for authentication module
+ * Define configuration for authentication module, contains all variables which we need for creating authentication filters
+ * for module and all component which authentication modules uses.
  *
  * @author skublik
  */

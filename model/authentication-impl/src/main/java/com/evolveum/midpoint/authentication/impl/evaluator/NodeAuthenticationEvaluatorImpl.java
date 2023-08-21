@@ -11,51 +11,52 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.authentication.impl.module.authentication.NodeAuthenticationTokenImpl;
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.authentication.api.evaluator.context.NodeAuthenticationContext;
+import com.evolveum.midpoint.authentication.impl.module.authentication.NodeAuthenticationTokenImpl;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeOperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @Component
-public class NodeAuthenticationEvaluatorImpl {
+public class NodeAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<NodeAuthenticationContext, NodeAuthenticationTokenImpl> {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
     @Autowired private TaskManager taskManager;
-    @Autowired private ModelAuditRecorder securityHelper;
     @Autowired private Protector protector;
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeAuthenticationEvaluatorImpl.class);
 
     private static final String OPERATION_SEARCH_NODE = NodeAuthenticationEvaluatorImpl.class.getName() + ".searchNode";
 
-    public boolean authenticate(@Nullable String remoteName, String remoteAddress, @NotNull String credentials, String operation) {
+    @Override
+    public NodeAuthenticationTokenImpl authenticate(ConnectionEnvironment connEnv, NodeAuthenticationContext authnCtx) throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
+        String remoteName = authnCtx.getRemoteName();
+        String remoteAddress = authnCtx.getUsername();
         LOGGER.debug("Checking if {} ({}) is a known node", remoteName, remoteAddress);
         OperationResult result = new OperationResult(OPERATION_SEARCH_NODE);
 
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
+        //(!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "node authentication"))
+//        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
 
         try {
             List<PrismObject<NodeType>> allNodes = repositoryService.searchObjects(NodeType.class, null, null, result);
@@ -72,35 +73,12 @@ public class NodeAuthenticationEvaluatorImpl {
                 LOGGER.trace(
                         "Matching result: Node(s) {} recognized as known (remote host name {} or IP address {} matched).",
                         matchingNodes, remoteName, remoteAddress);
-                PrismObject<NodeType> actualNode = null;
-                for (PrismObject<NodeType> matchingNode : matchingNodes) {
-                    ProtectedStringType encryptedSecret = matchingNode.asObjectable().getSecret();
-                    if (encryptedSecret != null) {
-                        String plainSecret;
-                        try {
-                            plainSecret = protector.decryptString(encryptedSecret);
-                        } catch (EncryptionException e) {
-                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt node secret for {}", e, matchingNode);
-                            continue;
-                        }
-                        if (credentials.equals(plainSecret)) {
-                            LOGGER.debug("Node secret matches for {}", matchingNode);
-                            actualNode = matchingNode;
-                            break;
-                        } else {
-                            LOGGER.debug("Node secret does not match for {}", matchingNode);
-                        }
-                    } else {
-                        LOGGER.debug("No secret known for node {}", matchingNode);
-                    }
-                }
+                PrismObject<NodeType> actualNode = determineCurrentNode(matchingNodes, authnCtx.getEnteredCredential());
                 if (actualNode != null) {
                     LOGGER.trace("Established authenticity for remote {}", actualNode);
-                    NodeAuthenticationTokenImpl authNtoken = new NodeAuthenticationTokenImpl(actualNode, remoteAddress,
+                    auditAuthenticationSuccess(actualNode.asObjectable(), connEnv);
+                    return new NodeAuthenticationTokenImpl(actualNode, remoteAddress,
                             Collections.emptyList());
-                    SecurityContextHolder.getContext().setAuthentication(authNtoken);
-                    securityHelper.auditLoginSuccess(actualNode.asObjectable(), connEnv);
-                    return true;
                 } else {
                     LOGGER.debug("Authenticity for {} couldn't be established: none of the secrets match", matchingNodes);
                 }
@@ -109,9 +87,37 @@ public class NodeAuthenticationEvaluatorImpl {
             LOGGER.error("Unhandled exception when listing nodes");
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing nodes", e);
         }
-        securityHelper.auditLoginFailure(remoteName != null ? remoteName : remoteAddress, null, connEnv, "Failed to authenticate node.");
-        return false;
+        auditAuthenticationFailure(remoteName != null ? remoteName : remoteAddress, connEnv, "Failed to authenticate node.");
+        throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.null");
     }
+
+    private PrismObject<NodeType> determineCurrentNode(List<PrismObject<NodeType>> matchingNodes, String credentials) {
+        for (PrismObject<NodeType> matchingNode : matchingNodes) {
+            ProtectedStringType encryptedSecret = matchingNode.asObjectable().getSecret();
+            if (encryptedSecret != null) {
+                String plainSecret;
+                try {
+                    plainSecret = protector.decryptString(encryptedSecret);
+                } catch (EncryptionException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt node secret for {}", e, matchingNode);
+                    continue;
+                }
+                if (credentials.equals(plainSecret)) {
+                    LOGGER.debug("Node secret matches for {}", matchingNode);
+                    return matchingNode;
+                } else {
+                    LOGGER.debug("Node secret does not match for {}", matchingNode);
+                }
+            } else {
+                LOGGER.debug("No secret known for node {}", matchingNode);
+            }
+        }
+        return null;
+    }
+
+//    public boolean authenticate(@Nullable String remoteName, String remoteAddress, @NotNull String credentials, String operation) {
+//
+//    }
 
     private List<PrismObject<NodeType>> getMatchingNodes(List<PrismObject<NodeType>> knownNodes, String remoteName,
             String remoteAddress) {
