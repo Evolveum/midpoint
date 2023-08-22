@@ -116,4 +116,18 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
         return "col-8";
     }
 
+    @Override
+    protected boolean isExitButtonVisible() {
+        return false;
+    }
+
+    @Override
+    protected boolean isBackButtonVisible() {
+        return true;
+    }
+
+    protected IModel<String> getExitLabel() {
+        return getPageBase().createStringResource("PageBase.button.back");
+    }
+
 }
