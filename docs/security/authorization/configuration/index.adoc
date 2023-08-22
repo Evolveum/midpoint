@@ -469,206 +469,55 @@ However it can be freely modified and replaced with a better least-privilege adm
 
 == Object Specification
 
-Object of the authorization can be selected in a variety of ways:
+Object of the authorization can be selected in a variety of ways.
+They are summarized in the following table.
 
+.Object selector clauses
+[%autowidth]
+|===
+| Clause | Description
 
-=== Object Selection by Type
+| xref:selectors/type-and-parent.adoc[`type`]
+| Authorization applies only to objects of the specified type.
 
-Authorization applies only to objects of the specified type.
-In the following case it only applies to shadows:
+| xref:selectors/type-and-parent.adoc[`parent`]
+| Authorization applies only to objects positioned at specified path within given parents.
 
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <type>ShadowType</type>
-    </object>
-</authorization>
-----
+| xref:selectors/filter.adoc[`filter`]
+| Authorization applies only to objects that match specified filter.
+(Optionally, with expressions.)
 
-=== Object Selection by Query Filter
+| xref:selectors/archetypeRef.adoc[`archetypeRef`]
+| Authorization applies only to objects that have specified archetype.
 
-Authorization applies only to objects that match specified query.
-In the following case it only applies to objects that have property `locality` set to value `Caribbean`.
+| xref:selectors/orgRef.adoc[`orgRef`]
+| Authorization applies only to objects that are members of a specific xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org].
 
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <filter>
-            <q:equal>
-                <q:path>locality</q:path>
-                <q:value>Caribbean</q:value>
-            </q:equal>
-        </filter>
-    </object>
-</authorization>
-----
+| xref:selectors/orgRelation.adoc[`orgRelation`]
+| Authorization applies only to objects that are members of any org, for which the subject has a specific relation.
 
-Or, alternatively, using midPoint Query Language.
+| xref:selectors/self.adoc[`self`]
+| Authorization applies only to objects that represent the user which initiates the operation.
 
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <filter>
-            <q:text>locality = "Caribbean"</q:text>
-        </filter>
-    </object>
-</authorization>
-----
+| xref:selectors/owner.adoc[`owner`]
+| Authorization applies only to objects that have an owner which is specified by inner object selector.
 
-=== Object Selection by Archetype
+| xref:selectors/delegator.adoc[`delegator`]
+| Authorization applies only to users that have active delegation assignment to objects selected by inner selector (currently limited to `self`).
 
-Authorization applies only to objects that have specified archetype.
+| xref:selectors/requester.adoc[`requester`]
+| Authorization applies only to objects (e.g. cases) for which objects selected by inner selector are requesters.
 
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <archetypeRef oid="00000000-0000-0000-0000-000000000321"/>
-    </object>
-</authorization>
-----
+| xref:selectors/assignee.adoc[`assignee` and `candidateAssignee`]
+| Authorization applies only to objects (e.g. cases) for which objects selected by inner selector are assignees (or candidate assignees).
 
-Archetype specification is multi-valued.
-If more than one `archetypeRef` is used in the same authorization, then _or_ operation is implied.
-I.e. match of a single archetypes from the list will make the authorization applicable for the object.
+| xref:selectors/relatedObject.adoc[`relatedObject`]
+| Authorization applies only to objects (cases, tasks) that are related to objects selected by the inner selector.
 
-[TIP]
-====
-The <archetypeRef> mechanism is available in midPoint 4.0 and later.
-See also xref:/midpoint/reference/schema/archetypes/[Archetypes].
+| xref:selectors/tenant.adoc[`tenant`]
+| Authorization applies only to objects that have the same tenant as the subject.
 
-====
-
-=== Object Selection by Organization Structure Membership
-
-Authorization applies only to objects that are members of a specific xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org].
-In the following case it only applies to members of Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`.
-
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <orgRef oid="1f82e908-0072-11e4-9532-001e8c717e5b"/>
-    </object>
-</authorization>
-----
-
-This is good for delegated administration to fixed organizational subtrees.
-
-NOTE: The organization object itself (`1f82e908-0072-11e4-9532-001e8c717e5b` in the above example) is _not_ covered by the authorization.
-In fact, it is not a member of itself.
-
-=== Object Selection by Organization Structure Relation
-
-This authorization type applies only to objects that are members of any org, for which the subject has a specific relation.
-E.g. it can give access to any objects that are part of any organizational unit that the subject is managing.
-This is illustrated in the following snippet.
-This authorization gives managers the ability to control any object that they are "managing".
-
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <orgRelation>
-            <subjectRelation>org:manager</subjectRelation>
-        </orgRelation>
-    </object>
-</authorization>
-----
-
-This is good for dynamic delegated administration.
-But please note that this authorization may degrade performance if the subject has relation to many organizational units.
-
-[TIP]
-====
-The `<orgRelation>` mechanism is available in midPoint 3.4 and later.
-====
-
-=== Self Object Selection
-
-Authorization applies only to objects that represent the user which initiates the operation.
-I.e. if the object is also a subject of the operation.
-
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <special>self</special>
-    </object>
-</authorization>
-----
-
-=== Object Selection by Owner
-
-Authorization applies only to objects that have an owner which is specified by inner object selection.
-
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <owner>
-            ... inner object selection specification goes here ...
-        </owner>
-    </object>
-</authorization>
-----
-
-The object owner is its xref:/midpoint/reference/schema/focus-and-projections/[focal object].
-E.g. typical owner of account shadows is a user to whom the accounts are linked.
-
-E.g. the following example only applies to objects that have owner who is a full-time employee, represented by having the archetype with OID `164319fb-7c23-4346-8a58-6e128b4861d5`.
-
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <owner>
-            <archetypeRef oid="164319fb-7c23-4346-8a58-6e128b4861d5"/> <!-- Full-time employee -->
-        </owner>
-    </object>
-</authorization>
-----
-
-=== Object Selection by Tenant
-
-++++
-{% include since.html since="3.9" %}
-++++
-
-Authorization applies only to objects that have the same tenant as the subject.
-
-[source,xml]
-----
-<authorization>
-    <action>...</action>
-    <object>
-        <tenant>
-            <sameAsSubject>true</sameAsSubject>
-            <includeTenantOrg>false</includeTenantOrg>
-        </tenant>
-    </object>
-</authorization>
-----
-
-This authorization can be used to limit users to access objects only inside their own tenant.
-The `includeTenantOrg` element can be used to include or exclude the tenant (tenant org) itself.
-E.g. it can be used to prohibit modification of the tenant itself, but allow modification of any other object in its "tenancy".
-
-This authorization works only if both subject and object are multi-tenant.
-I.e. it will not work if subject does not have tenant (no `tenantRef`) or in case that the object does not have tenant.
-Ordinary (non-tenant) authorizations should be used for those cases.
+|===
 
 === Object Selection Combinations
 
@@ -848,58 +697,6 @@ The default behavior of assignment/inducement authorizations is to apply only to
 Therefore if no `orderConstraints` clause is present, then the authorization allows assignments only.
 This behavior is slightly different from other authorization clauses, where no clause means no limitation.
 But this behavior was chosen for compatibility reasons.
-
-== Expressions
-
-++++
-{% include since.html since="3.7" %}
-++++
-
-xref:/midpoint/reference/expressions/expressions/[Expressions] can be used in authorization search filters:
-
-[source,xml]
-----
-<authorization>
-    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    <object>
-        <type>RoleType</type>
-        <filter>
-            <q:equal>
-                <q:path>roleType</q:path>
-                <expression>
-                    <!-- Make sure empty value of costCenter does not allow any access. -->
-                    <queryInterpretationOfNoValue>filterNone</queryInterpretationOfNoValue>
-                    <path>$subject/costCenter</path>
-                </expression>
-            </q:equal>
-        </filter>
-    </object>
-</authorization>
-----
-
-The authorization above allows read access to all roles that have the same `roleType` as is the values of `costCenter` property of the user who is subject of the authorization.
-
-Variable `subject` may be used in the expressions to represent authorization subject (user).
-Other common expressions variables may also be available or will be made available in the future.
-However, we recommend to avoid using the `actor` variable.
-Please use `subject` variable instead.
-Those variables are usually set to the same value.
-But there may be situations when the value is different (e.g. administrator evaluating authorization of a different user).
-The `subject` variable is usually the right one.
-
-[NOTE]
-====
-Authorizations are evaluated frequently.
-Evaluations are done at least twice during ordinary midPoint operation.
-Authorizations are designed to be very efficient to evaluate.
-However, if expression is part of the evaluation then the expression may impact performance of the entire system.
-Expressions that use the `path` evaluator (as the one above) are usually very fast, and they are safe.
-Even simple script expressions usually do not create any major issue.
-However, try to avoid placing complex or slow expressions into authorizations.
-Those are almost certain to have a severe negative impact on system performance.
-If you need complex computation, it is perhaps better to compute the value in xref:/midpoint/reference/expressions/object-template/[object template] and place it into property of the object (e.g. user extension property).
-Then use only the result of the computation stored in that property in authorization expressions.
-====
 
 == Item Authorizations
 
