@@ -76,4 +76,11 @@ public class SubtypeClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("subtype: ").append(subtype);
     }
+
+    @Override
+    public String toString() {
+        return "SubtypeClause{" +
+                "subtype='" + subtype + '\'' +
+                "}";
+    }
 }

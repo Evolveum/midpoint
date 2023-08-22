@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -96,7 +97,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         if (containerType == null) {
             return null;
         }
-        return PrismContext.get().getSchemaRegistry().determineClassForType(containerType);
+        return SchemaRegistry.get().determineClassForType(containerType);
     }
 
     public String getViewIdentifier() {

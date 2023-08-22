@@ -78,7 +78,7 @@ public class TypeClause extends SelectorClause {
         return typeDefinition;
     }
 
-    private @NotNull TypeDefinition getTypeDefinitionRequired() {
+    @NotNull TypeDefinition getTypeDefinitionRequired() {
         return stateNonNull(getTypeDefinition(), () -> "No type definition in " + this);
     }
 
@@ -140,5 +140,10 @@ public class TypeClause extends SelectorClause {
     @Override
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append(" ").append(typeName);
+    }
+
+    @Override
+    public String toString() {
+        return "TypeClause{typeName=" + typeName + "}";
     }
 }

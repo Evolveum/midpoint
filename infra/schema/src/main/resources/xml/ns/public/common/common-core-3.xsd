@@ -7689,7 +7689,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="object" type="tns:AuthorizationObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="object" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Object part from the (subject,action,object) authorization triple.
@@ -7994,6 +7994,11 @@
         <xsd:annotation>
             <xsd:documentation>
                 Selects some objects from all the objects in midPoint.
+
+                Note that although we usually talk about "real" prism objects here,
+                this selector can be also applied to sub-object structures, like case work items, and so on.
+
+                See the "parent" item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -8019,6 +8024,17 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="parent" minOccurs="0" type="tns:ObjectParentSelectorType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Requirements on the parent (owning) object + the position (path) of this object within the parent one.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectSelectorType.parent</a:displayName>
+                        <a:elaborate>true</a:elaborate> <!-- because of recursion -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="type" minOccurs="0" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8254,14 +8270,16 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthorizationObjectSelectorType">
+    <xsd:complexType name="ObjectParentSelectorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO TODO TODO specify the purpose
+                Position of an object (more precisely, an item) within midPoint objects structure.
+                For example a case work item can be specified as having type=CaseType, path=workItem.
 
-                "Ultimately flexible specification of an authorization object that may be any prism value, not just prism object"
+                TODO we should perhaps find a better name
 
-                TODO Also, consider using more generalized name
+                TODO technically this derives from OwnedObjectSelectorType, but not all the features may be available
+                in all contexts (e.g., sometimes only ObjectSelectorType features may be available)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -8271,38 +8289,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:OwnedObjectSelectorType">
                 <xsd:sequence>
-                    <xsd:element name="parent" type="tns:AuthorizationParentSelectorType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="AuthorizationParentSelectorType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.8</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AuthorizationObjectSelectorType">
-                <xsd:sequence>
                     <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Specification of a path from the parent to the current object (item).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

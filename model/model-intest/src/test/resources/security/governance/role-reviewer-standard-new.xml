@@ -20,7 +20,10 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateWorkItem</action>
         <object>
-            <type>AccessCertificationWorkItemType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case/workItem</path>
+            </parent>
             <assignee>
                 <special>self</special>
             </assignee>
@@ -33,7 +36,10 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCaseType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case</path>
+            </parent>
             <assignee>
                 <special>self</special>
             </assignee>

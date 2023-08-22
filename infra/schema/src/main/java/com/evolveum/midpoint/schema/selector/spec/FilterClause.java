@@ -146,4 +146,9 @@ public class FilterClause extends SelectorClause {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "filter", filter, indent + 1);
     }
+
+    @Override
+    public String toString() {
+        return "FilterClause{filter=" + filter + "}";
+    }
 }

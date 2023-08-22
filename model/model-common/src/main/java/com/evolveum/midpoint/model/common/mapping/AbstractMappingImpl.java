@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 
 import org.jetbrains.annotations.NotNull;
@@ -404,8 +405,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
-        valueMetadataDefinition = PrismContext.get().getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
+        valueMetadataDefinition = SchemaRegistry.get().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
     }
 
     private MappingSpecificationType createDefaultSpecification() {

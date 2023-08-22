@@ -67,10 +67,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
             return true;
         }
 
-        if (AuthorizationParentSelectorType.COMPLEX_TYPE.equals(typeName)
-                && itemDef.getItemName().equivalent(AuthorizationObjectSelectorType.F_PARENT)) {
-            // The AuthorizationObjectSelectorType#parent points back to AuthorizationObjectSelectorType
-            // (via AuthorizationParentSelectorType), so normally an endless recursion would occur here.
+        if (ObjectParentSelectorType.COMPLEX_TYPE.equals(typeName)
+                && itemDef.getItemName().equivalent(ObjectSelectorType.F_PARENT)) {
+            // The ObjectSelectorType#parent points back to ObjectSelectorType
+            // (via ObjectParentSelectorType), so normally an endless recursion would occur here.
             // Therefore, we treat it as a heterogeneous container. At least for now.
             //
             // TODO review this; see MID-8910.

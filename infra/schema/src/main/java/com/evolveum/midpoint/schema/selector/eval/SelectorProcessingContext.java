@@ -69,7 +69,7 @@ public abstract class SelectorProcessingContext {
     /**
      * Interpretation of `self` clause for the current evaluation.
      *
-     * @see MatchingContext#child(DelegatorSelection, String, String)
+     * @see MatchingContext#next(DelegatorSelection, String, String)
      * @see #getSelfOids()
      */
     @NotNull final DelegatorSelection delegatorSelection;

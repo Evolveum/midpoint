@@ -64,7 +64,7 @@ public class OwnerClause extends SelectorClause {
             return false;
         }
         boolean matches =
-                selector.matches(owner.getValue(), ctx.child("o", "owner"));
+                selector.matches(owner.getValue(), ctx.next("o", "owner"));
         traceApplicability(ctx, matches, "owner (%s) matches: %s", owner, matches);
         return matches;
     }
@@ -74,9 +74,9 @@ public class OwnerClause extends SelectorClause {
         // TODO: MID-3899
         // TODO what if owner is specified not as "self" ?
         if (TaskType.class.isAssignableFrom(ctx.getRestrictedType())) {
-            FocusType principal = ctx.getPrincipalFocus();
-            if (principal != null) {
-                addConjunct(ctx, applyOwnerFilterOwnerRef(principal));
+            FocusType subject = ctx.getPrincipalFocus();
+            if (subject != null) {
+                addConjunct(ctx, applyOwnerFilterOwnerRef(subject));
                 return true;
             } else {
                 traceNotApplicable(ctx, "no principal");
@@ -89,11 +89,11 @@ public class OwnerClause extends SelectorClause {
     }
 
     // TODO review this legacy code
-    private ObjectFilter applyOwnerFilterOwnerRef(FocusType principalFocus) {
+    private ObjectFilter applyOwnerFilterOwnerRef(@NotNull FocusType subject) {
         S_FilterExit builder = PrismContext.get().queryFor(TaskType.class)
-                .item(TaskType.F_OWNER_REF).ref(principalFocus.getOid());
-        // TODO don't understand this code
-        for (ObjectReferenceType subjectParentOrgRef : principalFocus.getParentOrgRef()) {
+                .item(TaskType.F_OWNER_REF).ref(subject.getOid());
+        // We select also tasks that are owned by any of subject's parent orgs - TODO why?
+        for (ObjectReferenceType subjectParentOrgRef : subject.getParentOrgRef()) {
             if (PrismContext.get().isDefaultRelation(subjectParentOrgRef.getRelation())) {
                 builder = builder.or().item(TaskType.F_OWNER_REF).ref(subjectParentOrgRef.getOid());
             }
@@ -105,5 +105,12 @@ public class OwnerClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "selector", selector, indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return "OwnerClause{" +
+                "selector=" + selector +
+                "}";
     }
 }

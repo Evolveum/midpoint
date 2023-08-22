@@ -96,7 +96,7 @@ public class OwnedByRestriction extends Restriction<OwnedByFilter> {
         }
 
         ComplexTypeDefinition ownerTypeDef = filter.getType();
-        if (ownerTypeDef != null && ownerTypeDef.getCompileTimeClass() != null) {
+        if (ownerTypeDef.getCompileTimeClass() != null) {
             if (!expectedOwnerType.isAssignableFrom(ownerTypeDef.getCompileTimeClass())) {
                 throw new QueryException("OwnedBy filter with invalid owning type '"
                         + ownerTypeDef.getCompileTimeClass().getSimpleName() + "', type '" + ownedType.getSimpleName()

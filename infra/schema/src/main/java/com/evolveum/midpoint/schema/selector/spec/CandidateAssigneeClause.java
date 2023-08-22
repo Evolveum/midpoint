@@ -135,4 +135,11 @@ public class CandidateAssigneeClause extends SelectorClause {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "selector", selector, indent + 1);
     }
+
+    @Override
+    public String toString() {
+        return "CandidateAssigneeClause{" +
+                "selector=" + selector +
+                "}";
+    }
 }

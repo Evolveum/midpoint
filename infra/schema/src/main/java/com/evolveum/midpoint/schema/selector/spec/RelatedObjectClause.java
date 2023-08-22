@@ -60,7 +60,7 @@ public class RelatedObjectClause extends SelectorClause {
         boolean matches =
                 selector.matches(
                         relatedObject.getValue(),
-                        ctx.child(DelegatorSelection.NO_DELEGATOR, "rel", "related object"));
+                        ctx.next(DelegatorSelection.NO_DELEGATOR, "rel", "related object"));
         traceApplicability(ctx, matches, "related object (%s) matches: %s", relatedObject, matches);
         return matches;
     }
@@ -101,5 +101,12 @@ public class RelatedObjectClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "selector", selector, indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return "RelatedObjectClause{" +
+                "selector=" + selector +
+                "}";
     }
 }

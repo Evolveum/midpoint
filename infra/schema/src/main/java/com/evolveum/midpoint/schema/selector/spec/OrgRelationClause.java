@@ -84,16 +84,12 @@ public class OrgRelationClause extends SelectorClause {
             return true;
         }
         OrgScopeType scope = Objects.requireNonNullElse(bean.getScope(), OrgScopeType.ALL_DESCENDANTS);
-        switch (scope) {
-            case ALL_DESCENDANTS:
-                return ctx.orgTreeEvaluator.isDescendant(object.asPrismObject(), subjectParentOrgRef.getOid());
-            case DIRECT_DESCENDANTS:
-                return hasParentOrgRef(object.asPrismObject(), subjectParentOrgRef.getOid());
-            case ALL_ANCESTORS:
-                return ctx.orgTreeEvaluator.isAncestor(object.asPrismObject(), subjectParentOrgRef.getOid());
-            default:
-                throw new UnsupportedOperationException("Unknown orgRelation scope " + scope);
-        }
+        return switch (scope) {
+            case ALL_DESCENDANTS -> ctx.orgTreeEvaluator.isDescendant(object.asPrismObject(), subjectParentOrgRef.getOid());
+            case DIRECT_DESCENDANTS -> hasParentOrgRef(object.asPrismObject(), subjectParentOrgRef.getOid());
+            case ALL_ANCESTORS -> ctx.orgTreeEvaluator.isAncestor(object.asPrismObject(), subjectParentOrgRef.getOid());
+            case NONE -> false;
+        };
     }
 
     private boolean hasParentOrgRef(PrismObject<? extends ObjectType> object, String oid) {
@@ -110,9 +106,9 @@ public class OrgRelationClause extends SelectorClause {
     public boolean toFilter(@NotNull FilteringContext ctx) throws SchemaException {
         ObjectFilter conjunct = null;
         QName subjectRelation = bean.getSubjectRelation();
-        FocusType principalFocus = ctx.getPrincipalFocus();
-        if (principalFocus != null) {
-            for (ObjectReferenceType subjectParentOrgRef : principalFocus.getParentOrgRef()) {
+        FocusType subject = ctx.getPrincipalFocus();
+        if (subject != null) {
+            for (ObjectReferenceType subjectParentOrgRef : subject.getParentOrgRef()) {
                 if (PrismContext.get().relationMatches(subjectRelation, subjectParentOrgRef.getRelation())) {
                     S_FilterEntryOrEmpty q = PrismContext.get().queryFor(ObjectType.class);
                     S_FilterExit q2;
@@ -123,6 +119,8 @@ public class OrgRelationClause extends SelectorClause {
                         q2 = q.isDirectChildOf(subjectParentOrgRef.getOid());
                     } else if (scope == OrgScopeType.ALL_ANCESTORS) {
                         q2 = q.isParentOf(subjectParentOrgRef.getOid());
+                    } else if (scope == OrgScopeType.NONE) {
+                        q2 = q.none();
                     } else {
                         throw new UnsupportedOperationException("Unknown orgRelation scope " + scope);
                     }
@@ -144,5 +142,12 @@ public class OrgRelationClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "specification", bean, indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return "OrgRelationClause{" +
+                "bean=" + bean +
+                "}";
     }
 }
