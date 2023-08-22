@@ -50,11 +50,12 @@ public class QAuditDeltaMapping
     private QAuditDeltaMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ObjectDeltaOperationType.class, QAuditDelta.class, repositoryContext);
-        // FIXME: Add mappers
-        addItemMapping(F_RESOURCE_OID);
-        addItemMapping(F_SHADOW_INTENT);
-        addItemMapping(F_SHADOW_KIND);
 
+        addItemMapping(F_OBJECT_NAME, polyStringMapper(r -> r.objectNameOrig, r-> r.objectNameNorm));
+        addItemMapping(F_RESOURCE_NAME, polyStringMapper(r -> r.resourceNameOrig, r -> r.resourceNameNorm));
+        addItemMapping(F_RESOURCE_OID, uuidMapper(r -> r.resourceOid));
+        addItemMapping(F_SHADOW_KIND, enumMapper(r -> r.shadowKind));
+        addItemMapping(F_SHADOW_INTENT, stringMapper(r -> r.shadowIntent));
     }
 
     @Override

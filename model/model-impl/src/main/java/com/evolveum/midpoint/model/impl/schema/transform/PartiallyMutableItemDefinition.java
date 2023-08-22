@@ -202,7 +202,10 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Mut
     @Override
     default void setInherited(boolean value) {
         throw new IllegalStateException("Item Definition is not modifiable");
+    }
 
+    default void setSearchable(boolean value) {
+        throw new IllegalStateException("Item Definition is not modifiable");
     }
 
     public interface Container<C extends Containerable> extends PartiallyMutableItemDefinition<PrismContainer<C>>, MutablePrismContainerDefinition<C> {

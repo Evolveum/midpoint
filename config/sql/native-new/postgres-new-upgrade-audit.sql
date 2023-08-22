@@ -125,6 +125,21 @@ call apply_audit_change(5, $aa$
      ADD COLUMN effectivePrivilegesModification EffectivePrivilegesModificationType;
 $aa$);
 
+
+call apply_audit_change(6, $aa$
+   -- We try to create ShadowKindType (necessary if audit is in separate database, if it is in same
+   -- database as repository, type already exists.
+   DO $$ BEGIN
+       CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
+   EXCEPTION
+       WHEN duplicate_object THEN null;
+   END $$;
+
+   ALTER TABLE ma_audit_delta
+     ADD COLUMN shadowKind ShadowKindType,
+     ADD COLUMN shadowIntent TEXT;
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
 -- to match the number used in the last change here!
