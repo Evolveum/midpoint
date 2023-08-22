@@ -101,6 +101,20 @@ public class AuthUtil {
         return false;
     }
 
+    /**
+     * Convenient method to return instance of MidpointAuthentication if exists
+     * If not present, exception is thrown.
+     *
+     * TODO: maybe we wll need to change exception to return null
+     */
+    public static MidpointAuthentication getMidpointAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
+        }
+        return (MidpointAuthentication) authentication;
+    }
+
     public static ModuleAuthentication getAuthenticatedModule() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
