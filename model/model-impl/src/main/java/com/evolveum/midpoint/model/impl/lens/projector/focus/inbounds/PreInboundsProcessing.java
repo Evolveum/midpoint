@@ -90,7 +90,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
         CorrelatorContext<?> correlatorContext =
                 CorrelatorContextCreator.createRootContext(
                         getCorrelationDefinitionBean(),
-                        new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
+                        CorrelatorDiscriminator.forSynchronization(),
                         getObjectTemplate(),
                         ctx.getSystemConfiguration());
         PathSet paths = correlatorContext.getConfiguration().getCorrelationItemPaths();

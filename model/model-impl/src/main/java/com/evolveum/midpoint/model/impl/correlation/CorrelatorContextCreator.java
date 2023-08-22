@@ -75,8 +75,7 @@ public class CorrelatorContextCreator {
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
             @NotNull CorrelatorDiscriminator correlatorDiscriminator,
             @Nullable ObjectTemplateType objectTemplate,
-            @Nullable SystemConfigurationType systemConfiguration
-    )
+            @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
         CompositeCorrelatorType correlators;
         CompositeCorrelatorType specificCorrelators = correlationDefinitionBean == null ? null : correlationDefinitionBean.getCorrelators();

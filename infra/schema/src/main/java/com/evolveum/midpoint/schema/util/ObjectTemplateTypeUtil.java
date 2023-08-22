@@ -27,16 +27,19 @@ public class ObjectTemplateTypeUtil {
 
     public static @Nullable CompositeCorrelatorType getCorrelators(
             @Nullable ObjectTemplateType template,
-            @NotNull CorrelatorDiscriminator discriminator) {
+            @NotNull CorrelatorDiscriminator discriminator) throws ConfigurationException {
         if (template == null) {
             return null;
         }
         ObjectTemplateCorrelationType correlation = template.getCorrelation();
         List<CompositeCorrelatorType> correlators = correlation != null ? correlation.getCorrelators() : List.of();
-        return correlators.stream()
+        var matching = correlators.stream()
                 .filter(discriminator::match)
-                .findFirst()
-                .orElse(null);
+                .toList();
+        return MiscUtil.extractSingleton(
+                matching,
+                () -> new ConfigurationException("%d correlators matching %s in %s".formatted(
+                        matching.size(), discriminator, template)));
     }
 
     public static @Nullable ObjectTemplateItemDefinitionType findItemDefinition(
