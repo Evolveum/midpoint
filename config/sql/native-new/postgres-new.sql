@@ -126,6 +126,8 @@ CREATE TYPE AvailabilityStatusType AS ENUM ('DOWN', 'UP', 'BROKEN');
 
 CREATE TYPE CorrelationSituationType AS ENUM ('UNCERTAIN', 'EXISTING_OWNER', 'NO_OWNER', 'ERROR');
 
+CREATE TYPE ExecutionModeType AS ENUM ('FULL', 'PREVIEW', 'SHADOW_MANAGEMENT_PREVIEW', 'DRY_RUN', 'NONE', 'BUCKET_ANALYSIS');
+
 CREATE TYPE LockoutStatusType AS ENUM ('NORMAL', 'LOCKED');
 
 CREATE TYPE NodeOperationalStateType AS ENUM ('UP', 'DOWN', 'STARTING');
@@ -137,6 +139,8 @@ CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ER
     'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
 
 CREATE TYPE OrientationType AS ENUM ('PORTRAIT', 'LANDSCAPE');
+
+CREATE TYPE PredefinedConfigurationType AS ENUM ( 'PRODUCTION', 'DEVELOPMENT' );
 
 CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
@@ -1328,6 +1332,8 @@ CREATE TABLE m_task_affected_objects (
     resourceRefRelationId INTEGER REFERENCES m_uri(id),
     intent TEXT,
     kind ShadowKindType,
+    executionMode ExecutionModeType,
+    predefinedConfigurationToUse PredefinedConfigurationType,
     PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
@@ -2110,4 +2116,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(19, $$ SELECT 1 $$, true);
+call apply_change(20, $$ SELECT 1 $$, true);

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -48,6 +50,8 @@ public class QAffectedObjects extends QContainer<MAffectedObjects, MTask> {
             ColumnMetadata.named("intent").ofType(Types.VARCHAR);
     public static final ColumnMetadata KIND =
             ColumnMetadata.named("kind").ofType(Types.OTHER);
+    private static final ColumnMetadata EXECUTION_MODE = ColumnMetadata.named("executionMode").ofType(Types.OTHER);
+    private static final ColumnMetadata PREDEFINED_CONFIGURATION_TO_USE = ColumnMetadata.named("predefinedConfigurationToUse").ofType(Types.OTHER);
 
     public final NumberPath<Integer> activityId =
             createInteger("activityId", ACTIVITY_ID);
@@ -70,6 +74,8 @@ public class QAffectedObjects extends QContainer<MAffectedObjects, MTask> {
             createInteger("resourceRefRelationId", RESOURCE_REF_RELATION_ID);
     public final StringPath intent = createString("intent", INTENT);
     public final EnumPath<ShadowKindType> kind = createEnum("kind", ShadowKindType.class, KIND);
+    public EnumPath<ExecutionModeType> executionMode = createEnum("executionMode", ExecutionModeType.class, EXECUTION_MODE);
+    public EnumPath<PredefinedConfigurationType> predefinedConfigurationToUse = createEnum("predefinedConfigurationToUse", PredefinedConfigurationType.class, PREDEFINED_CONFIGURATION_TO_USE);
 
     public QAffectedObjects(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

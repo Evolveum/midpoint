@@ -114,6 +114,9 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
         querydslConfig.register(new EnumAsObjectType<>(ThreadStopActionType.class));
         querydslConfig.register(new EnumAsObjectType<>(TimeIntervalStatusType.class));
+        querydslConfig.register(new EnumAsObjectType<>(ExecutionModeType.class));
+        querydslConfig.register(new EnumAsObjectType<>(PredefinedConfigurationType.class));
+
 
         // JSONB type support
         querydslConfig.register(new QuerydslJsonbType());

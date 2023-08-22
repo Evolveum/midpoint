@@ -367,6 +367,15 @@ CREATE TABLE m_task_affected_objects (
 
 $aa$)
 
+call apply_change(20, $aa$
+CREATE TYPE ExecutionModeType AS ENUM ('FULL', 'PREVIEW', 'SHADOW_MANAGEMENT_PREVIEW', 'DRY_RUN', 'NONE', 'BUCKET_ANALYSIS');
+CREATE TYPE PredefinedConfigurationType AS ENUM ( 'PRODUCTION', 'DEVELOPMENT' );
+
+ALTER TABLE m_task_affected_objects
+  ADD COLUMN executionMode ExecutionModeType,
+  ADD COLUMN predefinedConfigurationToUse PredefinedConfigurationType;
+$aa$)
+
 
 ---
 -- WRITE CHANGES ABOVE ^^
