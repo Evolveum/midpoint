@@ -71,8 +71,7 @@ public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable, Ser
      */
     boolean isDelegation();
 
-    @NotNull
-    AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent);
+    @NotNull AssignmentPathSegmentType toAssignmentPathSegmentBean(boolean includeAssignmentsContent);
 
     /**
      * Returns true if the path segment matches specified order constraints. All of them must match.

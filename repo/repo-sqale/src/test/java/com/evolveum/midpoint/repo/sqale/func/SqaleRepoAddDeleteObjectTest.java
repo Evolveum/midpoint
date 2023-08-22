@@ -494,6 +494,88 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test202AddObjectWithMultivalueContainersWithExplicitIds()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with assignment and ref");
+        String userName = "user" + getTestNumber();
+        String targetRef1 = UUID.randomUUID().toString();
+        String targetRef2 = UUID.randomUUID().toString();
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .id(10L)
+                        .targetRef(targetRef1, RoleType.COMPLEX_TYPE))
+                .assignment(new AssignmentType()
+                        .id(12L)
+                        .targetRef(targetRef2, RoleType.COMPLEX_TYPE));
+
+        when("adding it to the repository");
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("object and its container rows are created and container IDs are assigned");
+        assertThatOperationResult(result).isSuccess();
+
+        QUser u = aliasFor(QUser.class);
+        List<MUser> users = select(u, u.nameOrig.eq(userName));
+        assertThat(users).hasSize(1);
+        MUser userRow = users.get(0);
+        assertThat(userRow.oid).isNotNull();
+        assertThat(userRow.containerIdSeq).isEqualTo(13); // next free container number
+
+        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
+        List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
+        assertThat(containers).hasSize(2)
+                .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
+                        && cRow.containerType == MContainerType.ASSIGNMENT)
+                .extracting(cRow -> cRow.cid)
+                .containsExactlyInAnyOrder(10L, 12L);
+    }
+
+    @Test
+    public void test203AddObjectWithOidAndMultivalueContainersWithExplicitIds()
+            throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult result = createOperationResult();
+
+        given("user with assignment and ref");
+        UUID providedOid = UUID.randomUUID();
+        String userName = "user" + getTestNumber();
+        String targetRef1 = UUID.randomUUID().toString();
+        String targetRef2 = UUID.randomUUID().toString();
+        UserType user = new UserType()
+                .oid(providedOid.toString())
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .id(10L)
+                        .targetRef(targetRef1, RoleType.COMPLEX_TYPE))
+                .assignment(new AssignmentType()
+                        .id(12L)
+                        .targetRef(targetRef2, RoleType.COMPLEX_TYPE));
+
+        when("adding it to the repository");
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        then("object and its container rows are created and container IDs are assigned");
+        assertThatOperationResult(result).isSuccess();
+
+        QUser u = aliasFor(QUser.class);
+        List<MUser> users = select(u, u.nameOrig.eq(userName));
+        assertThat(users).hasSize(1);
+        MUser userRow = users.get(0);
+        assertThat(userRow.oid).isNotNull();
+        assertThat(userRow.containerIdSeq).isEqualTo(13); // next free container number
+
+        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
+        List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
+        assertThat(containers).hasSize(2)
+                .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
+                        && cRow.containerType == MContainerType.ASSIGNMENT)
+                .extracting(cRow -> cRow.cid)
+                .containsExactlyInAnyOrder(10L, 12L);
+    }
+
+    @Test
     public void test205AddObjectWithMultivalueRefs()
             throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = createOperationResult();

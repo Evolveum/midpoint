@@ -402,12 +402,13 @@ public class Clockwork {
         //DefaultSearchExpressionEvaluatorCache.exitCache();
     }
 
-    public <F extends ObjectType> @NotNull HookOperationMode click(@NotNull LensContext<F> context,
-            @NotNull Task task, @NotNull OperationResult parentResult)
+    public <F extends ObjectType> @NotNull HookOperationMode click(
+            @NotNull LensContext<F> context,
+            @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConflictDetectedException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
             ObjectAlreadyExistsException {
         return new ClockworkClick<>(context, beans, task)
-                .click(parentResult);
+                .click(result);
     }
 }

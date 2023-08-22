@@ -92,7 +92,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, "testDirect", AssignmentOrigin.inObject(testOrigin()),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -133,7 +133,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, "testDirect", AssignmentOrigin.inObject(testOrigin()),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -182,7 +182,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, "testDirect", AssignmentOrigin.inObject(embedded(assignmentInUser)),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -251,7 +251,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, "testDirect", AssignmentOrigin.inObject(embedded(assignmentInUser)),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -331,7 +331,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(testOrigin()),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -379,7 +379,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(testOrigin()),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -427,7 +427,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(testOrigin()),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -480,7 +480,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
+                assignmentIdi, null, PlusMinusZero.ZERO, false, userTypeJack,
                 getTestNameShort(), AssignmentOrigin.other(testOrigin()), task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
 
@@ -552,7 +552,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false,
+                assignmentIdi, null, PlusMinusZero.ZERO, false,
                 userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(embedded(assignmentForUser)),
                 task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -617,7 +617,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, getTestNameShort(), AssignmentOrigin.inObject(embedded(assignmentForUser)),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -680,7 +680,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(testOrigin()),
                         task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -744,7 +744,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false,
+                assignmentIdi, null, PlusMinusZero.ZERO, false,
                 userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(testOrigin()),
                 task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);
@@ -802,7 +802,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
         // WHEN
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
-                assignmentIdi, PlusMinusZero.ZERO, false,
+                assignmentIdi, null, PlusMinusZero.ZERO, false,
                 userTypeJack, "testRoleEngineer", AssignmentOrigin.inObject(testOrigin()),
                 task, result);
         evaluateConstructions(evaluatedAssignment, userOdo, task, result);

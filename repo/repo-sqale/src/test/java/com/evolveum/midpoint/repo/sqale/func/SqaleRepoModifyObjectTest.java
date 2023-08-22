@@ -2401,10 +2401,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = user.getAssignment();
         assertThat(assignments).hasSize(3)
                 .anyMatch(ass -> ass.getOrder() == 47)
                 .anyMatch(ass -> ass.getOrder() == 48)
@@ -2451,10 +2451,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThatOperationResult(result).isSuccess();
 
         and("serialized form (fullObject) is updated");
-        UserType UserObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
-        assertThat(UserObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        List<AssignmentType> assignments = UserObject.getAssignment();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        List<AssignmentType> assignments = user.getAssignment();
         assertThat(assignments).hasSize(3)
                 .anyMatch(ass -> ass.getOrder() == 47) // first one stays 47
                 .anyMatch(ass -> ass.getOrder() == 50  // previously 48
@@ -2685,7 +2685,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test312AddingAssignmentWithUsedBytFreeCid()
+    public void test312AddingAssignmentWithUsedButFreeCid()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
@@ -2740,7 +2740,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .stream()
                 .map(ass -> ass.clone() // we need to get it out of original parent
                         .lifecycleState(String.valueOf(ass.getId()))) // some change
-                .collect(Collectors.toList());
+                .toList();
 
         and("delta replacing the values with the same values again (with CIDs already)");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -3035,6 +3035,30 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .getObject(AccessCertificationCampaignType.class, accessCertificationCampaign1Oid, retrieveWithCases(), result)
                 .asObjectable();
         assertThat(campaignObjectAfter.getCase().size()).isEqualTo(1);
+    }
+
+    @Test
+    public void test340AllocateContainerIdentifiers() throws ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        long start = originalRow.containerIdSeq;
+
+        when("allocating 5 new CIDs");
+        var ids = repositoryService.allocateContainerIdentifiers(UserType.class, user1Oid, 5, result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("5 IDs are returned");
+        assertThat(ids)
+                .containsExactlyInAnyOrder(start, start + 1, start + 2, start + 3, start + 4);
+
+        and("CID counter is updated");
+        MUser changedRow = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(changedRow.containerIdSeq).isEqualTo(start + 5);
+
+        and("version is unchanged");
+        assertThat(changedRow.version).isEqualTo(originalRow.version);
     }
 
     @Test

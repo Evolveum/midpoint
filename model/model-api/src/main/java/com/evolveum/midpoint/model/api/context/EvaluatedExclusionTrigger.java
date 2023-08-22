@@ -137,7 +137,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
         if (options.isFullStorageStrategy()) {
             rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
             rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
-            rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
+            rv.setConflictingObjectPath(conflictingPath.toAssignmentPathBean(options.isIncludeAssignmentsContent()));
             if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignment() != null) {
                 rv.setConflictingAssignment(conflictingAssignment.getAssignment().clone());
             }

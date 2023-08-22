@@ -121,6 +121,12 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 currentAssignmentDelta,
                 virtualAssignments);
 
+        if (context.areAccessesMetadataEnabled() // this is the main use case for ID pre-allocation
+                && beans.cacheRepositoryService.isNative() // generic repo does not provide ID allocation
+                && task.isExecutionFullyPersistent()) { // don't want effects in repo + don't care about multiple "audit" entries
+            assignmentCollection.generateExternalIds(focusContext, result);
+        }
+
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
         // Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
@@ -224,8 +230,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             processAssignmentReplace(assignmentElement, forceRecon, assignmentPlacementDesc);
         } else if (assignmentChanged) {
             // Standard case 1: the assignment is added, deleted, or modified
-            processAddedOrDeletedOrChangedAssignment(assignmentElement, forceRecon, assignmentPlacementDesc,
-                    innerAssignmentDeltas);
+            processAddedOrDeletedOrChangedAssignment(
+                    assignmentElement, forceRecon, assignmentPlacementDesc, innerAssignmentDeltas);
         } else {
             // Standard case 2: the assignment is unchanged in this wave (still present in current object or already gone)
             processReallyUnchangedAssignment(assignmentElement, assignmentPlacementDesc);
@@ -252,8 +258,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      * (and potentially dangerous) we optimize here are consider the assignments that were there before replace
      * and still are there after it as unchanged.
      */
-    private void processAssignmentReplace(SmartAssignmentElement assignmentElement, boolean forceRecon,
-            String assignmentPlacementDesc)
+    private void processAssignmentReplace(
+            SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         LOGGER.trace("Processing replace of all assignments for: {}", printLazily(assignmentElement));
@@ -278,8 +284,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     /**
      * Add/delete of entire assignment or some changes inside existing assignments.
      */
-    private void processAddedOrDeletedOrChangedAssignment(SmartAssignmentElement assignmentElement, boolean forceRecon,
-            String assignmentPlacementDesc, Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas)
+    private void processAddedOrDeletedOrChangedAssignment(
+            SmartAssignmentElement assignmentElement,
+            boolean forceRecon,
+            String assignmentPlacementDesc,
+            Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         boolean added = assignmentElement.getOrigin().isInDeltaAdd();
@@ -298,8 +307,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             evaluateAsDeleted(assignmentElement, forceRecon, assignmentPlacementDesc);
             // TODO what about phantom deletes?
         } else {
-            processInternallyChangedAssignment(assignmentElement, assignmentPlacementDesc, innerAssignmentDeltas,
-                    added, deleted);
+            processInternallyChangedAssignment(
+                    assignmentElement, assignmentPlacementDesc, innerAssignmentDeltas, added, deleted);
         }
     }
 
@@ -340,8 +349,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             // The change is not significant for assignment applicability. Recon will sort out the details.
             LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
                     added, deleted, isActive, prettyPrintLazily(assignmentValueBefore));
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO,
-                    false, assignmentPlacementDesc, assignmentElement);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                    assignmentIdi, PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment != null) { // TODO what about the condition state change?! MID-6404
                 evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
                 collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
@@ -351,8 +360,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             // TODO review this: MID-6403
             LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
                     added, deleted, prettyPrintLazily(assignmentValueBefore));
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS,
-                    false, assignmentPlacementDesc, assignmentElement);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                    assignmentIdi, PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment != null) {
                 evaluatedAssignment.setWasValid(false);
                 collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
@@ -362,8 +371,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             // TODO review this: MID-6403
             LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
                     added, deleted, prettyPrintLazily(assignmentValueBefore));
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS,
-                    false, assignmentPlacementDesc, assignmentElement);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
+                    assignmentIdi, PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment != null) {
                 evaluatedAssignment.setWasValid(true);
                 collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
@@ -554,13 +563,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             return List.of();
         }
         return focusDelta.findItemDeltasSubPath(
-                ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, assignmentElement.getAssignmentId()));
+                ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, assignmentElement.getBuiltInAssignmentId()));
     }
 
     /** Returns new value of assignment corresponding to given assignment element. */
     private PrismContainerValue<AssignmentType> getAssignmentNewValue(SmartAssignmentElement assignmentElement) {
         return focusContext.getObjectNew().<AssignmentType>findContainer(AssignmentHolderType.F_ASSIGNMENT)
-                .getValue(assignmentElement.getAssignmentId());
+                .getValue(assignmentElement.getBuiltInAssignmentId());
     }
 
     private void collectToZero(
@@ -599,7 +608,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      */
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(
             ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            PlusMinusZero primaryAssignmentMode, boolean evaluateOld, String assignmentPlacementDesc,
+            PlusMinusZero primaryAssignmentMode,
+            boolean evaluateOld,
+            String assignmentPlacementDesc,
             SmartAssignmentElement smartAssignment)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
             ConfigurationException, CommunicationException {
@@ -614,6 +625,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             EvaluatedAssignmentImpl<AH> evaluatedAssignment =
                     assignmentEvaluator.evaluate(
                             assignmentIdi,
+                            smartAssignment.getExternalAssignmentId(),
                             primaryAssignmentMode,
                             evaluateOld,
                             source,

@@ -250,6 +250,13 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
+    public @NotNull <T extends ObjectType> Collection<Long> allocateContainerIdentifiers(
+            @NotNull Class<T> type, @NotNull String oid, int howMany, @NotNull OperationResult result)
+            throws ObjectNotFoundException {
+        return repositoryService.allocateContainerIdentifiers(type, oid, howMany, result);
+    }
+
+    @Override
     public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information,
             OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         modificationOpHandler.addDiagnosticInformation(type, oid, information, parentResult);

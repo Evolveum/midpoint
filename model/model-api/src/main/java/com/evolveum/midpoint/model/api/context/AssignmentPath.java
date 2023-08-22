@@ -84,7 +84,7 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable,
 
     AssignmentPath cloneFirst(int n);
 
-    AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
+    AssignmentPathType toAssignmentPathBean(boolean includeAssignmentsContent);
 
     ExtensionType collectExtensions(int startAt) throws SchemaException;
 
