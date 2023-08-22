@@ -1,0 +1,53 @@
+= Assignee and Candidate Assignee Clause
+
+It selects objects (cases, work items) that have an assignee which is specified by inner object selector.
+
+An example:
+
+.Listing 1. An authorization allowing reading any case in which the subject is an assignee
+[source,xml]
+----
+<authorization>
+    <name>cases-assignee-self-read</name>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <object>
+        <type>CaseType</type>
+        <assignee>
+            <special>self</special>
+        </assignee>
+    </object>
+</authorization>
+----
+
+The following behavior applies to midPoint 4.8.
+
+.Supported object types
+[%autowidth]
+|===
+| Object type | What are the assignees?
+
+| `CaseType`
+| All `assigneeRef` values from all `workItem` values.
+
+| `AccessCertificationCaseType`
+| All `assigneeRef` values from all `workItem` values.
+
+| `AbstractWorkItemType` (work items for both types of cases)
+| All `assigneeRef` values.
+|===
+
+== Delegation
+During evaluation of this clause, the `self` clause in the inner selector has an interpretation that slightly differs from the usual one:
+Instead of matching the principal object only, it matches all of its deputies relevant for given area (i.e., case management or access certification).
+So, if `ann` is a deputy of `jack` with the rights in the area of case management, and a case `C` has a work item assigned to `jack`, and `ann` has the authorization depicted in Listing 1, then she can read the case `C` exactly as `jack` can.
+
+== Limitations
+. When searching, only `self` selector is supported.
+
+== Candidate Assignee
+++++
+{% include since.html since="4.8" %}
+++++
+
+In a similar way, candidate assignees can be authorized regarding cases, certification cases, and their work items.
+The `candidateRef` item is taken into account instead of `assigneeRef`.

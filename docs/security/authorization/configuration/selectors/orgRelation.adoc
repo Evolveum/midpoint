@@ -1,0 +1,46 @@
+= Org Relation Clause
+:page-since: 3.4
+
+Selects objects that are members of any org, for which the subject has a specific relation.
+
+For example, an authorization using this clause can give access to any objects that are part of any organizational unit that the subject is managing.
+This is illustrated in the following snippet.
+
+.Listing 1. Authorization that gives managers the ability to control any object that they are "managing".
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <orgRelation>
+            <subjectRelation>org:manager</subjectRelation>
+        </orgRelation>
+    </object>
+</authorization>
+----
+
+This is good for dynamic delegated administration.
+But please note that this authorization may degrade performance if the subject has relation to many organizational units.
+
+== Reference
+
+.Configuration items
+[%autowidth]
+|===
+| Item | Description
+
+| `subjectRelation`
+| Specifies the relation that the subject needs to have to the org for this condition to trigger.
+This is usually `null` (`org:default`, i.e., member) relation or `org:manager` relation.
+
+| `scope`
+| Scope of application that will be used to select objects relative to the reference org.
+It determines which objects will be selected (those above or below the reference node, shallow or deep, etc.)
+Values: `allDescendants` (the default), `directDescendants`, `allAncestors`, `none`.
+
+| `includeReferenceOrg`
+| If set to `true` then the reference org (the one which the subject belongs to) is included in the scope.
+If set to `false` (the default) then the reference org is excluded from the scope.
+|===
+
+NOTE: Just as in xref:orgRef.adoc[], only effective membership is considered.
