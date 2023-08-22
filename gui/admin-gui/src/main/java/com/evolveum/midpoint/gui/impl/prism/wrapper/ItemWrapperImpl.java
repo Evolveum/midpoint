@@ -79,6 +79,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     //consider
     private boolean readOnly;
     private UserInterfaceElementVisibilityType visibleOverwrite;
+    private Integer displayOrder;
 
     public ItemWrapperImpl(PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
         Validate.notNull(item, "Item must not be null.");
@@ -130,6 +131,10 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     @Override
@@ -531,7 +536,14 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     @Override
     public Integer getDisplayOrder() {
-        return getItemDefinition().getDisplayOrder();
+        if (displayOrder == null) {
+            displayOrder = getItemDefinition().getDisplayOrder();
+        }
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
     }
 
     @Override

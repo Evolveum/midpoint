@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
@@ -124,11 +123,8 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
         Model<PrismContainerDefinition<ResourceAttributeDefinitionType>> resourceAttributeDef =
                 Model.of(PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(
                         ResourceAttributeDefinitionType.class));
-        columns.add(new PrismPropertyWrapperColumn(
-                resourceAttributeDef,
-                ResourceAttributeDefinitionType.F_REF,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()));
+
+        columns.add(createVirtualRefItemColumn(resourceAttributeDef, null));
 
         columns.add(new IconColumn<>(Model.of()) {
             @Override

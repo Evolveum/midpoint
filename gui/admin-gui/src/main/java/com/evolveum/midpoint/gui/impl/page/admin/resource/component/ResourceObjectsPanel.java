@@ -259,7 +259,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 buttonsList.add(createReloadButton(buttonId));
                 buttonsList.addAll(super.createToolbarButtonsList(buttonId));
                 return buttonsList;
-
             }
         };
         shadowTablePanel.setOutputMarkupId(true);

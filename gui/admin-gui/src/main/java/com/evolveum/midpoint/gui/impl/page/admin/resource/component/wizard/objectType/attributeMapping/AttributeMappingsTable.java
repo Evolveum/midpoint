@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -21,6 +20,8 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -37,7 +38,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -183,8 +187,6 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
                 ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
 
-        propertyDef.toMutable().setDisplayOrder(1);
-
         createVirtualItemInMapping(mapping, null, propertyDef);
     }
 
@@ -203,6 +205,10 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                     mapping,
                     ItemStatus.ADDED,
                     new WrapperContext(task, result));
+
+            ((ItemWrapperImpl)refItemWrapper).setDisplayName(
+                    getString(getMappingType().name()+"."+ResourceAttributeDefinitionType.F_REF));
+            ((ItemWrapperImpl)refItemWrapper).setDisplayOrder(1);
 
             if (value != null && value.getRealValue() != null && value.getRealValue().getRef() != null) {
                 refItemWrapper.getValue().setRealValue(value.getRealValue().getRef().clone());
@@ -332,6 +338,44 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 };
 
                 getPageBase().showMainPopup(changePopup, target);
+            }
+        };
+    }
+
+    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createVirtualRefItemColumn(
+            IModel<? extends PrismContainerDefinition> resourceAttributeDef, String cssClasses) {
+        return new PrismPropertyWrapperColumn(
+                resourceAttributeDef,
+                ResourceAttributeDefinitionType.F_REF,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()) {
+            @Override
+            protected Component createHeader(String componentId, IModel mainModel) {
+                return new PrismPropertyHeaderPanel<ItemPathType>(
+                        componentId,
+                        new PrismPropertyWrapperHeaderModel(mainModel, itemName, getPageBase())) {
+
+                    @Override
+                    protected boolean isAddButtonVisible() {
+                        return false;
+                    }
+
+                    @Override
+                    protected boolean isButtonEnabled() {
+                        return false;
+                    }
+
+                    @Override
+                    protected Component createTitle(IModel<String> label) {
+                        return super.createTitle(getPageBase().createStringResource(
+                                getMappingType().name()+"."+ResourceAttributeDefinitionType.F_REF));
+                    }
+                };
+            }
+
+            @Override
+            public String getCssClass() {
+                return cssClasses;
             }
         };
     }

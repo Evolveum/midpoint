@@ -4173,9 +4173,6 @@
                         attribute in the resource schema that belongs to an
                         object class that is being described here.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>ItemRefinedDefinitionType.ref</a:displayName>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0">
