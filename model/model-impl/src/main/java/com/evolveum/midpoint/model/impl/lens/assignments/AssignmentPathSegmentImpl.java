@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.config.AbstractAssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +71,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * TODO which ODO (absolute/relative)? MID-6404
      */
     @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
+
+    /** Repo-generated ID for new assignment, if available. */
+    @Nullable private final Long externalAssignmentId;
 
     /**
      * Are we evaluating the old or new state of the assignment?
@@ -209,6 +213,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         source = builder.source;
         sourceDescription = builder.sourceDescription;
         assignmentIdi = builder.assignmentIdi;
+        externalAssignmentId = builder.externalAssignmentId;
         assignmentOrigin = Objects.requireNonNull(builder.assignmentOrigin, "no assignmentOrigin");
         evaluateOld = builder.evaluateOld;
         assignment = Util.getAssignment(assignmentIdi, evaluateOld);
@@ -235,29 +240,30 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         return evaluationOrder.matches(assignment.getOrder(), assignment.getOrderConstraint());
     }
 
-    private AssignmentPathSegmentImpl(AssignmentPathSegmentImpl origin, ObjectType target) {
-        this.source = origin.source;
-        this.sourceDescription = origin.sourceDescription;
-        this.assignmentIdi = origin.assignmentIdi;
-        this.assignmentOrigin = origin.assignmentOrigin;
-        this.evaluateOld = origin.evaluateOld;
-        this.assignment = origin.assignment;
-        this.assignmentConfigItem = origin.assignmentConfigItem;
-        this.relation = origin.relation;
-        this.isAssignment = origin.isAssignment;
-        this.archetypeHierarchy = origin.archetypeHierarchy;
+    private AssignmentPathSegmentImpl(AssignmentPathSegmentImpl origSegment, ObjectType target) {
+        this.source = origSegment.source;
+        this.sourceDescription = origSegment.sourceDescription;
+        this.assignmentIdi = origSegment.assignmentIdi;
+        this.externalAssignmentId = origSegment.externalAssignmentId;
+        this.assignmentOrigin = origSegment.assignmentOrigin;
+        this.evaluateOld = origSegment.evaluateOld;
+        this.assignment = origSegment.assignment;
+        this.assignmentConfigItem = origSegment.assignmentConfigItem;
+        this.relation = origSegment.relation;
+        this.isAssignment = origSegment.isAssignment;
+        this.archetypeHierarchy = origSegment.archetypeHierarchy;
         this.target = target;
-        this.direct = origin.direct;
-        this.pathToSourceActive = origin.pathToSourceActive;
-        this.assignmentActive = origin.assignmentActive;
-        this.pathToSourceConditionState = origin.pathToSourceConditionState;
-        this.assignmentConditionState = origin.assignmentConditionState;
-        this.overallConditionState = origin.overallConditionState;
-        this.evaluationOrder = origin.evaluationOrder;
-        this.isMatchingOrder = origin.isMatchingOrder;
-        this.evaluationOrderForTarget = origin.evaluationOrderForTarget;
-        this.isMatchingOrderForTarget = origin.isMatchingOrderForTarget;
-        this.lastEqualOrderSegmentIndex = origin.lastEqualOrderSegmentIndex;
+        this.direct = origSegment.direct;
+        this.pathToSourceActive = origSegment.pathToSourceActive;
+        this.assignmentActive = origSegment.assignmentActive;
+        this.pathToSourceConditionState = origSegment.pathToSourceConditionState;
+        this.assignmentConditionState = origSegment.assignmentConditionState;
+        this.overallConditionState = origSegment.overallConditionState;
+        this.evaluationOrder = origSegment.evaluationOrder;
+        this.isMatchingOrder = origSegment.isMatchingOrder;
+        this.evaluationOrderForTarget = origSegment.evaluationOrderForTarget;
+        this.isMatchingOrderForTarget = origSegment.isMatchingOrderForTarget;
+        this.lastEqualOrderSegmentIndex = origSegment.lastEqualOrderSegmentIndex;
     }
 
     @Override
@@ -531,12 +537,12 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     @NotNull
     @Override
-    public AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent) {
+    public AssignmentPathSegmentType toAssignmentPathSegmentBean(boolean includeAssignmentsContent) {
         AssignmentPathSegmentType rv = new AssignmentPathSegmentType();
         if (includeAssignmentsContent) {
             rv.setAssignment(assignment.clone());
         }
-        rv.setAssignmentId(assignment.getId());
+        rv.setAssignmentId(getAssignmentId());
         if (source != null) {
             rv.setSourceRef(ObjectTypeUtil.createObjectRef(source));
             rv.setSourceDisplayName(ObjectTypeUtil.getDisplayName(source));
@@ -586,8 +592,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         immutable = true;
     }
 
-    public Long getAssignmentId() {
-        return assignment.getId();
+    public @Nullable Long getAssignmentId() {
+        return MiscUtil.getFirstNonNull(assignment.getId(), externalAssignmentId);
     }
 
     @NotNull
@@ -604,6 +610,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private AssignmentHolderType source;
         private String sourceDescription;
         private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
+        private Long externalAssignmentId;
         private ConfigurationItemOrigin assignmentOrigin;
         private boolean evaluateOld;
         private boolean isAssignment;
@@ -633,6 +640,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
         Builder assignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> val) {
             assignmentIdi = val;
+            return this;
+        }
+
+        Builder externalAssignmentId(Long val) {
+            externalAssignmentId = val;
             return this;
         }
 

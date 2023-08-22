@@ -125,10 +125,12 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
         MetadataType currentMetadata = getCurrentMetadata(elementContext);
 
-        ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
+        ItemDeltaCollectionsUtil.mergeAll(
+                objectDelta.getModifications(),
                 createModifyMetadataDeltas(context, currentMetadata, ObjectType.F_METADATA, objectTypeClass, now, task));
 
-        ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
+        ItemDeltaCollectionsUtil.mergeAll(
+                objectDelta.getModifications(),
                 createModifyApprovalMetadataDeltas(objectTypeClass, context));
 
         if (AssignmentHolderType.class.isAssignableFrom(objectTypeClass)) {

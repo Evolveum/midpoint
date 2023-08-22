@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PlusMinusZeroType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An engine that creates EvaluatedAssignment from an assignment IDI. It collects induced roles, constructions,
@@ -117,6 +118,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      * Main entry point: evaluates a given focus-attached (direct) assignment.
      * Returns a complex structure called {@link EvaluatedAssignmentImpl}.
      *
+     * @param externalAssignmentId New assignments usually need to have their IDs pre-assigned by the native repo.
+     * Such values are provided here.
      * @param primaryAssignmentMode Not well defined. Do not use for new things.
      * Please see {@link EvaluationContext#primaryAssignmentMode}.
      * @param evaluateOld If true, we take the 'old' value from assignmentIdi. If false, we take the 'new' one.
@@ -124,14 +127,15 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
      *                 depending on some strange condition in AssignmentTripleEvaluator
      */
     public EvaluatedAssignmentImpl<AH> evaluate(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            @Nullable Long externalAssignmentId,
             PlusMinusZero primaryAssignmentMode,
             boolean evaluateOld,
             @NotNull AssignmentHolderType source,
             @NotNull String sourceDescription,
             @NotNull AssignmentOrigin origin,
-            Task task,
-            OperationResult parentResult)
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
             SecurityViolationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -156,7 +160,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
             trace = null;
         }
         try {
-            var evaluatedAssignment = new EvaluatedAssignmentImpl<AH>(assignmentIdi, evaluateOld, origin);
+            var evaluatedAssignment = new EvaluatedAssignmentImpl<AH>(assignmentIdi, externalAssignmentId, evaluateOld, origin);
 
             EvaluationContext<AH> ctx = new EvaluationContext<>(
                     evaluatedAssignment,
@@ -169,6 +173,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .source(source)
                     .sourceDescription(sourceDescription)
                     .assignmentIdi(assignmentIdi)
+                    .externalAssignmentId(externalAssignmentId)
                     .assignmentOrigin(origin.getConfigurationItemOrigin())
                     .isAssignment()
                     .evaluateOld(evaluateOld)

@@ -983,6 +983,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
+    public @NotNull <T extends ObjectType> Collection<Long> allocateContainerIdentifiers(
+            @NotNull Class<T> type, @NotNull String oid, int howMany, @NotNull OperationResult result) {
+        throw new UnsupportedOperationException("Not supported by the generic repository");
+    }
+
+    @Override
     public RepositoryQueryDiagResponse executeQueryDiagnostics(
             RepositoryQueryDiagRequest request, OperationResult result) {
 

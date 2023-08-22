@@ -592,13 +592,13 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
 
     private boolean isDeltaAlreadyPresent(ItemDelta<?, ?> itemDelta) {
         // This gradual check (primary then secondary) is there to avoid the computation of the current delta
-        return !wasPrimaryDeltaExecuted && isDeltaPresentIn(itemDelta, primaryDelta) ||
-                isDeltaPresentIn(itemDelta, secondaryDelta);
+        return !wasPrimaryDeltaExecuted && isDeltaPresentIn(itemDelta, primaryDelta)
+                || isDeltaPresentIn(itemDelta, secondaryDelta);
     }
 
     private boolean isDeltaPresentIn(ItemDelta<?, ?> itemDelta, ObjectDelta<O> objectDelta) {
-        return objectDelta != null &&
-                objectDelta.containsModification(itemDelta, EquivalenceStrategy.DATA.exceptForValueMetadata());
+        return objectDelta != null
+                && objectDelta.containsModification(itemDelta, EquivalenceStrategy.DATA.exceptForValueMetadata());
     }
 
     /** Creates the delta if needed. */

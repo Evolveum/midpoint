@@ -130,6 +130,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_IS_ANCESTOR = "isAncestor";
     String OP_ADVANCE_SEQUENCE = "advanceSequence";
     String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
+    String OP_ALLOCATE_CONTAINER_IDENTIFIERS = "allocateContainerIdentifiers";
     String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
     String OP_GET_OBJECT = "getObject";
     String OP_SEARCH_OBJECTS = "searchObjects";
@@ -599,6 +600,23 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
      */
     void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    /**
+     * Allocates required number of container identifiers, presumably to be explicitly used for new container values during
+     * ADD or MODIFY operations. See e.g. MID-8659.
+     *
+     * Returns a collection of identifiers that is guaranteed to be safely used by the client.
+     *
+     * Limitations:
+     *
+     * . To be used only for the new (native) repository.
+     * . Currently, there is no "return unused identifiers" method. We assume the space of CIDs is huge.
+     * We assume that the allocated identifiers will be used in majority of the cases.
+     */
+    <T extends ObjectType> @NotNull Collection<Long> allocateContainerIdentifiers(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            int howMany,
+            @NotNull OperationResult result) throws ObjectNotFoundException;
 
     @Experimental
     @ApiStatus.Internal

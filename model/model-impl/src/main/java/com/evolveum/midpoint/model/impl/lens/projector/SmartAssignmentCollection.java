@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.AssignmentIdStore;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -19,8 +22,10 @@ import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.internals.TestingPaths;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -52,7 +57,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
     private Map<SmartAssignmentKey, SmartAssignmentElement> aMap;
 
     /**
-     * Map from assignment ID to SmartAssignmentElements.
+     * Map from assignment ID to SmartAssignmentElements. Currently relevant only when creating the collection.
      */
     private Map<Long, SmartAssignmentElement> idMap;
 
@@ -284,9 +289,58 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
         allValues().forEach(v -> v.getOrigin().freeze());
     }
 
-    @NotNull
-    private Collection<SmartAssignmentElement> allValues() {
+    private @NotNull Collection<SmartAssignmentElement> allValues() {
         return aMap.values();
+    }
+
+    /** See {@link AssignmentIdStore} for an explanation of how this works. */
+    public void generateExternalIds(LensFocusContext<F> focusContext, OperationResult result)
+            throws ObjectNotFoundException {
+        AssignmentIdStore assignmentIdStore = focusContext.getAssignmentIdStore();
+
+        List<SmartAssignmentElement> toGenerateList = new ArrayList<>();
+        Collection<SmartAssignmentElement> allElements = allValues();
+        for (SmartAssignmentElement element : allElements) {
+            if (element.isNew() && !element.isVirtual() && element.getBuiltInAssignmentId() == null) {
+                var id = assignmentIdStore.getKnownExternalId(element.getAssignment());
+                if (id != null) {
+                    element.setExternalId(id);
+                } else {
+                    toGenerateList.add(element);
+                }
+            }
+        }
+        if (toGenerateList.isEmpty()) {
+            return;
+        }
+        Iterator<Long> allocated;
+        String focusOid = focusContext.getOid();
+        if (!focusContext.isPrimaryAdd() && focusOid != null) {
+            allocated =
+                    ModelBeans.get().cacheRepositoryService.allocateContainerIdentifiers(
+                                    focusContext.getObjectTypeClass(), focusOid, toGenerateList.size(), result)
+                            .iterator();
+        } else {
+            // Object is not in repo. Let us provide any IDs that are not used among assignments yet.
+            var max = allElements.stream()
+                    .filter(element -> !element.isVirtual())
+                    .map(element -> element.getBuiltInAssignmentId())
+                    .filter(Objects::nonNull)
+                    .mapToLong(Long::longValue)
+                    .max()
+                    .orElse(0L);
+            List<Long> allocatedList = new ArrayList<>();
+            for (int i = 0; i < toGenerateList.size(); i++) {
+                allocatedList.add(++max);
+            }
+            allocated = allocatedList.iterator();
+        }
+
+        for (SmartAssignmentElement toGenerate : toGenerateList) {
+            Long newId = allocated.next();
+            toGenerate.setExternalId(newId);
+            assignmentIdStore.put(toGenerate.getAssignment(), newId);
+        }
     }
 
     enum Mode {

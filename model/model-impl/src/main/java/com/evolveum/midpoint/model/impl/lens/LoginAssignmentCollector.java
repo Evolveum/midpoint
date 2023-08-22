@@ -142,6 +142,7 @@ public class LoginAssignmentCollector {
                     evaluatedAssignments.add(
                             assignmentEvaluator.evaluate(
                                     assignmentIdi,
+                                    null,
                                     PlusMinusZero.ZERO,
                                     false,
                                     focus,

@@ -75,7 +75,8 @@ public class EvaluationContext<AH extends AssignmentHolderType> {
      */
     @NotNull final ConditionEvaluator conditionEvaluator;
 
-    EvaluationContext(@NotNull EvaluatedAssignmentImpl<AH> evalAssignment,
+    EvaluationContext(
+            @NotNull EvaluatedAssignmentImpl<AH> evalAssignment,
             @NotNull AssignmentPathImpl assignmentPath,
             PlusMinusZero primaryAssignmentMode, boolean evaluateOld,
             @NotNull Task task,

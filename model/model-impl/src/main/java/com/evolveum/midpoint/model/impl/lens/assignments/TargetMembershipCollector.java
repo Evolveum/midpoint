@@ -50,8 +50,12 @@ class TargetMembershipCollector {
         collect(valueToAdd, targetClass, relation, referenceToAdd, ctx);
     }
 
-    private void collect(PrismReferenceValue valueToAdd, Class<? extends ObjectType> targetClass, QName relation,
-            Object targetDesc, EvaluationContext<?> ctx) {
+    private void collect(
+            PrismReferenceValue valueToAdd,
+            Class<? extends ObjectType> targetClass,
+            QName relation,
+            Object targetDesc,
+            EvaluationContext<?> ctx) {
         if (ctx.assignmentPath.containsDelegation(ctx.evaluateOld, ctx.ae.relationRegistry)) {
             addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), valueToAdd, "delegationRef", targetDesc);
         } else {

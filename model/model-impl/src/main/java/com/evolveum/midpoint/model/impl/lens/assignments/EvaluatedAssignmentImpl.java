@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
@@ -59,6 +61,9 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
     @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+
+    /** Pre-allocated in the repository. */
+    @Nullable private final Long externalAssignmentId;
 
     private final boolean evaluatedOld;
 
@@ -156,9 +161,12 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-            boolean evaluatedOld, @NotNull AssignmentOrigin origin) {
+            @Nullable Long externalAssignmentId,
+            boolean evaluatedOld,
+            @NotNull AssignmentOrigin origin) {
         var prismContext = PrismContext.get();
         this.assignmentIdi = assignmentIdi;
+        this.externalAssignmentId = externalAssignmentId;
         this.evaluatedOld = evaluatedOld;
         this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
         this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
@@ -179,7 +187,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @Override
     public Long getAssignmentId() {
         Item<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> any = assignmentIdi.getAnyItem();
-        return any != null && !any.getValues().isEmpty() ? any.getAnyValue().getId() : null;
+        var builtIn = any != null && !any.getValues().isEmpty() ? any.getAnyValue().getId() : null;
+        return MiscUtil.getFirstNonNull(builtIn, externalAssignmentId);
     }
 
     @Override

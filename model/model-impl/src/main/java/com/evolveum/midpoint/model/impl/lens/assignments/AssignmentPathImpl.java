@@ -231,11 +231,11 @@ public class AssignmentPathImpl implements AssignmentPath {
     }
 
     @Override
-    public AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent) {
+    public AssignmentPathType toAssignmentPathBean(boolean includeAssignmentsContent) {
         AssignmentPathType rv = new AssignmentPathType();
         AtomicInteger segmentOrder = new AtomicInteger(1);
         segments.forEach(seg -> rv.getSegment().add(
-                seg.toAssignmentPathSegmentType(includeAssignmentsContent)
+                seg.toAssignmentPathSegmentBean(includeAssignmentsContent)
                         .segmentOrder(segmentOrder.getAndIncrement())));
         return rv;
     }

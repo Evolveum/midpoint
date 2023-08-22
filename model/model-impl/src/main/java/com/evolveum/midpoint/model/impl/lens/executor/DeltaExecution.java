@@ -16,7 +16,9 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
@@ -65,7 +67,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.PrismObject.cast;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * Executes specified delta. Chooses appropriate component (repo, provisioning, task manager, and so on).
@@ -449,6 +451,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
+        stateCheck(!delta.isImmutable(), "Immutable delta? In %s", elementContext);
+
+        // Note that the "object to add" is a live object in the delta
         PrismObject<E> objectToAdd = delta.getObjectToAdd();
 
         E objectBeanToAdd = objectToAdd.asObjectable();
@@ -456,6 +461,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             b.securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
                     AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd),
                     enforcerOptionsWithLensOwnerResolver(result), task, result);
+
+            if (elementContext instanceof LensFocusContext<E> focusContext && focusContext.isOfType(AssignmentHolderType.class)) {
+                resolveAssignmentIdentifiersOnAdd((AssignmentHolderType) objectBeanToAdd, focusContext.getAssignmentIdStore());
+            }
 
             b.metadataManager.applyMetadataAdd(context, objectToAdd, b.clock.currentTimeXMLGregorianCalendar(), task);
             b.indexingManager.updateIndexDataOnElementAdd(objectBeanToAdd, elementContext, task, result);
@@ -469,9 +478,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             } else {
                 oid = executeSimulatedAddition(objectToAdd);
             }
-            if (!delta.isImmutable()) {
-                delta.setOid(oid);
-            }
+            delta.setOid(oid);
             objectToAdd.setOid(oid);
             LensUtil.setContextOid(context, elementContext, oid);
 
@@ -483,10 +490,24 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     objectToAdd, objectToAdd.getCompileTimeClass(), null, ChangeType.ADD, context.getChannel(), t);
             if (objectBeanToAdd instanceof ShadowType) {
                 handleProvisioningError(resource, t, result);
+                assert elementContext instanceof LensProjectionContext;
                 ((LensProjectionContext) elementContext).setBroken();
                 objectAfterModification = null;
             }
             throw t;
+        }
+    }
+
+    private void resolveAssignmentIdentifiersOnAdd(AssignmentHolderType objectToAdd, AssignmentIdStore assignmentIdStore) {
+        if (!assignmentIdStore.isEmpty()) {
+            objectToAdd.getAssignment().forEach(assignment -> {
+                if (assignment.getId() == null) {
+                    Long externalId = assignmentIdStore.getKnownExternalId(assignment);
+                    if (externalId != null) {
+                        assignment.setId(externalId);
+                    }
+                }
+            });
         }
     }
 
@@ -588,6 +609,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     task,
                     result);
 
+            if (elementContext instanceof LensFocusContext<E> focusContext && focusContext.isOfType(AssignmentHolderType.class)) {
+                resolveAssignmentIdentifiersOnModify(focusContext.getAssignmentIdStore());
+            }
+
             if (shouldApplyModifyMetadata(objectClass)) {
                 b.metadataManager.applyMetadataModify(
                         delta, objectClass, elementContext, b.clock.currentTimeXMLGregorianCalendar(), task, context);
@@ -614,6 +639,31 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             task.recordObjectActionExecuted(
                     baseObject, objectClass, delta.getOid(), ChangeType.MODIFY, context.getChannel(), t);
             throw t;
+        }
+    }
+
+    private void resolveAssignmentIdentifiersOnModify(AssignmentIdStore assignmentIdStore) {
+        if (assignmentIdStore.isEmpty()) {
+            return;
+        }
+        for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            if (modification.getPath().equivalent(AssignmentHolderType.F_ASSIGNMENT)) {
+                resolveAssignmentIdentifiersInPcvs(modification.getValuesToAdd(), assignmentIdStore);
+                resolveAssignmentIdentifiersInPcvs(modification.getValuesToReplace(), assignmentIdStore);
+            }
+        }
+    }
+
+    private void resolveAssignmentIdentifiersInPcvs(
+            Collection<? extends PrismValue> values, AssignmentIdStore assignmentIdStore) {
+        for (PrismValue value : emptyIfNull(values)) {
+            PrismContainerValue<?> pcv = (PrismContainerValue<?>) value;
+            if (pcv.getId() == null) {
+                var externalId = assignmentIdStore.getKnownExternalId((AssignmentType) pcv.asContainerable());
+                if (externalId != null) {
+                    pcv.setId(externalId);
+                }
+            }
         }
     }
 
@@ -864,8 +914,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(modelOptions);
 
         E existingObject = asObjectable(elementContext.getObjectCurrent());
-        if (existingObject instanceof ShadowType) {
-            ShadowType existingShadow = (ShadowType) existingObject;
+        if (existingObject instanceof ShadowType existingShadow) {
             if (isExecuteAsSelf(existingShadow)) {
                 LOGGER.trace("Setting 'execute as self' provisioning option for {}", existingShadow);
                 provisioningOptions.setRunAsAccountOid(existingShadow.getOid());
