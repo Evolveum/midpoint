@@ -54,14 +54,14 @@ public class DelegatorClause extends SelectorClause {
             // Currently, we support only "self" delegator selector clause
             throw new UnsupportedOperationException("Unsupported non-self delegator clause");
         }
-        if (!(object instanceof UserType)) {
+        if (!(object instanceof UserType user)) {
             traceNotApplicable(ctx, "object is not a user");
             return false;
         }
 
         String principalOid = ctx.getPrincipalOid();
         if (principalOid != null) {
-            for (ObjectReferenceType objectDelegatedRef : ((UserType) object).getDelegatedRef()) {
+            for (ObjectReferenceType objectDelegatedRef : user.getDelegatedRef()) {
                 if (principalOid.equals(objectDelegatedRef.getOid())) {
                     return true;
                 }

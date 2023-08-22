@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
-import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -111,11 +110,8 @@ public class GuiProfiledPrincipalManagerImpl
     @Autowired(required = false)
     private SessionRegistry sessionRegistry;
 
-    private MessageSourceAccessor messages;
-
     @Override
-    public void setMessageSource(MessageSource messageSource) {
-        this.messages = new MessageSourceAccessor(messageSource);
+    public void setMessageSource(@NotNull MessageSource messageSource) {
     }
 
     @PostConstruct
@@ -429,7 +425,7 @@ public class GuiProfiledPrincipalManagerImpl
         List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
         for (Object principal : loggedInUsers) {
 
-            if (!(principal instanceof GuiProfiledPrincipal)) {
+            if (!(principal instanceof GuiProfiledPrincipal midPointPrincipal)) {
                 continue;
             }
 
@@ -437,7 +433,6 @@ public class GuiProfiledPrincipalManagerImpl
             if (sessionInfos == null || sessionInfos.isEmpty()) {
                 continue;
             }
-            GuiProfiledPrincipal midPointPrincipal = (GuiProfiledPrincipal) principal;
             CompiledGuiProfile compiledProfile = midPointPrincipal.getCompiledGuiProfile();
             LOGGER.debug("Checking {} if it is derived from {}", midPointPrincipal, oid);
             LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
