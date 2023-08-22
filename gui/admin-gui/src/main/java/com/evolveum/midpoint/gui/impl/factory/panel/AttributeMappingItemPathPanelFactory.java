@@ -272,6 +272,8 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
         WebPrismUtil.searchAttributeDefinitions(schema, objectType)
                 .forEach(attr -> allAttributes.add(new AttributeDisplayableValue(attr)));
+
+        allAttributes.sort(Comparator.comparing(DisplayableValue::getLabel));
         return allAttributes;
     }
 
