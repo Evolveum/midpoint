@@ -217,6 +217,7 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
             pkey = getPrivateKey(key, protector);
         } catch (KeyStoreException | IOException | EncryptionException | CertificateException |
                 NoSuchAlgorithmException | UnrecoverableKeyException e) {
+            LOGGER.error("Unable get key from " + key, e);
             throw new OAuth2AuthenticationException(new OAuth2Error("missing_key"), "Unable get key from " + key, e);
         }
         if (!(pkey instanceof RSAPrivateKey)) {

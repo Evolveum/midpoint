@@ -12,6 +12,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.impl.entry.point.RemoteAuthenticationEntryPoint;
+import com.evolveum.midpoint.authentication.impl.filter.UseCsrfFilterOnlyForAuthenticatedRequest;
 import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,7 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
         super.configure(http);
 
         http.antMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        http.csrf().disable();
+        http.csrf().requireCsrfProtectionMatcher(new UseCsrfFilterOnlyForAuthenticatedRequest());
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
             @Override
