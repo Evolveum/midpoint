@@ -315,8 +315,9 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         private final ItemPathType value;
 
         private AttributeDisplayableValue(ResourceAttributeDefinition attributeDefinition) {
-            this.displayName = attributeDefinition.getDisplayName() == null ?
-                    attributeDefinition.getItemName().getLocalPart() : attributeDefinition.getDisplayName();
+//            this.displayName = attributeDefinition.getDisplayName() == null ?
+//                    attributeDefinition.getItemName().getLocalPart() : attributeDefinition.getDisplayName();
+            this.displayName = attributeDefinition.getItemName().getLocalPart();
             this.help = attributeDefinition.getHelp();
             this.value = new ItemPathType(ItemPath.create(attributeDefinition.getItemName()));
         }
