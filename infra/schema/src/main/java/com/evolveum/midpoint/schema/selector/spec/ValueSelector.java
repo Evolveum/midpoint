@@ -128,6 +128,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
         QName type = bean.getType();
         if (type != null) {
             typeClause = TypeClause.of(type);
+            checkParentPresentForSubObject(typeClause, parentClause, bean);
         } else if (parentClause != null) {
             // Here we derive type from parent clause. The (parent) type + path must uniquely identify a (child) type.
             TypeDefinition parentTypeDef = parentClause.getParentSelector()
@@ -256,6 +257,19 @@ public class ValueSelector implements DebugDumpable, Serializable {
         }
 
         return new ValueSelector(typeClause, parentClause, clauses, bean);
+    }
+
+    /** We don't allow sub-object types without exact `parent` clause. */
+    private static void checkParentPresentForSubObject(
+            @NotNull TypeClause typeClause, ParentClause parentClause, ObjectSelectorType bean) throws ConfigurationException {
+        if (ObjectType.class.isAssignableFrom(typeClause.getTypeClass())) {
+            return;
+        }
+        if (parentClause == null) {
+            throw new ConfigurationException(
+                    "No parent clause for sub-object type %s in %s".formatted(
+                            typeClause.getTypeName(), ConfigErrorReporter.describe(bean)));
+        }
     }
 
     public static ValueSelector forType(@NotNull QName typeName) {
