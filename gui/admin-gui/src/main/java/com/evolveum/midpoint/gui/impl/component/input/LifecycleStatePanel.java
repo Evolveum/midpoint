@@ -5,12 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
+package com.evolveum.midpoint.gui.impl.component.input;
 
 import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.prism.impl.binding.AbstractMutableContainerable;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
@@ -31,9 +32,7 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.AppendingStringBuffer;
-import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,14 +40,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>> {
+public class LifecycleStatePanel extends InputPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(LifecycleStatePanel.class);
 
     private static final String ID_PANEL = "panel";
+
+    private final IModel<PrismPropertyWrapper<String>> model;
 
     enum DisplayForOption {
 
@@ -59,6 +61,7 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
 
         private final String label;
         private final String cssClass;
+
         DisplayForOption(String label, String cssClass) {
             this.label = label;
             this.cssClass = cssClass;
@@ -85,7 +88,8 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
     }
 
     public LifecycleStatePanel(String id, IModel<PrismPropertyWrapper<String>> model) {
-        super(id, model);
+        super(id);
+        this.model = model;
     }
 
     @Override
@@ -232,6 +236,10 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
         add(input);
     }
 
+    private PrismPropertyWrapper<String> getModelObject() {
+        return this.model.getObject();
+    }
+
     protected String customCssClassForInputField() {
         return "";
     }
@@ -248,7 +256,9 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
             return choices;
         }
 
-        List<LookupTableRowType> rows = lookupTable.getRow();
+        List<LookupTableRowType> rows = new ArrayList(lookupTable.getRow());
+
+        rows.sort(Comparator.comparingLong(AbstractMutableContainerable::getId));
 
         for (LookupTableRowType row : rows) {
             String value = com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateLookupTableRowLabel(row);
@@ -256,10 +266,13 @@ public class LifecycleStatePanel extends BasePanel<PrismPropertyWrapper<String>>
             choices.add(display);
         }
 
+
+
         return choices;
     }
 
-    protected FormComponent getBaseFormPanel(){
+    @Override
+    public FormComponent getBaseFormComponent(){
         return (FormComponent) get(ID_PANEL);
     }
 }

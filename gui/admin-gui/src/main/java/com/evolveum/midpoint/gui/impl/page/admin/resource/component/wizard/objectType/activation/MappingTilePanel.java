@@ -10,7 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTilePanel;
 import com.evolveum.midpoint.prism.Containerable;
 
@@ -65,19 +65,7 @@ public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapp
                 return null;
             };
 
-            LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, model);
-//            Panel panel = getPageBase().initItemPanel(
-//                    ID_LIFECYCLE_STATE,
-//                    model.getObject().getTypeName(),
-//                    model,
-//                    new ItemPanelSettingsBuilder()
-//                            .headerVisibility(false)
-//                            .displayedInColumn(true)
-//                            .build());
-            add(panel);
-//        } catch (SchemaException e) {
-//            LOGGER.debug("Couldn't find panel factory for property " + MappingType.F_LIFECYCLE_STATE);
-//        }
+            add(new LifecycleStatePanel(ID_LIFECYCLE_STATE, model));
     }
 
     @Override

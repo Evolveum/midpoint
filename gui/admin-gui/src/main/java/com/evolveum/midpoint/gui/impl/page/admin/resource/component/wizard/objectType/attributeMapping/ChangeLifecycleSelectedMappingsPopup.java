@@ -8,7 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStateFormPanel;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyHeaderPanel;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -72,12 +73,7 @@ public class ChangeLifecycleSelectedMappingsPopup extends SimplePopupable {
     private void initLayout() {
         add(new VerticalFormPrismPropertyHeaderPanel<>(ID_HEADER, firstWrapper));
 
-        add(new LifecycleStatePanel(ID_INPUT, firstWrapper) {
-            @Override
-            protected String customCssClassForInputField() {
-                return "w-100";
-            }
-        });
+        add(new LifecycleStateFormPanel(ID_INPUT, firstWrapper));
     }
 
     private void initFooter() {

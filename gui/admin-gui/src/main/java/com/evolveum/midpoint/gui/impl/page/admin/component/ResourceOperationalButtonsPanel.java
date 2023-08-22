@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -119,7 +119,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
             @Override
             protected void onInitialize() {
                 super.onInitialize();
-                getBaseFormPanel().add(new OnChangeAjaxBehavior() {
+                getBaseFormComponent().add(new OnChangeAjaxBehavior() {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
                         WebComponentUtil.saveObjectLifeCycle(
