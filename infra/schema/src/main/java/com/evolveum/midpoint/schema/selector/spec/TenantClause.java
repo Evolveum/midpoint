@@ -114,4 +114,11 @@ public class TenantClause extends SelectorClause {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "specification", bean, indent + 1);
     }
+
+    @Override
+    public String toString() {
+        return "TenantClause{" +
+                "bean=" + bean +
+                "}";
+    }
 }

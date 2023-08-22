@@ -23,14 +23,16 @@
         <name>campaign-case-iteration-for-object-ann</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCaseType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case</path>
+            </parent>
             <filter>
                 <q:ref>
                     <q:path>objectRef</q:path>
                     <q:value oid="9e0105e1-c601-4265-b71b-3077e04a3b61"/> <!-- ann -->
                 </q:ref>
             </filter>
-            <!-- no need to specify the parent, as this is a well-known type -->
         </object>
         <item>iteration</item>
     </authorization>
@@ -40,7 +42,10 @@
         <decision>deny</decision>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCaseType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case</path>
+            </parent>
             <filter>
                 <q:ref>
                     <q:path>targetRef</q:path>
@@ -57,7 +62,10 @@
         <decision>deny</decision>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationCaseType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case</path>
+            </parent>
             <filter>
                 <q:ref>
                     <q:path>objectRef</q:path>
@@ -73,7 +81,10 @@
         <name>campaign-work-items-assigned-to-administrator</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationWorkItemType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case/workItem</path>
+            </parent>
             <filter>
                 <q:ref>
                     <q:path>assigneeRef</q:path>
@@ -88,7 +99,10 @@
         <name>campaign-extra-work-item</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationWorkItemType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case/workItem</path>
+            </parent>
             <filter>
                 <q:equal>
                     <q:path>name</q:path>

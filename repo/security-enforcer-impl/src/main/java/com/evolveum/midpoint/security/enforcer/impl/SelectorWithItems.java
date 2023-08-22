@@ -108,7 +108,7 @@ public class SelectorWithItems {
      * by stepping down: creating a new selector for {@link AssignmentType} with a parent clause pointing to the original
      * selector.
      */
-    <T> SelectorWithItems adjustToSubObjectFilter(@NotNull Class<T> filterType) throws SchemaException {
+    <T> SelectorWithItems adjustToSubObjectFilter(@NotNull Class<T> filterType) throws SchemaException, ConfigurationException {
 
         Class<?> selectorType = selector.getEffectiveType();
         if (selectorType.isAssignableFrom(filterType) || filterType.isAssignableFrom(selectorType)) {
@@ -189,7 +189,8 @@ public class SelectorWithItems {
      * Decomposes the current selector into a matching tiers of {@link TieredSelectorWithItems}, starting at the specified
      * root type.
      */
-    @Nullable TieredSelectorWithItems asTieredSelectors(@NotNull Class<? extends Objectable> rootType) {
+    @Nullable TieredSelectorWithItems asTieredSelectors(@NotNull Class<? extends Objectable> rootType)
+            throws ConfigurationException {
 
         if (!selector.isSubObject()) {
             // No parent expected here; we remove the parent clause just to be sure.

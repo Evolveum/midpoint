@@ -46,7 +46,7 @@ public class MatchingContext extends SelectorProcessingContext {
                 delegatorSelection);
     }
 
-    public @NotNull MatchingContext child(
+    public @NotNull MatchingContext next(
             @NotNull DelegatorSelection delegatorSelection, @NotNull String idDelta, @NotNull String textDelta) {
         return new MatchingContext(
                 filterEvaluator,
@@ -59,7 +59,7 @@ public class MatchingContext extends SelectorProcessingContext {
                 delegatorSelection);
     }
 
-    public @NotNull MatchingContext child(@NotNull String idDelta, @NotNull String textDelta) {
+    public @NotNull MatchingContext next(@NotNull String idDelta, @NotNull String textDelta) {
         return new MatchingContext(
                 filterEvaluator,
                 tracer,

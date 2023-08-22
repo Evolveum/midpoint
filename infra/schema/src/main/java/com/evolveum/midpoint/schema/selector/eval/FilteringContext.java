@@ -129,12 +129,12 @@ public class FilteringContext extends SelectorProcessingContext {
     }
 
     /**
-     * Creates a sub-context when evaluating embedded selector (e.g. `assignee`).
+     * Creates a sub-context when evaluating embedded selector (e.g. `parent`).
      *
-     * @see MatchingContext#child(String, String)
-     * @see MatchingContext#child(DelegatorSelection, String, String)
+     * @see MatchingContext#next(String, String)
+     * @see MatchingContext#next(DelegatorSelection, String, String)
      */
-    public @NotNull FilteringContext child(
+    public @NotNull FilteringContext next(
             @NotNull Class<?> filterType,
             @NotNull FilterCollector filterCollector,
             @Nullable ObjectFilter originalFilter,

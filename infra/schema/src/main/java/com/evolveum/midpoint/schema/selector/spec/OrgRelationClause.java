@@ -145,4 +145,11 @@ public class OrgRelationClause extends SelectorClause {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "specification", bean, indent + 1);
     }
+
+    @Override
+    public String toString() {
+        return "OrgRelationClause{" +
+                "bean=" + bean +
+                "}";
+    }
 }

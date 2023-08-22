@@ -64,7 +64,7 @@ public class OwnerClause extends SelectorClause {
             return false;
         }
         boolean matches =
-                selector.matches(owner.getValue(), ctx.child("o", "owner"));
+                selector.matches(owner.getValue(), ctx.next("o", "owner"));
         traceApplicability(ctx, matches, "owner (%s) matches: %s", owner, matches);
         return matches;
     }
@@ -105,5 +105,12 @@ public class OwnerClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "selector", selector, indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return "OwnerClause{" +
+                "selector=" + selector +
+                "}";
     }
 }

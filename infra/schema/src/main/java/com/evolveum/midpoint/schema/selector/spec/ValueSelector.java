@@ -17,11 +17,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.FilterCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
@@ -47,6 +48,13 @@ public class ValueSelector implements DebugDumpable, Serializable {
     /** This one is a prominent one, so we'll pull it from among other {@link #clauses}. */
     @Nullable private final TypeClause typeClause;
 
+    /**
+     * Either {@link #typeClause} or an artificial one pointing to {@link ObjectType}.
+     *
+     * TODO shouldn't we simply use it as a regular type clause?
+     */
+    @NotNull private final TypeClause effectiveTypeClause;
+
     /** Again, a prominent one. */
     @Nullable private final ParentClause parentClause;
 
@@ -65,6 +73,10 @@ public class ValueSelector implements DebugDumpable, Serializable {
             @NotNull List<SelectorClause> clauses,
             @Nullable ObjectSelectorType bean) {
         this.typeClause = typeClause;
+        this.effectiveTypeClause =
+                typeClause != null ?
+                        typeClause :
+                        TypeClause.ofQualified(ObjectType.COMPLEX_TYPE);
         this.parentClause = parentClause;
         this.clauses = Collections.unmodifiableList(clauses);
         this.bean = bean;
@@ -101,12 +113,39 @@ public class ValueSelector implements DebugDumpable, Serializable {
         TypeClause typeClause;
         var clauses = new ArrayList<SelectorClause>();
 
+        ParentClause parentClause;
+        var parent = bean.getParent();
+        if (parent != null) {
+            parentClause = ParentClause.of(
+                    ValueSelector.parse(parent),
+                    configNonNull(parent.getPath(), "No path in parent selector %s", parent)
+                            .getItemPath());
+            clauses.add(parentClause);
+        } else {
+            parentClause = null;
+        }
+
         QName type = bean.getType();
         if (type != null) {
             typeClause = TypeClause.of(type);
-            clauses.add(typeClause);
+        } else if (parentClause != null) {
+            // Here we derive type from parent clause. The (parent) type + path must uniquely identify a (child) type.
+            TypeDefinition parentTypeDef = parentClause.getParentSelector()
+                    .getEffectiveTypeClause()
+                    .getTypeDefinitionRequired();
+            if (parentTypeDef instanceof ComplexTypeDefinition parentCtd) {
+                ItemPath childPath = parentClause.getPath();
+                ItemDefinition<?> childDef = parentCtd.findItemDefinition(childPath);
+                configNonNull(childDef, "No definition of '%s' in %s", childPath, parentTypeDef);
+                typeClause = TypeClause.of(childDef.getTypeName());
+            } else {
+                throw new ConfigurationException("Parent type " + parentTypeDef + " is not a complex type");
+            }
         } else {
             typeClause = null;
+        }
+        if (typeClause != null) {
+            clauses.add(typeClause);
         }
 
         String subtype = bean.getSubtype();
@@ -216,23 +255,6 @@ public class ValueSelector implements DebugDumpable, Serializable {
             }
         }
 
-        ParentClause parentClause;
-        if (bean instanceof AuthorizationObjectSelectorType aBean) {
-
-            var parent = aBean.getParent();
-            if (parent != null) {
-                parentClause = ParentClause.of(
-                        ValueSelector.parse(parent),
-                        configNonNull(parent.getPath(), "No path in parent selector %s", parent)
-                                .getItemPath());
-                clauses.add(parentClause);
-            } else {
-                parentClause = null;
-            }
-        } else {
-            parentClause = null;
-        }
-
         return new ValueSelector(typeClause, parentClause, clauses, bean);
     }
 
@@ -253,6 +275,21 @@ public class ValueSelector implements DebugDumpable, Serializable {
 
     public @Nullable QName getTypeName() {
         return typeClause != null ? typeClause.getTypeName() : null;
+    }
+
+    @NotNull TypeClause getEffectiveTypeClause() {
+        return effectiveTypeClause;
+    }
+
+    /** Returns complex type definition for the object, derived from [effective] type clause. */
+    @NotNull ComplexTypeDefinition getComplexTypeDefinitionRequired() throws ConfigurationException {
+        TypeClause typeClause = getEffectiveTypeClause();
+        var typeDef = typeClause.getTypeDefinitionRequired();
+        if (typeDef instanceof ComplexTypeDefinition ctd) {
+            return ctd;
+        } else {
+            throw new ConfigurationException("Type clause for " + this + " does not correspond to a complex type definition");
+        }
     }
 
     public @NotNull List<SelectorClause> getClauses() {

@@ -76,4 +76,9 @@ public class OrgRefClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("org: ").append(orgOid);
     }
+
+    @Override
+    public String toString() {
+        return "OrgRefClause{orgOid='" + orgOid + '\'' + "}";
+    }
 }

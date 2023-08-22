@@ -54,7 +54,7 @@ public class AssigneeClause extends SelectorClause {
         }
         var assignees = getAssignees(realValue, ctx);
         if (!assignees.isEmpty()) {
-            var childCtx = ctx.child(getDelegatorSelectionMode(realValue), "a", "assignee");
+            var childCtx = ctx.next(getDelegatorSelectionMode(realValue), "a", "assignee");
             for (PrismObject<? extends ObjectType> assignee : assignees) {
                 assert assignee != null;
                 if (selector.matches(assignee.getValue(), childCtx)) {
@@ -165,5 +165,10 @@ public class AssigneeClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "selector", selector, indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return "AssigneeClause{selector=" + selector + "}";
     }
 }

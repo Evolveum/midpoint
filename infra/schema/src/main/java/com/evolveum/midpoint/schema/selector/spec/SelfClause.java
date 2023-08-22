@@ -77,4 +77,9 @@ public class SelfClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         // nothing to do here
     }
+
+    @Override
+    public String toString() {
+        return "SelfClause{}";
+    }
 }

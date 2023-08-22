@@ -17,7 +17,10 @@
     <authorization id="2">
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>AccessCertificationWorkItemType</type>
+            <parent>
+                <type>AccessCertificationCampaignType</type>
+                <path>case/workItem</path>
+            </parent>
             <assignee>
                 <special>self</special>
             </assignee>

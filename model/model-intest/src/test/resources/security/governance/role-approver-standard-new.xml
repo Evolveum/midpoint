@@ -20,7 +20,10 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateWorkItem</action>
         <object>
-            <type>CaseWorkItemType</type>
+            <parent>
+                <type>CaseType</type>
+                <path>workItem</path>
+            </parent>
             <assignee>
                 <special>self</special>
             </assignee>

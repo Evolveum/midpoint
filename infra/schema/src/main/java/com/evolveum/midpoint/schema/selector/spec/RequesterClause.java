@@ -59,7 +59,7 @@ public class RequesterClause extends SelectorClause {
         boolean matches =
                 selector.matches(
                         requestor.getValue(),
-                        ctx.child(DelegatorSelection.NO_DELEGATOR, "req", "requestor"));
+                        ctx.next(DelegatorSelection.NO_DELEGATOR, "req", "requestor"));
         traceApplicability(ctx, matches, "requestor object (%s) matches: %s", requestor, matches);
         return matches;
     }
@@ -94,5 +94,12 @@ public class RequesterClause extends SelectorClause {
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "selector", selector, indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return "RequesterClause{" +
+                "selector=" + selector +
+                "}";
     }
 }

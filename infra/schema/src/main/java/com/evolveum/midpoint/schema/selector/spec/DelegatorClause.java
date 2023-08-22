@@ -99,4 +99,12 @@ public class DelegatorClause extends SelectorClause {
         DebugUtil.debugDumpWithLabelLn(sb, "allowInactive", allowInactive, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "selector", selector, indent + 1);
     }
+
+    @Override
+    public String toString() {
+        return "DelegatorClause{" +
+                "selector=" + selector +
+                ", allowInactive=" + allowInactive +
+                "}";
+    }
 }
