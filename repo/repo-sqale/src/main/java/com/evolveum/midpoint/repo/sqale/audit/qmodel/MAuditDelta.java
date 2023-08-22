@@ -12,6 +12,7 @@ import java.util.UUID;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
@@ -32,6 +33,10 @@ public class MAuditDelta {
     public UUID resourceOid;
     public String resourceNameNorm;
     public String resourceNameOrig;
+
+    public ShadowKindType shadowKind;
+    public String shadowIntent;
+
     public OperationResultStatusType status;
 
     // "transient" fields not used by Querydsl

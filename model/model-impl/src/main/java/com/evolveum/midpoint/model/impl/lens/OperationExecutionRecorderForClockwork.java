@@ -241,6 +241,8 @@ class OperationExecutionRecorderForClockwork {
         rv.setObjectName(operation.getObjectName());
         rv.setResourceName(operation.getResourceName());
         rv.setResourceOid(operation.getResourceOid());
+        rv.setShadowIntent(operation.getShadowIntent());
+        rv.setShadowKind(operation.getShadowKind());
         return rv;
     }
 

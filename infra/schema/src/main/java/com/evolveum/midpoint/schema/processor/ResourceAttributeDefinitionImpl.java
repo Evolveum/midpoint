@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -50,7 +51,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  */
 public class ResourceAttributeDefinitionImpl<T>
         extends AbstractFreezable
-        implements ResourceAttributeDefinition<T> {
+        implements PropertyDefinitionDelegator<T>, ResourceAttributeDefinition<T> {
+
 
     private static final long serialVersionUID = 1L;
 
@@ -366,46 +368,6 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public boolean isAbstract() {
-        return rawDefinition.isAbstract(); // should be "false"
-    }
-
-    @Override
-    public boolean isDeprecated() {
-        return rawDefinition.isDeprecated();
-    }
-
-    @Override
-    public boolean isRemoved() {
-        return rawDefinition.isRemoved();
-    }
-
-    @Override
-    public String getRemovedSince() {
-        return rawDefinition.getRemovedSince();
-    }
-
-    @Override
-    public boolean isExperimental() {
-        return rawDefinition.isExperimental();
-    }
-
-    @Override
-    public String getPlannedRemoval() {
-        return rawDefinition.getPlannedRemoval();
-    }
-
-    @Override
-    public boolean isElaborate() {
-        return rawDefinition.isElaborate();
-    }
-
-    @Override
-    public String getDeprecatedSince() {
-        return rawDefinition.getDeprecatedSince();
-    }
-
-    @Override
     public boolean isEmphasized() {
         if (customizationBean.isEmphasized() != null) {
             return customizationBean.isEmphasized();
@@ -468,20 +430,8 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    @NotNull
-    public ItemName getItemName() {
-        return rawDefinition.getItemName();
-    }
-
-    @Override
-    @NotNull
-    public QName getTypeName() {
-        return rawDefinition.getTypeName();
-    }
-
-    @Override
-    public boolean isRuntimeSchema() {
-        return rawDefinition.isRuntimeSchema();
+    public RawResourceAttributeDefinition<T> delegate() {
+        return rawDefinition;
     }
 
     @Override
@@ -512,58 +462,13 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public Collection<? extends DisplayableValue<T>> getAllowedValues() {
-        return rawDefinition.getAllowedValues();
-    }
-
-    @Override
-    public Collection<? extends DisplayableValue<T>> getSuggestedValues() {
-        return rawDefinition.getSuggestedValues();
-    }
-
-    @Override
-    public T defaultValue() {
-        return rawDefinition.defaultValue();
-    }
-
-    @Override
-    public Boolean isIndexed() {
-        return rawDefinition.isIndexed();
-    }
-
-    @Override
     public int getMaxOccurs() {
         return getMaxOccurs(currentLayer);
     }
 
     @Override
-    public boolean isOperational() {
-        return rawDefinition.isOperational();
-    }
-
-    @Override
     public boolean isIndexOnly() {
         return getStorageStrategy() == AttributeStorageStrategyType.INDEX_ONLY;
-    }
-
-    @Override
-    public boolean isInherited() {
-        return rawDefinition.isInherited();
-    }
-
-    @Override
-    public boolean isDynamic() {
-        return rawDefinition.isDynamic();
-    }
-
-    @Override
-    public QName getSubstitutionHead() {
-        return rawDefinition.getSubstitutionHead();
-    }
-
-    @Override
-    public boolean isHeterogeneousListItem() {
-        return rawDefinition.isHeterogeneousListItem();
     }
 
     @Override
@@ -623,11 +528,6 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public String getHelp() {
-        return rawDefinition.getHelp();
-    }
-
-    @Override
     public String getDocumentation() {
         if (customizationBean.getDocumentation() != null) {
             return customizationBean.getDocumentation();
@@ -636,33 +536,8 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public String getDocumentationPreview() {
-        return rawDefinition.getDocumentationPreview();
-    }
-
-    @Override
-    public <A> A getAnnotation(QName qname) {
-        return rawDefinition.getAnnotation(qname);
-    }
-
-    @Override
     public <A> void setAnnotation(QName qname, A value) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public @Nullable Map<QName, Object> getAnnotations() {
-        return rawDefinition.getAnnotations();
-    }
-
-    @Override
-    public List<SchemaMigration> getSchemaMigrations() {
-        return rawDefinition.getSchemaMigrations();
-    }
-
-    @Override
-    public List<ItemDiagramSpecification> getDiagrams() {
-        return rawDefinition.getDiagrams();
     }
 
     @Override
@@ -760,11 +635,6 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public Class<T> getTypeClass() {
-        return rawDefinition.getTypeClass();
-    }
-
-    @Override
     public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
         // No deep cloning, because the constituents are immutable.
         return clone();
@@ -780,16 +650,6 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public void debugDumpShortToString(StringBuilder sb) {
         // TODO
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(PrismProperty<T> item) {
-        return rawDefinition.canBeDefinitionOf(item);
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(PrismValue pvalue) {
-        return rawDefinition.canBeDefinitionOf(pvalue);
     }
 
     @Override
@@ -923,11 +783,6 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
         return rawDefinition.accept(visitor, visitation);
-    }
-
-    @Override
-    public void accept(Visitor<Definition> visitor) {
-        rawDefinition.accept(visitor);
     }
 
     @Override

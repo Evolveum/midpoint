@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +42,9 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
     private PolyString objectName;
     private String resourceOid;
     private PolyString resourceName;
+
+    private ShadowKindType shadowKind;
+    private String shadowIntent;
 
     public ObjectDeltaOperation() {
         super();
@@ -118,6 +123,8 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         clone.objectName = this.objectName;
         clone.resourceOid = this.resourceOid;
         clone.resourceName = this.resourceName;
+        clone.shadowIntent = this.shadowIntent;
+        clone.shadowKind = this.shadowKind;
     }
 
     public static void checkConsistence(Collection<? extends ObjectDeltaOperation<?>> deltas) {
@@ -358,5 +365,21 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 
     public String getOid() {
         return objectDelta != null ? objectDelta.getOid() : null;
+    }
+
+    public void setShadowKind(ShadowKindType kind) {
+        this.shadowKind = kind;
+    }
+
+    public void setShadowIntent(String intent) {
+        this.shadowIntent = intent;
+    }
+
+    public ShadowKindType getShadowKind() {
+        return this.shadowKind;
+    }
+
+    public String getShadowIntent() {
+        return shadowIntent;
     }
 }

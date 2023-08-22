@@ -81,6 +81,16 @@ CREATE TYPE AuditEventStageType AS ENUM ('REQUEST', 'EXECUTION', 'RESOURCE');
 CREATE TYPE EffectivePrivilegesModificationType AS ENUM ('ELEVATION', 'FULL_ELEVATION', 'REDUCTION', 'OTHER');
 
 CREATE TYPE ChangeType AS ENUM ('ADD', 'MODIFY', 'DELETE');
+
+
+
+   -- We try to create ShadowKindType (necessary if audit is in separate database, if it is in same
+   -- database as repository, type already exists.
+DO $$ BEGIN
+       CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
+   EXCEPTION
+       WHEN duplicate_object THEN null;
+END $$;
 -- endregion
 
 -- region management tables
@@ -161,6 +171,8 @@ CREATE TABLE ma_audit_delta (
     resourceOid UUID,
     resourceNameNorm TEXT,
     resourceNameOrig TEXT,
+    shadowKind ShadowKindType,
+    shadowIntent TEXT,
     status OperationResultStatusType,
 
     PRIMARY KEY (recordId, timestamp, checksum)
@@ -360,4 +372,4 @@ limit 50;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_audit_change(5, $$ SELECT 1 $$, true);
+call apply_audit_change(6, $$ SELECT 1 $$, true);

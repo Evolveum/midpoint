@@ -733,11 +733,19 @@ public class LensUtil {
         if (resource == null && projCtx != null) {
             resource = projCtx.getResource();
         }
+
         if (resource != null) {
             objectDeltaOp.setResourceOid(resource.getOid());
             objectDeltaOp.setResourceName(PolyString.toPolyString(resource.getName()));
-        } else if (objectContext instanceof LensProjectionContext) {
-            objectDeltaOp.setResourceOid(((LensProjectionContext) objectContext).getResourceOid());
+            if (object.asObjectable() instanceof ShadowType shadow) {
+                objectDeltaOp.setShadowKind(shadow.getKind());
+                objectDeltaOp.setShadowIntent(shadow.getIntent());
+            }
+        } else if (objectContext instanceof LensProjectionContext ctx) {
+
+            objectDeltaOp.setResourceOid(ctx.getResourceOid());
+            objectDeltaOp.setShadowKind(ctx.getKind());
+            objectDeltaOp.setShadowIntent(ctx.getKey().getIntent());
         }
         return objectDeltaOp;
     }
