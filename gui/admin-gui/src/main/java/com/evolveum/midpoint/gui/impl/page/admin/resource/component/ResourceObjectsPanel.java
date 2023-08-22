@@ -83,8 +83,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectsPanel.class);
     private static final String DOT_CLASS = ResourceObjectsPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
-    protected static final String OPERATION_RECLASSIFY_SHADOWS = DOT_CLASS + "reclassifyShadows";
-
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
@@ -258,7 +256,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             @Override
             protected List<Component> createToolbarButtonsList(String buttonId) {
                 List<Component> buttonsList = new ArrayList<>();
-                buttonsList.add(createReclassifyButton(buttonId));
                 buttonsList.add(createReloadButton(buttonId));
                 buttonsList.addAll(super.createToolbarButtonsList(buttonId));
                 return buttonsList;
@@ -429,80 +426,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         };
         reload.add(new VisibleBehaviour(() -> getSelectedObjectTypeDefinition() != null));
         return reload;
-    }
-
-    private AjaxIconButton createReclassifyButton(String buttonId) {
-
-        ReloadableButton reclassify = new ReloadableButton(
-                buttonId, getPageBase(), createStringResource("ResourceCategorizedPanel.button.reclassify")) {
-
-            @Override
-            protected void refresh(AjaxRequestTarget target) {
-                target.add(getShadowTable());
-            }
-
-            @Override
-            protected TaskAwareExecutor.Executable<String> getTaskExecutor() {
-                return createReclassifyTask();
-            }
-
-            @Override
-            protected boolean useConfirmationPopup() {
-                return true;
-            }
-
-            @Override
-            protected IModel<String> getConfirmMessage() {
-                return getPageBase().createStringResource(
-                        "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
-                        getObjectClass() != null ? getObjectClass().getLocalPart() : null);
-            }
-        };
-
-//        AjaxIconButton reclassify = new AjaxIconButton(buttonId, Model.of("fa fa-rotate-right"),
-//                createStringResource("ResourceCategorizedPanel.button.reclassify")) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                IModel<String> confirmModel;
-//
-//                confirmModel = getPageBase().createStringResource(
-//                        "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
-//                        getObjectClass() != null ? getObjectClass().getLocalPart() : null);
-//
-//                ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
-//                    @Override
-//                    public void yesPerformed(AjaxRequestTarget target) {
-//                        createReclassifyTask(target);
-//                        getShadowTable().startRefreshing(target);
-//                        target.add(getShadowTable());
-//                    }
-//                };
-//                getPageBase().showMainPopup(confirmationPanel, target);
-//            }
-//        };
-        reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
-        reclassify.setOutputMarkupId(true);
-        reclassify.showTitleAsLabel(true);
-        reclassify.add(new VisibleBehaviour(() -> getObjectClass() != null));
-        return reclassify;
-    }
-
-    private TaskAwareExecutor.Executable<String> createReclassifyTask() throws RestartResponseException {
-        return (task, result) -> {
-            ResourceType resource = getObjectWrapperObject().asObjectable();
-            return ResourceTaskCreator.forResource(resource, getPageBase())
-                    .ofFlavor(SynchronizationTaskFlavor.IMPORT)
-                    .withCoordinates(getObjectClass())
-                    .withExecutionMode(ExecutionModeType.PREVIEW)
-                    .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
-                    .withSubmissionOptions(
-                            ActivitySubmissionOptions.create()
-                                    .withTaskTemplate(new TaskType()
-                                            .name("Reclassifying objects on " + resource.getName())
-                                            .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))))
-                    .submit(task, result);
-        };
     }
 
     private ResourceObjectTypeDefinitionType getSelectedObjectType() {
