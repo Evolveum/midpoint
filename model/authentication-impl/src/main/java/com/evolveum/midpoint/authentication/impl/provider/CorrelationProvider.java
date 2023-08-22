@@ -72,6 +72,8 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                     focusType);
             ObjectType owner = correlationResult.getOwner();
 
+            correlationModuleAuthentication.addAttributes(correlationVerificationToken.getDetails());
+
             if (owner != null) {
                 correlationModuleAuthentication.addOwner(owner);
                 return createAuthenticationToken(owner, focusType);
@@ -81,6 +83,10 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                     correlationResult.getCandidateOwnersMap().values()
                             .forEach(c -> correlationModuleAuthentication.addOwner(c.getObject()));
                     return createAuthenticationToken(correlationModuleAuthentication.getOwners().get(0), focusType);    //todo FIXME
+                } else {
+                    correlationModuleAuthentication
+                            .setPreFocus(correlationVerificationToken.getPreFocus(focusType,
+                                    correlationModuleAuthentication.getProcessedAttributes()));
                 }
             }
 

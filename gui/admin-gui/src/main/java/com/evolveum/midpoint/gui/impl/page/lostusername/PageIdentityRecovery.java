@@ -9,9 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.lostusername;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -20,12 +22,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
@@ -35,7 +42,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -50,7 +56,6 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 import java.io.IOException;
 import java.io.Serial;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -79,9 +84,11 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private static final String ID_CONFIGURED_ITEMS_PANEL = "configuredItemsPanel";
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
+    private static final String ID_REGISTRATION_LINK = "registrationLink";
 
     private LoadableModel<List<UserType>> recoveredIdentitiesModel;
     private LoadableModel<List<ItemPathType>> configuredItemsModel;
+    private LoadableModel<SecurityPolicyType> securityPolicyModel;
 
 
     public PageIdentityRecovery() {
@@ -104,6 +111,18 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         };
         recoveredIdentitiesPanel.setOutputMarkupId(true);
         add(recoveredIdentitiesPanel);
+
+        String urlRegistration = SecurityUtils.getRegistrationUrl(securityPolicyModel.getObject());
+        AjaxLink<String> registrationLink = new AjaxLink<String>(ID_REGISTRATION_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                PageSelfRegistration p  = new PageSelfRegistration((UserType) SecurityUtils.findCorrelationModuleAuthentication(PageIdentityRecovery.this).getPreFocus());
+                AuthUtil.clearMidpointAuthentication();
+                setResponsePage(p);
+            }
+        };
+        registrationLink.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(urlRegistration) && !recoveredIdentitiesExist()));
+        add(registrationLink);
     }
 
     private void initRecoveredIdentitiesPanel(ListItem<UserType> item) {
@@ -128,25 +147,30 @@ public class PageIdentityRecovery extends AbstractPageLogin {
                 return loadConfiguredItemPathList();
             }
         };
+        securityPolicyModel = new LoadableModel<>(false) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected SecurityPolicyType load() {
+                var archetypeOid = getMidpointAuthentication().getArchetypeOid();
+                return runPrivileged((Producer<SecurityPolicyType>) () -> {
+                    var task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
+                    var result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
+                    try {
+                        return getModelInteractionService().getSecurityPolicy(null, archetypeOid,
+                                task, result);
+                    } catch (Exception e) {
+                        LOGGER.debug("Unable to load the configured items list for identity recovery page, ", e);
+                    }
+                    return null;
+                });
+            }
+        };
     }
 
     private List<ItemPathType> loadConfiguredItemPathList() {
-        var archetypeOid = getMidpointAuthentication().getArchetypeOid();
-        return runPrivileged((Producer<List<ItemPathType>>) () -> {
-            List<ItemPathType> configuredItems = new ArrayList<>();
-
-            var task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-            var result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
-            try {
-                var securityPolicy = getModelInteractionService().getSecurityPolicy(new UserType().asPrismObject(), archetypeOid,
-                        task, result);
-                var identityRecoveryConfig = securityPolicy.getIdentityRecovery();
-                configuredItems = identityRecoveryConfig.getItemToDisplay();
-            } catch (Exception e) {
-                LOGGER.debug("Unable to load the configured items list for identity recovery page, ", e);
-            }
-            return configuredItems;
-        });
+                 var identityRecoveryConfig = securityPolicyModel.getObject().getIdentityRecovery();
+                return identityRecoveryConfig.getItemToDisplay();
     }
 
     private boolean configuredItemsExist() {
@@ -260,7 +284,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private List<UserType> getRecoveredIdentities() {
-        var correlationModuleAuth = findCorrelationModuleAuthentication();
+        var correlationModuleAuth = SecurityUtils.findCorrelationModuleAuthentication(PageIdentityRecovery.this);
         if (isSuccessfullyAuthenticated(correlationModuleAuth)) {
             return correlationModuleAuth.getOwners()
                     .stream()
@@ -270,21 +294,6 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         }
         return Collections.emptyList();
     }
-
-    private CorrelationModuleAuthentication findCorrelationModuleAuthentication() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
-            getSession().error(getString("No midPoint authentication is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        var correlationAuth = (CorrelationModuleAuthentication) mpAuthentication.getAuthentications()
-                .stream()
-                .filter(a -> a instanceof CorrelationModuleAuthentication)
-                .findFirst()
-                .orElse(null);
-        return correlationAuth;
-    }
-
     private boolean isSuccessfullyAuthenticated(CorrelationModuleAuthentication auth) {
         return auth != null && AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState());
     }

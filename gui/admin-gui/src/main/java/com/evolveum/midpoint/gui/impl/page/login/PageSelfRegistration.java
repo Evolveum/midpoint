@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 
 import org.apache.wicket.RestartResponseException;
@@ -16,8 +17,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -49,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @PageDescriptor(urls = { @Url(mountUrl = "/registration", matchUrlForSecurity = "/registration") },
         permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
 public class PageSelfRegistration extends PageAbstractFlow {
@@ -71,9 +72,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private static final String ID_STATIC_FORM = "staticForm";
 
     protected IModel<UserType> userModel;
+    private UserType user;
 
     public PageSelfRegistration() {
         super(null);
+    }
+
+    public PageSelfRegistration(UserType userType) {
+        super(null);
+        this.user = userType;
     }
 
     @Override
@@ -83,6 +90,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             @Override
             protected UserType load() {
+                if (user != null) {
+                    return user;
+                }
                 return instantiateUser();
             }
         };
@@ -241,6 +251,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
         }
         target.add(getFeedbackPanel());
         target.add(PageSelfRegistration.this);
+    }
+
+    @Override
+    protected String getArchetypeOid() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
+            return null;
+        }
+        return mpAuthentication.getArchetypeOid();
     }
 
     private void saveUser(OperationResult result) {

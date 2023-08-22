@@ -12,17 +12,12 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
 import com.evolveum.midpoint.model.api.correlator.CandidateOwnersMap;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleConfigurationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImpl implements CorrelationModuleAuthentication {
@@ -32,6 +27,9 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     private CandidateOwnersMap candidateOwners = new CandidateOwnersMap();
     private final List<ObjectType> owners = new ArrayList<>();
+
+    private FocusType preFocus;
+    private Map<ItemPath, String> processedAttributes = new HashMap<>();
 
     public CorrelationModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.CORRELATION, sequenceModule);
@@ -89,6 +87,22 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     public List<ObjectType> getOwners() {
         return Collections.unmodifiableList(owners);
+    }
+
+    public void addAttributes(Map<ItemPath, String> attributes) {
+        attributes.forEach((k, v) -> this.processedAttributes.putIfAbsent(k, v));
+    }
+
+    public Map<ItemPath, String> getProcessedAttributes() {
+        return processedAttributes;
+    }
+
+    public void setPreFocus(FocusType preFocus) {
+        this.preFocus = preFocus;
+    }
+
+    public FocusType getPreFocus() {
+        return preFocus;
     }
 
 }
