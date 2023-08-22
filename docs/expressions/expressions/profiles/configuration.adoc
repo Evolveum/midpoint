@@ -283,6 +283,48 @@ An example:
 
 This is also the method how to specify default expression profile for a particular type of objects.
 
+=== Defaults
+++++
+{% include since.html since="4.8" %}
+++++
+
+=== For Expressions
+For backwards compatibility reasons, default profile for expressions is built-in "full access" profile.
+(Identified as `##full`.)
+
+[NOTE]
+====
+Identifiers for built-in profiles start with `#`.
+Please do not use this character as the first one in your profile identifiers.
+Also, it is not possible to reference built-in profiles from within your configuration.
+So, if you need to create a "full access" profile, you need to create your own.
+
+In 4.8, there are the following built-in profiles: `##full` (full access), `##none` (no access), `##legacyUnprivilegedBulkActions` (see below).
+====
+
+=== For Bulk Actions
+If there is no explicitly provided expression profile ID, midPoint looks for the following system configuration properties present in `expressions/defaults`:
+
+.Default expression profiles for bulk actions
+[%autowidth]
+|===
+| Property | Meaning | Default value
+
+| `bulkActions`
+| Expression profile for midPoint bulk actions running under an unprivileged principal.
+| `##legacyUnprivilegedBulkActions`: no expressions (including scripts) are allowed
+| `privilegedBulkActions`
+| Expression profile for midPoint bulk actions running under a privileged principal.
+| `##full`: full access
+|===
+
+These defaults roughly correspond to pre-4.8 behavior.
+The distinction between privileged and unprivileged principal is based on whether it possesses the `#all` authorization.
+Before 4.8, this authorization was checked before execution of `script` bulk action and before execution of `notify` action with the custom event handler.
+In 4.8, it disallows execution of any expressions (including scripts).
+It roughly corresponds to the pre-4.7 behavior, but e.g. allows executing `notify` action with custom event handler that avoids any custom expressions or scripts.
+(Note that before 4.8 there was no bulk action that evaluated arbitrary expression.)
+
 == Security Considerations
 
 Expression profiles are inherently sensitive from information security point of view.
