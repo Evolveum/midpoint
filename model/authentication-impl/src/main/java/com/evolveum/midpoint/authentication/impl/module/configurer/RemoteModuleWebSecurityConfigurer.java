@@ -10,6 +10,7 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 import java.util.UUID;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.filter.UseCsrfFilterOnlyForAuthenticatedRequest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -82,7 +83,7 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
         super.configure(http);
 
         http.securityMatcher(AuthUtil.stripEndingSlashes(getPrefix()) + "/**");
-        http.csrf().disable();
+        http.csrf().requireCsrfProtectionMatcher(new UseCsrfFilterOnlyForAuthenticatedRequest());
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
             @Override
