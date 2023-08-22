@@ -114,7 +114,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
     }
 
     private ResourceObjectTypeWizardPreviewPanel createObjectTypePreview() {
-        return new ResourceObjectTypeWizardPreviewPanel(getIdOfChoicePanel(), createHelper()) {
+        return new ResourceObjectTypeWizardPreviewPanel(getIdOfChoicePanel(), createHelper(false)) {
             @Override
             protected void onTileClickPerformed(ResourceObjectTypePreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
@@ -167,60 +167,60 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
 
         showChoiceFragment(
                 target,
-                new ResourceObjectTypeBasicWizardPanel(getIdOfChoicePanel(), createHelper())
+                new ResourceObjectTypeBasicWizardPanel(getIdOfChoicePanel(), createHelper(true))
         );
     }
 
     private void showCredentialsWizardPanel(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new CredentialsWizardPanel(getIdOfChoicePanel(), createHelper())
+                new CredentialsWizardPanel(getIdOfChoicePanel(), createHelper(false))
         );
     }
 
     private void showCorrelationItemsTable(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper())
+                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper(false))
         );
     }
 
     private void showCapabilitiesConfigWizard(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new CapabilitiesWizardPanel(getIdOfChoicePanel(), createHelper())
+                new CapabilitiesWizardPanel(getIdOfChoicePanel(), createHelper(false))
         );
     }
 
     private void showSynchronizationConfigWizard(AjaxRequestTarget target) {
         showWizardFragment(
                 target,
-                new SynchronizationWizardPanel(getIdOfWizardPanel(), createHelper())
+                new SynchronizationWizardPanel(getIdOfWizardPanel(), createHelper(false))
         );
     }
 
     private void showActivationsWizard(AjaxRequestTarget target) {
         showWizardFragment(
                 target,
-                new ActivationsWizardPanel(getIdOfWizardPanel(), createHelper())
+                new ActivationsWizardPanel(getIdOfWizardPanel(), createHelper(false))
         );
     }
 
     private void showAssociationsWizard(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new AssociationsWizardPanel(getIdOfChoicePanel(), createHelper())
+                new AssociationsWizardPanel(getIdOfChoicePanel(), createHelper(false))
         );
     }
 
     private void showTableForAttributes(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new AttributeMappingWizardPanel(getIdOfChoicePanel(), createHelper())
+                new AttributeMappingWizardPanel(getIdOfChoicePanel(), createHelper(false))
         );
     }
 
-    private WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> createHelper() {
+    private WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> createHelper(boolean isWizardFlow) {
 
         return new WizardPanelHelper<>(getAssignmentHolderModel()) {
                     @Override
@@ -236,7 +236,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
                     @Override
                     public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
                         OperationResult result = ResourceObjectTypeWizardPanel.this.onSavePerformed(target);
-                        if (result != null && !result.isError()) {
+                        if (isWizardFlow && result != null && !result.isError()) {
                             refreshValueModel();
                             showObjectTypePreviewFragment(target);
                         }
