@@ -181,12 +181,20 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
             update.set(rootPath.containerIdSeq, cidGenerator.lastUsedId() + 1);
         }
         update.set(rootPath.fullObject, mapping.createFullObject(object));
+        executeUpdateRow();
+    }
 
+    private void executeUpdateRow() throws RepositoryException {
         long rows = update.execute();
         if (rows != 1) {
             throw new RepositoryException("Object " + objectOid() + " with supposed version "
                     + objectVersion + " could not be updated (concurrent access?).");
         }
+    }
+
+    public void finishExecutionSetCidOnly(long newIdSeq) throws RepositoryException {
+        update.set(rootPath.containerIdSeq, newIdSeq);
+        executeUpdateRow();
     }
 
     @Override

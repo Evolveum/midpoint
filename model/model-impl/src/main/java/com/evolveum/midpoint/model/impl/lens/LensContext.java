@@ -2030,6 +2030,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return projectionContexts.stream().anyMatch(LensProjectionContext::isProjectionRecomputationRequested);
     }
 
+    public boolean areAccessesMetadataEnabled() {
+        return SystemConfigurationTypeUtil.isAccessesMetadataEnabled(getSystemConfigurationBean());
+    }
+
     public enum ExportType {
         MINIMAL, REDUCED, OPERATIONAL, TRACE
     }

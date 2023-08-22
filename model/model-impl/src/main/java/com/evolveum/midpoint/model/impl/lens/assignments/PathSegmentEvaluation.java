@@ -171,7 +171,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
         }
         if (result.isTracingNormal(AssignmentSegmentEvaluationTraceType.class)) {
             AssignmentSegmentEvaluationTraceType trace = new AssignmentSegmentEvaluationTraceType()
-                    .segment(segment.toAssignmentPathSegmentType(true));
+                    .segment(segment.toAssignmentPathSegmentBean(true));
             result.addTrace(trace);
             return trace;
         } else {

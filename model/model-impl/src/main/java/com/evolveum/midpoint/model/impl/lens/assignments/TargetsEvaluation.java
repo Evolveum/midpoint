@@ -133,7 +133,6 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 // or - if null - assignment/targetRef should have OID filled in.
             } else {
                 // no OID, so we have to resolve the filter
-//                resolvedTargets = true;
                 targets.addAll(getTargets());
                 for (PrismObject<? extends ObjectType> targetObject : targets) {
                     ObjectType target = targetObject.asObjectable();
@@ -143,12 +142,6 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 }
             }
         }
-
-        // We have to know targets for direct assignments.
-        // But these should be perhaps loaded lazily (MID-6292)
-//        if (segment.direct && !resolvedTargets) {
-//            targets.addAll(getTargets());
-//        }
     }
 
     private boolean hasCycle(@NotNull PrismObject<? extends ObjectType> target) throws PolicyViolationException {

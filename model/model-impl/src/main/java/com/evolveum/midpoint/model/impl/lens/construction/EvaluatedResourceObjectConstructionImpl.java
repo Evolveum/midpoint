@@ -245,7 +245,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
                     LensUtil.createDiscriminatorBean( // this is a temporary solution; schema should be changed instead
                             targetKey.toProjectionContextKey(), construction.lensContext));
             if (construction.assignmentPath != null && result.isTracingNormal(ResourceObjectConstructionEvaluationTraceType.class)) {
-                trace.setAssignmentPath(construction.assignmentPath.toAssignmentPathType(false));
+                trace.setAssignmentPath(construction.assignmentPath.toAssignmentPathBean(false));
             }
             result.addTrace(trace);
         }

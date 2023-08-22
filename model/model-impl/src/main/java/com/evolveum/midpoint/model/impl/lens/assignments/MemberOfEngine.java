@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,7 +56,8 @@ class MemberOfEngine {
         memberOfInvocations.clear();
     }
 
-    <AH extends AssignmentHolderType> boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+    <AH extends AssignmentHolderType> boolean isMemberOfInvocationResultChanged(
+            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
         if (!memberOfInvocations.isEmpty()) {
             // Similar code is in AssignmentProcessor.processMembershipAndDelegatedRefs -- check that if changing the business logic
             List<ObjectReferenceType> membership = evaluatedAssignmentTriple.getNonNegativeValues().stream() // MID-6403
@@ -75,13 +75,14 @@ class MemberOfEngine {
     private MemberOfInvocation findInvocation(String targetOid) {
         List<MemberOfInvocation> matching = memberOfInvocations.stream()
                 .filter(invocation -> targetOid.equals(invocation.targetOid))
-                .collect(Collectors.toList());
+                .toList();
         if (matching.isEmpty()) {
             return null;
         } else if (matching.size() == 1) {
             return matching.get(0);
         } else {
-            throw new IllegalStateException("More than one matching MemberOfInvocation for targetOid='" + targetOid + "': " + matching);
+            throw new IllegalStateException(
+                    "More than one matching MemberOfInvocation for targetOid='" + targetOid + "': " + matching);
         }
     }
 

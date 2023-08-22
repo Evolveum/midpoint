@@ -64,7 +64,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -989,7 +988,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             LensContext<F> context,
             XMLGregorianCalendar ignored1,
             Task ignored2,
-            OperationResult operationResult)
+            OperationResult ignored3)
             throws SchemaException {
         assert context.hasFocusOfType(AssignmentHolderType.class);
         LensFocusContext<F> focusContext = context.getFocusContext();
@@ -1006,7 +1005,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
             if (evalAssignment.isValid()) {
                 LOGGER.trace("Adding references from: {}", evalAssignment);
-                addRoleReferences(shouldBeRoleRefs, evalAssignment, focusContext, operationResult);
+                addRoleReferences(shouldBeRoleRefs, evalAssignment, focusContext);
                 addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
                 addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
             } else {
@@ -1026,11 +1025,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     private void addRoleReferences(
             Collection<PrismReferenceValue> shouldBeRoleRefs, EvaluatedAssignmentImpl<?> evaluatedAssignment,
-            LensFocusContext<?> focusContext, OperationResult operationResult) throws SchemaException {
+            LensFocusContext<?> focusContext) throws SchemaException {
         Collection<PrismReferenceValue> membershipRefVals = evaluatedAssignment.getMembershipRefVals();
         // If sysconfig enables accesses value metadata, we will add them.
-        SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
-        if (SystemConfigurationTypeUtil.isAccessesMetadataEnabled(sysconfig)) {
+        if (focusContext.getLensContext().areAccessesMetadataEnabled()) {
             // Refs can be shared also for archetype refs and we don't want metadata there (MID-8664).
             membershipRefVals = copySimpleReferenceValuesQuickly(membershipRefVals);
             for (PrismReferenceValue roleRef : membershipRefVals) {
@@ -1067,8 +1065,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         return copied;
     }
 
-    private void addAssignmentPathValueMetadataValues(PrismReferenceValue roleRef,
-            EvaluatedAssignment evaluatedAssignment, LensFocusContext<?> focusContext)
+    private void addAssignmentPathValueMetadataValues(
+            PrismReferenceValue roleRef, EvaluatedAssignment evaluatedAssignment, LensFocusContext<?> focusContext)
             throws SchemaException {
         List<EvaluatedAssignmentTarget> evaluatedAssignmentTargets =
                 findEvaluatedAssignmentTargets(roleRef, evaluatedAssignment);
@@ -1091,7 +1089,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                                     .targetRef(assignmentTargetOid, roleRef.getTargetType(), roleRef.getRelation())));
         } else {
             for (EvaluatedAssignmentTarget evaluatedAssignmentTarget : evaluatedAssignmentTargets) {
-                AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
+                AssignmentPathType assignmentPath =
+                        evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathBean(false);
                 // There can be some value metadata already created by previous assignment evaluation,
                 // but we will add new metadata container for each assignment path without touching any existing ones.
                 addAssignmentPathValueMetadataValue(roleRef, evaluatedAssignment, assignmentPath);

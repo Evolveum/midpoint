@@ -1652,7 +1652,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 // TODO some special mode for verification of the validity - we don't need complete calculation here!
                 EvaluatedAssignment assignment = assignmentEvaluator
                         .evaluate(
-                                assignmentIdi, PlusMinusZero.ZERO, false,
+                                assignmentIdi, null,
+                                PlusMinusZero.ZERO, false,
                                 potentialDeputyBean, potentialDeputy.toString(),
                                 AssignmentOrigin.inObject(embedded(assignmentBean)),
                                 task, result);

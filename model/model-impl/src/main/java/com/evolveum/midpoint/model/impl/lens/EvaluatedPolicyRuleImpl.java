@@ -435,7 +435,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         if (options.isFullStorageStrategy()) {
             if (assignmentPath != null) {
                 bean.setAssignmentPath(
-                        assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
+                        assignmentPath.toAssignmentPathBean(options.isIncludeAssignmentsContent()));
             }
             ObjectType directOwner = computeDirectOwner();
             if (directOwner != null) {

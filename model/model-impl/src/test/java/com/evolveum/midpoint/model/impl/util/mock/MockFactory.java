@@ -443,6 +443,12 @@ public class MockFactory {
             }
 
             @Override
+            public @NotNull <T extends ObjectType> Collection<Long> allocateContainerIdentifiers(
+                    @NotNull Class<T> type, @NotNull String oid, int howMany, @NotNull OperationResult result) {
+                return Set.of();
+            }
+
+            @Override
             public RepositoryDiag getRepositoryDiag() {
                 return null;
             }

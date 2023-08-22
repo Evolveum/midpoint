@@ -85,21 +85,4 @@ class Util {
             boolean evaluateOld) {
         return asContainerable(assignmentIdi.getSingleValue(evaluateOld));
     }
-
-//    static @NotNull AssignmentType getAssignmentAny(
-//            @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-//            boolean evaluateOld) {
-//        AssignmentType matching = getAssignment(assignmentIdi, evaluateOld);
-//        if (matching != null) {
-//            return matching;
-//        }
-//
-//        AssignmentType theOther = getAssignment(assignmentIdi, !evaluateOld);
-//        if (theOther != null) {
-//            return theOther;
-//        }
-//
-//        throw new IllegalStateException("Neither 'old' nor 'new' assignment found in " + assignmentIdi +
-//                " (evaluateOld = " + evaluateOld + ")");
-//    }
 }

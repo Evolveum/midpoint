@@ -7604,7 +7604,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * Usable for audit record count assertions depending on the state of accesses metadata.
      */
     protected int accessesMetadataAuditOverhead(int relevantExecutionRecords) {
-        return accessesMetadataEnabled ? relevantExecutionRecords : 0;
+        return accessesMetadataEnabled && !isNativeRepository() ? relevantExecutionRecords : 0;
     }
 
     /**

@@ -97,11 +97,19 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // this is not to be serialized into XML, but let's not mark it as transient
     @NotNull private PathKeyedMap<ObjectTemplateItemDefinitionType> itemDefinitionsMap = new PathKeyedMap<>();
 
+    /**
+     * Manages assignment PCV IDs that are allocated in advance. Created on demand.
+     *
+     * We don't assume that we want to use this store after the context is serialized and then restored.
+     * Hence, it's safe to be transient.
+     */
+    private transient AssignmentIdStore assignmentIdStore;
+
     public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
         super(objectTypeClass, lensContext);
     }
 
-    public LensFocusContext(ElementState<O> elementState, LensContext<O> lensContext) {
+    private LensFocusContext(ElementState<O> elementState, LensContext<O> lensContext) {
         super(elementState, lensContext);
     }
 
@@ -218,6 +226,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public boolean isAdd() {
+        return ObjectDelta.isAdd(state.getPrimaryDelta());
+    }
+
+    /** Different from {@link #isAdd()} just to have a clear meaning. */
+    public boolean isPrimaryAdd() {
         return ObjectDelta.isAdd(state.getPrimaryDelta());
     }
 
@@ -507,5 +520,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      */
     public PrismObject<O> getStateBeforeSimulatedOperation() {
         return getObjectOld();
+    }
+
+    public @NotNull AssignmentIdStore getAssignmentIdStore() {
+        if (assignmentIdStore == null) {
+            assignmentIdStore = new AssignmentIdStore();
+        }
+        return assignmentIdStore;
     }
 }

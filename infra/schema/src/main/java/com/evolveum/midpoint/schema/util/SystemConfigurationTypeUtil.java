@@ -85,6 +85,6 @@ public class SystemConfigurationTypeUtil {
         if (accessesMetadataEnabled == null) {
             return defaultValue;
         }
-        return Boolean.TRUE.equals(roleManagement.isAccessesMetadataEnabled());
+        return Boolean.TRUE.equals(accessesMetadataEnabled);
     }
 }
