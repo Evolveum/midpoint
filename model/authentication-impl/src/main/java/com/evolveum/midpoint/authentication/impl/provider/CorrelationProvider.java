@@ -128,7 +128,7 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                     correlationToken.getPreFocus(focusType),
                     archetypeOid,
                     candidatesOids,
-                    new CorrelatorDiscriminator(correlationToken.getCorrelatorName(), CorrelationUseType.IDENTITY_RECOVERY),
+                    CorrelatorDiscriminator.forIdentityRecovery(correlationToken.getCorrelatorName()),
                     task, task.getResult());
     }
 

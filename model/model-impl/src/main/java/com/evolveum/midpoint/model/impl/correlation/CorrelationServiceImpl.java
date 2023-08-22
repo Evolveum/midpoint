@@ -207,7 +207,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 preFocus,
                 determineObjectTemplate(synchronizationPolicy.getArchetypeOid(), preFocus, null, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
-                new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
+                CorrelatorDiscriminator.forSynchronization(),
                 task);
         double confidence = correlatorFactoryRegistry
                 .instantiateCorrelator(ctx.correlatorContext, task, result)
@@ -361,7 +361,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 preFocus,
                 determineObjectTemplate(policy.getArchetypeOid(), preFocus, null, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)),
-                new CorrelatorDiscriminator(null, CorrelationUseType.SYNCHRONIZATION),
+                CorrelatorDiscriminator.forSynchronization(),
                 task);
     }
 
