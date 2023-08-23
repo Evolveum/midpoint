@@ -663,7 +663,7 @@ public class TestStrings extends AbstractStoryTest {
 
         when();
         clock.overrideDuration("P4D");
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -701,7 +701,7 @@ public class TestStrings extends AbstractStoryTest {
         when();
         clock.resetOverride();
         clock.overrideDuration("P6D");
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
@@ -773,7 +773,7 @@ public class TestStrings extends AbstractStoryTest {
         when();
         clock.resetOverride();
         clock.overrideDuration("P8D");
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -929,7 +929,7 @@ public class TestStrings extends AbstractStoryTest {
         clock.overrideDuration("P6D");
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -969,7 +969,7 @@ public class TestStrings extends AbstractStoryTest {
         clock.overrideDuration("P8D");
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
         List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);

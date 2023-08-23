@@ -19,6 +19,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 /**
  * Object-related authorization parameters. The traditional ones.
  *
@@ -42,6 +47,11 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
         this.target = target;
         this.relation = relation;
         this.orderConstraints = orderConstraints;
+    }
+
+    /** Just a convenience method. */
+    public static <O extends ObjectType> @NotNull AuthorizationParameters<O, ObjectType> forObject(@Nullable O object) {
+        return AuthorizationParameters.Builder.buildObject(asPrismObject(object));
     }
 
     public ObjectDeltaObject<O> getOdo() {

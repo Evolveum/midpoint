@@ -187,7 +187,7 @@ public class TestGenericSynchronization extends AbstractLongTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + (ldapdUserCount + ldapOrgCount) * 2000);
+        waitForTaskFinish(task, 20000 + (ldapdUserCount + ldapOrgCount) * 2000);
 
         // THEN
         then();

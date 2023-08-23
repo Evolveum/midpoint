@@ -105,7 +105,7 @@ public class TestBucketsPerformance extends AbstractStoryTest {
 
         when();
         addTask(recomputationTask, result);
-        waitForTaskFinish(recomputationTask.oid, false);
+        waitForTaskFinish(recomputationTask.oid);
 
         then();
         var tree = assertTaskTree(recomputationTask.oid, "after")

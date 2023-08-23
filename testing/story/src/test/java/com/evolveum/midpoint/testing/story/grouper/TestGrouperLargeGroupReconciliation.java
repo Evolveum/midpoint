@@ -61,7 +61,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
 
         Thread.sleep(5000L);           // leave the reconciliation task alone ... at least for a minute
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, false, 180000);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, 180000);
         assertSuccess(taskAfter.getResult());
     }
 
@@ -80,7 +80,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
 
         Thread.sleep(5000L);           // leave the reconciliation task alone ... at least for a minute
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, false, 180000);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, 180000);
         assertSuccess(taskAfter.getResult());
     }
 }

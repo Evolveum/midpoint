@@ -225,7 +225,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         File taskFile = testResource.getFile();
         PrismObject<TaskType> task = addObject(taskFile, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
         if (!TaskTypeUtil.isTaskRecurring(task.asObjectable())) {
-            waitForTaskFinish(testResource.oid, false);
+            waitForTaskFinish(testResource.oid);
         } else {
             rerunTask(testResource.oid, initResult);
         }
@@ -268,7 +268,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         interruptedSyncResource.getDummyResource().setOperationDelayOffset(2000);
 
         when();
-        waitForTaskNextStart(TASK_SLOW_RESOURCE.oid, false, 2000, true); // starts the task
+        waitForTaskNextStart(TASK_SLOW_RESOURCE.oid, 2000, true); // starts the task
         boolean suspended = suspendTask(TASK_SLOW_RESOURCE.oid, 10000);
 
         then();
@@ -295,7 +295,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         interruptedSyncImpreciseResource.getDummyResource().setOperationDelayOffset(500);
 
         when();
-        waitForTaskNextStart(TASK_SLOW_RESOURCE_IMPRECISE.oid, false, 2000, true);  // starts the task
+        waitForTaskNextStart(TASK_SLOW_RESOURCE_IMPRECISE.oid, 2000, true);  // starts the task
         boolean suspended = suspendTask(TASK_SLOW_RESOURCE_IMPRECISE.oid, 5000);
 
         then();
@@ -334,7 +334,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         DummyInterruptedSyncResource.setExecutionListener(() -> threads.add(Thread.currentThread().getName()));
 
         when();
-        waitForTaskNextStart(TASK_SLOW_MODEL.oid, false, 2000, true);  // starts the task
+        waitForTaskNextStart(TASK_SLOW_MODEL.oid, 2000, true);  // starts the task
         Thread.sleep(4000);
         boolean suspended = suspendTask(TASK_SLOW_MODEL.oid, 5000);
 
@@ -388,7 +388,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         DummyInterruptedSyncImpreciseResource.delay = 100;
 
         when();
-        waitForTaskNextStart(TASK_SLOW_MODEL_IMPRECISE.oid, false, 2000, true);  // starts the task
+        waitForTaskNextStart(TASK_SLOW_MODEL_IMPRECISE.oid, 2000, true);  // starts the task
         Thread.sleep(4000);
         boolean suspended = suspendTask(TASK_SLOW_MODEL_IMPRECISE.oid, 5000);
 
@@ -430,7 +430,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         DummyInterruptedSyncResource.errorOn = getUserName(24, true);
 
         when();
-        waitForTaskNextRun(TASK_BATCHED.oid, false, 20_000, true);
+        waitForTaskNextRun(TASK_BATCHED.oid, 20_000, true);
 
         then();
         stabilize();
@@ -442,7 +442,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         assertObjects(UserType.class, query, 10);
 
         when();
-        waitForTaskNextRun(TASK_BATCHED.oid, false, 20_000, true);
+        waitForTaskNextRun(TASK_BATCHED.oid, 20_000, true);
 
         then();
         stabilize();
@@ -454,7 +454,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         assertObjects(UserType.class, query, 20);
 
         when("(with error)");
-        waitForTaskNextRun(TASK_BATCHED.oid, false, 20_000, true);
+        waitForTaskNextRun(TASK_BATCHED.oid, 20_000, true);
 
         then("(with error)");
         stabilize();
@@ -486,7 +486,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
         try {
-            waitForTaskNextRun(TASK_BATCHED_IMPRECISE.oid, false, 10000, true);
+            waitForTaskNextRun(TASK_BATCHED_IMPRECISE.oid, 10000, true);
         } catch (Throwable t) {
             suspendTask(TASK_BATCHED_IMPRECISE.oid, 10000);
             throw t;
@@ -530,7 +530,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         DummyInterruptedSyncResource.errorOn = getUserName(ERROR_ON, true);
 
         when();
-        waitForTaskNextRun(TASK_ERROR.oid, false, 30000, true);
+        waitForTaskNextRun(TASK_ERROR.oid, 30000, true);
 
         then();
         stabilize();
@@ -550,7 +550,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // Another run - should fail the same
 
         when();
-        waitForTaskNextRun(TASK_ERROR.oid, false, 10000, true);
+        waitForTaskNextRun(TASK_ERROR.oid, 10000, true);
 
         then();
         stabilize();
@@ -588,7 +588,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
         try {
-            waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 30000, true);
+            waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, 30000, true);
         } catch (Throwable t) {
             suspendTask(TASK_ERROR_IMPRECISE.oid, 10000);
             throw t;
@@ -614,7 +614,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // Another run - should fail the same
 
         when();
-        waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 10000, true);
+        waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, 10000, true);
 
         then();
         stabilize();
@@ -646,7 +646,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         DummyInterruptedSyncResource.errorOn = null;
 
         when();
-        waitForTaskNextRun(TASK_DRY_RUN.oid, false, 10_000, true);
+        waitForTaskNextRun(TASK_DRY_RUN.oid, 10_000, true);
 
         then();
         stabilize();
@@ -679,7 +679,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         DummyInterruptedSyncResource.errorOn = null;
 
         when();
-        waitForTaskNextRun(TASK_DRY_RUN_WITH_UPDATE.oid, false, 10_000, true);
+        waitForTaskNextRun(TASK_DRY_RUN_WITH_UPDATE.oid, 10_000, true);
 
         then();
         stabilize();
@@ -711,7 +711,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRun(TASK_NO_POLICY.oid, false, 10000, true);
+        waitForTaskNextRun(TASK_NO_POLICY.oid, 10000, true);
 
         then();
 
@@ -790,7 +790,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRun(xferTask.oid, false, 60000, true);
+        waitForTaskNextRun(xferTask.oid, 60000, true);
 
         then();
 
@@ -929,7 +929,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRun(xferTask.oid, false, 60000, true);
+        waitForTaskNextRun(xferTask.oid, 60000, true);
 
         then();
 
@@ -1022,7 +1022,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRun(TASK_MULTI_CHANGES.oid, false, 30000, true);
+        waitForTaskNextRun(TASK_MULTI_CHANGES.oid, 30000, true);
 
         then();
 
@@ -1048,7 +1048,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRun(xferTask.oid, false, 60000, true);
+        waitForTaskNextRun(xferTask.oid, 60000, true);
 
         then();
 
@@ -1062,7 +1062,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
 
         when();
-        waitForTaskNextRun(TASK_ERRORS_PRECISE_IGNORE.oid, false, 60000, true);
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_IGNORE.oid, 60000, true);
 
         then();
         stabilize();
@@ -1078,7 +1078,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
 
         when();
-        waitForTaskNextRun(TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL.oid, false, 600000 /* TODO */, true);
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL.oid, 600000 /* TODO */, true);
 
         then();
         stabilize();
@@ -1093,7 +1093,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
 
         when();
-        waitForTaskNextRun(TASK_ERRORS_PRECISE_STOP_ON_ANY.oid, false, 60000, true);
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_STOP_ON_ANY.oid, 60000, true);
 
         then();
         stabilize();
@@ -1111,7 +1111,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
         when();
         long start = System.currentTimeMillis();
-        waitForTaskNextRun(TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY.oid, false, 600000 /* TODO */, true);
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY.oid, 600000 /* TODO */, true);
         long end = System.currentTimeMillis();
 
         then();
@@ -1264,7 +1264,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
 
         when();
-        waitForTaskNextRun(TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4.oid, false, 600000 /* TODO */, true);
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4.oid, 600000 /* TODO */, true);
 
         then();
         stabilize();

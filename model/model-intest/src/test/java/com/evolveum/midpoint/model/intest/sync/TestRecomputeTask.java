@@ -14,8 +14,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.test.*;
 
-import com.evolveum.midpoint.util.QNameUtil;
-
 import jakarta.xml.bind.JAXBElement;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -180,12 +178,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, false, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, 40000);
 
         // THEN
         then();
@@ -281,12 +279,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_CAPTAIN_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_CAPTAIN_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_CAPTAIN_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_CAPTAIN_OID, 40000);
 
         // THEN
         then();
@@ -333,12 +331,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, 40000);
 
         // THEN
         then();
@@ -415,12 +413,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, 40000);
 
         // THEN
         then();

@@ -34,6 +34,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
@@ -50,10 +51,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
@@ -2010,6 +2007,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         return modelInteractionService.submitTaskFromTemplate(templateTaskOid, extensionValues, getCurrentTask(), getCurrentResult());
+    }
+
+    @Override
+    public @NotNull String submitTaskFromTemplate(@NotNull String templateOid, @NotNull ActivityCustomization customization)
+            throws CommonException {
+        return modelInteractionService.submitTaskFromTemplate(templateOid, customization, getCurrentTask(), getCurrentResult());
     }
 
     @Override

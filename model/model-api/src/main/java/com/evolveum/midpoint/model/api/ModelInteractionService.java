@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -448,19 +449,24 @@ public interface ModelInteractionService {
 
     List<RelationDefinitionType> getRelationDefinitions();
 
+    /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
+    @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
+    /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
+    @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
-     * Submits a task from template (pointed to by `templateOid`), customizing it according to given
-     * {@link ActivityCustomization}. The template must be compatible with the customization required.
+     * Submits a task from template (pointed to by `templateOid`).
+     *
+     * See {@link MidpointFunctions#submitTaskFromTemplate(String, ActivityCustomization)} for details.
      */
     @NotNull String submitTaskFromTemplate(
             @NotNull String templateOid,

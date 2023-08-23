@@ -152,7 +152,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
         when();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_0T_NB_NP.oid, false);
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_0T_NB_NP.oid);
 
         then();
 

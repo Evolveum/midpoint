@@ -935,7 +935,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         String taskOid = result.findTaskOid();
         assertThat(taskOid).as("background task OID").isNotNull();
 
-        waitForTaskFinish(taskOid, false);
+        waitForTaskFinish(taskOid);
         assertTask(taskOid, "after")
                 .display()
                 .assertClosed()

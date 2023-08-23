@@ -3901,18 +3901,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void waitForTaskFinish(Task task) throws Exception {
-        waitForTaskFinish(task, false, DEFAULT_TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(task, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
-        waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+    protected void waitForTaskFinish(Task task, final int timeout) throws CommonException {
+        waitForTaskFinish(task, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected void waitForTaskFinish(Task task, boolean checkSubresult, final int timeout) throws CommonException {
-        waitForTaskFinish(task, checkSubresult, timeout, DEFAULT_TASK_SLEEP_TIME);
-    }
-
-    protected void waitForTaskFinish(final Task task, final boolean checkSubresult, final int timeout, long sleepTime)
+    protected void waitForTaskFinish(Task task, int timeout, long sleepTime)
             throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");
         Checker checker = new Checker() {
@@ -3922,9 +3918,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 waitResult.summarize();
                 OperationResult result = task.getResult();
                 if (verbose) {display("Check result", result);}
-                assert !isError(result, checkSubresult) : "Error in " + task + ": " + TestUtil.getErrorMessage(result);
-                assert !isUnknown(result, checkSubresult) : "Unknown result in " + task + ": " + TestUtil.getErrorMessage(result);
-                return !isInProgress(result, checkSubresult);
+                assert !isError(result) : "Error in " + task + ": " + TestUtil.getErrorMessage(result);
+                assert !isUnknown(result) : "Unknown result in " + task + ": " + TestUtil.getErrorMessage(result);
+                return !isInProgress(result);
             }
 
             @Override
@@ -3982,27 +3978,28 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.waitFor("Waiting for " + taskOid + " close/suspend", checker, timeout, sleepTime);
     }
 
-    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+    protected Task waitForTaskFinish(String taskOid) throws CommonException {
+        return waitForTaskFinish(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected Task waitForTaskFinish(String taskOid, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
-        return waitForTaskFinish(taskOid, false, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
+    protected Task waitForTaskFinish(String taskOid, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer)
+            throws CommonException {
+        return waitForTaskFinish(taskOid, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, timeout, false);
+    protected Task waitForTaskFinish(String taskOid, int timeout) throws CommonException {
+        return waitForTaskFinish(taskOid, timeout, false);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final long timeout, final boolean errorOk) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, 0, timeout, errorOk);
+    protected Task waitForTaskFinish(String taskOid, long timeout, boolean errorOk) throws CommonException {
+        return waitForTaskFinish(taskOid, 0, timeout, errorOk);
     }
 
-    protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final long timeout, final boolean errorOk) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0, null);
+    protected Task waitForTaskFinish(String taskOid, long startTime, long timeout, boolean errorOk) throws CommonException {
+        return waitForTaskFinish(taskOid, startTime, timeout, errorOk, 0, null);
     }
 
-    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, long startTime, long timeout, boolean errorOk,
+    protected Task waitForTaskFinish(String taskOid, long startTime, long timeout, boolean errorOk,
             int showProgressEach, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
         long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskFinish");
@@ -4010,7 +4007,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .taskManager(taskManager)
                 .taskOid(taskOid)
                 .waitResult(waitResult)
-                .checkSubresult(checkSubresult)
                 .errorOk(errorOk)
                 .timeout(timeout)
                 .showProgressEach(showProgressEach)
@@ -4074,23 +4070,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .orElse(null);
     }
 
-    public static boolean isError(OperationResult result, boolean checkSubresult) {
-        OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null && subresult.isError();
+    public static boolean isError(OperationResult result) {
+        return result != null && result.isError();
     }
 
-    public static boolean isUnknown(OperationResult result, boolean checkSubresult) {
-        OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult != null && subresult.isUnknown();            // TODO or return true if null?
+    public static boolean isUnknown(OperationResult result) {
+        return result != null && result.isUnknown(); // TODO or return true if null?
     }
 
-    public static boolean isInProgress(OperationResult result, boolean checkSubresult) {
-        OperationResult subresult = getSubresult(result, checkSubresult);
-        return subresult == null || subresult.isInProgress();        // "true" if there are no subresults
-    }
-
-    private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) { // TODO delete unused parameter
-        return result;
+    public static boolean isInProgress(OperationResult result) {
+        return result == null || result.isInProgress(); // "true" if there are no subresults
     }
 
     protected PrismObject<TaskType> getTask(String taskOid)
@@ -4115,71 +4104,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         result.computeStatus();
         TestUtil.assertSuccess("getObject(Task) result not success", result);
         return retTask;
-    }
-
-    protected OperationResult resumeTaskAndWaitForNextFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
-        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskResume");
-        Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
-
-        final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
-        final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
-
-        taskManager.resumeTask(origTask, waitResult);
-
-        final Holder<OperationResult> taskResultHolder = new Holder<>();
-        Checker checker = new Checker() {
-            @Override
-            public boolean check() throws CommonException {
-                Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
-                OperationResult taskResult = freshTask.getResult();
-                if (verbose) {display("Check result", taskResult);}
-                taskResultHolder.setValue(taskResult);
-                if (isError(taskResult, checkSubresult)) {
-                    return true;
-                }
-                if (isUnknown(taskResult, checkSubresult)) {
-                    return false;
-                }
-                if (freshTask.getLastRunFinishTimestamp() == null) {
-                    return false;
-                }
-                if (freshTask.getLastRunStartTimestamp() == null) {
-                    return false;
-                }
-                // TODO The last condition is too harsh for tightly-bound recurring tasks with small interval.
-                //  It is because it requires that the task is not running. And this can be a problem if the
-                //  typical run time is approximately the same (or even larger) than the interval.
-                return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
-                        && !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
-                        && freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
-            }
-
-            @Override
-            public void timeout() {
-                try {
-                    Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
-                    OperationResult result = freshTask.getResult();
-                    logger.debug("Timed-out task:\n{}", freshTask.debugDump());
-                    displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
-                            + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
-                            + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
-                            + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
-                    assert false : "Timeout (" + timeout + ") while waiting for " + freshTask + " next run. Last result " + result;
-                } catch (ObjectNotFoundException | SchemaException e) {
-                    logger.error("Exception during task refresh: {}", e, e);
-                }
-            }
-        };
-        IntegrationTestTools.waitFor("Waiting for resumed task " + origTask + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
-
-        Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
-        logger.debug("Final task:\n{}", freshTask.debugDump());
-        displayValue("Times", "origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp)
-                + ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp)
-                + ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
-                + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
-
-        return taskResultHolder.getValue();
     }
 
     protected void restartTask(String taskOid) throws CommonException {
@@ -4217,7 +4141,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
                 // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
                 logger.debug("Task {} is running, waiting while it finishes before restarting", task);
-                waitForTaskFinish(taskOid, false);
+                waitForTaskFinish(taskOid);
             }
             logger.debug("Task {} is finished, scheduling it to run now", task);
             taskManager.scheduleTasksNow(singleton(taskOid), result);
@@ -4261,13 +4185,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected Task rerunTask(String taskOid, OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         restartTask(taskOid, result);
-        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
+        return waitForTaskFinish(taskOid, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
     }
 
     protected Task rerunTaskErrorsOk(String taskOid, OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         restartTask(taskOid, result);
-        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        return waitForTaskFinish(taskOid, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
     }
 
     protected String longTimeToString(Long longTime) {

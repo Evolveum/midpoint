@@ -737,7 +737,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         var taskOid = modelInteractionService.submitScriptingExpression(
                 ScriptingBeansUtil.asExecuteScriptCommand(expression), task, result);
-        waitForTaskFinish(taskOid, false);
+        waitForTaskFinish(taskOid);
 
         then();
         assertTask(taskOid, "after")
@@ -1129,7 +1129,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 task,
                 result);
 
-        var taskAfter = waitForTaskFinish(taskOid, false);
+        var taskAfter = waitForTaskFinish(taskOid);
 
         then();
         display(taskAfter.getResult());
@@ -1176,7 +1176,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 task,
                 result);
 
-        var taskAfter = waitForTaskFinish(taskOid, false);
+        var taskAfter = waitForTaskFinish(taskOid);
 
         then();
         display(taskAfter.getResult());
@@ -1362,8 +1362,8 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID);
 
         assertNoObject(TaskType.class, oid1, task, result);
         assertNoObject(TaskType.class, oid2, task, result);
@@ -1381,7 +1381,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         int numberOfUsers = modelService.countObjects(UserType.class, null, null, task, result);
 
         when();
-        Task taskAfterFirstRun = waitForTaskFinish(taskOid, false);
+        Task taskAfterFirstRun = waitForTaskFinish(taskOid);
 
         then();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
@@ -1450,7 +1450,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         var taskOid = modelInteractionService.submitScriptingExpression(
                 ScriptingBeansUtil.asExecuteScriptCommand(expression), task, result);
-        waitForTaskFinish(taskOid, false);
+        waitForTaskFinish(taskOid);
 
         then();
         assertTask(taskOid, "after")
@@ -1489,7 +1489,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertSuccess(result);
 
-        Task task = waitForTaskFinish(MODIFY_JACK_PASSWORD_TASK_OID, false);
+        Task task = waitForTaskFinish(MODIFY_JACK_PASSWORD_TASK_OID);
 
         then();
         display(task.getResult());
@@ -1531,7 +1531,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertSuccess(result);
 
-        Task task = waitForTaskFinish(newTask.getOid(), false);
+        Task task = waitForTaskFinish(newTask.getOid());
 
         then();
         display(task.getResult());

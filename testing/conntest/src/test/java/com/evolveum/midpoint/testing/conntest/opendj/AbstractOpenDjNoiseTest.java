@@ -7,12 +7,9 @@
 package com.evolveum.midpoint.testing.conntest.opendj;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -126,7 +123,7 @@ public abstract class AbstractOpenDjNoiseTest extends TestOpenDj {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();

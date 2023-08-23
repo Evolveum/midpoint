@@ -88,11 +88,11 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
             addTask(getPropagationTaskFile());
             propagationTaskOid = getPropagationTaskOid();
             assertNewPropagationTask();
-            waitForTaskStart(propagationTaskOid, true);
+            waitForTaskStart(propagationTaskOid);
         } else {
             restartTask(propagationTaskOid);
         }
-        Task finishedTask = waitForTaskFinish(propagationTaskOid, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task finishedTask = waitForTaskFinish(propagationTaskOid, DEFAULT_TASK_WAIT_TIMEOUT, true);
         assertFinishedPropagationTask(finishedTask, expectedStatus);
     }
 

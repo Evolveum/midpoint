@@ -238,7 +238,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         clock.resetOverride();
         clock.overrideDuration("P2D"); // first escalation is at P1D
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         // THEN
         then();
@@ -304,7 +304,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         clock.resetOverride();
         clock.overrideDuration("P4D"); // second escalation is at P3D
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         // THEN
         then();
@@ -371,7 +371,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         clock.resetOverride();
         clock.overrideDuration("P15D"); // stage ends at P14D
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         // THEN
         then();
@@ -428,7 +428,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         clock.resetOverride();
         clock.overrideDuration("P18D"); // campaign ends at P16D, reiteration scheduled to P17D
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         // THEN
         then();

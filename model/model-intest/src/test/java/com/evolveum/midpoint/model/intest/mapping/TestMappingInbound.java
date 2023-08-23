@@ -1039,7 +1039,7 @@ public class TestMappingInbound extends AbstractMappingTest {
     private void executeImportInBackground(Task task, OperationResult result) throws Exception {
         modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN.oid, new QName(MidPointConstants.NS_RI,
                 SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
-        waitForTaskFinish(task, true);
+        waitForTaskFinish(task);
     }
 
     private void executeImportInBackgroundErrorsOk(Task task, OperationResult result) throws Exception {

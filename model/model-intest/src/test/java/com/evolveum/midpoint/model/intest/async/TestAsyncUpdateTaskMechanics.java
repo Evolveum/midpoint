@@ -98,7 +98,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         importObject(TASK_ASYNC_UPDATE_HR_NO_WORKERS, task, result);
 
         then();
-        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid, false, 30000);
+        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -125,7 +125,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         importObject(TASK_ASYNC_UPDATE_HR_ONE_WORKER, task, result);
 
         then();
-        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid, false, 30000);
+        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid);
         displayTaskWithOperationStats("Task after", taskAfter);

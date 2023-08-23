@@ -274,9 +274,9 @@ public class TestVillage extends AbstractStoryTest {
         assertNotNull("No system configuration", systemConfiguration);
         display("System config", systemConfiguration);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, false);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
     }
 
     /**
@@ -379,7 +379,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -461,7 +461,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -489,7 +489,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_HERMAN_LOC);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -504,7 +504,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
@@ -538,7 +538,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_LEMONHEAD_NAME);
@@ -558,7 +558,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_NAME);
@@ -605,7 +605,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_NAME);
@@ -648,7 +648,7 @@ public class TestVillage extends AbstractStoryTest {
 
         // WHEN
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ORG_INFRA_NAME);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         PrismObject<UserType> user = findUserByUsername(getUsername(ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ORG_INFRA_NAME));
@@ -669,7 +669,7 @@ public class TestVillage extends AbstractStoryTest {
         // WHEN
         when();
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_SOURCE_OID);
 
         // THEN
         then();

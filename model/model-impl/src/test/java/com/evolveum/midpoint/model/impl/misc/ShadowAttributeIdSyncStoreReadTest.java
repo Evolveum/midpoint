@@ -92,11 +92,9 @@ public class ShadowAttributeIdSyncStoreReadTest extends AbstractInternalModelInt
         Task importTask = createTask();
         importTask.setOwner(userAdministrator);
         modelService.importFromResource(RESOURCE_ID, RI_ACCOUNT_OBJECT_CLASS, importTask, result.createSubresult("import"));
-        waitForTaskFinish(importTask, false);
-
+        waitForTaskFinish(importTask);
 
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, null, null, result);
-
 
         PrismObject<ShadowType> object = shadows.get(0);
         @NotNull

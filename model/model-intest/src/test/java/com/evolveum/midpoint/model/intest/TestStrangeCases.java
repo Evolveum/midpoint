@@ -1165,7 +1165,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         assertSuccess(result);
 
-        waitForTaskFinish(TASK_MOCK_JACK_OID, false);
+        waitForTaskFinish(TASK_MOCK_JACK_OID);
     }
 
     @Test
@@ -1205,7 +1205,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 //        assertNotNull("Mock task not found (taskManager)", jackTaskInfo);
 
         // Make sure that the tasks still runs
-        waitForTaskFinish(TASK_MOCK_JACK_OID, false);
+        waitForTaskFinish(TASK_MOCK_JACK_OID);
 
     }
 

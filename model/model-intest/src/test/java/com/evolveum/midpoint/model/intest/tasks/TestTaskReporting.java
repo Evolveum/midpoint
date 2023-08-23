@@ -206,7 +206,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         when();
         rerunTask(TASK_IMPORT.oid, result);
-        Task importTask = waitForTaskFinish(TASK_IMPORT.oid, true);
+        Task importTask = waitForTaskFinish(TASK_IMPORT.oid);
 
         then();
         stabilize();
@@ -567,7 +567,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         when();
 
         addTask(TASK_RECONCILIATION_HACKED, result);
-        waitForTaskFinish(TASK_RECONCILIATION_HACKED.oid, false);
+        waitForTaskFinish(TASK_RECONCILIATION_HACKED.oid);
 
         then();
 

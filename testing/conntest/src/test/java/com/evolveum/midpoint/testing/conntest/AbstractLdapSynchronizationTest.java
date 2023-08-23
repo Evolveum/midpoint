@@ -102,7 +102,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         then();
         assertSuccess(result);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         long tsEnd = System.currentTimeMillis();
 
@@ -123,7 +123,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -166,7 +166,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -200,7 +200,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -242,7 +242,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -287,7 +287,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -340,7 +340,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         then();
         assertSuccess(result);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         long tsEnd = System.currentTimeMillis();
 
@@ -361,7 +361,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // WHEN
         when();
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -393,7 +393,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         connection.modify(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN), modCn);
         ldapDisconnect(connection);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -422,7 +422,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // WHEN
         when();
         addLdapGroup(GROUP_FOOLS_CN, GROUP_FOOLS_DESCRIPTION, toGroupDn("nobody"));
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -459,7 +459,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         ldapDisconnect(connection);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();
@@ -492,7 +492,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         when();
         deleteLdapEntry(toAccountDn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();

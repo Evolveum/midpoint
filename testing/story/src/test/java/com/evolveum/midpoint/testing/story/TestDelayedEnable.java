@@ -8,9 +8,7 @@ package com.evolveum.midpoint.testing.story;
 
 import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -939,12 +936,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
 
     private void syncWithHr() throws Exception {
         restartTask(TASK_DUMMY_HR_OID);
-        waitForTaskNextRunAssertSuccess(TASK_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_DUMMY_HR_OID);
     }
 
     private void runTriggerScanner() throws Exception {
         restartTask(TASK_TRIGGER_SCANNER_OID);
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
     }
 
     private DummyResource getDummyResourceHr() {

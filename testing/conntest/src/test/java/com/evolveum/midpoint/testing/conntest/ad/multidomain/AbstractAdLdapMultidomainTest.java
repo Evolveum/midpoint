@@ -2270,7 +2270,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         when();
         addTask(getReconciliationTaskFile());
 
-        waitForTaskFinish(getReconciliationTaskOid(), false);
+        waitForTaskFinish(getReconciliationTaskOid());
 
         // THEN
         then();
@@ -2298,7 +2298,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         then();
         assertSuccess(result);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         long tsEnd = System.currentTimeMillis();
 
@@ -2316,7 +2316,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         // WHEN
         when();
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
 
         // THEN
         then();

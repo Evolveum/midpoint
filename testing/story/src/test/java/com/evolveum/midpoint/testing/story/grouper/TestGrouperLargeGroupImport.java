@@ -63,7 +63,7 @@ public class TestGrouperLargeGroupImport extends AbstractGrouperTest {
 
         Thread.sleep(60000L);           // leave the import task alone ... at least for a minute
 
-        Task importTaskAfter = waitForTaskFinish(TASK_IMPORT_GROUPS.oid, false, 120000);
+        Task importTaskAfter = waitForTaskFinish(TASK_IMPORT_GROUPS.oid, 120000);
         assertSuccess(importTaskAfter.getResult());
     }
 }

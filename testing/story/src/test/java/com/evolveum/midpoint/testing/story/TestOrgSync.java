@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.test.TestTask;
 
@@ -280,8 +279,8 @@ public class TestOrgSync extends AbstractStoryTest {
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
 
         TASK_DUMMY_HR_LIVESYNC.rerun(result);
         if (isNativeRepository()) {
@@ -1066,7 +1065,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
@@ -1103,7 +1102,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
@@ -1141,7 +1140,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
+        waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN
@@ -1188,7 +1187,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, TASK_WAIT_TIMEOUT);
         waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
         // THEN

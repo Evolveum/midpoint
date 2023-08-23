@@ -221,7 +221,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
         String taskOid = result.findTaskOid();
         assertThat(taskOid).as("background task OID").isNotNull();
 
-        Task recomputeTask = waitForTaskFinish(taskOid, false);
+        Task recomputeTask = waitForTaskFinish(taskOid);
         assertTask(recomputeTask, "recompute task after")
                 .display()
                 .assertSuccess()
@@ -324,7 +324,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
             assertThat(triggeringTask.asObjectable().getActivity().getDistribution().getWorkerThreads())
                     .as("worker threads").isEqualTo(4); // see resource-clubs.xml
 
-            waitForTaskFinish(triggeringTask.getOid(), false);
+            waitForTaskFinish(triggeringTask.getOid());
         }
 
         then();

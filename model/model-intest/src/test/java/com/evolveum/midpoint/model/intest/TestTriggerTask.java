@@ -90,8 +90,8 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-        Task taskAfter = waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        Task taskAfter = waitForTaskFinish(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -123,7 +123,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -155,7 +155,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -200,7 +200,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -236,7 +236,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -273,7 +273,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -308,7 +308,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -350,7 +350,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -389,7 +389,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
             when();
 
-            waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+            waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
             then();
 
@@ -425,7 +425,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 
@@ -470,7 +470,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when("first run (first trigger fails)");
 
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, false, 10000);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 10000);
 
         then("first run (first trigger fails)");
 
@@ -502,7 +502,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         repositoryService.modifyObject(TaskType.class, TASK_TRIGGER_SCANNER_OID, modifications, result);
 
         testTriggerHandler.reset();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then("second run (retries failed trigger)");
 
@@ -539,7 +539,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
 
         then();
 

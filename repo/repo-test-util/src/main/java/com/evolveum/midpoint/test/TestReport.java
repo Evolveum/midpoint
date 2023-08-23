@@ -85,7 +85,7 @@ public class TestReport extends TestObject<ReportType> {
     public void rerun(OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, true, startTime, defaultTimeout, false);
+        test.waitForTaskFinish(oid, startTime, defaultTimeout, false);
     }
 
     public Export export() {

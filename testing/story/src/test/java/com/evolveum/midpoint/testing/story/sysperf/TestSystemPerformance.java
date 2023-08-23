@@ -297,7 +297,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
             lastProgress = 0;
             addTask(taskImport, result);
-            waitForTaskFinish(taskImport.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+            waitForTaskFinish(taskImport.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                     builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
             then(importName);
@@ -405,7 +405,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 restartTask(taskImport.oid, result);
                 Thread.sleep(500);
 
-                waitForTaskFinish(taskImport.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+                waitForTaskFinish(taskImport.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                         builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
                 then(importName);
@@ -447,7 +447,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     Thread.sleep(500);
                 }
 
-                waitForTaskFinish(reconTask.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+                waitForTaskFinish(reconTask.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                         builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
                 then(importName);
@@ -472,7 +472,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         lastProgress = 0;
         addTask(TASK_RECOMPUTE, result);
-        waitForTaskFinish(TASK_RECOMPUTE.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+        waitForTaskFinish(TASK_RECOMPUTE.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                 builder -> builder.taskConsumer(task1 -> recordProgress("", task1)));
 
         then();

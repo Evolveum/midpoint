@@ -2099,7 +2099,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         // THEN
         then();
 
-        waitForTaskStart(TASK_SHADOW_REFRESH_OID, false);
+        waitForTaskStart(TASK_SHADOW_REFRESH_OID);
     }
 
     @Test
@@ -2118,7 +2118,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // THEN
         restartTask(TASK_SHADOW_REFRESH_OID);
-        waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
+        waitForTaskFinish(TASK_SHADOW_REFRESH_OID);
 
         assertAccountWillAfterAssign(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
@@ -2152,7 +2152,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // THEN
         restartTask(TASK_SHADOW_REFRESH_OID);
-        waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
+        waitForTaskFinish(TASK_SHADOW_REFRESH_OID);
 
         assertAccountJackAfterAssign();
 
@@ -2172,7 +2172,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         // WHEN
         when();
         restartTask(TASK_SHADOW_REFRESH_OID);
-        waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
+        waitForTaskFinish(TASK_SHADOW_REFRESH_OID);
 
         // THEN
         then();

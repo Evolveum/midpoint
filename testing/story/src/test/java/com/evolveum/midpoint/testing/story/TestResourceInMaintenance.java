@@ -811,7 +811,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         clockForward("PT1H");
 
         addTask(TASK_REFRESH, result);
-        Task taskAfter = waitForTaskFinish(TASK_REFRESH.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_REFRESH.oid);
 
         then();
 
