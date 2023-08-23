@@ -1483,6 +1483,18 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             operationResult.close();
         }
     }
+
+    @Override
+    public <T extends Containerable> SearchResultMetadata searchContainersIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<T> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
+
+        return null;
+    }
+
     // endregion
 
     @Override

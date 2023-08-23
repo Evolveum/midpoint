@@ -511,6 +511,23 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
             throws SchemaException;
 
     /**
+     * Executes iterative container search using the provided `handler` to process each container.
+     *
+     * @param query search query
+     * @param handler result handler
+     * @param options get options to use for the search
+     * @param parentResult parent OperationResult (in/out)
+     * @return summary information about the search result
+     */
+    @Experimental
+    <T extends Containerable> SearchResultMetadata searchContainersIterative(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @NotNull ObjectHandler<T> handler,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException;
+
+    /**
      * Executes iterative reference search using the provided `handler` to process each references.
      *
      * @param query search query
