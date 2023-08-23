@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -241,8 +242,16 @@ public interface ModelInteractionService {
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
+    <F extends FocusType> NonceCredentialsPolicyType determineNonceCredentialsPolicy(
+            PrismObject<F> user,
+            String credentialsName,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException;
+
+    //TODO needs Class<F> type parameter
     <F extends FocusType> SecurityPolicyType getSecurityPolicy(
-            PrismObject<F> focus, Task task, OperationResult parentResult)
+            PrismObject<F> focus, String archetypeOid, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -440,19 +449,24 @@ public interface ModelInteractionService {
 
     List<RelationDefinitionType> getRelationDefinitions();
 
+    /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
+    @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
+    /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
+    @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
-     * Submits a task from template (pointed to by `templateOid`), customizing it according to given
-     * {@link ActivityCustomization}. The template must be compatible with the customization required.
+     * Submits a task from template (pointed to by `templateOid`).
+     *
+     * See {@link MidpointFunctions#submitTaskFromTemplate(String, ActivityCustomization)} for details.
      */
     @NotNull String submitTaskFromTemplate(
             @NotNull String templateOid,
@@ -569,6 +583,7 @@ public interface ModelInteractionService {
             Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException;
 
+
     class SearchSpec<T> {
         public Class<T> type;
         public ObjectQuery query;
@@ -633,14 +648,14 @@ public interface ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result) throws CommonException;
 
-    /** A convenience method, moved here from the {@link ScriptingService} (and scripting expression evaluator). */
+    /** A convenience method, moved here from the {@link BulkActionsService} (and scripting expression evaluator). */
     default @NotNull String submitScriptingExpression(
             @NotNull ExecuteScriptType executeScriptCommand,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
 
-        checkScriptingAuthorization(task, result);
+        checkBulkActionsAuthorization(task, result);
         return submit(
                 new ActivityDefinitionType()
                         .work(new WorkDefinitionsType()
@@ -650,8 +665,10 @@ public interface ModelInteractionService {
                 task, result);
     }
 
-    /** Just a convenience method that checks that `#executeScript` authorization is present. */
-    void checkScriptingAuthorization(Task task, OperationResult result)
+    /**
+     * Just a convenience method that checks that {@link ModelAuthorizationAction#EXECUTE_BULK_ACTIONS} authorization is present.
+     */
+    void checkBulkActionsAuthorization(Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 

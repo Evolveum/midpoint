@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -107,7 +107,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
     private static final String ROLE_EXECUTIVE_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee02";
 
     // Has "executive" subtype but should not be part of exclusion relations (because it is not a role)
-    private static final TestResource<OrgType> ORG_EXECUTIVE_RANDOM = new TestResource<>(TEST_DIR,
+    private static final TestObject<OrgType> ORG_EXECUTIVE_RANDOM = TestObject.file(TEST_DIR,
             "org-executive-random.xml", "723f327b-7c33-4e4f-92cd-80ed12de79b6");
 
     private static final File ROLE_META_CONTROLLING_FILE = new File(TEST_DIR, "role-meta-controlling.xml");
@@ -141,13 +141,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     private static final String GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME = "exclusion-global-sod-approval";
 
-    private static final TestResource<RoleType> METAROLE_EXCLUSION_APPLICATION = new TestResource<>(TEST_DIR, "metarole-exclusion-application.xml", "420e5734-3c9b-4a13-8c29-00e745701225");
-    private static final TestResource<RoleType> ROLE_APPLICATION_1 = new TestResource<>(TEST_DIR, "role-application1.xml", "67a972f6-a399-48e3-ac8d-9140d3323259");
-    private static final TestResource<RoleType> ROLE_APPLICATION_2 = new TestResource<>(TEST_DIR, "role-application2.xml", "7e468bbf-a1c3-4c6c-a327-39b720c27930");
-    private static final TestResource<RoleType> ROLE_BUSINESS_1 = new TestResource<>(TEST_DIR, "role-business1.xml", "0a75e61a-d5d8-422b-aae5-2f8ec4426df5");
-    private static final TestResource<RoleType> ROLE_BUSINESS_2 = new TestResource<>(TEST_DIR, "role-business2.xml", "a6bd00fd-2fd4-48b1-8a4f-6edd038beea3");
-    private static final TestResource<RoleType> USER_PETR = new TestResource<>(TEST_DIR, "user-petr.xml", "16a61473-9542-4068-98be-3380802afbfe");
-    private static final TestResource<RoleType> USER_MARTIN = new TestResource<>(TEST_DIR, "user-martin.xml", "1bf090da-b070-4049-a10e-ba4a7c8430cd");
+    private static final TestObject<RoleType> METAROLE_EXCLUSION_APPLICATION = TestObject.file(TEST_DIR, "metarole-exclusion-application.xml", "420e5734-3c9b-4a13-8c29-00e745701225");
+    private static final TestObject<RoleType> ROLE_APPLICATION_1 = TestObject.file(TEST_DIR, "role-application1.xml", "67a972f6-a399-48e3-ac8d-9140d3323259");
+    private static final TestObject<RoleType> ROLE_APPLICATION_2 = TestObject.file(TEST_DIR, "role-application2.xml", "7e468bbf-a1c3-4c6c-a327-39b720c27930");
+    private static final TestObject<RoleType> ROLE_BUSINESS_1 = TestObject.file(TEST_DIR, "role-business1.xml", "0a75e61a-d5d8-422b-aae5-2f8ec4426df5");
+    private static final TestObject<RoleType> ROLE_BUSINESS_2 = TestObject.file(TEST_DIR, "role-business2.xml", "a6bd00fd-2fd4-48b1-8a4f-6edd038beea3");
+    private static final TestObject<RoleType> USER_PETR = TestObject.file(TEST_DIR, "user-petr.xml", "16a61473-9542-4068-98be-3380802afbfe");
+    private static final TestObject<RoleType> USER_MARTIN = TestObject.file(TEST_DIR, "user-martin.xml", "1bf090da-b070-4049-a10e-ba4a7c8430cd");
 
     private static final TestObject<RoleType> ROLE_COORDINATOR = TestObject.file(
             TEST_DIR, "role-coordinator.xml", "77979937-d4a0-42da-a937-c0b4eebc3372");

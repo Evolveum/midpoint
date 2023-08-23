@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,11 +37,11 @@ public class TestSequence extends AbstractWfTestPolicy {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<SequenceType> SEQUENCE_USER_NAME =
-            new TestResource<>(TEST_DIR, "sequence-user-name.xml", "84f9d763-bfd9-4edb-9f5b-a49158580e16");
+    private static final TestObject<SequenceType> SEQUENCE_USER_NAME =
+            TestObject.file(TEST_DIR, "sequence-user-name.xml", "84f9d763-bfd9-4edb-9f5b-a49158580e16");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_USER =
-            new TestResource<>(TEST_DIR, "template-user.xml", "5e156e0f-5844-44d3-a7f7-78df11e3c98a");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_USER =
+            TestObject.file(TEST_DIR, "template-user.xml", "5e156e0f-5844-44d3-a7f7-78df11e3c98a");
 
     private String rootCaseOid;
 

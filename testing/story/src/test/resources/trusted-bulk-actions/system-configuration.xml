@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <expressions>
+        <expressionProfile>
+            <identifier>trusted</identifier>
+            <decision>allow</decision>
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>little-trusted</identifier>
+            <documentation>Trusts but only so that a "simpleTrustedFunction" and its cousin are allowed to be run.</documentation>
+            <decision>deny</decision> <!-- no expressions except for specified ones -->
+            <evaluator>
+                <type>function</type>
+                <decision>allow</decision>
+            </evaluator>
+            <functionLibrariesProfile>little-trusted</functionLibrariesProfile>
+        </expressionProfile>
+        <functionLibrariesProfile>
+            <identifier>little-trusted</identifier>
+            <decision>deny</decision>
+            <library>
+                <ref oid="17b5b255-c71e-4a67-8e42-349862e295ac"/>
+                <decision>deny</decision>
+                <function>
+                    <name>simpleTrustedFunction</name>
+                    <decision>allow</decision>
+                </function>
+                <function>
+                    <name>simpleTrustedFunctionRunPrivileged</name>
+                    <decision>allow</decision>
+                </function>
+            </library>
+        </functionLibrariesProfile>
+    </expressions>
+</systemConfiguration>

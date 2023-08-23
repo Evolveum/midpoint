@@ -273,9 +273,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
         setShowedByWizard(true);
         getObjectDetailsModels().saveDeltas();
-        PrismObject<AH> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
-        getObjectDetailsModels().reset();
-        getObjectDetailsModels().reloadPrismObjectModel(oldObject);
+        getObjectDetailsModels().reloadPrismObjectModel();
 
         IModel<PrismContainerValueWrapper<C>> valueModel = null;
 
@@ -400,7 +398,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
-    private void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
+    protected void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
 
         if (!hasUnsavedChanges(target)) {
             consumer.accept(target);

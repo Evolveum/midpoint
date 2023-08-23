@@ -8,6 +8,9 @@ package com.evolveum.midpoint.authentication.impl.filter;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -39,22 +42,13 @@ public class SecurityQuestionsAuthenticationFilter
     private static final String SPRING_SECURITY_FORM_USER_KEY = "user";
 
     private String getIdentifiedUsername() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(!(authentication instanceof MidpointAuthentication)) {
-            return "";
-        }
-
-        MidpointAuthentication midpointAuthentication = (MidpointAuthentication) authentication;
+        MidpointAuthentication midpointAuthentication = AuthUtil.getMidpointAuthentication();
         Object principal = midpointAuthentication.getPrincipal();
         if (!(principal instanceof MidPointPrincipal)) {
             return "";
         }
 
         FocusType focus = ((MidPointPrincipal) principal).getFocus();
-        if (focus == null) {
-            return "";
-        }
-
         return focus.getName().getNorm();
 
     }

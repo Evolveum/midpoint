@@ -19,7 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.test.AnyTestResource;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestObject;
 
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +104,7 @@ public class TestUnix extends AbstractStoryTest {
     static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
 
     /** Initialized only in the test that uses it. Move to {@link #initSystem(Task, OperationResult)} when more tests need it. */
-    private static final AnyTestResource RESOURCE_OPENDJ_INBOUND = AnyTestResource.file(
+    private static final TestResource RESOURCE_OPENDJ_INBOUND = TestResource.file(
             TEST_DIR, "resource-opendj-inbound.xml", "e701658e-7e60-4f0d-99ef-83d4e910fc10");
 
     static final TestObject<RoleType> ROLE_UNIX = TestObject.file(
@@ -268,8 +268,8 @@ public class TestUnix extends AbstractStoryTest {
         OperationResult testResultOpenDj = modelService.testResource(getResourceOid(), task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
     }
 
     @Test

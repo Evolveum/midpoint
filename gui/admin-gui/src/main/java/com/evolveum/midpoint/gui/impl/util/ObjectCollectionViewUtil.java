@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,9 +19,9 @@ public class ObjectCollectionViewUtil {
 
     public static @NotNull List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionView) {
         if (collectionView == null) {
-            return List.of();
+            return new ArrayList<>();
         }
         var archetypeRef = collectionView.getArchetypeRef();
-        return archetypeRef != null ? List.of(archetypeRef) : List.of();
+        return archetypeRef != null ? Arrays.asList(archetypeRef) : new ArrayList<>();
     }
 }

@@ -123,7 +123,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         importObjectFromFile(TASK_LIVE_SYNC_FILE);
 
         then();
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID);
 
         PrismObject<TaskType> syncTask = getTask(TASK_LIVE_SYNC_OID);
         lastSyncToken = (Integer) ActivityStateUtil.getRootSyncTokenRealValue(syncTask.asObjectable());
@@ -147,7 +147,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         display("Entry from LDIF", entry);
 
         when();
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID);
 
         then();
         assertSyncTokenIncrement(1);
@@ -161,7 +161,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         // just to make sure we are stable
 
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID);
 
         assertSyncTokenIncrement(0);
         assertLdapConnectorInstances(1);
@@ -213,13 +213,13 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         dumpLdap();
         assertLdapConnectorInstances(1, INSTANCES_MAX);
 
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID);
 
         assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertSyncTokenIncrement(NUMBER_OF_GOBLINS);
         assertThreadCount();
 
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID);
 
         assertLdapConnectorInstances(1, INSTANCES_MAX);
         assertSyncTokenIncrement(0);
@@ -299,7 +299,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         String cn = prefix + " " + index;
         addAttemptEntry(uid, cn, Integer.toString(index));
 
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_OID);
 
         assertSyncTokenIncrement(1);
 

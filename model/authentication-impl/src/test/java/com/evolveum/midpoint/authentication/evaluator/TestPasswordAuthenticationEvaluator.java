@@ -8,12 +8,12 @@ package com.evolveum.midpoint.authentication.evaluator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,22 +23,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 import java.util.List;
 
-public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, PasswordAuthenticationContext, AuthenticationEvaluator<PasswordAuthenticationContext>> {
+public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, PasswordAuthenticationContext, AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken>> {
 
     @Autowired
-    private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    private AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> passwordAuthenticationEvaluator;
 
     @Override
-    public AuthenticationEvaluator<PasswordAuthenticationContext> getAuthenticationEvaluator() {
+    public AuthenticationEvaluator<PasswordAuthenticationContext, UsernamePasswordAuthenticationToken> getAuthenticationEvaluator() {
         return passwordAuthenticationEvaluator;
     }
 
     @Override
     public PasswordAuthenticationContext getAuthenticationContext(
             String username, String value, List<ObjectReferenceType> requiredAssignments) {
-        return new PasswordAuthenticationContext(username, value, UserType.class, requiredAssignments);
+        return new PasswordAuthenticationContext(username, value, UserType.class, requiredAssignments, null);
     }
 
     @Override

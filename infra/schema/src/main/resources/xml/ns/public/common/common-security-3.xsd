@@ -67,6 +67,13 @@
                     </xsd:element>
                     <xsd:element name="credentialsReset" type="tns:CredentialsResetPolicyType" minOccurs="0">
                     </xsd:element>
+                    <xsd:element name="identityRecovery" type="tns:IdentityRecoveryPolicyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.8</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -158,6 +165,9 @@
             <xsd:element name="focusIdentification" type="tns:FocusIdentificationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="hint" type="tns:HintAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="correlation" type="tns:CorrelationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="duo" type="tns:DuoAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -380,6 +390,170 @@
                 <xsd:sequence>
                     <xsd:element name="factoryClass" type="xsd:string"/>
                     <xsd:element name="parameter" type="tns:OtherAuthenticationModuleParameterType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArchetypeSelectionModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Module is used for the refining user search based on archetype selection. For example, for "lost my
+                username" case the archetypes provide the information about the user who can recover the username
+                and this archetype is later used for the search.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A set of archetypes which provides e.g. rules to be applied during user authentication.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="allowUndefinedArchetype" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Enables the case when no archetype can be selected. If set to true, the user can be
+                                authenticated e.g. by the rules from global security policy.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Module is used for the user authentication using the correlation rules. Rules can be configured in object template
+                per archetype or on global level. For example, for "lost my
+                username" case the archetypes provide the information about correlation rules to be applied.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="correlator" type="tns:CorrelationModuleConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Correlator configuration.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="thresholds" type="tns:CorrelationModuleThresholds" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Thresholds for correlation module. For example, restriction for the number of users which can be found by
+                                correlation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationModuleConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for correlation module. E.g. which correlator to use specified by its identifier.
+                Ordering if more than one correlator is used, etc. TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlatorIdentifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "name" attribute of the correlator as set in object template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="order" type="xsd:int"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="DuoAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Module is used for 2FA authentication.
+                Module use duo server for authentication via hardware key of mobile, tablet and so on.
+                We cant use it as only one authentication module. We need some primary authentication module for example saml.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="clientId" type="xsd:string" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the client id provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="clientSecret" type="t:ProtectedStringType" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the client secret provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="apiHostname" type="xsd:string" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the api host provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CACerts" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of CA Certificates to use. You need add your cert when it misses in default certs.
+
+                                Default values:
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert Assured ID Root CA
+                                'sha256/I/Lt/z7ekCWanjD0Cvj5EqXls2lOaThEA0H2Bg4BT/o=',
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert Global Root CA
+                                'sha256/r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=',
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert High Assurance EV Root CA
+                                'sha256/WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=',
+                                C=US, O=SecureTrust Corporation, CN=SecureTrust CA
+                                'sha256/dykHF2FLJfEpZOvbOLX4PKrcD2w2sHd/iA/G3uHTOcw=',
+                                C=US, O=SecureTrust Corporation, CN=Secure Global CA
+                                'sha256/JZaQTcTWma4gws703OR/KFk313RkrDcHRvUt6na6DCg=',
+                                C=US, O=Amazon, CN=Amazon Root CA 1
+                                'sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=',
+                                C=US, O=Amazon, CN=Amazon Root CA 2
+                                'sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=',
+                                C=US, O=Amazon, CN=Amazon Root CA 3
+                                'sha256/NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=',
+                                C=US, O=Amazon, CN=Amazon Root CA 4
+                                'sha256/9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=',
+                                C=BM, O=QuoVadis Limited, CN=QuoVadis Root CA 2
+                                'sha256/j9ESw8g3DxR9XM06fYZeuN1UB4O6xp/GAIjjdD/zM3g='
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2156,7 +2330,7 @@
             <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines authentication sequence, which will be use for reset credential.
+                        Defines authentication sequence, which will be used for reset credential.
                         Since 4.7: it's better to specify sequence identifier here instead of sequence name
                         as name attribute becomes deprecated in some objects which are used for
                         authentication configuration starting from 4.7 version (e.g. in AuthenticationSequenceType)
@@ -2197,6 +2371,54 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdentityRecoveryPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Identity recovery management policy. It defines which authentication sequence should be used for login
+                    recovery procedure. For now, a username is considered to be a login name.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier. Can be used for overriding the configuration in different security policies.
+                        Can be also used as a short name used for diagnostics.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description of the identity recovery policy.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="authenticationSequenceIdentifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines authentication sequence, which should be used for identity recovery.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemToDisplay" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The path to the user attribute which should be displayed after the user was found. If no attribute is
+                        specified, user's name attribute will be displayed.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -3135,6 +3357,48 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Should be the evaluation of selectors traced?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArchetypeSelectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a set of archetypes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationModuleThresholds">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines some restrictions for the correlation authentication module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlationResultMaxUsersNumber" type="xsd:int" minOccurs="0" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines the maximum number of users which can be found by the correlation module.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

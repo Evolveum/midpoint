@@ -1744,6 +1744,10 @@ span.yui-skin-sam {
   width: 600px !important;
 }
 
+.login-box {
+  width: 400px !important;
+}
+
 .info-box.activity-item-processing > .info-box-content > .progress-description {
   overflow-wrap: break-word;
   word-break: break-word;
@@ -1891,7 +1895,7 @@ th.debug-list-buttons {
 
   .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
       color: $value;
-      background-color: mix(#ffffff00, $value, 85%);
+      background-color: mix(#ffffff, $value, 85%);
       border-color: $value;
 
       option {
@@ -1900,4 +1904,20 @@ th.debug-list-buttons {
       }
     }
 
+}
+
+#toastsContainerTopRight.toasts-top-right {
+  top:3.5rem;
+}
+
+#toastsContainerTopRight .toast {
+  min-width: 400px;
+}
+
+.lh-1 {
+  line-height: 1;
+}
+
+.lh-2 {
+  line-height: 1.5;
 }

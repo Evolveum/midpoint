@@ -50,7 +50,7 @@ class SynchronousScriptExecutor {
         try {
             var updatedScriptCI = addInputIfNeeded(configuredScriptCI, result);
             VariablesMap initialVariables = createInitialVariables();
-            actx.beans.scriptingExpressionEvaluator.evaluateExpression(
+            actx.beans.bulkActionsExecutor.execute(
                     updatedScriptCI, initialVariables, false, actx.task, result);
         } catch (Throwable t) {
             result.recordException("Couldn't execute script policy action: " + t.getMessage(), t);

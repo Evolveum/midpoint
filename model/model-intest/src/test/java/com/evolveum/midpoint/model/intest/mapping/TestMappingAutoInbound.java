@@ -88,7 +88,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();
@@ -191,7 +191,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();
@@ -274,7 +274,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, false, 70000);
+        waitForTaskFinish(task, 70000);
 
         // THEN
         then();
@@ -375,7 +375,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();

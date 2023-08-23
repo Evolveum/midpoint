@@ -4174,9 +4174,6 @@
                         attribute in the resource schema that belongs to an
                         object class that is being described here.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>ItemRefinedDefinitionType.ref</a:displayName>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0">
@@ -4266,6 +4263,8 @@
                         Limits the usage of the attribute, e.g. whether it may is read-only, read write or entirely ignored.
                         The limitations may apply to several system layers, therefore this element may be repeated several times.
                         But it there may be only one instance for each layer.
+
+                        Note that the support for focus items at the model layer is limited.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ItemRefinedDefinitionType.limitations</a:displayName>
@@ -7693,7 +7692,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="object" type="tns:AuthorizationObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="object" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Object part from the (subject,action,object) authorization triple.
@@ -7998,6 +7997,11 @@
         <xsd:annotation>
             <xsd:documentation>
                 Selects some objects from all the objects in midPoint.
+
+                Note that although we usually talk about "real" prism objects here,
+                this selector can be also applied to sub-object structures, like case work items, and so on.
+
+                See the "parent" item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -8023,6 +8027,17 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="parent" minOccurs="0" type="tns:ObjectParentSelectorType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Requirements on the parent (owning) object + the position (path) of this object within the parent one.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectSelectorType.parent</a:displayName>
+                        <a:elaborate>true</a:elaborate> <!-- because of recursion -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="type" minOccurs="0" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8258,14 +8273,16 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthorizationObjectSelectorType">
+    <xsd:complexType name="ObjectParentSelectorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO TODO TODO specify the purpose
+                Position of an object (more precisely, an item) within midPoint objects structure.
+                For example a case work item can be specified as having type=CaseType, path=workItem.
 
-                "Ultimately flexible specification of an authorization object that may be any prism value, not just prism object"
+                TODO we should perhaps find a better name
 
-                TODO Also, consider using more generalized name
+                TODO technically this derives from OwnedObjectSelectorType, but not all the features may be available
+                in all contexts (e.g., sometimes only ObjectSelectorType features may be available)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -8275,38 +8292,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:OwnedObjectSelectorType">
                 <xsd:sequence>
-                    <xsd:element name="parent" type="tns:AuthorizationParentSelectorType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="AuthorizationParentSelectorType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.8</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AuthorizationObjectSelectorType">
-                <xsd:sequence>
                     <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Specification of a path from the parent to the current object (item).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -11721,13 +11710,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="scriptingProfile" type="tns:ScriptingProfileType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="bulkActionsProfile" type="tns:BulkActionsProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Profiles concerning the use of scripting expressions (bulk actions).
+                        Profiles concerning the use of bulk actions.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationExpressionsType.scriptingProfile</a:displayName>
+                        <a:displayName>SystemConfigurationExpressionsType.bulkActionsProfile</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11738,7 +11728,8 @@
                         Profiles concerning the use of function libraries.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationExpressionsType.scriptingProfile</a:displayName>
+                        <a:displayName>SystemConfigurationExpressionsType.functionLibrariesProfile</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11749,6 +11740,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationExpressionsType.defaults</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11812,23 +11804,40 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="scriptingProfile" type="xsd:string" minOccurs="0">
+            <xsd:element name="bulkActionsProfile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        ID of the scripting (bulk actions) profile to be used with this expression profile.
+                        ID of the bulk actions profile to be used with this expression profile.
+                        If not specified, the "allow all" profile is assumed.
+                        (TODO - or should we take the "decision" property into account? But what about backwards
+                        compatibility? The same for `functionLibrariesProfile`.)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ExpressionProfileType.scriptingProfile</a:displayName>
+                        <a:displayName>ExpressionProfileType.bulkActionsProfile</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="functionLibraryProfile" type="xsd:string" minOccurs="0">
+            <xsd:element name="functionLibrariesProfile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        ID of the function library profile to be used with this expression profile.
+                        ID of the function libraries profile to be used with this expression profile.
+                        If not specified, the "allow all" profile is assumed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionProfileType.functionLibraryProfile</a:displayName>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="privilegeElevation" type="tns:AuthorizationDecisionType" minOccurs="0" default="allow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the privilege elevation (runAsRef, runPrivileged) feature available?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ExpressionProfileType.privilegeElevation</a:displayName>
+                        <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12008,7 +12017,7 @@
                         that are not explicitly enumerated.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingProfileType.decision</a:displayName>
+                        <a:displayName>AbstractSecurityProfileType.decision</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12230,20 +12239,20 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="scripting" type="xsd:string">
+            <xsd:element name="bulkActions" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for midPoint scripting language (bulk actions) running under an unprivileged principal.
+                        Expression profile for midPoint bulk actions running under an unprivileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="privilegedScripting" type="xsd:string">
+            <xsd:element name="privilegedBulkActions" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for midPoint scripting language (bulk actions) running under a privileged principal.
+                        Expression profile for midPoint bulk actions running under a privileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
@@ -12264,10 +12273,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ScriptingProfileType">
+    <xsd:complexType name="BulkActionsProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                A profile concerning the use of bulk actions.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12277,13 +12286,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractSecurityProfileType">
                 <xsd:sequence>
-                    <xsd:element name="action" type="tns:ScriptingActionProfileType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="action" type="tns:BulkActionProfileType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Profiles regarding specific scripting action (assign, unassign, execute-script, ...).
+                                Profiles regarding specific action (assign, unassign, execute-script, ...).
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>ScriptingProfileType.action</a:displayName>
+                                <a:displayName>BulkActionsProfileType.action</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -12294,10 +12303,10 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ScriptingActionProfileType">
+    <xsd:complexType name="BulkActionProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies restrictions and permissions for a specific scripting action.
+                Specifies restrictions and permissions for a specific bulk action.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12312,7 +12321,7 @@
                         Name of the action (assign, unassign, ...)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingActionProfileType.name</a:displayName>
+                        <a:displayName>BulkActionProfileType.name</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12322,7 +12331,7 @@
                         Free-form description (comment).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingActionProfileType.description</a:displayName>
+                        <a:displayName>BulkActionProfileType.description</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12333,7 +12342,7 @@
                         Decision for the action.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ScriptingActionProfileType.decision</a:displayName>
+                        <a:displayName>BulkActionProfileType.decision</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15031,9 +15040,6 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>RoleManagementConfigurationType.defaultAssignmentConstraints</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.6</a:deprecatedSince>
-                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -17864,6 +17870,21 @@
                         if the object being processed is a shadow of a resource object.
                         As for other similar attributes, it may become obsolete.
                         Useful for informational purposes, typically in audit records.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="shadowKind" type="tns:ShadowKindType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow kind of the shadow, that is related to this operation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shadowIntent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow kind of the shadow, that is related to this operation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

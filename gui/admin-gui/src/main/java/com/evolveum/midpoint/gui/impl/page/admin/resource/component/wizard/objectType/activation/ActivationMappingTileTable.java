@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
@@ -26,6 +28,8 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ActivationMappingTileTable extends AbstractSpecificMappingTileTable<ResourceActivationDefinitionType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivationMappingTileTable.class);
 
     public ActivationMappingTileTable(
             String id,
@@ -58,6 +62,11 @@ public abstract class ActivationMappingTileTable extends AbstractSpecificMapping
                 if (valueModel.getObject().getItems().size() == 1) {
                     @NotNull ItemName itemName = valueModel.getObject().getItems().iterator().next().getItemName();
                     if (itemName.equivalent(MappingType.F_LIFECYCLE_STATE)) {
+                        try {
+                            valueModel.getObject().findProperty(itemName).getValue().setRealValue(SchemaConstants.LIFECYCLE_ACTIVE);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't find property for " + itemName);
+                        }
                         refresh(target);
                         return;
                     }

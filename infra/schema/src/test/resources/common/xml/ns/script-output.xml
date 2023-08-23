@@ -47,7 +47,7 @@
             </credentials>
         </s:value>
         <s:result>
-            <operation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator.process</operation>
+            <operation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor.process</operation>
             <status xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">success</status>
             <token xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">1000000000000000752</token>
         </s:result>

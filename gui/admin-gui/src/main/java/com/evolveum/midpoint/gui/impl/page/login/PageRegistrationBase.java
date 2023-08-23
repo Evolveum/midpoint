@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
 
@@ -25,8 +26,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.api.evaluator.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 public class PageRegistrationBase extends PageAdminLTE {
 
@@ -51,9 +54,6 @@ public class PageRegistrationBase extends PageAdminLTE {
     private static final String ID_TITLE = "formTitle";
     private static final String ID_DESCRIPTION = "formDescription";
     private static final String ID_BACK = "back";
-
-    @SpringBean(name = "nonceAuthenticationEvaluator")
-    private AuthenticationEvaluator<NonceAuthenticationContext> authenticationEvaluator;
 
     private SelfRegistrationDto selfRegistrationDto;
     private SelfRegistrationDto postAuthenticationDto;
@@ -155,7 +155,7 @@ public class PageRegistrationBase extends PageAdminLTE {
             OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
             try {
-                return getModelInteractionService().getSecurityPolicy((PrismObject<UserType>) null, task, result);
+                return getModelInteractionService().getSecurityPolicy((PrismObject<UserType>) null, getArchetypeOid(), task, result);
             } catch (CommonException e) {
                 LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
                 return null;
@@ -171,6 +171,10 @@ public class PageRegistrationBase extends PageAdminLTE {
         }
 
         return securityPolicy;
+    }
+
+    protected String getArchetypeOid() {
+        return null;
     }
 
     public SelfRegistrationDto getSelfRegistrationConfiguration() {
@@ -191,10 +195,6 @@ public class PageRegistrationBase extends PageAdminLTE {
 
         return postAuthenticationDto;
 
-    }
-
-    public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
-        return authenticationEvaluator;
     }
 
 }

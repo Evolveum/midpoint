@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
@@ -54,6 +56,12 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     public static final ColumnMetadata STATUS =
             ColumnMetadata.named("status").ofType(Types.OTHER);
 
+    public static final ColumnMetadata SHADOW_INTENT =
+            ColumnMetadata.named("shadowIntent").ofType(Types.VARCHAR);
+    public static final ColumnMetadata SHADOW_KIND =
+            ColumnMetadata.named("shadowKind").ofType(Types.OTHER);
+
+
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final DateTimePath<Instant> timestamp = createInstant("timestamp", TIMESTAMP);
     public final StringPath checksum = createString("checksum", CHECKSUM);
@@ -69,6 +77,10 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     public final StringPath resourceNameOrig = createString("resourceNameOrig", RESOURCE_NAME_ORIG);
     public final EnumPath<OperationResultStatusType> status =
             createEnum("status", OperationResultStatusType.class, STATUS);
+
+    public final StringPath shadowIntent = createString("shadowIntent", SHADOW_INTENT);
+    public final EnumPath<ShadowKindType> shadowKind = createEnum("shadowKind", ShadowKindType.class, SHADOW_KIND);
+
 
     public QAuditDelta(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

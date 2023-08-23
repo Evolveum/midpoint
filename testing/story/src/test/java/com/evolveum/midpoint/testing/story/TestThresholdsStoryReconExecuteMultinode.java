@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
@@ -22,11 +22,11 @@ public class TestThresholdsStoryReconExecuteMultinode extends TestThresholdsStor
     /**
      * This task is used for common import tests drive by the superclass.
      */
-    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_EXECUTE_MULTINODE = new TestResource<>(TEST_DIR,
+    private static final TestObject<TaskType> TASK_RECONCILE_OPENDJ_EXECUTE_MULTINODE = TestObject.file(TEST_DIR,
             "task-opendj-reconcile-execute-multinode.xml", "04c62c99-8b43-4782-bd02-954f709fff98");
 
     @Override
-    protected TestResource<TaskType> getTaskTestResource() {
+    protected TestObject<TaskType> getTaskTestResource() {
         return TASK_RECONCILE_OPENDJ_EXECUTE_MULTINODE;
     }
 

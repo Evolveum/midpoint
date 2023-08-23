@@ -779,7 +779,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         for (PrismObject<TaskType> campaignTask : campaignTasks) {
             if (campaignTask.asObjectable().getSchedulingState() != TaskSchedulingStateType.CLOSED &&
                     campaignTask.asObjectable().getSchedulingState() != TaskSchedulingStateType.SUSPENDED) {
-                waitForTaskFinish(campaignTask.getOid(), false, timeout);
+                waitForTaskFinish(campaignTask.getOid(), timeout);
             }
         }
     }

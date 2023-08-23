@@ -6,30 +6,33 @@
  */
 package com.evolveum.midpoint.authentication.impl.provider;
 
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.CredentialModuleAuthenticationImpl;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
 /**
  * @author skublik
  */
 
-public abstract class AbstractCredentialProvider<T extends AbstractAuthenticationContext> extends MidPointAbstractAuthenticationProvider<T> {
+public abstract class AbstractCredentialProvider<T extends AbstractAuthenticationContext> extends MidpointAbstractAuthenticationProvider {
+
+    protected abstract AuthenticationEvaluator<T, UsernamePasswordAuthenticationToken> getEvaluator();
 
     public abstract Class<? extends CredentialPolicyType> getTypeOfCredential();
 
     public boolean supports(Class<?> authenticationClass, Authentication authentication) {
-        if (!(authentication instanceof MidpointAuthentication)) {
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
             return supports(authenticationClass);
         }
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-        ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) getProcessingModule(mpAuthentication);
+        ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleOrThrowException();
         if (moduleAuthentication == null || moduleAuthentication.getAuthentication() == null) {
             return false;
         }

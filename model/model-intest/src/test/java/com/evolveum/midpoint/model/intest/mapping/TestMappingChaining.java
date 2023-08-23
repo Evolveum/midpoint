@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 /**
  * Testing mapping chaining (eventually in all contexts - in template, in assignments, etc).
@@ -28,10 +28,10 @@ public class TestMappingChaining extends AbstractMappingTest {
     public static final File TEST_DIR = new File("src/test/resources/mapping/chaining");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
-    private static final TestResource<?> USER_TEMPLATE = new TestResource<>(TEST_DIR, "user-template.xml", "c983791f-10c7-410c-83bd-71ef85174505");
+    private static final TestObject<?> USER_TEMPLATE = TestObject.file(TEST_DIR, "user-template.xml", "c983791f-10c7-410c-83bd-71ef85174505");
 
-    private static final TestResource<?> ROLE_MASTER = new TestResource<>(TEST_DIR, "role-master.xml", "c7968dad-0711-4e45-8846-b6c28fc8c71a");
-    private static final TestResource<?> USER_LEGALL = new TestResource<>(TEST_DIR, "user-legall.xml", "db3875df-5f5e-4379-bca5-d1349eee5033");
+    private static final TestObject<?> ROLE_MASTER = TestObject.file(TEST_DIR, "role-master.xml", "c7968dad-0711-4e45-8846-b6c28fc8c71a");
+    private static final TestObject<?> USER_LEGALL = TestObject.file(TEST_DIR, "user-legall.xml", "db3875df-5f5e-4379-bca5-d1349eee5033");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

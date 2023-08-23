@@ -91,4 +91,9 @@ public class ArchetypeRefClause extends SelectorClause {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "oids", archetypeOids, indent + 1);
     }
+
+    @Override
+    public String toString() {
+        return "ArchetypeRefClause{archetypeOids=" + archetypeOids + "}";
+    }
 }

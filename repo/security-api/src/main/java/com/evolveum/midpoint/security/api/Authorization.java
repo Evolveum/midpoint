@@ -106,7 +106,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return zoneOfControl == null || zoneOfControl == ZoneOfControlType.KEEP;
     }
 
-    private @NotNull List<AuthorizationObjectSelectorType> getObjectSelectors() {
+    private @NotNull List<OwnedObjectSelectorType> getObjectSelectors() {
         return authorizationBean.getObject();
     }
 

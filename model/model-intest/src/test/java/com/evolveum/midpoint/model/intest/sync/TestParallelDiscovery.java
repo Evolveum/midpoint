@@ -256,7 +256,7 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
         then();
 
         if (DISTRIBUTION == Distribution.MULTITHREADED) {
-            waitForTaskFinish(getSyncTaskOid(), true, 600000);
+            waitForTaskFinish(getSyncTaskOid(), 600000);
         } else {
             waitForRootActivityCompletion(getSyncTaskOid(), 600000);
         }

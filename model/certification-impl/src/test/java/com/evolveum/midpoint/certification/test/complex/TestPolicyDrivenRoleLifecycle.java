@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
@@ -53,14 +53,14 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
     private static final File TEST_DIR = new File("src/test/resources/complex");
     public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<RoleType> ROLE_EMPTY =
-            new TestResource<>(TEST_DIR, "role-empty.xml", "d985878b-9cd7-449f-94f4-9d8fc2534229");
+    private static final TestObject<RoleType> ROLE_EMPTY =
+            TestObject.file(TEST_DIR, "role-empty.xml", "d985878b-9cd7-449f-94f4-9d8fc2534229");
 
-    private static final TestResource<RoleType> ROLE_HIGH_RISK_EMPTY =
-            new TestResource<>(TEST_DIR, "role-high-risk-empty.xml", "c8e88dd2-5e3b-40e5-a1c7-2af8686e1857");
+    private static final TestObject<RoleType> ROLE_HIGH_RISK_EMPTY =
+            TestObject.file(TEST_DIR, "role-high-risk-empty.xml", "c8e88dd2-5e3b-40e5-a1c7-2af8686e1857");
 
-    private static final TestResource<RoleType> ROLE_CORRECT =
-            new TestResource<>(TEST_DIR, "role-correct.xml", "ab0e3dd4-3cdf-4c5e-b349-e7b4904730a1");
+    private static final TestObject<RoleType> ROLE_CORRECT =
+            TestObject.file(TEST_DIR, "role-correct.xml", "ab0e3dd4-3cdf-4c5e-b349-e7b4904730a1");
 
     private static final File ROLE_CORRECT_HIGH_RISK_FILE = new File(TEST_DIR, "role-correct-high-risk.xml");
 

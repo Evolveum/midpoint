@@ -14,13 +14,16 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.VisibleForTesting;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.List;
 
 /**
  * @author skublik
  */
 
-public class AuthModuleImpl implements AuthModule {
+public class AuthModuleImpl<MA extends ModuleAuthentication> implements AuthModule<MA> {
 
     @VisibleForTesting
     public AuthModuleImpl(){
@@ -31,7 +34,7 @@ public class AuthModuleImpl implements AuthModule {
 
     private ModuleWebSecurityConfiguration configuration;
 
-    private ModuleAuthenticationImpl baseModuleAuthentication;
+    private MA baseModuleAuthentication;
 
     public SecurityFilterChain getSecurityFilterChain() {
         return securityFilterChain;
@@ -41,16 +44,12 @@ public class AuthModuleImpl implements AuthModule {
         this.securityFilterChain = securityFilterChain;
     }
 
-    public ModuleWebSecurityConfiguration getConfiguration() {
-        return configuration;
-    }
-
     private void setConfiguration(ModuleWebSecurityConfiguration configuration) {
         this.configuration = configuration;
     }
 
-    public ModuleAuthentication getBaseModuleAuthentication() {
-        return baseModuleAuthentication.clone();
+    public MA getBaseModuleAuthentication() {
+        return (MA) baseModuleAuthentication.clone();
     }
 
     @Override
@@ -59,16 +58,21 @@ public class AuthModuleImpl implements AuthModule {
     }
 
     @Override
+    public List<AuthenticationProvider> getAuthenticationProviders() {
+        return configuration != null ? configuration.getAuthenticationProviders() : null;
+    }
+
+    @Override
     public String getModuleIdentifier() {
         return configuration.getModuleIdentifier();
     }
 
-    private void setBaseModuleAuthentication(ModuleAuthenticationImpl baseModuleAuthentication) {
+    private void setBaseModuleAuthentication(MA baseModuleAuthentication) {
         this.baseModuleAuthentication = baseModuleAuthentication;
     }
 
     public static AuthModule build(SecurityFilterChain securityFilterChain, ModuleWebSecurityConfiguration configuration,
-                                       ModuleAuthenticationImpl baseModuleAuthentication) {
+                                       ModuleAuthentication baseModuleAuthentication) {
         Validate.notNull(securityFilterChain, "Couldn't build AuthModuleImpl, because filter is null");
         Validate.notNull(configuration, "Couldn't build AuthModuleImpl, because configuration is null");
         Validate.notNull(baseModuleAuthentication, "Couldn't build AuthModuleImpl, because base authentication module is null");

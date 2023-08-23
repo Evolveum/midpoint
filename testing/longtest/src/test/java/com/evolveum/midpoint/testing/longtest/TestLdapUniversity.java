@@ -108,7 +108,7 @@ public class TestLdapUniversity extends AbstractLongTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000, 10000L);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000, 10000L);
 
         then();
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
@@ -161,7 +161,7 @@ public class TestLdapUniversity extends AbstractLongTest {
                 resource, new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         then();
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000, 10000L);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000, 10000L);
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         displayValue("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 1, userCount);

@@ -14,8 +14,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.test.*;
 
-import com.evolveum.midpoint.util.QNameUtil;
-
 import jakarta.xml.bind.JAXBElement;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -66,8 +64,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     private static final String TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID = "91919191-76e0-59e2-86d6-3d4f02d3aadd";
 
     // TODO move to common dir and apply to all tests
-    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_RECOMPUTATION =
-            new TestResource<>(TEST_DIR, "archetype-task-recomputation.xml", "77615e4c-b82e-4b3a-b265-5487a6ac016b");
+    private static final TestObject<ArchetypeType> ARCHETYPE_TASK_RECOMPUTATION =
+            TestObject.file(TEST_DIR, "archetype-task-recomputation.xml", "77615e4c-b82e-4b3a-b265-5487a6ac016b");
 
     private static final TestObject<ArchetypeType> ARCHETYPE_EMPLOYEE = TestObject.file(
             TEST_DIR, "archetype-employee.xml", "e3a9a6b9-17f6-4239-b935-6f88a655b9d7");
@@ -180,12 +178,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, false, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, 40000);
 
         // THEN
         then();
@@ -281,12 +279,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_CAPTAIN_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_CAPTAIN_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_CAPTAIN_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_CAPTAIN_OID, 40000);
 
         // THEN
         then();
@@ -333,12 +331,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, 40000);
 
         // THEN
         then();
@@ -415,12 +413,12 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         dummyAuditService.clear();
 
-        waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID);
 
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, 40000);
 
         // THEN
         then();

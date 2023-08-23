@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="988c28d2-f879-4e07-a3cb-5ea7ad206146">
+    <name>trusted-role</name>
+    <archetypePolicy>
+        <expressionProfile>trusted</expressionProfile>
+    </archetypePolicy>
+</archetype>

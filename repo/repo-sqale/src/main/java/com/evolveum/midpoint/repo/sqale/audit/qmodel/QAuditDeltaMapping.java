@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType.*;
+
 /**
  * Mapping between {@link QAuditDelta} and {@link ObjectDeltaOperationType}.
  */
@@ -48,6 +50,12 @@ public class QAuditDeltaMapping
     private QAuditDeltaMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ObjectDeltaOperationType.class, QAuditDelta.class, repositoryContext);
+
+        addItemMapping(F_OBJECT_NAME, polyStringMapper(r -> r.objectNameOrig, r-> r.objectNameNorm));
+        addItemMapping(F_RESOURCE_NAME, polyStringMapper(r -> r.resourceNameOrig, r -> r.resourceNameNorm));
+        addItemMapping(F_RESOURCE_OID, uuidMapper(r -> r.resourceOid));
+        addItemMapping(F_SHADOW_KIND, enumMapper(r -> r.shadowKind));
+        addItemMapping(F_SHADOW_INTENT, stringMapper(r -> r.shadowIntent));
     }
 
     @Override
@@ -71,6 +79,8 @@ public class QAuditDeltaMapping
             odo.setResourceName(new PolyStringType(
                     new PolyString(row.resourceNameOrig, row.resourceNameNorm)));
         }
+        odo.setShadowKind(row.shadowKind);
+        odo.setShadowIntent(row.shadowIntent);
 
         return odo;
     }

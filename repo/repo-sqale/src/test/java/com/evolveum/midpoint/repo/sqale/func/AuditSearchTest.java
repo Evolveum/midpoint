@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.query.PreparedQuery;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -100,7 +102,12 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record1.setSessionIdentifier("session-1");
         record1.setTarget(target);
         record1.setTargetOwner(targetOwner);
-        record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
+
+        var kindDelta = createDelta(UserType.F_FULL_NAME);
+        kindDelta.setResourceOid(resourceOid);
+        kindDelta.setShadowKind(ShadowKindType.ACCOUNT);
+        kindDelta.setShadowIntent("default");
+        record1.addDelta(kindDelta); // values are not even necessary
         record1.addDelta(createDelta(UserType.F_FAMILY_NAME, PolyString.fromOrig("familyNameVal")));
         ObjectDeltaOperation<UserType> delta3 = createDelta(ItemPath.create(
                         ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP),
@@ -1412,6 +1419,40 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
                         .item(AuditEventRecordType.F_REPO_ID).eq(record1RepoId)
                         .build());
 
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEventIdentifier()).isEqualTo(record1EventIdentifier);
+    }
+
+    // FIXME: Does not work, can not enter PrismPropertyDefinition (delta)
+    @Test(enabled = false)
+    public void test700SearchByQueryBuilder() throws SchemaException {
+        when("searching audit using delta/shadowKind and delta/shadowIntent");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .exists(AuditEventRecordType.F_DELTA)
+                        .block()
+                        .item(ObjectDeltaOperationType.F_RESOURCE_OID).eq(resourceOid)
+                        .and()
+                        .item(ObjectDeltaOperationType.F_SHADOW_KIND).eq(ShadowKindType.ACCOUNT)
+                        .and()
+                        .item(ObjectDeltaOperationType.F_SHADOW_INTENT).eq("default")
+                        .endBlock()
+                        .build());
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEventIdentifier()).isEqualTo(record1EventIdentifier);
+    }
+
+    // FIXME: Does not work, can not enter PrismPropertyDefinition (delta)
+    @Test()
+    public void test700SearchByExistsInAxiom() throws SchemaException {
+        when("searching audit using delta/shadowKind and delta/shadowIntent");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                PreparedQuery.parse(AuditEventRecordType.class,
+                                "delta matches (resourceOid = ? and shadowKind = ? and shadowIntent = ?")
+                        .bind(resourceOid, ShadowKindType.ACCOUNT, "default")
+                        .toObjectQuery()
+        );
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getEventIdentifier()).isEqualTo(record1EventIdentifier);
     }

@@ -16,7 +16,7 @@ import java.io.File;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -111,11 +111,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
     private static final DummyTestResource RESOURCE_LAB = new DummyTestResource(
             TEST_DIR, "resource-dummy-lab.xml", "a353d845-64dd-439e-b0ce-3f9fe095c060", "lab");
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_STUDENT =
-            new TestResource<>(TEST_DIR, "archetype-student.xml", "ca7bd614-9b1b-402c-a73c-0f571cb8b1c9");
+    private static final TestObject<ArchetypeType> ARCHETYPE_STUDENT =
+            TestObject.file(TEST_DIR, "archetype-student.xml", "ca7bd614-9b1b-402c-a73c-0f571cb8b1c9");
 
-    private static final TestResource<RoleType> ROLE_LAB_ACCESS =
-            new TestResource<>(TEST_DIR, "role-lab-access.xml", "0d69d2c9-d1f4-4cfc-acb3-af8a71db81d1");
+    private static final TestObject<RoleType> ROLE_LAB_ACCESS =
+            TestObject.file(TEST_DIR, "role-lab-access.xml", "0d69d2c9-d1f4-4cfc-acb3-af8a71db81d1");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

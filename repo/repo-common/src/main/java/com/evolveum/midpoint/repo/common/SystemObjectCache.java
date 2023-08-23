@@ -129,7 +129,8 @@ public class SystemObjectCache implements Cache {
         if (systemConfiguration == null) {
             return false;
         }
-        if (systemConfiguration.getVersion() == null) {
+        String cachedVersion = systemConfiguration.getVersion();
+        if (cachedVersion == null) {
             return false;
         }
         if (systemConfigurationCheckTimestamp == null) {
@@ -138,9 +139,9 @@ public class SystemObjectCache implements Cache {
         if (System.currentTimeMillis() < systemConfigurationCheckTimestamp + getSystemConfigurationExpirationMillis()) {
             return true;
         }
-        String repoVersion = cacheRepositoryService.getVersion(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                result);
-        if (systemConfiguration.getVersion().equals(repoVersion)) {
+        String repoVersion = cacheRepositoryService.getVersion(
+                SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+        if (cachedVersion.equals(repoVersion)) {
             systemConfigurationCheckTimestamp = System.currentTimeMillis();
             return true;
         }
@@ -247,7 +248,7 @@ public class SystemObjectCache implements Cache {
         return cacheRepositoryService.searchObjects(ArchetypeType.class, null, createReadOnlyCollection(), result);
     }
 
-    public @NotNull ExpressionProfile getExpressionProfile(@NotNull String identifier, OperationResult result)
+    public synchronized @NotNull ExpressionProfile getExpressionProfile(@NotNull String identifier, OperationResult result)
             throws SchemaException, ConfigurationException {
         if (expressionProfiles == null) {
             expressionProfiles = compileExpressionProfiles(result);
@@ -272,7 +273,7 @@ public class SystemObjectCache implements Cache {
     // We could use SystemConfigurationChangeListener instead but in the future there could be more object types
     // managed by this class.
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         // We ignore OID for now
         if (type == null || type.isAssignableFrom(SystemConfigurationType.class)) {
             invalidateCaches();

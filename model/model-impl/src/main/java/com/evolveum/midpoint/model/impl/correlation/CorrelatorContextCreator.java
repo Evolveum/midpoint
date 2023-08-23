@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.model.api.correlation.TemplateCorrelationConfiguration;
 
 import com.evolveum.midpoint.schema.merger.correlator.CorrelatorMergeOperation;
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
-import com.evolveum.midpoint.model.impl.correlator.FullCorrelationContext;
 import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -68,25 +68,21 @@ public class CorrelatorContextCreator {
         this.systemConfiguration = systemConfiguration;
     }
 
-    static CorrelatorContext<?> createRootContext(@NotNull FullCorrelationContext fullContext)
-            throws ConfigurationException, SchemaException {
-        return createRootContext(
-                fullContext.getCorrelationDefinitionBean(),
-                fullContext.objectTemplate,
-                fullContext.systemConfiguration);
-    }
 
+    //TODO change signature to composite correlator + thresholds
+    //TODO at least correlation defintiion nullable
     public static CorrelatorContext<?> createRootContext(
-            @NotNull CorrelationDefinitionType correlationDefinitionBean,
+            @Nullable CorrelationDefinitionType correlationDefinitionBean,
+            @NotNull CorrelatorDiscriminator correlatorDiscriminator,
             @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
         CompositeCorrelatorType correlators;
-        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean.getCorrelators();
+        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean == null ? null : correlationDefinitionBean.getCorrelators();
         if (specificCorrelators != null) {
             correlators = specificCorrelators;
         } else {
-            correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate);
+            correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate, correlatorDiscriminator);
         }
         return new CorrelatorContextCreator(
                 getConfiguration(correlators),
@@ -193,7 +189,6 @@ public class CorrelatorContextCreator {
         if (composite == null) {
             return CorrelatorConfiguration.none();
         }
-
         Collection<CorrelatorConfiguration> configurations = CorrelatorConfiguration.getChildConfigurations(composite);
 
         if (configurations.isEmpty()) {

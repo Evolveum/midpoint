@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -54,13 +54,13 @@ public class TestAutoScalingTask extends AbstractInitializedModelIntegrationTest
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/auto-scaling");
 
-    private static final TestResource<TaskType> TASK_AUTO_SCALING = new TestResource<>(TEST_DIR, "task-auto-scaling.xml", "f7b42763-2553-469e-8bb9-df44498d4767");
-    private static final TestResource<TaskType> TASK_AUTO_SCALING_SKIP_INITIAL = new TestResource<>(TEST_DIR, "task-auto-scaling-skip-initial.xml", "8eda5dcd-2394-4ac2-a936-c32231ce6f22");
+    private static final TestObject<TaskType> TASK_AUTO_SCALING = TestObject.file(TEST_DIR, "task-auto-scaling.xml", "f7b42763-2553-469e-8bb9-df44498d4767");
+    private static final TestObject<TaskType> TASK_AUTO_SCALING_SKIP_INITIAL = TestObject.file(TEST_DIR, "task-auto-scaling-skip-initial.xml", "8eda5dcd-2394-4ac2-a936-c32231ce6f22");
 
-    private static final TestResource<TaskType> TASK_TWO_WORKERS_PER_NODE = new TestResource<>(TEST_DIR, "task-two-workers-per-node.xml", "8e8b1c24-f512-467a-9c09-f1bc899b56bd");
+    private static final TestObject<TaskType> TASK_TWO_WORKERS_PER_NODE = TestObject.file(TEST_DIR, "task-two-workers-per-node.xml", "8e8b1c24-f512-467a-9c09-f1bc899b56bd");
 
-    private static final TestResource<TaskType> TASK_NO_WORKERS = new TestResource<>(TEST_DIR, "task-no-workers.xml", "4a56bee1-57e5-4575-9b05-0fb1ad6ad73e");
-    private static final TestResource<TaskType> TASK_DISABLED_AUTO_SCALING = new TestResource<>(TEST_DIR, "task-disabled-auto-scaling.xml", "e2d2012d-7940-48bb-9c27-dd26d20b68bc");
+    private static final TestObject<TaskType> TASK_NO_WORKERS = TestObject.file(TEST_DIR, "task-no-workers.xml", "4a56bee1-57e5-4575-9b05-0fb1ad6ad73e");
+    private static final TestObject<TaskType> TASK_DISABLED_AUTO_SCALING = TestObject.file(TEST_DIR, "task-disabled-auto-scaling.xml", "e2d2012d-7940-48bb-9c27-dd26d20b68bc");
 
     private static final int TIMEOUT = 10000;
 

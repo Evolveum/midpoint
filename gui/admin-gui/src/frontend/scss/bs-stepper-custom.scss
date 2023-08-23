@@ -17,6 +17,10 @@
   color: $secondary;
 }
 
+.step.active .bs-stepper-label {
+  color: $lightblue;
+}
+
 .bs-stepper .step-trigger:hover {
   background-color: inherit;
 }

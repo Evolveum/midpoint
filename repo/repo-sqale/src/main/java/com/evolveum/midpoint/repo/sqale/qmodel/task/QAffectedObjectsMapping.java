@@ -54,6 +54,8 @@ public class QAffectedObjectsMapping extends QContainerMapping<ActivityAffectedO
         super(QAffectedObjects.TABLE_NAME, DEFAULT_ALIAS_NAME, ActivityAffectedObjectsType.class, QAffectedObjects.class, repositoryContext);
 
         addItemMapping(F_ACTIVITY_TYPE, uriMapper(q -> q.activityId));
+        addItemMapping(F_EXECUTION_MODE, enumMapper(q -> q.executionMode));
+        addItemMapping(F_PREDEFINED_CONFIGURATION_TO_USE, enumMapper(q -> q.predefinedConfigurationToUse));
         Function<QAffectedObjects, EnumPath<MObjectType>> objectTypePath = q -> q.type;
         addNestedMapping(F_OBJECTS, BasicObjectSetType.class)
                 .addItemMapping(F_TYPE, new SqaleItemSqlMapper<>(
@@ -104,6 +106,9 @@ public class QAffectedObjectsMapping extends QContainerMapping<ActivityAffectedO
         var row = initRowObject(activity, ownerRow);
 
         row.activityId = processCacheableUri(activity.getActivityType());
+
+        row.executionMode = activity.getExecutionMode();
+        row.predefinedConfigurationToUse = activity.getPredefinedConfigurationToUse();
 
         var object = activity.getObjects();
         if (object != null) {

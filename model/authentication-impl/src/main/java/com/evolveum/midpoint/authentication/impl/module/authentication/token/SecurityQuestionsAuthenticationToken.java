@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,5 +20,10 @@ public class SecurityQuestionsAuthenticationToken extends UsernamePasswordAuthen
 
     public SecurityQuestionsAuthenticationToken(Object principal, Object credentials) {
         super(principal, credentials);
+    }
+
+    @Override
+    public Map<String, String> getCredentials() {
+        return (Map<String, String>) super.getCredentials();
     }
 }

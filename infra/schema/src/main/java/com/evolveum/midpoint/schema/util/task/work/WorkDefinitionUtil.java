@@ -97,6 +97,8 @@ public class WorkDefinitionUtil {
     /**
      * Replaces the query in "object set" in given work definition.
      *
+     * Only selected activities are supported.
+     *
      * Preliminary implementation.
      */
     public static void replaceObjectSetQuery(@NotNull WorkDefinitionsType def, @Nullable QueryType query) {

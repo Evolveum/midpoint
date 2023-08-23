@@ -18,7 +18,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,7 +45,7 @@ import java.util.*;
 @DirtiesContext
 public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
 
-    private static final Trace logger = TraceManager.getTrace(TestIntegrationSecurity.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestIntegrationSecurity.class);
 
     private static final File ROLE_UI_ALLOW_ALL_FILE = new File(COMMON_DIR, "role-ui-allow-all.xml");
     private static final String ROLE_UI_ALLOW_ALL_OID = "d8f78cfe-d05d-11e7-8ee6-038ce21862f3";
@@ -56,8 +56,8 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     private static final File ROLE_UI_DENY_ALLOW_FILE = new File(COMMON_DIR, "role-ui-deny-allow.xml");
     private static final String ROLE_UI_DENY_ALLOW_OID = "da47fcf6-d02b-11e7-9e78-f31ae9aa0674";
 
-    private static final TestResource<RoleType> ROLE_AUTHORIZATION_1 = new TestResource<>(COMMON_DIR, "role-authorization-1.xml", "97984277-e809-4a86-ae9b-d5c40e09df0b");
-    private static final TestResource<RoleType> ROLE_AUTHORIZATION_2 = new TestResource<>(COMMON_DIR, "role-authorization-2.xml", "96b02d58-5147-4f5a-852c-0f415230ce2c");
+    private static final TestObject<RoleType> ROLE_AUTHORIZATION_1 = TestObject.file(COMMON_DIR, "role-authorization-1.xml", "97984277-e809-4a86-ae9b-d5c40e09df0b");
+    private static final TestObject<RoleType> ROLE_AUTHORIZATION_2 = TestObject.file(COMMON_DIR, "role-authorization-2.xml", "96b02d58-5147-4f5a-852c-0f415230ce2c");
 
     protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
     public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
@@ -73,7 +73,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        logger.trace("initSystem");
+        LOGGER.trace("initSystem");
         super.initSystem(initTask, initResult);
 
         modelService.postInit(initResult);
@@ -275,7 +275,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
 
     private void assertAllow(Authentication authentication, String path) {
         try {
-            logger.debug("*** Attempt to DECIDE {} (expected allow)", path);
+            LOGGER.debug("*** Attempt to DECIDE {} (expected allow)", path);
 
             midPointGuiAuthorizationEvaluator.decide(
                     authentication, createFilterInvocation(path), createAuthConfigAttributes());
@@ -289,7 +289,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
 
     private void assertDeny(Authentication authentication, String path) {
         try {
-            logger.debug("*** Attempt to DECIDE {} (expected deny)", path);
+            LOGGER.debug("*** Attempt to DECIDE {} (expected deny)", path);
 
             midPointGuiAuthorizationEvaluator.decide(
                     authentication, createFilterInvocation(path), createAuthConfigAttributes());

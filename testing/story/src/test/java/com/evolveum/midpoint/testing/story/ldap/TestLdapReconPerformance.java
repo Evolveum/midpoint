@@ -146,7 +146,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         when();
 
         addTask(TASK_RECON_1_OPENDJ_FILE);
-        waitForTaskFinish(TASK_RECON_1_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECON_1_OPENDJ_OID, RECON_TASK_WAIT_TIMEOUT);
 
         // THEN
         then();
@@ -184,7 +184,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         when();
 
         addTask(TASK_RECON_4_OPENDJ_FILE);
-        waitForTaskFinish(TASK_RECON_4_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECON_4_OPENDJ_OID, RECON_TASK_WAIT_TIMEOUT);
 
         // THEN
         then();
@@ -258,7 +258,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         when();
 
         restartTask(taskOid);
-        waitForTaskFinish(taskOid, true, RECON_TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(taskOid, RECON_TASK_WAIT_TIMEOUT);
 
         // THEN
         then();

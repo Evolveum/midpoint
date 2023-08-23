@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,14 +41,14 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/worker-tasks");
 
-    private static final TestResource<TaskType> TASK_100_SINGLE_WORKER = new TestResource<>(TEST_DIR, "task-100-single-worker.xml", "4e09a632-f2c7-4285-9204-c02e7c39ae04");
-    private static final TestResource<TaskType> TASK_110_FOUR_WORKERS = new TestResource<>(TEST_DIR, "task-110-four-workers.xml", "33b0f9bb-15bd-4f64-bd08-11aad034e77f");
-    private static final TestResource<TaskType> TASK_120_TWO_WORKERS_PER_NODE = new TestResource<>(TEST_DIR, "task-120-two-workers-per-node.xml", "76d0c81d-759d-4e71-b2d7-04443032a0e4");
-    private static final TestResource<TaskType> TASK_130_NO_OP_BUCKETING_SANITY = new TestResource<>(TEST_DIR, "task-130-no-op-bucketing-sanity.xml", "9e8972ad-8c86-42ca-8690-d5959c3a64a8");
-    private static final TestResource<TaskType> TASK_140_WORKERS_UPDATE = new TestResource<>(TEST_DIR, "task-140-workers-update.xml", "8ef8e606-3c3e-45c7-bca7-e64eb47de1e4");
-    private static final TestResource<TaskType> TASK_150_WORKERS_MOVE = new TestResource<>(TEST_DIR, "task-150-workers-move.xml", "f3efb438-c573-4631-bbff-ba9e09b3ae03");
-    private static final TestResource<TaskType> TASK_160_WORKERS_ADD_DELETE = new TestResource<>(TEST_DIR, "task-160-workers-add-delete.xml", "9e94e921-d319-422a-b9d6-9e98d9034975");
-    private static final TestResource<TaskType> TASK_170_NUMBER_SEGMENTATION_NUMBER_OF_BUCKETS = new TestResource<>(TEST_DIR, "task-170-num-seg-num-of-buckets.xml", "33b0f9bb-15bd-4f64-bd08-11aad034e77e");
+    private static final TestObject<TaskType> TASK_100_SINGLE_WORKER = TestObject.file(TEST_DIR, "task-100-single-worker.xml", "4e09a632-f2c7-4285-9204-c02e7c39ae04");
+    private static final TestObject<TaskType> TASK_110_FOUR_WORKERS = TestObject.file(TEST_DIR, "task-110-four-workers.xml", "33b0f9bb-15bd-4f64-bd08-11aad034e77f");
+    private static final TestObject<TaskType> TASK_120_TWO_WORKERS_PER_NODE = TestObject.file(TEST_DIR, "task-120-two-workers-per-node.xml", "76d0c81d-759d-4e71-b2d7-04443032a0e4");
+    private static final TestObject<TaskType> TASK_130_NO_OP_BUCKETING_SANITY = TestObject.file(TEST_DIR, "task-130-no-op-bucketing-sanity.xml", "9e8972ad-8c86-42ca-8690-d5959c3a64a8");
+    private static final TestObject<TaskType> TASK_140_WORKERS_UPDATE = TestObject.file(TEST_DIR, "task-140-workers-update.xml", "8ef8e606-3c3e-45c7-bca7-e64eb47de1e4");
+    private static final TestObject<TaskType> TASK_150_WORKERS_MOVE = TestObject.file(TEST_DIR, "task-150-workers-move.xml", "f3efb438-c573-4631-bbff-ba9e09b3ae03");
+    private static final TestObject<TaskType> TASK_160_WORKERS_ADD_DELETE = TestObject.file(TEST_DIR, "task-160-workers-add-delete.xml", "9e94e921-d319-422a-b9d6-9e98d9034975");
+    private static final TestObject<TaskType> TASK_170_NUMBER_SEGMENTATION_NUMBER_OF_BUCKETS = TestObject.file(TEST_DIR, "task-170-num-seg-num-of-buckets.xml", "33b0f9bb-15bd-4f64-bd08-11aad034e77e");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 

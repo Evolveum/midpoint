@@ -20,7 +20,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -56,10 +56,10 @@ public class TestClockwork extends AbstractLensTest {
     @Autowired private Clockwork clockwork;
     @Autowired private TaskManager taskManager;
 
-    private static final TestResource<ResourceType> RESOURCE_TEMPLATE = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_TEMPLATE = TestObject.file(
             TEST_DIR, "resource-template.xml", "50070cb6-46f0-439e-ab77-29b82ed80d93");
 
-    private static final TestResource<ResourceType> RESOURCE_SPECIFIC_1 = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_SPECIFIC_1 = TestObject.file(
             TEST_DIR, "resource-specific-1.xml", "94d2600e-37ac-4739-a037-246434c40535");
 
     @Override

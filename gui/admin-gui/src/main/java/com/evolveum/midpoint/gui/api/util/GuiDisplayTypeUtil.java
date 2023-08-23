@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -73,7 +74,7 @@ public class GuiDisplayTypeUtil {
         return displayType;
     }
 
-    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageBase pageBase) {
+    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(O object, PageAdminLTE pageBase) {
         if (object == null) {
             return null;
         }
@@ -81,7 +82,7 @@ public class GuiDisplayTypeUtil {
         return getArchetypePolicyDisplayType(object.asPrismObject(), pageBase);
     }
 
-    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(PrismObject<O> object, PageBase pageBase) {
+    public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(PrismObject<O> object, PageAdminLTE pageBase) {
         if (object != null && StringUtils.isNotEmpty(object.getOid())) {
             ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
             if (archetypePolicy != null) {

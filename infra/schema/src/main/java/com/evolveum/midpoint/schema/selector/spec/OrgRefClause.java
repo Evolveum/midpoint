@@ -47,8 +47,7 @@ public class OrgRefClause extends SelectorClause {
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        Object realValue = value.getRealValueIfExists();
-        ObjectType objectBean = realValue instanceof ObjectType ? ((ObjectType) realValue) : null;
+        ObjectType objectBean = value.getRealValueIfExists() instanceof ObjectType object ? object : null;
         if (objectBean != null) {
             if (ctx.orgTreeEvaluator.isDescendant(objectBean.asPrismObject(), orgOid)) {
                 return true;
@@ -75,5 +74,10 @@ public class OrgRefClause extends SelectorClause {
     @Override
     void addDebugDumpContent(StringBuilder sb, int indent) {
         sb.append("org: ").append(orgOid);
+    }
+
+    @Override
+    public String toString() {
+        return "OrgRefClause{orgOid='" + orgOid + '\'' + "}";
     }
 }

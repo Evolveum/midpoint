@@ -8,14 +8,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -24,20 +28,24 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ResourceObjectClassChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -144,8 +152,10 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
 
             @Override
             protected List<Component> createToolbarButtonsList(String buttonId) {
-                return new ArrayList<>(super.createToolbarButtonsList(buttonId));
-
+                ArrayList<Component> buttons = new ArrayList<>();
+                buttons.add(createReclassifyButton(buttonId));
+                buttons.addAll(super.createToolbarButtonsList(buttonId));
+                return buttons;
             }
 
             @Override
@@ -163,6 +173,58 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    private AjaxIconButton createReclassifyButton(String buttonId) {
+
+        ReloadableButton reclassify = new ReloadableButton(
+                buttonId, getPageBase(), createStringResource("ResourceCategorizedPanel.button.reclassify")) {
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                target.add(getShadowTable());
+            }
+
+            @Override
+            protected TaskAwareExecutor.Executable<String> getTaskExecutor() {
+                return createReclassifyTask();
+            }
+
+            @Override
+            protected boolean useConfirmationPopup() {
+                return true;
+            }
+
+            @Override
+            protected IModel<String> getConfirmMessage() {
+                return getPageBase().createStringResource(
+                        "ResourceCategorizedPanel.button.reclassify.confirmation.objectClass",
+                        getSelectedObjectClass() != null ? getSelectedObjectClass().getLocalPart() : null);
+            }
+        };
+
+        reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        reclassify.setOutputMarkupId(true);
+        reclassify.showTitleAsLabel(true);
+        reclassify.add(new VisibleBehaviour(() -> getSelectedObjectClass() != null));
+        return reclassify;
+    }
+
+    private TaskAwareExecutor.Executable<String> createReclassifyTask() throws RestartResponseException {
+        return (task, result) -> {
+            ResourceType resource = getObjectWrapperObject().asObjectable();
+            return ResourceTaskCreator.forResource(resource, getPageBase())
+                    .ofFlavor(SynchronizationTaskFlavor.IMPORT)
+                    .withCoordinates(getSelectedObjectClass())
+                    .withExecutionMode(ExecutionModeType.PREVIEW)
+                    .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
+                    .withSubmissionOptions(
+                            ActivitySubmissionOptions.create()
+                                    .withTaskTemplate(new TaskType()
+                                            .name("Reclassifying objects on " + resource.getName())
+                                            .cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"))))
+                    .submit(task, result);
+        };
     }
 
     protected Consumer<Task> createProviderSearchTaskCustomizer() {

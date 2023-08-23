@@ -340,6 +340,12 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return getObjectWrapper().getObject();
     }
 
+    public void reloadPrismObjectModel() {
+        PrismObject<O> oldObject = getObjectWrapper().getObjectOld();
+        reset();
+        reloadPrismObjectModel(oldObject);
+    }
+
     public void reloadPrismObjectModel(@NotNull PrismObject<O> newObject) {
         prismObjectModel.detach();
         if (!savedDeltas.isEmpty()) {

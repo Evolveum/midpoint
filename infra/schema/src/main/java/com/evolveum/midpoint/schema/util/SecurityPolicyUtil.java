@@ -73,26 +73,26 @@ public class SecurityPolicyUtil {
         Validate.notNull(sequence);
         ArrayList<AuthenticationSequenceModuleType> modules = new ArrayList<>(sequence.getModule());
         Validate.notNull(modules);
-        Comparator<AuthenticationSequenceModuleType> comparator =
-                (f1, f2) -> {
-                    Integer f1Order = f1.getOrder();
-                    Integer f2Order = f2.getOrder();
-
-                    if (f1Order == null) {
-                        if (f2Order != null) {
-                            return 1;
-                        }
-                        return 0;
-                    }
-
-                    if (f2Order == null) {
-                        // f1Order != null already
-                        return -1;
-                    }
-                    return Integer.compare(f1Order, f2Order);
-                };
-        modules.sort(comparator);
+        modules.sort(SecurityPolicyUtil::compareOrders);
         return Collections.unmodifiableList(modules);
+    }
+
+    public static int compareOrders(AuthenticationSequenceModuleType f1, AuthenticationSequenceModuleType f2) {
+        Integer f1Order = f1.getOrder();
+        Integer f2Order = f2.getOrder();
+
+        if (f1Order == null) {
+            if (f2Order != null) {
+                return 1;
+            }
+            return 0;
+        }
+
+        if (f2Order == null) {
+            // f1Order != null already
+            return -1;
+        }
+        return Integer.compare(f1Order, f2Order);
     }
 
     public static AuthenticationsPolicyType createDefaultAuthenticationPolicy(

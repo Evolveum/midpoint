@@ -65,7 +65,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -102,7 +102,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -163,7 +162,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     // size.
 
     @SpringBean(name = "modelController")
-    private ScriptingService scriptingService;
+    private BulkActionsService bulkActionsService;
 
     @SpringBean(name = "modelController")
     private ModelService modelService;
@@ -492,8 +491,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return modelObjectResolver;
     }
 
-    public ScriptingService getScriptingService() {
-        return scriptingService;
+    public BulkActionsService getBulkActionsService() {
+        return bulkActionsService;
     }
 
     public TaskService getTaskService() {

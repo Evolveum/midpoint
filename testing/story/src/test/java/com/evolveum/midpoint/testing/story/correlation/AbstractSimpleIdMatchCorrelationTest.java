@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
@@ -35,8 +35,8 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
-            new TestResource<>(TEST_DIR, "object-template-user.xml", "0da34c23-628a-40b2-866a-51e6e81ebb1f");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER =
+            TestObject.file(TEST_DIR, "object-template-user.xml", "0da34c23-628a-40b2-866a-51e6e81ebb1f");
 
     private static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "10f012cd-17dc-45dd-886d-2d53aa889fd7", "resource-sis.csv",

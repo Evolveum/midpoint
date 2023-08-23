@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.intest.async;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,11 +46,11 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     public static final String GROUPER_USER_INTENT = "subject";
     public static final String GROUPER_GROUP_INTENT = "group";
 
-    private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "02c3f13d-e3e4-40c8-8a39-50013859f0f6");
+    private static final TestObject<TaskType> TASK_ASYNC_UPDATE = TestObject.file(TEST_DIR, "task-async-update.xml", "02c3f13d-e3e4-40c8-8a39-50013859f0f6");
 
     private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-add.xml");
     private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.xml");
-    private static final File CHANGE_110a = new File(TEST_DIR, "change-110a-staff-add.xml");
+    private static final File CHANGE_110_A = new File(TEST_DIR, "change-110a-staff-add.xml");
     private static final File CHANGE_120 = new File(TEST_DIR, "change-120-kwhite-identifiers-only.xml");
     private static final File CHANGE_200 = new File(TEST_DIR, "change-200-banderson-add-alumni-full-shadow.xml");
     private static final File CHANGE_210 = new File(TEST_DIR, "change-210-banderson-add-staff.xml");
@@ -125,7 +125,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_110).parseRealValue(UcfChangeType.class));
-        MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_110a).parseRealValue(UcfChangeType.class));
+        MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(CHANGE_110_A).parseRealValue(UcfChangeType.class));
 
         // WHEN
 

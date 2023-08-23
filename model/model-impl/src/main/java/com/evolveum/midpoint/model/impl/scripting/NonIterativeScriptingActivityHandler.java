@@ -8,15 +8,16 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
+import com.evolveum.midpoint.model.api.BulkActionsService;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
@@ -41,7 +42,7 @@ public class NonIterativeScriptingActivityHandler
         NonIterativeScriptingActivityHandler.MyWorkDefinition,
         NonIterativeScriptingActivityHandler> {
 
-    @Autowired private ScriptingService scriptingService;
+    @Autowired private BulkActionsService bulkActionsService;
 
     private static final Trace LOGGER = TraceManager.getTrace(NonIterativeScriptingActivityHandler.class);
 
@@ -102,9 +103,9 @@ public class NonIterativeScriptingActivityHandler
             // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
             OperationResult result = parentResult.createSubresult(OP_EXECUTE);
             try {
-                ScriptExecutionResult executionResult =
-                        getActivityHandler().scriptingService
-                                .evaluateExpression(
+                BulkActionExecutionResult executionResult =
+                        getActivityHandler().bulkActionsService
+                                .executeBulkAction(
                                         getWorkDefinition().getScriptExecutionRequest(),
                                         VariablesMap.emptyMap(),
                                         true,
@@ -143,8 +144,8 @@ public class NonIterativeScriptingActivityHandler
         }
 
         @Override
-        public @Nullable TaskAffectedObjectsType getAffectedObjects() {
-            return null; // not feasibly describable (only by some kind of "in oid" filter)
+        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+            return AffectedObjectsInformation.ObjectSet.notSupported(); // not feasibly describable
         }
 
         @Override

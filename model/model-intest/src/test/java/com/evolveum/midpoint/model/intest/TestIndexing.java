@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -34,10 +34,10 @@ public class TestIndexing extends AbstractEmptyModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/indexing");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_PERSON =
-            new TestResource<>(TEST_DIR, "template-person.xml", "74a2112a-0ecc-4c09-818a-1d9e234e8e6f");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PERSON =
-            new TestResource<>(TEST_DIR, "archetype-person.xml", "ace64f7e-dec0-4ff4-a3e8-728b46fad6f3");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_PERSON =
+            TestObject.file(TEST_DIR, "template-person.xml", "74a2112a-0ecc-4c09-818a-1d9e234e8e6f");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PERSON =
+            TestObject.file(TEST_DIR, "archetype-person.xml", "ace64f7e-dec0-4ff4-a3e8-728b46fad6f3");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

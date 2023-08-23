@@ -76,15 +76,15 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
             "resource-dummy-lemon.xml", "10000000-0000-0000-0000-000000000504", "lemon",
             DummyResourceContoller::extendSchemaPirate);
 
-    private static final TestResource<UserType> USER_ROGERS = new TestResource<>(TEST_DIR, "user-rogers.xml", "c0c010c0-d34d-b33f-f00d-11d2d2d2d22d");
+    private static final TestObject<UserType> USER_ROGERS = TestObject.file(TEST_DIR, "user-rogers.xml", "c0c010c0-d34d-b33f-f00d-11d2d2d2d22d");
     private static final File ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE = new File(TEST_DIR, "account-rogers-dummy-default.xml");
     private static final File ACCOUNT_ROGERS_DUMMY_LEMON_FILE = new File(TEST_DIR, "account-rogers-dummy-lemon.xml");
 
     // The following are used in the last part of this class
-    private static final TestResource<SecurityPolicyType> SECURITY_POLICY = new TestResource<>(TEST_DIR, "security-policy.xml", "a013bf3e-68b2-42b7-923e-c4d55e40e486");
-    private static final TestResource<ValuePolicyType> VALUE_POLICY_PASSWORD = new TestResource<>(TEST_DIR, "value-policy-password.xml", "fd0d70ea-ef5a-4e20-8bf0-3b367ff85f1c");
-    private static final TestResource<UserType> USER_JOE = new TestResource<>(TEST_DIR, "user-joe.xml", "33f7ec34-4d5e-4640-8224-eb7d55ed86fa");
-    private static final TestResource<RoleType> ROLE_SIMPLE = new TestResource<>(TEST_DIR, "role-simple.xml", "e681fa58-cf53-452d-99d0-4f1377a06a54");
+    private static final TestObject<SecurityPolicyType> SECURITY_POLICY = TestObject.file(TEST_DIR, "security-policy.xml", "a013bf3e-68b2-42b7-923e-c4d55e40e486");
+    private static final TestObject<ValuePolicyType> VALUE_POLICY_PASSWORD = TestObject.file(TEST_DIR, "value-policy-password.xml", "fd0d70ea-ef5a-4e20-8bf0-3b367ff85f1c");
+    private static final TestObject<UserType> USER_JOE = TestObject.file(TEST_DIR, "user-joe.xml", "33f7ec34-4d5e-4640-8224-eb7d55ed86fa");
+    private static final TestObject<RoleType> ROLE_SIMPLE = TestObject.file(TEST_DIR, "role-simple.xml", "e681fa58-cf53-452d-99d0-4f1377a06a54");
     private static final DummyTestResource RESOURCE_SIMPLE = new DummyTestResource(TEST_DIR, "resource-simple.xml", "64d8b7f9-28a0-43a9-bec7-d5a1a327a740",
             "resource-preview-simple", TestPreviewChanges::createSimpleAttributeDefinitions);
 

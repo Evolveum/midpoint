@@ -5,6 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+@mixin smooth-transition($duration, $important: "") {
+  $important-flag: if($important == "important", ' !important', '');
+
+  transition: all ease $duration#{$important-flag};
+  -webkit-transition: all ease $duration#{$important-flag};
+}
+
 .user-panel {
   border-bottom: 0 !important;
 }
@@ -15,6 +22,10 @@
     background-color: darken($button-default-background-color, 5%);
     color: darken($button-default-color, 10%);
   }
+}
+
+.btn, .btn:hover {
+  @include smooth-transition(0.08s, important);
 }
 
 // this is a fix for card widget with tool buttons which is inside of tab panel

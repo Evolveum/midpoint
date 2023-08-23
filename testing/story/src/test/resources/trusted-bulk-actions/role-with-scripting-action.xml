@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="128a5458-bcd4-4bf4-b110-664677e73aa4">
+    <name>role-with-scripting-action</name>
+    <assignment>
+        <targetRef oid="988c28d2-f879-4e07-a3cb-5ea7ad206146" type="ArchetypeType"/>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <executeScript>
+                        <s:execute>
+                            <s:outputTypeName>xsd:boolean</s:outputTypeName>
+                            <s:forWholeInput>true</s:forWholeInput>
+                            <s:script>
+                                <code>
+                                    import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
+
+                                    log.info('object = {}', object)
+                                    TestTrustedBulkActions.FLAG.set()
+                                    true
+                                </code>
+                            </s:script>
+                        </s:execute>
+                    </executeScript>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <executeScript>
+                        <s:execute>
+                            <s:script>
+                                <code>
+                                    import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
+
+                                    log.info('focus = {}', focus)
+                                    log.info('input = {}', input)
+                                    TestTrustedBulkActions.FLAG2.set()
+                                </code>
+                            </s:script>
+                        </s:execute>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

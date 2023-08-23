@@ -345,7 +345,6 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         if (assignmentPathVariables == null || assignmentPathVariables.getAssignmentPath() == null) {
             return null;
         } else {
-            // TODO what about newly-created assignments? They have no ID yet.
             return assignmentPathVariables.getAssignmentPath().getSegments().stream()
                     .map(AssignmentPathSegmentImpl::getAssignmentId)
                     .map(String::valueOf)

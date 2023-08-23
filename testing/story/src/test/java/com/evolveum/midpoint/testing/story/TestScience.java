@@ -152,8 +152,8 @@ public class TestScience  extends AbstractStoryTest {
         OperationResult testResultAd = modelService.testResource(RESOURCE_OPENDJ_AD_SIMULATION_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultAd);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
     }
 
     @Test

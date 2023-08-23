@@ -308,7 +308,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         addTask(TASK_RECOMPUTE_1_FILE);
 
-        waitForTaskFinish(TASK_RECOMPUTE_1_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECOMPUTE_1_OID, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
         then();
@@ -347,7 +347,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
         addTask(TASK_RECOMPUTE_NO_CACHE_FILE);
 
-        waitForTaskFinish(TASK_RECOMPUTE_NO_CACHE_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECOMPUTE_NO_CACHE_OID, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
         then();
@@ -481,7 +481,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         resetGlobalCachePerformanceCollector();
 
         addTask(TASK_RECOMPUTE_4_FILE);
-        waitForTaskFinish(TASK_RECOMPUTE_4_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
+        waitForTaskFinish(TASK_RECOMPUTE_4_OID, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
         then();

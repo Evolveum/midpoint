@@ -53,7 +53,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseActionExecutor.class);
 
-    @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired protected BulkActionsExecutor bulkActionsExecutor;
     @Autowired protected PrismContext prismContext;
     @Autowired protected OperationsHelper operationsHelper;
     @Autowired protected ExpressionFactory expressionFactory;
@@ -129,7 +129,6 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
         for (PipelineItem item : input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
 
             context.checkTaskStop();
             Operation op;
@@ -138,6 +137,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             } else {
                 op = null;
             }
+
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             try {
                 itemProcessor.process(value, item, result);
                 operationsHelper.recordEnd(context, op, null, result);
@@ -146,6 +147,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
                 operationsHelper.recordEnd(context, op, ex, result);
                 Throwable exception = processActionException(ex, getLegacyActionName(), value, context);
                 writer.write(value, exception);
+            } finally {
+                result.close();
             }
             operationsHelper.trimAndCloneResult(result, item.getResult());
         }

@@ -8,10 +8,12 @@
 package com.evolveum.midpoint.model.impl.security;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -79,21 +81,30 @@ public class AuthorizationMigrator {
                         add(migrated, original, readAllCompletableCases());
                         add(migrated, original, readAllCertificationCases());
                         add(migrated, original, delegateAllWorkItems());
-                    })
+                    }),
 
+            entry(
+                    ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
+
+                    // to
+                    (migrated, original) -> {
+                        add(migrated, original, new AuthorizationType()
+                                .action(ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl()));
+                    })
     );
 
     private static AuthorizationType readAllCertificationCases() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.READ.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(certificationCaseParentSelector())
                         .type(AccessCertificationCaseType.COMPLEX_TYPE));
     }
 
     private static AuthorizationType readAllCompletableCases() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.READ.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
                         .type(CaseType.COMPLEX_TYPE)
                         .archetypeRef(SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value(), ArchetypeType.COMPLEX_TYPE)
                         .archetypeRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ArchetypeType.COMPLEX_TYPE)
@@ -103,7 +114,8 @@ public class AuthorizationMigrator {
     private static AuthorizationType readAssignedCertificationCasesExceptForForeignWorkItems() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.READ.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(certificationCaseParentSelector())
                         .type(AccessCertificationCaseType.COMPLEX_TYPE)
                         .assignee(self()))
                 .exceptItem(AccessCertificationCaseType.F_WORK_ITEM.toBean());
@@ -112,7 +124,8 @@ public class AuthorizationMigrator {
     private static AuthorizationType readAssignedCertificationWorkItems() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.READ.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(certificationWorkItemParentSelector())
                         .type(AccessCertificationWorkItemType.COMPLEX_TYPE)
                         .assignee(self()));
     }
@@ -120,22 +133,24 @@ public class AuthorizationMigrator {
     private static AuthorizationType completeAssignedCertificationWorkItems() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.COMPLETE_WORK_ITEM.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(certificationWorkItemParentSelector())
                         .type(AccessCertificationWorkItemType.COMPLEX_TYPE)
                         .assignee(self()));
     }
-
     private static AuthorizationType completeAllCaseWorkItems() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.COMPLETE_WORK_ITEM.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(caseWorkItemParentSelector())
                         .type(CaseWorkItemType.COMPLEX_TYPE));
     }
 
     private static AuthorizationType delegateAssignedCaseWorkItems() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.DELEGATE_WORK_ITEM.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(caseWorkItemParentSelector())
                         .type(CaseWorkItemType.COMPLEX_TYPE)
                         .assignee(self()));
     }
@@ -143,9 +158,11 @@ public class AuthorizationMigrator {
     private static AuthorizationType delegateAllWorkItems() {
         return new AuthorizationType()
                 .action(ModelAuthorizationAction.DELEGATE_WORK_ITEM.getUrl())
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(caseWorkItemParentSelector())
                         .type(CaseWorkItemType.COMPLEX_TYPE))
-                .object(new AuthorizationObjectSelectorType()
+                .object(new OwnedObjectSelectorType()
+                        .parent(certificationWorkItemParentSelector())
                         .type(AccessCertificationWorkItemType.COMPLEX_TYPE));
     }
 
@@ -174,6 +191,25 @@ public class AuthorizationMigrator {
     private static SubjectedObjectSelectorType self() {
         return new SubjectedObjectSelectorType()
                 .special(SpecialObjectSpecificationType.SELF);
+    }
+
+    private static ObjectParentSelectorType certificationWorkItemParentSelector() {
+        return new ObjectParentSelectorType()
+                .type(AccessCertificationCampaignType.COMPLEX_TYPE)
+                .path(new ItemPathType(
+                        ItemPath.create(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM)));
+    }
+
+    private static ObjectParentSelectorType certificationCaseParentSelector() {
+        return new ObjectParentSelectorType()
+                .type(AccessCertificationCampaignType.COMPLEX_TYPE)
+                .path(new ItemPathType(AccessCertificationCampaignType.F_CASE));
+    }
+
+    private static ObjectParentSelectorType caseWorkItemParentSelector() {
+        return new ObjectParentSelectorType()
+                .type(CaseType.COMPLEX_TYPE)
+                .path(new ItemPathType(CaseType.F_WORK_ITEM));
     }
 
     private static String newName(String name) {

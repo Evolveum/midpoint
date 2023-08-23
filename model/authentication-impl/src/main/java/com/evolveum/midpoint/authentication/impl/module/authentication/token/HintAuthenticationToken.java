@@ -13,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 
 public class HintAuthenticationToken extends UsernamePasswordAuthenticationToken {
+
     public HintAuthenticationToken(Object principal, Object credentials) {
         super(principal, credentials);
     }

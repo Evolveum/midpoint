@@ -221,6 +221,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 deltaRow.resourceNameOrig = deltaOperation.getResourceName().getOrig();
                 deltaRow.resourceNameNorm = deltaOperation.getResourceName().getNorm();
             }
+            deltaRow.shadowKind = deltaOperation.getShadowKind();
+            deltaRow.shadowIntent = deltaOperation.getShadowIntent();
+
             deltaRow.checksum = computeChecksum(deltaRow.delta, fullResultForCheckSum);
             return deltaRow;
         } catch (Exception ex) {

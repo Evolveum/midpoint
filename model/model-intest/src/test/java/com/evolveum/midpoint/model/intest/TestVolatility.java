@@ -368,6 +368,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     }
 
     protected void waitForSyncTaskNextRun() throws Exception {
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, false, 10000);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, 10000);
     }
 }

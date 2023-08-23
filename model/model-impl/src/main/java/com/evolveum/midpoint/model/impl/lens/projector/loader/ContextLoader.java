@@ -420,16 +420,17 @@ public class ContextLoader implements ProjectorProcessor {
 
     private SecurityPolicyType determineAndSetFocusSecurityPolicy(LensFocusContext<FocusType> focusContext,
             PrismObject<FocusType> focus, PrismObject<SystemConfigurationType> systemConfiguration, boolean forceReload, Task task,
-            OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SchemaException {
+            OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, SchemaException {
         SecurityPolicyType existingPolicy = focusContext.getSecurityPolicy();
         if (existingPolicy != null && !forceReload) {
             return existingPolicy;
         } else {
-            SecurityPolicyType loadedPolicy = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result); //todo review please
-                                                                                    // locateSecurityPolicy tries to load security policy from org
-                                                                                    //and archetypes at first but if no one is found, return global security policy. therefore the usage
-                                                                                    //method locateFocusSecurityPolicyFromOrgs was replaced with locateSecurityPolicy and the following
-                                                                                    //peace of code was commented
+            SecurityPolicyType loadedPolicy = securityHelper.locateSecurityPolicy(focus, null, systemConfiguration,
+                    task, result);  //todo review please locateSecurityPolicy tries to load security policy from org
+                                    //and archetypes at first but if no one is found, return global security policy. therefore the usage
+                                    //method locateFocusSecurityPolicyFromOrgs was replaced with locateSecurityPolicy and the following
+                                    //peace of code was commented
 //            SecurityPolicyType resultingPolicy;
 //            if (loadedPolicy != null) {
 //                resultingPolicy = loadedPolicy;

@@ -8,6 +8,19 @@
 package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateCorrelationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +35,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
  * Contains correlation-related methods that should be accessible from the outside of `model` module.
  */
 public interface CorrelationService {
+
+    /**
+     * Correlates the provided (partial) focus object to a set of candidate matches.
+     *
+     * TODO finish the method signature
+     */
+    @NotNull CompleteCorrelationResult correlate(
+            @NotNull FocusType preFocus,
+            @Nullable String archetypeOid,
+            @NotNull Set<String> candidateOids,
+            @NotNull CorrelatorDiscriminator discriminator,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /**
      * Describes the provided correlation case by providing {@link CorrelationCaseDescription} object.
@@ -61,6 +89,15 @@ public interface CorrelationService {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Instantiates a correlator
+     */
+//    CorrelatorConfiguration determineCorrelatorConfiguration(@NotNull ObjectTemplateType objectTemplate,
+//            SystemConfigurationType systemConfiguration);
+
+    PathSet determineCorrelatorConfiguration(@NotNull CorrelatorDiscriminator discriminator, String archetypeOid, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+
 
     @FunctionalInterface
     interface CaseCloser {

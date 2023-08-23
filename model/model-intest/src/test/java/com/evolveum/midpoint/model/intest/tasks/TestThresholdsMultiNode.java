@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -20,35 +20,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 public class TestThresholdsMultiNode extends TestThresholds {
 
-    private static final TestResource<TaskType> TASK_IMPORT_SIMULATE_MULTI = new TestResource<>(TEST_DIR, "task-import-simulate-multi.xml", "aefaec62-5882-476e-b40d-6745387fbc84");
-    private static final TestResource<TaskType> TASK_IMPORT_SIMULATE_EXECUTE_MULTI = new TestResource<>(TEST_DIR, "task-import-simulate-execute-multi.xml", "6e1310f0-75c4-42c4-a2dd-e8c15eb8e1ea");
-    private static final TestResource<TaskType> TASK_IMPORT_EXECUTE_MULTI = new TestResource<>(TEST_DIR, "task-import-execute-multi.xml", "bb3e8b67-dbb2-4b01-a220-0774eb819791");
+    private static final TestObject<TaskType> TASK_IMPORT_SIMULATE_MULTI = TestObject.file(TEST_DIR, "task-import-simulate-multi.xml", "aefaec62-5882-476e-b40d-6745387fbc84");
+    private static final TestObject<TaskType> TASK_IMPORT_SIMULATE_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-import-simulate-execute-multi.xml", "6e1310f0-75c4-42c4-a2dd-e8c15eb8e1ea");
+    private static final TestObject<TaskType> TASK_IMPORT_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-import-execute-multi.xml", "bb3e8b67-dbb2-4b01-a220-0774eb819791");
 
-    private static final TestResource<TaskType> TASK_RECONCILIATION_SIMULATE_MULTI = new TestResource<>(TEST_DIR, "task-reconciliation-simulate-multi.xml", "5f14f4d7-1fe0-4f83-87f3-9fc8ed468cb1");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_SIMULATE_EXECUTE_MULTI = new TestResource<>(TEST_DIR, "task-reconciliation-simulate-execute-multi.xml", "5756a1c4-751c-4cd3-8edc-3d1e357dab83");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_EXECUTE_MULTI = new TestResource<>(TEST_DIR, "task-reconciliation-execute-multi.xml", "bc114530-a111-4baf-9888-1a51dd99a558");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-simulate-multi.xml", "5f14f4d7-1fe0-4f83-87f3-9fc8ed468cb1");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-simulate-execute-multi.xml", "5756a1c4-751c-4cd3-8edc-3d1e357dab83");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-execute-multi.xml", "bc114530-a111-4baf-9888-1a51dd99a558");
 
-    TestResource<TaskType> getSimulateTask() {
+    TestObject<TaskType> getSimulateTask() {
         return TASK_IMPORT_SIMULATE_MULTI;
     }
 
-    TestResource<TaskType> getSimulateExecuteTask() {
+    TestObject<TaskType> getSimulateExecuteTask() {
         return TASK_IMPORT_SIMULATE_EXECUTE_MULTI;
     }
 
-    TestResource<TaskType> getExecuteTask() {
+    TestObject<TaskType> getExecuteTask() {
         return TASK_IMPORT_EXECUTE_MULTI;
     }
 
-    TestResource<TaskType> getReconciliationSimulateTask() {
+    TestObject<TaskType> getReconciliationSimulateTask() {
         return TASK_RECONCILIATION_SIMULATE_MULTI;
     }
 
-    TestResource<TaskType> getReconciliationSimulateExecuteTask() {
+    TestObject<TaskType> getReconciliationSimulateExecuteTask() {
         return TASK_RECONCILIATION_SIMULATE_EXECUTE_MULTI;
     }
 
-    TestResource<TaskType> getReconciliationExecuteTask() {
+    TestObject<TaskType> getReconciliationExecuteTask() {
         return TASK_RECONCILIATION_EXECUTE_MULTI;
     }
 
@@ -63,7 +63,7 @@ public class TestThresholdsMultiNode extends TestThresholds {
     }
 
     @Override
-    void assertTest100Task(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest100Task(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .rootActivityState()
@@ -82,54 +82,54 @@ public class TestThresholdsMultiNode extends TestThresholds {
     }
 
     @Override
-    void assertTest100TaskAfterRepeatedExecution(TestResource<TaskType> importTask) {
+    void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest110TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest110TaskAfter(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest120TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest120TaskAfter(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest200TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest200TaskAfter(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest200TaskAfterRepeatedExecution(TestResource<TaskType> importTask) {
+    void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest210TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest210TaskAfter(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest220TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest220TaskAfter(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest300TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest300TaskAfter(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest310TaskAfter(TestResource<TaskType> reconTask) {
+    void assertTest310TaskAfter(TestObject<TaskType> reconTask) {
     }
 
     @Override
-    void assertTest400TaskAfter(TestResource<TaskType> reconTask) {
+    void assertTest400TaskAfter(TestObject<TaskType> reconTask) {
     }
 
     @Override
-    void assertTest400TaskAfterRepeatedExecution(TestResource<TaskType> reconTask) {
+    void assertTest400TaskAfterRepeatedExecution(TestObject<TaskType> reconTask) {
     }
 
     @Override
-    void assertTest410TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest410TaskAfter(TestObject<TaskType> importTask) {
     }
 
     @Override
-    void assertTest420TaskAfter(TestResource<TaskType> importTask) {
+    void assertTest420TaskAfter(TestObject<TaskType> importTask) {
     }
 }

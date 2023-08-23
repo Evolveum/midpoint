@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -52,59 +52,59 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     //region Constants for level of assurance recording scenario
     private static final File LEVEL_OF_ASSURANCE_DIR = new File(TEST_DIR, "level-of-assurance");
 
-    private static final TestResource<UserType> USER_BOB = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
-    private static final TestResource<UserType> USER_CHUCK = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
+    private static final TestObject<UserType> USER_BOB = TestObject.file(LEVEL_OF_ASSURANCE_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
+    private static final TestObject<UserType> USER_CHUCK = TestObject.file(LEVEL_OF_ASSURANCE_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_LOA_USER = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "template-loa-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_LOA_USER = TestObject.file(LEVEL_OF_ASSURANCE_DIR, "template-loa-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
     //endregion
 
     //region Constants for sensitivity propagation scenario
     private static final File SENSITIVITY_PROPAGATION_DIR = new File(TEST_DIR, "sensitivity-propagation");
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_USER_SENSITIVITY_PROPAGATION = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_USER_SENSITIVITY_PROPAGATION = TestObject.file(
             SENSITIVITY_PROPAGATION_DIR, "archetype-user-sensitivity-propagation.xml", "4231f36d-4e57-4597-8b6d-a7ce3c709616");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_USER_SENSITIVITY_PROPAGATION = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> TEMPLATE_USER_SENSITIVITY_PROPAGATION = TestObject.file(
             SENSITIVITY_PROPAGATION_DIR, "template-user-sensitivity-propagation.xml", "60b83ded-57ea-4987-9d88-af13d2862649");
-    private static final TestResource<OrgType> ORG_EMPLOYEES = new TestResource<>(
+    private static final TestObject<OrgType> ORG_EMPLOYEES = TestObject.file(
             SENSITIVITY_PROPAGATION_DIR, "org-employees.xml", "e1d97086-d1a1-4541-bd0b-fe694ecf767e");
-    private static final TestResource<OrgType> ORG_SPECIAL_MEDICAL_SERVICES = new TestResource<>(
+    private static final TestObject<OrgType> ORG_SPECIAL_MEDICAL_SERVICES = TestObject.file(
             SENSITIVITY_PROPAGATION_DIR, "org-special-medical-services.xml", "29963fc9-f494-4911-af3c-9e73fd64617f");
-    private static final TestResource<UserType> USER_JIM = new TestResource<>(
+    private static final TestObject<UserType> USER_JIM = TestObject.file(
             SENSITIVITY_PROPAGATION_DIR, "user-jim.xml", "8d162a31-00a8-48dc-b96f-08d3a85ada1d");
     //endregion
 
     //region Constants for creation metadata recording scenario
     private static final File CREATION_METADATA_RECORDING_DIR = new File(TEST_DIR, "creation-metadata-recording");
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_CREATION_METADATA_RECORDING = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_CREATION_METADATA_RECORDING = TestObject.file(
             CREATION_METADATA_RECORDING_DIR, "archetype-creation-metadata-recording.xml", "5fb59a01-e5b9-4531-931d-923c94f341aa");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_CREATION_METADATA_RECORDING = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> TEMPLATE_CREATION_METADATA_RECORDING = TestObject.file(
             CREATION_METADATA_RECORDING_DIR, "template-creation-metadata-recording.xml", "00301846-fe73-476a-83be-6bfe13251b4a");
-    private static final TestResource<UserType> USER_PAUL = new TestResource<>(
+    private static final TestObject<UserType> USER_PAUL = TestObject.file(
             CREATION_METADATA_RECORDING_DIR, "user-paul.xml", "7c8e736b-b195-4ca1-bce4-12f86ff1bc71");
     //endregion
 
     //region Constants for provenance metadata recording scenario
     private static final File PROVENANCE_METADATA_RECORDING_DIR = new File(TEST_DIR, "provenance-metadata-recording");
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_PROVENANCE_METADATA_RECORDING = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_PROVENANCE_METADATA_RECORDING = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "archetype-provenance-metadata-recording.xml", "b2117a51-a516-4151-9168-30f8baa78ec2");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE_METADATA_RECORDING = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> TEMPLATE_PROVENANCE_METADATA_RECORDING = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "template-provenance-metadata-recording.xml", "9ff4dcad-8f7e-4a28-8515-83cf50daec22");
 
-    private static final TestResource<ServiceType> ORIGIN_ADMIN_ENTRY = new TestResource<>(
+    private static final TestObject<ServiceType> ORIGIN_ADMIN_ENTRY = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "origin-admin-entry.xml", "6c0a7a75-0551-4842-807d-424e279a257f");
-    private static final TestResource<ServiceType> ORIGIN_SELF_SERVICE_APP = new TestResource<>(
+    private static final TestObject<ServiceType> ORIGIN_SELF_SERVICE_APP = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "origin-self-service-app.xml", "760fda34-846f-4aac-a5ac-881c0ff23653");
-    private static final TestResource<ServiceType> ORIGIN_HR_FEED = new TestResource<>(
+    private static final TestObject<ServiceType> ORIGIN_HR_FEED = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "origin-hr-feed.xml", "f43bd824-e07e-4a41-950e-00de06881555");
-    private static final TestResource<ServiceType> ORIGIN_CRM_FEED = new TestResource<>(
+    private static final TestObject<ServiceType> ORIGIN_CRM_FEED = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "origin-crm-feed.xml", "28c230b1-7209-4aa0-a5b9-776b22e14960");
-    private static final TestResource<TaskType> TASK_HR_IMPORT = new TestResource<>(
+    private static final TestObject<TaskType> TASK_HR_IMPORT = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "task-hr-import.xml", "da0a48bb-1294-475e-bcd3-51bfb9813885");
-    private static final TestResource<TaskType> TASK_HR_RECONCILIATION = new TestResource<>(
+    private static final TestObject<TaskType> TASK_HR_RECONCILIATION = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "task-hr-reconciliation.xml", "0c1f0434-6409-47b8-b7f5-2f44510385c2");
-    private static final TestResource<TaskType> TASK_CRM_IMPORT = new TestResource<>(
+    private static final TestObject<TaskType> TASK_CRM_IMPORT = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "task-crm-import.xml", "59a74606-0550-470b-856d-50890c31f3a4");
 
     private static final String ATTR_FIRSTNAME = "firstname";
@@ -133,7 +133,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 ATTR_LOA, Integer.class, false, false);
     });
 
-    private static final TestResource<UserType> USER_LEONHARD = new TestResource<>(
+    private static final TestObject<UserType> USER_LEONHARD = TestObject.file(
             PROVENANCE_METADATA_RECORDING_DIR, "user-leonhard.xml", "31984da7-e162-4e22-a437-6f60d80092c4");
     //endregion
 
@@ -144,7 +144,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final ItemPath SENSITIVITY_PATH = ItemPath.create(ObjectType.F_EXTENSION, SENSITIVITY_NAME);
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
-    private static final TestResource<UserType> USER_ALICE = new TestResource<>(TEST_DIR, "user-alice.xml", "9fc389be-5b47-4e9d-90b5-33fffd87b3ca");
+    private static final TestObject<UserType> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "9fc389be-5b47-4e9d-90b5-33fffd87b3ca");
     private static final String USER_BLAISE_NAME = "blaise";
 
     private static final ItemPath PATH_ALIAS = ItemPath.create(UserType.F_EXTENSION, new ItemName("alias")); // TODO namespace

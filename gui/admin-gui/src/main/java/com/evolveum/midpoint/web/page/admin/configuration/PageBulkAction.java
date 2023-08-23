@@ -22,7 +22,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -148,8 +148,8 @@ public class PageBulkAction extends PageAdminConfiguration {
             } else {
                 try {
                     //noinspection ConstantConditions
-                    ScriptExecutionResult executionResult =
-                            getScriptingService().evaluateExpression(
+                    BulkActionExecutionResult executionResult =
+                            getBulkActionsService().executeBulkAction(
                                     ExecuteScriptConfigItem.of(typed, ConfigurationItemOrigin.user()),
                                     VariablesMap.emptyMap(),
                                     false,

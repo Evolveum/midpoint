@@ -20,32 +20,28 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 /**
  * Work definition that can provide object set specification.
  *
- * It has to be aware of an activity type name because of the default implementation of {@link #getAffectedObjects()}.
+ * It has to be aware of an activity type name because of the default implementation of {@link #getAffectedObjectSetInformation()}.
  */
 public interface ObjectSetSpecificationProvider
-        extends ActivityTypeNameAware, AffectedObjectsProvider, FailedObjectsSelectorProvider {
+        extends AffectedObjectSetProvider, FailedObjectsSelectorProvider {
 
     @NotNull ObjectSetType getObjectSetSpecification();
 
     /** Provided here to avoid code duplication in individual work definition implementations. */
     @Override
-    default @NotNull TaskAffectedObjectsType getAffectedObjects() {
+    default @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
         ObjectSetType set = getObjectSetSpecification();
 
-        // Currently, all objects are in this namespace (otherwise we should call schema registry,
+        // Currently, all objects are in "common" namespace (otherwise we should call schema registry,
         // but there's no fully suitable method now)
         var rawType = set.getType();
         QName qualifiedType = rawType != null ? QNameUtil.qualifyIfNeeded(rawType, NS_C) : null;
 
-        return new TaskAffectedObjectsType()
-                .activity(new ActivityAffectedObjectsType()
-                        .activityType(getActivityTypeName())
-                        .objects(new BasicObjectSetType()
-                                .type(qualifiedType)
-                                .archetypeRef( // Consider keeping only the OID
-                                        CloneUtil.cloneCloneable(set.getArchetypeRef()))
-                        )
-                );
+        return AffectedObjectsInformation.ObjectSet.repository(
+                new BasicObjectSetType()
+                        .type(qualifiedType)
+                        .archetypeRef( // Consider keeping only the OID
+                                CloneUtil.cloneCloneable(set.getArchetypeRef())));
     }
 
     @Override

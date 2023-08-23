@@ -101,9 +101,9 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_DUMMY_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID, false);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID);
     }
 
     @Test
@@ -118,7 +118,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
         // WHEN
         when();
         restartTask(TASK_LIVE_SYNC_DUMMY_HR_OID);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID);
 
         // THEN
         then();
@@ -154,7 +154,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
         // WHEN
         when();
         restartTask(TASK_LIVE_SYNC_DUMMY_HR_OID);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID);
 
         // THEN
         then();
@@ -192,7 +192,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
         // WHEN
         when();
         restartTask(TASK_LIVE_SYNC_DUMMY_HR_OID);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID);
 
         // THEN
         then();

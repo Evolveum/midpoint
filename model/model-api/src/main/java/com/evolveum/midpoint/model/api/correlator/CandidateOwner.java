@@ -30,7 +30,7 @@ public class CandidateOwner implements Serializable {
 
     @NotNull private final String oid;
     @NotNull private final ObjectType object;
-    private final double confidence;
+    private double confidence;
 
     /**
      * ID of the candidate in the external system, e.g. ID Match.
@@ -57,6 +57,10 @@ public class CandidateOwner implements Serializable {
 
     public double getConfidence() {
         return confidence;
+    }
+
+    public void increaseConfidence(double confidence) {
+        this.confidence += confidence;
     }
 
     public @Nullable String getExternalId() {

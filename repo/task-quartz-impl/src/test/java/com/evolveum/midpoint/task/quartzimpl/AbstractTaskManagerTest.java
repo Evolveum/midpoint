@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskStateManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -69,8 +69,8 @@ public class AbstractTaskManagerTest extends AbstractIntegrationTest {
         addObjectFromFile(USER_ADMINISTRATOR_FILE.getPath());
     }
 
-    <T extends ObjectType> PrismObject<T> add(TestResource<T> testResource, OperationResult result) throws Exception {
-        PrismObject<T> object = testResource.get();
+    <T extends ObjectType> PrismObject<T> add(TestObject<T> testObject, OperationResult result) throws Exception {
+        PrismObject<T> object = testObject.get();
         addObject(object, result);
         return object;
     }

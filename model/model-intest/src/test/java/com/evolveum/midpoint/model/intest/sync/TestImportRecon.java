@@ -437,7 +437,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, false, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();
@@ -519,7 +519,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, false, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();
@@ -605,7 +605,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, false, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();
@@ -678,7 +678,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         addObject(TASK_IMPORT_DUMMY_LIME_LIMITED_MIGRATED, task, result);
         loginAdministrator();
-        waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED_MIGRATED.oid, false);
+        waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED_MIGRATED.oid);
 
         then();
 
@@ -723,7 +723,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         addObject(TASK_IMPORT_DUMMY_LIME_LIMITED, task, result);
         loginAdministrator();
-        waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED.oid, false);
+        waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED.oid);
 
         then();
 
@@ -788,7 +788,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, false, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();
@@ -873,7 +873,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, false, 40000);
+        waitForTaskFinish(task, 40000);
 
         // THEN
         then();
@@ -959,7 +959,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         then("task should be OK");
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID);
         dumpStatistics(taskAfter);
 
         // @formatter:off
@@ -1094,7 +1094,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
@@ -1158,7 +1158,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
@@ -1244,7 +1244,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
@@ -1339,7 +1339,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
@@ -1430,7 +1430,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         restartTask(TASK_RECONCILE_DUMMY_OID);
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, DEFAULT_TASK_WAIT_TIMEOUT, true);
 
         // THEN
         then();
@@ -1597,7 +1597,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         then();
 
@@ -1659,7 +1659,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         dumpStatistics(taskAfter);
 
@@ -1728,7 +1728,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
         assertTask(taskAfter, "after")
                 .assertSuccess();
 
@@ -1804,7 +1804,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         dumpStatistics(taskAfter);
 
@@ -1912,7 +1912,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         dumpStatistics(taskAfter);
 
@@ -1986,7 +1986,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         dumpStatistics(taskAfter);
 
@@ -2066,7 +2066,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         dumpStatistics(taskAfter);
 
@@ -2143,7 +2143,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME.oid);
 
         dumpStatistics(taskAfter);
 
@@ -2505,7 +2505,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_LIME.oid);
 
         dumpStatistics(taskAfter);
 
@@ -2699,7 +2699,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, false, 40000);
+        waitForTaskFinish(task, 40000);
 
         dumpStatistics(task);
 
@@ -2773,7 +2773,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             return null;
         });
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, false, 40000);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER.oid, 40000);
         dumpStatistics(taskAfter);
         // @formatter:off
         assertTask(taskAfter, "after")
@@ -3300,7 +3300,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS.oid, false, 20000);
+        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS.oid, 20000);
         dumpStatistics(taskAfter);
 
         // THEN
@@ -3358,7 +3358,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS.oid, false, 20000);
+        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS.oid, 20000);
         dumpStatistics(taskAfter);
 
         // THEN

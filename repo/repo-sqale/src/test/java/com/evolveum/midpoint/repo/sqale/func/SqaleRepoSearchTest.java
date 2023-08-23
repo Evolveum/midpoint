@@ -204,6 +204,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .affectedObjects(new TaskAffectedObjectsType()
                                 .activity(new ActivityAffectedObjectsType()
                                         .activityType(new QName(NS_C, "activity-1"))
+                                        .executionMode(ExecutionModeType.PREVIEW)
+                                        .predefinedConfigurationToUse(PredefinedConfigurationType.DEVELOPMENT)
                                         .objects(new BasicObjectSetType()
                                                 .type(UserType.COMPLEX_TYPE)
                                                 .archetypeRef(archetypeOid, ArchetypeType.COMPLEX_TYPE))
@@ -1319,7 +1321,6 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
 
     @Test
     public void test361TasksWhichAffectsUsersWithArchetype() throws SchemaException {
-        // FIXME adapt this code to the new schema
         searchObjectTest( "matching exists filter for affects/objects, which references only type",
                 TaskType.class,
                 f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY)
@@ -1339,6 +1340,32 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .item(BasicObjectSetType.F_ARCHETYPE_REF).ref(archetypeOid)
                         .and()
                         .item(BasicObjectSetType.F_TYPE).eq(UserType.COMPLEX_TYPE)
+                        .endBlock()
+                , task1Oid);
+
+    }
+
+    @Test
+    public void test362TasksWhichArePreview() throws SchemaException {
+        searchObjectTest( "matching exists filter for affectedObjects/activity/executionMode, which references only type",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY)
+                        .item(ActivityAffectedObjectsType.F_EXECUTION_MODE).eq(ExecutionModeType.PREVIEW)
+                , task1Oid);
+
+        searchObjectTest( "equal filter for affects/objects/type, which references only type",
+                TaskType.class,
+                f -> f.item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_EXECUTION_MODE).eq(ExecutionModeType.PREVIEW)
+                , task1Oid);
+
+
+        searchObjectTest( "matching exists filter for preview in development, which references only resource",
+                TaskType.class,
+                f -> f.exists(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY)
+                        .block()
+                        .item(ActivityAffectedObjectsType.F_EXECUTION_MODE).eq(ExecutionModeType.PREVIEW)
+                        .and()
+                        .item(ActivityAffectedObjectsType.F_PREDEFINED_CONFIGURATION_TO_USE).eq(PredefinedConfigurationType.DEVELOPMENT)
                         .endBlock()
                 , task1Oid);
 

@@ -135,9 +135,23 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
 
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
 
+        AjaxIconButton back = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fas fa-arrow-left"),
+                getExitLabel()) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onExitPerformed(target);
+            }
+        };
+        back.showTitleAsLabel(true);
+        back.add(new VisibleBehaviour(() -> isBackButtonVisible()));
+        back.add(AttributeAppender.append("class", "text-primary"));
+        buttons.add(back);
+
         AjaxIconButton exit = new AjaxIconButton(
                 buttons.newChildId(),
-                Model.of("fa fa-right-from-bracket"),
+                Model.of("fas fa-right-from-bracket fa-rotate-180"),
                 getExitLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -146,7 +160,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         };
         exit.showTitleAsLabel(true);
         exit.add(new VisibleBehaviour(() -> isExitButtonVisible()));
-        exit.add(AttributeAppender.append("class", "btn btn-outline-primary"));
+        exit.add(AttributeAppender.append("class", "btn-default"));
         buttons.add(exit);
 
         addCustomButtons(buttons);
@@ -163,8 +177,12 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         };
         saveButton.showTitleAsLabel(true);
         saveButton.add(new VisibleBehaviour(() -> isSubmitButtonVisible()));
-        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
+        saveButton.add(AttributeAppender.append("class", "btn-success"));
         buttons.add(saveButton);
+    }
+
+    protected boolean isBackButtonVisible() {
+        return false;
     }
 
     protected String getCssForWidthOfFeedbackPanel() {

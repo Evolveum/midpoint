@@ -344,11 +344,10 @@ class ClockworkSource extends MSource {
 
         LOGGER.trace("Trying to resolve the entitlement object from association value {}", value);
         PrismObject<ShadowType> entitlement;
-        if (!(value instanceof PrismContainerValue)) {
+        if (!(value instanceof PrismContainerValue<?> pcv)) {
             LOGGER.trace("No value or not a PCV -> no entitlement object");
             entitlement = null;
         } else {
-            PrismContainerValue<?> pcv = (PrismContainerValue<?>) value;
             PrismReference entitlementRef = pcv.findReference(ShadowAssociationType.F_SHADOW_REF);
             if (entitlementRef == null) {
                 LOGGER.trace("No shadow reference found -> no entitlement object");
@@ -383,7 +382,7 @@ class ClockworkSource extends MSource {
     }
 
     @Override
-    @Nullable IdentityItemConfiguration getIdentityItemConfiguration(@NotNull ItemPath itemPath) throws ConfigurationException {
+    @Nullable IdentityItemConfiguration getIdentityItemConfiguration(@NotNull ItemPath itemPath) {
         return identityManagementConfiguration.getForPath(itemPath);
     }
 
@@ -392,15 +391,14 @@ class ClockworkSource extends MSource {
     }
 
     @Override
-    ItemPath determineTargetPathOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException {
+    ItemPath determineTargetPathOverride(ItemPath targetItemPath) throws SchemaException {
 
         LensFocusContext<?> focusContext = getFocusContext();
         ObjectType objectNew = asObjectable(focusContext.getObjectNew());
-        if (!(objectNew instanceof FocusType)) {
+        if (!(objectNew instanceof FocusType focusNew)) {
             LOGGER.trace("Focus is not a FocusType (or a 'new' object does not exist)");
             return null;
         }
-        FocusType focusNew = (FocusType) objectNew;
 
         IdentityItemConfiguration identityItemConfiguration = getIdentityItemConfiguration(targetItemPath);
         if (identityItemConfiguration == null) {

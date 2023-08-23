@@ -559,7 +559,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         when();
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment =
                 assignmentEvaluator.evaluate(
-                        assignmentIdi, PlusMinusZero.ZERO, false,
+                        assignmentIdi, null, PlusMinusZero.ZERO, false,
                         jack.asObjectable(), jack.toString(), AssignmentOrigin.inObject(embedded(jackGuybrushAssignment)),
                         task, result);
 

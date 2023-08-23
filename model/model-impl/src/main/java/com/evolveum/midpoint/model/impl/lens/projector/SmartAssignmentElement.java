@@ -23,6 +23,9 @@ public class SmartAssignmentElement implements DebugDumpable {
     @NotNull private final PrismContainerValue<AssignmentType> assignmentCVal;
     @NotNull private final AssignmentOrigin origin;
 
+    /** External ID can be obtained from repository as pre-allocated assignment PCV ID (for new assignments). */
+    private Long externalId;
+
     SmartAssignmentElement(
             @NotNull PrismContainerValue<AssignmentType> assignmentCVal,
             boolean virtual,
@@ -31,8 +34,7 @@ public class SmartAssignmentElement implements DebugDumpable {
         this.origin = new AssignmentOrigin(virtual, origin);
     }
 
-    @NotNull
-    public AssignmentOrigin getOrigin() {
+    public @NotNull AssignmentOrigin getOrigin() {
         return origin;
     }
 
@@ -48,13 +50,26 @@ public class SmartAssignmentElement implements DebugDumpable {
         return origin.isOld();
     }
 
-    @NotNull
-    public PrismContainerValue<AssignmentType> getAssignmentCVal() {
+    public @NotNull PrismContainerValue<AssignmentType> getAssignmentCVal() {
         return assignmentCVal;
     }
 
-    public Long getAssignmentId() {
+    public @NotNull AssignmentType getAssignment() {
+        return assignmentCVal.asContainerable();
+    }
+
+    /** ID as was really specified in the object or delta. */
+    public Long getBuiltInAssignmentId() {
         return assignmentCVal.getId();
+    }
+
+    /** Artificial ID that is used for new assignments. */
+    public Long getExternalAssignmentId() {
+        return externalId;
+    }
+
+    public void setExternalId(Long externalId) {
+        this.externalId = externalId;
     }
 
     public SmartAssignmentKey getKey() {

@@ -13,15 +13,15 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType;
 
 public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
 
@@ -79,8 +79,8 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
     }
 
     @Override
-    public @Nullable TaskAffectedObjectsType getAffectedObjects() {
-        return null; // not relevant here
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+        return AffectedObjectsInformation.ObjectSet.notSupported(); // not relevant here
     }
 
     @Override

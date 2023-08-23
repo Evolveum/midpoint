@@ -189,9 +189,10 @@ public class ArchetypeManager implements Cache {
      */
     public ArchetypePolicyType determineArchetypePolicy(@Nullable ObjectType object, OperationResult result)
             throws SchemaException, ConfigurationException {
-        Set<String> archetypeOids = archetypeDeterminer.determineArchetypeOids(object);
-        List<ArchetypeType> archetypes = resolveArchetypeOids(archetypeOids, object, result);
-        return determineArchetypePolicy(archetypes, object, result);
+        return determineArchetypePolicy(
+                determineArchetypes(object, result),
+                object,
+                result);
     }
 
     /**
@@ -323,6 +324,19 @@ public class ArchetypeManager implements Cache {
             LOGGER.warn("Super archetype {} (of {}) couldn't be found", oid, archetype);
             return null;
         }
+    }
+
+    /** Determines default object policy configuration for the specified object type */
+    public <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+            @NotNull Class<O> objectClass, OperationResult result) throws SchemaException, ConfigurationException {
+        SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+        if (systemConfiguration == null) {
+            return null;
+        }
+        return determineObjectPolicyConfiguration(
+                objectClass,
+                null,
+                systemConfiguration);
     }
 
     /** Determines legacy object policy configuration (from subtypes) */

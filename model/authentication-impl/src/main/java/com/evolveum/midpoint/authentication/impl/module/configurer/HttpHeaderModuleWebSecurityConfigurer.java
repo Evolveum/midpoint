@@ -7,7 +7,11 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import java.io.IOException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpHeaderAuthenticationModuleType;
+
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -21,6 +25,8 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
@@ -30,12 +36,21 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
  * @author skublik
  */
 
-public class HttpHeaderModuleWebSecurityConfigurer<C extends HttpHeaderModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfigurer<C> {
+public class HttpHeaderModuleWebSecurityConfigurer extends LoginFormModuleWebSecurityConfigurer<HttpHeaderModuleWebSecurityConfiguration, HttpHeaderAuthenticationModuleType> {
 
     @Autowired private MidpointProviderManager authenticationManager;
 
-    public HttpHeaderModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
+    public HttpHeaderModuleWebSecurityConfigurer(HttpHeaderAuthenticationModuleType httpHeaderAuthenticationModuleType,
+            String prefixOfSequence, AuthenticationChannel authenticationChannel,
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(httpHeaderAuthenticationModuleType, prefixOfSequence, authenticationChannel, postProcessor, request, provider);
+    }
+
+    @Override
+    protected HttpHeaderModuleWebSecurityConfiguration buildConfiguration(HttpHeaderAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        return HttpHeaderModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix);
     }
 
     @Override

@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -401,7 +402,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         importObjectFromFile(new File(filename));
     }
 
-    // TODO reconcile with TestResource.importObject method (they use similar but distinct model APIs)
+    // TODO reconcile with TestObject.importObject method (they use similar but distinct model APIs)
     protected void importObject(TestObject<?> testObject, Task task, OperationResult result) throws IOException {
         OperationResult subresult = result.createSubresult("importObject");
         try (InputStream stream = testObject.getInputStream()) {
@@ -3295,11 +3296,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void waitForTaskStart(String taskOid, boolean checkSubresult) throws Exception {
-        waitForTaskStart(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+    protected void waitForTaskStart(String taskOid) throws Exception {
+        waitForTaskStart(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected void waitForTaskStart(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+    protected void waitForTaskStart(String taskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskStart");
         Checker checker = new Checker() {
             @Override
@@ -3307,8 +3308,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
                 if (verbose) {display("Task checked (result=" + result + ")", freshTask);}
-                assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
-                if (isUnknown(result, checkSubresult)) {
+                assert !isError(result) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
+                if (isUnknown(result)) {
                     return false;
                 }
                 return freshTask.getLastRunStartTimestamp() != null;
@@ -3329,8 +3330,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         IntegrationTestTools.waitFor("Waiting for task " + taskOid + " start", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected void waitForTaskNextStart(
-            String taskOid, boolean checkSubresult, int timeout, boolean kickTheTask) throws Exception {
+    protected void waitForTaskNextStart(String taskOid, int timeout, boolean kickTheTask) throws Exception {
         OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskNextStart");
         Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
         Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
@@ -3343,8 +3343,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 OperationResult result = freshTask.getResult();
                 if (verbose) {display("Check result", result);}
-                assert !isError(result, checkSubresult) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
-                return !isUnknown(result, checkSubresult) &&
+                assert !isError(result) : "Error in " + freshTask + ": " + TestUtil.getErrorMessage(result);
+                return !isUnknown(result) &&
                         !java.util.Objects.equals(freshTask.getLastRunStartTimestamp(), origLastRunStartTimestamp);
             }
 
@@ -3363,36 +3363,36 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         IntegrationTestTools.waitFor("Waiting for task " + taskOid + " next start", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
     }
 
-    protected OperationResult waitForTaskNextRunAssertSuccess(String taskOid, boolean checkSubresult) throws Exception {
-        return waitForTaskNextRunAssertSuccess(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+    protected OperationResult waitForTaskNextRunAssertSuccess(String taskOid) throws Exception {
+        return waitForTaskNextRunAssertSuccess(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask, boolean checkSubresult) throws Exception {
-        return waitForTaskNextRunAssertSuccess(origTask, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+    protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask) throws Exception {
+        return waitForTaskNextRunAssertSuccess(origTask, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected OperationResult waitForTaskNextRunAssertSuccess(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
-        OperationResult taskResult = waitForTaskNextRun(taskOid, checkSubresult, timeout);
-        if (isError(taskResult, checkSubresult)) {
+    protected OperationResult waitForTaskNextRunAssertSuccess(String taskOid, int timeout) throws Exception {
+        OperationResult taskResult = waitForTaskNextRun(taskOid, timeout);
+        if (isError(taskResult)) {
             assert false : "Error in task " + taskOid + ": " + TestUtil.getErrorMessage(taskResult) + "\n\n" + taskResult.debugDump();
         }
         return taskResult;
     }
 
-    protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask, final boolean checkSubresult, final int timeout) throws CommonException {
-        OperationResult taskResult = waitForTaskNextRun(origTask, checkSubresult, timeout);
-        if (isError(taskResult, checkSubresult)) {
+    protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask, int timeout) throws CommonException {
+        OperationResult taskResult = waitForTaskNextRun(origTask, timeout);
+        if (isError(taskResult)) {
             assert false : "Error in task " + origTask + ": " + TestUtil.getErrorMessage(taskResult) + "\n\n" + taskResult.debugDump();
         }
         return taskResult;
     }
 
     protected OperationResult waitForTaskNextRun(final String taskOid) throws CommonException {
-        return waitForTaskNextRun(taskOid, false, DEFAULT_TASK_WAIT_TIMEOUT, false);
+        return waitForTaskNextRun(taskOid, DEFAULT_TASK_WAIT_TIMEOUT, false);
     }
 
-    protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
-        return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
+    protected OperationResult waitForTaskNextRun(String taskOid, int timeout) throws CommonException {
+        return waitForTaskNextRun(taskOid, timeout, false);
     }
 
     protected OperationResult waitForTaskActivityCompleted(final String taskOid, long startedAfter, OperationResult waitResult, long timeout) throws CommonException {
@@ -3426,30 +3426,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return taskResultHolder.getValue();
     }
 
-    protected OperationResult waitForTaskActivityCompleted(final String taskOid, boolean checkSubresult) throws CommonException {
+    protected OperationResult waitForTaskActivityCompleted(final String taskOid) throws CommonException {
         var result = waitForTaskActivityCompleted(taskOid, System.currentTimeMillis(), createOperationResult(), DEFAULT_TASK_WAIT_TIMEOUT);
-        if (isError(result, checkSubresult)) {
+        if (isError(result)) {
             assert false : "Task failed";
         }
         return result;
     }
 
-    protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws CommonException {
+    protected OperationResult waitForTaskNextRun(String taskOid, int timeout, boolean kickTheTask) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskNextRun");
         Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
-        return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
+        return waitForTaskNextRun(origTask, timeout, waitResult, kickTheTask);
     }
 
-    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout) throws CommonException {
-        return waitForTaskNextRun(origTask, checkSubresult, timeout, false);
+    protected OperationResult waitForTaskNextRun(Task origTask, int timeout) throws CommonException {
+        return waitForTaskNextRun(origTask, timeout, false);
     }
 
-    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws CommonException {
+    protected OperationResult waitForTaskNextRun(Task origTask, int timeout, boolean kickTheTask) throws CommonException {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskNextRun");
-        return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
+        return waitForTaskNextRun(origTask, timeout, waitResult, kickTheTask);
     }
 
-    protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult, boolean kickTheTask) throws CommonException {
+    protected OperationResult waitForTaskNextRun(Task origTask, int timeout, OperationResult waitResult, boolean kickTheTask)
+            throws CommonException {
         final long waitStartTime = System.currentTimeMillis();
         final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
         final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
@@ -3464,10 +3465,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 OperationResult taskResult = freshTask.getResult();
                 if (verbose) {display("Check result", taskResult);}
                 taskResultHolder.setValue(taskResult);
-                if (isError(taskResult, checkSubresult)) {
+                if (isError(taskResult)) {
                     return true;
                 }
-                if (isUnknown(taskResult, checkSubresult)) {
+                if (isUnknown(taskResult)) {
                     return false;
                 }
                 if (freshTask.getLastRunFinishTimestamp() == null) {
@@ -4697,6 +4698,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
+            public void setFocusType(QName focusType) {
+
+            }
+
+            @Override
             public String getPrefix() {
                 return ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
                         + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER + "/";
@@ -4716,6 +4722,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public Integer getOrder() {
                 return 10;
             }
+
+            @Override
+            public ModuleAuthentication clone() {
+                return null;
+                //TODO
+            }
         };
         mpAuthentication.addAuthentications(moduleAuthentication);
         AuthModule authModule = new AuthModule() {
@@ -4732,6 +4744,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public Integer getOrder() {
                 return 1;
+            }
+
+            @Override
+            public List<AuthenticationProvider> getAuthenticationProviders() {
+                //TODO
+                return null;
             }
         };
         mpAuthentication.setAuthModules(Collections.singletonList(authModule));
@@ -5696,12 +5714,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return object.getOid();
     }
 
-    protected <O extends ObjectType> String addAndRecompute(TestResource<O> testResource, Task task, OperationResult result)
+    protected <O extends ObjectType> String addAndRecompute(TestObject<O> testObject, Task task, OperationResult result)
             throws Exception {
-        PrismObject<O> object = repoAdd(testResource, result);
+        PrismObject<O> object = repoAdd(testObject, result);
         modelService.recompute(object.asObjectable().getClass(), object.getOid(), null, task, result);
-        testResource.reload(createSimpleModelObjectResolver(), result);
-        return testResource.get().getOid();
+        testObject.reload(createSimpleModelObjectResolver(), result);
+        return testObject.get().getOid();
     }
 
     protected void assertAuditReferenceValue(AuditEventRecord event, String refName, String oid, QName type, String name) {
@@ -7139,10 +7157,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> void refresh(TestResource<T> resource, OperationResult result)
+    protected <T extends ObjectType> void refresh(TestObject<T> testObject, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        resource.reload(createSimpleModelObjectResolver(), result);
+        testObject.reload(createSimpleModelObjectResolver(), result);
     }
 
     protected ModelExecuteOptions executeOptions() {
@@ -7586,7 +7604,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * Usable for audit record count assertions depending on the state of accesses metadata.
      */
     protected int accessesMetadataAuditOverhead(int relevantExecutionRecords) {
-        return accessesMetadataEnabled ? relevantExecutionRecords : 0;
+        return accessesMetadataEnabled && !isNativeRepository() ? relevantExecutionRecords : 0;
     }
 
     /**

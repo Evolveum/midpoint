@@ -191,18 +191,8 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
         Model<PrismContainerDefinition<ResourceAttributeDefinitionType>> resourceAttributeDef =
                 Model.of(PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(
                         ResourceAttributeDefinitionType.class));
-        columns.add(new PrismPropertyWrapperColumn(
-                resourceAttributeDef,
-                ResourceAttributeDefinitionType.F_REF,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
 
-            @Override
-            public String getCssClass() {
-                return "col-xl-2 col-lg-2 col-md-3";
-            }
-
-        });
+        columns.add(createVirtualRefItemColumn(resourceAttributeDef, "col-xl-2 col-lg-2 col-md-3"));
 
         return columns;
     }

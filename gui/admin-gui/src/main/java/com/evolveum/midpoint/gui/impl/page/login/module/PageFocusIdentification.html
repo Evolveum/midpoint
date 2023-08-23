@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022-2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <form method="post" class="form-horizontal" wicket:id="form">
+        <div wicket:id="csrfField"/>
+        <input type="hidden" wicket:id="attributeValues"/>
+        <div class="d-flex flex-column my-2 justify-content-between">
+            <label class="col-md-4 mr-3" wicket:id="attributeName"></label>
+            <input type="text" class="form-control form-control-sm" wicket:id="attributeValue"/>
+        </div>
+        <div class="mt-2">
+            <input type="submit" class="btn btn-primary login-panel-control" wicket:message="value:PageBase.button.send" />
+        </div>
+    </form>
+</wicket:extend>
+
+</html>

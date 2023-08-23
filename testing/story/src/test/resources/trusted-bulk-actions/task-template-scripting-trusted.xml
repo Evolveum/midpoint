@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress UnnecessaryQualifiedReference -->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+    oid="a801db00-cd4b-4998-a08b-3b964b9d7cf1">
+    <name>template-scripting-trusted</name>
+    <assignment>
+        <targetRef oid="2179963e-d1cb-4195-b763-d4aa2bb518d7" type="ArchetypeType"/>
+    </assignment>
+    <executionState>waiting</executionState>
+    <activity>
+        <work>
+            <iterativeScripting>
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:script>
+                            <code>import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
+
+                            TestTrustedBulkActions.FLAG.set()
+                            log.info('executed')
+                            </code>
+                        </s:script>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </iterativeScripting>
+        </work>
+    </activity>
+</task>

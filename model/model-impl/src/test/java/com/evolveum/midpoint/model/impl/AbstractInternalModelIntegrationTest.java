@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -45,7 +45,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
     protected static final String USER_JACK_USERNAME = "jack";
     protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
-    protected static final TestResource<?> USER_JACK = new TestResource<>(COMMON_DIR, "user-jack.xml", USER_JACK_OID);
+    protected static final TestObject<?> USER_JACK = TestObject.file(COMMON_DIR, "user-jack.xml", USER_JACK_OID);
 
     protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
     protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";

@@ -9,16 +9,22 @@ package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import java.util.Collections;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointMetadataRelyingPartyRegistrationResolver;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LoginConfigurer;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LogoutRequestResolver;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LogoutRequestSuccessHandler;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointMetadataRelyingPartyRegistrationResolver;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointSaml2LoginConfigurer;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointSaml2LogoutRequestResolver;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointSaml2LogoutRequestSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlModuleWebSecurityConfiguration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2AuthenticationModuleType;
+
+import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
@@ -42,16 +48,26 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author skublik
  */
 
-public class SamlModuleWebSecurityConfigurer<C extends SamlModuleWebSecurityConfiguration> extends RemoteModuleWebSecurityConfigurer<C> {
+public class SamlModuleWebSecurityConfigurer extends RemoteModuleWebSecurityConfigurer<SamlModuleWebSecurityConfiguration, Saml2AuthenticationModuleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SamlModuleWebSecurityConfigurer.class);
     public static final String SAML_LOGIN_PATH = "/saml2/select";
 
-    @Autowired
-    private ModelAuditRecorder auditProvider;
+    @Autowired private ModelAuditRecorder auditProvider;
 
-    public SamlModuleWebSecurityConfigurer(C configuration) {
-        super(configuration);
+    public SamlModuleWebSecurityConfigurer(Saml2AuthenticationModuleType moduleType,
+            String sequenceSuffix, AuthenticationChannel channel,
+            ObjectPostProcessor<Object> postProcessor,
+            ServletRequest request,
+            AuthenticationProvider provider) {
+        super(moduleType, sequenceSuffix, channel, postProcessor, request, provider);
+    }
+
+    @Override
+    protected SamlModuleWebSecurityConfiguration buildConfiguration(Saml2AuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ServletRequest request) {
+        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build(moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
+        configuration.setSequenceSuffix(sequenceSuffix);
+        return configuration;
     }
 
     @Override

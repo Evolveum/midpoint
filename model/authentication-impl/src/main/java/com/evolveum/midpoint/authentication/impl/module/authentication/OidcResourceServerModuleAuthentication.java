@@ -8,8 +8,6 @@ package com.evolveum.midpoint.authentication.impl.module.authentication;
 
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import org.springframework.security.core.AuthenticationException;
@@ -37,7 +35,7 @@ public class OidcResourceServerModuleAuthentication extends HttpModuleAuthentica
         return module;
     }
 
-    public String getRealmFroHeader(AuthenticationException authException) {
+    public String getRealmFromHeader(AuthenticationException authException) {
         Map<String, String> parameters = new LinkedHashMap<>();
         if (authException instanceof OAuth2AuthenticationException) {
             OAuth2Error error = ((OAuth2AuthenticationException)authException).getError();
@@ -57,7 +55,7 @@ public class OidcResourceServerModuleAuthentication extends HttpModuleAuthentica
                 }
             }
         }
-        StringBuilder wwwAuthenticate = new StringBuilder(super.getRealmFroHeader(authException));
+        StringBuilder wwwAuthenticate = new StringBuilder(super.getRealmFromHeader(authException));
         if (!parameters.isEmpty()) {
             parameters.forEach((key, value) -> {
                 wwwAuthenticate.append(", ");

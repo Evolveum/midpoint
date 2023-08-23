@@ -24,6 +24,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.enforcer.api.*;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.ModelInteractionService.SearchSpec;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -101,10 +104,6 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
-import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.*;
@@ -655,7 +654,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType securityPolicyType = getSecurityPolicy(focus, task, parentResult);
+        SecurityPolicyType securityPolicyType = getSecurityPolicy(focus, null, task, parentResult);
         if (securityPolicyType == null) {
             return null;
         }
@@ -667,9 +666,40 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return containerValue.asContainerable();
     }
 
+    public <F extends FocusType> NonceCredentialsPolicyType determineNonceCredentialsPolicy(
+            PrismObject<F> focus,
+            String nonceCredentialName,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException {
+
+        SecurityPolicyType securityPolicy = getSecurityPolicy(focus, null, task, parentResult);
+
+        if (securityPolicy == null) {
+            LOGGER.warn("No security policy, cannot process nonce credential"); //TODO correct level?
+            return null;
+        }
+        if (securityPolicy.getCredentials() == null) {
+            LOGGER.warn("No credential for security policy, cannot process nonce credential");
+            return null;
+        }
+        List<NonceCredentialsPolicyType> noncePolicies = securityPolicy.getCredentials().getNonce();
+        if (noncePolicies.isEmpty()) {
+            LOGGER.warn("No nonce credential for security policy, cannot process nonce credential");
+            return null;
+        }
+        for (NonceCredentialsPolicyType credential : securityPolicy.getCredentials().getNonce()) {
+            if (nonceCredentialName.equals(credential.getName())) {
+                return credential;
+            }
+        }
+        return null;
+    }
+
     @Override
-    public <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, Task task, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, String archetypeOid,
+            Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -678,7 +708,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 return null;
             }
 
-            SecurityPolicyType securityPolicy = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result);
+            SecurityPolicyType securityPolicy = securityHelper.locateSecurityPolicy(focus, archetypeOid, systemConfiguration,
+                    task, result);
             if (securityPolicy == null) {
                 result.recordNotApplicable("no security policy");
                 return null;
@@ -1373,13 +1404,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 //noinspection unchecked
                 PrismObject<? extends FocusType> focus = (PrismObject<? extends FocusType>) object;
                 if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_PASSWORD)) {
-                    evaluatorBuilder.securityPolicy(getSecurityPolicy(focus, task, parentResult));
+                    evaluatorBuilder.securityPolicy(getSecurityPolicy(focus, null, task, parentResult));
                     PrismContainer<PasswordType> passwordContainer = focus.findContainer(SchemaConstants.PATH_PASSWORD);
                     PasswordType password = passwordContainer != null ? passwordContainer.getValue().asContainerable() : null;
                     evaluatorBuilder.oldCredential(password);
                 } else if (path.isSuperPathOrEquivalent(SchemaConstants.PATH_SECURITY_QUESTIONS)) {
                     LOGGER.trace("Setting security questions related policy.");
-                    SecurityPolicyType securityPolicy = getSecurityPolicy(focus, task, parentResult);
+                    SecurityPolicyType securityPolicy = getSecurityPolicy(focus, null, task, parentResult);
                     evaluatorBuilder.securityPolicy(securityPolicy);
                     PrismContainer<SecurityQuestionsCredentialsType> securityQuestionsContainer =
                             focus.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS);
@@ -1619,7 +1650,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 // TODO some special mode for verification of the validity - we don't need complete calculation here!
                 EvaluatedAssignment assignment = assignmentEvaluator
                         .evaluate(
-                                assignmentIdi, PlusMinusZero.ZERO, false,
+                                assignmentIdi, null,
+                                PlusMinusZero.ZERO, false,
                                 potentialDeputyBean, potentialDeputy.toString(),
                                 AssignmentOrigin.inObject(embedded(assignmentBean)),
                                 task, result);
@@ -1737,7 +1769,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         }
 
-        SecurityPolicyType securityPolicy = getSecurityPolicy(user, task, parentResult);
+        SecurityPolicyType securityPolicy = getSecurityPolicy(user, null, task, parentResult);
         CredentialsResetPolicyType resetPolicyType = securityPolicy.getCredentialsReset();
         //TODO: search according tot he credentialID and others
         if (resetPolicyType == null) {
@@ -1877,6 +1909,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return submitTaskFromTemplate(templateTaskOid, extensionItems, opTask, parentResult);
     }
 
+    @Override
     public @NotNull String submitTaskFromTemplate(
             @NotNull String templateOid,
             @NotNull ActivityCustomization customization,
@@ -1885,29 +1918,33 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(SUBMIT_TASK_FROM_TEMPLATE);
         try {
-            TaskType newTask =
-                    modelService
-                            .getObject(TaskType.class, templateOid, createCollection(createExecutionPhase()), task, result)
+            TaskType template =
+                    cacheRepositoryService
+                            .getObject(TaskType.class, templateOid, null, result)
                             .asObjectable();
 
-            if (newTask.getOwnerRef() != null) {
-                LOGGER.warn("Ignoring owner {} of the task template {}; the current user will be used as the task owner",
-                        newTask.getOwnerRef(), newTask);
-            }
-            newTask.setOwnerRef(null);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.USE.getUrl(),
+                    null,
+                    AuthorizationParameters.forObject(template),
+                    task, result);
 
-            newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
-            newTask.setOid(null);
-            newTask.setTaskIdentifier(null);
+            template.setName(PolyStringType.fromOrig(template.getName().getOrig() + " " + (int) (Math.random() * 10000)));
+            template.setOid(null);
+            template.setTaskIdentifier(null);
+            template.setOwnerRef(null);
 
+            ActivityDefinitionType activityDefinition = customization.applyTo(template);
             return submit(
-                    customization.applyTo(newTask),
-                    ActivitySubmissionOptions.create().withTaskTemplate(newTask),
+                    activityDefinition,
+                    ActivitySubmissionOptions.create().withTaskTemplate(template),
                     task, result);
 
         } catch (Throwable t) {
             result.recordFatalError("Couldn't submit task from template: " + t.getMessage(), t);
             throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -2392,10 +2429,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void checkScriptingAuthorization(Task task, OperationResult result)
+    public void checkBulkActionsAuthorization(Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         securityEnforcer.authorize(
-                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
+                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, result);
     }
 }

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -43,10 +43,10 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
-            new TestResource<>(TEST_DIR, "object-template-user.xml", "297208c0-7928-49e7-8990-131a20fc2dd8");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PERSON =
-            new TestResource<>(TEST_DIR, "archetype-person.xml", "4aa8d6fb-07f7-469a-8059-9d4f54c6e500");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER =
+            TestObject.file(TEST_DIR, "object-template-user.xml", "297208c0-7928-49e7-8990-131a20fc2dd8");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PERSON =
+            TestObject.file(TEST_DIR, "archetype-person.xml", "4aa8d6fb-07f7-469a-8059-9d4f54c6e500");
 
     public static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "83de4034-775a-4ead-829b-a4041620d4c2", "resource-sis.csv",

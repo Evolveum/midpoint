@@ -6,26 +6,28 @@
  */
 package com.evolveum.midpoint.authentication.impl.factory.module;
 
-import com.evolveum.midpoint.authentication.impl.provider.PasswordProvider;
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configurer.HttpBasicModuleWebSecurityConfigurer;
-import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModuleAuthentication;
-import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
-
-import org.springframework.security.authentication.AuthenticationProvider;
+import jakarta.servlet.ServletRequest;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.authentication.impl.module.configurer.HttpBasicModuleWebSecurityConfigurer;
+import com.evolveum.midpoint.authentication.impl.provider.PasswordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
  */
 @Component
-public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
-        <ModuleWebSecurityConfiguration, HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration>> {
+public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<
+        ModuleWebSecurityConfigurationImpl,
+        HttpBasicModuleWebSecurityConfigurer,
+        HttpBasicAuthenticationModuleType,
+        ModuleAuthenticationImpl> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -33,20 +35,10 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected ModuleWebSecurityConfiguration createConfiguration(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, AuthenticationChannel authenticationChannel) {
-        ModuleWebSecurityConfigurationImpl configuration = ModuleWebSecurityConfigurationImpl.build(moduleType,prefixOfSequence);
-        configuration.setSequenceSuffix(prefixOfSequence);
-        return configuration;
-    }
-
-    @Override
-    protected HttpBasicModuleWebSecurityConfigurer<ModuleWebSecurityConfiguration> createModule(ModuleWebSecurityConfiguration configuration) {
-        return  getObjectObjectPostProcessor().postProcess(new HttpBasicModuleWebSecurityConfigurer(configuration));
-    }
-
-    @Override
-    protected AuthenticationProvider createProvider(CredentialPolicyType usedPolicy) {
-        return new PasswordProvider();
+    protected HttpBasicModuleWebSecurityConfigurer createModuleConfigurer(HttpBasicAuthenticationModuleType moduleType, String sequenceSuffix, AuthenticationChannel authenticationChannel, ObjectPostProcessor<Object> objectPostProcessor, ServletRequest request) {
+        return new HttpBasicModuleWebSecurityConfigurer(moduleType, sequenceSuffix, authenticationChannel,
+                objectPostProcessor, request,
+                new PasswordProvider());
     }
 
     @Override
@@ -55,14 +47,14 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory
     }
 
     @Override
-    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType,
-            ModuleWebSecurityConfiguration configuration, AuthenticationSequenceModuleType sequenceModule) {
+    protected ModuleAuthenticationImpl createEmptyModuleAuthentication(HttpBasicAuthenticationModuleType moduleType,
+            ModuleWebSecurityConfigurationImpl configuration, AuthenticationSequenceModuleType sequenceModule, ServletRequest request) {
         HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.HTTP_BASIC, sequenceModule);
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
-        moduleAuthentication.setCredentialName(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName());
+        moduleAuthentication.setCredentialName(moduleType.getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
-        moduleAuthentication.setRealm(((HttpBasicAuthenticationModuleType) moduleType).getRealm());
+        moduleAuthentication.setRealm(moduleType.getRealm());
         return moduleAuthentication;
     }
 

@@ -307,6 +307,9 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>AuditEventRecordType.delta</a:displayName>
+                        <!-- delta is property in complex value, so explicit mark as searchable is required by filter parser
+                             to allow parsing matches filter and treat it similar to container -->
+                        <a:searchable>true</a:searchable>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

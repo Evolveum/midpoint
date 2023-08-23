@@ -30,7 +30,7 @@ import java.util.Map;
 public class HintAuthenticationFilter extends MidpointFocusVerificationFilter {
 
     private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/hint", "POST");
-    private static final String SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY = "attributeValues";
+
 
     public HintAuthenticationFilter() {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER);

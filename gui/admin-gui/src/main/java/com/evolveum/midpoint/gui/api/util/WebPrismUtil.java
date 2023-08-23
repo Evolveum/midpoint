@@ -246,9 +246,7 @@ public class WebPrismUtil {
     }
 
     private static <C extends Containerable> boolean isUseAsEmptyValue(Class<?> typeClass) {
-        return typeClass != null &&
-                (AbstractSynchronizationActionType.class.isAssignableFrom(typeClass)
-                        || AbstractPredefinedActivationMappingType.class.isAssignableFrom(typeClass));
+        return typeClass != null && AbstractSynchronizationActionType.class.isAssignableFrom(typeClass);
     }
 
     public static <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {

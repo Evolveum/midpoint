@@ -68,7 +68,7 @@ import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AnyTestResource;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.CsvTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
@@ -123,16 +123,16 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final TestObject<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
             TestObject.file(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
 
-    private static final AnyTestResource RESOURCE_OPENDJ_200 = createOpenDjResource("resource-opendj-200.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_210 = createOpenDjResource("resource-opendj-210.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_220 = createOpenDjResource("resource-opendj-220.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_240 = createOpenDjResource("resource-opendj-240.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_250 = createOpenDjResource("resource-opendj-250.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_260 = createOpenDjResource("resource-opendj-260.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_280 = createOpenDjResource("resource-opendj-280.xml");
-    private static final AnyTestResource RESOURCE_OPENDJ_290 = createOpenDjResource("resource-opendj-290.xml");
-    private AnyTestResource currentOpenDjResource = RESOURCE_OPENDJ_200;
+    private static final TestResource RESOURCE_OPENDJ_200 = createOpenDjResource("resource-opendj-200.xml");
+    private static final TestResource RESOURCE_OPENDJ_210 = createOpenDjResource("resource-opendj-210.xml");
+    private static final TestResource RESOURCE_OPENDJ_220 = createOpenDjResource("resource-opendj-220.xml");
+    private static final TestResource RESOURCE_OPENDJ_240 = createOpenDjResource("resource-opendj-240.xml");
+    private static final TestResource RESOURCE_OPENDJ_250 = createOpenDjResource("resource-opendj-250.xml");
+    private static final TestResource RESOURCE_OPENDJ_260 = createOpenDjResource("resource-opendj-260.xml");
+    private static final TestResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
+    private static final TestResource RESOURCE_OPENDJ_280 = createOpenDjResource("resource-opendj-280.xml");
+    private static final TestResource RESOURCE_OPENDJ_290 = createOpenDjResource("resource-opendj-290.xml");
+    private TestResource currentOpenDjResource = RESOURCE_OPENDJ_200;
 
     private static final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
 
@@ -166,8 +166,8 @@ public class TestFirstSteps extends AbstractStoryTest {
         return new CsvTestResource(TEST_DIR, fileName, RESOURCE_HR_OID, "hr.csv");
     }
 
-    private static AnyTestResource createOpenDjResource(String fileName) {
-        return AnyTestResource.file(TEST_DIR, fileName, RESOURCE_OPENDJ_OID);
+    private static TestResource createOpenDjResource(String fileName) {
+        return TestResource.file(TEST_DIR, fileName, RESOURCE_OPENDJ_OID);
     }
 
     private static final ItemName ATTR_EMP_NO = new ItemName(NS_RI, "empNo");
@@ -1781,7 +1781,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         resource.initAndTest(this, task, result);
     }
 
-    private void reimportAndTestOpenDjResource(AnyTestResource resource, Task task, OperationResult result)
+    private void reimportAndTestOpenDjResource(TestResource resource, Task task, OperationResult result)
             throws CommonException, IOException {
         deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, task, result);
         resource.initAndTest(this, task, result);

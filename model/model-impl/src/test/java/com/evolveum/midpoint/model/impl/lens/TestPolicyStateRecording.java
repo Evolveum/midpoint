@@ -128,7 +128,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         }
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2); // rules without IDs, with IDs
+        dummyAuditService.assertExecutionRecords(isNativeRepository() ? 1 : 2); // rules without IDs, with IDs
     }
 
     // should keep the situation for both assignments
@@ -239,7 +239,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong # of assignments", 4, bob.getAssignment().size());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs
+        dummyAuditService.assertExecutionRecords(isNativeRepository() ? 1 : 2); // rules without IDs, with IDs
 
         for (AssignmentType assignment : bob.getAssignment()) {
             assertExclusionViolationState(assignment, 1);

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
@@ -63,7 +63,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     protected static final String USER_JACK_USERNAME = "jack";
     protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
 
-    protected static final TestResource<ArchetypeType> ARCHETYPE_TASK_RECOMPUTATION = new TestResource<>(COMMON_DIR, "archetype-task-recomputation.xml", "00000000-0000-0000-0000-000000000502");
+    protected static final TestObject<ArchetypeType> ARCHETYPE_TASK_RECOMPUTATION = TestObject.file(COMMON_DIR, "archetype-task-recomputation.xml", "00000000-0000-0000-0000-000000000502");
 
     protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 
@@ -80,8 +80,8 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME = "firstname";
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME = "lastname";
 
-    protected static final TestResource<ArchetypeType> ARCHETYPE_CORRELATION_CASE =
-            new TestResource<>(COMMON_DIR, "archetype-correlation-case.xml", SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
+    protected static final TestObject<ArchetypeType> ARCHETYPE_CORRELATION_CASE =
+            TestObject.file(COMMON_DIR, "archetype-correlation-case.xml", SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
 
     protected MatchingRule<String> caseIgnoreMatchingRule;
 

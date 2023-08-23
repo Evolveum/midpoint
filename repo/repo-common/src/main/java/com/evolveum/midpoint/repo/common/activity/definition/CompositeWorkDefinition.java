@@ -7,26 +7,24 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 
 /**
  * Definition for pure composite activity.
  */
-public class CompositeWorkDefinition extends AbstractWorkDefinition {
+public class CompositeWorkDefinition extends AbstractWorkDefinition implements AffectedObjectsProvider {
 
     @NotNull private final ActivityCompositionType composition;
 
@@ -47,21 +45,23 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
         DebugUtil.debugDumpWithLabel(sb, "composition", composition, indent+1);
     }
 
+    /**
+     * Composite activities process multiple object sets, so they have to be treated differently.
+     * See {@link #getAffectedObjectsInformation()}.
+     */
     @Override
-    public @Nullable TaskAffectedObjectsType getAffectedObjects() throws SchemaException, ConfigurationException {
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation()
+            throws SchemaException, ConfigurationException {
+        return AffectedObjectsInformation.ObjectSet.notSupported();
+    }
 
-        // We rely on the duplicate filtering provided by sets; it should be adequate here.
-        Set<ActivityAffectedObjectsType> objectsByActivityType = new HashSet<>();
-
-        for (ActivityDefinitionType activityDefinitionBean : composition.getActivity()) {
-            var forChild = CommonTaskBeans.get().activityManager.computeAffectedObjects(activityDefinitionBean);
-            if (forChild != null) {
-                objectsByActivityType.addAll(forChild.getActivity());
-            }
+    @NotNull
+    public AffectedObjectsInformation getAffectedObjectsInformation() throws SchemaException, ConfigurationException {
+        List<AffectedObjectsInformation> informationForChildren = new ArrayList<>();
+        for (ActivityDefinitionType childDefinitionBean : composition.getActivity()) {
+            var childDefinition = ActivityDefinition.createChild(childDefinitionBean, getOrigin()); // the origin is not relevant
+            informationForChildren.add(childDefinition.getAffectedObjectsInformation());
         }
-        var result = new TaskAffectedObjectsType();
-        result.getActivity().addAll(
-                CloneUtil.cloneCollectionMembers(objectsByActivityType));
-        return result;
+        return AffectedObjectsInformation.complex(informationForChildren);
     }
 }

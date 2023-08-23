@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -87,9 +87,9 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
      */
     private static final File LDIF_CHANGE_ACTIVATION_FILE = new File(TEST_DIR, "users-change-activation.ldif");
 
-    private static final TestResource<RoleType> ROLE_STOP_ON_5TH_USER_CREATION = new TestResource<>(TEST_DIR, "role-stop-on-5th-user-creation.xml", "71478881-f19b-4e8d-a574-76187ee861b2");
-    private static final TestResource<RoleType> ROLE_STOP_ON_3RD_STATUS_CHANGE = new TestResource<>(TEST_DIR, "role-stop-on-3rd-status-change.xml", "fdd65b29-d892-452a-9260-f26c7f20e507");
-    private static final TestResource<TaskType> TASK_IMPORT_BASE_USERS = new TestResource<>(TEST_DIR, "task-opendj-import-base-users.xml", "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d");
+    private static final TestObject<RoleType> ROLE_STOP_ON_5TH_USER_CREATION = TestObject.file(TEST_DIR, "role-stop-on-5th-user-creation.xml", "71478881-f19b-4e8d-a574-76187ee861b2");
+    private static final TestObject<RoleType> ROLE_STOP_ON_3RD_STATUS_CHANGE = TestObject.file(TEST_DIR, "role-stop-on-3rd-status-change.xml", "fdd65b29-d892-452a-9260-f26c7f20e507");
+    private static final TestObject<TaskType> TASK_IMPORT_BASE_USERS = TestObject.file(TEST_DIR, "task-opendj-import-base-users.xml", "fa25e6dc-a858-11e7-8ebc-eb2b71ecce1d");
 
     private static final int TASK_TIMEOUT = 60000;
 
@@ -127,7 +127,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
         openDJController.stop();
     }
 
-    protected abstract TestResource<TaskType> getTaskTestResource();
+    protected abstract TestObject<TaskType> getTaskTestResource();
     protected abstract int getWorkerThreads();
     protected boolean isMultiNode() {
         return false;

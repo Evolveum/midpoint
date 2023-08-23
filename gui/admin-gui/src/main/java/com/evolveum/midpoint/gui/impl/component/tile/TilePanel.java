@@ -40,7 +40,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "tile-panel d-flex flex-column align-items-center bg-white rounded p-3 justify-content-center"));
+        add(AttributeAppender.append("class", "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
 

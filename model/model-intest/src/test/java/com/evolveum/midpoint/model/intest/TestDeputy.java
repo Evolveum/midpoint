@@ -1132,8 +1132,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         when();
         importObjectFromFile(TASK_VALIDITY_SCANNER_FILENAME);
 
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
-        waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
+        waitForTaskFinish(TASK_VALIDITY_SCANNER_OID);
 
         // THEN
         then();
@@ -1204,7 +1204,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID);
 
         // THEN
         then();

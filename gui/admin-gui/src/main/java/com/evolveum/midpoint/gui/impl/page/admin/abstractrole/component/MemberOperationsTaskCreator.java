@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -129,14 +128,14 @@ public abstract class MemberOperationsTaskCreator {
          * of a given abstract role.
          */
         void createAndSubmitTask(Task task, OperationResult result) throws CommonException {
-            checkScriptingAuthorization(task, result);
+            checkBulkActionsAuthorization(task, result);
             submitTask(
                     createUnassignMembersActivity(), task, result);
         }
 
         /** Creates the member unassignment task. */
         @NotNull PrismObject<TaskType> createTask(Task task, OperationResult result) throws CommonException {
-            checkScriptingAuthorization(task, result);
+            checkBulkActionsAuthorization(task, result);
             return createTask(
                     createUnassignMembersActivity(), task, result);
         }
@@ -197,7 +196,7 @@ public abstract class MemberOperationsTaskCreator {
 
         /** Returns task OID */
         public String createAndSubmitTask(Task task, OperationResult result) throws CommonException {
-            checkScriptingAuthorization(task, result);
+            checkBulkActionsAuthorization(task, result);
             return submitTask(
                     createActivity(), task, result);
         }
@@ -234,7 +233,7 @@ public abstract class MemberOperationsTaskCreator {
         }
 
         void createAndSubmitTask(Task task, OperationResult result) throws CommonException {
-            checkScriptingAuthorization(task, result);
+            checkBulkActionsAuthorization(task, result);
             submitTask(
                     createActivity(), task, result);
         }
@@ -332,9 +331,9 @@ public abstract class MemberOperationsTaskCreator {
                                 getOperationName())));
     }
 
-    void checkScriptingAuthorization(Task task, OperationResult result) throws CommonException {
+    void checkBulkActionsAuthorization(Task task, OperationResult result) throws CommonException {
         pageBase.getSecurityEnforcer().authorize(
-                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
+                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, result);
     }
 
     void checkRecomputationAuthorization(@NotNull Task task, @NotNull OperationResult result) throws CommonException {

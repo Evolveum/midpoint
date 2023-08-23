@@ -59,7 +59,7 @@ public class HttpModuleAuthentication extends CredentialModuleAuthenticationImpl
         super.clone(module);
     }
 
-    public String getRealmFroHeader(AuthenticationException authException) {
+    public String getRealmFromHeader(AuthenticationException authException) {
         String realm = StringUtils.isNotBlank(getRealm()) ? getRealm() : HttpAuthenticationEntryPoint.DEFAULT_REALM;
         return AuthUtil.resolveTokenTypeByModuleType(getModuleTypeName()) +" realm=\"" + realm + "\"";
     }

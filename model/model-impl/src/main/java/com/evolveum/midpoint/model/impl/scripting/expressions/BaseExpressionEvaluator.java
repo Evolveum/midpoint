@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.scripting.expressions;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.TaskManager;
 
@@ -26,6 +26,6 @@ public class BaseExpressionEvaluator {
     PrismContext prismContext;
 
     @Autowired
-    ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    BulkActionsExecutor bulkActionsExecutor;
 
 }

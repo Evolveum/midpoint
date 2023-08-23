@@ -128,7 +128,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
         // THEN
         then();
-        Task taskAfter = waitForTaskFinish(TASK_IMPORT_OID, true, SYNC_TASK_WAIT_TIMEOUT);
+        Task taskAfter = waitForTaskFinish(TASK_IMPORT_OID, SYNC_TASK_WAIT_TIMEOUT);
 
         displayValue("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
@@ -156,7 +156,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
         // THEN
         then();
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         displayValue("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
@@ -184,7 +184,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
         // THEN
         then();
-        Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
+        Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100, null);
 
         displayValue("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 

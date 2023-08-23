@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="f2d01dd2-50b4-4d4d-babd-e00671923f2c">
+    <name>no-privilege-elevation</name>
+    <archetypePolicy>
+        <expressionProfile>no-privilege-elevation</expressionProfile>
+    </archetypePolicy>
+</archetype>

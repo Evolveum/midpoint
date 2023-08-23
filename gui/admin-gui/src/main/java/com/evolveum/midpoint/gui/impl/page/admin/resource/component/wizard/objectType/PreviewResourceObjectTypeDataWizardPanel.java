@@ -146,4 +146,18 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         }
         return panel.getShadowTable();
     }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return false;
+    }
+
+    @Override
+    protected boolean isBackButtonVisible() {
+        return true;
+    }
+
+    protected IModel<String> getExitLabel() {
+        return getPageBase().createStringResource("PageBase.button.back");
+    }
 }

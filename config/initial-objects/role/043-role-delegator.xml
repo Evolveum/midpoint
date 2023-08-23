@@ -58,7 +58,7 @@
             <type>ShadowType</type>
         </object>
     </authorization>
-        <authorization>
+    <authorization>
         <name>delegator-read-delagate-assignments</name>
         <description>
             Authorization to read the assignments and assignment-related items from my delegates.

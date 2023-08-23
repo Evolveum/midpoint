@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
 import com.querydsl.core.Tuple;
@@ -1656,6 +1658,59 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             updateContext.finishExecutionOwn();
             jdbcSession.commit();
+        } finally {
+            registerOperationFinish(opHandle);
+        }
+    }
+
+    @Override
+    public @NotNull <T extends ObjectType> Collection<Long> allocateContainerIdentifiers(
+            @NotNull Class<T> type, @NotNull String oid, int howMany, @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException {
+        UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
+
+        logger.debug("Advancing sequence {}", oid);
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_ALLOCATE_CONTAINER_IDENTIFIERS)
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_OID, oid)
+                .addParam("howMany", howMany)
+                .build();
+
+        try {
+            return executeAllocateContainerIdentifiers(type, oidUuid, howMany);
+        } catch (RepositoryException | RuntimeException | SchemaException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
+    }
+
+    private <T extends ObjectType> Collection<Long> executeAllocateContainerIdentifiers(Class<T> type, UUID oid, int howMany)
+            throws ObjectNotFoundException, SchemaException, RepositoryException {
+        MiscUtil.argCheck(howMany > 0, "howMany must be positive");
+        long opHandle = registerOperationStart(OP_ALLOCATE_CONTAINER_IDENTIFIERS, type);
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
+                    prepareUpdateContext(jdbcSession, type, oid);
+            long sequenceBefore = MiscUtil.stateNonNull(
+                    updateContext.row().containerIdSeq,
+                    "no container ID seq in %s", oid);
+
+            long sequenceAfter = sequenceBefore;
+            List<Long> allocatedIdentifiers = new ArrayList<>(howMany);
+            for (int i = 0; i < howMany; i++) {
+                allocatedIdentifiers.add(sequenceAfter++);
+            }
+            logger.trace("Container identifiers allocated: from {} to {} (inclusive) for {}/{}",
+                    sequenceBefore, sequenceAfter - 1, type.getSimpleName(), oid);
+
+            updateContext.finishExecutionSetCidOnly(sequenceAfter);
+            jdbcSession.commit();
+            return allocatedIdentifiers;
         } finally {
             registerOperationFinish(opHandle);
         }

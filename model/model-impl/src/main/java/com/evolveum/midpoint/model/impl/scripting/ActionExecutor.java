@@ -13,7 +13,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 /**
- * Executes an action of a given type. Instances of this type must be registered with ScriptingExpressionEvaluator.
+ * Executes an action of a given type. Instances of this type must be registered with BulkActionsExecutor.
  */
 public interface ActionExecutor {
 

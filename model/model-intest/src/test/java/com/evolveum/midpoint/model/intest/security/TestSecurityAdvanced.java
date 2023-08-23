@@ -13,8 +13,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.model.api.ActivityCustomization;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -128,6 +129,9 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
     private static final TestObject<TaskType> TASK_DUMMY = TestObject.file(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
     private static final TestObject<RoleType> ROLE_MANY_SHADOW_OWNER_AUTZ = TestObject.file(TEST_DIR, "role-many-shadow-owner-autz.xml", "c8c99194-3e5c-439b-bf98-c71146d3e1b5");
 
+    private static final TestObject<TaskType> TASK_TEMPLATE_DUMMY = TestObject.file(
+            TEST_DIR, "task-template-dummy.xml", "cb97aba7-c581-4f1e-a099-255a63530655");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -157,10 +161,13 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         repoAdd(ROLE_READ_TASK_STATUS, initResult);
         repoAdd(TASK_DUMMY, initResult);
         repoAdd(ROLE_MANY_SHADOW_OWNER_AUTZ, initResult);
+
+        initTestObjects(initTask, initResult,
+                TASK_TEMPLATE_DUMMY); // intentionally in non-raw mode
     }
 
     private static final int NUMBER_OF_IMPORTED_ROLES = 21;
-    private static final int NUMBER_OF_IMPORTED_TASKS = 1;
+    private static final int NUMBER_OF_IMPORTED_TASKS = 2;
 
     protected int getNumberOfRoles() {
         return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -3278,6 +3285,54 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertThat(account.getValue().getItems()).as("items in account object").hasSize(8);
     }
 
+    /**
+     * Checks task template instantiation without the `#use` authorization. It should fail.
+     */
+    @Test
+    public void test380AutzTaskTemplateNotAuthorized() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        cleanupAutzTest(USER_JACK_OID);
+
+        login(USER_JACK_USERNAME);
+
+        when("task template is instantiated");
+        try {
+            modelInteractionService.submitTaskFromTemplate(
+                    TASK_TEMPLATE_DUMMY.oid,
+                    ActivityCustomization.none(),
+                    task, result);
+            fail("unexpected success");
+        } catch (SecurityViolationException e) {
+            displayExpectedException(e);
+            // FIXME add assertion here
+        }
+    }
+
+    /**
+     * Checks task template instantiation with the `#use` authorization. It should succeed.
+     */
+    @Test
+    public void test385AutzTaskTemplateAuthorized() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_USE_TASK_TEMPLATES.oid);
+
+        login(USER_JACK_USERNAME);
+
+        when("task template is instantiated");
+        var taskOid = modelInteractionService.submitTaskFromTemplate(
+                TASK_TEMPLATE_DUMMY.oid,
+                ActivityCustomization.none(),
+                task, result);
+
+        then("the task successfully finishes");
+        waitForTaskFinish(taskOid); // assert success as well
+    }
+
     @SuppressWarnings("SameParameterValue")
     private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
         return queryFor(ObjectType.class)
@@ -3322,7 +3377,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
     private AssignmentType assertExclusion(PrismObject<RoleType> roleExclusion, String excludedRoleOid) {
         List<AssignmentType> noTargetAssignments = roleExclusion.asObjectable().getAssignment().stream()
                 .filter(a -> a.getTargetRef() == null)
-                .collect(Collectors.toList());
+                .toList();
         assertEquals("Wrong size of no-target assignments in " + roleExclusion, 1, noTargetAssignments.size());
         AssignmentType exclusionAssignment = noTargetAssignments.get(0);
         PolicyRuleType exclusionPolicyRule = exclusionAssignment.getPolicyRule();

@@ -34,6 +34,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
@@ -50,10 +51,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
@@ -1681,7 +1678,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private NonceCredentialsPolicyType getNonceCredentialsPolicy(UserType user, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
+        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), null, task, result);
         if (securityPolicy == null) {
             return null;
         }
@@ -1704,7 +1701,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private String getNonceCredentialsPolicyName(UserType user, Task task, OperationResult result) throws
             ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException{
-        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
+        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(),null, task, result);
         if (securityPolicy.getFlow() == null) {
             return null;
         }
@@ -1837,7 +1834,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 OperationResult result = new OperationResult("load security policy");
 
                 try {
-                    return modelInteractionService.getSecurityPolicy(user, task, result);
+                    return modelInteractionService.getSecurityPolicy(user, null, task, result);
                 } catch (CommonException e) {
                     LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
                     return null;
@@ -2010,6 +2007,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         return modelInteractionService.submitTaskFromTemplate(templateTaskOid, extensionValues, getCurrentTask(), getCurrentResult());
+    }
+
+    @Override
+    public @NotNull String submitTaskFromTemplate(@NotNull String templateOid, @NotNull ActivityCustomization customization)
+            throws CommonException {
+        return modelInteractionService.submitTaskFromTemplate(templateOid, customization, getCurrentTask(), getCurrentResult());
     }
 
     @Override

@@ -8,6 +8,9 @@ package com.evolveum.midpoint.authentication.impl.entry.point;
 
 import java.io.IOException;
 import java.util.List;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -35,16 +38,12 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException) throws IOException {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        MidpointAuthentication mpAuthentication = AuthUtil.getMidpointAuthentication();
 
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            List<ModuleAuthentication> parallelProcessingModules =
-                    mpAuthentication.getParallelProcessingModules();
-            if (!parallelProcessingModules.isEmpty()) {
-                for (ModuleAuthentication moduleAuthentication : parallelProcessingModules) {
-                    response.addHeader("WWW-Authenticate", getRealmForHeader(moduleAuthentication, authException));
-                }
+        List<ModuleAuthentication> parallelProcessingModules = mpAuthentication.getParallelProcessingModules();
+        if (!parallelProcessingModules.isEmpty()) {
+            for (ModuleAuthentication moduleAuthentication : parallelProcessingModules) {
+                response.addHeader("WWW-Authenticate", getRealmForHeader(moduleAuthentication, authException));
             }
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -52,7 +51,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private String getRealmForHeader(ModuleAuthentication moduleAuthentication, AuthenticationException authException) {
         if (moduleAuthentication instanceof HttpModuleAuthentication) {
-            return ((HttpModuleAuthentication) moduleAuthentication).getRealmFroHeader(authException);
+            return ((HttpModuleAuthentication) moduleAuthentication).getRealmFromHeader(authException);
         }
         return moduleAuthentication.getModuleTypeName() +" realm=\"" + DEFAULT_REALM + "\"";
     }

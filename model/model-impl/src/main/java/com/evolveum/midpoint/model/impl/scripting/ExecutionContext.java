@@ -15,13 +15,11 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
-import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -35,17 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
-    /**
-     * Are we pre-authorized for dangerous operations like Groovy script execution? See
-     * {@link ScriptingExpressionEvaluator#evaluateExpressionPrivileged(ExecuteScriptConfigItem,
-     * VariablesMap, Task, OperationResult)}.
-     *
-     * TEMPORARY. To be replaced.
-     */
-    private final boolean privileged;
     private final ScriptingExpressionEvaluationOptionsType options;
     private final Task task;
-    private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    private final BulkActionsExecutor bulkActionsExecutor;
     private final StringBuilder consoleOutput = new StringBuilder();
     /** will probably remain unused */
     private final Map<String, PipelineData> globalVariables = new HashMap<>();
@@ -63,13 +53,12 @@ public class ExecutionContext {
 
     public ExecutionContext(
             ScriptingExpressionEvaluationOptionsType options, Task task,
-            ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            boolean privileged, boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
+            BulkActionsExecutor bulkActionsExecutor,
+            boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
             @NotNull ExpressionProfile expressionProfile) {
         this.options = options;
         this.task = task;
-        this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
-        this.privileged = privileged;
+        this.bulkActionsExecutor = bulkActionsExecutor;
         this.initialVariables = initialVariables;
         this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
         this.expressionProfile = expressionProfile;
@@ -127,12 +116,12 @@ public class ExecutionContext {
         return recordProgressAndIterationStatistics;
     }
 
-    public ScriptExecutionResult toExecutionResult() {
+    public BulkActionExecutionResult toExecutionResult() {
         List<PipelineItem> items = null;
         if (getFinalOutput() != null) {
             items = getFinalOutput().getData();
         }
-        return new ScriptExecutionResult(getConsoleOutput(), items);
+        return new BulkActionExecutionResult(getConsoleOutput(), items);
     }
 
     public String getChannel() {
@@ -157,15 +146,11 @@ public class ExecutionContext {
     }
 
     public ModelService getModelService() {
-        return scriptingExpressionEvaluator.getModelService();
+        return bulkActionsExecutor.getModelService();
     }
 
     public PrismContext getPrismContext() {
-        return scriptingExpressionEvaluator.getPrismContext();
-    }
-
-    public boolean isPrivileged() {
-        return privileged;
+        return bulkActionsExecutor.getPrismContext();
     }
 
     public QueryConverter getQueryConverter() {

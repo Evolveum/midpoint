@@ -158,7 +158,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         clock.overrideDuration("P5DT1H"); // at P5D there's a notify action
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
 
@@ -197,7 +197,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         clock.overrideDuration("P12DT1H"); // at -P2D (i.e. P12D) there is a delegate action
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
 
@@ -238,7 +238,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         clock.overrideDuration("P14DT1H"); // at 0 (i.e. P14D) there is a completion action
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
 
@@ -339,7 +339,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         clock.overrideDuration("P3DT1H"); // at 3D there's a deadline with escalation
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
 
@@ -390,7 +390,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         clock.overrideDuration("P5DT2H");        // at 5D there's a deadline with auto-rejection
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
         then();
 

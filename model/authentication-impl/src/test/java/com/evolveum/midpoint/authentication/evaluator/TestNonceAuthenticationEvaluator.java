@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.evaluator;
 
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.context.NonceAuthenticationContext;
+import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -19,27 +19,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import javax.xml.namespace.QName;
 import java.util.List;
 
-public class TestNonceAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, NonceAuthenticationContext, AuthenticationEvaluator<NonceAuthenticationContext>> {
+public class TestNonceAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, NonceAuthenticationContext, AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken>> {
 
     private static final String USER_JACK_NONCE = "asdfghjkl123456";
     private static final String USER_GUYBRUSH_NONCE = "asdfghjkl654321";
 
     @Autowired
-    private AuthenticationEvaluator<NonceAuthenticationContext> nonceAuthenticationEvaluator;
+    private AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> nonceAuthenticationEvaluator;
 
     @Override
-    public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
+    public AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken> getAuthenticationEvaluator() {
         return nonceAuthenticationEvaluator;
     }
 
     @Override
     public NonceAuthenticationContext getAuthenticationContext(
             String username, String value, List<ObjectReferenceType> requiredAssignments) {
-        return new NonceAuthenticationContext(username, UserType.class, value, null, requiredAssignments);
+        return new NonceAuthenticationContext(username, UserType.class, value, null, requiredAssignments, null);
     }
 
     @Override

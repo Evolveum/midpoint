@@ -272,6 +272,8 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
         WebPrismUtil.searchAttributeDefinitions(schema, objectType)
                 .forEach(attr -> allAttributes.add(new AttributeDisplayableValue(attr)));
+
+        allAttributes.sort(Comparator.comparing(DisplayableValue::getLabel));
         return allAttributes;
     }
 
@@ -315,8 +317,9 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         private final ItemPathType value;
 
         private AttributeDisplayableValue(ResourceAttributeDefinition attributeDefinition) {
-            this.displayName = attributeDefinition.getDisplayName() == null ?
-                    attributeDefinition.getItemName().getLocalPart() : attributeDefinition.getDisplayName();
+//            this.displayName = attributeDefinition.getDisplayName() == null ?
+//                    attributeDefinition.getItemName().getLocalPart() : attributeDefinition.getDisplayName();
+            this.displayName = attributeDefinition.getItemName().getLocalPart();
             this.help = attributeDefinition.getHelp();
             this.value = new ItemPathType(ItemPath.create(attributeDefinition.getItemName()));
         }

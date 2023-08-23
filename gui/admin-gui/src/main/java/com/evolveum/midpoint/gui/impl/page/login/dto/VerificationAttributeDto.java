@@ -7,25 +7,37 @@
 
 package com.evolveum.midpoint.gui.impl.page.login.dto;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
 public class VerificationAttributeDto implements Serializable {
 
-    public static final String F_VALUE = "value";
-    private ItemPathType itemPath;
-    private String value;
+    private final ItemWrapper<?, ?> itemWrapper;
+    private final ItemPath itemPath;
 
-    public VerificationAttributeDto(ItemPathType itemPath) {
+    public VerificationAttributeDto(@NotNull ItemWrapper<?, ?> itemWrapper, ItemPath itemPath) {
+        this.itemWrapper = itemWrapper;
         this.itemPath = itemPath;
     }
 
-    public ItemPathType getItemPath() {
+    public ItemWrapper<?, ?> getItemWrapper() {
+        return itemWrapper;
+    }
+
+    public Object getValue() {
+        try {
+            return itemWrapper.getValue();
+        } catch (SchemaException e) {
+            return null;
+        }
+    }
+
+    public ItemPath getItemPath() {
         return itemPath;
     }
 
-    public String getValue() {
-        return value;
-    }
 }

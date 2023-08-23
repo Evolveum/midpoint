@@ -42,6 +42,10 @@ public class CandidateOwnersMap implements Serializable, DebugDumpable {
         return map.values();
     }
 
+    public boolean isEmpty() {
+        return map.isEmpty();
+    }
+
     public Collection<CandidateOwner> selectWithConfidenceAtLeast(double threshold) {
         return map.values().stream()
                 .filter(candidateOwner -> candidateOwner.getConfidence() >= threshold)
@@ -54,5 +58,16 @@ public class CandidateOwnersMap implements Serializable, DebugDumpable {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.toStringCollection(sb, map.values(), indent + 1);
         return sb.toString();
+    }
+
+    public void mergeWith(CandidateOwnersMap other) {
+        for (CandidateOwner candidateOwner : other.values()) {
+            CandidateOwner existing = map.get(candidateOwner.getOid());
+            if (existing == null) {
+                map.put(candidateOwner.getOid(), candidateOwner);
+            } else {
+                existing.increaseConfidence(candidateOwner.getConfidence());
+            }
+        }
     }
 }

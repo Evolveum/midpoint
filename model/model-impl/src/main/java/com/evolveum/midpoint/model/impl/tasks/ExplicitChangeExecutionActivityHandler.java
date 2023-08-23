@@ -15,10 +15,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -170,8 +171,8 @@ public class ExplicitChangeExecutionActivityHandler
         }
 
         @Override
-        public @Nullable TaskAffectedObjectsType getAffectedObjects() {
-            return null; // not easily determinable
+        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+            return AffectedObjectsInformation.ObjectSet.notSupported(); // not easily determinable
         }
 
         @Override
