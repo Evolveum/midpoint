@@ -47,7 +47,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -90,32 +90,32 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_ERRORS_TARGET = new DummyTestResource(TEST_DIR,
             "resource-dummy-errors-target.xml", "10079e05-b98e-4630-92aa-26fa4ed8d0eb", "errors-target");
 
-    private static final TestResource<RoleType> ROLE_XFER1 = new TestResource<>(TEST_DIR, "role-xfer1.xml", "4b141ca2-3172-4d8a-8614-97e01ece5a9e");
-    private static final TestResource<RoleType> ROLE_XFER2 = new TestResource<>(TEST_DIR, "role-xfer2.xml", "59fdad1b-45fa-4a8c-bda4-d8a6ab980671");
-    private static final TestResource<TaskType> TASK_XFER1 = new TestResource<>(TEST_DIR, "task-xfer1.xml", "c9306381-efa8-499e-8b16-6d071d680451");
-    private static final TestResource<TaskType> TASK_XFER2 = new TestResource<>(TEST_DIR, "task-xfer2.xml", "d4f8b735-dfdb-450e-a680-dacfac4fafb0");
-    private static final TestResource<TaskType> TASK_MULTI_CHANGES = new TestResource<>(TEST_DIR, "task-multi-changes.xml", "33d6642a-6251-4b53-b78a-0cf44460e5c9");
+    private static final TestObject<RoleType> ROLE_XFER1 = TestObject.file(TEST_DIR, "role-xfer1.xml", "4b141ca2-3172-4d8a-8614-97e01ece5a9e");
+    private static final TestObject<RoleType> ROLE_XFER2 = TestObject.file(TEST_DIR, "role-xfer2.xml", "59fdad1b-45fa-4a8c-bda4-d8a6ab980671");
+    private static final TestObject<TaskType> TASK_XFER1 = TestObject.file(TEST_DIR, "task-xfer1.xml", "c9306381-efa8-499e-8b16-6d071d680451");
+    private static final TestObject<TaskType> TASK_XFER2 = TestObject.file(TEST_DIR, "task-xfer2.xml", "d4f8b735-dfdb-450e-a680-dacfac4fafb0");
+    private static final TestObject<TaskType> TASK_MULTI_CHANGES = TestObject.file(TEST_DIR, "task-multi-changes.xml", "33d6642a-6251-4b53-b78a-0cf44460e5c9");
 
-    private static final TestResource<RoleType> ROLE_ERRORS_TARGET = new TestResource<>(TEST_DIR, "role-errors-target.xml", "582af892-2490-4fb1-bc83-368ade2c5eb4");
-    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_IGNORE = new TestResource<>(TEST_DIR, "task-errors-precise-ignore.xml", "ac52f0fd-9ff9-4699-87fb-c81b0b290d9f");
-    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL = new TestResource<>(TEST_DIR, "task-errors-precise-ignore-partial-stop-on-fatal.xml", "6873df7b-e663-4070-868f-c75aa19c391c");
-    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_STOP_ON_ANY = new TestResource<>(TEST_DIR, "task-errors-precise-stop-on-any.xml", "0e015e1e-aa68-4190-ba4f-adf88c58b162");
-    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY = new TestResource<>(TEST_DIR, "task-errors-precise-retry-later-on-any.xml", "2d7f0709-3e9b-4b92-891f-c5e1428b6458");
-    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4 = new TestResource<>(TEST_DIR, "task-errors-precise-retry-later-max-4.xml", "0bdfdb9c-ccae-4202-a060-f9aab35bd211");
+    private static final TestObject<RoleType> ROLE_ERRORS_TARGET = TestObject.file(TEST_DIR, "role-errors-target.xml", "582af892-2490-4fb1-bc83-368ade2c5eb4");
+    private static final TestObject<TaskType> TASK_ERRORS_PRECISE_IGNORE = TestObject.file(TEST_DIR, "task-errors-precise-ignore.xml", "ac52f0fd-9ff9-4699-87fb-c81b0b290d9f");
+    private static final TestObject<TaskType> TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL = TestObject.file(TEST_DIR, "task-errors-precise-ignore-partial-stop-on-fatal.xml", "6873df7b-e663-4070-868f-c75aa19c391c");
+    private static final TestObject<TaskType> TASK_ERRORS_PRECISE_STOP_ON_ANY = TestObject.file(TEST_DIR, "task-errors-precise-stop-on-any.xml", "0e015e1e-aa68-4190-ba4f-adf88c58b162");
+    private static final TestObject<TaskType> TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY = TestObject.file(TEST_DIR, "task-errors-precise-retry-later-on-any.xml", "2d7f0709-3e9b-4b92-891f-c5e1428b6458");
+    private static final TestObject<TaskType> TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4 = TestObject.file(TEST_DIR, "task-errors-precise-retry-later-max-4.xml", "0bdfdb9c-ccae-4202-a060-f9aab35bd211");
 
-    private static final TestResource<TaskType> TASK_SLOW_RESOURCE = new TestResource<>(TEST_DIR, "task-intsync-slow-resource.xml", "ca51f209-1ef5-42b3-84e7-5f639ee8e300");
-    private static final TestResource<TaskType> TASK_SLOW_MODEL = new TestResource<>(TEST_DIR, "task-intsync-slow-model.xml", "c37dda96-e547-41c2-b343-b890bc7fade9");
-    private static final TestResource<TaskType> TASK_BATCHED = new TestResource<>(TEST_DIR, "task-intsync-batched.xml", "ef22bf7b-5d28-4a57-b3a5-6fa58491eeb3");
-    private static final TestResource<TaskType> TASK_ERROR = new TestResource<>(TEST_DIR, "task-intsync-error.xml", "b697f3a8-9d02-4924-8627-c1f216e88ed3");
-    private static final TestResource<TaskType> TASK_SLOW_RESOURCE_IMPRECISE = new TestResource<>(TEST_DIR, "task-intsync-slow-resource-imprecise.xml", "82407cd3-7b1f-4054-b45a-fc4d9aed8ae3");
-    private static final TestResource<TaskType> TASK_SLOW_MODEL_IMPRECISE = new TestResource<>(TEST_DIR, "task-intsync-slow-model-imprecise.xml", "066c6993-8b94-445c-aaff-937184bbe6ca");
-    private static final TestResource<TaskType> TASK_BATCHED_IMPRECISE = new TestResource<>(TEST_DIR, "task-intsync-batched-imprecise.xml", "dcfe4c53-a851-4fe1-90eb-f75d9c65d2e6");
-    private static final TestResource<TaskType> TASK_ERROR_IMPRECISE = new TestResource<>(TEST_DIR, "task-intsync-error-imprecise.xml", "c554ec0f-95c3-40ac-b069-876708d28393");
+    private static final TestObject<TaskType> TASK_SLOW_RESOURCE = TestObject.file(TEST_DIR, "task-intsync-slow-resource.xml", "ca51f209-1ef5-42b3-84e7-5f639ee8e300");
+    private static final TestObject<TaskType> TASK_SLOW_MODEL = TestObject.file(TEST_DIR, "task-intsync-slow-model.xml", "c37dda96-e547-41c2-b343-b890bc7fade9");
+    private static final TestObject<TaskType> TASK_BATCHED = TestObject.file(TEST_DIR, "task-intsync-batched.xml", "ef22bf7b-5d28-4a57-b3a5-6fa58491eeb3");
+    private static final TestObject<TaskType> TASK_ERROR = TestObject.file(TEST_DIR, "task-intsync-error.xml", "b697f3a8-9d02-4924-8627-c1f216e88ed3");
+    private static final TestObject<TaskType> TASK_SLOW_RESOURCE_IMPRECISE = TestObject.file(TEST_DIR, "task-intsync-slow-resource-imprecise.xml", "82407cd3-7b1f-4054-b45a-fc4d9aed8ae3");
+    private static final TestObject<TaskType> TASK_SLOW_MODEL_IMPRECISE = TestObject.file(TEST_DIR, "task-intsync-slow-model-imprecise.xml", "066c6993-8b94-445c-aaff-937184bbe6ca");
+    private static final TestObject<TaskType> TASK_BATCHED_IMPRECISE = TestObject.file(TEST_DIR, "task-intsync-batched-imprecise.xml", "dcfe4c53-a851-4fe1-90eb-f75d9c65d2e6");
+    private static final TestObject<TaskType> TASK_ERROR_IMPRECISE = TestObject.file(TEST_DIR, "task-intsync-error-imprecise.xml", "c554ec0f-95c3-40ac-b069-876708d28393");
 
-    private static final TestResource<TaskType> TASK_DRY_RUN = new TestResource<>(TEST_DIR, "task-intsync-dry-run.xml", "8b5b3b2d-6ef7-4cc8-8507-42778e0d869f");
-    private static final TestResource<TaskType> TASK_DRY_RUN_WITH_UPDATE = new TestResource<>(TEST_DIR, "task-intsync-dry-run-with-update.xml", "ebcc7393-e886-40ae-8a9f-dfa72230c658");
+    private static final TestObject<TaskType> TASK_DRY_RUN = TestObject.file(TEST_DIR, "task-intsync-dry-run.xml", "8b5b3b2d-6ef7-4cc8-8507-42778e0d869f");
+    private static final TestObject<TaskType> TASK_DRY_RUN_WITH_UPDATE = TestObject.file(TEST_DIR, "task-intsync-dry-run-with-update.xml", "ebcc7393-e886-40ae-8a9f-dfa72230c658");
 
-    private static final TestResource<TaskType> TASK_NO_POLICY = new TestResource<>(TEST_DIR, "task-no-policy.xml", "b2aa4e0a-1fce-499d-8502-ece187b24ae4");
+    private static final TestObject<TaskType> TASK_NO_POLICY = TestObject.file(TEST_DIR, "task-no-policy.xml", "b2aa4e0a-1fce-499d-8502-ece187b24ae4");
 
     private static final String USER_P = "user-p-";
     private static final String USER_I = "user-i-";
@@ -180,7 +180,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         initLiveSyncTask(TASK_SLOW_MODEL_IMPRECISE, initTask, initResult);
         initLiveSyncTask(TASK_BATCHED, initTask, initResult);
 
-        addObject(TASK_BATCHED_IMPRECISE.getFile(), initTask, initResult,
+        addObject(((TestObject.FileBasedTestObjectSource) (TASK_BATCHED_IMPRECISE.source)).getFile(), initTask, initResult,
                 workerThreadsCustomizer(getWorkerThreads()));
         // Starting this task results in (expected) exception
 
@@ -220,9 +220,10 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
-    private void initLiveSyncTask(TestResource<TaskType> testResource, Task initTask, OperationResult initResult)
+    private void initLiveSyncTask(TestObject<TaskType> testResource, Task initTask, OperationResult initResult)
             throws java.io.IOException, CommonException {
-        File taskFile = testResource.getFile();
+        // FIXME remove this hack
+        File taskFile = ((TestObject.FileBasedTestObjectSource) (testResource.source)).getFile();
         PrismObject<TaskType> task = addObject(taskFile, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
         if (!TaskTypeUtil.isTaskRecurring(task.asObjectable())) {
             waitForTaskFinish(testResource.oid);
@@ -761,7 +762,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         doXferInitialSync(2, TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE);
     }
 
-    private void doXferInitialSync(int index, TestResource<TaskType> xferTask, DummyTestResource xferSource) throws Exception {
+    private void doXferInitialSync(int index, TestObject<TaskType> xferTask, DummyTestResource xferSource) throws Exception {
         given();
 
         // @formatter:off
@@ -905,7 +906,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
     }
 
-    private TaskAsserter<Void> doXferRenameAndSync(TestResource<TaskType> xferTask, DummyTestResource xferSource) throws Exception {
+    private TaskAsserter<Void> doXferRenameAndSync(TestObject<TaskType> xferTask, DummyTestResource xferSource) throws Exception {
         given();
 
         // @formatter:off
@@ -1035,7 +1036,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         assertTaskClosed(taskAfter);
     }
 
-    private TaskAsserter<Void> doXferLiveSync(TestResource<TaskType> xferTask) throws Exception {
+    private TaskAsserter<Void> doXferLiveSync(TestObject<TaskType> xferTask) throws Exception {
         given();
 
         // @formatter:off

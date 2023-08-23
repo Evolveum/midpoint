@@ -13,7 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -83,14 +83,14 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
     protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID = "b7ea1c0c-31d6-445e-8949-9f8f4a665b3b";
     protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_DESCRIPTION = "Thou shalt not modify description of this role!";
 
-    protected static final TestResource<RoleType> ROLE_IMMUTABLE_SEA_GLOBAL = new TestResource<>(
+    protected static final TestObject<RoleType> ROLE_IMMUTABLE_SEA_GLOBAL = TestObject.file(
             TEST_DIR, "role-immutable-sea-global.xml", "e6bb0eae-4583-427a-9079-f93f925353c9");
 
     protected static final File ROLE_DETECTING_MODIFICATIONS_FILE = new File(TEST_DIR, "role-detecting-modifications.xml");
     protected static final String ROLE_DETECTING_MODIFICATIONS_OID = "42ef2848-3793-4120-8d03-d8e5f8c23237";
 
-    protected static final TestResource<RoleType> ROLE_ADDING_RECOMPUTE_TRIGGER = new TestResource<>(TEST_DIR, "role-adding-recompute-trigger.xml", "81b287cd-37a1-41e1-b057-6aa6a11104d7");
-    protected static final TestResource<UserType> USER_FAILING_SCRIPT = new TestResource<>(TEST_DIR, "user-failing-script.xml", "46da40b7-5ecb-442b-92ce-a5f123af74e7");
+    protected static final TestObject<RoleType> ROLE_ADDING_RECOMPUTE_TRIGGER = TestObject.file(TEST_DIR, "role-adding-recompute-trigger.xml", "81b287cd-37a1-41e1-b057-6aa6a11104d7");
+    protected static final TestObject<UserType> USER_FAILING_SCRIPT = TestObject.file(TEST_DIR, "user-failing-script.xml", "46da40b7-5ecb-442b-92ce-a5f123af74e7");
 
     protected static final File ROLE_UNDELETABLE_FILE = new File(TEST_DIR, "role-undeletable.xml");
     protected static final String ROLE_UNDELETABLE_OID = "7ae7d616-1442-4295-9aee-5f5e339870af";

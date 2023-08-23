@@ -42,7 +42,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -96,18 +96,18 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_DUMMY_TARGET = new DummyTestResource(TEST_DIR,
             "resource-target.xml", "f1859897-0c10-430e-aefe-7ced49d14a23", "target");
-    private static final TestResource<RoleType> ROLE_TARGET = new TestResource<>(TEST_DIR, "role-target.xml", "fdcd5c7a-86c0-4a0e-8b22-dda79183fcf3");
-    private static final TestResource<TaskType> TASK_IMPORT = new TestResource<>(TEST_DIR, "task-import.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
-    private static final TestResource<TaskType> TASK_IMPORT_RETRY_BY_FILTERING = new TestResource<>(TEST_DIR, "task-import-retry-by-filtering.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
-    private static final TestResource<TaskType> TASK_IMPORT_RETRY_BY_FETCHING = new TestResource<>(TEST_DIR, "task-import-retry-by-fetching.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
-    private static final TestResource<TaskType> TASK_RECONCILIATION = new TestResource<>(TEST_DIR, "task-reconciliation.xml", "566c822c-5db4-4879-a159-3749fef11c7a");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_PARTITIONED_MULTINODE = new TestResource<>(TEST_DIR, "task-reconciliation-partitioned-multinode.xml", "0e818ebb-1fd8-4d89-a4f4-aa42ce8ac475");
+    private static final TestObject<RoleType> ROLE_TARGET = TestObject.file(TEST_DIR, "role-target.xml", "fdcd5c7a-86c0-4a0e-8b22-dda79183fcf3");
+    private static final TestObject<TaskType> TASK_IMPORT = TestObject.file(TEST_DIR, "task-import.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
+    private static final TestObject<TaskType> TASK_IMPORT_RETRY_BY_FILTERING = TestObject.file(TEST_DIR, "task-import-retry-by-filtering.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
+    private static final TestObject<TaskType> TASK_IMPORT_RETRY_BY_FETCHING = TestObject.file(TEST_DIR, "task-import-retry-by-fetching.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
+    private static final TestObject<TaskType> TASK_RECONCILIATION = TestObject.file(TEST_DIR, "task-reconciliation.xml", "566c822c-5db4-4879-a159-3749fef11c7a");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_PARTITIONED_MULTINODE = TestObject.file(TEST_DIR, "task-reconciliation-partitioned-multinode.xml", "0e818ebb-1fd8-4d89-a4f4-aa42ce8ac475");
 
     private static final int USERS = 10;
 
     private static final DummyTestResource RESOURCE_DUMMY_HACKED = new DummyTestResource(TEST_DIR, "resource-hacked.xml", "8aad610b-0e35-4604-9139-2f864ac4eac2", "hacked");
 
-    private static final TestResource<TaskType> TASK_RECONCILIATION_HACKED = new TestResource<>(TEST_DIR, "task-reconciliation-hacked.xml", "9e2887cd-3f45-46e7-82ee-20454ba25d94");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_HACKED = TestObject.file(TEST_DIR, "task-reconciliation-hacked.xml", "9e2887cd-3f45-46e7-82ee-20454ba25d94");
     private boolean isNewRepo;
 
     @Override

@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -22,5 +22,6 @@ import static com.evolveum.midpoint.test.AbstractIntegrationTest.COMMON_DIR;
 @Experimental
 public interface CommonTasks {
 
-    TestResource<TaskType> TASK_TRIGGER_SCANNER_ON_DEMAND = new TestResource<>(COMMON_DIR, "task-trigger-scanner-on-demand.xml", "4a574260-ae0c-4e00-8dfc-f833b703e45a");
+    TestObject<TaskType> TASK_TRIGGER_SCANNER_ON_DEMAND = TestObject.file(
+            COMMON_DIR, "task-trigger-scanner-on-demand.xml", "4a574260-ae0c-4e00-8dfc-f833b703e45a");
 }

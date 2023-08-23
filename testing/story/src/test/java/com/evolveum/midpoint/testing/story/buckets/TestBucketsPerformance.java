@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 
@@ -41,9 +41,9 @@ public class TestBucketsPerformance extends AbstractStoryTest {
 
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<RoleType> ROLE_SLOW = new TestResource<>(TEST_DIR, "role-slow.xml", "4c9f44cc-9cbd-454f-b346-a3a66242ec3d");
-    private static final TestResource<TaskType> TASK_RECOMPUTE_16_04 = new TestResource<>(TEST_DIR, "task-recompute-16-04.xml", "0f19ae56-050f-4a6d-b407-25a6cf49297d");
-    private static final TestResource<TaskType> TASK_RECOMPUTE_256_30 = new TestResource<>(TEST_DIR, "task-recompute-256-30.xml", "a2060e8f-1675-41a0-a1ae-1781f14c034f");
+    private static final TestObject<RoleType> ROLE_SLOW = TestObject.file(TEST_DIR, "role-slow.xml", "4c9f44cc-9cbd-454f-b346-a3a66242ec3d");
+    private static final TestObject<TaskType> TASK_RECOMPUTE_16_04 = TestObject.file(TEST_DIR, "task-recompute-16-04.xml", "0f19ae56-050f-4a6d-b407-25a6cf49297d");
+    private static final TestObject<TaskType> TASK_RECOMPUTE_256_30 = TestObject.file(TEST_DIR, "task-recompute-256-30.xml", "a2060e8f-1675-41a0-a1ae-1781f14c034f");
 
     private static final int NUMBER_OF_USERS = 1000;
 
@@ -98,7 +98,7 @@ public class TestBucketsPerformance extends AbstractStoryTest {
         executeRecomputation(TASK_RECOMPUTE_256_30);
     }
 
-    private void executeRecomputation(TestResource<TaskType> recomputationTask) throws IOException, CommonException {
+    private void executeRecomputation(TestObject<TaskType> recomputationTask) throws IOException, CommonException {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();

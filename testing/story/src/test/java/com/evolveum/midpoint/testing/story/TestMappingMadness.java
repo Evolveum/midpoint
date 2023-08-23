@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 import java.net.ConnectException;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -58,10 +58,10 @@ public class TestMappingMadness extends AbstractStoryTest {
     protected static final String RESOURCE_DUMMY_NONTOLERANT_OID = "a09869c0-a7c3-11e9-85ac-6f2cafd8f0c2";
     protected static final String RESOURCE_DUMMY_NONTOLERANT_NAME = "nontolerant";
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_OVERMAPPED = new TestResource<>(TEST_DIR, "template-overmapped.xml", "beed4a22-f341-4d56-9621-3a3843c1c58f");
-    private static final TestResource<ArchetypeType> ARCHETYPE_OVERMAPPED = new TestResource<>(TEST_DIR, "archetype-overmapped.xml", "da861c56-ec58-409a-adb1-3a95be9d2835");
-    private static final TestResource<UserType> USER_MATCHING = new TestResource<>(TEST_DIR, "user-matching.xml", "99f95042-54e3-4fcf-b907-413ee6137408");
-    private static final TestResource<UserType> USER_NOT_MATCHING = new TestResource<>(TEST_DIR, "user-not-matching.xml", "f8791726-4bda-4e9b-a0b3-2ae943757c36");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_OVERMAPPED = TestObject.file(TEST_DIR, "template-overmapped.xml", "beed4a22-f341-4d56-9621-3a3843c1c58f");
+    private static final TestObject<ArchetypeType> ARCHETYPE_OVERMAPPED = TestObject.file(TEST_DIR, "archetype-overmapped.xml", "da861c56-ec58-409a-adb1-3a95be9d2835");
+    private static final TestObject<UserType> USER_MATCHING = TestObject.file(TEST_DIR, "user-matching.xml", "99f95042-54e3-4fcf-b907-413ee6137408");
+    private static final TestObject<UserType> USER_NOT_MATCHING = TestObject.file(TEST_DIR, "user-not-matching.xml", "f8791726-4bda-4e9b-a0b3-2ae943757c36");
 
     private static final String JACK_TITLE_WHATEVER_UPPER = "WHATEVER";
     private static final String JACK_TITLE_WHATEVER_LOWER = "whatever";

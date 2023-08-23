@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,11 +44,11 @@ public class TestCleanupTask extends AbstractEmptyModelIntegrationTest {
 
     private static final File FILE_OBJECTS_TO_BE_CLEANED_UP = new File(TEST_DIR, "objects-to-be-cleaned-up.xml");
 
-    private static final TestResource<RoleType> ROLE_LIMITED = new TestResource<>(TEST_DIR, "role-limited.xml", "1a90eaf4-03ed-4f23-a64b-1aaebc57ae57");
-    private static final TestResource<UserType> USER_LIMITED = new TestResource<>(TEST_DIR, "user-limited.xml", "da14f7bc-f6ba-4f40-90d4-816e0e37f252");
+    private static final TestObject<RoleType> ROLE_LIMITED = TestObject.file(TEST_DIR, "role-limited.xml", "1a90eaf4-03ed-4f23-a64b-1aaebc57ae57");
+    private static final TestObject<UserType> USER_LIMITED = TestObject.file(TEST_DIR, "user-limited.xml", "da14f7bc-f6ba-4f40-90d4-816e0e37f252");
 
-    private static final TestResource<TaskType> TASK_CLEANUP_ADMIN = new TestResource<>(TEST_DIR, "task-cleanup-admin.xml", "0726d8b4-641e-4a01-9878-a11cabace465");
-    private static final TestResource<TaskType> TASK_CLEANUP_LIMITED = new TestResource<>(TEST_DIR, "task-cleanup-limited.xml", "08f630d0-0459-49c7-9c70-a813ba2e9da6");
+    private static final TestObject<TaskType> TASK_CLEANUP_ADMIN = TestObject.file(TEST_DIR, "task-cleanup-admin.xml", "0726d8b4-641e-4a01-9878-a11cabace465");
+    private static final TestObject<TaskType> TASK_CLEANUP_LIMITED = TestObject.file(TEST_DIR, "task-cleanup-limited.xml", "08f630d0-0459-49c7-9c70-a813ba2e9da6");
 
     private static final String TEST_OBJECT_PREFIX = "test";
 

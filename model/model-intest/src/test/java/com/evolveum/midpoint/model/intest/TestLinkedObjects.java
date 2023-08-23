@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -52,7 +52,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final String ATTR_OWNER_NAME = "ownerName";
     private static final String ATTR_OWNER_EMAIL_ADDRESS = "ownerEmailAddress";
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_HW_TOKEN = new TestResource<>(HW_TOKENS_DIR, "archetype-hw-token.xml", "21575364-d869-4b96-ac3f-b7b26e0e8540");
+    private static final TestObject<ArchetypeType> ARCHETYPE_HW_TOKEN = TestObject.file(HW_TOKENS_DIR, "archetype-hw-token.xml", "21575364-d869-4b96-ac3f-b7b26e0e8540");
     private static final DummyTestResource RESOURCE_HW_TOKENS = new DummyTestResource(HW_TOKENS_DIR, "resource-hw-tokens.xml", "2730a64c-73fc-4c67-8bac-e40b4437931c", "hw-tokens",
             controller -> {
                 controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
@@ -61,43 +61,43 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
                         ATTR_OWNER_EMAIL_ADDRESS, String.class, false, false);
             });
 
-    private static final TestResource<ServiceType> TOKEN_BLUE = new TestResource<>(HW_TOKENS_DIR, "token-blue.xml", "0e5b7304-ea5c-438e-84d1-2b0ce40517ce");
-    private static final TestResource<ServiceType> TOKEN_GREEN = new TestResource<>(HW_TOKENS_DIR, "token-green.xml", "36c01826-c425-4da0-9e1e-023d807e1284");
-    private static final TestResource<ServiceType> TOKEN_RED = new TestResource<>(HW_TOKENS_DIR, "token-red.xml", "a449ad16-d13f-4a4d-99d4-2dd29ab18e65");
+    private static final TestObject<ServiceType> TOKEN_BLUE = TestObject.file(HW_TOKENS_DIR, "token-blue.xml", "0e5b7304-ea5c-438e-84d1-2b0ce40517ce");
+    private static final TestObject<ServiceType> TOKEN_GREEN = TestObject.file(HW_TOKENS_DIR, "token-green.xml", "36c01826-c425-4da0-9e1e-023d807e1284");
+    private static final TestObject<ServiceType> TOKEN_RED = TestObject.file(HW_TOKENS_DIR, "token-red.xml", "a449ad16-d13f-4a4d-99d4-2dd29ab18e65");
 
-    private static final TestResource<UserType> USER_NIELS = new TestResource<>(HW_TOKENS_DIR, "user-niels.xml", "139b2203-9675-422f-b5da-85001641c730");
-    private static final TestResource<UserType> USER_PAUL = new TestResource<>(HW_TOKENS_DIR, "user-paul.xml", "8dff246b-82f3-47b2-ad58-42d962c46c2c");
-    private static final TestResource<UserType> USER_WERNER = new TestResource<>(HW_TOKENS_DIR, "user-werner.xml", "98f31568-5a4d-413d-beed-394b90530033");
+    private static final TestObject<UserType> USER_NIELS = TestObject.file(HW_TOKENS_DIR, "user-niels.xml", "139b2203-9675-422f-b5da-85001641c730");
+    private static final TestObject<UserType> USER_PAUL = TestObject.file(HW_TOKENS_DIR, "user-paul.xml", "8dff246b-82f3-47b2-ad58-42d962c46c2c");
+    private static final TestObject<UserType> USER_WERNER = TestObject.file(HW_TOKENS_DIR, "user-werner.xml", "98f31568-5a4d-413d-beed-394b90530033");
     //endregion
 
     //region Gummi scenario (devices and magic tokens)
-    private static final TestResource<ArchetypeType> ARCHETYPE_USER = new TestResource<>(GUMMI_DIR, "archetype-gummi-user.xml", "c46b1bcc-af43-44ee-a107-71f36e952cc5");
-    private static final TestResource<ArchetypeType> ARCHETYPE_TOKEN = new TestResource<>(GUMMI_DIR, "archetype-magic-token.xml", "e7bff8d1-cebd-4fbe-b935-64cfc2f22f52");
-    private static final TestResource<ArchetypeType> ARCHETYPE_DEVICE = new TestResource<>(GUMMI_DIR, "archetype-device.xml", "d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402");
-    private static final TestResource<ArchetypeType> ARCHETYPE_DUMMY = new TestResource<>(GUMMI_DIR, "archetype-dummy.xml", "c1e5dc3d-dc84-4e71-b916-814b71bb264a");
+    private static final TestObject<ArchetypeType> ARCHETYPE_USER = TestObject.file(GUMMI_DIR, "archetype-gummi-user.xml", "c46b1bcc-af43-44ee-a107-71f36e952cc5");
+    private static final TestObject<ArchetypeType> ARCHETYPE_TOKEN = TestObject.file(GUMMI_DIR, "archetype-magic-token.xml", "e7bff8d1-cebd-4fbe-b935-64cfc2f22f52");
+    private static final TestObject<ArchetypeType> ARCHETYPE_DEVICE = TestObject.file(GUMMI_DIR, "archetype-device.xml", "d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402");
+    private static final TestObject<ArchetypeType> ARCHETYPE_DUMMY = TestObject.file(GUMMI_DIR, "archetype-dummy.xml", "c1e5dc3d-dc84-4e71-b916-814b71bb264a");
 
-    private static final TestResource<ServiceType> SERVICE_MEDALLION = new TestResource<>(GUMMI_DIR, "service-medallion.xml", "8734f795-f6b4-4cc5-843b-6307aaf88f9d");
-    private static final TestResource<ServiceType> SERVICE_WHISTLE = new TestResource<>(GUMMI_DIR, "service-whistle.xml", "40c18026-ca88-4bda-ab0b-f1a2a9c94818");
-    private static final TestResource<ServiceType> SERVICE_SWORD = new TestResource<>(GUMMI_DIR, "service-sword.xml", "c64ee819-6dcd-4ad2-a91a-303fb0aed29e");
-    private static final TestResource<ServiceType> SERVICE_AXE = new TestResource<>(GUMMI_DIR, "service-axe.xml", "90a3a6a0-07ea-4b2d-b800-ccdf4e7dea78");
+    private static final TestObject<ServiceType> SERVICE_MEDALLION = TestObject.file(GUMMI_DIR, "service-medallion.xml", "8734f795-f6b4-4cc5-843b-6307aaf88f9d");
+    private static final TestObject<ServiceType> SERVICE_WHISTLE = TestObject.file(GUMMI_DIR, "service-whistle.xml", "40c18026-ca88-4bda-ab0b-f1a2a9c94818");
+    private static final TestObject<ServiceType> SERVICE_SWORD = TestObject.file(GUMMI_DIR, "service-sword.xml", "c64ee819-6dcd-4ad2-a91a-303fb0aed29e");
+    private static final TestObject<ServiceType> SERVICE_AXE = TestObject.file(GUMMI_DIR, "service-axe.xml", "90a3a6a0-07ea-4b2d-b800-ccdf4e7dea78");
 
-    private static final TestResource<UserType> USER_CAVIN = new TestResource<>(GUMMI_DIR, "user-cavin.xml", "04753be2-f0f1-4292-8f24-48b0eedfcce3");
-    private static final TestResource<UserType> USER_ZUMMI = new TestResource<>(GUMMI_DIR, "user-zummi.xml", "3224fccd-27fa-45b5-8cf3-497a0d2dd892");
-    private static final TestResource<UserType> USER_GRUFFY = new TestResource<>(GUMMI_DIR, "user-gruffy.xml", "30b59b40-2875-410d-8731-482743eb6de2");
-    private static final TestResource<UserType> USER_GRAMMI = new TestResource<>(GUMMI_DIR, "user-grammi.xml", "041d0c03-c322-4e0d-89ba-a2d49b732674");
-    private static final TestResource<UserType> USER_CUBBY = new TestResource<>(GUMMI_DIR, "user-cubby.xml", "7b8f2e00-a49e-40ff-a4bd-11b70bac89d3");
+    private static final TestObject<UserType> USER_CAVIN = TestObject.file(GUMMI_DIR, "user-cavin.xml", "04753be2-f0f1-4292-8f24-48b0eedfcce3");
+    private static final TestObject<UserType> USER_ZUMMI = TestObject.file(GUMMI_DIR, "user-zummi.xml", "3224fccd-27fa-45b5-8cf3-497a0d2dd892");
+    private static final TestObject<UserType> USER_GRUFFY = TestObject.file(GUMMI_DIR, "user-gruffy.xml", "30b59b40-2875-410d-8731-482743eb6de2");
+    private static final TestObject<UserType> USER_GRAMMI = TestObject.file(GUMMI_DIR, "user-grammi.xml", "041d0c03-c322-4e0d-89ba-a2d49b732674");
+    private static final TestObject<UserType> USER_CUBBY = TestObject.file(GUMMI_DIR, "user-cubby.xml", "7b8f2e00-a49e-40ff-a4bd-11b70bac89d3");
     //endregion
 
     // region Projects scenario
-    private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT = new TestResource<>(PROJECTS_DIR, "archetype-project.xml", "4d3280a1-6514-4984-ac2c-7e56c05af258");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT_USERS = new TestResource<>(PROJECTS_DIR, "archetype-project-users.xml", "3af67ba4-183f-45e7-887e-4ae5ddff4cdf");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT_GROUPS = new TestResource<>(PROJECTS_DIR, "archetype-project-groups.xml", "a85bddc9-4ff0-475f-8ccc-17f9038d4ce1");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PROJECT = TestObject.file(PROJECTS_DIR, "archetype-project.xml", "4d3280a1-6514-4984-ac2c-7e56c05af258");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PROJECT_USERS = TestObject.file(PROJECTS_DIR, "archetype-project-users.xml", "3af67ba4-183f-45e7-887e-4ae5ddff4cdf");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PROJECT_GROUPS = TestObject.file(PROJECTS_DIR, "archetype-project-groups.xml", "a85bddc9-4ff0-475f-8ccc-17f9038d4ce1");
     // endregion
 
     // region Orgs scenario
-    private static final TestResource<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG = TestObject.file(
             ORGS_DIR, "archetype-deletion-safe-org.xml", "b8a973e0-f645-490b-a2ac-b69bd4103bf8");
-    private static final TestResource<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG_ASYNC = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG_ASYNC = TestObject.file(
             ORGS_DIR, "archetype-deletion-safe-org-async.xml", "08893534-3ab3-4209-8702-d21e5492813f");
     // endregion
 
@@ -182,7 +182,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         assertHwToken(TOKEN_RED, "red", null, null);
     }
 
-    private void assertHwToken(TestResource<ServiceType> token, String desc, String expectedOwnerName, String expectedOwnerEmailAddress)
+    private void assertHwToken(TestObject<ServiceType> token, String desc, String expectedOwnerName, String expectedOwnerEmailAddress)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyGroup dummyGroup = RESOURCE_HW_TOKENS.controller.getDummyResource().getGroupByName(token.getObjectable().getName().getOrig());
         displayDumpable("hw token dummy group", dummyGroup);

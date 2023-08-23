@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 /**
@@ -37,14 +37,14 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "identities");
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_PERSON = new TestResource<>(
+    private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "3a6f3ddd-ac72-4656-abac-0e306cd29645");
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_PERSON = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_PERSON = TestObject.file(
             TEST_DIR, "object-template-person.xml", "c0d96ed0-bec7-4c6e-9a69-133b0301bdb8");
 
-    private static final TestResource<UserType> USER_JOHN_SMITH = new TestResource<>(
+    private static final TestObject<UserType> USER_JOHN_SMITH = TestObject.file(
             TEST_DIR, "user-john-smith.xml", "73566218-b455-4d8a-8c5b-326aab5c8291");
-    private static final TestResource<UserType> USER_ALICE_GREEN = new TestResource<>(
+    private static final TestObject<UserType> USER_ALICE_GREEN = TestObject.file(
             TEST_DIR, "user-alice-green.xml", "5ef2f22e-c1ea-459d-a7f0-1552eb49b1b0");
 
     private static final String ATTR_GIVEN_NAME = "givenName";

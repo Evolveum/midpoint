@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -45,10 +45,10 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_DUMMY_ALPHA = new DummyTestResource(TEST_DIR, "resource-dummy-alpha.xml", "8f6b271a-c279-4b1b-bb91-e675c67be243", "alpha");
 
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_INCREMENTING = new TestResource<>(TEST_DIR, "user-template-incrementing.xml", "bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490");
-    private static final TestResource<UserType> USER_FRANZ = new TestResource<>(TEST_DIR, "user-franz.xml", "ac42084a-d780-4d32-ac02-bcc49bdc747b");
-    private static final TestResource<UserType> USER_FREDERIC = new TestResource<>(TEST_DIR, "user-frederic.xml", "849d540c-d052-43c0-937a-1ca1cda0679e");
-    private static final TestResource<UserType> USER_JOHANN = new TestResource<>(TEST_DIR, "user-johann.xml", "25fa06c6-04e2-4f9e-97c4-87fa5613bb15");
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_INCREMENTING = TestObject.file(TEST_DIR, "user-template-incrementing.xml", "bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490");
+    private static final TestObject<UserType> USER_FRANZ = TestObject.file(TEST_DIR, "user-franz.xml", "ac42084a-d780-4d32-ac02-bcc49bdc747b");
+    private static final TestObject<UserType> USER_FREDERIC = TestObject.file(TEST_DIR, "user-frederic.xml", "849d540c-d052-43c0-937a-1ca1cda0679e");
+    private static final TestObject<UserType> USER_JOHANN = TestObject.file(TEST_DIR, "user-johann.xml", "25fa06c6-04e2-4f9e-97c4-87fa5613bb15");
 
     private static final File ASSIGNMENT_FREDERIC_ALPHA_FILE = new File(TEST_DIR, "assignment-frederic-alpha.xml");
     private static final File ASSIGNMENT_JOHANN_ALPHA_FILE = new File(TEST_DIR, "assignment-johann-alpha.xml");
@@ -70,10 +70,10 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
                         DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
             });
 
-    private static final TestResource<UserType> USER_MAGNUS = new TestResource<>(TEST_DIR, "user-magnus.xml", "89072af5-afc6-4650-a4f8-036fd3d92b0d");
-    private static final TestResource<UserType> USER_VLADIMIR = new TestResource<>(TEST_DIR, "user-vladimir.xml", "715de93d-50c5-4c29-9da1-b5906fe3a2c3");
+    private static final TestObject<UserType> USER_MAGNUS = TestObject.file(TEST_DIR, "user-magnus.xml", "89072af5-afc6-4650-a4f8-036fd3d92b0d");
+    private static final TestObject<UserType> USER_VLADIMIR = TestObject.file(TEST_DIR, "user-vladimir.xml", "715de93d-50c5-4c29-9da1-b5906fe3a2c3");
 
-    private static final TestResource<RoleType> ROLE_RANGES = new TestResource<>(TEST_DIR, "role-ranges.xml", "d97c804b-28ea-404d-b075-ebb2bdd76c57");
+    private static final TestObject<RoleType> ROLE_RANGES = TestObject.file(TEST_DIR, "role-ranges.xml", "d97c804b-28ea-404d-b075-ebb2bdd76c57");
 
     private static final String MP_USERS = "mp_users";
     private static final String MP_TESTERS = "mp_testers";

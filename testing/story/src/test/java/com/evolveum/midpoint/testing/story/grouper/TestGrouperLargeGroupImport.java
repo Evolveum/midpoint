@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.story.grouper;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,7 +27,7 @@ public class TestGrouperLargeGroupImport extends AbstractGrouperTest {
     private static final int ALUMNI_USERS = 10;
     private static final int STAFF_USERS = 100000;
 
-    private static final TestResource<TaskType> TASK_IMPORT_GROUPS = new TestResource<>(TEST_DIR, "task-import-groups.xml", "e2edaa90-7624-4a82-8a7c-92e00c78d8d3");
+    private static final TestObject<TaskType> TASK_IMPORT_GROUPS = TestObject.file(TEST_DIR, "task-import-groups.xml", "e2edaa90-7624-4a82-8a7c-92e00c78d8d3");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

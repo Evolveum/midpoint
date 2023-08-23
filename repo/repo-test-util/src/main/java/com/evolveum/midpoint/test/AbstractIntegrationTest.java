@@ -4292,9 +4292,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 10000, 500);
     }
 
-    protected void deleteIfPresent(TestResource<?> resource, OperationResult result) throws SchemaException, IOException {
+    protected void deleteIfPresent(TestObject<?> testObject, OperationResult result) {
         try {
-            repositoryService.deleteObject(resource.getType(), resource.oid, result);
+            repositoryService.deleteObject(testObject.getType(), testObject.oid, result);
         } catch (ObjectNotFoundException e) {
             // ok
         }

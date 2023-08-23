@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -20,10 +20,10 @@ import org.springframework.test.context.ContextConfiguration;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestReconTaskMultiNode extends TestReconTask {
 
-    private static final TestResource<TaskType> TASK_RECONCILIATION_MULTINODE = new TestResource<>(TEST_DIR, "task-reconciliation-multinode.xml", "19418f29-096e-4d15-b3df-e579e33ca405");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_MULTINODE = TestObject.file(TEST_DIR, "task-reconciliation-multinode.xml", "19418f29-096e-4d15-b3df-e579e33ca405");
 
     @Override
-    TestResource<TaskType> getReconciliationTask() {
+    TestObject<TaskType> getReconciliationTask() {
         return TASK_RECONCILIATION_MULTINODE;
     }
 }

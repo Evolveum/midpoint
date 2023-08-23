@@ -46,7 +46,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -75,28 +75,28 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/bucketing-static");
 
-    private static final TestResource<TaskType> TASK_010 = new TestResource<>(TEST_DIR, "task-010.xml", "758f79bb-800c-42b2-8d85-44416a29d956");
-    private static final TestResource<TaskType> TASK_020 = new TestResource<>(TEST_DIR, "task-020.xml", "62490d1d-244c-4f36-b0d1-cc3a8df26743");
-    private static final TestResource<TaskType> TASK_030 = new TestResource<>(TEST_DIR, "task-030.xml", "6fdcfd71-ded8-4ce1-8197-0a785695fe70");
-    private static final TestResource<TaskType> TASK_040 = new TestResource<>(TEST_DIR, "task-040.xml", "31d5e04a-871e-42cf-8ec1-35fab4f0d706");
-    private static final TestResource<TaskType> TASK_050 = new TestResource<>(TEST_DIR, "task-050.xml", "7c86fb96-b959-4469-9c26-1e7fc5bc79ef");
+    private static final TestObject<TaskType> TASK_010 = TestObject.file(TEST_DIR, "task-010.xml", "758f79bb-800c-42b2-8d85-44416a29d956");
+    private static final TestObject<TaskType> TASK_020 = TestObject.file(TEST_DIR, "task-020.xml", "62490d1d-244c-4f36-b0d1-cc3a8df26743");
+    private static final TestObject<TaskType> TASK_030 = TestObject.file(TEST_DIR, "task-030.xml", "6fdcfd71-ded8-4ce1-8197-0a785695fe70");
+    private static final TestObject<TaskType> TASK_040 = TestObject.file(TEST_DIR, "task-040.xml", "31d5e04a-871e-42cf-8ec1-35fab4f0d706");
+    private static final TestObject<TaskType> TASK_050 = TestObject.file(TEST_DIR, "task-050.xml", "7c86fb96-b959-4469-9c26-1e7fc5bc79ef");
 
-    private static final TestResource<TaskType> TASK_100 = new TestResource<>(TEST_DIR, "task-100.xml", "b19b16ff-fe18-40ac-bf70-859f546a67ea");
-    private static final TestResource<TaskType> TASK_110 = new TestResource<>(TEST_DIR, "task-110.xml", "a4de3ebf-c9bb-4d25-bbaf-e73d89eea873");
-    private static final TestResource<TaskType> TASK_120 = new TestResource<>(TEST_DIR, "task-120.xml", "ec87b7cf-b7ee-43ce-92a2-4bc08c137b72");
-    private static final TestResource<TaskType> TASK_130 = new TestResource<>(TEST_DIR, "task-130.xml", "1339d0e9-eb92-4e1a-a48e-86406d1f37c1");
-    private static final TestResource<TaskType> TASK_140 = new TestResource<>(TEST_DIR, "task-140.xml", "c65a656e-75e9-4d03-a5bc-7e082a19bfb1");
-    private static final TestResource<TaskType> TASK_150 = new TestResource<>(TEST_DIR, "task-150.xml", "0a278190-ba8e-4684-b95a-57f5198ac8b3");
+    private static final TestObject<TaskType> TASK_100 = TestObject.file(TEST_DIR, "task-100.xml", "b19b16ff-fe18-40ac-bf70-859f546a67ea");
+    private static final TestObject<TaskType> TASK_110 = TestObject.file(TEST_DIR, "task-110.xml", "a4de3ebf-c9bb-4d25-bbaf-e73d89eea873");
+    private static final TestObject<TaskType> TASK_120 = TestObject.file(TEST_DIR, "task-120.xml", "ec87b7cf-b7ee-43ce-92a2-4bc08c137b72");
+    private static final TestObject<TaskType> TASK_130 = TestObject.file(TEST_DIR, "task-130.xml", "1339d0e9-eb92-4e1a-a48e-86406d1f37c1");
+    private static final TestObject<TaskType> TASK_140 = TestObject.file(TEST_DIR, "task-140.xml", "c65a656e-75e9-4d03-a5bc-7e082a19bfb1");
+    private static final TestObject<TaskType> TASK_150 = TestObject.file(TEST_DIR, "task-150.xml", "0a278190-ba8e-4684-b95a-57f5198ac8b3");
 
-    private static final TestResource<TaskType> TASK_200_COORDINATOR = new TestResource<>(TEST_DIR, "task-200-c.xml", "a021d1b0-eea3-4378-87b6-7ab8bf9ab537");
-    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "432c09ba-27d5-4012-a30e-6bd16a3ca07f");
+    private static final TestObject<TaskType> TASK_200_COORDINATOR = TestObject.file(TEST_DIR, "task-200-c.xml", "a021d1b0-eea3-4378-87b6-7ab8bf9ab537");
+    private static final TestObject<TaskType> TASK_200_WORKER = TestObject.file(TEST_DIR, "task-200-w.xml", "432c09ba-27d5-4012-a30e-6bd16a3ca07f");
 
-    private static final TestResource<TaskType> TASK_210_COORDINATOR = new TestResource<>(TEST_DIR, "task-210-c.xml", "336e4ded-82a6-432c-ade0-43844e59c3e4");
-    private static final TestResource<TaskType> TASK_210_WORKER_1 = new TestResource<>(TEST_DIR, "task-210-1.xml", "9ea3fea0-6028-47d8-81d6-304512dcbac3");
-    private static final TestResource<TaskType> TASK_210_WORKER_2 = new TestResource<>(TEST_DIR, "task-210-2.xml", "202ad211-43e9-416e-9e6e-dcb4c2c4d89f");
-    private static final TestResource<TaskType> TASK_210_WORKER_3 = new TestResource<>(TEST_DIR, "task-210-3.xml", "f9298cc6-174f-4a20-8703-bacc500fc53e");
-    private static final TestResource<TaskType> TASK_210_WORKER_4 = new TestResource<>(TEST_DIR, "task-210-4.xml", "f1bb0e85-abac-4e61-8a3a-f72d40f3e8d6");
-    private static final TestResource<TaskType> TASK_210_WORKER_5 = new TestResource<>(TEST_DIR, "task-210-5.xml", "81e31c90-6546-4055-8371-a34ef79f5117");
+    private static final TestObject<TaskType> TASK_210_COORDINATOR = TestObject.file(TEST_DIR, "task-210-c.xml", "336e4ded-82a6-432c-ade0-43844e59c3e4");
+    private static final TestObject<TaskType> TASK_210_WORKER_1 = TestObject.file(TEST_DIR, "task-210-1.xml", "9ea3fea0-6028-47d8-81d6-304512dcbac3");
+    private static final TestObject<TaskType> TASK_210_WORKER_2 = TestObject.file(TEST_DIR, "task-210-2.xml", "202ad211-43e9-416e-9e6e-dcb4c2c4d89f");
+    private static final TestObject<TaskType> TASK_210_WORKER_3 = TestObject.file(TEST_DIR, "task-210-3.xml", "f9298cc6-174f-4a20-8703-bacc500fc53e");
+    private static final TestObject<TaskType> TASK_210_WORKER_4 = TestObject.file(TEST_DIR, "task-210-4.xml", "f1bb0e85-abac-4e61-8a3a-f72d40f3e8d6");
+    private static final TestObject<TaskType> TASK_210_WORKER_5 = TestObject.file(TEST_DIR, "task-210-5.xml", "81e31c90-6546-4055-8371-a34ef79f5117");
 
     @PostConstruct
     public void initialize() throws Exception {

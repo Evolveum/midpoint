@@ -40,7 +40,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
 import com.evolveum.midpoint.schema.util.task.TaskTreeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -67,29 +67,29 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_0T_NB_NP =
-            new TestResource<>(TEST_DIR, "task-reconcile-dummy-0t-nb-np.xml", "a9b042dd-0a67-4829-b0c4-a51026af0070");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_2T_NB_NP =
-            new TestResource<>(TEST_DIR, "task-reconcile-dummy-2t-nb-np.xml", "944f7dbd-b221-4df3-b975-781c7794af6e");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED =
-            new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned.xml", "83eef280-d420-417a-929d-796eed202e02");
-    private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE
-            = new TestResource<>(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned-multinode.xml", "9a52b7a4-afda-4b22-932e-f45b9f90cf95");
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_0T_NB_NP =
+            TestObject.file(TEST_DIR, "task-reconcile-dummy-0t-nb-np.xml", "a9b042dd-0a67-4829-b0c4-a51026af0070");
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_2T_NB_NP =
+            TestObject.file(TEST_DIR, "task-reconcile-dummy-2t-nb-np.xml", "944f7dbd-b221-4df3-b975-781c7794af6e");
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED =
+            TestObject.file(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned.xml", "83eef280-d420-417a-929d-796eed202e02");
+    private static final TestObject<TaskType> TASK_RECONCILE_DUMMY_PARTITIONED_MULTINODE
+            = TestObject.file(TEST_DIR, "task-reconcile-dummy-interrupted-partitioned-multinode.xml", "9a52b7a4-afda-4b22-932e-f45b9f90cf95");
 
-    private static final TestResource<TaskType> TASK_RECOMPUTE_ROLES
-            = new TestResource<>(TEST_DIR, "task-recompute-roles.xml", "42869247-9bf1-4198-acea-3326f5ab2c34");
-    private static final TestResource<TaskType> TASK_RECOMPUTE_ROLES_MULTINODE
-            = new TestResource<>(TEST_DIR, "task-recompute-roles-multinode.xml", "c8cfe559-3888-4b39-b835-3aead9a46581");
+    private static final TestObject<TaskType> TASK_RECOMPUTE_ROLES =
+            TestObject.file(TEST_DIR, "task-recompute-roles.xml", "42869247-9bf1-4198-acea-3326f5ab2c34");
+    private static final TestObject<TaskType> TASK_RECOMPUTE_ROLES_MULTINODE =
+            TestObject.file(TEST_DIR, "task-recompute-roles-multinode.xml", "c8cfe559-3888-4b39-b835-3aead9a46581");
 
-    private static final TestResource<TaskType> METAROLE_SLOWING_DOWN
-            = new TestResource<>(TEST_DIR, "metarole-slowing-down.xml", "b7218b57-fb8a-4dfd-a4c0-976849a4640c");
+    private static final TestObject<TaskType> METAROLE_SLOWING_DOWN =
+            TestObject.file(TEST_DIR, "metarole-slowing-down.xml", "b7218b57-fb8a-4dfd-a4c0-976849a4640c");
 
-    private static final TestResource<TaskType> TASK_WITH_ERRORS
-            = new TestResource<>(TEST_DIR, "task-with-errors.xml", "cfcfa2d8-ba8a-45b3-af94-3a4e5774768a");
-    private static final TestResource<TaskType> TASK_WITH_ERRORS_CHILD_1
-            = new TestResource<>(TEST_DIR, "task-with-errors-child-1.xml", "3d288cce-898d-49b9-8987-ce9e6116bb0b");
-    private static final TestResource<TaskType> TASK_WITH_ERRORS_CHILD_2
-            = new TestResource<>(TEST_DIR, "task-with-errors-child-2.xml", "8d5909f6-7d8b-4c01-913b-42ba0bcf6ef7");
+    private static final TestObject<TaskType> TASK_WITH_ERRORS =
+            TestObject.file(TEST_DIR, "task-with-errors.xml", "cfcfa2d8-ba8a-45b3-af94-3a4e5774768a");
+    private static final TestObject<TaskType> TASK_WITH_ERRORS_CHILD_1 =
+            TestObject.file(TEST_DIR, "task-with-errors-child-1.xml", "3d288cce-898d-49b9-8987-ce9e6116bb0b");
+    private static final TestObject<TaskType> TASK_WITH_ERRORS_CHILD_2 =
+            TestObject.file(TEST_DIR, "task-with-errors-child-2.xml", "8d5909f6-7d8b-4c01-913b-42ba0bcf6ef7");
 
     private static final int USERS = 1000;
     private static final int ROLES = 1000;
@@ -211,7 +211,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void executePlainReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix)
+    private void executePlainReconciliation(TestObject<TaskType> reconciliationTask, String accountPrefix)
             throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
@@ -308,7 +308,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         }
     }
 
-    private void executePartitionedBucketedReconciliation(TestResource<TaskType> reconciliationTask, String accountPrefix,
+    private void executePartitionedBucketedReconciliation(TestObject<TaskType> reconciliationTask, String accountPrefix,
             int workers) throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
@@ -433,7 +433,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         executeRecomputation(TASK_RECOMPUTE_ROLES_MULTINODE, "ry", 2);
     }
 
-    private void executeRecomputation(TestResource<TaskType> recomputationTask, String rolePrefix, int workers) throws Exception {
+    private void executeRecomputation(TestObject<TaskType> recomputationTask, String rolePrefix, int workers) throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 

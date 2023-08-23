@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.intest.tasks;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ActivityStateAsserter;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -19,34 +19,34 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public abstract class TestThresholdsSingleTask extends TestThresholds {
 
-    private static final TestResource<TaskType> TASK_IMPORT_SIMULATE_SINGLE = new TestResource<>(TEST_DIR, "task-import-simulate-single.xml", "c615aa46-a890-45e6-ab4a-94f14fbd204f");
-    private static final TestResource<TaskType> TASK_IMPORT_SIMULATE_EXECUTE_SINGLE = new TestResource<>(TEST_DIR, "task-import-simulate-execute-single.xml", "046ee785-2b23-4ceb-ba41-7a183045be24");
+    private static final TestObject<TaskType> TASK_IMPORT_SIMULATE_SINGLE = TestObject.file(TEST_DIR, "task-import-simulate-single.xml", "c615aa46-a890-45e6-ab4a-94f14fbd204f");
+    private static final TestObject<TaskType> TASK_IMPORT_SIMULATE_EXECUTE_SINGLE = TestObject.file(TEST_DIR, "task-import-simulate-execute-single.xml", "046ee785-2b23-4ceb-ba41-7a183045be24");
     // import execute single is in superclass
-    private static final TestResource<TaskType> TASK_RECONCILIATION_SIMULATE_SINGLE = new TestResource<>(TEST_DIR, "task-reconciliation-simulate-single.xml", "4f0c53e1-c10e-486f-9552-d2db4bfc1240");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_SIMULATE_EXECUTE_SINGLE = new TestResource<>(TEST_DIR, "task-reconciliation-simulate-execute-single.xml", "29d2a62c-6c31-42a4-9364-ecfb0dad0825");
-    private static final TestResource<TaskType> TASK_RECONCILIATION_EXECUTE_SINGLE = new TestResource<>(TEST_DIR, "task-reconciliation-execute-single.xml", "7652ea69-c8bc-4320-a03e-ab37bb0accc7");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_SINGLE = TestObject.file(TEST_DIR, "task-reconciliation-simulate-single.xml", "4f0c53e1-c10e-486f-9552-d2db4bfc1240");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_EXECUTE_SINGLE = TestObject.file(TEST_DIR, "task-reconciliation-simulate-execute-single.xml", "29d2a62c-6c31-42a4-9364-ecfb0dad0825");
+    private static final TestObject<TaskType> TASK_RECONCILIATION_EXECUTE_SINGLE = TestObject.file(TEST_DIR, "task-reconciliation-execute-single.xml", "7652ea69-c8bc-4320-a03e-ab37bb0accc7");
 
-    TestResource<TaskType> getSimulateTask() {
+    TestObject<TaskType> getSimulateTask() {
         return TASK_IMPORT_SIMULATE_SINGLE;
     }
 
-    TestResource<TaskType> getSimulateExecuteTask() {
+    TestObject<TaskType> getSimulateExecuteTask() {
         return TASK_IMPORT_SIMULATE_EXECUTE_SINGLE;
     }
 
-    TestResource<TaskType> getExecuteTask() {
+    TestObject<TaskType> getExecuteTask() {
         return TASK_IMPORT_EXECUTE_SINGLE;
     }
 
-    TestResource<TaskType> getReconciliationSimulateTask() {
+    TestObject<TaskType> getReconciliationSimulateTask() {
         return TASK_RECONCILIATION_SIMULATE_SINGLE;
     }
 
-    TestResource<TaskType> getReconciliationSimulateExecuteTask() {
+    TestObject<TaskType> getReconciliationSimulateExecuteTask() {
         return TASK_RECONCILIATION_SIMULATE_EXECUTE_SINGLE;
     }
 
-    TestResource<TaskType> getReconciliationExecuteTask() {
+    TestObject<TaskType> getReconciliationExecuteTask() {
         return TASK_RECONCILIATION_EXECUTE_SINGLE;
     }
 
@@ -56,7 +56,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest100Task(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest100Task(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         var asserter = assertTaskTree(importTask.oid, "after")
                 .assertSuspended()
@@ -77,7 +77,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest100TaskAfterRepeatedExecution(TestResource<TaskType> importTask)
+    void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask)
             throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         var asserter2 = assertTaskTree(importTask.oid, "after repeated execution")
@@ -102,7 +102,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest110TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest110TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .assertSuspended()
@@ -128,7 +128,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest120TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest120TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .assertSuspended()
@@ -153,7 +153,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
         // @formatter:on
     }
 
-    void assertTest200TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest200TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         var asserter = assertTaskTree(importTask.oid, "task after")
                 .assertSuspended()
@@ -175,7 +175,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
         additionalTest200Asserts(asserter);
     }
 
-    void assertTest200TaskAfterRepeatedExecution(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         var asserter2 = assertTaskTree(importTask.oid, "task after repeated execution")
                 .assertSuspended()
@@ -196,7 +196,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest210TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest210TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .assertSuspended()
@@ -221,7 +221,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest220TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest220TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .assertSuspended()
@@ -236,7 +236,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
         // @formatter:on
     }
 
-    void assertTest300TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest300TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .assertClosed()
@@ -269,7 +269,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest310TaskAfter(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest310TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
                 .assertClosed()
@@ -304,7 +304,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest400TaskAfter(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest400TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
                 .display()
@@ -320,7 +320,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest400TaskAfterRepeatedExecution(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest400TaskAfterRepeatedExecution(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         var asserter = assertTaskTree(reconTask.oid, "after repeated execution")
                 .assertSuspended()
@@ -337,7 +337,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest410TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest410TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .display()
@@ -371,7 +371,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    void assertTest420TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
+    void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
                 .display()

@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -27,31 +27,31 @@ public class TestThresholdsStoryReconExecute extends TestThresholdsStoryRecon {
     /**
      * This task is used for common import tests drive by the superclass.
      */
-    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_EXECUTE = new TestResource<>(TEST_DIR,
+    private static final TestObject<TaskType> TASK_RECONCILE_OPENDJ_EXECUTE = TestObject.file(TEST_DIR,
             "task-opendj-reconcile-execute.xml", "20335c7c-838f-11e8-93a6-4b1dd0ab58e4");
 
     /**
      * This task is used in test600+test610 that check for obeying user deletion policy rule.
      * The mode is simulate + execute, so no deletion will take place.
      */
-    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE = new TestResource<>(TEST_DIR,
+    private static final TestObject<TaskType> TASK_RECONCILE_OPENDJ_DELETED_SIMULATE_EXECUTE = TestObject.file(TEST_DIR,
             "task-opendj-reconcile-deleted-simulate-execute.xml", "449c3ab7-d50b-4ffa-b72f-9ea238fe2553");
 
     /**
      * This task is used in test620 that checks for obeying user deletion policy rule.
      * The mode is plain execute, so first two objects will be deleted.
      */
-    private static final TestResource<TaskType> TASK_RECONCILE_OPENDJ_DELETED_EXECUTE = new TestResource<>(TEST_DIR,
+    private static final TestObject<TaskType> TASK_RECONCILE_OPENDJ_DELETED_EXECUTE = TestObject.file(TEST_DIR,
             "task-opendj-reconcile-deleted-execute.xml", "2ae8a1ef-c9f4-4312-a1d1-9b04805b1953");
 
     /**
      * This role is assigned to the two "deleted" tasks above.
      */
-    private static final TestResource<TaskType> ROLE_STOP_ON_3RD_USER_DELETION = new TestResource<>(TEST_DIR,
+    private static final TestObject<TaskType> ROLE_STOP_ON_3RD_USER_DELETION = TestObject.file(TEST_DIR,
             "role-stop-on-3rd-user-deletion.xml", "ad3b7db8-15ea-4b47-87bc-3e75ff949a0f");
 
     @Override
-    protected TestResource<TaskType> getTaskTestResource() {
+    protected TestObject<TaskType> getTaskTestResource() {
         return TASK_RECONCILE_OPENDJ_EXECUTE;
     }
 

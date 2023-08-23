@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,11 +40,11 @@ public class TestPreviewSequences extends AbstractConfiguredModelIntegrationTest
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<SequenceType> SEQUENCE_EXAMPLE = new TestResource<>(TEST_DIR, "sequence.xml", "5e5731aa-476c-477b-b02e-372252004813");
+    private static final TestObject<SequenceType> SEQUENCE_EXAMPLE = TestObject.file(TEST_DIR, "sequence.xml", "5e5731aa-476c-477b-b02e-372252004813");
 
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_SIMULATION = new TestResource<>(TEST_DIR, "object-template-simulation.xml", "10a8c24d-7031-4342-b20c-805e174b93a5");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_SIMULATION = TestObject.file(TEST_DIR, "object-template-simulation.xml", "10a8c24d-7031-4342-b20c-805e174b93a5");
 
-    private static final TestResource<UserType> USER_CHAD = new TestResource<>(TEST_DIR, "user-chad.xml");
+    private static final TestObject<UserType> USER_CHAD = TestObject.file(TEST_DIR, "user-chad.xml");
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -58,7 +58,7 @@ public class TestPreviewSequences extends AbstractConfiguredModelIntegrationTest
         addObject(OBJECT_TEMPLATE_SIMULATION, initTask, initResult);
         addObject(SEQUENCE_EXAMPLE, initTask, initResult);
 
-        TestResource.getAll(USER_CHAD);
+        TestObject.getAll(USER_CHAD);
     }
 
     @Test

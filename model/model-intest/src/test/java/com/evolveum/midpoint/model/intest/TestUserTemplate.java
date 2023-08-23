@@ -45,7 +45,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -70,9 +70,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     private static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
     private static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
 
-    private static final TestResource<?> USER_TEMPLATE_MID_5892 = new TestResource<>(
+    private static final TestObject<?> USER_TEMPLATE_MID_5892 = TestObject.file(
             TEST_DIR, "user-template-mid-5892.xml", "064993c0-34b4-4440-9331-e909fc923504");
-    private static final TestResource<?> USER_TEMPLATE_MID_6045 = new TestResource<>(
+    private static final TestObject<?> USER_TEMPLATE_MID_6045 = TestObject.file(
             TEST_DIR, "user-template-mid-6045.xml", "f3dbd582-11dc-473f-8b51-a30be5cbd5ce");
 
     private static final String ACCOUNT_STAN_USERNAME = "stan";

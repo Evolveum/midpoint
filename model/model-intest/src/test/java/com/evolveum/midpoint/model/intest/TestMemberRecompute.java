@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -56,9 +56,9 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_USER = new TestResource<>(TEST_DIR, "template-user.xml", "7d6bf307-58c2-4ea9-8599-19586623b41a");
-    private static final TestResource<ArchetypeType> ARCHETYPE_DEPARTMENT = new TestResource<>(TEST_DIR, "archetype-department.xml", "b685545e-995f-45e0-8d32-92cd3781ef54");
-    private static final TestResource<ArchetypeType> ARCHETYPE_CLUB = new TestResource<>(TEST_DIR, "archetype-club.xml", "fefa9261-b897-439c-ad79-15f10d547bba");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_USER = TestObject.file(TEST_DIR, "template-user.xml", "7d6bf307-58c2-4ea9-8599-19586623b41a");
+    private static final TestObject<ArchetypeType> ARCHETYPE_DEPARTMENT = TestObject.file(TEST_DIR, "archetype-department.xml", "b685545e-995f-45e0-8d32-92cd3781ef54");
+    private static final TestObject<ArchetypeType> ARCHETYPE_CLUB = TestObject.file(TEST_DIR, "archetype-club.xml", "fefa9261-b897-439c-ad79-15f10d547bba");
 
     private static final String ATTR_DISPLAY_NAME = "displayName";
 
@@ -72,17 +72,17 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
     private static final String CLUB_CHESS_NAME = "chess";
     private static final String CLUB_CHESS_DISPLAY_NAME = "Chess Club";
 
-    private static final TestResource<TaskType> TASK_RECONCILE_CLUBS = new TestResource<>(TEST_DIR, "task-reconcile-clubs.xml", "8d6f6a54-cfdc-4439-9f6a-06ff2a0ba273");
+    private static final TestObject<TaskType> TASK_RECONCILE_CLUBS = TestObject.file(TEST_DIR, "task-reconcile-clubs.xml", "8d6f6a54-cfdc-4439-9f6a-06ff2a0ba273");
 
-    private static final TestResource<OrgType> ORG_DCS = new TestResource<>(TEST_DIR, "org-dcs.xml", "67720733-9de6-47da-b856-ce063c4a6659");
-    private static final TestResource<OrgType> ORG_CC = new TestResource<>(TEST_DIR, "org-cc.xml", "08a8fe26-e8b6-4005-b23d-e7dc1472b209");
-    private static final TestResource<OrgType> ORG_IT_STAFF = new TestResource<>(TEST_DIR, "org-it-staff.xml", "51726874-de60-42f1-aab4-a4afb0702833");
+    private static final TestObject<OrgType> ORG_DCS = TestObject.file(TEST_DIR, "org-dcs.xml", "67720733-9de6-47da-b856-ce063c4a6659");
+    private static final TestObject<OrgType> ORG_CC = TestObject.file(TEST_DIR, "org-cc.xml", "08a8fe26-e8b6-4005-b23d-e7dc1472b209");
+    private static final TestObject<OrgType> ORG_IT_STAFF = TestObject.file(TEST_DIR, "org-it-staff.xml", "51726874-de60-42f1-aab4-a4afb0702833");
 
-    private static final TestResource<UserType> USER_ALICE = new TestResource<>(TEST_DIR, "user-alice.xml", "aaeff30f-00ba-4b76-aed1-3d29081e0104");
-    private static final TestResource<UserType> USER_BOB = new TestResource<>(TEST_DIR, "user-bob.xml", "fbbaa4a8-f159-49f6-a019-987e54ab58e6");
-    private static final TestResource<UserType> USER_CHUCK = new TestResource<>(TEST_DIR, "user-chuck.xml", "e5434ddf-8571-4eb7-bf6f-33904653549e");
+    private static final TestObject<UserType> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "aaeff30f-00ba-4b76-aed1-3d29081e0104");
+    private static final TestObject<UserType> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "fbbaa4a8-f159-49f6-a019-987e54ab58e6");
+    private static final TestObject<UserType> USER_CHUCK = TestObject.file(TEST_DIR, "user-chuck.xml", "e5434ddf-8571-4eb7-bf6f-33904653549e");
 
-    private static final TestResource<TaskType> TASK_TEMPLATE_RECOMPUTE_MEMBERS = new TestResource<>(TEST_DIR, "task-template-recompute-members.xml", "9c50ac7e-73c0-45cf-85e7-9a94959242f9");
+    private static final TestObject<TaskType> TASK_TEMPLATE_RECOMPUTE_MEMBERS = TestObject.file(TEST_DIR, "task-template-recompute-members.xml", "9c50ac7e-73c0-45cf-85e7-9a94959242f9");
     private static final String TASK_TRIGGER_CLUB_MEMBERS_RECOMPUTATION_NAME = "Trigger club members recomputation";
 
     private DummyGroup groupPokerClub, groupChessClub;
@@ -159,12 +159,12 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
         assignOrg(USER_CHUCK.oid, chessClubOid, initTask, initResult);
     }
 
-    private void createUsers(String namePattern, int count, Task task, OperationResult result, TestResource<?>... targets)
+    private void createUsers(String namePattern, int count, Task task, OperationResult result, TestObject<?>... targets)
             throws CommonException {
         for (int i = 0; i < count; i++) {
             UserType user = new UserType()
                     .name(String.format(namePattern, i));
-            for (TestResource<?> target : targets) {
+            for (TestObject<?> target : targets) {
                 user.getAssignment().add(ObjectTypeUtil.createAssignmentTo(target.get(), SchemaConstants.ORG_DEFAULT));
             }
             addObject(user, task, result);

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -53,7 +53,7 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
 
     abstract Class<F> getType();
 
-    abstract TestResource<?> getTestResource();
+    abstract TestObject<?> getTestResource();
 
     private String getOid() {
         return getTestResource().oid;

@@ -402,7 +402,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         importObjectFromFile(new File(filename));
     }
 
-    // TODO reconcile with TestResource.importObject method (they use similar but distinct model APIs)
+    // TODO reconcile with TestObject.importObject method (they use similar but distinct model APIs)
     protected void importObject(TestObject<?> testObject, Task task, OperationResult result) throws IOException {
         OperationResult subresult = result.createSubresult("importObject");
         try (InputStream stream = testObject.getInputStream()) {
@@ -5714,12 +5714,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return object.getOid();
     }
 
-    protected <O extends ObjectType> String addAndRecompute(TestResource<O> testResource, Task task, OperationResult result)
+    protected <O extends ObjectType> String addAndRecompute(TestObject<O> testObject, Task task, OperationResult result)
             throws Exception {
-        PrismObject<O> object = repoAdd(testResource, result);
+        PrismObject<O> object = repoAdd(testObject, result);
         modelService.recompute(object.asObjectable().getClass(), object.getOid(), null, task, result);
-        testResource.reload(createSimpleModelObjectResolver(), result);
-        return testResource.get().getOid();
+        testObject.reload(createSimpleModelObjectResolver(), result);
+        return testObject.get().getOid();
     }
 
     protected void assertAuditReferenceValue(AuditEventRecord event, String refName, String oid, QName type, String name) {
@@ -7157,10 +7157,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> void refresh(TestResource<T> resource, OperationResult result)
+    protected <T extends ObjectType> void refresh(TestObject<T> testObject, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        resource.reload(createSimpleModelObjectResolver(), result);
+        testObject.reload(createSimpleModelObjectResolver(), result);
     }
 
     protected ModelExecuteOptions executeOptions() {

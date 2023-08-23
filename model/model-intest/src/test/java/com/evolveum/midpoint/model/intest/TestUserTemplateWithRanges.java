@@ -10,9 +10,9 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -28,9 +28,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * User template with "mapping range" features.
@@ -52,7 +49,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
     private static final File USER_TEMPLATE_RANGES_FILE = new File(TEST_DIR, "user-template-ranges.xml");
     private static final String USER_TEMPLATE_RANGES_OID = "f486e3a7-6970-416e-8fe2-995358f59c46";
 
-    private static final TestResource USER_TEMPLATE_MID_5953 = new TestResource(TEST_DIR, "user-template-mid-5953.xml", "55acacd1-2b42-4af1-9e98-d2d54293e4e9");
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_MID_5953 = TestObject.file(
+            TEST_DIR, "user-template-mid-5953.xml", "55acacd1-2b42-4af1-9e98-d2d54293e4e9");
 
     private static final String SUBTYPE_MID_5953 = "mid-5953"; // range application in inactive (condition false->false) mappings
 

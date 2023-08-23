@@ -42,7 +42,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -66,7 +66,7 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final String ACCOUNT_RISKY_USERNAME = "risky";
     private static final String ACCOUNT_GDPR_USERNAME = "gdpr";
 
-    private static final TestResource<RoleType> ROLE_WHEEL = new TestResource<>(TEST_DIR, "role-wheel.xml", "ad1782d5-48ae-4f86-a26b-efea45d88f3c");
+    private static final TestObject<RoleType> ROLE_WHEEL = TestObject.file(TEST_DIR, "role-wheel.xml", "ad1782d5-48ae-4f86-a26b-efea45d88f3c");
     private static final String GROUP_WHEEL_NAME = "wheel";
 
     private static final TestTask TASK_LIVE_SYNC_DUMMY_TEA_GREEN = new TestTask(
@@ -84,8 +84,8 @@ public class TestMappingInbound extends AbstractMappingTest {
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_ROLE_NAME = "roleName";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_ARCHETYPE_NAME = "archetypeName";
 
-    private static final TestResource<RoleType> ROLE_SIMPLE = new TestResource<>(TEST_DIR, "role-simple.xml", "dc2b28f4-3aab-4212-8ab7-c4f5fc0c511a");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PIRATE = new TestResource<>(TEST_DIR, "archetype-pirate.xml", "0bb1d8df-501d-4648-9d36-c8395df95183");
+    private static final TestObject<RoleType> ROLE_SIMPLE = TestObject.file(TEST_DIR, "role-simple.xml", "dc2b28f4-3aab-4212-8ab7-c4f5fc0c511a");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PIRATE = TestObject.file(TEST_DIR, "archetype-pirate.xml", "0bb1d8df-501d-4648-9d36-c8395df95183");
 
     private static final DummyTestResource RESOURCE_DUMMY_TEA_GREEN = new DummyTestResource(
             TEST_DIR, "resource-dummy-tea-green.xml", "10000000-0000-0000-0000-00000000c404", "tea-green",
@@ -117,7 +117,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                             ATTR_PHOTO, byte[].class, false, false)
                             .setReturnedByDefault(false));
 
-    private static final TestResource<TaskType> TASK_IMPORT_TARGET_PHOTOS = new TestResource<>(
+    private static final TestObject<TaskType> TASK_IMPORT_TARGET_PHOTOS = TestObject.file(
             TEST_DIR, "task-import-target-photos.xml", "734cca6b-0012-4e43-888b-9717deedd8bc");
 
     private ProtectedStringType mancombLocker;

@@ -37,7 +37,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -133,10 +133,10 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     @SuppressWarnings("unused")
     protected static final String ROLE_CORP_AUTH_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
 
-    static final TestResource<UserType> USER_LOCALIZED =
-            new TestResource<>(TEST_DIR, "user-localized.xml", "c46f4b09-2200-4977-88bc-da1f3ffd0b42");
-    static final TestResource<RoleType> ROLE_LOCALIZED =
-            new TestResource<>(TEST_DIR, "role-localized.xml", "25294519-5e0e-44d4-bebc-ea549d850ed9");
+    static final TestObject<UserType> USER_LOCALIZED =
+            TestObject.file(TEST_DIR, "user-localized.xml", "c46f4b09-2200-4977-88bc-da1f3ffd0b42");
+    static final TestObject<RoleType> ROLE_LOCALIZED =
+            TestObject.file(TEST_DIR, "role-localized.xml", "25294519-5e0e-44d4-bebc-ea549d850ed9");
 
     static final File[] ROLE_CORP_FILES = {
             ROLE_METAROLE_SOD_NOTIFICATION_FILE,

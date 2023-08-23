@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -59,7 +59,7 @@ public class TestEnergy extends AbstractStoryTest {
                         "dummy", String.class, false, false); // just to make resource feel its schema is extended
             });
 
-    private static final TestResource<TaskType> TASK_RECONCILE_AD = new TestResource<>(TEST_DIR, "task-reconcile-ad.xml", "51bbde22-9c4e-4d04-8daf-5fef7043a368");
+    private static final TestObject<TaskType> TASK_RECONCILE_AD = TestObject.file(TEST_DIR, "task-reconcile-ad.xml", "51bbde22-9c4e-4d04-8daf-5fef7043a368");
     private static final String INTENT_GROUP = "group";
     private static final String INTENT_WRONG = "wrong";
 

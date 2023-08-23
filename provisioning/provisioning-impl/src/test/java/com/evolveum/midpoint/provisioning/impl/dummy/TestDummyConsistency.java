@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -70,7 +70,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     private static final String ACCOUNT_MURRAY_USERNAME = "murray";
     private static final String ACCOUNT_MURRAY_FULL_NAME = "Murray";
 
-    private static final TestResource<ShadowType> ACCOUNT_LATE = new TestResource<>(TEST_DIR, "account-late.xml", "9f2bc5b3-61ea-4b59-9ee4-901affe5c8c8");
+    private static final TestObject<ShadowType> ACCOUNT_LATE = TestObject.file(TEST_DIR, "account-late.xml", "9f2bc5b3-61ea-4b59-9ee4-901affe5c8c8");
 
     private XMLGregorianCalendar lastRequestStartTs;
     private XMLGregorianCalendar lastRequestEndTs;

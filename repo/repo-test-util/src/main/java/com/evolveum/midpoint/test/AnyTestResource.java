@@ -22,8 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * Represents arbitrary {@link ResourceType} resource to be used in tests.
  *
- * TODO better name (but {@link TestResource} should be deleted/renamed first
- *
  * @see CsvTestResource
  * @see DummyTestResource
  */

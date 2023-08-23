@@ -43,7 +43,7 @@ import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -88,65 +88,65 @@ public class TestStrings extends AbstractStoryTest {
     private static final File USERS_DIR = new File(TEST_DIR, "users");
 
     private static final File ORG_MONKEY_ISLAND_FILE = new File(ORG_DIR, "0-org-monkey-island-modified.xml");
-    private static final TestResource<OrgType> ORG_TEAMS =
-            new TestResource<>(ORG_DIR, "1-teams.xml", "b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54");
-    private static final TestResource<OrgType> ORG_ROLE_CATALOG =
-            new TestResource<>(ORG_DIR, "2-role-catalog.xml", "b77c512a-85b9-470e-a7ab-a55b8f187674");
-    private static final TestResource<OrgType> ORG_SECURITY_APPROVERS =
-            new TestResource<>(ORG_DIR, "security-approvers.xml", "a14afc10-e4a2-48a4-abfd-e8a2399f98d3");
-    private static final TestResource<OrgType> ORG_SOD_APPROVERS =
-            new TestResource<>(ORG_DIR, "sod-approvers.xml", "cb73377a-da8d-4fbe-b174-19879bae9032");
+    private static final TestObject<OrgType> ORG_TEAMS =
+            TestObject.file(ORG_DIR, "1-teams.xml", "b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54");
+    private static final TestObject<OrgType> ORG_ROLE_CATALOG =
+            TestObject.file(ORG_DIR, "2-role-catalog.xml", "b77c512a-85b9-470e-a7ab-a55b8f187674");
+    private static final TestObject<OrgType> ORG_SECURITY_APPROVERS =
+            TestObject.file(ORG_DIR, "security-approvers.xml", "a14afc10-e4a2-48a4-abfd-e8a2399f98d3");
+    private static final TestObject<OrgType> ORG_SOD_APPROVERS =
+            TestObject.file(ORG_DIR, "sod-approvers.xml", "cb73377a-da8d-4fbe-b174-19879bae9032");
 
-    private static final TestResource<RoleType> ROLE_END_USER =
-            new TestResource<>(ROLES_DIR, "role-end-user.xml", "00000000-0000-0000-0000-000000000008");
-    private static final TestResource<FormType> FORM_USER_DETAILS =
-            new TestResource<>(ROLES_DIR, "form-user-details.xml", "6a1874a7-1e60-43b3-8d67-7f76484dead5");
-    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FIRST =
-            new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-first.xml", "e3c28c94-798a-4f93-85f8-de7cbe37315b");
-    private static final TestResource<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FORM =
-            new TestResource<>(ROLES_DIR, "metarole-approval-role-approvers-form.xml", "df092a19-68f0-4056-adf8-482f8fd26410");
-    private static final TestResource<RoleType> METAROLE_APPROVAL_SECURITY =
-            new TestResource<>(ROLES_DIR, "metarole-approval-security.xml", "9c0c224f-f279-44b5-b906-8e8418a651a2");
+    private static final TestObject<RoleType> ROLE_END_USER =
+            TestObject.file(ROLES_DIR, "role-end-user.xml", "00000000-0000-0000-0000-000000000008");
+    private static final TestObject<FormType> FORM_USER_DETAILS =
+            TestObject.file(ROLES_DIR, "form-user-details.xml", "6a1874a7-1e60-43b3-8d67-7f76484dead5");
+    private static final TestObject<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FIRST =
+            TestObject.file(ROLES_DIR, "metarole-approval-role-approvers-first.xml", "e3c28c94-798a-4f93-85f8-de7cbe37315b");
+    private static final TestObject<RoleType> METAROLE_APPROVAL_ROLE_APPROVERS_FORM =
+            TestObject.file(ROLES_DIR, "metarole-approval-role-approvers-form.xml", "df092a19-68f0-4056-adf8-482f8fd26410");
+    private static final TestObject<RoleType> METAROLE_APPROVAL_SECURITY =
+            TestObject.file(ROLES_DIR, "metarole-approval-security.xml", "9c0c224f-f279-44b5-b906-8e8418a651a2");
 
-    private static final TestResource<RoleType> ROLE_A_TEST_1 =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-1.xml", "0daa49bc-6f5b-4746-8461-2e1a633070e3");
-    private static final TestResource<RoleType> ROLE_A_TEST_2A =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-2a.xml", "fa636d6a-f016-491c-8cd5-cdcbfd516be5");
-    private static final TestResource<RoleType> ROLE_A_TEST_2B =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-2b.xml", "ecb9287d-5852-4bec-9926-4ab1de518e26");
-    private static final TestResource<RoleType> ROLE_A_TEST_3A =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3a.xml", "3dc7e7de-17a8-488d-ba98-402971999138");
-    private static final TestResource<RoleType> ROLE_A_TEST_3B =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3b.xml", "0090e8a0-05a7-4181-b763-265cd2804ca7");
-    private static final TestResource<RoleType> ROLE_A_TEST_3X =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3x.xml", "d3767689-cf26-4e2f-8a1e-5cd139fc4401");
-    private static final TestResource<RoleType> ROLE_A_TEST_3Y =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-3y.xml", "1e422483-997c-4808-bebd-0151d18a391e");
-    private static final TestResource<RoleType> ROLE_A_TEST_4 =
-            new TestResource<>(ROLES_SPECIFIC_DIR, "a-test-4.xml", "37e5a590-ab32-4e4f-8c73-64715a9b081d");
+    private static final TestObject<RoleType> ROLE_A_TEST_1 =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-1.xml", "0daa49bc-6f5b-4746-8461-2e1a633070e3");
+    private static final TestObject<RoleType> ROLE_A_TEST_2A =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-2a.xml", "fa636d6a-f016-491c-8cd5-cdcbfd516be5");
+    private static final TestObject<RoleType> ROLE_A_TEST_2B =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-2b.xml", "ecb9287d-5852-4bec-9926-4ab1de518e26");
+    private static final TestObject<RoleType> ROLE_A_TEST_3A =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-3a.xml", "3dc7e7de-17a8-488d-ba98-402971999138");
+    private static final TestObject<RoleType> ROLE_A_TEST_3B =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-3b.xml", "0090e8a0-05a7-4181-b763-265cd2804ca7");
+    private static final TestObject<RoleType> ROLE_A_TEST_3X =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-3x.xml", "d3767689-cf26-4e2f-8a1e-5cd139fc4401");
+    private static final TestObject<RoleType> ROLE_A_TEST_3Y =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-3y.xml", "1e422483-997c-4808-bebd-0151d18a391e");
+    private static final TestObject<RoleType> ROLE_A_TEST_4 =
+            TestObject.file(ROLES_SPECIFIC_DIR, "a-test-4.xml", "37e5a590-ab32-4e4f-8c73-64715a9b081d");
 
-    private static final TestResource<UserType> USER_BARKEEPER =
-            new TestResource<>(USERS_DIR, "barkeeper.xml", "b87eb285-b4ae-43c0-9e4c-7ba651de81fa");
-    private static final TestResource<UserType> USER_BOB =
-            new TestResource<>(USERS_DIR, "bob.xml", "469fd663-4492-4c24-8ce3-3907df7ac7ec");
-    private static final TestResource<UserType> USER_CARLA =
-            new TestResource<>(USERS_DIR, "carla.xml", "f9be8006-fd58-43f9-99ff-311935d9d3d3");
-    private static final TestResource<UserType> USER_CHEESE =
-            new TestResource<>(USERS_DIR, "cheese.xml", "b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04");
-    private static final TestResource<UserType> USER_CHEF =
-            new TestResource<>(USERS_DIR, "chef.xml", "60dd9e6b-7403-4075-bcfa-d4566a552d41");
-    private static final TestResource<UserType> USER_ELAINE =
-            new TestResource<>(USERS_DIR, "elaine.xml", "771d00e6-792a-4296-8b4e-c4f59f712e0f");
-    private static final TestResource<UserType> USER_GUYBRUSH =
-            new TestResource<>(USERS_DIR, "guybrush.xml", "47f403ae-5a22-4226-aab9-cd321a62d6d3");
-    private static final TestResource<UserType> USER_LECHUCK =
-            new TestResource<>(USERS_DIR, "lechuck.xml", "058cf8d5-01ec-4818-87cc-6477b1a6505f");
-    private static final TestResource<UserType> USER_LECHUCK_DEPUTY =
-            new TestResource<>(USERS_DIR, "lechuck-deputy.xml", "0dde9c33-822f-4798-9fda-b3280edf6efa");
-    private static final TestResource<UserType> USER_LECHUCK_DEPUTY_DEPUTY =
-            new TestResource<>(USERS_DIR, "lechuck-deputy-deputy.xml", "120effb1-1122-40bd-847f-1d898148b7ce");
-    private static final TestResource<UserType> USER_LECHUCK_DEPUTY_LIMITED =
-            new TestResource<>(USERS_DIR, "lechuck-deputy-limited.xml", "7a194af0-792a-4e76-bb0b-a8367a68970a");
+    private static final TestObject<UserType> USER_BARKEEPER =
+            TestObject.file(USERS_DIR, "barkeeper.xml", "b87eb285-b4ae-43c0-9e4c-7ba651de81fa");
+    private static final TestObject<UserType> USER_BOB =
+            TestObject.file(USERS_DIR, "bob.xml", "469fd663-4492-4c24-8ce3-3907df7ac7ec");
+    private static final TestObject<UserType> USER_CARLA =
+            TestObject.file(USERS_DIR, "carla.xml", "f9be8006-fd58-43f9-99ff-311935d9d3d3");
+    private static final TestObject<UserType> USER_CHEESE =
+            TestObject.file(USERS_DIR, "cheese.xml", "b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04");
+    private static final TestObject<UserType> USER_CHEF =
+            TestObject.file(USERS_DIR, "chef.xml", "60dd9e6b-7403-4075-bcfa-d4566a552d41");
+    private static final TestObject<UserType> USER_ELAINE =
+            TestObject.file(USERS_DIR, "elaine.xml", "771d00e6-792a-4296-8b4e-c4f59f712e0f");
+    private static final TestObject<UserType> USER_GUYBRUSH =
+            TestObject.file(USERS_DIR, "guybrush.xml", "47f403ae-5a22-4226-aab9-cd321a62d6d3");
+    private static final TestObject<UserType> USER_LECHUCK =
+            TestObject.file(USERS_DIR, "lechuck.xml", "058cf8d5-01ec-4818-87cc-6477b1a6505f");
+    private static final TestObject<UserType> USER_LECHUCK_DEPUTY =
+            TestObject.file(USERS_DIR, "lechuck-deputy.xml", "0dde9c33-822f-4798-9fda-b3280edf6efa");
+    private static final TestObject<UserType> USER_LECHUCK_DEPUTY_DEPUTY =
+            TestObject.file(USERS_DIR, "lechuck-deputy-deputy.xml", "120effb1-1122-40bd-847f-1d898148b7ce");
+    private static final TestObject<UserType> USER_LECHUCK_DEPUTY_LIMITED =
+            TestObject.file(USERS_DIR, "lechuck-deputy-limited.xml", "7a194af0-792a-4e76-bb0b-a8367a68970a");
 
     private static final File CONFIG_WITH_GLOBAL_RULES_FILE = new File(ROLES_DIR, "global-policy-rules.xml");
 

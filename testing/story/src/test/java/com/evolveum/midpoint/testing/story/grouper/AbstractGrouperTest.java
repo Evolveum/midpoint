@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AnyTestResource;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,27 +46,27 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
 
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<FunctionLibraryType> LIB_GROUPER = new TestResource<>(TEST_DIR, "function-library-grouper.xml", "2eef4181-25fa-420f-909d-846a36ca90f3");
+    private static final TestObject<FunctionLibraryType> LIB_GROUPER = TestObject.file(TEST_DIR, "function-library-grouper.xml", "2eef4181-25fa-420f-909d-846a36ca90f3");
 
     static final AnyTestResource RESOURCE_LDAP = AnyTestResource.file(TEST_DIR, "resource-ldap.xml", "0a37121f-d515-4a23-9b6d-554c5ef61272");
 
     private static final String GROUPER_DUMMY_RESOURCE_ID = "grouper";
     static final DummyTestResource RESOURCE_GROUPER = new DummyTestResource(TEST_DIR, "resource-grouper.xml", "1eff65de-5bb6-483d-9edf-8cc2c2ee0233", GROUPER_DUMMY_RESOURCE_ID);
 
-    private static final TestResource<RoleType> METAROLE_GROUPER_PROVIDED_GROUP = new TestResource<>(TEST_DIR, "metarole-grouper-provided-group.xml", "bcaec940-50c8-44bb-aa37-b2b5bb2d5b90");
-    private static final TestResource<RoleType> METAROLE_LDAP_GROUP = new TestResource<>(TEST_DIR, "metarole-ldap-group.xml", "8da46694-bd71-4e1e-bfd7-73865ae2ea9a");
+    private static final TestObject<RoleType> METAROLE_GROUPER_PROVIDED_GROUP = TestObject.file(TEST_DIR, "metarole-grouper-provided-group.xml", "bcaec940-50c8-44bb-aa37-b2b5bb2d5b90");
+    private static final TestObject<RoleType> METAROLE_LDAP_GROUP = TestObject.file(TEST_DIR, "metarole-ldap-group.xml", "8da46694-bd71-4e1e-bfd7-73865ae2ea9a");
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_AFFILIATION = new TestResource<>(TEST_DIR, "archetype-affiliation.xml", "56f53812-047d-4b69-83e8-519a73d161e1");
-    private static final TestResource<OrgType> ORG_AFFILIATIONS = new TestResource<>(TEST_DIR, "org-affiliations.xml", "1d7c0e3a-4456-409c-9f50-95407b2eb785");
+    private static final TestObject<ArchetypeType> ARCHETYPE_AFFILIATION = TestObject.file(TEST_DIR, "archetype-affiliation.xml", "56f53812-047d-4b69-83e8-519a73d161e1");
+    private static final TestObject<OrgType> ORG_AFFILIATIONS = TestObject.file(TEST_DIR, "org-affiliations.xml", "1d7c0e3a-4456-409c-9f50-95407b2eb785");
 
-    static final TestResource<RoleType> ROLE_LDAP_BASIC = new TestResource<>(TEST_DIR, "role-ldap-basic.xml", "c89f31dd-8d4f-4e0a-82cb-58ff9d8c1b2f");
+    static final TestObject<RoleType> ROLE_LDAP_BASIC = TestObject.file(TEST_DIR, "role-ldap-basic.xml", "c89f31dd-8d4f-4e0a-82cb-58ff9d8c1b2f");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_USER = new TestResource<>(TEST_DIR, "template-user.xml", "8098b124-c20c-4965-8adf-e528abedf7a4");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_USER = TestObject.file(TEST_DIR, "template-user.xml", "8098b124-c20c-4965-8adf-e528abedf7a4");
 
-    static final TestResource<UserType> USER_BANDERSON = new TestResource<>(TEST_DIR, "user-banderson.xml", "4f439db5-181e-4297-9f7d-b3115524dbe8");
-    static final TestResource<UserType> USER_JLEWIS685 = new TestResource<>(TEST_DIR, "user-jlewis685.xml", "8b7bd936-b863-45d0-aabe-734fa3e22081");
+    static final TestObject<UserType> USER_BANDERSON = TestObject.file(TEST_DIR, "user-banderson.xml", "4f439db5-181e-4297-9f7d-b3115524dbe8");
+    static final TestObject<UserType> USER_JLEWIS685 = TestObject.file(TEST_DIR, "user-jlewis685.xml", "8b7bd936-b863-45d0-aabe-734fa3e22081");
 
-    static final TestResource<TaskType> TASK_GROUP_SCAVENGER = new TestResource<>(TEST_DIR, "task-group-scavenger.xml", "1d7bef40-953e-443e-8e9a-ec6e313668c4");
+    static final TestObject<TaskType> TASK_GROUP_SCAVENGER = TestObject.file(TEST_DIR, "task-group-scavenger.xml", "1d7bef40-953e-443e-8e9a-ec6e313668c4");
 
     private static final String NS_EXT = "http://grouper-demo.tier.internet2.edu";
     static final ItemName EXT_GROUPER_NAME = new ItemName(NS_EXT, "grouperName");

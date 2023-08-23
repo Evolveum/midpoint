@@ -17,7 +17,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.Channel;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -126,7 +126,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
     protected static final String USER_RAPP_EMAIL = "rapp.scallion@evolveum.com";
 
-    private static final TestResource<TaskType> TASK_CHANGE_JACK_ACCOUNT_PASSWORD = new TestResource<>(TEST_DIR, "task-change-jack-account-password.xml", "442f8d91-4f1c-4651-b6c6-65b5aa3ab1d4");
+    private static final TestObject<TaskType> TASK_CHANGE_JACK_ACCOUNT_PASSWORD = TestObject.file(TEST_DIR, "task-change-jack-account-password.xml", "442f8d91-4f1c-4651-b6c6-65b5aa3ab1d4");
 
     public static final String PASSWORD_HELLO_WORLD = "H3ll0w0rld";
 

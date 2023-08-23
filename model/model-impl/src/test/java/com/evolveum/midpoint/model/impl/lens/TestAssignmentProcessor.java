@@ -628,7 +628,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
-        AssignmentType assignment = new AssignmentType(prismContext);
+        AssignmentType assignment = new AssignmentType();
         assignment.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_VISITOR_OID, ObjectTypes.ROLE));
         fillContextWithFocus(context, user);
 

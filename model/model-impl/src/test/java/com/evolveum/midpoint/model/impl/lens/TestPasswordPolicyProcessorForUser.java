@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -29,7 +29,7 @@ public class TestPasswordPolicyProcessorForUser extends TestPasswordPolicyProces
     }
 
     @Override
-    TestResource<?> getTestResource() {
+    TestObject<?> getTestResource() {
         return USER_JACK;
     }
 }

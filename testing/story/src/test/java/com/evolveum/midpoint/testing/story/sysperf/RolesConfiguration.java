@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +50,8 @@ class RolesConfiguration {
 
     private final boolean memberOfComputation;
 
-    private final List<TestResource<RoleType>> generatedBusinessRoles;
-    private final List<TestResource<RoleType>> generatedTechnicalRoles;
+    private final List<TestObject<RoleType>> generatedBusinessRoles;
+    private final List<TestObject<RoleType>> generatedTechnicalRoles;
 
     private RolesConfiguration() {
         numberOfBusinessRoles = Integer.parseInt(System.getProperty(PROP_BUSINESS_COUNT, "2"));
@@ -100,11 +100,11 @@ class RolesConfiguration {
         return numberOfInducementsMax;
     }
 
-    List<TestResource<RoleType>> getGeneratedBusinessRoles() {
+    List<TestObject<RoleType>> getGeneratedBusinessRoles() {
         return generatedBusinessRoles;
     }
 
-    List<TestResource<RoleType>> getGeneratedTechnicalRoles() {
+    List<TestObject<RoleType>> getGeneratedTechnicalRoles() {
         return generatedTechnicalRoles;
     }
 
@@ -131,12 +131,12 @@ class RolesConfiguration {
         return configuration;
     }
 
-    private List<TestResource<RoleType>> generateTechnicalRoles() {
-        List<TestResource<RoleType>> roles = new ArrayList<>();
+    private List<TestObject<RoleType>> generateTechnicalRoles() {
+        List<TestObject<RoleType>> roles = new ArrayList<>();
         for (int i = 0; i < numberOfTechnicalRoles; i++) {
             String oid = UUID.randomUUID().toString();
             String fileName = createTechnicalRoleDefinition(i, oid);
-            roles.add(new TestResource<>(TARGET_DIR, fileName, oid));
+            roles.add(TestObject.file(TARGET_DIR, fileName, oid));
         }
         return roles;
     }
@@ -162,13 +162,13 @@ class RolesConfiguration {
         return fileName;
     }
 
-    private List<TestResource<RoleType>> generateBusinessRoles() {
-        List<TestResource<RoleType>> roles = new ArrayList<>();
+    private List<TestObject<RoleType>> generateBusinessRoles() {
+        List<TestObject<RoleType>> roles = new ArrayList<>();
         for (int i = 0; i < numberOfBusinessRoles; i++) {
             String oid = UUID.randomUUID().toString();
             List<String> inducedOidList = createInducedOidList();
             String fileName = createBusinessRoleDefinition(i, oid, inducedOidList);
-            roles.add(new TestResource<>(TARGET_DIR, fileName, oid));
+            roles.add(TestObject.file(TARGET_DIR, fileName, oid));
         }
         return roles;
     }
