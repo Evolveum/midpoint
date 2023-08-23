@@ -2429,10 +2429,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void checkScriptingAuthorization(Task task, OperationResult result)
+    public void checkBulkActionsAuthorization(Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         securityEnforcer.authorize(
-                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
+                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, result);
     }
 }

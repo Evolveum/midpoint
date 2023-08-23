@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRu
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -70,7 +69,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
-    @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired protected BulkActionsExecutor bulkActionsExecutor;
 
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedStateTrigger> evaluate(
@@ -139,7 +138,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             ExecutionContext resultingContext;
             try {
                 resultingContext =
-                        scriptingExpressionEvaluator.evaluateExpressionPrivileged(
+                        bulkActionsExecutor.executePrivileged(
                                 ExecuteScriptConfigItem.of(
                                         constraint.getExecuteScript(),
                                         ctx.policyRule.getRuleOrigin().toApproximate()),

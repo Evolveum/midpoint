@@ -53,7 +53,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseActionExecutor.class);
 
-    @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired protected BulkActionsExecutor bulkActionsExecutor;
     @Autowired protected PrismContext prismContext;
     @Autowired protected OperationsHelper operationsHelper;
     @Autowired protected ExpressionFactory expressionFactory;

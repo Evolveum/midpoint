@@ -141,7 +141,7 @@ public class ExpressionProfileManager {
      * for scripting (bulk actions). It is not as permissive: some origins are banned, and the default for non-root users
      * is the restricted profile (unless `privileged` is set to true - in order to provide backwards compatibility with 4.7).
      */
-    public @NotNull ExpressionProfile determineScriptingExpressionProfile(
+    public @NotNull ExpressionProfile determineBulkActionsProfile(
             @NotNull ConfigurationItemOrigin origin, boolean privileged, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
@@ -153,7 +153,7 @@ public class ExpressionProfileManager {
         } else if (origin instanceof ConfigurationItemOrigin.Generated) {
             profile = ExpressionProfile.full(); // Most probably OK
         } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
-            throw new UnsupportedOperationException("Undetermined origin for scripting expressions is not supported");
+            throw new UnsupportedOperationException("Undetermined origin for bulk actions is not supported");
         } else if (origin instanceof ConfigurationItemOrigin.External) {
             profile = null;
         } else {

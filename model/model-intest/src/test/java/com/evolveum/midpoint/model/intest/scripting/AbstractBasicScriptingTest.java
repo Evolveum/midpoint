@@ -43,7 +43,7 @@ import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
@@ -67,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+/** Tests bulk actions. */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractBasicScriptingTest extends AbstractInitializedModelIntegrationTest {
@@ -161,7 +162,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_TEST = TestObject.file(
             TEST_DIR, "function-library-test.xml", "724f2cce-c2d0-4a95-a67e-c922f9b806ab");
 
-    @Autowired ScriptingExpressionEvaluator evaluator;
+    @Autowired BulkActionsExecutor executor;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
@@ -259,7 +260,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private ExecutionContext evaluateExpression(
             ExecuteScriptType executeScript, VariablesMap variablesMap, Task task, OperationResult result)
             throws ScriptExecutionException {
-        return evaluator.evaluateExpression(
+        return executor.execute(
                 ExecuteScriptConfigItem.of(executeScript, ConfigurationItemOrigin.generated()),
                 variablesMap,
                 false,

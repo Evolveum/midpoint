@@ -45,7 +45,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
  */
 public class PipelineData implements DebugDumpable {
 
-    private static final String ITEM_OPERATION_NAME = ScriptingExpressionEvaluator.class.getName() + ".process";
+    private static final String ITEM_OPERATION_NAME = BulkActionsExecutor.class.getName() + ".process";
 
     /**
      * The data in the pipeline. All items are not null.

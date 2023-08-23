@@ -22,7 +22,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.BulkActionsService;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
@@ -144,7 +144,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final RunFlag BOOMED_FLAG = new RunFlag();
 
-    @Autowired private ScriptingService scriptingService;
+    @Autowired private BulkActionsService bulkActionsService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -594,7 +594,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         var script = prismContext.parserFor(FILE_SCRIPTING_GENERATE_VALUE)
                 .xml()
                 .parseRealValue(ExecuteScriptType.class);
-        var executionResult = scriptingService.evaluateExpression(
+        var executionResult = bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, ConfigurationItemOrigin.rest()),
                 VariablesMap.emptyMap(),
                 false,
@@ -641,7 +641,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         when("bulk action is executed");
         var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
-        scriptingService.evaluateExpression(
+        bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, origin),
                 VariablesMap.emptyMap(),
                 false,
@@ -674,7 +674,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         when("dangerous bulk action is executed");
         var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
         try {
-            scriptingService.evaluateExpression(
+            bulkActionsService.executeBulkAction(
                     ExecuteScriptConfigItem.of(script, origin),
                     VariablesMap.emptyMap(),
                     false,
@@ -708,7 +708,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         when("dangerous bulk action is executed");
         var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
-        scriptingService.evaluateExpression(
+        bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(
                         script,
                         ConfigurationItemOrigin.rest()),

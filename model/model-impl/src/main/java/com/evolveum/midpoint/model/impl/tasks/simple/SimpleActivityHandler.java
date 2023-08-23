@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.BulkActionsService;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -65,7 +65,7 @@ public abstract class SimpleActivityHandler<
     @Autowired protected Clock clock;
     @Autowired protected Clockwork clockwork;
     @Autowired protected ContextFactory contextFactory;
-    @Autowired protected ScriptingService scriptingService;
+    @Autowired protected BulkActionsService bulkActionsService;
 
     @PostConstruct
     public void register() {
