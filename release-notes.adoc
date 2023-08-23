@@ -485,6 +485,9 @@ See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c
 Instead, a new `#use` authorization was created to cover this use case.
 See also commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
 
+* The new `#executeBulkActions` authorization replaces (now deprecated and long-time confusing) `#executeScript` one.
+See also commit https://github.com/Evolveum/midpoint/commit/291313570a62cea67addc43d3dc310c142810581[291313].
+
 // * The behavior of synchronization reaction to `deleted` situation was changed.
 // Now it checks the existence of (other) accounts of given type, and invokes the actions only if there is none.
 // See commit link:https://github.com/Evolveum/midpoint/commit/89e139da[89e139da].
