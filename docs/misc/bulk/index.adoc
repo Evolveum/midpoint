@@ -230,18 +230,20 @@ For example, `assign` action must know the role or resource to be assigned; `mod
 The following table presents currently implemented actions.
 Note that each action has "legacy name", under which it can be called in the traditional (dynamic way).
 The majority of actions also have "modern name", allowing them to be invoked in a more type-safe way, static way.
-Please see #TODO# for more information.
+Correspondingly, the parameter kind means either `dynamic` - older, pre-4.2 way of specifying the parameter dynamically in `<parameter>` element - or `static`, newer, 4.2+ way of specifying the parameter in the simplified form.
+Please see xref:actions/index.adoc[] for more information.
 
 [%autowidth]
 |===
-| Action (legacy name) | Modern name | Description | Parameter | Description
+| Action (legacy name) | Modern name | Description | Parameter | Kind | Description
 
 | add
 | add
 | Adds an object coming as input to the repository, which must be a PrismObject.
 (++***++)
-| -
-| -
+|
+|
+|
 
 
 | modify
@@ -249,6 +251,7 @@ Please see #TODO# for more information.
 | Modifies an object coming as input, which must be a PrismObject.
 (++*++) (++***++)
 | delta
+|
 | Delta to be applied to the object.
 
 
@@ -256,125 +259,158 @@ Please see #TODO# for more information.
 | delete
 | Deletes an object coming as input, which must be a PrismObject.
 (++*++) (++***++)
-| -
-| -
+|
+|
+|
 
 
 | enable, disable
 | enable, disable
 | Enables or disables an object coming as input (must be a FocusType or ShadowType).
 (++*++) (++***++)
-| -
-| -
+|
+|
+|
 
 
-.3+| assign
-.3+| assign
-.3+| Assigns a role or a resource account to a FocusType.
+.6+| assign
+.6+| assign
+.6+| Assigns a role or a resource account to a FocusType.
 (++*++) (++***++)
 | resource
+| dynamic
 | Resource(s) on which account(s) have to be assigned.
 ++**++
 
-
 | role
+| dynamic
 | Role(s) to be assigned. ++**++
 
-
 | relation
+| dynamic
 | Relation of role, which to be assigned.
 
+| targetRef (multi)
+| static
+| Target(s) to be assigned.
+May contain filters.
+If such filters are present, they are evaluated at action execution time.
+(This behavior may change in the future!)
+If relations other than default are to be used, they should be provided within the reference(s).
 
+| resourceRef (multi)
+| static
+| Resource(s) to be assigned.
+May contain filters.
+If such filters are present, they are evaluated at action execution time.
+(This behavior may change in the future!)
 
-.3+| unassign
-.3+| unassign
-.3+| Unassigns a role or a resource account from a FocusType.
+| construction (multi)
+| static
+| Resource object constructions to be assigned.
+These are assigned "as is", with no filter evaluation.
+(This behavior may change in the future!)
+
+.4+| unassign
+.4+| unassign
+.4+| Unassigns a role or a resource account from a FocusType.
 (++*++) (++***++)
 | resource
+| dynamic
 | Resource(s) to be unassigned.  ++**++
 
 
 | role
+| dynamic
 | Role(s) to be unassigned.
 ++**++
 
 
 | relation
-| Relation(s) defines the relation to the assignee, e.g. default, manager, any ...
+| dynamic
+| Relation(s) defines the relation to the assignee, e.g. default, manager, any, ...
 
+| filter
+| static
+| Filter matching assignments to be deleted.
+Expressions are supported here, but only as an experimental feature.
 
+| xref:actions/recompute.adoc[recompute]
 | recompute
-| recompute
-| Recomputes a user (must be PrismObject<UserType>). (++*++) (++***++)
-| -
-| -
+| Recomputes an object (must be PrismObject<AssignmentHolderType>). (++*++) (++***++)
+| triggered
+| static
+| see the detailed docs
 
-
-.3+| execute-script
-.3+| execute
-.3+| Executes a script against the input data.
-(Since midPoint 3.4.1)
-| script
-| A value of type ScriptExpressionEvaluatorType.
-
-
-| outputItem
-| If the script provides any output that is to be processed further, the item definition has to be given here.
-It is in the form of URI, pointing to item name (e.g. user) or item type (e.g. UserType).
-"Unqualified" URIs like the two examples here are allowed.But note that outputting data from scripts is currently only experimental.
-
-
-| forWholeInput
-| The script would get the whole pipeline as input (since 3.7, experimental).
-
+| xref:actions/script-and-expression.adoc[execute-script, evaluate-expression]
+| execute, evaluateExpression
+| Executes a script (since 3.4.1) or evaluates an expression (since 4.8) against the input data.
+3+| see the detailed docs
 
 | resume
-| resume
+| resumeTask
 | Resumes a suspended task.
-| -
-| The task must be in a suspended state.
 Since 3.7.2.
+|
+|
+|
 
 
-| resolve
-| resolve
-| Resolves a reference, e.g. data coming from a c:linkRef, into a PrismObject.
+.2+| resolve
+.2+| resolveReference
+.2+| Resolves a reference, e.g. data coming from a c:linkRef, into a PrismObject.
 | noFetch
+| dynamic
 | Whether noFetch option has to be applied (default: false).
 
+| options
+| static
+| Options to use when getting the object(s).
+
+| apply-definition
+| applyDefinition
+| Applies a definition to a `ShadowType` or `ResourceType` object.
+|
+|
+|
 
 | purge-schema
 | purgeSchema
 | Removes all schema information from a given resource(s) coming as input (PrismObject<ResourceType>).
-| -
-| -
+|
+|
+|
 
 
 | discover-connectors
 | -
 | Discovers all connectors on a given connector host(s), given as PrismObject<ConnectorHostType>.
 | rebindResources
+| dynamic
 | Searches for all resources using now-outdated versions of newly discovered connectors and re-links them to current connectors.
 
 
 | test-resource
 | testResource
 | Tests a given resource(s) coming as input (PrismObject<ResourceType>).
-| -
-| -
+|
+|
+|
 
 
 | validate
 | -
 | Validates a resource - i.e. provides a set of issues just like in Resource Wizard (since 3.5)
-| -
-| -
+|
+|
+|
 
 
 | xref:/midpoint/reference/misc/bulk/actions/generate-value/[generate-value]
 | generateValue
 | Generates value(s) for object(s) coming as input.
 | items
+|
 | Description of what and how to generate.
 
 
@@ -382,40 +418,45 @@ Since 3.7.2.
 .5+| notify
 .5+| Sends a notification event for each of objects at input (since 3.5) - i.e. it generates a custom Event with the content driven by action parameters.
 | subtype
+|
 | Subtype of the event created.
 
 
 | handler
+|
 | Ad-hoc event handler that should be used to process the event.
 Normally this parameter should not be needed, because event handling should be driven by the system configuration.
 However, for ad-hoc events we can specify handler directly within the event.
 
 
 | forWholeInput
+|
 | Whole input (i.e. all items in the pipeline) should be sent as event object.
 The default behavior is to generate one event for each input object.
 
 
 | status
+|
 | Status to be put into event (success, failure, inProgress, alsoSuccess, onlyFailure).
 Default is "success".
 
 
 | operation
+|
 | Operation to be put into event (add, modify, delete).
 Default is "add".
 
 
-.3+| log
-.3+| log
-.3+| Logs debugDump form of the data.
+.2+| log
+.2+| log
+.2+| Logs debugDump form of the data.
 | level
+|
 | info (the default), debug or trace
 
-
 | message
+|
 | Custom message that is prepended to the data.
-
 
 |===
 

@@ -90,20 +90,67 @@ Expression profiles are defined in xref:/midpoint/reference/concepts/system-conf
 In versions 4.0 to 4.7, the configuration consists of two parts: expression profile and permission profile.
 Since 4.8, there are other parts as well, see below.
 
-Expression profile specifies which expression evaluators are allowed.
+_Expression profile_ specifies which expression evaluators are allowed.
 E.g. the configuration about specifies that `asIs`, `path` and `script` evaluators are allowed.
 The profile can also parametrize the use of evaluators.
 For example the profile above is constraining the use of `script` evaluator only to Groovy language.
 And that same specification is also setting type-checking evaluation mode and applying permission profile to all evaluated scripts.
 
-Permission profile specifies, which part of the Java platform can the evaluator touch.
+_Permission profile_ specifies, which part of the Java platform can the evaluator touch.
 This is applicable almost exclusively to `script` evaluators, as other evaluators cannot directly access Java classes and methods.
 Simply speaking, the permission profile works as an access list that decides which classes and methods can be used and which cannot be used.
 
 Permission profile is separated from expression profile, as it is expected that permission profiles may be long and complex in practice.
 And it is also expected that the same profile may apply to several scripting languages.
 The primary purpose of the permission profile is to constrain access to the (Java) platform which is not language-specific.
-Therefore it is expected that this will be reusable.
+Therefore, it is expected that this will be reusable.
+
+The following table lists all items in an expression profile.
+
+.Configuration items in an expression profile
+[%autowidth]
+|===
+| Item | Description | Since | Default value
+
+| `identifier`
+| Profile identifier.
+Usually short string, essentially a simple profile name.
+Custom profiles should consider using URIs instead of simple names to avoid
+conflicts with built-in profiles that may be provided in later versions.
+| 4.0
+| mandatory
+
+| `description`
+| Free-form description (comment).
+| 4.0
+| -
+
+| `decision`
+| Default decision for evaluators in this profile: this is the decision of those evaluators that are not explicitly enumerated within it.
+Currently, this property does NOT apply for other parts of the profile.
+| 4.0
+| mandatory
+
+| `evaluator` (multivalued)
+| Profiles for individual evaluators.
+| 4.0
+| see `decision`
+
+| `bulkActionsProfile`
+| ID of the bulk actions profile to be used with this expression profile.
+| 4.8
+| "allow all bulk actions"
+
+| `functionLibrariesProfile`
+| ID of the function libraries profile to be used with this expression profile.
+| 4.8
+| "allow all function libraries"
+
+| `privilegeElevation`
+| Is the privilege elevation (runAsRef, runPrivileged) feature available in this profile?
+| 4.8
+| `allow`
+|===
 
 === Function Library and Bulk Action Profiles
 ++++
