@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
@@ -53,6 +56,10 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
     }
 
     public FocusType getPreFocus(Class<? extends FocusType> focusType) {
+        return getPreFocus(focusType, attributes);
+    }
+
+    public FocusType getPreFocus(Class<? extends FocusType> focusType, Map<ItemPath, String> attributes) {
         PrismObject<? extends FocusType> newObject = null;
         try {
             newObject = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusType).instantiate();
@@ -77,6 +84,9 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
     private Object convertValueIfNecessary(PrismPropertyDefinition def, String value) {
         if (QNameUtil.match(DOMUtil.XSD_DATETIME, def.getTypeName())) {
             return XmlTypeConverter.createXMLGregorianCalendar(value);
+        }
+        if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, def.getTypeName())) {
+            return new PolyString(value);
         }
         return value;
     }

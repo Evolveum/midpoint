@@ -195,7 +195,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         if (identityRecoveryPolicy == null) {
             return "";
         }
-        return getAuthLinkUrl(identityRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
+        return SecurityUtils.getAuthLinkUrl(identityRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
     }
 
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {
@@ -208,12 +208,12 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         if (StringUtils.isBlank(resetSequenceIdOrName)) {
             return "";
         }
-        return getAuthLinkUrl(resetSequenceIdOrName, securityPolicy);
+        return SecurityUtils.getAuthLinkUrl(resetSequenceIdOrName, securityPolicy);
     }
 
     private void addRegistrationLink(SecurityPolicyType securityPolicyType) {
 
-        String urlRegistration = getRegistrationUrl(securityPolicyType);
+        String urlRegistration = SecurityUtils.getRegistrationUrl(securityPolicyType);
         addExternalLink(ID_SELF_REGISTRATION, urlRegistration);
     }
 
@@ -232,23 +232,6 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         }
 
         return credentialsResetPolicyType.getAuthenticationSequenceName();
-    }
-
-    private String getRegistrationUrl(SecurityPolicyType securityPolicy) {
-        SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
-        if (selfRegistrationPolicy == null || StringUtils.isBlank(selfRegistrationPolicy.getAdditionalAuthenticationSequence())) {
-            return "";
-        }
-        return getAuthLinkUrl(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy);
-    }
-
-    private String getAuthLinkUrl(String sequenceIdentifier, SecurityPolicyType securityPolicy) {
-        String channelUrlSuffix = SecurityUtils.getChannelUrlSuffixFromAuthSequence(sequenceIdentifier, securityPolicy);
-        if (StringUtils.isEmpty(channelUrlSuffix)) {
-            LOGGER.warn("Authentication sequence '{}' does not exist", sequenceIdentifier);
-            return "";
-        }
-        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + channelUrlSuffix;
     }
 
     protected String getUrlProcessingLogin() {

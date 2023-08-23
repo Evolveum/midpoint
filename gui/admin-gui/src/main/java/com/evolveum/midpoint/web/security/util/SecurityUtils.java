@@ -9,6 +9,12 @@ package com.evolveum.midpoint.web.security.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
+import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -24,6 +31,8 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -244,4 +253,36 @@ public class SecurityUtils {
         }
         return null;
     }
+
+    public static CorrelationModuleAuthentication findCorrelationModuleAuthentication(PageAdminLTE pageAdminLTE) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
+            pageAdminLTE.getSession().error(pageAdminLTE.getString("No midPoint authentication is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        var correlationAuth = (CorrelationModuleAuthentication) mpAuthentication.getAuthentications()
+                .stream()
+                .filter(a -> a instanceof CorrelationModuleAuthentication)
+                .findFirst()
+                .orElse(null);
+        return correlationAuth;
+    }
+
+    public static String getRegistrationUrl(SecurityPolicyType securityPolicy) {
+        SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
+        if (selfRegistrationPolicy == null || StringUtils.isBlank(selfRegistrationPolicy.getAdditionalAuthenticationSequence())) {
+            return "";
+        }
+        return getAuthLinkUrl(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy);
+    }
+
+    public static String getAuthLinkUrl(String sequenceIdentifier, SecurityPolicyType securityPolicy) {
+        String channelUrlSuffix = SecurityUtils.getChannelUrlSuffixFromAuthSequence(sequenceIdentifier, securityPolicy);
+        if (StringUtils.isEmpty(channelUrlSuffix)) {
+            return "";
+        }
+        return "./" + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE + "/" + channelUrlSuffix;
+    }
+
+
 }
