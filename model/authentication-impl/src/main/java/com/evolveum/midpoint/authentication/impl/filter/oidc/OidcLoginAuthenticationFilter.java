@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.impl.oidc;
+package com.evolveum.midpoint.authentication.impl.filter.oidc;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
@@ -94,18 +94,6 @@ public class OidcLoginAuthenticationFilter extends OAuth2LoginAuthenticationFilt
                 }
             }
         }
-    }
-
-    private MultiValueMap<String, String> toMultiMap(Map<String, String[]> map) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>(map.size());
-        map.forEach((key, values) -> {
-            if (values.length > 0) {
-                for (String value : values) {
-                    params.add(key, value);
-                }
-            }
-        });
-        return params;
     }
 
     private boolean isAuthorizationResponse(MultiValueMap<String, String> request) {

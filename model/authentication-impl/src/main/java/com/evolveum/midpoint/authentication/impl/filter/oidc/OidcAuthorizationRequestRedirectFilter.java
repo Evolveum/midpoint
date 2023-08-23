@@ -5,10 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.impl.oidc;
+package com.evolveum.midpoint.authentication.impl.filter.oidc;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
+import com.evolveum.midpoint.authentication.impl.filter.RemoteModuleAuthorizationFilter;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -38,54 +39,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter {
+public class OidcAuthorizationRequestRedirectFilter extends RemoteModuleAuthorizationFilter<OidcAuthorizationRequestRedirectFilter> {
 
     private final OAuth2AuthorizationRequestResolver authorizationRequestResolver;
 
-    private final ModelAuditRecorder auditProvider;
+    private final ThrowableAnalyzer throwableAnalyzer = new OidcAuthorizationRequestRedirectFilter.DefaultThrowableAnalyzer();
 
-    private AuthenticationFailureHandler failureHandler;
 
-    private final SecurityContextRepository securityContextRepository;
+    private final AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository =
+            new HttpSessionOAuth2AuthorizationRequestRepository();
 
     public OidcAuthorizationRequestRedirectFilter(ClientRegistrationRepository clientRegistrationRepository,
             String authorizationRequestBaseUri, ModelAuditRecorder auditProvider, SecurityContextRepository securityContextRepository) {
-        this.securityContextRepository = securityContextRepository;
+        super(auditProvider, securityContextRepository);
         this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
                 authorizationRequestBaseUri);
-        this.auditProvider = auditProvider;
     }
 
-    public void setAuthenticationFailureHandler(AuthenticationFailureHandler failureHandler) {
-        Assert.notNull(failureHandler, "failureHandler cannot be null");
-        this.failureHandler = failureHandler;
-    }
-
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        String channel;
-        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
-            channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
-        } else {
-            channel = SchemaConstants.CHANNEL_USER_URI;
-        }
-
-        auditProvider.auditLoginFailure("unknown user", null, ConnectionEnvironment.create(channel), "OIDC authentication module: " + failed.getMessage());
-
-        this.failureHandler.onAuthenticationFailure(request, response, failed);
-    }
-
-    private final ThrowableAnalyzer throwableAnalyzer = new OidcAuthorizationRequestRedirectFilter.DefaultThrowableAnalyzer();
-
-    private final RedirectStrategy authorizationRedirectStrategy = new DefaultRedirectStrategy();
-
-    private final AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
-
-    private RequestCache requestCache = new HttpSessionRequestCache();
-
-    public final void setRequestCache(RequestCache requestCache) {
-        Assert.notNull(requestCache, "requestCache cannot be null");
-        this.requestCache = requestCache;
+    @Override
+    protected String getAuthenticationType() {
+        return "OIDC";
     }
 
     @Override
@@ -96,7 +69,7 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
             try {
                 OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request);
                 if (authorizationRequest != null) {
-                    this.securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
+                    getSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
                     this.sendRedirectForAuthorization(request, response, authorizationRequest);
                     return;
                 }
@@ -121,9 +94,9 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
                         if (authorizationRequest == null) {
                             throw authzEx;
                         }
-                        this.securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
+                        getSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
                         this.sendRedirectForAuthorization(request, response, authorizationRequest);
-                        this.requestCache.saveRequest(request, response);
+                        getRequestCache().saveRequest(request, response);
                     } catch (Exception failed) {
                         unsuccessfulAuthentication(request, response,
                                 new InternalAuthenticationServiceException("web.security.provider.invalid", failed));
@@ -146,7 +119,7 @@ public class OidcAuthorizationRequestRedirectFilter extends OncePerRequestFilter
     private void sendRedirectForAuthorization(HttpServletRequest request, HttpServletResponse response,
             OAuth2AuthorizationRequest authorizationRequest) throws IOException {
         this.authorizationRequestRepository.saveAuthorizationRequest(authorizationRequest, request, response);
-        this.authorizationRedirectStrategy.sendRedirect(request, response,
+        getAuthorizationRedirectStrategy().sendRedirect(request, response,
                 authorizationRequest.getAuthorizationRequestUri());
     }
 

@@ -27,4 +27,5 @@ public class AuthenticationModuleNameConstants {
     public static final String ARCHETYPE_SELECTION = "ArchetypeSelection";
     public static final String CORRELATION = "Correlation";
     public static final String HINT = "Hint";
+    public static final String DUO = "Duo";
 }

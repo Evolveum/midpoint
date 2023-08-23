@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.impl.saml;
+package com.evolveum.midpoint.authentication.impl.filter.saml;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

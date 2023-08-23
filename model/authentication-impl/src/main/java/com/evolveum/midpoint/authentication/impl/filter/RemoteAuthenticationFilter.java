@@ -24,7 +24,11 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 import java.io.IOException;
+import java.util.Map;
 
 public interface RemoteAuthenticationFilter extends Filter {
 
@@ -57,5 +61,17 @@ public interface RemoteAuthenticationFilter extends Filter {
         LOGGER.trace("Handling authentication failure");
         rememberMeService.loginFail(request, response);
         failureHandler.onAuthenticationFailure(request, response, failed);
+    }
+
+    default MultiValueMap<String, String> toMultiMap(Map<String, String[]> map) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>(map.size());
+        map.forEach((key, values) -> {
+            if (values.length > 0) {
+                for (String value : values) {
+                    params.add(key, value);
+                }
+            }
+        });
+        return params;
     }
 }

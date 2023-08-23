@@ -166,21 +166,14 @@ public class AuthUtil {
     }
 
     private static ModuleAuthentication getProcessingModule(boolean required) {
-//        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
 
         MidpointAuthentication mpAuthentication = getMidpointAuthentication();
-//        if (actualAuthentication instanceof MidpointAuthentication mpAuthentication) {
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (required && moduleAuthentication == null) {
                 LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
                 throw new AuthenticationServiceException("web.security.flexAuth.module.null");
             }
             return moduleAuthentication;
-//        } else if (required) {
-//            LOGGER.error("Type of actual authentication in security context isn't MidpointAuthentication");
-//            throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
-//        }
-//        return null;
     }
 
     public static String stripEndingSlashes(String s) {
