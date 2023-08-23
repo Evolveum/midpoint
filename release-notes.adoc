@@ -481,6 +481,10 @@ If needed, the access to the functionality provided by these libraries should be
 (Note that the calls to functions from withing scripts ignored authorizations from the beginning.)
 See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c980015fed12c26e[c9b1ce].
 
+* Using of task template (e.g. to implement custom GUI actions) no longer requires `#read` authorization for the task template object.
+Instead, a new `#use` authorization was created to cover this use case.
+See also commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
+
 // * The behavior of synchronization reaction to `deleted` situation was changed.
 // Now it checks the existence of (other) accounts of given type, and invokes the actions only if there is none.
 // See commit link:https://github.com/Evolveum/midpoint/commit/89e139da[89e139da].

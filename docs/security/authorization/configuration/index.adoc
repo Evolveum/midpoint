@@ -355,6 +355,16 @@ But each search result is passing through additional _reduction_ by using get au
 | 3.9
 
 
+| Use
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#use`
+| Using objects.
+This authorization allows to "use" an object according to its typical intention.
+Currently, it is supported for task templates (`TaskType` objects) during their instantiation.
+A typical example of such instantiation is their use for xref:/midpoint/reference/admin-gui/admin-gui-config/#custom-actions-for-object-lists[custom GUI actions for object lists].
+(But this authorization is checked any time a task template is instantiated using `midpoint.submitTaskFromTemplate(templateOid, customization)` method.)
+| 4.8
+
+
 | Add
 | `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add`
 | Adding new objects.
