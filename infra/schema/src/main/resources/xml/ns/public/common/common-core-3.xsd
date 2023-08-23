@@ -4262,6 +4262,8 @@
                         Limits the usage of the attribute, e.g. whether it may is read-only, read write or entirely ignored.
                         The limitations may apply to several system layers, therefore this element may be repeated several times.
                         But it there may be only one instance for each layer.
+
+                        Note that the support for focus items at the model layer is limited.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ItemRefinedDefinitionType.limitations</a:displayName>
