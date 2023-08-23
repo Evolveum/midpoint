@@ -11777,7 +11777,7 @@
                         Free-form description (comment).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ExpressionProfileType.name</a:displayName>
+                        <a:displayName>ExpressionProfileType.description</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
