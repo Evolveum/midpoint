@@ -17,7 +17,7 @@ import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.impl.ldap.MidpointPrincipalContextMapper;
+import com.evolveum.midpoint.authentication.impl.filter.ldap.MidpointPrincipalContextMapper;
 import com.evolveum.midpoint.authentication.impl.module.authentication.LdapModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LdapModuleWebSecurityConfiguration;

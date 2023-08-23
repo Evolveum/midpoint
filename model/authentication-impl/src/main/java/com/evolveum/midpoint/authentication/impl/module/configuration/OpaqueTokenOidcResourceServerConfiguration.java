@@ -6,47 +6,18 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
-import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
-import com.evolveum.midpoint.authentication.impl.oidc.OpaqueTokenUserDetailsIntrospector;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.authentication.impl.filter.oidc.OpaqueTokenUserDetailsIntrospector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractKeyStoreKeyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcResourceServerAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OpaqueTokenOidcResourceServerType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import com.nimbusds.jose.KeySourceException;
-import com.nimbusds.jose.proc.JWSAlgorithmFamilyJWSKeySelector;
-import com.nimbusds.jose.proc.JWSKeySelector;
-import com.nimbusds.jose.proc.SecurityContext;
-import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.cxf.common.util.Base64Exception;
-import org.apache.cxf.common.util.Base64Utility;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2Error;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
-
-import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
 
 /**
  * @author skublik

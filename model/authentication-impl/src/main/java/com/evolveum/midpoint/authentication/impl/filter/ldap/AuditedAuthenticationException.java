@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.impl.ldap;
+package com.evolveum.midpoint.authentication.impl.filter.ldap;
 
 import org.springframework.security.core.AuthenticationException;
 

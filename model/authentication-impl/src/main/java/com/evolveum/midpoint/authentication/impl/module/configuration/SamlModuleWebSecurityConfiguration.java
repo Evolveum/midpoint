@@ -23,11 +23,9 @@ import java.util.Map;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
-import com.evolveum.midpoint.authentication.impl.saml.MidpointAssertingPartyMetadataConverter;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointAssertingPartyMetadataConverter;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-
-import com.evolveum.midpoint.prism.PrismContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.Base64Exception;

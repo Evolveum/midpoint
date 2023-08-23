@@ -167,6 +167,7 @@
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="correlation" type="tns:CorrelationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="duo" type="tns:DuoAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -479,6 +480,76 @@
             <!-- TODO thresholds-->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="DuoAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Module is used for 2FA authentication.
+                Module use duo server for authentication via hardware key of mobile, tablet and so on.
+                We cant use it as only one authentication module. We need some primary authentication module for example saml.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="clientId" type="xsd:string" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the client id provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="clientSecret" type="t:ProtectedStringType" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the client secret provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="apiHostname" type="xsd:string" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the api host provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CACerts" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of CA Certificates to use. You need add your cert when it misses in default certs.
+
+                                Default values:
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert Assured ID Root CA
+                                'sha256/I/Lt/z7ekCWanjD0Cvj5EqXls2lOaThEA0H2Bg4BT/o=',
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert Global Root CA
+                                'sha256/r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=',
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert High Assurance EV Root CA
+                                'sha256/WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=',
+                                C=US, O=SecureTrust Corporation, CN=SecureTrust CA
+                                'sha256/dykHF2FLJfEpZOvbOLX4PKrcD2w2sHd/iA/G3uHTOcw=',
+                                C=US, O=SecureTrust Corporation, CN=Secure Global CA
+                                'sha256/JZaQTcTWma4gws703OR/KFk313RkrDcHRvUt6na6DCg=',
+                                C=US, O=Amazon, CN=Amazon Root CA 1
+                                'sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=',
+                                C=US, O=Amazon, CN=Amazon Root CA 2
+                                'sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=',
+                                C=US, O=Amazon, CN=Amazon Root CA 3
+                                'sha256/NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=',
+                                C=US, O=Amazon, CN=Amazon Root CA 4
+                                'sha256/9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=',
+                                C=BM, O=QuoVadis Limited, CN=QuoVadis Root CA 2
+                                'sha256/j9ESw8g3DxR9XM06fYZeuN1UB4O6xp/GAIjjdD/zM3g='
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="OtherAuthenticationModuleParameterType">
