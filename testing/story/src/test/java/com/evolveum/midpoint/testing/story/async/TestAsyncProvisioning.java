@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AnyTestResource;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
@@ -42,9 +42,9 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
 
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final AnyTestResource RESOURCE_ASYNC_OUTBOUND = AnyTestResource.file(
+    private static final TestResource RESOURCE_ASYNC_OUTBOUND = TestResource.file(
             TEST_DIR, "resource-async-outbound.xml", "f64a3dc5-3b5e-4bf9-9f46-ed01992984ef");
-    private static final AnyTestResource RESOURCE_ASYNC_INBOUND = AnyTestResource.file(
+    private static final TestResource RESOURCE_ASYNC_INBOUND = TestResource.file(
             TEST_DIR, "resource-async-inbound.xml", "6628a329-4b29-4f3a-9339-8fa12c59c38f");
 
     private static final TestTask TASK_ASYNC_UPDATE = new TestTask(

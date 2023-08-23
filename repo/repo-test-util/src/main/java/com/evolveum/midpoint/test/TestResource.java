@@ -25,14 +25,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * @see CsvTestResource
  * @see DummyTestResource
  */
-public class AnyTestResource extends TestObject<ResourceType> {
+public class TestResource extends TestObject<ResourceType> {
 
-    AnyTestResource(TestObjectSource source, String oid) {
+    TestResource(TestObjectSource source, String oid) {
         super(source, oid);
     }
 
-    public static AnyTestResource file(@NotNull File dir, @NotNull String name, String oid) {
-        return new AnyTestResource(
+    public static TestResource file(@NotNull File dir, @NotNull String name, String oid) {
+        return new TestResource(
                 new FileBasedTestObjectSource(dir, name),
                 oid);
     }
