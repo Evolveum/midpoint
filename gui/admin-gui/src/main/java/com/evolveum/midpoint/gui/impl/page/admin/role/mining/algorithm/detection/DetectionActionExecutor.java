@@ -11,12 +11,15 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public class DetectionActionExecutor implements Serializable {
     private final DetectionOperation detectionType;
+
+    Handler handler = new Handler("Pattern Detection", 6);
 
     DetectionOption detectionOption;
 
@@ -28,9 +31,9 @@ public class DetectionActionExecutor implements Serializable {
     public List<DetectedPattern> executeDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<MiningUserTypeChunk> miningUserTypeChunks, RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return detectionType.performUserBasedDetection(miningRoleTypeChunks, detectionOption);
+            return detectionType.performUserBasedDetection(miningRoleTypeChunks, detectionOption, handler);
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return detectionType.performRoleBasedDetection(miningUserTypeChunks, detectionOption);
+            return detectionType.performRoleBasedDetection(miningUserTypeChunks, detectionOption, handler);
         }
         return null;
     }

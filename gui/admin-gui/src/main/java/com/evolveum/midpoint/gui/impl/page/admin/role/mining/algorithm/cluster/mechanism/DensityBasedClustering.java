@@ -3,6 +3,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
+
 import org.apache.commons.math3.exception.NotPositiveException;
 import org.apache.commons.math3.exception.NullArgumentException;
 import org.apache.commons.math3.util.MathUtils;
@@ -23,12 +25,17 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         }
     }
 
-    public List<Cluster<T>> cluster(Collection<T> points) throws NullArgumentException {
+    public List<Cluster<T>> cluster(Collection<T> points, Handler handler) throws NullArgumentException {
         MathUtils.checkNotNull(points);
         List<Cluster<T>> clusters = new ArrayList<>();
         Map<Clusterable, PointStatus> visited = new HashMap<>();
 
+        handler.setActive(true);
+        handler.setSubTitle("Clustering");
+        handler.setOperationCountToProcess(points.size());
         for (T point : points) {
+            handler.iterateActualStatus();
+
             if (visited.get(point) == null) {
                 List<T> neighbors = this.getNeighbors(point, points);
                 int neighborsSize = getNeightborsSize(neighbors);

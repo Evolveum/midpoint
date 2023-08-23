@@ -52,6 +52,7 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<RangeTyp
         return rangeSliderPanel;
     }
 
+
     @Override
     public Integer getOrder() {
         return 10000;
@@ -60,4 +61,6 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<RangeTyp
     @Override
     public void configure(PrismPropertyPanelContext<RangeType> panelCtx, org.apache.wicket.Component component) {
     }
+
+
 }

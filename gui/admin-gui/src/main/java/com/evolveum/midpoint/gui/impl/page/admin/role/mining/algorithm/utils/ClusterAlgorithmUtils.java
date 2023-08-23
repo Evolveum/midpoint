@@ -10,21 +10,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ExtractPatternUtils.prepareDetectedPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.createObjectReferences;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getSessionOptionType;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.endTimer;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.startTimer;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.DataPoint;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.Cluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.DataPoint;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.ClusterStatistic;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
@@ -37,35 +34,40 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class ClusterAlgorithmUtils {
 
     @NotNull
-    public List<PrismObject<RoleAnalysisClusterType>> processClusters(PageBase pageBase, OperationResult result, List<DataPoint> dataPoints,
-            List<Cluster<DataPoint>> clusters, @NotNull RoleAnalysisSessionType session) {
-        long start;
+    public List<PrismObject<RoleAnalysisClusterType>> processClusters(PageBase pageBase, OperationResult result,
+            List<DataPoint> dataPoints, List<Cluster<DataPoint>> clusters,
+            @NotNull RoleAnalysisSessionType session, Handler handler) {
 
         QName complexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
                 : UserType.COMPLEX_TYPE;
 
-        start = startTimer("generate clusters mp objects");
-        List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, clusters.size())
-                .mapToObj(i -> prepareClusters(pageBase, result, clusters.get(i).getPoints(), String.valueOf(i),
-                        dataPoints, session, complexType))
+        int size = clusters.size();
+        handler.setSubTitle("Generate Cluster Statistics model");
+        handler.setOperationCountToProcess(size);
+        List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
+                .mapToObj(i -> {
+                    handler.iterateActualStatus();
+
+                    return prepareClusters(pageBase, result, clusters.get(i).getPoints(), String.valueOf(i),
+                            dataPoints, session, complexType);
+                })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        endTimer(start, "generate clusters mp objects");
 
-        start = startTimer("generate outliers mp objects");
+
+        handler.setSubTitle("Prepare Outliers");
+        handler.setOperationCountToProcess(dataPoints.size());
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, result,
-                dataPoints, complexType, session.getProcessMode());
+                dataPoints, complexType, session.getProcessMode(), handler);
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
-        endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
     }
 
     @NotNull
     public List<PrismObject<RoleAnalysisClusterType>> processExactMatch(PageBase pageBase, OperationResult result,
             List<DataPoint> dataPoints,
-            @NotNull RoleAnalysisSessionType session) {
-        long start;
+            @NotNull RoleAnalysisSessionType session, Handler handler) {
 
         QName processedObjectComplexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
@@ -75,22 +77,26 @@ public class ClusterAlgorithmUtils {
                 ? UserType.COMPLEX_TYPE
                 : RoleType.COMPLEX_TYPE;
 
-        start = startTimer("generate clusters mp objects");
         List<DataPoint> dataPointsOutliers = new ArrayList<>();
         int size = dataPoints.size();
+
+        handler.setSubTitle("Generate Cluster Statistics model");
+        handler.setOperationCountToProcess(size);
         List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
-                .mapToObj(i -> exactPrepareDataPoints(pageBase, result, dataPoints.get(i), String.valueOf(i),
-                        session, dataPointsOutliers, processedObjectComplexType, propertiesComplexType))
+                .mapToObj(i -> {
+                    handler.iterateActualStatus();
+
+                    return exactPrepareDataPoints(pageBase, result, dataPoints.get(i), String.valueOf(i),
+                            session, dataPointsOutliers, processedObjectComplexType, propertiesComplexType);
+                })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        endTimer(start, "generate clusters mp objects");
-
-        start = startTimer("generate outliers mp objects");
+        handler.setSubTitle("Prepare Outliers");
+        handler.setOperationCountToProcess(dataPoints.size());
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(pageBase, result, dataPoints,
-                processedObjectComplexType, session.getProcessMode());
+                processedObjectComplexType, session.getProcessMode(), handler);
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
-        endTimer(start, "generate outliers mp objects");
         return clusterTypeObjectWithStatistic;
     }
 
@@ -246,7 +252,7 @@ public class ClusterAlgorithmUtils {
     }
 
     private PrismObject<RoleAnalysisClusterType> prepareOutlierClusters(PageBase pageBase, OperationResult result,
-            List<DataPoint> dataPoints, QName complexType, RoleAnalysisProcessModeType processMode) {
+            List<DataPoint> dataPoints, QName complexType, RoleAnalysisProcessModeType processMode, Handler handler) {
 
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;
@@ -257,6 +263,8 @@ public class ClusterAlgorithmUtils {
         Set<String> elementsOid = new HashSet<>();
         Set<String> pointsSet = new HashSet<>();
         for (DataPoint dataPoint : dataPoints) {
+            handler.iterateActualStatus();
+
             Set<String> points = dataPoint.getProperties();
             pointsSet.addAll(points);
             elementsOid.addAll(dataPoint.getMembers());
@@ -297,7 +305,8 @@ public class ClusterAlgorithmUtils {
     private @NotNull PrismObject<RoleAnalysisClusterType> generateClusterObject(PageBase pageBase, OperationResult result,
             ClusterStatistic clusterStatistic,
             RoleAnalysisSessionType session,
-            AnalysisClusterStatisticType roleAnalysisClusterStatisticType, boolean detectPattern) {
+            AnalysisClusterStatisticType roleAnalysisClusterStatisticType,
+            boolean detectPattern) {
 
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = ClusterObjectUtils.prepareClusterPrismObject(pageBase);
         assert clusterTypePrismObject != null;
@@ -316,7 +325,6 @@ public class ClusterAlgorithmUtils {
 
             List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = defaultPatternResolver
                     .loadPattern(session, clusterStatistic, clusterType, pageBase, result);
-
             clusterType.getDetectedPattern().addAll(roleAnalysisClusterDetectionTypeList);
 
             for (RoleAnalysisDetectionPatternType detectionPatternType : roleAnalysisClusterDetectionTypeList) {

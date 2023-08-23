@@ -10,8 +10,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -48,7 +47,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleDto;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -83,42 +82,44 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
-        List<BusinessRoleApplicationDto> patternDeltas = getObjectDetailsModels().getPatternDeltas();
+        BusinessRoleApplicationDto deltas = getObjectDetailsModels().getPatternDeltas();
+        deltas.updateValue(inducement);
 
-        for (BusinessRoleApplicationDto value : patternDeltas) {
+        List<BusinessRoleDto> patternDeltas = deltas.getBusinessRoleDtos();
+        for (BusinessRoleDto value : patternDeltas) {
             value.updateValue(inducement, (PageBase) getPage());
         }
 
-        RoleMiningProvider<BusinessRoleApplicationDto> provider = getAndUpdateProvider(patternDeltas);
+        RoleMiningProvider<BusinessRoleDto> provider = getAndUpdateProvider(patternDeltas);
 
-        BoxedTablePanel<BusinessRoleApplicationDto> table = generateTable(provider);
+        BoxedTablePanel<BusinessRoleDto> table = generateTable(provider);
 
         delegations.add(table);
     }
 
     @NotNull
-    private RoleMiningProvider<BusinessRoleApplicationDto> getAndUpdateProvider(List<BusinessRoleApplicationDto> patternDeltas) {
-        RoleMiningProvider<BusinessRoleApplicationDto> provider = new RoleMiningProvider<>(
+    private RoleMiningProvider<BusinessRoleDto> getAndUpdateProvider(List<BusinessRoleDto> patternDeltas) {
+        RoleMiningProvider<BusinessRoleDto> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(patternDeltas) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(List<BusinessRoleApplicationDto> object) {
+            public void setObject(List<BusinessRoleDto> object) {
                 super.setObject(patternDeltas);
             }
         }, false);
         return provider;
     }
 
-    private BoxedTablePanel<BusinessRoleApplicationDto> getTable() {
-        return (BoxedTablePanel<BusinessRoleApplicationDto>) get(((PageBase) getPage()).createComponentPath(
+    private BoxedTablePanel<BusinessRoleDto> getTable() {
+        return (BoxedTablePanel<BusinessRoleDto>) get(((PageBase) getPage()).createComponentPath(
                 ID_MODIFICATION_TARGET_CONTAINER, ID_MODIFICATION_TARGET_PANEL));
     }
 
-    private BoxedTablePanel<BusinessRoleApplicationDto> generateTable(RoleMiningProvider<BusinessRoleApplicationDto> provider) {
+    private BoxedTablePanel<BusinessRoleDto> generateTable(RoleMiningProvider<BusinessRoleDto> provider) {
 
-        BoxedTablePanel<BusinessRoleApplicationDto> table = new BoxedTablePanel<>(
+        BoxedTablePanel<BusinessRoleDto> table = new BoxedTablePanel<>(
                 ID_MODIFICATION_TARGET_PANEL, provider, initColumns(provider)) {
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
@@ -129,30 +130,19 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
 
                         CandidateAssignPanel detailsPanel = new CandidateAssignPanel(
                                 ((PageBase) getPage())
-                                        .getMainPopupBodyId(), getObjectDetailsModels().getPatternDeltas()) {
+                                        .getMainPopupBodyId(), getObjectDetailsModels().getPatternDeltas().getBusinessRoleDtos()) {
                             @Override
                             public void performAddOperation(AjaxRequestTarget ajaxRequestTarget, IModel<SelectableBean<UserType>> iModel) {
-                                List<AssignmentType> inducement;
-                                PrismObject<RoleType> role = (PrismObject<RoleType>) getObjectDetailsModels().getObjectWrapper().getObject();
-                                try {
-                                    inducement = getObjectDetailsModels()
-                                            .getObjectWrapper()
-                                            .getObjectApplyDelta()
-                                            .asObjectable()
-                                            .getInducement();
+                                BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
 
-                                } catch (SchemaException e) {
-                                    throw new RuntimeException(e);
-                                }
                                 UserType user = iModel.getObject().getValue();
 
-                                BusinessRoleApplicationDto newValue = new BusinessRoleApplicationDto(
-                                        user.asPrismContainer(), role, getPageBase());
-                                newValue.updateValue(inducement, getPageBase());
-                                getObjectDetailsModels().getPatternDeltas().add(newValue);
+                                BusinessRoleDto newValue = new BusinessRoleDto(
+                                        user.asPrismContainer(), patternDeltas.getBusinessRole(), getPageBase());
+                                getObjectDetailsModels().getPatternDeltas().getBusinessRoleDtos().add(newValue);
 
-                                RoleMiningProvider<BusinessRoleApplicationDto> updatedProvider
-                                        = getAndUpdateProvider(getObjectDetailsModels().getPatternDeltas());
+                                RoleMiningProvider<BusinessRoleDto> updatedProvider
+                                        = getAndUpdateProvider(getObjectDetailsModels().getPatternDeltas().getBusinessRoleDtos());
 
                                 getTable().replaceWith(generateTable(updatedProvider));
                                 ajaxRequestTarget.add(getTable().setOutputMarkupId(true));
@@ -183,22 +173,22 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         return table;
     }
 
-    private List<IColumn<BusinessRoleApplicationDto, String>> initColumns(RoleMiningProvider<BusinessRoleApplicationDto> provider) {
+    private List<IColumn<BusinessRoleDto, String>> initColumns(RoleMiningProvider<BusinessRoleDto> provider) {
 
-        List<IColumn<BusinessRoleApplicationDto, String>> columns = new ArrayList<>();
+        List<IColumn<BusinessRoleDto, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> cellItem,
-                    String componentId, IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> cellItem,
+                    String componentId, IModel<BusinessRoleDto> rowModel) {
                 changeBackgroundColorCell(cellItem, rowModel);
                 super.populateItem(cellItem, componentId, rowModel);
             }
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<BusinessRoleApplicationDto> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<BusinessRoleDto> rowModel) {
                 return GuiDisplayTypeUtil
                         .createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
             }
@@ -217,8 +207,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> item, String componentId,
-                    IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> item, String componentId,
+                    IModel<BusinessRoleDto> rowModel) {
 
                 AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId,
                         Model.of(rowModel.getObject().getPrismObjectUser().getName())) {
@@ -251,8 +241,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> item, String componentId,
-                    IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> item, String componentId,
+                    IModel<BusinessRoleDto> rowModel) {
 
                 String include = "EXCLUDE";
                 if (rowModel.getObject().isInclude()) {
@@ -277,8 +267,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> item, String componentId,
-                    IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> item, String componentId,
+                    IModel<BusinessRoleDto> rowModel) {
                 item.add(new Label(componentId, rowModel.getObject().getAssignedCount()));
                 changeBackgroundColorCell(item, rowModel);
             }
@@ -298,8 +288,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> item, String componentId,
-                    IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> item, String componentId,
+                    IModel<BusinessRoleDto> rowModel) {
                 item.add(new Label(componentId, rowModel.getObject().getUnassignedCount()));
                 changeBackgroundColorCell(item, rowModel);
             }
@@ -319,8 +309,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> item, String componentId,
-                    IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> item, String componentId,
+                    IModel<BusinessRoleDto> rowModel) {
                 item.add(new Label(componentId, rowModel.getObject().getPrismObjectUser().asObjectable().getAssignment().size()));
                 changeBackgroundColorCell(item, rowModel);
             }
@@ -340,8 +330,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> item, String componentId,
-                    IModel<BusinessRoleApplicationDto> rowModel) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> item, String componentId,
+                    IModel<BusinessRoleDto> rowModel) {
                 int assignmentCount = rowModel.getObject().getPrismObjectUser().asObjectable().getAssignment().size();
                 int reduction = rowModel.getObject().getUnassignedCount();
 
@@ -355,8 +345,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                 createStringResource("")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<BusinessRoleApplicationDto>> cellItem,
-                    String componentId, IModel<BusinessRoleApplicationDto> model) {
+            public void populateItem(Item<ICellPopulator<BusinessRoleDto>> cellItem,
+                    String componentId, IModel<BusinessRoleDto> model) {
 
                 InlineButtonPanel inlineButtonPanel = new InlineButtonPanel(componentId, Model.of("Operations")) {
                     @Override
@@ -378,7 +368,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                             @Override
                             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                 model.getObject().setInclude(!model.getObject().isInclude());
-                                getObjectDetailsModels().setPatternDeltas(provider.getAvailableData());
+                                BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
+                                patternDeltas.setBusinessRoleDtos(provider.getAvailableData());
                                 ajaxRequestTarget.add(this);
                                 getTable().replaceWith(generateTable(provider));
                                 ajaxRequestTarget.add(getTable().setOutputMarkupId(true));
@@ -450,8 +441,8 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
         return columns;
     }
 
-    private void changeBackgroundColorCell(Item<ICellPopulator<BusinessRoleApplicationDto>> item,
-            IModel<BusinessRoleApplicationDto> rowModel) {
+    private void changeBackgroundColorCell(Item<ICellPopulator<BusinessRoleDto>> item,
+            IModel<BusinessRoleDto> rowModel) {
         if (!rowModel.getObject().isInclude()) {
             item.add(new AttributeModifier("class", "table-danger"));
         }

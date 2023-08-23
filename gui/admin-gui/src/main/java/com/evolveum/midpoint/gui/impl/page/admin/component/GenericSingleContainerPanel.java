@@ -325,6 +325,18 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
             @Override
             protected ItemEditabilityHandler getEditabilityHandler() {
                 ContainerPanelConfigurationType config = getPanelConfiguration();
+
+                for (VirtualContainersSpecificationType container : config.getContainer()) {
+                    if (container.getPath() != null
+                            && (container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_SESSION_STATISTIC))
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION)
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS)
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_USER_MODE_OPTIONS)
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisClusterType.F_CLUSTER_STATISTICS)) {
+                        return wrapper -> false;
+                    }
+                }
+
                 if (!(config instanceof PreviewContainerPanelConfigurationType)) {
                     return super.getEditabilityHandler();
                 }

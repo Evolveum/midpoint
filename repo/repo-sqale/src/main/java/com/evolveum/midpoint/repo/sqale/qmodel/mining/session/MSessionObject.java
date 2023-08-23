@@ -16,9 +16,10 @@ public class MSessionObject extends MObject {
     public String riskLevel;
 
     public RoleAnalysisProcessModeType processMode;
-    public Integer processedObjectCount;
-    public Long density;
+
+    public Long clustersMeanDensity;
     public Integer clusterCount;
+    public Integer processedObjectCount;
 
     public Long similarityOption;
     public Integer minMembersOption;

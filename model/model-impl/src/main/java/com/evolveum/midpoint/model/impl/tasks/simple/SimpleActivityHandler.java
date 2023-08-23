@@ -67,7 +67,6 @@ public abstract class SimpleActivityHandler<
     @Autowired protected Clock clock;
     @Autowired protected Clockwork clockwork;
     @Autowired protected ContextFactory contextFactory;
-    @Autowired protected ScriptingService scriptingService;
     @Autowired public ModelObjectResolver modelObjectResolver;
     @Autowired protected BulkActionsService bulkActionsService;
 

@@ -97,19 +97,16 @@ public class DefaultPatternResolver {
         return roleAnalysisClusterDetectionTypeList;
     }
 
-    String state = "START";
-
     private List<RoleAnalysisDetectionPatternType> resolveDefaultIntersection(
             RoleAnalysisSessionType session,
             @NotNull RoleAnalysisClusterType clusterType,
             @NotNull PageBase pageBase, @NotNull OperationResult operationResult) {
-
         List<DetectedPattern> possibleBusinessRole;
         RoleAnalysisProcessModeType mode = session.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = new PrepareChunkStructure().executeOperation(clusterType, false,
                 roleAnalysisProcessModeType,
-                pageBase, operationResult, state);
+                pageBase, operationResult);
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                 ClusterObjectUtils.SORT.NONE);
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(

@@ -7,20 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
-import org.apache.wicket.model.LoadableDetachableModel;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class AbstractRoleDetailsModel<AR extends AbstractRoleType> extends FocusDetailsModels<AR> {
 
-    private List<BusinessRoleApplicationDto> patternDeltas = new ArrayList<>();
+    private BusinessRoleApplicationDto patternDeltas;
 
     public AbstractRoleDetailsModel(LoadableDetachableModel<PrismObject<AR>> prismObjectModel, PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
@@ -30,15 +27,12 @@ public class AbstractRoleDetailsModel<AR extends AbstractRoleType> extends Focus
         super(prismObjectModel, history, serviceLocator);
     }
 
-    public void setPatternDeltas(List<BusinessRoleApplicationDto> patternDeltas) {
+    public void setPatternDeltas(BusinessRoleApplicationDto patternDeltas) {
         this.patternDeltas = patternDeltas;
     }
 
-    public void addPatternDeltas(List<BusinessRoleApplicationDto> patternDeltas) {
-        this.patternDeltas.addAll(patternDeltas);
-    }
 
-    public List<BusinessRoleApplicationDto> getPatternDeltas() {
+    public BusinessRoleApplicationDto getPatternDeltas() {
         return patternDeltas;
     }
 

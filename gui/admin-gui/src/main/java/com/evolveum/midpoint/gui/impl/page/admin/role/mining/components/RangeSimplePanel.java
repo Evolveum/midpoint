@@ -48,6 +48,7 @@ public class RangeSimplePanel extends InputPanel {
         TextField<Double> minField = new TextField<>(ID_MIN,
                 new PropertyModel<>(new ItemRealValueModel<>(getModel()), "min"));
         minField.setOutputMarkupId(true);
+        minField.setEnabled(isEnabled());
         minField.add(new ValidatorAdapter<>((var) -> {
             Double value = var.getValue();
             if (value > maximumValue()) {
@@ -63,6 +64,7 @@ public class RangeSimplePanel extends InputPanel {
         TextField<Double> maxField = new TextField<>(ID_MAX,
                 new PropertyModel<>(new ItemRealValueModel<>(getModel()), "max"));
         maxField.setOutputMarkupId(true);
+        maxField.setEnabled(isEnabled());
 
         maxField.add(new ValidatorAdapter<>((var) -> {
             Double value = var.getValue();
@@ -78,6 +80,12 @@ public class RangeSimplePanel extends InputPanel {
 
         add(container);
 
+    }
+
+
+    @Override
+    public boolean isEnabled() {
+        return super.isEnabled();
     }
 
     private TextField<Double> getMinField() {

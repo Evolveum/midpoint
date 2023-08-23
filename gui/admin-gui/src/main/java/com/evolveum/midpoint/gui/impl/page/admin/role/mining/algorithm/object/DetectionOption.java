@@ -1,7 +1,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
+import java.io.Serializable;
 
 public class DetectionOption implements Serializable {
 
@@ -42,11 +43,17 @@ public class DetectionOption implements Serializable {
         this.minRoles = minRoles;
     }
 
-
     public DetectionOption(double minFrequencyThreshold, double maxFrequencyThreshold, Integer minUsers, Integer minRoles) {
         this.minFrequencyThreshold = minFrequencyThreshold;
         this.maxFrequencyThreshold = maxFrequencyThreshold;
         this.minUsers = minUsers;
         this.minRoles = minRoles;
+    }
+
+    public DetectionOption(RoleAnalysisClusterType cluster) {
+        this.minFrequencyThreshold = cluster.getDetectionOption().getFrequencyRange().getMin();
+        this.maxFrequencyThreshold = cluster.getDetectionOption().getFrequencyRange().getMax();
+        this.minUsers = cluster.getDetectionOption().getMinUserOccupancy();
+        this.minRoles = cluster.getDetectionOption().getMinRolesOccupancy();
     }
 }

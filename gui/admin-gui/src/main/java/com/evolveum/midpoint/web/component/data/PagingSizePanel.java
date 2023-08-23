@@ -89,9 +89,11 @@ public class PagingSizePanel extends BasePanel<Integer> {
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
-                if (tableId == null || !tablePanel.enableSavePageSize()) {
-                    tablePanel.setItemsPerPage(o);
-                    return;
+                if (o != null) {
+                    if (tableId == null || !tablePanel.enableSavePageSize()) {
+                        tablePanel.setItemsPerPage(o);
+                        return;
+                    }
                 }
 
                 getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);

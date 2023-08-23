@@ -51,10 +51,10 @@ public class QSessionData extends QAssignmentHolder<MSessionObject> {
             createInteger("processedObjectCount", PROCESSED_OBJECTS);
 
     public static final ColumnMetadata MEAN_DENSITY =
-            ColumnMetadata.named("density").ofType(Types.LONGNVARCHAR);
+            ColumnMetadata.named("clustersMeanDensity").ofType(Types.LONGNVARCHAR);
 
-    public final NumberPath<Long> density =
-            createLong("density", MEAN_DENSITY);
+    public final NumberPath<Long> clustersMeanDensity =
+            createLong("clustersMeanDensity", MEAN_DENSITY);
 
     public static final ColumnMetadata CLUSTER_COUNT =
             ColumnMetadata.named("clusterCount").ofType(Types.INTEGER);

@@ -50,10 +50,4 @@ public class CacheUtils {
         return user;
     }
 
-    @NotNull
-    protected static String generateState(int part, int total, String title) {
-        String state;
-        state = part + "/" + total + " : " + title;
-        return state;
-    }
 }

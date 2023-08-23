@@ -18,6 +18,11 @@ public class MiningUserTypeChunk implements Serializable {
     List<String> users;
     List<String> roles;
     String chunkName;
+
+    public void setFrequency(double frequency) {
+        this.frequency = frequency;
+    }
+
     double frequency;
     ClusterObjectUtils.Status status;
 

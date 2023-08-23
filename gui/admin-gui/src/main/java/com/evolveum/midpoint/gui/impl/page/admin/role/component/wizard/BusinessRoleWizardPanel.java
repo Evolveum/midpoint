@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
@@ -17,12 +23,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRol
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lskublik
@@ -55,8 +55,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
             }
         });
 
-        List<BusinessRoleApplicationDto> patterns = getAssignmentHolderModel().getPatternDeltas();
-        if (CollectionUtils.isNotEmpty(patterns)) {
+        BusinessRoleApplicationDto patterns = getAssignmentHolderModel().getPatternDeltas();
+        if (patterns != null && CollectionUtils.isNotEmpty(patterns.getBusinessRoleDtos())) {
             steps.add(new ExsitingAccessApplicationRoleStepPanel<>(getAssignmentHolderModel()) {
 
                 @Override
@@ -121,12 +121,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                     @Override
                     protected void onTileClickPerformed(PreviewTileType value, AjaxRequestTarget target) {
                         switch (value) {
-                            case CONFIGURE_MEMBERS:
-                                showMembersPanel(target);
-                                break;
-                            case CONFIGURE_GOVERNANCE_MEMBERS:
-                                showGovernanceMembersPanel(target);
-                                break;
+                            case CONFIGURE_MEMBERS -> showMembersPanel(target);
+                            case CONFIGURE_GOVERNANCE_MEMBERS -> showGovernanceMembersPanel(target);
                         }
                     }
                 });

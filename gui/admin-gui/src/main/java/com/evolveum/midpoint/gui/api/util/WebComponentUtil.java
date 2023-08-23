@@ -24,6 +24,10 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -263,6 +267,9 @@ public final class WebComponentUtil {
 
         OBJECT_DETAILS_PAGE_MAP.put(SimulationResultType.class, PageSimulationResult.class);
         OBJECT_DETAILS_PAGE_MAP.put(MarkType.class, PageMark.class);
+
+        OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisSessionType.class, PageRoleAnalysisSession.class);
+        OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisClusterType.class, PageRoleAnalysisCluster.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)

@@ -1201,7 +1201,7 @@ CREATE TABLE m_role_analysis_session_table (
         CHECK (objectType = 'ROLE_ANALYSIS_SESSION'),
 --        processedObjectCount INTEGER,
 --        clusterCount INTEGER,
---        density DECIMAL,
+--        clustersMeanDensity DECIMAL,
         similarityOption DECIMAL,
         minMembersOption INTEGER,
         overlapOption INTEGER

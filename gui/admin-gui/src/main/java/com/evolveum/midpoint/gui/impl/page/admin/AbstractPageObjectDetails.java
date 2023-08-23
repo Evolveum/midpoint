@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleDto;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.util.exception.*;
@@ -26,6 +27,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +98,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         this(null, object, null);
     }
 
-    private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object, List<BusinessRoleApplicationDto> patternDeltas) {
+    private AbstractPageObjectDetails(PageParameters params, PrismObject<O> object, List<BusinessRoleDto> patternDeltas) {
         super(params);
         isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
@@ -110,7 +112,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     }
 
-    public AbstractPageObjectDetails(PrismObject<O> object, List<BusinessRoleApplicationDto> patternDeltas) {
+    public AbstractPageObjectDetails(PrismObject<O> object, List<BusinessRoleDto> patternDeltas) {
         this(null, object, patternDeltas);
     }
 
@@ -240,10 +242,30 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             }
 
             @Override
+            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
+                super.deleteConfirmPerformed(target);
+                AbstractPageObjectDetails.this.afterDeletePerformed(target);
+            }
+
+            @Override
             protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
                 return AbstractPageObjectDetails.this.hasUnsavedChanges(target);
             }
+
+            @Override
+            public StringResourceModel getSaveButtonTitle() {
+                return setSaveButtonTitle();
+            }
+
+            @Override
+            protected boolean isSaveButtonVisible() {
+                return super.isSaveButtonVisible();
+            }
         };
+    }
+
+    public StringResourceModel setSaveButtonTitle() {
+        return ((PageBase) getPage()).createStringResource("PageBase.button.save");
     }
 
     public boolean hasUnsavedChanges(AjaxRequestTarget target) {
@@ -261,6 +283,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
             return true;
         }
+    }
+
+    public void afterDeletePerformed(AjaxRequestTarget target) {
+
     }
 
     public void savePerformed(AjaxRequestTarget target) {
@@ -301,18 +327,18 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         LOGGER.trace("returning from saveOrPreviewPerformed");
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas;
-        List<BusinessRoleApplicationDto> patternDeltas = ((AbstractRoleDetailsModel) getObjectDetailsModels()).getPatternDeltas();
-        if (patternDeltas != null && !patternDeltas.isEmpty()) {
+        BusinessRoleApplicationDto patternDeltas = ((AbstractRoleDetailsModel) getObjectDetailsModels()).getPatternDeltas();
+        if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
             executedDeltas = new ObjectChangesExecutorImpl()
                     .executeChanges(deltas, previewOnly, task, result, target);
 
             String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
-            clusterMigrationRecompute(result, patternDeltas.get(0).getClusterOid(), roleOid, (PageBase) getPage());
+            clusterMigrationRecompute(result, patternDeltas.getCluster().getOid(), roleOid, (PageBase) getPage());
 
             PrismObject<RoleType> roleObject = getRoleTypeObject((PageBase) getPage(), roleOid, result);
 
             if (roleObject != null) {
-                executeMigrationTask(result, task, patternDeltas, roleObject);
+                executeMigrationTask(result, task, patternDeltas.getBusinessRoleDtos(), roleObject);
             }
 
         } else {
@@ -329,7 +355,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return executedDeltas;
     }
 
-    private void executeMigrationTask(OperationResult result, Task task, List<BusinessRoleApplicationDto> patternDeltas, PrismObject<RoleType> roleObject) {
+    public void executeAditionalChanges() {
+
+    }
+
+    private void executeMigrationTask(OperationResult result, Task task, List<BusinessRoleDto> patternDeltas, PrismObject<RoleType> roleObject) {
         try {
             ActivityDefinitionType activity = createActivity(patternDeltas, roleObject.getOid());
 
@@ -347,7 +377,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
     }
 
-    private ActivityDefinitionType createActivity(List<BusinessRoleApplicationDto> patternDeltas, String roleOid) throws SchemaException {
+    private ActivityDefinitionType createActivity(List<BusinessRoleDto> patternDeltas, String roleOid) throws SchemaException {
 
         ObjectReferenceType objectReferenceType = new ObjectReferenceType();
         objectReferenceType.setType(RoleType.COMPLEX_TYPE);
@@ -357,7 +387,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         roleMembershipManagementWorkDefinitionType.setRoleRef(objectReferenceType);
 
         ObjectSetType members = new ObjectSetType();
-        for (BusinessRoleApplicationDto patternDelta : patternDeltas) {
+        for (BusinessRoleDto patternDelta : patternDeltas) {
             if (!patternDelta.isInclude()) {
                 continue;
             }

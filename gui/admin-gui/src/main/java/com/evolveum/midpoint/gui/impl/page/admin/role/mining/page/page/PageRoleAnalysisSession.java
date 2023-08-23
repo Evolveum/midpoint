@@ -9,24 +9,34 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.SessionWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.SessionSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.searchAndDeleteCluster;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -53,6 +63,20 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     public PageRoleAnalysisSession(boolean isEditPanel) {
         this.isEditPanel = true;
     }
+
+    @Override
+    public void afterDeletePerformed(AjaxRequestTarget target) {
+        PageBase pageBase = (PageBase) getPage();
+        Task task = pageBase.createSimpleTask("Recompute object");
+        OperationResult result = task.getResult();
+
+        RoleAnalysisSessionType session = getModelWrapperObject().getObjectOld().asObjectable();
+        String sessionOid = session.getOid();
+
+        searchAndDeleteCluster(pageBase, result, sessionOid);
+    }
+
+
 
     @Override
     protected void onInitialize() {
@@ -105,11 +129,13 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
                 for (VirtualContainersSpecificationType virtualContainersSpecificationType : container) {
                     if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                        if (virtualContainersSpecificationType.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_USER_MODE_OPTIONS)) {
+                        if (virtualContainersSpecificationType.getPath().getItemPath()
+                                .equivalent(RoleAnalysisSessionType.F_USER_MODE_OPTIONS)) {
                             containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                         }
                     } else {
-                        if (virtualContainersSpecificationType.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS)) {
+                        if (virtualContainersSpecificationType.getPath().getItemPath()
+                                .equivalent(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS)) {
                             containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                         }
                     }

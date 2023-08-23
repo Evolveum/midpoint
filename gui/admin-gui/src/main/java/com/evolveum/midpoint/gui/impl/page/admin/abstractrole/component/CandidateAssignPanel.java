@@ -23,7 +23,7 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleDto;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -36,10 +36,10 @@ public class CandidateAssignPanel extends BasePanel<String> implements Popupable
     private static final String ID_PANELS = "table";
     Set<String> existMembersOid = new HashSet<>();
 
-    public CandidateAssignPanel(String id, List<BusinessRoleApplicationDto> patternDeltas) {
+    public CandidateAssignPanel(String id, List<BusinessRoleDto> patternDeltas) {
         super(id);
 
-        for (BusinessRoleApplicationDto bsApplicationDto : patternDeltas) {
+        for (BusinessRoleDto bsApplicationDto : patternDeltas) {
             String oid = bsApplicationDto.getPrismObjectUser().getOid();
             existMembersOid.add(oid);
         }

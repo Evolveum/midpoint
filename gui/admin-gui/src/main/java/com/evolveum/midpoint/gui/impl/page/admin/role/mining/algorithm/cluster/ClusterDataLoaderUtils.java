@@ -79,7 +79,7 @@ public class ClusterDataLoaderUtils implements Serializable {
         GetOperationOptionsBuilder optionsBuilder = pageBase.getSchemaService().getOperationOptionsBuilder();
 
         RepositoryService repositoryService = pageBase.getRepositoryService();
-        ObjectQuery objectQuery = null;
+        ObjectQuery objectQuery;
         try {
             objectQuery = PrismContext.get().getQueryConverter().createObjectQuery(UserType.class, userQuery);
         } catch (SchemaException e) {

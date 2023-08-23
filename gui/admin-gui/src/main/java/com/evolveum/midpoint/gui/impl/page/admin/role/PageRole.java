@@ -13,6 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleDto;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -48,7 +49,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
 
-    private List<BusinessRoleApplicationDto> patternDeltas;
+    private BusinessRoleApplicationDto patternDeltas;
 
     public PageRole() {
         super();
@@ -62,7 +63,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         super(role);
     }
 
-    public PageRole(PrismObject<RoleType> role, List<BusinessRoleApplicationDto> patternDeltas) {
+    public PageRole(PrismObject<RoleType> role, BusinessRoleApplicationDto patternDeltas) {
         super(role);
         this.patternDeltas = patternDeltas;
     }
@@ -74,8 +75,8 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
     @Override
     protected void postProcessModel(AbstractRoleDetailsModel<RoleType> objectDetailsModels) {
-        if (patternDeltas != null && !patternDeltas.isEmpty()) {
-            objectDetailsModels.addPatternDeltas(patternDeltas);
+        if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
+            objectDetailsModels.setPatternDeltas(patternDeltas);
         }
 
         patternDeltas = null;

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,12 +18,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 
 public interface MiningStructure {
     MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, String state);
+            OperationResult result, Handler handler);
     MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, String state);
+            OperationResult result, Handler handler);
     MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, String state);
+            OperationResult result, Handler state);
     MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, String state);
+            OperationResult result, Handler handler);
 
 }

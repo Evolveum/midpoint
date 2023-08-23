@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.apache.wicket.Component;
@@ -22,23 +23,28 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.apache.wicket.model.Model;
 
 public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
 
@@ -69,6 +75,8 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
     static boolean isRoleMining = false;
     private List<IColumn<T, String>> columns;
 
+    ClusterObjectUtils.SORT sortMode;
+
     //interval in seconds
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
 
@@ -78,23 +86,24 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     public SpecialBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId) {
-        this(id, provider, columns, tableId, false, false, 0);
+        this(id, provider, columns, tableId, false, false, 0, ClusterObjectUtils.SORT.NONE);
     }
 
     public SpecialBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId, boolean isRoleMining) {
-        this(id, provider, columns, tableId, false, isRoleMining, 0);
+        this(id, provider, columns, tableId, false, isRoleMining, 0, ClusterObjectUtils.SORT.NONE);
     }
 
     int columnCount;
 
     public SpecialBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRefreshEnabled, boolean isRoleMining, int columnCount) {
+            UserProfileStorage.TableId tableId, boolean isRefreshEnabled, boolean isRoleMining, int columnCount, ClusterObjectUtils.SORT sortMode) {
         super(id);
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
         SpecialBoxedTablePanel.isRoleMining = isRoleMining;
         this.columnCount = columnCount;
+        this.sortMode = sortMode;
         initLayout(columns, provider, columnCount);
     }
 
@@ -397,7 +406,7 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
                 protected List<Integer> getPagingSizes() {
 
                     if (isRoleMining) {
-                        return List.of(new Integer[] { 50, 100,150,200 });
+                        return List.of(new Integer[] { 50, 100, 150, 200 });
                     }
                     return super.getPagingSizes();
                 }
@@ -462,7 +471,6 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
             WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
             add(buttonToolbar);
 
-            final DataTable dataTable = table.getDataTable();
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);
             footerContainer.add(new VisibleBehaviour(() -> isPagingVisible()));
@@ -470,9 +478,49 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
             Form<?> form = new MidpointForm<>(ID_FORM);
             footerContainer.add(form);
 
+
+            Form<?> formBsProcess = new MidpointForm<>("form_bs_process");
+            footerContainer.add(formBsProcess);
+            OperationResult operationResult = new OperationResult("ProcessPattern");
+            AjaxButton processButton = new AjaxButton("process_selections_id",
+                    createStringResource("RoleMining.button.title.process")) {
+                @Override
+                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+                    BusinessRoleApplicationDto operationData = getOperationData();
+                    if (operationData == null) {
+                        return;
+                    }
+
+                    PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
+                    setResponsePage(pageRole);
+                }
+            };
+
+            processButton.setOutputMarkupId(true);
+            processButton.setOutputMarkupPlaceholderTag(true);
+            formBsProcess.add(processButton);
+
+            Form<?> formSortMode = new MidpointForm<>("form_sort_model");
+            footerContainer.add(formSortMode);
+
+            ChoiceRenderer<ClusterObjectUtils.SORT> renderer = new ChoiceRenderer<>("displayString");
+
+            DropDownChoice<ClusterObjectUtils.SORT> modeSelector = new DropDownChoice<>(
+                    "modeSelector", Model.of(sortMode),
+                    new ArrayList<>(EnumSet.allOf(ClusterObjectUtils.SORT.class)), renderer);
+            modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    onChangeSortMode(modeSelector.getModelObject(), target);
+                }
+            });
+
+            modeSelector.setOutputMarkupId(true);
+            formSortMode.add(modeSelector);
+
             Form<?> formCurrentPage = new MidpointForm<>("form_current_page");
             footerContainer.add(formCurrentPage);
-
             List<Integer> integers = List.of(new Integer[] { 100, 200, 400 });
             DropDownChoice<Integer> colCountOnPage = new DropDownChoice<>("colCountOnPage",
                     new Model<>(getColumnPageCount()), integers);
@@ -555,6 +603,13 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     public void onChange(String value, AjaxRequestTarget target) {
+    }
+
+    public void onChangeSortMode(ClusterObjectUtils.SORT sortMode, AjaxRequestTarget target) {
+    }
+
+    public BusinessRoleApplicationDto getOperationData() {
+        return null;
     }
 
     public int onChangeSize(int value, AjaxRequestTarget target) {

@@ -236,8 +236,8 @@ public class ClusterObjectUtils {
             OperationResult result) {
         try {
             return pageBase.getRepositoryService().getObject(UserType.class, oid, null, result);
-        } catch (ObjectNotFoundException e) {
-            LOGGER.error("Object not found. User UUID {} cannot be resolved", oid, e);
+        } catch (ObjectNotFoundException ignored) {
+//            LOGGER.warn("Object not found. User UUID {} cannot be resolved", oid, e);
             return null;
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
@@ -375,8 +375,8 @@ public class ClusterObjectUtils {
 
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
         roleAnalysisDetectionOptionType.setFrequencyRange(new RangeType()
-                .max(detectionOption.getMinFrequencyThreshold())
-                .min(detectionOption.getMaxFrequencyThreshold()));
+                .max(detectionOption.getMaxFrequencyThreshold())
+                .min(detectionOption.getMinFrequencyThreshold()));
         roleAnalysisDetectionOptionType.setMinUserOccupancy(detectionOption.getMinUsers());
         roleAnalysisDetectionOptionType.setMinRolesOccupancy(detectionOption.getMinRoles());
 
@@ -391,6 +391,44 @@ public class ClusterObjectUtils {
             LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", clusterOid, e.getMessage(), e);
         }
 
+    }
+
+    public static void replaceRoleAnalysisClusterDetectionPattern(String clusterOid,
+            PageBase pageBase, OperationResult result, List<DetectedPattern> detectedPatterns,
+            RoleAnalysisProcessModeType processMode) {
+
+        QName processedObjectComplexType;
+        QName propertiesComplexType;
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            processedObjectComplexType = UserType.COMPLEX_TYPE;
+            propertiesComplexType = RoleType.COMPLEX_TYPE;
+        } else {
+            processedObjectComplexType = RoleType.COMPLEX_TYPE;
+            propertiesComplexType = UserType.COMPLEX_TYPE;
+        }
+
+        List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypes = loadIntersections(detectedPatterns, processedObjectComplexType, propertiesComplexType);
+
+        Collection<PrismContainerValue<?>> collection = new ArrayList<>();
+        for (RoleAnalysisDetectionPatternType clusterDetectionType : roleAnalysisClusterDetectionTypes) {
+            collection.add(clusterDetectionType.asPrismContainerValue());
+        }
+
+        try {
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(collection)
+                    .asItemDelta());
+
+            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
+                    .asItemDelta());
+
+            pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, clusterOid, modifications, result);
+        } catch (Throwable e) {
+            LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", clusterOid, e.getMessage(), e);
+        }
     }
 
     public static void replaceRoleAnalysisClusterDetection(String clusterOid,
@@ -498,6 +536,8 @@ public class ClusterObjectUtils {
             throw new RuntimeException(e);
         }
     }
+
+
 
     public static void searchAndDeleteCluster(PageBase pageBase, OperationResult result, String sessionOid) {
 

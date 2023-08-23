@@ -10,13 +10,12 @@
 <wicket:panel>
 
 
-    <div style="width:1100px">
-    <span style="width:100%; max-height:800px;"
-            wicket:id="datatable_extra"></span>
-
-    <span style="width:100%;"
-            wicket:id="table_intersection"></span>
-
+    <div class="progress">
+        <div wicket:id="progressBar" class="progress-bar bg-info" role="progressbar"
+                style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
+
+    <div wicket:id="progress_description"></div>
+
 </wicket:panel>
 </html>

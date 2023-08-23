@@ -34,9 +34,9 @@ public class QSessionObjectMapping
 //                .addItemMapping(RoleAnalysisSessionStatisticType.F_PROCESSED_OBJECT_COUNT,
 //                        integerMapper(q -> q.processedObjectCount))
 //                .addItemMapping(RoleAnalysisSessionStatisticType.F_CLUSTER_COUNT,
-//                        integerMapper(q -> q.clusterCount));
+//                        integerMapper(q -> q.clusterCount))
 //                .addItemMapping(RoleAnalysisSessionStatisticType.F_MEAN_DENSITY,
-//                        longMapper(q -> q.density));
+//                        longMapper(q -> q.clustersMeanDensity));
 
         addNestedMapping(F_USER_MODE_OPTIONS, AbstractAnalysisSessionOptionType.class)
                 .addItemMapping(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD,
@@ -83,12 +83,13 @@ public class QSessionObjectMapping
             row.overlapOption = userModeOptions.getMinPropertiesOverlap();
         }
 
-        if (session.getSessionStatistic() != null) {
-            RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
-//            row.density = (long) (sessionStatistic.getMeanDensity() * DEFAULT_DECIMALS);
+
+//        if (session.getSessionStatistic() != null) {
+//            RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+//            row.clustersMeanDensity = (long) (sessionStatistic.getMeanDensity() * DEFAULT_DECIMALS);
 //            row.clusterCount = sessionStatistic.getClusterCount();
 //            row.processedObjectCount = sessionStatistic.getProcessedObjectCount();
-        }
+//        }
 
         return row;
     }

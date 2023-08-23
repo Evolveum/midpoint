@@ -7,25 +7,50 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.sorter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.mechanism.DataPoint;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+
+import static com.evolveum.midpoint.util.QNameUtil.LOGGER;
+
 public class JaccardSorter {
 
-    public static @NotNull List<DataPoint> sort(@NotNull List<DataPoint> dataPoints) {
+    public static @NotNull List<MiningUserTypeChunk> frequencyUserBasedSort(@NotNull List<MiningUserTypeChunk> dataPoints) {
+        List<MiningUserTypeChunk> sorted = new ArrayList<>(dataPoints);
+        sorted.sort(Comparator.comparingDouble(MiningUserTypeChunk::getFrequency).reversed());
+        return sorted;
+    }
 
-        List<DataPoint> sorted = new ArrayList<>();
-        List<DataPoint> remaining = new ArrayList<>(dataPoints);
+    public static @NotNull List<MiningRoleTypeChunk> frequencyRoleBasedSort(@NotNull List<MiningRoleTypeChunk> dataPoints) {
+        List<MiningRoleTypeChunk> sorted = new ArrayList<>(dataPoints);
+        sorted.sort(Comparator.comparingDouble(MiningRoleTypeChunk::getFrequency).reversed());
+        return sorted;
+    }
 
-        remaining.sort(Comparator.comparingInt(set -> -set.getProperties().size()));
+    public static List<MiningUserTypeChunk> jaccardUserBasedSorter(List<MiningUserTypeChunk> dataPoints) {
 
+        Handler handler = new Handler("Jaccard Sort", 1);
+        handler.setSubTitle("Sorting");
+        handler.setActive(true);
+
+        List<MiningUserTypeChunk> sorted = new ArrayList<>();
+        List<MiningUserTypeChunk> remaining = new ArrayList<>(dataPoints);
+
+        remaining.sort(Comparator.comparingInt(set -> -set.getRoles().size()));
+
+        int size = dataPoints.size();
+        handler.setOperationCountToProcess(size);
         while (!remaining.isEmpty()) {
-            DataPoint current = remaining.remove(0);
+            handler.iterateActualStatus();
+
+            MiningUserTypeChunk current = remaining.remove(0);
             double maxSimilarity = 0;
             int insertIndex = -1;
 
@@ -37,26 +62,88 @@ public class JaccardSorter {
                 }
             } else {
                 for (int i = 1; i < sorted.size(); i++) {
-                    DataPoint previous = sorted.get(i - 1);
-                    DataPoint next = sorted.get(i);
-                    double similarity = jacquardSimilarity(current.getProperties(),
-                            previous.getProperties());
-                    double nextSimilarity = jacquardSimilarity(current.getProperties(),
-                            next.getProperties());
+                    MiningUserTypeChunk previous = sorted.get(i - 1);
+                    MiningUserTypeChunk next = sorted.get(i);
+                    List<String> currentRoles = current.getRoles();
+                    double similarity = jacquardSimilarity(currentRoles,
+                            previous.getRoles());
+                    double nextSimilarity = jacquardSimilarity(currentRoles,
+                            next.getRoles());
 
                     if (Math.max(similarity, nextSimilarity) > maxSimilarity
                             && Math.min(similarity, nextSimilarity) >= jacquardSimilarity(
-                            previous.getProperties(), next.getProperties())) {
+                            previous.getRoles(), next.getRoles())) {
                         maxSimilarity = Math.max(similarity, nextSimilarity);
                         insertIndex = i;
                     }
                 }
 
                 if (insertIndex == -1) {
-                    if (jacquardSimilarity(current.getProperties(),
-                            sorted.get(0).getProperties())
-                            > jacquardSimilarity(sorted.get(0).getProperties(),
-                            sorted.get(1).getProperties())) {
+                    if (jacquardSimilarity(current.getRoles(),
+                            sorted.get(0).getRoles())
+                            > jacquardSimilarity(sorted.get(0).getRoles(),
+                            sorted.get(1).getRoles())) {
+                        sorted.add(0, current);
+                    } else {
+                        sorted.add(current);
+                    }
+                } else {
+                    sorted.add(insertIndex, current);
+                }
+            }
+
+        }
+        return sorted;
+    }
+
+    public static List<MiningRoleTypeChunk> jaccardRoleBasedSorter(List<MiningRoleTypeChunk> dataPoints) {
+
+        Handler handler = new Handler("Jaccard Sort", 1);
+        handler.setSubTitle("Sorting");
+        handler.setActive(true);
+
+        List<MiningRoleTypeChunk> sorted = new ArrayList<>();
+        List<MiningRoleTypeChunk> remaining = new ArrayList<>(dataPoints);
+
+        remaining.sort(Comparator.comparingInt(set -> -set.getUsers().size()));
+
+        int size = dataPoints.size();
+        handler.setOperationCountToProcess(size);
+        while (!remaining.isEmpty()) {
+            handler.iterateActualStatus();
+
+            MiningRoleTypeChunk current = remaining.remove(0);
+            double maxSimilarity = 0;
+            int insertIndex = -1;
+
+            if (sorted.size() < 2) {
+                if (sorted.isEmpty()) {
+                    sorted.add(current);
+                } else {
+                    sorted.add(0, current);
+                }
+            } else {
+                for (int i = 1; i < sorted.size(); i++) {
+                    MiningRoleTypeChunk previous = sorted.get(i - 1);
+                    MiningRoleTypeChunk next = sorted.get(i);
+                    double similarity = jacquardSimilarity(current.getUsers(),
+                            previous.getUsers());
+                    double nextSimilarity = jacquardSimilarity(current.getUsers(),
+                            next.getUsers());
+
+                    if (Math.max(similarity, nextSimilarity) > maxSimilarity
+                            && Math.min(similarity, nextSimilarity) >= jacquardSimilarity(
+                            previous.getUsers(), next.getUsers())) {
+                        maxSimilarity = Math.max(similarity, nextSimilarity);
+                        insertIndex = i;
+                    }
+                }
+
+                if (insertIndex == -1) {
+                    if (jacquardSimilarity(current.getUsers(),
+                            sorted.get(0).getUsers())
+                            > jacquardSimilarity(sorted.get(0).getUsers(),
+                            sorted.get(1).getUsers())) {
                         sorted.add(0, current);
                     } else {
                         sorted.add(current);
@@ -70,25 +157,44 @@ public class JaccardSorter {
         return sorted;
     }
 
-    //TODO apply algorithm like JaccardDistanceMeasure (its more effective (test))
-    private static double jacquardSimilarity(@NotNull Set<String> set1, @NotNull Set<String> set2) {
-        Set<String> union = new HashSet<>(set1);
-        union.addAll(set2);
+    public static double jacquardSimilarity(List<String> set1, List<String> set2) {
 
-        Set<String> intersection = new HashSet<>(set1);
-        intersection.retainAll(set2);
+        int intersectionCount = 0;
+        int setBunique = 0;
 
-        return (double) intersection.size() / union.size();
-    }
-    public static @NotNull List<MiningUserTypeChunk> sortByFrequencyUserType(@NotNull List<MiningUserTypeChunk> dataPoints) {
-        List<MiningUserTypeChunk> sorted = new ArrayList<>(dataPoints);
-        sorted.sort(Comparator.comparingDouble(MiningUserTypeChunk::getFrequency).reversed());
-        return sorted;
+        if (set1.size() > set2.size()) {
+            for (String num : set2) {
+                if (set1.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
+            }
+
+            return (double) intersectionCount / (set1.size() + setBunique);
+
+        } else {
+
+            for (String num : set1) {
+                if (set2.contains(num)) {
+                    intersectionCount++;
+                } else {
+                    setBunique++;
+                }
+            }
+
+            return (double) intersectionCount / (set2.size() + setBunique);
+
+        }
+
+//
+//        Set<String> union = new HashSet<>(set1);
+//        union.addAll(set2);
+//
+//        Set<String> intersection = new HashSet<>(set1);
+//        intersection.retainAll(set2);
+//
+//        return (double) intersection.size() / union.size();
     }
 
-    public static @NotNull List<MiningRoleTypeChunk> sortByFrequencyRoleType(@NotNull List<MiningRoleTypeChunk> dataPoints) {
-        List<MiningRoleTypeChunk> sorted = new ArrayList<>(dataPoints);
-        sorted.sort(Comparator.comparingDouble(MiningRoleTypeChunk::getFrequency).reversed());
-        return sorted;
-    }
 }

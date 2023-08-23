@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -25,6 +27,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.Cluste
 public class ClusteringAction {
 
     private Clusterable clusterable;
+
+    Handler handler = new Handler("Density Clustering",7);
 
     public ClusteringAction(RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
@@ -41,9 +45,9 @@ public class ClusteringAction {
         if (prismSession != null) {
             RoleAnalysisSessionType session = prismSession.asObjectable();
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(session,
-                    result, pageBase);
+                    result, pageBase, handler);
 
-            importObjects(clusterObjects, session, pageBase, result, task);
+            importObjects(clusterObjects, session, pageBase, result, task, handler);
 
             pageBase.setResponsePage(PageRoleAnalysis.class);
         }
@@ -54,8 +58,8 @@ public class ClusteringAction {
             @NotNull RoleAnalysisSessionType session,
             PageBase pageBase,
             OperationResult result,
-            Task task
-    ) {
+            Task task,
+            Handler handler) {
         List<ObjectReferenceType> roleAnalysisClusterRef = new ArrayList<>();
         String sessionOid = session.getOid();
 
@@ -70,7 +74,12 @@ public class ClusteringAction {
                 : UserType.COMPLEX_TYPE;
 
         double meanDensity = 0;
+
+        handler.setSubTitle("Importing Clusters");
+        handler.setOperationCountToProcess(clusters.size());
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
+            handler.iterateActualStatus();
+
             AnalysisClusterStatisticType clusterStatistic = clusterTypePrismObject.asObjectable().getClusterStatistics();
             meanDensity += clusterStatistic.getMembershipDensity();
             if (session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
@@ -101,6 +110,9 @@ public class ClusteringAction {
         sessionStatistic.setMeanDensity(meanDensity);
         sessionStatistic.setClusterCount(clusters.size());
 
+
+        handler.setSubTitle("Update Session");
+        handler.setOperationCountToProcess(clusters.size());
         modifySessionAfterClustering(sessionRef,
                 sessionStatistic,
                 roleAnalysisClusterRef,

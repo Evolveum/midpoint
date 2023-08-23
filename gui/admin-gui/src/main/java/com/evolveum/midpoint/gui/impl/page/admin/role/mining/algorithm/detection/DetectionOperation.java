@@ -8,18 +8,18 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionOptionType;
 
 import java.util.List;
 
 public interface DetectionOperation {
 
     List<DetectedPattern> performUserBasedDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            DetectionOption roleAnalysisDetectionOptionType);
+            DetectionOption roleAnalysisDetectionOptionType, Handler handler);
 
     List<DetectedPattern> performRoleBasedDetection(List<MiningUserTypeChunk> miningRoleTypeChunks,
-            DetectionOption roleAnalysisDetectionOptionType);
+            DetectionOption roleAnalysisDetectionOptionType, Handler handler);
 
 }
