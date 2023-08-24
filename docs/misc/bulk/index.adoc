@@ -338,7 +338,7 @@ Expressions are supported here, but only as an experimental feature.
 | static
 | see the detailed docs
 
-| xref:actions/script-and-expression.adoc[execute-script, evaluate-expression]
+| xref:actions/script-and-expression.adoc['execute-script, evaluate-expression']
 | execute, evaluateExpression
 | Executes a script (since 3.4.1) or evaluates an expression (since 4.8) against the input data.
 3+| see the detailed docs
