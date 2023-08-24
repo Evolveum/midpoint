@@ -77,7 +77,7 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
 
             if (owner != null) {
                 correlationModuleAuthentication.addOwner(owner);
-                return createAuthenticationToken(owner, focusType);
+                return authentication;
             } else if (correlationModuleAuthentication.isLastCorrelator()) {
                 if (candidateOwnerExist(correlationResult)) {
                     writeCandidatesToOwners(correlationResult.getCandidateOwnersMap(), correlationModuleAuthentication);
@@ -87,7 +87,8 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
 
                 correlationModuleAuthentication.setPreFocus(correlationVerificationToken.getPreFocus(focusType,
                                     correlationModuleAuthentication.getProcessedAttributes()));
-                return createAuthenticationToken(correlationModuleAuthentication.getOwners().get(0), focusType);    //todo FIXME
+
+                return authentication;
             }
 
             CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
