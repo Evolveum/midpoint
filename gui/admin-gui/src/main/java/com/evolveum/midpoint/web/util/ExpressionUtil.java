@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import jakarta.xml.bind.JAXBElement;
 
 import javax.xml.namespace.QName;
@@ -37,6 +39,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class ExpressionUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
@@ -51,7 +55,8 @@ public class ExpressionUtil {
 
     public enum Language {
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
-        XPATH("http://www.w3.org/TR/xpath/"),
+        PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python"),
+        VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
 
         private final String language;
@@ -157,13 +162,31 @@ public class ExpressionUtil {
 
     public static Language getExpressionLanguage(String expression) {
         if (expression.contains("<language>")) {
-            if (expression.contains(Language.XPATH.getLanguage())) {
-                return Language.XPATH;
+            if (expression.contains(Language.VELOCITY.getLanguage())) {
+                return Language.VELOCITY;
+            } else if (expression.contains(Language.PYTHON.getLanguage())) {
+                return Language.PYTHON;
             } else if (expression.contains(Language.JAVASCRIPT.getLanguage())) {
                 return Language.JAVASCRIPT;
             } else {
                 return Language.GROOVY;
             }
+        } else {
+            return Language.GROOVY;
+        }
+    }
+
+    @Nullable
+    public static Language converLanguage(String language) {
+        if (StringUtils.isEmpty(language)) {
+            return null;
+        }
+        if (language.equals(Language.VELOCITY.getLanguage())) {
+            return Language.VELOCITY;
+        } else if (language.equals(Language.PYTHON.getLanguage())) {
+            return Language.PYTHON;
+        } else if (language.equals(Language.JAVASCRIPT.getLanguage())) {
+            return Language.JAVASCRIPT;
         } else {
             return Language.GROOVY;
         }
@@ -210,14 +233,6 @@ public class ExpressionUtil {
 
     public static boolean isEmpty(ExpressionType expression) {
         return expression == null || expression.getExpressionEvaluator().isEmpty();
-    }
-
-    public static boolean isLiteralExpressionValueNotEmpty(ExpressionType expression) throws SchemaException {
-        return getLiteralExpressionValues(expression).size() > 0;
-    }
-
-    public static boolean isScriptExpressionValueNotEmpty(ExpressionType expression) throws SchemaException {
-        return getScriptExpressionValue(expression) != null;
     }
 
     public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
@@ -560,48 +575,36 @@ public class ExpressionUtil {
         }
     }
 
-    public static void updateScriptExpressionValue(ExpressionType expression, String value) throws SchemaException {
-        if (expression == null) {
-            expression = new ExpressionType();      // TODO ??? this is thrown away
-        }
-
-        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_SCRIPT);
-
-        if (value == null) {
-            return;
-        }
-
-        JAXBElement<ScriptExpressionEvaluatorType> element;
-        if (value.contains(ELEMENT_SCRIPT)) {
-            LOGGER.trace("Script evaluator to serialize: {}", value);
-            element = PrismContext.get().parserFor(value).xml().parseRealValueToJaxbElement();
-        } else {
-            ScriptExpressionEvaluatorType evaluator = new ScriptExpressionEvaluatorType();
-            evaluator.code(value);
-            element = new JAXBElement<>(SchemaConstantsGenerated.C_SCRIPT, ScriptExpressionEvaluatorType.class, evaluator);
-        }
-
-        expression.expressionEvaluator(element);
+    public static void updateScriptExpressionValue(
+            ExpressionType expression, ScriptExpressionEvaluatorType evaluator) throws SchemaException {
+        updateExpressionEvaluator(
+                expression, evaluator, ScriptExpressionEvaluatorType.class, SchemaConstantsGenerated.C_SCRIPT);
     }
 
-    public static void updateGenerateExpressionValue(
-            ExpressionType expression, GenerateExpressionEvaluatorType evaluator) throws SchemaException {
+    private static <E extends Object> void updateExpressionEvaluator(
+            ExpressionType expression, E evaluator, Class<E> clazz, ItemName evaluatorName) throws SchemaException {
         if (expression == null) {
-            expression = new ExpressionType();      // TODO ??? this is thrown away
+            expression = new ExpressionType();
         }
 
-        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_GENERATE);
+        removeEvaluatorByName(expression, evaluatorName);
 
         if (evaluator == null) {
             return;
         }
 
-        JAXBElement<GenerateExpressionEvaluatorType> element =
-                new JAXBElement<>(SchemaConstantsGenerated.C_GENERATE, GenerateExpressionEvaluatorType.class, evaluator);
+        JAXBElement<E> element =
+                new JAXBElement<>(evaluatorName, clazz, evaluator);
         expression.expressionEvaluator(element);
     }
 
-    public static void addAsIsExpressionValue(ExpressionType expression){
+    public static void updateGenerateExpressionValue(
+            ExpressionType expression, GenerateExpressionEvaluatorType evaluator) throws SchemaException {
+        updateExpressionEvaluator(
+                expression, evaluator, GenerateExpressionEvaluatorType.class, SchemaConstantsGenerated.C_GENERATE);
+    }
+
+    public static void addAsIsExpressionValue(ExpressionType expression) {
         if (expression == null) {
             return;
         }
