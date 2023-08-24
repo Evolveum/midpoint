@@ -183,13 +183,9 @@ Currently there are the following kinds of expressions:
 |===
 | Name | Meaning
 
-| xref:/midpoint/reference/misc/bulk/search/[search]
-| Retrieves a set of objects via searchObjects model call.
-
-
 | action
 | An action that can be carried out on a given piece of data that comes at its input.
-Typical actions are add, modify, delete, enable, disable, assign, resolve, log, ...
+Typical actions are add, modify, delete, enable, disable, assign, resolve, log, search, ...
 
 
 | xref:/midpoint/reference/misc/bulk/select/[select]
@@ -457,6 +453,13 @@ Default is "add".
 | message
 |
 | Custom message that is prepended to the data.
+
+| xref:/midpoint/reference/misc/bulk/actions/search/[search]
+| search
+| Retrieves a set of objects from the repository or a resource.
+3+| see the description
+|
+|
 
 |===
 
