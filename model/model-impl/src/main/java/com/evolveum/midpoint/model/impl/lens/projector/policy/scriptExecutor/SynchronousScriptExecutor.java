@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import static com.evolveum.midpoint.schema.util.ExecuteScriptUtil.createInputCloned;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -51,7 +52,7 @@ class SynchronousScriptExecutor {
             var updatedScriptCI = addInputIfNeeded(configuredScriptCI, result);
             VariablesMap initialVariables = createInitialVariables();
             actx.beans.bulkActionsExecutor.execute(
-                    updatedScriptCI, initialVariables, false, actx.task, result);
+                    updatedScriptCI, initialVariables, BulkActionExecutionOptions.create(), actx.task, result);
         } catch (Throwable t) {
             result.recordException("Couldn't execute script policy action: " + t.getMessage(), t);
             LoggingUtils.logUnexpectedException(

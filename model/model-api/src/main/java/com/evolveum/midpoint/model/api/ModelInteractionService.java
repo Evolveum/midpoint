@@ -648,14 +648,13 @@ public interface ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result) throws CommonException;
 
-    /** A convenience method, moved here from the {@link BulkActionsService} (and scripting expression evaluator). */
+    /** A convenience method, moved here from the {@link BulkActionsService} (and bulk action executor). */
     default @NotNull String submitScriptingExpression(
             @NotNull ExecuteScriptType executeScriptCommand,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-
-        checkBulkActionsAuthorization(task, result);
+        // Note that authorizations are checked when the bulk action is evaluated.
         return submit(
                 new ActivityDefinitionType()
                         .work(new WorkDefinitionsType()
@@ -666,9 +665,14 @@ public interface ModelInteractionService {
     }
 
     /**
-     * Just a convenience method that checks that {@link ModelAuthorizationAction#EXECUTE_BULK_ACTIONS} authorization is present.
+     * Just a convenience method that checks that relevant authorization is present.
+     * (No action means the authorization for all actions is checked.)
      */
-    void checkBulkActionsAuthorization(Task task, OperationResult result)
+    void authorizeBulkActionExecution(
+            @Nullable BulkAction action,
+            @Nullable AuthorizationPhaseType phase,
+            Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 

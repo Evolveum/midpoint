@@ -17,11 +17,11 @@
         </equal>
     </s:searchFilter>
     <s:sequence>
-        <s:expression xsi:type="s:ActionExpressionType">
+        <s:scriptingExpression xsi:type="s:ActionExpressionType">
             <s:type>delete</s:type>
-        </s:expression>
-        <s:expression xsi:type="s:ActionExpressionType">
+        </s:scriptingExpression>
+        <s:scriptingExpression xsi:type="s:ActionExpressionType">
             <s:type>add</s:type>
-        </s:expression>
+        </s:scriptingExpression>
     </s:sequence>
 </s:search>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.init;
 import java.io.File;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
@@ -161,7 +162,8 @@ public class PostInitialDataImport extends DataImport {
                                     // TODO or should we create some "fully trusted origin"?
                                     ConfigurationItemOrigin.external(SchemaConstants.CHANNEL_INIT_URI)),
                             VariablesMap.emptyMap(),
-                            false,
+                            BulkActionExecutionOptions.create()
+                                    .withExecutionPhase(),
                             task,
                             result);
             result.recordSuccess();

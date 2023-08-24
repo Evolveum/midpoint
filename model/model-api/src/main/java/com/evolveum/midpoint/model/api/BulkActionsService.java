@@ -34,9 +34,9 @@ public interface BulkActionsService {
     BulkActionExecutionResult executeBulkAction(
             @NotNull ExecuteScriptConfigItem executeScriptCommand,
             @NotNull VariablesMap initialVariables,
-            boolean recordProgressAndIterationStatistics,
+            @NotNull BulkActionExecutionOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, ObjectAlreadyExistsException;
 }

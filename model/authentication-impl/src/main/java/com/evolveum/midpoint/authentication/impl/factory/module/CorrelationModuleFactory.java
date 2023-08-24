@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleThresholds;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleOptionsType;
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
@@ -57,15 +57,15 @@ public class CorrelationModuleFactory extends AbstractModuleFactory
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         moduleAuthentication.setCorrelators(moduleType.getCorrelator());
-        moduleAuthentication.setCorrelationMaxUsersNumber(getCorrelationMaxUserNumber(moduleType.getThresholds()));
+        moduleAuthentication.setCorrelationMaxUsersNumber(getCorrelationMaxUserNumber(moduleType.getOptions()));
         return moduleAuthentication;
     }
 
-    private Integer getCorrelationMaxUserNumber(CorrelationModuleThresholds thresholds) {
-        if (thresholds == null) {
+    private Integer getCorrelationMaxUserNumber(CorrelationModuleOptionsType options) {
+        if (options == null) {
             return null;
         }
-        return thresholds.getCorrelationResultMaxUsersNumber();
+        return options.getCandidateLimit();
     }
 
 

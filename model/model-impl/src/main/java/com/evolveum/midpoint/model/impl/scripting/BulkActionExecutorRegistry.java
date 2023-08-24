@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.BulkAction;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AbstractActionExpressionType;
+
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -15,31 +18,29 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- *
- */
 @Component
-public class ScriptingActionExecutorRegistry {
+public class BulkActionExecutorRegistry {
 
     private final Map<String, ActionExecutor> executorsByTypeName = new ConcurrentHashMap<>();
-    private final Map<Class<? extends ActionExpressionType>, ActionExecutor> executorsByBeanClass = new ConcurrentHashMap<>();
+    private final Map<Class<? extends AbstractActionExpressionType>, ActionExecutor> executorsByBeanClass = new ConcurrentHashMap<>();
 
-    public void register(String name, Class<? extends ActionExpressionType> type, ActionExecutor executor) {
-        executorsByTypeName.put(name, executor);
-        executorsByBeanClass.put(type, executor);
+    public void register(ActionExecutor executor) {
+        BulkAction actionType = executor.getActionType();
+        executorsByTypeName.put(actionType.getName(), executor);
+        var beanClass = actionType.getBeanClass();
+        if (beanClass != null) {
+            executorsByBeanClass.put(beanClass, executor);
+        }
     }
 
-    public void register(String name, ActionExecutor executor) {
-        executorsByTypeName.put(name, executor);
-    }
-
-    @NotNull ActionExecutor getExecutor(ActionExpressionType action) {
-        if (action.getType() != null) {
-            ActionExecutor executor = executorsByTypeName.get(action.getType());
+    @NotNull ActionExecutor getExecutor(AbstractActionExpressionType action) {
+        String type = action instanceof ActionExpressionType dynamic ? dynamic.getType() : null;
+        if (type != null) {
+            ActionExecutor executor = executorsByTypeName.get(type);
             if (executor != null) {
                 return executor;
             } else {
-                throw new IllegalStateException("Unknown action executor for action type '" + action.getType() + "'");
+                throw new IllegalStateException("Unknown action executor for action type '" + type + "'");
             }
         } else {
             ActionExecutor executor = executorsByBeanClass.get(action.getClass());

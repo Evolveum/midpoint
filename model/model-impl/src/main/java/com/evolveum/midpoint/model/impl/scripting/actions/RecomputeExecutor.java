@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -20,13 +23,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerCreationType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.RecomputeActionExpressionType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
 
 /**
  * Executes "recompute" action.
@@ -34,18 +31,21 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<AssignmentHolderType> {
 
-    private static final String NAME = "recompute";
-
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, RecomputeActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
+    }
+
+    @Override
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.RECOMPUTE;
     }
 
     @Override
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
@@ -63,22 +63,24 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
         return input;
     }
 
-    private void recompute(PrismObject<? extends AssignmentHolderType> object, boolean dryRun, ModelExecuteOptions options,
+    private void recompute(
+            PrismObject<? extends AssignmentHolderType> object, boolean dryRun, ModelExecuteOptions options,
             TriggerCreationType triggerCreation, ExecutionContext context, OperationResult result)
-            throws ScriptExecutionException, SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         AssignmentHolderType objectable = object.asObjectable();
         if (triggerCreation == null) {
             ObjectDelta<? extends AssignmentHolderType> emptyDelta = prismContext.deltaFactory().object()
                     .createEmptyModifyDelta(objectable.getClass(), objectable.getOid());
             operationsHelper.applyDelta(emptyDelta, options, dryRun, context, result);
-            context.println("Recomputed " + object.toString() + drySuffix(dryRun));
+            context.println("Recomputed " + object + drySuffix(dryRun));
         } else if (dryRun) {
-            context.println("Skipping dry run of triggered-recompute of " + object.toString());
+            context.println("Skipping dry run of triggered-recompute of " + object);
         } else if (triggerCreation.getFireAfter() == null) {
             // direct trigger creation
             midpointFunctions.createRecomputeTrigger(objectable.getClass(), objectable.getOid());
-            context.println("Triggered recompute of " + object.toString());
+            context.println("Triggered recompute of " + object);
         } else {
             // optimized trigger creation
             long fireAfter = XmlTypeConverter.toMillis(triggerCreation.getFireAfter());
@@ -87,9 +89,9 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
             boolean triggerCreated = midpointFunctions.getOptimizingTriggerCreator(fireAfter, safetyMargin)
                     .createForObject(objectable.getClass(), objectable.getOid());
             if (triggerCreated) {
-                context.println("Triggered recompute of " + object.toString());
+                context.println("Triggered recompute of " + object);
             } else {
-                context.println("Skipped triggering recompute of " + object.toString() + " because a trigger was already present");
+                context.println("Skipped triggering recompute of " + object + " because a trigger was already present");
             }
         }
     }
@@ -97,15 +99,5 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
     @Override
     Class<AssignmentHolderType> getObjectType() {
         return AssignmentHolderType.class;
-    }
-
-    @Override
-    protected @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_RECOMPUTE.getLocalPart();
     }
 }

@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
 
+import com.evolveum.midpoint.model.api.BulkAction;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,14 +130,14 @@ public abstract class MemberOperationsTaskCreator {
          * of a given abstract role.
          */
         void createAndSubmitTask(Task task, OperationResult result) throws CommonException {
-            checkBulkActionsAuthorization(task, result);
+            authorizeBulkActionExecution(BulkAction.UNASSIGN, task, result);
             submitTask(
                     createUnassignMembersActivity(), task, result);
         }
 
         /** Creates the member unassignment task. */
         @NotNull PrismObject<TaskType> createTask(Task task, OperationResult result) throws CommonException {
-            checkBulkActionsAuthorization(task, result);
+            authorizeBulkActionExecution(BulkAction.UNASSIGN, task, result);
             return createTask(
                     createUnassignMembersActivity(), task, result);
         }
@@ -196,7 +198,7 @@ public abstract class MemberOperationsTaskCreator {
 
         /** Returns task OID */
         public String createAndSubmitTask(Task task, OperationResult result) throws CommonException {
-            checkBulkActionsAuthorization(task, result);
+            authorizeBulkActionExecution(BulkAction.ASSIGN, task, result);
             return submitTask(
                     createActivity(), task, result);
         }
@@ -233,7 +235,7 @@ public abstract class MemberOperationsTaskCreator {
         }
 
         void createAndSubmitTask(Task task, OperationResult result) throws CommonException {
-            checkBulkActionsAuthorization(task, result);
+            authorizeBulkActionExecution(BulkAction.DELETE, task, result);
             submitTask(
                     createActivity(), task, result);
         }
@@ -253,7 +255,7 @@ public abstract class MemberOperationsTaskCreator {
     /** "Recompute members" operation. */
     static class Recompute extends Scoped {
 
-        public Recompute(
+        Recompute(
                 @NotNull AbstractRoleType targetAbstractRole, @NotNull QName memberType, @NotNull ObjectQuery memberQuery,
                 @NotNull QueryScope scope, @NotNull PageBase pageBase) {
             super(targetAbstractRole, memberType, memberQuery, scope, pageBase);
@@ -266,14 +268,14 @@ public abstract class MemberOperationsTaskCreator {
 
         /** Creates and submits a task that recomputes the role members. */
         void createAndSubmitTask(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
-            checkRecomputationAuthorization(task, result);
+            authorizeRecomputation(task, result);
             submitTask(
                     createActivity(), task, result);
         }
 
         /** Creates a task that recomputes the role members. */
         PrismObject<TaskType> createTask(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
-            checkRecomputationAuthorization(task, result);
+            authorizeRecomputation(task, result);
             return createTask(
                     createActivity(), task, result);
         }
@@ -331,12 +333,13 @@ public abstract class MemberOperationsTaskCreator {
                                 getOperationName())));
     }
 
-    void checkBulkActionsAuthorization(Task task, OperationResult result) throws CommonException {
-        pageBase.getSecurityEnforcer().authorize(
-                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, result);
+    void authorizeBulkActionExecution(@NotNull BulkAction action, Task task, OperationResult result) throws CommonException {
+        // Note that the task itself will require both REQUEST and EXECUTION phase authorization due to current limitations.
+        pageBase.getModelInteractionService().authorizeBulkActionExecution(
+                action, AuthorizationPhaseType.EXECUTION, task, result);
     }
 
-    void checkRecomputationAuthorization(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
+    void authorizeRecomputation(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
         pageBase.getSecurityEnforcer().authorize(
                 ModelAuthorizationAction.RECOMPUTE.getUrl(), task, result);
     }

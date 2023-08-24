@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
@@ -28,13 +28,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -93,6 +87,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             } else {
                 throw new AssertionError("unexpected state constraint " + constraint.getName());
             }
+        } catch (PolicyViolationException | ObjectAlreadyExistsException e) {
+            result.recordException(e);
+            throw SystemException.unexpected(e);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -105,8 +102,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             JAXBElement<StatePolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         StatePolicyConstraintType constraint = constraintElement.getValue();
         int count =
@@ -136,18 +133,17 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             variables.put(VAR_OBJECT, object, object.getDefinition());
             variables.put(VAR_RULE_EVALUATION_CONTEXT, ctx, PolicyRuleEvaluationContext.class);
             ExecutionContext resultingContext;
-            try {
-                resultingContext =
-                        bulkActionsExecutor.executePrivileged(
-                                ExecuteScriptConfigItem.of(
-                                        constraint.getExecuteScript(),
-                                        ctx.policyRule.getRuleOrigin().toApproximate()),
-                                variables,
-                                ctx.task,
-                                result);
-            } catch (ScriptExecutionException e) {
-                throw new SystemException(e); // TODO
-            }
+            resultingContext =
+                    bulkActionsExecutor.execute(
+                            ExecuteScriptConfigItem.of(
+                                    constraint.getExecuteScript(),
+                                    ctx.policyRule.getRuleOrigin().toApproximate()),
+                            variables,
+                            BulkActionExecutionOptions.create()
+                                    .withPrivileged()
+                                    .withExecutionPhase(),
+                            ctx.task,
+                            result);
             PipelineData output = resultingContext.getFinalOutput();
             LOGGER.trace("Scripting expression returned {} item(s); console output is:\n{}",
                     output != null ? output.getData().size() : null, resultingContext.getConsoleOutput());

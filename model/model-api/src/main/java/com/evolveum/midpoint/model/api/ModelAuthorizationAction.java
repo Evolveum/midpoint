@@ -53,8 +53,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP"),
     DELEGATE("delegate", "Delegate", "DELEGATE_HELP"),
     ATTORNEY("attorney", "Attorney", "ATTORNEY_HELP"),
-    EXECUTE_BULK_ACTIONS("executeBulkActions", "Execute bulk actions", "EXECUTE_BULK_ACTIONS_HELP"),
-    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated // use #executeBulkActions
+    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated // use bulk-3#all
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     CHANGE_CREDENTIALS("changeCredentials", "Change credentials", "CHANGE_CREDENTIALS_HELP"),
 

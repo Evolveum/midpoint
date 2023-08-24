@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingDataUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -114,7 +113,7 @@ public class PipelineData implements DebugDumpable {
     @NotNull
     public List<ObjectReferenceType> getDataAsReferences(QName defaultTargetType, Class<? extends ObjectType> typeForQuery,
             ExecutionContext context, OperationResult result)
-            throws ScriptExecutionException, CommunicationException, ObjectNotFoundException, SchemaException,
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         List<ObjectReferenceType> retval = new ArrayList<>(data.size());
         for (PipelineItem item : data) {
@@ -141,7 +140,7 @@ public class PipelineData implements DebugDumpable {
                 } else if (realValue instanceof ObjectReferenceType) {
                     retval.add((ObjectReferenceType) realValue);
                 } else {
-                    throw new ScriptExecutionException("Unsupported reference type: " + value.getClass());
+                    throw new UnsupportedOperationException("Unsupported reference type: " + value.getClass());
                 }
             } else if (value instanceof PrismReferenceValue referenceValue) {
                 ObjectReferenceType ref = new ObjectReferenceType();

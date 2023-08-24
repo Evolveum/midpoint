@@ -9,20 +9,20 @@
 <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <s:expression xsi:type="s:SearchExpressionType">
+    <s:scriptingExpression xsi:type="s:SearchExpressionType">
         <s:type>c:UserType</s:type>
-    </s:expression>
-    <s:expression xsi:type="s:SelectExpressionType">
+    </s:scriptingExpression>
+    <s:scriptingExpression xsi:type="s:SelectExpressionType">
         <s:path>c:linkRef</s:path>
-    </s:expression>
-    <s:expression xsi:type="s:ActionExpressionType">
+    </s:scriptingExpression>
+    <s:scriptingExpression xsi:type="s:ActionExpressionType">
         <s:type>log</s:type>
-    </s:expression>
-    <s:expression xsi:type="s:ActionExpressionType">
+    </s:scriptingExpression>
+    <s:scriptingExpression xsi:type="s:ActionExpressionType">
         <s:type>resolve</s:type>
         <s:parameter>
             <s:name>noFetch</s:name>
             <c:value>true</c:value>
         </s:parameter>
-    </s:expression>
+    </s:scriptingExpression>
 </s:pipeline>
