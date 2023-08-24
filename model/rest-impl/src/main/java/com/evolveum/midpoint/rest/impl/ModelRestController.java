@@ -67,7 +67,7 @@ public class ModelRestController extends AbstractRestController {
     @Autowired private ModelDiagnosticService modelDiagnosticService;
     @Autowired private ModelInteractionService modelInteraction;
     @Autowired private ModelService modelService;
-    @Autowired private ScriptingService scriptingService;
+    @Autowired private BulkActionsService bulkActionsService;
     @Autowired private TaskService taskService;
 
     @PostMapping("/{type}/{oid}/generate")
@@ -765,7 +765,7 @@ public class ModelRestController extends AbstractRestController {
                         uriGetObject(ObjectTypes.TASK.getRestType(), taskOid),
                         result);
             } else {
-                ScriptExecutionResult executionResult = scriptingService.evaluateExpression(
+                BulkActionExecutionResult executionResult = bulkActionsService.executeBulkAction(
                         // detached because of REST origin
                         ExecuteScriptConfigItem.of(command, ConfigurationItemOrigin.rest()),
                         VariablesMap.emptyMap(),

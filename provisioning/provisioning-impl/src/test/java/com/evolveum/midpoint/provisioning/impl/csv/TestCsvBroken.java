@@ -29,7 +29,7 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -50,7 +50,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
 
     protected static final File TEST_DIR = new File("src/test/resources/csv/");
 
-    private static final TestResource RESOURCE_CSV_BROKEN = new TestResource(TEST_DIR, "resource-csv-broken.xml", "3e02a0b0-8c9a-4d45-b1b4-cf9b9b6e7918");
+    private static final TestObject<ResourceType> RESOURCE_CSV_BROKEN = TestObject.file(
+            TEST_DIR, "resource-csv-broken.xml", "3e02a0b0-8c9a-4d45-b1b4-cf9b9b6e7918");
 
     private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
 

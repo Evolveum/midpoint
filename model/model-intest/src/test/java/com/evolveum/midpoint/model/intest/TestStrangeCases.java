@@ -49,7 +49,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -93,8 +93,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     private static final File ROLE_BAD_CONSTRUCTION_RESOURCE_REF_FILE = new File(TEST_DIR, "role-bad-construction-resource-ref.xml");
     private static final String ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID = "54084f2c-eba0-11e5-8278-03ea5d7058d9";
 
-    private static final TestResource<?> ROLE_BAD_CONSTRUCTION_RESOURCE_REF_LAX =
-            new TestResource<>(TEST_DIR, "role-bad-construction-resource-ref-lax.xml", "ba3ff0cb-1543-4295-9280-ac5a9efbe8a6");
+    private static final TestObject<?> ROLE_BAD_CONSTRUCTION_RESOURCE_REF_LAX =
+            TestObject.file(TEST_DIR, "role-bad-construction-resource-ref-lax.xml", "ba3ff0cb-1543-4295-9280-ac5a9efbe8a6");
 
     private static final File ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_FILE = new File(TEST_DIR, "role-meta-bad-construction-resource-ref.xml");
     private static final String ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_OID = "90b931ae-eba8-11e5-977a-b73ba58cf18b";
@@ -126,11 +126,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     // MID-6544
     private static final DummyTestResource RESOURCE_NO_CREATE = new DummyTestResource(TEST_DIR, "resource-dummy-no-create.xml",
             "3be6feda-1099-4e3c-9499-27d6520c5987", "no-create");
-    private static final TestResource<RoleType> ROLE_NO_CREATE = new TestResource<>(TEST_DIR, "role-no-create.xml",
+    private static final TestObject<RoleType> ROLE_NO_CREATE = TestObject.file(TEST_DIR, "role-no-create.xml",
             "d339b2d7-da23-489c-9352-2d3442b88fdf");
-    private static final TestResource<ArchetypeType> SEQUENCE_EXTERNAL_USER = new TestResource<>(TEST_DIR,
+    private static final TestObject<ArchetypeType> SEQUENCE_EXTERNAL_USER = TestObject.file(TEST_DIR,
             "sequence-external-user.xml", "4ebf1b7b-95ea-4277-8eac-97f05c0b0300");
-    private static final TestResource<ArchetypeType> ARCHETYPE_EXTERNAL_USER = new TestResource<>(TEST_DIR,
+    private static final TestObject<ArchetypeType> ARCHETYPE_EXTERNAL_USER = TestObject.file(TEST_DIR,
             "archetype-external-user.xml", "472d5fcb-1632-46c1-8c81-eea90dcd6b28");
 
     private static String treasureIsland;
@@ -1165,7 +1165,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         assertSuccess(result);
 
-        waitForTaskFinish(TASK_MOCK_JACK_OID, false);
+        waitForTaskFinish(TASK_MOCK_JACK_OID);
     }
 
     @Test
@@ -1205,7 +1205,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 //        assertNotNull("Mock task not found (taskManager)", jackTaskInfo);
 
         // Make sure that the tasks still runs
-        waitForTaskFinish(TASK_MOCK_JACK_OID, false);
+        waitForTaskFinish(TASK_MOCK_JACK_OID);
 
     }
 

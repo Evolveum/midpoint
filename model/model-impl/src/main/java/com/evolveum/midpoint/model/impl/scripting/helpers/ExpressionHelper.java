@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -35,7 +35,7 @@ import java.util.List;
 @Component
 public class ExpressionHelper {
 
-    @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired private BulkActionsExecutor bulkActionsExecutor;
 
     public ActionParameterValueType getArgument(
             List<ActionParameterValueType> arguments, String parameterName, boolean required,
@@ -77,14 +77,14 @@ public class ExpressionHelper {
         if (parameterValue != null) {
             if (parameterValue.getScriptingExpression() != null) {
                 PipelineData data =
-                        scriptingExpressionEvaluator.evaluateExpression(
+                        bulkActionsExecutor.execute(
                                 parameterValue.getScriptingExpression(), input, context, parentResult);
                 if (data != null) {
                     return data.getSingleValue(String.class);
                 }
             } else if (parameterValue.getValue() != null) {
                 PipelineData data =
-                        scriptingExpressionEvaluator.evaluateConstantStringExpression(
+                        bulkActionsExecutor.evaluateConstantStringExpression(
                                 (RawType) parameterValue.getValue(), context);
                 if (data != null) {
                     return data.getSingleValue(String.class);
@@ -113,7 +113,7 @@ public class ExpressionHelper {
                 getArgument(arguments, dynamicName, false, false, contextName);
         if (dynamicValue != null) {
             if (dynamicValue.getScriptingExpression() != null) {
-                PipelineData data = scriptingExpressionEvaluator.evaluateExpression(
+                PipelineData data = bulkActionsExecutor.execute(
                         dynamicValue.getScriptingExpression(), input, context, parentResult);
                 if (data != null) {
                     return data.getSingleValue(clazz);
@@ -163,10 +163,10 @@ public class ExpressionHelper {
             CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notNull(parameter, "parameter");
         if (parameter.getScriptingExpression() != null) {
-            return scriptingExpressionEvaluator.evaluateExpression(
+            return bulkActionsExecutor.execute(
                     parameter.getScriptingExpression(), input, context, result);
         } else if (parameter.getValue() != null) {
-            return scriptingExpressionEvaluator.evaluateConstantExpression(
+            return bulkActionsExecutor.evaluateConstantExpression(
                     (RawType) parameter.getValue(), expectedClass, context, "evaluating parameter " + parameter.getName());
         } else {
             throw new IllegalStateException("No expression nor value specified");

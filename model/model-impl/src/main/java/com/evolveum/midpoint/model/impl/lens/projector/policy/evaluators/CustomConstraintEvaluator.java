@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import jakarta.xml.bind.JAXBElement;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +24,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.EvaluatedCustomConstraintTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,7 +56,7 @@ public class CustomConstraintEvaluator
 
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
-    @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired protected BulkActionsExecutor bulkActionsExecutor;
 
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedCustomConstraintTrigger> evaluate(

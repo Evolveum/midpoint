@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.processor.*;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -94,8 +94,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     public static final String ACCOUNT_PHOENIX_DESCRIPTION_MANUAL = "from the ashes";
     public static final String ACCOUNT_PHOENIX_PASSWORD_MANUAL = "VtakOhnivak";
 
-    protected static final TestResource<UserType> USER_PHOENIX_2 =
-            new TestResource<>(TEST_DIR, "user-phoenix-2.xml", "e22bc5ed-0e31-4391-9cc8-1fbaa9a9dfeb");
+    protected static final TestObject<UserType> USER_PHOENIX_2 =
+            TestObject.file(TEST_DIR, "user-phoenix-2.xml", "e22bc5ed-0e31-4391-9cc8-1fbaa9a9dfeb");
 
     protected static final String USER_WILL_NAME = "will";
     protected static final String USER_WILL_GIVEN_NAME = "Will";

@@ -348,15 +348,16 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
      * </p>
      *
      * @param oid OID of object to delete
-     * @param parentResult parent OperationResult (in/out)
+     * @param result parent OperationResult (in/out)
      * @throws ObjectNotFoundException specified object does not exist
      * @throws IllegalArgumentException wrong OID format, described change is not applicable
      */
-    @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
-
+    @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult result)
+            throws ObjectNotFoundException;
 
     @Experimental
-    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(String oid, @Nullable String transactionId, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    default ModifyObjectResult<SimulationResultType> deleteSimulatedProcessedObjects(
+            String oid, @Nullable String transactionId, OperationResult result) throws SchemaException, ObjectNotFoundException {
         throw new UnsupportedOperationException("Not supported yet");
     }
 

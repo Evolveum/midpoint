@@ -81,8 +81,16 @@ public class AuthorizationMigrator {
                         add(migrated, original, readAllCompletableCases());
                         add(migrated, original, readAllCertificationCases());
                         add(migrated, original, delegateAllWorkItems());
-                    })
+                    }),
 
+            entry(
+                    ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
+
+                    // to
+                    (migrated, original) -> {
+                        add(migrated, original, new AuthorizationType()
+                                .action(ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl()));
+                    })
     );
 
     private static AuthorizationType readAllCertificationCases() {

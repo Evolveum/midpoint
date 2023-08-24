@@ -49,7 +49,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -166,6 +165,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_UNASSIGN_SELF_REQUESTABLE = TestObject.file(TEST_DIR, "role-unassign-self-requestable.xml", "7c903f28-04ed-11e8-bb7a-df31e8679d27");
     protected static final TestObject<RoleType> ROLE_END_USER_WITH_PRIVACY = TestObject.file(TEST_DIR, "role-end-user-with-privacy.xml", "2abaef72-af5b-11e8-ae9a-b33bc5b8cb74");
     protected static final TestObject<RoleType> ROLE_APPROVER_UNASSIGN_ROLES = TestObject.file(TEST_DIR, "role-approver-unassign-roles.xml", "5d9cead8-3a2e-11e7-8609-f762a755b58e");
+    protected static final TestObject<RoleType> ROLE_USE_TASK_TEMPLATES = TestObject.file(TEST_DIR, "role-use-task-templates.xml", "ac97ca9d-7bb6-44b3-8d10-3b309c97f866");
     protected static final TestObject<OrgType> ORG_REQUESTABLE = TestObject.file(TEST_DIR, "org-requestable.xml", "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2");
     protected static final TestObject<OrgType> ORG_INDIRECT_PIRATE = TestObject.file(TEST_DIR, "org-indirect-pirate.xml", "59024142-5830-11e7-80e6-ffbee06efb45");
     protected static final TestObject<OrgType> ORG_CHEATERS = TestObject.file(TEST_DIR, "org-cheaters.xml", "944cef84-6570-11e7-8262-079921253d05");
@@ -197,7 +197,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 11;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 75;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 76;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -302,6 +302,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER, initResult);
         repoAdd(ROLE_UNASSIGN_SELF_REQUESTABLE, initResult);
         repoAdd(ROLE_APPROVER_UNASSIGN_ROLES, initResult);
+        repoAdd(ROLE_USE_TASK_TEMPLATES, initResult);
 
         repoAdd(ORG_REQUESTABLE, initResult);
         repoAdd(ORG_INDIRECT_PIRATE, initResult);

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import javax.xml.namespace.QName;
 
@@ -42,16 +42,16 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/misc");
 
-    private static final TestResource<TaskType> TASK_DELETE_REPORT_DATA =
-            new TestResource<>(TEST_DIR, "task-delete-report-data.xml", "d3351dff-4c72-4985-8a9c-f8d46ffb328f");
-    private static final TestResource<TaskType> TASK_DELETE_MISSING_QUERY_LEGACY =
-            new TestResource<>(TEST_DIR, "task-delete-missing-query.xml", "c637b877-efe8-43ae-b87f-738bff9062fb");
-    private static final TestResource<TaskType> TASK_DELETE_MISSING_TYPE =
-            new TestResource<>(TEST_DIR, "task-delete-missing-type.xml", "889d1313-2a7f-4112-a996-2b84f1f000a7");
-    private static final TestResource<TaskType> TASK_DELETE_INCOMPLETE_RAW =
-            new TestResource<>(TEST_DIR, "task-delete-incomplete-raw.xml", "d0053e62-9d48-4c1e-ace8-a8feb1f35f91");
-    private static final TestResource<TaskType> TASK_DELETE_SELECTED_USERS =
-            new TestResource<>(TEST_DIR, "task-delete-selected-users.xml", "623f261c-4c63-445b-a714-dcde118f227c");
+    private static final TestObject<TaskType> TASK_DELETE_REPORT_DATA =
+            TestObject.file(TEST_DIR, "task-delete-report-data.xml", "d3351dff-4c72-4985-8a9c-f8d46ffb328f");
+    private static final TestObject<TaskType> TASK_DELETE_MISSING_QUERY_LEGACY =
+            TestObject.file(TEST_DIR, "task-delete-missing-query.xml", "c637b877-efe8-43ae-b87f-738bff9062fb");
+    private static final TestObject<TaskType> TASK_DELETE_MISSING_TYPE =
+            TestObject.file(TEST_DIR, "task-delete-missing-type.xml", "889d1313-2a7f-4112-a996-2b84f1f000a7");
+    private static final TestObject<TaskType> TASK_DELETE_INCOMPLETE_RAW =
+            TestObject.file(TEST_DIR, "task-delete-incomplete-raw.xml", "d0053e62-9d48-4c1e-ace8-a8feb1f35f91");
+    private static final TestObject<TaskType> TASK_DELETE_SELECTED_USERS =
+            TestObject.file(TEST_DIR, "task-delete-selected-users.xml", "623f261c-4c63-445b-a714-dcde118f227c");
     private static final TestTask TASK_EXECUTE_CHANGES_LEGACY =
             new TestTask(TEST_DIR, "task-execute-changes.xml", "1dce894e-e76c-4db5-9318-0fa5b55261da");
     private static final TestTask TASK_EXECUTE_CHANGES_SINGLE =

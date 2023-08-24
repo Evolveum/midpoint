@@ -82,7 +82,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         // THEN
         then();
 
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID, true);
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID);
 
         assertServices(0);
         assertUsers(getNumberOfUsers());
@@ -103,7 +103,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         getDummyResource().addAccount(account);
 
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID);
 
         // THEN
         then();
@@ -228,7 +228,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         getDummyResource().deleteAccountByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
 
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID);
 
         // THEN
         then();
@@ -265,7 +265,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
         // THEN
         then();
 
-        waitForTaskStart(TASK_RECONCILE_DUMMY_OID, true);
+        waitForTaskStart(TASK_RECONCILE_DUMMY_OID);
 
         assertServices(0);
         assertUsers(getNumberOfUsers());
@@ -286,7 +286,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         getDummyResource().addAccount(account);
 
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID);
 
         // THEN
         then();
@@ -310,7 +310,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         getDummyResource().deleteAccountByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
 
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID);
 
         // THEN
         then();

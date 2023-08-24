@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -53,38 +53,38 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "000-system-configuration.xml");
 
-    private static final TestResource<MessageTemplateType> MESSAGE_TEMPLATE_CORRELATION =
-            new TestResource<>(TEST_DIR, "002-message-template-correlation.xml", "f5d79bd9-6903-42d9-9562-2e6a38096a26");
-    private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY_IDMATCH =
-            new TestResource<>(TEST_DIR, "005-function-library-idmatch.xml", "44e7f86c-604e-4127-8b0f-33bd7310ecb8");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PROGRAM =
-            new TestResource<>(TEST_DIR, "011-archetype-program.xml", "fbe37f25-1026-4293-ac48-071cc56b1a36");
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
-            new TestResource<>(TEST_DIR, "020-object-template-user.xml", "17f11c7f-3692-4f80-9fec-63f89ee6763e");
-    private static final TestResource<OrgType> ORG_PROGRAMS =
-            new TestResource<>(TEST_DIR, "030-org-programs.xml", "8e8f024b-c6da-42ba-82f5-d43e514e70eb");
-    private static final TestResource<OrgType> ORG_PROGRAM_BIOCH =
-            new TestResource<>(TEST_DIR, "034-org-program-bioch.xml", "ed53d2bb-777d-4ef0-82a5-a351b8f7cbce");
-    private static final TestResource<OrgType> ORG_PROGRAM_COMP_BIO =
-            new TestResource<>(TEST_DIR, "035-org-program-comp-bio.xml", "af93445d-9c1a-4cfb-b89f-2c79de20dc19");
-    private static final TestResource<OrgType> ORG_PROGRAM_E_ENG =
-            new TestResource<>(TEST_DIR, "036-org-program-e-eng.xml", "54dafa7c-4549-47cc-a909-be410e80e3b4");
-    private static final TestResource<OrgType> ORG_PROGRAM_MAT_ENG =
-            new TestResource<>(TEST_DIR, "037-org-program-mat-eng.xml", "f664f54d-bf0c-4e49-a65f-1a44f8177994");
-    private static final TestResource<OrgType> ORG_PROGRAM_MATH =
-            new TestResource<>(TEST_DIR, "038-org-program-math.xml", "b838411b-d556-447c-9f16-f8ba5f31048a");
-    private static final TestResource<OrgType> ORG_PROGRAM_SW_ENG =
-            new TestResource<>(TEST_DIR, "039-org-program-sw-eng.xml", "56b451f9-42c5-4213-aafb-d93c78f2e75e");
-    private static final TestResource<OrgType> ORG_PROGRAM_SW_ENG_DOCTORAL =
-            new TestResource<>(TEST_DIR, "040-org-program-sw-eng-doctoral.xml", "edb74c31-f17e-4b80-b255-5115e4b54c60");
+    private static final TestObject<MessageTemplateType> MESSAGE_TEMPLATE_CORRELATION =
+            TestObject.file(TEST_DIR, "002-message-template-correlation.xml", "f5d79bd9-6903-42d9-9562-2e6a38096a26");
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_IDMATCH =
+            TestObject.file(TEST_DIR, "005-function-library-idmatch.xml", "44e7f86c-604e-4127-8b0f-33bd7310ecb8");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PROGRAM =
+            TestObject.file(TEST_DIR, "011-archetype-program.xml", "fbe37f25-1026-4293-ac48-071cc56b1a36");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER =
+            TestObject.file(TEST_DIR, "020-object-template-user.xml", "17f11c7f-3692-4f80-9fec-63f89ee6763e");
+    private static final TestObject<OrgType> ORG_PROGRAMS =
+            TestObject.file(TEST_DIR, "030-org-programs.xml", "8e8f024b-c6da-42ba-82f5-d43e514e70eb");
+    private static final TestObject<OrgType> ORG_PROGRAM_BIOCH =
+            TestObject.file(TEST_DIR, "034-org-program-bioch.xml", "ed53d2bb-777d-4ef0-82a5-a351b8f7cbce");
+    private static final TestObject<OrgType> ORG_PROGRAM_COMP_BIO =
+            TestObject.file(TEST_DIR, "035-org-program-comp-bio.xml", "af93445d-9c1a-4cfb-b89f-2c79de20dc19");
+    private static final TestObject<OrgType> ORG_PROGRAM_E_ENG =
+            TestObject.file(TEST_DIR, "036-org-program-e-eng.xml", "54dafa7c-4549-47cc-a909-be410e80e3b4");
+    private static final TestObject<OrgType> ORG_PROGRAM_MAT_ENG =
+            TestObject.file(TEST_DIR, "037-org-program-mat-eng.xml", "f664f54d-bf0c-4e49-a65f-1a44f8177994");
+    private static final TestObject<OrgType> ORG_PROGRAM_MATH =
+            TestObject.file(TEST_DIR, "038-org-program-math.xml", "b838411b-d556-447c-9f16-f8ba5f31048a");
+    private static final TestObject<OrgType> ORG_PROGRAM_SW_ENG =
+            TestObject.file(TEST_DIR, "039-org-program-sw-eng.xml", "56b451f9-42c5-4213-aafb-d93c78f2e75e");
+    private static final TestObject<OrgType> ORG_PROGRAM_SW_ENG_DOCTORAL =
+            TestObject.file(TEST_DIR, "040-org-program-sw-eng-doctoral.xml", "edb74c31-f17e-4b80-b255-5115e4b54c60");
 
-    private static final TestResource<OrgType> ORG_CORRELATION_OPERATORS =
-            new TestResource<>(TEST_DIR, "060-org-correlation-operators.xml", "8d537583-d475-48c4-b23d-5e71e1ef4e2a");
+    private static final TestObject<OrgType> ORG_CORRELATION_OPERATORS =
+            TestObject.file(TEST_DIR, "060-org-correlation-operators.xml", "8d537583-d475-48c4-b23d-5e71e1ef4e2a");
 
-    private static final TestResource<UserType> USER_FRED =
-            new TestResource<>(TEST_DIR, "100-user-fred.xml", "75369757-ae32-48ac-86f7-7b24fc687c70");
-    private static final TestResource<UserType> USER_ALICE =
-            new TestResource<>(TEST_DIR, "110-user-alice.xml", "7c8d1fcc-5033-4275-8396-b3ce02e218a9");
+    private static final TestObject<UserType> USER_FRED =
+            TestObject.file(TEST_DIR, "100-user-fred.xml", "75369757-ae32-48ac-86f7-7b24fc687c70");
+    private static final TestObject<UserType> USER_ALICE =
+            TestObject.file(TEST_DIR, "110-user-alice.xml", "7c8d1fcc-5033-4275-8396-b3ce02e218a9");
 
     static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "21d4788c-15eb-40cc-8ac5-3cd379362ffe", "resource-sis.csv",

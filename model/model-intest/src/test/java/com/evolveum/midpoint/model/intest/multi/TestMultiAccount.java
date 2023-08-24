@@ -923,7 +923,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         modelService.importFromResource(RESOURCE_DUMMY_MULTI_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, 40000);
     }
 
     private void importCleverHrAccounts(Task task, OperationResult result) throws Exception {
@@ -931,7 +931,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         modelService.importFromResource(RESOURCE_DUMMY_CLEVER_HR_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, 40000);
     }
 
     private String getEnvoy(String username, String planet) {

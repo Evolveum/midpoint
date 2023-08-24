@@ -16,7 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -27,9 +27,9 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
     private static final File SYSTEM_CONFIGURATION_GLOBAL_FILE = new File(TEST_RESOURCE_DIR, "system-configuration-global.xml");
 
     // Role15 has its approver but there is also a global policy rule that prevents it from being assigned.
-    private static final TestResource<ObjectType> ROLE15 = new TestResource<>(
+    private static final TestObject<ObjectType> ROLE15 = TestObject.file(
             TEST_RESOURCE_DIR, "role-role15.xml", "00000001-d34d-b33f-f00d-000000000015");
-    private static final TestResource<ObjectType> USER_LEAD15 = new TestResource<>(
+    private static final TestObject<ObjectType> USER_LEAD15 = TestObject.file(
             TEST_RESOURCE_DIR, "user-lead15.xml", "00000001-d34d-b33f-f00d-a00000000015");
 
     @Override

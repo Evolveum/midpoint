@@ -12,14 +12,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Result of a script execution.
+ * Result of a bulk action execution.
  */
-public class ScriptExecutionResult {
+public class BulkActionExecutionResult {
 
     private final String consoleOutput;
     private final List<PipelineItem> dataOutput; // unmodifiable + always non-null
 
-    public ScriptExecutionResult(String consoleOutput, List<PipelineItem> dataOutput) {
+    public BulkActionExecutionResult(String consoleOutput, List<PipelineItem> dataOutput) {
         this.consoleOutput = consoleOutput;
         if (dataOutput == null) {
             dataOutput = new ArrayList<>();

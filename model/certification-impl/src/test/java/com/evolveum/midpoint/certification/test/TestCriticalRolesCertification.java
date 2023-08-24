@@ -1002,7 +1002,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
                 .build();
         List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
-        waitForTaskFinish(tasks.get(0).getOid(), true);
+        waitForTaskFinish(tasks.get(0).getOid());
 
         campaign = getCampaignWithCases(campaignOid);
         assertEquals("wrong campaign state", CLOSED, campaign.getState());

@@ -1359,8 +1359,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         when();
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID);
 
         // THEN
         then();
@@ -1855,20 +1855,20 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     }
 
     protected void waitForValidityTaskFinish() throws Exception {
-        waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskFinish(TASK_VALIDITY_SCANNER_OID);
     }
 
     private void waitForValidityTaskStart() throws Exception {
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
     }
 
     protected void waitForValidityNextRunAssertSuccess() throws Exception {
-        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID);
         displayValidityScannerState();
     }
 
     private void waitForTriggerNextRunAssertSuccess() throws Exception {
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID);
         assertTask(TASK_TRIGGER_SCANNER_OID, "trigger scanner task")
                 .rootActivityState()
                     .display()

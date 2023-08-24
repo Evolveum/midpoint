@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -34,7 +34,7 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
     @SuppressWarnings("FieldCanBeLocal")
     private DummyInterruptedSyncResource interruptedSyncResource;
 
-    private static final TestResource<TaskType> TASK_RECONCILIATION = new TestResource<>(TEST_DIR, "task-reconciliation.xml", "1cf4e4fd-7648-4f83-bed4-78bd5d30d2a3");
+    private static final TestObject<TaskType> TASK_RECONCILIATION = TestObject.file(TEST_DIR, "task-reconciliation.xml", "1cf4e4fd-7648-4f83-bed4-78bd5d30d2a3");
 
     private static final String USER_FORMAT = "user-";
 
@@ -52,7 +52,7 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
         interruptedSyncResource.createAccounts(USERS, this::getUserName);
     }
 
-    TestResource<TaskType> getReconciliationTask() {
+    TestObject<TaskType> getReconciliationTask() {
         return TASK_RECONCILIATION;
     }
 

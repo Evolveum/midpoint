@@ -42,10 +42,10 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * Main entry point for evaluating scripting expressions.
  */
 @Component
-public class ScriptingExpressionEvaluator {
+public class BulkActionsExecutor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ScriptingExpressionEvaluator.class);
-    private static final String DOT_CLASS = ScriptingExpressionEvaluator.class + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(BulkActionsExecutor.class);
+    private static final String DOT_CLASS = BulkActionsExecutor.class + ".";
 
     @Autowired private SearchEvaluator searchEvaluator;
     @Autowired private SelectEvaluator selectEvaluator;
@@ -56,15 +56,15 @@ public class ScriptingExpressionEvaluator {
     @Autowired private ExpressionProfileManager expressionProfileManager;
 
     /**
-     * Executes given script. This is the main entry point.
+     * Executes given bulk action. This is the main entry point.
      */
-    public ExecutionContext evaluateExpression(
+    public ExecutionContext execute(
             @NotNull ExecuteScriptConfigItem executeScript,
             @NotNull VariablesMap initialVariables,
             boolean recordProgressAndIterationStatistics,
             @NotNull Task task,
             @NotNull OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(
+        return execute(
                 executeScript, initialVariables, false, recordProgressAndIterationStatistics, task, result);
     }
 
@@ -74,16 +74,16 @@ public class ScriptingExpressionEvaluator {
      * The difference from the regular execution is in the default expression profile used.
      * Here, it is {@link ExpressionProfile#full()} even for unprivileged users.
      */
-    public ExecutionContext evaluateExpressionPrivileged(
+    public ExecutionContext executePrivileged(
             @NotNull ExecuteScriptConfigItem executeScript,
             @NotNull VariablesMap initialVariables,
             Task task,
             OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(
+        return execute(
                 executeScript, initialVariables, true, false, task, result);
     }
 
-    private ExecutionContext evaluateExpression(
+    private ExecutionContext execute(
             @NotNull ExecuteScriptConfigItem executeScript,
             @NotNull VariablesMap initialVariables,
             boolean privileged,
@@ -93,7 +93,7 @@ public class ScriptingExpressionEvaluator {
         var executeScriptBean = executeScript.value();
         try {
             var expressionProfile =
-                    expressionProfileManager.determineScriptingExpressionProfile(executeScript.origin(), privileged, task, result);
+                    expressionProfileManager.determineBulkActionsProfile(executeScript.origin(), privileged, task, result);
             VariablesMap frozenVariables = VariablesUtil.initialPreparation(
                     initialVariables, executeScriptBean.getVariables(),
                     expressionProfile, task, result);
@@ -101,7 +101,7 @@ public class ScriptingExpressionEvaluator {
             ExecutionContext context = new ExecutionContext(
                     executeScriptBean.getOptions(), task, this,
                     recordProgressAndIterationStatistics, frozenVariables, expressionProfile);
-            PipelineData output = evaluateExpression(
+            PipelineData output = execute(
                     executeScriptBean.getScriptingExpression().getValue(), inputPipeline, context, result);
             context.setFinalOutput(output);
             result.computeStatusIfUnknown();
@@ -117,20 +117,20 @@ public class ScriptingExpressionEvaluator {
     }
 
     // not to be called from outside
-    public PipelineData evaluateExpression(JAXBElement<? extends ScriptingExpressionType> expression, PipelineData input,
+    public PipelineData execute(JAXBElement<? extends ScriptingExpressionType> expression, PipelineData input,
             ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        return evaluateExpression(expression.getValue(), input, context, parentResult);
+        return execute(expression.getValue(), input, context, parentResult);
     }
 
     // not to be called from outside
-    public PipelineData evaluateExpression(
+    public PipelineData execute(
             ScriptingExpressionType value, PipelineData input, ExecutionContext context, OperationResult parentResult)
             throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         context.checkTaskStop();
-        OperationResult globalResult = parentResult.createMinorSubresult(DOT_CLASS + "evaluateExpression");
+        OperationResult globalResult = parentResult.createMinorSubresult(DOT_CLASS + "evaluate");
         try {
             PipelineData output;
             if (value instanceof ExpressionPipelineType pipeline) {
@@ -179,7 +179,7 @@ public class ScriptingExpressionEvaluator {
             OperationResult result) throws ScriptExecutionException, SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         for (JAXBElement<? extends ScriptingExpressionType> expressionType : pipeline.getScriptingExpression()) {
-            data = evaluateExpression(expressionType, data, context, result);
+            data = execute(expressionType, data, context, result);
         }
         return data;
     }
@@ -192,7 +192,7 @@ public class ScriptingExpressionEvaluator {
         for (int i = 0; i < scriptingExpression.size(); i++) {
             JAXBElement<? extends ScriptingExpressionType> expressionType = scriptingExpression.get(i);
             PipelineData branchInput = i < scriptingExpression.size() - 1 ? input.cloneMutableState() : input;
-            lastOutput = evaluateExpression(expressionType, branchInput, context, result);
+            lastOutput = execute(expressionType, branchInput, context, result);
         }
         return lastOutput;
     }

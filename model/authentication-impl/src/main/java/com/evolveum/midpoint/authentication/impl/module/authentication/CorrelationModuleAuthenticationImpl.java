@@ -31,6 +31,8 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     private FocusType preFocus;
     private Map<ItemPath, String> processedAttributes = new HashMap<>();
 
+    private Integer correlationMaxUsersNumber;
+
     public CorrelationModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.CORRELATION, sequenceModule);
         setType(ModuleType.LOCAL);
@@ -41,6 +43,7 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         CorrelationModuleAuthenticationImpl module = new CorrelationModuleAuthenticationImpl(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
         module.setCorrelators(this.correlators);
+        module.setCorrelationMaxUsersNumber(this.correlationMaxUsersNumber);
         super.clone(module);
         return module;
     }
@@ -103,6 +106,18 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     public FocusType getPreFocus() {
         return preFocus;
+    }
+
+    public boolean isCorrelationMaxUsersNumberSet() {
+        return correlationMaxUsersNumber != null;
+    }
+
+    public Integer getCorrelationMaxUsersNumber() {
+        return correlationMaxUsersNumber;
+    }
+
+    public void setCorrelationMaxUsersNumber(Integer correlationMaxUsersNumber) {
+        this.correlationMaxUsersNumber = correlationMaxUsersNumber;
     }
 
 }

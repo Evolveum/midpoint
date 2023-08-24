@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * - data manipulation methods use fixed charset (system default)
  * - there is no "class-path version" of this test object, only file-based one
  */
-public class CsvTestResource extends AnyTestResource {
+public class CsvTestResource extends TestResource {
 
     private static final Trace LOGGER = TraceManager.getTrace(CsvTestResource.class);
 

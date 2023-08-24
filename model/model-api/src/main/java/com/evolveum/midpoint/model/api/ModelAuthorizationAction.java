@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -22,6 +24,16 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     DELETE("delete", "Delete", "DELETE_HELP"),
     RECOMPUTE("recompute", "Recompute", "RECOMPUTE_HELP"),
     TEST("test", "Test resource", "TEST_RESOURCE_HELP"),
+
+    /**
+     * Allows to "use" an object; the exact meaning depends on the type of the object.
+     * Currently supported for:
+     *
+     * - task templates: here it means instantiating the template by
+     * {@link ModelInteractionService#submitTaskFromTemplate(String, ActivityCustomization,
+     * Task, OperationResult)} and related methods.
+     */
+    USE("use", "Use", "USE_HELP"),
 
     /**
      * Import objects from file or a stream. This means importing any type of
@@ -41,6 +53,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP"),
     DELEGATE("delegate", "Delegate", "DELEGATE_HELP"),
     ATTORNEY("attorney", "Attorney", "ATTORNEY_HELP"),
+    EXECUTE_BULK_ACTIONS("executeBulkActions", "Execute bulk actions", "EXECUTE_BULK_ACTIONS_HELP"),
+    @SuppressWarnings("DeprecatedIsStillUsed") @Deprecated // use #executeBulkActions
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     CHANGE_CREDENTIALS("changeCredentials", "Change credentials", "CHANGE_CREDENTIALS_HELP"),
 

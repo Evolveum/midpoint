@@ -30,7 +30,7 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -47,19 +47,19 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "misc");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_A1 =
-            new TestResource<>(TEST_DIR, "template-a1.xml", "c2f74e53-2623-4832-8285-f30e225cab98");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_A2 =
-            new TestResource<>(TEST_DIR, "template-a2.xml", "bd277f88-5765-4a9b-9424-32e35757e409");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_A3 =
-            new TestResource<>(TEST_DIR, "template-a3.xml", "244cab1c-8424-4231-bf24-adbf9ea60765");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_A1 =
+            TestObject.file(TEST_DIR, "template-a1.xml", "c2f74e53-2623-4832-8285-f30e225cab98");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_A2 =
+            TestObject.file(TEST_DIR, "template-a2.xml", "bd277f88-5765-4a9b-9424-32e35757e409");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_A3 =
+            TestObject.file(TEST_DIR, "template-a3.xml", "244cab1c-8424-4231-bf24-adbf9ea60765");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_B1 =
-            new TestResource<>(TEST_DIR, "template-b1.xml", "adf4f05f-7dd6-440e-bfe9-880280f73283");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_B2A =
-            new TestResource<>(TEST_DIR, "template-b2a.xml", "0ec39991-6ba7-4025-8470-8f8d09687f8c");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_B2B =
-            new TestResource<>(TEST_DIR, "template-b2b.xml", "c0726932-4cd1-42b8-ace3-0fb08c6ac83d");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_B1 =
+            TestObject.file(TEST_DIR, "template-b1.xml", "adf4f05f-7dd6-440e-bfe9-880280f73283");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_B2A =
+            TestObject.file(TEST_DIR, "template-b2a.xml", "0ec39991-6ba7-4025-8470-8f8d09687f8c");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_B2B =
+            TestObject.file(TEST_DIR, "template-b2b.xml", "c0726932-4cd1-42b8-ace3-0fb08c6ac83d");
 
     @Test
     public void test100CyclicTemplateReferences() throws CommonException, EncryptionException, IOException {

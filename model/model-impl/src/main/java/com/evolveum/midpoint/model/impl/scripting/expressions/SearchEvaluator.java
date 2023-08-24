@@ -130,11 +130,11 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                     }
                     JAXBElement<?> childExpression = searchExpression.getScriptingExpression();
                     try {
-                        PipelineData expressionResult = scriptingExpressionEvaluator.evaluateExpression(
+                        PipelineData searchResult = bulkActionsExecutor.execute(
                                 (ScriptingExpressionType) childExpression.getValue(),
                                 PipelineData.create(object.getValue(), item.getVariables()), context, globalResult);
                         if (!BooleanUtils.isFalse(searchExpression.isAggregateOutput())) {
-                            outputData.addAllFrom(expressionResult);
+                            outputData.addAllFrom(searchResult);
                         }
                         globalResult.setSummarizeSuccesses(true);
                         globalResult.summarize();

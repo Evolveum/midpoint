@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +69,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
     static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "sync-story");
 
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_SYNC = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_SYNC = TestObject.file(
             TEST_DIR, "user-template-sync.xml", "10000000-0000-0000-0000-000000000333");
 
     private static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";

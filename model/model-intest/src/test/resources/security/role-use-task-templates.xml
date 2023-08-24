@@ -6,12 +6,13 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="4cbaf4a6-bf40-4b86-9e77-98398c36d383">
-    <name>unprivileged</name>
+    oid="ac97ca9d-7bb6-44b3-8d10-3b309c97f866">
+    <name>use-task-templates</name>
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript</action>
+        <name>use-task-templates</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#use</action>
+        <object>
+            <type>TaskType</type>
+        </object>
     </authorization>
 </role>

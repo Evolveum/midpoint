@@ -14,7 +14,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
 import com.evolveum.midpoint.util.exception.*;
@@ -41,7 +41,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
-    private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "8ba86427-8bc4-4c22-9dee-5403a063e453");
+    private static final TestObject<TaskType> TASK_ASYNC_UPDATE = TestObject.file(TEST_DIR, "task-async-update.xml", "8ba86427-8bc4-4c22-9dee-5403a063e453");
 
     private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.json");
     private static final File CHANGE_115 = new File(TEST_DIR, "change-115-staff-add.json");

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleThresholds;
+
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
@@ -55,8 +57,17 @@ public class CorrelationModuleFactory extends AbstractModuleFactory
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         moduleAuthentication.setCorrelators(moduleType.getCorrelator());
+        moduleAuthentication.setCorrelationMaxUsersNumber(getCorrelationMaxUserNumber(moduleType.getThresholds()));
         return moduleAuthentication;
     }
+
+    private Integer getCorrelationMaxUserNumber(CorrelationModuleThresholds thresholds) {
+        if (thresholds == null) {
+            return null;
+        }
+        return thresholds.getCorrelationResultMaxUsersNumber();
+    }
+
 
     @Override
     protected void isSupportedChannel(AuthenticationChannel authenticationChannel) {

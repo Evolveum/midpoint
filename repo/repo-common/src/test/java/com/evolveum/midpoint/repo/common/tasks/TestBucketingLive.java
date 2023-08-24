@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.common.tasks.handlers.iterative.IterativeMockA
 import com.evolveum.midpoint.repo.common.tasks.handlers.search.SearchIterativeMockActivityHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -55,7 +55,8 @@ public class TestBucketingLive extends AbstractRepoCommonTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/bucketing-live");
 
-    private static final TestResource<TaskType> TASK_100_SINGLE_WORKER_FOUR_BUCKETS = new TestResource<>(TEST_DIR, "task-100-single-worker-four-buckets.xml", "4e09a632-f2c7-4285-9204-c02e7c39ae04");
+    private static final TestObject<TaskType> TASK_100_SINGLE_WORKER_FOUR_BUCKETS = TestObject.file(
+            TEST_DIR, "task-100-single-worker-four-buckets.xml", "4e09a632-f2c7-4285-9204-c02e7c39ae04");
 
     private static final long DEFAULT_SLEEP_INTERVAL = 250L;
     private static final long DEFAULT_TIMEOUT = 30000L;
@@ -142,22 +143,22 @@ public class TestBucketingLive extends AbstractRepoCommonTest {
 //
 //    private static final File TEST_DIR = new File("src/test/resources/work-distribution");
 //
-//    private static final TestResource<TaskType> TASK_200_COORDINATOR = new TestResource<>(TEST_DIR, "task-200-c.xml", "44444444-2222-2222-2222-200c00000000");
-//    private static final TestResource<TaskType> TASK_200_WORKER = new TestResource<>(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
-//    private static final TestResource<TaskType> TASK_210_COORDINATOR = new TestResource<>(TEST_DIR, "task-210-c.xml", "44444444-2222-2222-2222-210c00000000");
-//    private static final TestResource<TaskType> TASK_210_WORKER_1 = new TestResource<>(TEST_DIR, "task-210-1.xml", "44444444-2222-2222-2222-210100000000");
-//    private static final TestResource<TaskType> TASK_210_WORKER_2 = new TestResource<>(TEST_DIR, "task-210-2.xml", "44444444-2222-2222-2222-210200000000");
-//    private static final TestResource<TaskType> TASK_210_WORKER_3 = new TestResource<>(TEST_DIR, "task-210-3.xml", "44444444-2222-2222-2222-210300000000");
-//    private static final TestResource<TaskType> TASK_220_COORDINATOR = new TestResource<>(TEST_DIR, "task-220-c.xml", "44444444-2222-2222-2222-220c00000000");
-//    private static final TestResource<TaskType> TASK_220_WORKER_1 = new TestResource<>(TEST_DIR, "task-220-1.xml", "44444444-2222-2222-2222-220100000000");
-//    private static final TestResource<TaskType> TASK_220_WORKER_2 = new TestResource<>(TEST_DIR, "task-220-2.xml", "44444444-2222-2222-2222-220200000000");
-//    private static final TestResource<TaskType> TASK_220_WORKER_3 = new TestResource<>(TEST_DIR, "task-220-3.xml", "44444444-2222-2222-2222-220300000000");
-//    private static final TestResource<TaskType> TASK_230_COORDINATOR = new TestResource<>(TEST_DIR, "task-230-c.xml", "44444444-2222-2222-2222-230c00000000");
-//    private static final TestResource<TaskType> TASK_230_WORKER_1 = new TestResource<>(TEST_DIR, "task-230-1.xml", "44444444-2222-2222-2222-230100000000");
-//    private static final TestResource<TaskType> TASK_230_WORKER_2 = new TestResource<>(TEST_DIR, "task-230-2.xml", "44444444-2222-2222-2222-230200000000");
-//    private static final TestResource<TaskType> TASK_230_WORKER_3 = new TestResource<>(TEST_DIR, "task-230-3.xml", "44444444-2222-2222-2222-230300000000");
-//    private static final TestResource<TaskType> TASK_300_COORDINATOR = new TestResource<>(TEST_DIR, "task-300-c.xml", "44444444-2222-2222-2222-300c00000000");
-//    private static final TestResource<TaskType> TASK_300_WORKER = new TestResource<>(TEST_DIR, "task-300-w.xml", "44444444-2222-2222-2222-300w00000000");
+//    private static final TestObject<TaskType> TASK_200_COORDINATOR = TestObject.file(TEST_DIR, "task-200-c.xml", "44444444-2222-2222-2222-200c00000000");
+//    private static final TestObject<TaskType> TASK_200_WORKER = TestObject.file(TEST_DIR, "task-200-w.xml", "44444444-2222-2222-2222-200w00000000");
+//    private static final TestObject<TaskType> TASK_210_COORDINATOR = TestObject.file(TEST_DIR, "task-210-c.xml", "44444444-2222-2222-2222-210c00000000");
+//    private static final TestObject<TaskType> TASK_210_WORKER_1 = TestObject.file(TEST_DIR, "task-210-1.xml", "44444444-2222-2222-2222-210100000000");
+//    private static final TestObject<TaskType> TASK_210_WORKER_2 = TestObject.file(TEST_DIR, "task-210-2.xml", "44444444-2222-2222-2222-210200000000");
+//    private static final TestObject<TaskType> TASK_210_WORKER_3 = TestObject.file(TEST_DIR, "task-210-3.xml", "44444444-2222-2222-2222-210300000000");
+//    private static final TestObject<TaskType> TASK_220_COORDINATOR = TestObject.file(TEST_DIR, "task-220-c.xml", "44444444-2222-2222-2222-220c00000000");
+//    private static final TestObject<TaskType> TASK_220_WORKER_1 = TestObject.file(TEST_DIR, "task-220-1.xml", "44444444-2222-2222-2222-220100000000");
+//    private static final TestObject<TaskType> TASK_220_WORKER_2 = TestObject.file(TEST_DIR, "task-220-2.xml", "44444444-2222-2222-2222-220200000000");
+//    private static final TestObject<TaskType> TASK_220_WORKER_3 = TestObject.file(TEST_DIR, "task-220-3.xml", "44444444-2222-2222-2222-220300000000");
+//    private static final TestObject<TaskType> TASK_230_COORDINATOR = TestObject.file(TEST_DIR, "task-230-c.xml", "44444444-2222-2222-2222-230c00000000");
+//    private static final TestObject<TaskType> TASK_230_WORKER_1 = TestObject.file(TEST_DIR, "task-230-1.xml", "44444444-2222-2222-2222-230100000000");
+//    private static final TestObject<TaskType> TASK_230_WORKER_2 = TestObject.file(TEST_DIR, "task-230-2.xml", "44444444-2222-2222-2222-230200000000");
+//    private static final TestObject<TaskType> TASK_230_WORKER_3 = TestObject.file(TEST_DIR, "task-230-3.xml", "44444444-2222-2222-2222-230300000000");
+//    private static final TestObject<TaskType> TASK_300_COORDINATOR = TestObject.file(TEST_DIR, "task-300-c.xml", "44444444-2222-2222-2222-300c00000000");
+//    private static final TestObject<TaskType> TASK_300_WORKER = TestObject.file(TEST_DIR, "task-300-w.xml", "44444444-2222-2222-2222-300w00000000");
 //
 //    @Override
 //    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -247,7 +248,7 @@ public class TestBucketingLive extends AbstractRepoCommonTest {
 //        }
 //    }
 //
-//    private void taskAdd(TestResource<TaskType> testResource, OperationResult result) {
+//    private void taskAdd(TestObject<TaskType> testResource, OperationResult result) {
 //        throw new UnsupportedOperationException();
 //    }
 //

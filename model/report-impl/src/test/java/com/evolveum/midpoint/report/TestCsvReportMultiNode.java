@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -27,13 +27,13 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
     private static final File TEST_DIR = new File("src/test/resources/reports");
 
-    private static final TestResource<TaskType> TASK_DISTRIBUTED_EXPORT_USERS = new TestResource<>(TEST_DIR_REPORTS,
+    private static final TestObject<TaskType> TASK_DISTRIBUTED_EXPORT_USERS = TestObject.file(TEST_DIR_REPORTS,
             "task-distributed-export-users.xml", "5ab8f8c6-df1a-4580-af8b-a899f240b44f");
 
-    private static final TestResource<TaskType> TASK_DISTRIBUTED_EXPORT_AUDIT = new TestResource<>(TEST_DIR_REPORTS,
+    private static final TestObject<TaskType> TASK_DISTRIBUTED_EXPORT_AUDIT = TestObject.file(TEST_DIR_REPORTS,
             "task-distributed-export-audit.xml", "466c5ddd-7739-437f-b049-b270da5ff828");
 
-    private static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_USERS = new TestResource<>(TEST_DIR,
+    private static final TestObject<ReportType> REPORT_OBJECT_COLLECTION_USERS = TestObject.file(TEST_DIR,
             "report-object-collection-users.xml", "64e13165-21e5-419a-8d8b-732895109f84");
 
     private static final int USERS = 1000;

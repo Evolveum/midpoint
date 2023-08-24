@@ -24,6 +24,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.enforcer.api.*;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -102,10 +104,6 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
-import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.*;
@@ -1911,6 +1909,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return submitTaskFromTemplate(templateTaskOid, extensionItems, opTask, parentResult);
     }
 
+    @Override
     public @NotNull String submitTaskFromTemplate(
             @NotNull String templateOid,
             @NotNull ActivityCustomization customization,
@@ -1919,19 +1918,26 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(SUBMIT_TASK_FROM_TEMPLATE);
         try {
-            TaskType newTask =
-                    modelService
-                            .getObject(TaskType.class, templateOid, createCollection(createExecutionPhase()), task, result)
+            TaskType template =
+                    cacheRepositoryService
+                            .getObject(TaskType.class, templateOid, null, result)
                             .asObjectable();
 
-            newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
-            newTask.setOid(null);
-            newTask.setTaskIdentifier(null);
-            newTask.setOwnerRef(null);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.USE.getUrl(),
+                    null,
+                    AuthorizationParameters.forObject(template),
+                    task, result);
 
+            template.setName(PolyStringType.fromOrig(template.getName().getOrig() + " " + (int) (Math.random() * 10000)));
+            template.setOid(null);
+            template.setTaskIdentifier(null);
+            template.setOwnerRef(null);
+
+            ActivityDefinitionType activityDefinition = customization.applyTo(template);
             return submit(
-                    customization.applyTo(newTask),
-                    ActivitySubmissionOptions.create().withTaskTemplate(newTask),
+                    activityDefinition,
+                    ActivitySubmissionOptions.create().withTaskTemplate(template),
                     task, result);
 
         } catch (Throwable t) {
@@ -2423,10 +2429,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void checkScriptingAuthorization(Task task, OperationResult result)
+    public void checkBulkActionsAuthorization(Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         securityEnforcer.authorize(
-                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
+                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, result);
     }
 }

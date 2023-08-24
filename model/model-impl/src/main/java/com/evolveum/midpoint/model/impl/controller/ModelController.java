@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -117,7 +117,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Use its interfaces instead.
  */
 @Component
-public class ModelController implements ModelService, TaskService, CaseService, ScriptingService, AccessCertificationService {
+public class ModelController implements ModelService, TaskService, CaseService, BulkActionsService, AccessCertificationService {
 
     // Constants for OperationResult
     private static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -138,7 +138,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Autowired private HookRegistry hookRegistry;
     @Autowired private TaskManager taskManager;
     @Autowired private TaskActivityManager activityManager;
-    @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired private BulkActionsExecutor bulkActionsExecutor;
     @Autowired private AuditHelper auditHelper;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SecurityContextManager securityContextManager;
@@ -2177,25 +2177,25 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     //region Scripting (bulk actions)
     @Override
-    public ScriptExecutionResult evaluateExpression(
+    public BulkActionExecutionResult executeBulkAction(
             @NotNull ExecuteScriptConfigItem scriptExecutionCommand,
             @NotNull VariablesMap initialVariables,
             boolean recordProgressAndIterationStatistics,
             @NotNull Task task, @NotNull OperationResult result)
             throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkScriptingAuthorization(task, result);
+        checkBulkActionAuthorization(task, result);
         ExecutionContext executionContext =
-                scriptingExpressionEvaluator.evaluateExpression(
+                bulkActionsExecutor.execute(
                         scriptExecutionCommand, initialVariables, recordProgressAndIterationStatistics, task, result);
         return executionContext.toExecutionResult();
     }
 
-    private void checkScriptingAuthorization(Task task, OperationResult parentResult)
+    private void checkBulkActionAuthorization(Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
         securityEnforcer.authorize(
-                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, parentResult);
+                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, parentResult);
     }
     //endregion
 

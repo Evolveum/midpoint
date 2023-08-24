@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.exception.*;
 /**
  * Interface of the Model subsystem that provides scripting (bulk actions) operations.
  */
-public interface ScriptingService {
+public interface BulkActionsService {
 
     /**
      * Synchronously executes any scripting expression (with no input data).
@@ -31,7 +31,7 @@ public interface ScriptingService {
      *
      * TODO consider returning ExecutionContext (requires moving the context to model api)
      */
-    ScriptExecutionResult evaluateExpression(
+    BulkActionExecutionResult executeBulkAction(
             @NotNull ExecuteScriptConfigItem executeScriptCommand,
             @NotNull VariablesMap initialVariables,
             boolean recordProgressAndIterationStatistics,

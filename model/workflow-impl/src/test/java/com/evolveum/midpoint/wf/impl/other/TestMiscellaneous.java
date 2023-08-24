@@ -43,7 +43,7 @@ import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.OperationResultRepoSearchAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -60,36 +60,36 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
     private static final File TEST_DIR = new File("src/test/resources/miscellaneous");
 
-    private static final TestResource<RoleType> ROLE_SAILOR = new TestResource<>(TEST_DIR, "role-sailor.xml", "3ccc0a00-6a3b-4ae0-94a3-d45fc457f63f");
-    private static final TestResource<RoleType> ROLE_CAPTAIN = new TestResource<>(TEST_DIR, "role-captain.xml", "15a99cf1-5886-44d4-8aaf-7e1f46ccec36");
-    private static final TestResource<UserType> USER_SCOTT = new TestResource<>(TEST_DIR, "user-scott.xml", "929c49ed-0100-4068-b8e4-137bd8ebd6b2");
+    private static final TestObject<RoleType> ROLE_SAILOR = TestObject.file(TEST_DIR, "role-sailor.xml", "3ccc0a00-6a3b-4ae0-94a3-d45fc457f63f");
+    private static final TestObject<RoleType> ROLE_CAPTAIN = TestObject.file(TEST_DIR, "role-captain.xml", "15a99cf1-5886-44d4-8aaf-7e1f46ccec36");
+    private static final TestObject<UserType> USER_SCOTT = TestObject.file(TEST_DIR, "user-scott.xml", "929c49ed-0100-4068-b8e4-137bd8ebd6b2");
 
-    private static final TestResource<RoleType> METAROLE_PRIZE = new TestResource<>(TEST_DIR, "metarole-prize.xml", "2330f9df-83bc-4270-86fc-27fca2b616a7");
-    private static final TestResource<RoleType> METAROLE_APPROVE_UNASSIGN = new TestResource<>(TEST_DIR, "metarole-approve-unassign.xml", "e5144353-c39d-445c-bf15-c4b80ce75918");
+    private static final TestObject<RoleType> METAROLE_PRIZE = TestObject.file(TEST_DIR, "metarole-prize.xml", "2330f9df-83bc-4270-86fc-27fca2b616a7");
+    private static final TestObject<RoleType> METAROLE_APPROVE_UNASSIGN = TestObject.file(TEST_DIR, "metarole-approve-unassign.xml", "e5144353-c39d-445c-bf15-c4b80ce75918");
 
-    private static final TestResource<RoleType> ROLE_GOLD = new TestResource<>(TEST_DIR, "role-gold.xml", "0b3ad53e-7c1d-41d0-a447-ce94cd25c46a");
-    private static final TestResource<RoleType> ROLE_SILVER = new TestResource<>(TEST_DIR, "role-silver.xml", "ee5206f8-930a-4c85-bfee-c16e4462df23");
-    private static final TestResource<RoleType> ROLE_BRONZE = new TestResource<>(TEST_DIR, "role-bronze.xml", "f16f4dd7-2830-4d0a-b6ed-9fbf253dbaf3");
+    private static final TestObject<RoleType> ROLE_GOLD = TestObject.file(TEST_DIR, "role-gold.xml", "0b3ad53e-7c1d-41d0-a447-ce94cd25c46a");
+    private static final TestObject<RoleType> ROLE_SILVER = TestObject.file(TEST_DIR, "role-silver.xml", "ee5206f8-930a-4c85-bfee-c16e4462df23");
+    private static final TestObject<RoleType> ROLE_BRONZE = TestObject.file(TEST_DIR, "role-bronze.xml", "f16f4dd7-2830-4d0a-b6ed-9fbf253dbaf3");
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_ASSIGNING_CAPTAIN = new TestResource<>(TEST_DIR, "template-assigning-captain.xml", "18ac3da2-f2fa-496a-8e54-789a090ff492");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_ASSIGNING_CAPTAIN_AFTER = new TestResource<>(TEST_DIR, "template-assigning-captain-after.xml", "ace5d8f0-f54b-4f1b-92c0-8fa104a8fe84");
-    private static final TestResource<RoleType> ROLE_ASSIGNING_CAPTAIN = new TestResource<>(TEST_DIR, "role-assigning-captain.xml", "4bdd7ccc-8c52-41ff-a975-0313ec788507");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_ASSIGNING_CAPTAIN = TestObject.file(TEST_DIR, "template-assigning-captain.xml", "18ac3da2-f2fa-496a-8e54-789a090ff492");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_ASSIGNING_CAPTAIN_AFTER = TestObject.file(TEST_DIR, "template-assigning-captain-after.xml", "ace5d8f0-f54b-4f1b-92c0-8fa104a8fe84");
+    private static final TestObject<RoleType> ROLE_ASSIGNING_CAPTAIN = TestObject.file(TEST_DIR, "role-assigning-captain.xml", "4bdd7ccc-8c52-41ff-a975-0313ec788507");
 
-    private static final TestResource<UserType> USER_SCROOGE = new TestResource<>(TEST_DIR, "user-scrooge.xml", "edf53304-2da0-4a7c-82b4-74fe35dcbc6e");
-    private static final TestResource<UserType> USER_GIZMODUCK = new TestResource<>(TEST_DIR, "user-gizmoduck.xml", "6d0a7fce-b698-4f1d-95ce-14246452add5");
-    private static final TestResource<UserType> USER_LAUNCHPAD = new TestResource<>(TEST_DIR, "user-launchpad.xml", "00880478-d006-4fc8-9d3a-87b5ec546c40");
-    private static final TestResource<RoleType> ROLE_VAULT_ACCESS = new TestResource<>(TEST_DIR, "role-vault-access.xml", "f6f95936-8714-4c7d-abdf-6cd3e6d2d6cc");
-    private static final TestResource<RoleType> ROLE_ACCOUNTANT = new TestResource<>(TEST_DIR, "role-accountant.xml", "5653fc70-3007-4f62-82dd-a36e0673505b");
+    private static final TestObject<UserType> USER_SCROOGE = TestObject.file(TEST_DIR, "user-scrooge.xml", "edf53304-2da0-4a7c-82b4-74fe35dcbc6e");
+    private static final TestObject<UserType> USER_GIZMODUCK = TestObject.file(TEST_DIR, "user-gizmoduck.xml", "6d0a7fce-b698-4f1d-95ce-14246452add5");
+    private static final TestObject<UserType> USER_LAUNCHPAD = TestObject.file(TEST_DIR, "user-launchpad.xml", "00880478-d006-4fc8-9d3a-87b5ec546c40");
+    private static final TestObject<RoleType> ROLE_VAULT_ACCESS = TestObject.file(TEST_DIR, "role-vault-access.xml", "f6f95936-8714-4c7d-abdf-6cd3e6d2d6cc");
+    private static final TestObject<RoleType> ROLE_ACCOUNTANT = TestObject.file(TEST_DIR, "role-accountant.xml", "5653fc70-3007-4f62-82dd-a36e0673505b");
 
-    private static final TestResource<TaskType> TASK_CLEANUP = new TestResource<>(TEST_DIR, "task-cleanup.xml", "781a7c9a-7b37-45c6-9154-5e57f5ad077f");
+    private static final TestObject<TaskType> TASK_CLEANUP = TestObject.file(TEST_DIR, "task-cleanup.xml", "781a7c9a-7b37-45c6-9154-5e57f5ad077f");
 
-    private static final TestResource<RoleType> ROLE_TEST370 = new TestResource<>(TEST_DIR, "role-test370.xml", "2c226eba-7279-4768-a34a-38392e3fcb19");
-    private static final TestResource<UserType> USER_TEST370 = new TestResource<>(TEST_DIR, "user-test370.xml", "a981ea50-d069-431d-86dc-f4c7dbbc4723");
+    private static final TestObject<RoleType> ROLE_TEST370 = TestObject.file(TEST_DIR, "role-test370.xml", "2c226eba-7279-4768-a34a-38392e3fcb19");
+    private static final TestObject<UserType> USER_TEST370 = TestObject.file(TEST_DIR, "user-test370.xml", "a981ea50-d069-431d-86dc-f4c7dbbc4723");
 
-    private static final TestResource<RoleType> ROLE_TEST380 = new TestResource<>(TEST_DIR, "role-test380.xml", "8f39e4ad-298a-4d9a-b793-56ad2f0fc7ce");
-    private static final TestResource<UserType> USER_TEST380 = new TestResource<>(TEST_DIR, "user-test380.xml", "1994a4d0-4151-4260-82da-bcd1866c296a");
+    private static final TestObject<RoleType> ROLE_TEST380 = TestObject.file(TEST_DIR, "role-test380.xml", "8f39e4ad-298a-4d9a-b793-56ad2f0fc7ce");
+    private static final TestObject<UserType> USER_TEST380 = TestObject.file(TEST_DIR, "user-test380.xml", "1994a4d0-4151-4260-82da-bcd1866c296a");
 
-    private static final TestResource<RoleType> ROLE_AUTOCOMPLETIONS = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_AUTOCOMPLETIONS = TestObject.file(
             TEST_DIR, "role-autocompletions.xml", "a2570ee8-6c13-48b9-9a33-d8e88c4fe618");
 
     private static final TestObject<OrgType> ORG_APPROVERS = TestObject.file(

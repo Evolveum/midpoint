@@ -10,7 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
@@ -23,10 +23,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsStoryLiveSyncExecute extends TestThresholdsStoryLiveSync {
 
-    private static final TestResource<TaskType> TASK_LIVESYNC_OPENDJ_FULL = new TestResource<>(TEST_DIR, "task-opendj-livesync-full.xml", "95bd6a35-ab67-46c9-bda6-51f5bfb070da");
+    private static final TestObject<TaskType> TASK_LIVESYNC_OPENDJ_FULL = TestObject.file(TEST_DIR, "task-opendj-livesync-full.xml", "95bd6a35-ab67-46c9-bda6-51f5bfb070da");
 
     @Override
-    protected TestResource<TaskType> getTaskTestResource() {
+    protected TestObject<TaskType> getTaskTestResource() {
         return TASK_LIVESYNC_OPENDJ_FULL;
     }
 

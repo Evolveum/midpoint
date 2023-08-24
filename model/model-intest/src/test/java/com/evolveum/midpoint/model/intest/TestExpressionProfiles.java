@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.IOException;
 
 import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.BulkActionsService;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
@@ -33,9 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.RunFlag;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
@@ -144,7 +143,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final RunFlag BOOMED_FLAG = new RunFlag();
 
-    @Autowired private ScriptingService scriptingService;
+    private static final String ID_EMPTY = "empty";
+
+    @Autowired private BulkActionsService bulkActionsService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -594,7 +595,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         var script = prismContext.parserFor(FILE_SCRIPTING_GENERATE_VALUE)
                 .xml()
                 .parseRealValue(ExecuteScriptType.class);
-        var executionResult = scriptingService.evaluateExpression(
+        var executionResult = bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, ConfigurationItemOrigin.rest()),
                 VariablesMap.emptyMap(),
                 false,
@@ -631,6 +632,54 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 "expression profile 'forbidden-generate-value-action-alt', actions profile 'forbidden-generate-value-action-alt'");
     }
 
+    /**
+     * Tests "defaults" setting for bulk actions expression profiles.
+     *
+     * Must be run as the last test, as it modifies the system configuration object.
+     */
+    @Test
+    public void test999BulkActionsDefaults() throws CommonException, IOException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        setDefaultBulkActionProfiles(ID_EMPTY, ID_EMPTY, result);
+
+        when("*** testing for unprivileged user");
+        login(USER_JOE.getNameOrig());
+        runNegativeBulkActionTestLoggedIn(
+                FILE_SCRIPTING_GENERATE_VALUE,
+                ConfigurationItemOrigin.rest(),
+                "Access to action 'generate-value' ('generateValue')",
+                "expression profile 'empty', actions profile 'empty'");
+
+        when("*** testing for privileged user");
+        login(USER_ADMINISTRATOR_USERNAME);
+        runNegativeBulkActionTestLoggedIn(
+                FILE_SCRIPTING_GENERATE_VALUE,
+                ConfigurationItemOrigin.rest(),
+                "Access to action 'generate-value' ('generateValue')",
+                "expression profile 'empty', actions profile 'empty'");
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void setDefaultBulkActionProfiles(String unprivileged, String privileged, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                prismContext.deltaFor(SystemConfigurationType.class)
+                        .item(SystemConfigurationType.F_EXPRESSIONS,
+                                SystemConfigurationExpressionsType.F_DEFAULTS,
+                                DefaultExpressionProfilesConfigurationType.F_BULK_ACTIONS)
+                        .replace(unprivileged)
+                        .item(SystemConfigurationType.F_EXPRESSIONS,
+                                SystemConfigurationExpressionsType.F_DEFAULTS,
+                                DefaultExpressionProfilesConfigurationType.F_PRIVILEGED_BULK_ACTIONS)
+                        .replace(privileged)
+                        .asItemDeltas(),
+                result);
+    }
+
     private void runPositiveBulkActionTest(File file, ConfigurationItemOrigin origin) throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -641,7 +690,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         when("bulk action is executed");
         var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
-        scriptingService.evaluateExpression(
+        bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, origin),
                 VariablesMap.emptyMap(),
                 false,
@@ -664,17 +713,22 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private void runNegativeBulkActionTest(File file, ConfigurationItemOrigin origin, String msg1, String msg2)
             throws CommonException, IOException {
+        given("unprivileged user is logged in");
+        login(USER_JOE.getNameOrig());
+
+        runNegativeBulkActionTestLoggedIn(file, origin, msg1, msg2);
+    }
+    private void runNegativeBulkActionTestLoggedIn(
+            File file, ConfigurationItemOrigin origin, String msg1, String msg2)
+            throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         resetBoomed();
 
-        given("unprivileged user is logged in");
-        login(USER_JOE.getNameOrig());
-
         when("dangerous bulk action is executed");
         var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
         try {
-            scriptingService.evaluateExpression(
+            bulkActionsService.executeBulkAction(
                     ExecuteScriptConfigItem.of(script, origin),
                     VariablesMap.emptyMap(),
                     false,
@@ -708,7 +762,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         when("dangerous bulk action is executed");
         var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
-        scriptingService.evaluateExpression(
+        bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(
                         script,
                         ConfigurationItemOrigin.rest()),

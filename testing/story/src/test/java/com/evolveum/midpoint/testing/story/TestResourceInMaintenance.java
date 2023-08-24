@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.midpoint.util.exception.*;
 
@@ -74,8 +74,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
     private static final QName CSV_ATTRIBUTE_FULLNAME = new QName(NS_RI, "fullname");
     private static final QName CSV_ATTRIBUTE_USERNAME = new QName(NS_RI, "username");
 
-    private static final TestResource<TaskType> TASK_RECONCILE_CSV = new TestResource<>(TEST_DIR, "task-reconcile-csv.xml", "9b17f4f6-3085-4210-b160-883c0e842780");
-    private static final TestResource<TaskType> TASK_REFRESH = new TestResource<>(TEST_DIR, "task-refresh.xml", "f996d5c4-0cc8-4544-9410-8154a89080fd");
+    private static final TestObject<TaskType> TASK_RECONCILE_CSV = TestObject.file(TEST_DIR, "task-reconcile-csv.xml", "9b17f4f6-3085-4210-b160-883c0e842780");
+    private static final TestObject<TaskType> TASK_REFRESH = TestObject.file(TEST_DIR, "task-refresh.xml", "f996d5c4-0cc8-4544-9410-8154a89080fd");
 
     private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
 
@@ -811,7 +811,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         clockForward("PT1H");
 
         addTask(TASK_REFRESH, result);
-        Task taskAfter = waitForTaskFinish(TASK_REFRESH.oid, false);
+        Task taskAfter = waitForTaskFinish(TASK_REFRESH.oid);
 
         then();
 

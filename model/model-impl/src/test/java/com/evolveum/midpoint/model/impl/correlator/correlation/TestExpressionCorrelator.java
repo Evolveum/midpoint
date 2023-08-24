@@ -34,7 +34,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -66,12 +66,12 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
                     controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                             ATTR_CORRELATION_CODE, String.class, false, false));
 
-    private static final TestResource<UserType> USER_X =
-            new TestResource<>(TEST_DIR, "user-x.xml", "f2cb9158-3e3f-40c5-84da-7859c2da5535");
-    private static final TestResource<UserType> USER_Y =
-            new TestResource<>(TEST_DIR, "user-y.xml", "712c127f-1320-4fa9-95fb-f833feac5f58");
-    private static final TestResource<UserType> USER_Z =
-            new TestResource<>(TEST_DIR, "user-z.xml", "87f52bbe-8873-4683-adcb-c52a18f63c13");
+    private static final TestObject<UserType> USER_X =
+            TestObject.file(TEST_DIR, "user-x.xml", "f2cb9158-3e3f-40c5-84da-7859c2da5535");
+    private static final TestObject<UserType> USER_Y =
+            TestObject.file(TEST_DIR, "user-y.xml", "712c127f-1320-4fa9-95fb-f833feac5f58");
+    private static final TestObject<UserType> USER_Z =
+            TestObject.file(TEST_DIR, "user-z.xml", "87f52bbe-8873-4683-adcb-c52a18f63c13");
 
     @Autowired private CorrelationServiceImpl correlationService;
     @Autowired private CorrelationCaseManager correlationCaseManager;
@@ -224,7 +224,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
         return "correlationContext.requestManualCorrelation()\n";
     }
 
-    private String ownersCode(TestResource<?>... owners) {
+    private String ownersCode(TestObject<?>... owners) {
         return Arrays.stream(owners)
                 .map(o -> o.oid)
                 .map(oid -> "com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef('"

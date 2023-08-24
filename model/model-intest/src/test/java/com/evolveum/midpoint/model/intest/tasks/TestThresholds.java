@@ -39,7 +39,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -68,12 +68,12 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     static final File TEST_DIR = new File("src/test/resources/tasks/thresholds");
 
     /** Used also for "import without limits" in {@link #test130ImportWithoutLimits()}. */
-    static final TestResource<TaskType> TASK_IMPORT_EXECUTE_SINGLE = new TestResource<>(TEST_DIR, "task-import-execute-single.xml", "8576985e-79e4-4d0c-bedd-72652db3c760");
+    static final TestObject<TaskType> TASK_IMPORT_EXECUTE_SINGLE = TestObject.file(TEST_DIR, "task-import-execute-single.xml", "8576985e-79e4-4d0c-bedd-72652db3c760");
 
-    private static final TestResource<RoleType> ROLE_ADD_10 = new TestResource<>(TEST_DIR, "role-add-10.xml", "8f91bccf-fc4b-4987-8232-2e06d174dc37");
-    private static final TestResource<RoleType> ROLE_MODIFY_COST_CENTER_5 = new TestResource<>(TEST_DIR, "role-modify-cost-center-5.xml", "6b0003a4-65bf-471d-af2c-ed575deaf199");
-    private static final TestResource<RoleType> ROLE_MODIFY_FULL_NAME_5 = new TestResource<>(TEST_DIR, "role-modify-full-name-5.xml", "11562df4-c3e7-4e9e-a8f9-0b7f1bb7df75");
-    private static final TestResource<RoleType> ROLE_DELETE_5 = new TestResource<>(TEST_DIR, "role-delete-5.xml", "9447439f-e6fd-4fb8-bf30-e918e16b42be");
+    private static final TestObject<RoleType> ROLE_ADD_10 = TestObject.file(TEST_DIR, "role-add-10.xml", "8f91bccf-fc4b-4987-8232-2e06d174dc37");
+    private static final TestObject<RoleType> ROLE_MODIFY_COST_CENTER_5 = TestObject.file(TEST_DIR, "role-modify-cost-center-5.xml", "6b0003a4-65bf-471d-af2c-ed575deaf199");
+    private static final TestObject<RoleType> ROLE_MODIFY_FULL_NAME_5 = TestObject.file(TEST_DIR, "role-modify-full-name-5.xml", "11562df4-c3e7-4e9e-a8f9-0b7f1bb7df75");
+    private static final TestObject<RoleType> ROLE_DELETE_5 = TestObject.file(TEST_DIR, "role-delete-5.xml", "9447439f-e6fd-4fb8-bf30-e918e16b42be");
 
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
             "40f8fb21-a473-4da7-bbd0-7019d3d450a5", "source", DummyResourceContoller::populateWithDefaultSchema);
@@ -159,7 +159,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getSimulateTask();
+        TestObject<TaskType> importTask = getSimulateTask();
 
         when();
 
@@ -186,8 +186,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest100TaskAfterRepeatedExecution(importTask);
     }
 
-    abstract void assertTest100Task(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
-    abstract void assertTest100TaskAfterRepeatedExecution(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest100Task(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Imports accounts from the source in "simulate then execute" mode. Should stop on 10th added user.
@@ -198,7 +198,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getSimulateExecuteTask();
+        TestObject<TaskType> importTask = getSimulateExecuteTask();
 
         when();
 
@@ -215,7 +215,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest110TaskAfter(importTask);
     }
 
-    abstract void assertTest110TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest110TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Imports accounts from the source in "execute" mode. Should create 9 users and then stop on 10th user.
@@ -226,7 +226,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getExecuteTask();
+        TestObject<TaskType> importTask = getExecuteTask();
 
         when();
 
@@ -243,7 +243,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest120TaskAfter(importTask);
     }
 
-    abstract void assertTest120TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest120TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Imports all accounts. This sets the scene for testing modification policy rules.
@@ -299,7 +299,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getSimulateTask();
+        TestObject<TaskType> importTask = getSimulateTask();
 
         when();
 
@@ -326,8 +326,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest200TaskAfterRepeatedExecution(importTask);
     }
 
-    abstract void assertTest200TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
-    abstract void assertTest200TaskAfterRepeatedExecution(TestResource<TaskType> importTask)
+    abstract void assertTest200TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask)
             throws SchemaException, ObjectNotFoundException;
 
     /**
@@ -339,7 +339,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getSimulateExecuteTask();
+        TestObject<TaskType> importTask = getSimulateExecuteTask();
 
         when();
 
@@ -356,7 +356,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest210TaskAfter(importTask);
     }
 
-    abstract void assertTest210TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest210TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Re-imports accounts from the source in "execute" mode. Should modify 4 users and then stop on 5th user.
@@ -367,7 +367,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getExecuteTask();
+        TestObject<TaskType> importTask = getExecuteTask();
 
         when();
 
@@ -384,7 +384,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest220TaskAfter(importTask);
     }
 
-    abstract void assertTest220TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest220TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Re-imports accounts from the source in "simulate then execute" mode.
@@ -402,7 +402,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         // 4 accounts are changed in total.
         changeFullNameOnResource(1);
 
-        TestResource<TaskType> importTask = getSimulateExecuteTask();
+        TestObject<TaskType> importTask = getSimulateExecuteTask();
 
         when();
 
@@ -419,7 +419,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest300TaskAfter(importTask);
     }
 
-    abstract void assertTest300TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest300TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Re-imports accounts from the source in "simulate then execute" mode.
@@ -436,7 +436,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
         changeFullNameOnResource(2);
 
-        TestResource<TaskType> reconTask = getReconciliationSimulateExecuteTask();
+        TestObject<TaskType> reconTask = getReconciliationSimulateExecuteTask();
 
         when();
 
@@ -453,7 +453,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         assertTest310TaskAfter(reconTask);
     }
 
-    abstract void assertTest310TaskAfter(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest310TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Deletes each 4th account, to trigger deletion policy rules.
@@ -479,7 +479,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> reconTask = getReconciliationSimulateTask();
+        TestObject<TaskType> reconTask = getReconciliationSimulateTask();
 
         when();
 
@@ -508,8 +508,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         displayValue("Users", getObjectCount(UserType.class));
     }
 
-    abstract void assertTest400TaskAfter(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
-    abstract void assertTest400TaskAfterRepeatedExecution(TestResource<TaskType> reconTask)
+    abstract void assertTest400TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest400TaskAfterRepeatedExecution(TestObject<TaskType> reconTask)
             throws SchemaException, ObjectNotFoundException;
 
     /**
@@ -521,7 +521,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> reconTask = getReconciliationSimulateExecuteTask();
+        TestObject<TaskType> reconTask = getReconciliationSimulateExecuteTask();
 
         when();
 
@@ -540,7 +540,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         displayValue("Users", getObjectCount(UserType.class));
     }
 
-    abstract void assertTest410TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest410TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Reconciliation that deletes owners of missing accounts (execute). Should stop on 5th after deleting four users.
@@ -551,7 +551,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> reconTask = getReconciliationExecuteTask();
+        TestObject<TaskType> reconTask = getReconciliationExecuteTask();
 
         when();
 
@@ -580,7 +580,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> reconTask = getReconciliationSimulateExecuteTask();
+        TestObject<TaskType> reconTask = getReconciliationSimulateExecuteTask();
 
         when();
 
@@ -601,19 +601,19 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertSuccess();
     }
 
-    abstract void assertTest420TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
+    abstract void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
-    abstract TestResource<TaskType> getSimulateTask();
+    abstract TestObject<TaskType> getSimulateTask();
 
-    abstract TestResource<TaskType> getSimulateExecuteTask();
+    abstract TestObject<TaskType> getSimulateExecuteTask();
 
-    abstract TestResource<TaskType> getExecuteTask();
+    abstract TestObject<TaskType> getExecuteTask();
 
-    abstract TestResource<TaskType> getReconciliationSimulateTask();
+    abstract TestObject<TaskType> getReconciliationSimulateTask();
 
-    abstract TestResource<TaskType> getReconciliationSimulateExecuteTask();
+    abstract TestObject<TaskType> getReconciliationSimulateExecuteTask();
 
-    abstract TestResource<TaskType> getReconciliationExecuteTask();
+    abstract TestObject<TaskType> getReconciliationExecuteTask();
 
     abstract long getTimeout();
 

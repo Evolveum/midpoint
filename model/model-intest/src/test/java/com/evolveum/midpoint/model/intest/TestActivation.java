@@ -2283,7 +2283,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, 40000);
 
         then();
 

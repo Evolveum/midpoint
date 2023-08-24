@@ -198,7 +198,7 @@ public class ImportController {
     }
 
     private void evaluateImportScript(InputReportLine line, RunningTask task, OperationResult result) throws CommonException {
-        reportService.getScriptingService().evaluateExpression(
+        reportService.getBulkActionsService().executeBulkAction(
                 script, line.getVariables(), false, task, result);
     }
 

@@ -52,6 +52,11 @@
             <decision>allow</decision>
         </expressionProfile>
         <expressionProfile>
+            <identifier>empty</identifier>
+            <decision>deny</decision>
+            <bulkActionsProfile>empty</bulkActionsProfile>
+        </expressionProfile>
+        <expressionProfile>
             <identifier>no-privilege-elevation</identifier>
             <decision>allow</decision>
             <privilegeElevation>deny</privilegeElevation>
@@ -215,6 +220,10 @@
                 <decision>allow</decision>
             </class>
         </permissionProfile>
+        <bulkActionsProfile>
+            <identifier>empty</identifier>
+            <decision>deny</decision>
+        </bulkActionsProfile>
         <bulkActionsProfile>
             <identifier>restricted</identifier>
             <description>
