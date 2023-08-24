@@ -17,6 +17,7 @@ Furthermore, it is now possible to allow or deny execution of _individual action
 For example, if only `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#assign` is granted, then only `assign` bulk action can be invoked.
 
 See xref:/midpoint/reference/misc/bulk/index.adoc#_actions[Actions].
+The primary names of actions should be used: e.g., `generate-value` (not `generateValue`).
 
 == See Also
 

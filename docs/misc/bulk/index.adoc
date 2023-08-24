@@ -224,14 +224,14 @@ In addition to the input data, an action may have one or more parameters.
 For example, `assign` action must know the role or resource to be assigned; `modify` action must have the delta that has to be applied.
 
 The following table presents currently implemented actions.
-Note that each action has "legacy name", under which it can be called in the traditional (dynamic way).
+Note that each action has a (primary) name, under which it can be called in the traditional (dynamic) way.
 The majority of actions also have "modern name", allowing them to be invoked in a more type-safe way, static way.
 Correspondingly, the parameter kind means either `dynamic` - older, pre-4.2 way of specifying the parameter dynamically in `<parameter>` element - or `static`, newer, 4.2+ way of specifying the parameter in the simplified form.
 Please see xref:actions/index.adoc[] for more information.
 
 [%autowidth]
 |===
-| Action (legacy name) | Modern name | Description | Parameter | Kind | Description
+| Primary name | Modern name | Description | Parameter | Kind | Description
 
 | add
 | add
@@ -471,6 +471,15 @@ Since 3.7 it is possible to specify queries or search filters here, so it is pos
 (++***++) Since 3.5, these actions support `dryRun` parameter that (if set to "true") causes executing "preview changes" instead of real modifications.
 They also (except for recompute) support `raw` parameter for applying the operation in raw mode.
 And since 3.7 these actions (again except for recompute) support `skipApprovals` parameter, and `options` parameter, as a generalization of these two (`raw`, `skipApprovals`) that can be used to set arbitrary model execution options (see link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/assign-enduser-role-to-selected-users-no-approval.xml[this sample]).
+
+[NOTE]
+====
+*Since 4.8:* When dealing with authorizations, the primary name should be used.
+For example, `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#generate-value`.
+
+When dealing with expression profiles, either primary or modern name can be used.
+For example, `generate-value` or `generateValue`.
+====
 
 Some simple examples of scripts in XML form can be found in *resources/scripting directory* in *model-intest* module and in *tasks/bulk-actions directory* in the *samples* module.
 
