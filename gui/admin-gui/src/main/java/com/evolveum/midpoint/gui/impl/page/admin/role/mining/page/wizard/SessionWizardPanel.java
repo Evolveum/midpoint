@@ -112,12 +112,10 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
                 Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
                         .executeChanges(deltas, false, task, result, target);
 
-                RoleAnalysisProcessModeType processMode = session.asObjectable().getProcessMode();
-
                 String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
                         RoleAnalysisSessionType.class);
 
-                ClusteringAction clusteringAction = new ClusteringAction(processMode);
+                ClusteringAction clusteringAction = new ClusteringAction();
                 clusteringAction.execute((PageBase) getPage(), sessionOid, result, task);
             }
 

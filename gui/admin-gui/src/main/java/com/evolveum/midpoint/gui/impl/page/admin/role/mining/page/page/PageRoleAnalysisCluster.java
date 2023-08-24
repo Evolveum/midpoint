@@ -77,7 +77,8 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
 
         recomputeRoleAnalysisClusterDetectionOptions(clusterOid, (PageBase) getPage(), detectionOption, result);
 
-        new DetectionActionExecutorNew(clusterOid, (PageBase) getPage(), result).executeDetectionProcess();
+        new DetectionActionExecutorNew(clusterOid, (PageBase) getPage(), result)
+                .executeDetectionProcess();
 
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, clusterOid);

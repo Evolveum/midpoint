@@ -28,14 +28,9 @@ public class ClusteringAction {
 
     private Clusterable clusterable;
 
-    Handler handler = new Handler("Density Clustering",7);
+    Handler handler = new Handler("Density Clustering", 7);
 
-    public ClusteringAction(RoleAnalysisProcessModeType mode) {
-        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            this.clusterable = new UserBasedClustering();
-        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            this.clusterable = new RoleBasedClustering();
-        }
+    public ClusteringAction() {
     }
 
     public void execute(@NotNull PageBase pageBase, String sessionOid,
@@ -43,6 +38,14 @@ public class ClusteringAction {
 
         PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(pageBase, result, sessionOid);
         if (prismSession != null) {
+
+            RoleAnalysisProcessModeType processMode = prismSession.asObjectable().getProcessMode();
+            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+                this.clusterable = new UserBasedClustering();
+            } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                this.clusterable = new RoleBasedClustering();
+            }
+
             RoleAnalysisSessionType session = prismSession.asObjectable();
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(session,
                     result, pageBase, handler);
@@ -109,7 +112,6 @@ public class ClusteringAction {
         sessionStatistic.setProcessedObjectCount(processedObjectCount);
         sessionStatistic.setMeanDensity(meanDensity);
         sessionStatistic.setClusterCount(clusters.size());
-
 
         handler.setSubTitle("Update Session");
         handler.setOperationCountToProcess(clusters.size());
