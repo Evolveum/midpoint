@@ -355,6 +355,9 @@
                             Currently not used (reserved for future use).
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -450,7 +453,7 @@
     <xsd:complexType name="RoleAnalysisSessionOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                Object clustering options.
+                Object clustering options for "role" mode.
 
                 Specification of parameters utilized for establishing cluster
                 generation conditions, specifically pertaining to the RoleAnalysisClusterType.
@@ -474,7 +477,7 @@
     <xsd:complexType name="UserAnalysisSessionOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                Object clustering options.
+                Object clustering options for "user" mode.
 
                 Specification of parameters utilized for establishing cluster
                 generation conditions, specifically pertaining to the RoleAnalysisClusterType.
@@ -688,6 +691,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisDetectionOptionType.detectionProcessMode</a:displayName>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
