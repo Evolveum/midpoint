@@ -49,8 +49,8 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     }
 
     public void setCorrelators(List<CorrelationModuleConfigurationType> correlators) {
-        //todo sort by order
         this.correlators = correlators;
+        sortCorrelators();
     }
 
     @Override
@@ -120,4 +120,16 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         this.correlationMaxUsersNumber = correlationMaxUsersNumber;
     }
 
+    private void sortCorrelators() {
+        if (correlators != null && correlators.size() > 2) {
+            correlators.sort(this::compareCorrelatorsByOrder);
+        }
+    }
+
+    private int compareCorrelatorsByOrder(CorrelationModuleConfigurationType module1, CorrelationModuleConfigurationType module2) {
+        int order1 = module1.getOrder();
+        int order2 = module2.getOrder();
+
+        return Integer.compare(order1, order2);
+    }
 }
