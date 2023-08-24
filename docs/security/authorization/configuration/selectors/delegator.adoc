@@ -27,6 +27,9 @@ So we must select all users whose delegator is the current subject.
 
 So, for example, if `joe`, `ann`, and `mary` are delegates of `jack`, then `jack` should have the above authorization to allow him to see `assignment`, `roleMembershipRef`, and `delegatedRef` items of those three users.
 
+NOTE: The `delegator` clause in the above example should be read like this:
+"I am a `delegator` for the `object`"; or, in other words, "The `object` has a delegator and that's me (`self`)".
+
 == Limitations
 
 . Currently, only `self` clause can be specified as the inner object selector.
