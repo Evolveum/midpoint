@@ -7,17 +7,18 @@
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -26,23 +27,24 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import java.io.Serializable;
 
 public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionPanel.class);
 
-    private static final String ID_VALUE_INPUT = "valueInput";
-    private static final String ID_VALUE_CONTAINER_LABEL = "valueContainerLabel";
+    private static final String ID_CODE_INPUT = "codeInput";
+    private static final String ID_CODE_LABEL = "codeLabel";
+    private static final String ID_LANGUAGE_INPUT = "languageInput";
+    private static final String ID_LANGUAGE_LABEL = "languageLabel";
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        if (StringUtils.isEmpty(getEvaluatorValue())) {
-            updateEvaluatorValue("");
+        ScriptExpressionWrapper wrapper = getEvaluatorValue();
+        if (wrapper == null || wrapper.isEmpty()) {
+            updateEvaluatorValue((ExpressionUtil.Language) null);
         }
     }
 
@@ -51,22 +53,50 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         return getPageBase().createStringResource("ScriptExpressionPanel.label");
     }
 
-    public static String getInfoDescription(ExpressionType expression, PageBase pageBase) {
-        return getEvaluatorValue(expression, pageBase);
-    }
-
     protected void initLayout(MarkupContainer parent) {
-        parent.add(new Label(ID_VALUE_CONTAINER_LABEL, getValueContainerLabelModel()));
+        parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
-        parent.add(createDefaultInputPanel());
+        parent.add(createLanguageInputPanel());
+
+        parent.add(new Label(ID_CODE_LABEL, createStringResource("ScriptExpressionEvaluatorType.code")));
+
+        parent.add(createCodeInputPanel());
     }
 
-    private WebMarkupContainer createDefaultInputPanel() {
+    private Component createLanguageInputPanel() {
+        ExpressionUtil.Language defaultLanguage = getEvaluatorValue().language;
+        if (defaultLanguage == null) {
+            defaultLanguage = ExpressionUtil.Language.GROOVY;
+        }
+
+        DropDownChoicePanel<ExpressionUtil.Language> languagePanel =
+                WebComponentUtil.createEnumPanel(
+                        ExpressionUtil.Language.class,
+                        ID_LANGUAGE_INPUT,
+                        WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
+                        Model.of(defaultLanguage),
+                        ScriptExpressionPanel.this,
+                        false);
+        languagePanel.setOutputMarkupId(true);
+
+        languagePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                ExpressionUtil.Language languageValue = languagePanel.getBaseFormComponent().getConvertedInput();
+                updateEvaluatorValue(languageValue);
+                target.add(getFeedback());
+            }
+        });
+
+        return languagePanel;
+    }
+
+    private WebMarkupContainer createCodeInputPanel() {
 
         IModel<String> model = new IModel<>() {
             @Override
             public String getObject() {
-                return getEvaluatorValue();
+                return getEvaluatorValue().code;
             }
 
             @Override
@@ -79,7 +109,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
             }
         };
 
-        SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(ID_VALUE_INPUT, model, 200) {
+        SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(ID_CODE_INPUT, model, 200) {
             protected AceEditor createEditor(String id, IModel<String> model, int minSize) {
                 AceEditor editor = new AceEditor(id, model);
                 editor.setReadonly(false);
@@ -105,27 +135,52 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         return editorPanel;
     }
 
-    private void updateEvaluatorValue(String value) {
+    private void updateEvaluatorValue(ExpressionUtil.Language language) {
+        ScriptExpressionWrapper wrapper = getEvaluatorValue();
+        if ((ExpressionUtil.Language.GROOVY.equals(language) && wrapper.language == null)
+                || (language == null && wrapper.language == null)
+                || language.equals(wrapper.language))  {
+            return;
+        }
         try {
-            if (StringUtils.isNotEmpty(value) && value.contains(ExpressionUtil.ELEMENT_SCRIPT)) {
-                getFeedbackMessages().add(
-                        new FeedbackMessage(
-                                getFeedback(),
-                                getPageBase().createStringResource("ScriptExpressionPanel.warning.parse").getString(),
-                                300));
-            }
-            ExpressionUtil.updateScriptExpressionValue(getModelObject(), value);
+            ScriptExpressionEvaluatorType evaluator = wrapper.language(language).toEvaluator();
+            ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
         } catch (SchemaException ex) {
-            LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
-            getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());
+            LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
+            getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
         }
     }
 
-    private String getEvaluatorValue() {
-        return getEvaluatorValue(getModelObject(), getPageBase());
+    private void updateEvaluatorValue(String code) {
+        try {
+            ScriptExpressionEvaluatorType evaluator = getEvaluatorValue().code(code).toEvaluator();
+            ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
+        } catch (SchemaException ex) {
+            LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
+            getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
+        }
     }
 
-    private static String getEvaluatorValue(ExpressionType expression, PageBase pageBase) {
+    //don't remove it, used by class and method name
+    public static String getInfoDescription(ExpressionType expression, PageBase pageBase) {
+        return getEvaluatorCode(expression, pageBase);
+    }
+
+    private ScriptExpressionWrapper getEvaluatorValue() {
+        try {
+            ScriptExpressionEvaluatorType evaluator = ExpressionUtil.getScriptExpressionValue(getModelObject());
+            if (evaluator == null) {
+                return new ScriptExpressionWrapper();
+            }
+            return new ScriptExpressionWrapper(evaluator);
+        } catch (SchemaException ex) {
+            LOGGER.error("Couldn't get script expression value: {}", ex.getLocalizedMessage());
+            getPageBase().error("Couldn't get script expression value: " + ex.getLocalizedMessage());
+        }
+        return null;
+    }
+
+    private static String getEvaluatorCode(ExpressionType expression, PageBase pageBase) {
         try {
             ScriptExpressionEvaluatorType evaluator = ExpressionUtil.getScriptExpressionValue(expression);
             if (evaluator == null) {
@@ -137,5 +192,39 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
             pageBase.error("Couldn't get script expression value: " + ex.getLocalizedMessage());
         }
         return "";
+    }
+
+    public class ScriptExpressionWrapper implements Serializable {
+
+        private ExpressionUtil.Language language;
+        private String code;
+
+        private ScriptExpressionWrapper() {
+        }
+
+        private ScriptExpressionWrapper(ScriptExpressionEvaluatorType evaluator) {
+            if (evaluator.getLanguage() != null) {
+                this.language = ExpressionUtil.converLanguage(evaluator.getLanguage());
+            }
+            this.code = evaluator.getCode();
+        }
+
+        public ScriptExpressionEvaluatorType toEvaluator() {
+            return new ScriptExpressionEvaluatorType().code(code).language(language.getLanguage());
+        }
+
+        public ScriptExpressionWrapper code(String code) {
+            this.code = code;
+            return ScriptExpressionPanel.ScriptExpressionWrapper.this;
+        }
+
+        public ScriptExpressionWrapper language(ExpressionUtil.Language language) {
+            this.language = language;
+            return ScriptExpressionPanel.ScriptExpressionWrapper.this;
+        }
+
+        public boolean isEmpty() {
+            return code == null && language == null;
+        }
     }
 }

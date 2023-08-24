@@ -12,33 +12,39 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-
-import org.springframework.security.authentication.AuthenticationServiceException;
 
 import java.io.Serializable;
 
 public class DuoModuleAuthentication extends RemoteModuleAuthenticationImpl implements RemoteModuleAuthentication, Serializable {
 
+    private static final Trace LOGGER = TraceManager.getTrace(DuoModuleAuthentication.class);
+
     private String duoState;
 
-    private String username;
+    private String duoUsername;
 
-    public DuoModuleAuthentication(AuthenticationSequenceModuleType sequenceModule) {
+    private final ItemPath pathToUsernameAttribute;
+
+    public DuoModuleAuthentication(AuthenticationSequenceModuleType sequenceModule, ItemPath pathToUsernameAttribute) {
         super(AuthenticationModuleNameConstants.DUO, sequenceModule);
+        this.pathToUsernameAttribute = pathToUsernameAttribute;
         setType(ModuleType.REMOTE);
         setState(AuthenticationModuleState.LOGIN_PROCESSING);
+        setSufficient(false);
     }
 
     public ModuleAuthenticationImpl clone() {
-        DuoModuleAuthentication module = new DuoModuleAuthentication(this.getSequenceModule());
+        DuoModuleAuthentication module = new DuoModuleAuthentication(this.getSequenceModule(), this.pathToUsernameAttribute);
         module.setAuthentication(this.getAuthentication());
         module.setDuoState(this.getDuoState());
-        module.setUserName(this.getUsername());
+        module.setDuoUsername(this.getDuoUsername());
         module.setProviders(this.getProviders());
 
         clone(module);
@@ -47,15 +53,29 @@ public class DuoModuleAuthentication extends RemoteModuleAuthenticationImpl impl
 
     @Override
     public boolean applicable() {
-        if (getUsername() != null) {
+        if (getDuoUsername() != null) {
             return true;
         }
 
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
-        if (principal == null) {
+        if (principal == null || principal.getFocus() == null) {
             return false;
         }
-        setUserName(principal.getUsername());
+        PrismObject<? extends FocusType> focus = principal.getFocusPrismObject();
+        PrismProperty<Object> username = focus.findProperty(pathToUsernameAttribute);
+
+        if (username == null) {
+            LOGGER.debug("Couldn't find attribute for duo username with path " + pathToUsernameAttribute + " in focus " + focus);
+            return false;
+        }
+
+        Object realValue = username.getRealValue();
+        if (realValue == null) {
+            LOGGER.debug("Found attribute for duo username with null value, found attribute:" + username);
+            return false;
+        }
+
+        setDuoUsername(String.valueOf(realValue));
 
         return true;
     }
@@ -68,11 +88,11 @@ public class DuoModuleAuthentication extends RemoteModuleAuthenticationImpl impl
         this.duoState = duoState;
     }
 
-    public void setUserName(String username) {
-        this.username = username;
+    public void setDuoUsername(String duoUsername) {
+        this.duoUsername = duoUsername;
     }
 
-    public String getUsername() {
-        return username;
+    public String getDuoUsername() {
+        return duoUsername;
     }
 }

@@ -97,6 +97,7 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
         return getPageBase().createStringResource("GenerateExpressionPanel.label");
     }
 
+    //don't remove it, used by class and method name
     public static String getInfoDescription(ExpressionType expression, PageBase pageBase) {
         GenerateExpressionEvaluatorType evaluator = getEvaluator(expression, pageBase);
         if (evaluator == null) {

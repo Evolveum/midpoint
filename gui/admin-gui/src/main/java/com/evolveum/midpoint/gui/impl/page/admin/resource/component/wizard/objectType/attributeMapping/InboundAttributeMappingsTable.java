@@ -6,23 +6,32 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,13 +51,13 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
     enum UsedFor {
         CORRELATION(InboundMappingUseType.CORRELATION,
                 "text-warning fa fa-code-branch",
-                "InboundAttributeMappingsTable.usedForCorrelation"),
+                "UsedFor.CORRELATION"),
         SYNCHRONIZATION(InboundMappingUseType.SYNCHRONIZATION,
                 "text-warning fa fa-rotate",
-                "InboundAttributeMappingsTable.usedForSynchronization"),
+                "UsedFor.SYNCHRONIZATION"),
         ALL(InboundMappingUseType.ALL,
                 "text-info fa fa-retweet",
-                "InboundAttributeMappingsTable.usedForAll");
+                "UsedFor.ALL");
 
         private final InboundMappingUseType type;
         private final String icon;
@@ -138,7 +147,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
             }
         });
 
-        columns.add(new PrismPropertyWrapperColumn(
+        columns.add(new PrismPropertyWrapperColumn<>(
                 getMappingTypeDefinition(),
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
@@ -166,5 +175,74 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                 getPageBase()));
 
         return columns;
+    }
+
+    @Override
+    protected boolean isHeaderVisible() {
+        return true;
+    }
+
+    @Override
+    protected Component createHeader(String headerId) {
+        DropDownChoicePanel<UsedFor> dropdown = WebComponentUtil.createEnumPanel(
+                headerId,
+                WebComponentUtil.createReadonlyModelFromEnum(UsedFor.class),
+                Model.of(),
+                InboundAttributeMappingsTable.this,
+                true,
+                getString("InboundAttributeMappingsTable.allMappings"));
+        dropdown.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px;"));
+        dropdown.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                refreshTable(target);
+            }
+        });
+        return dropdown;
+    }
+
+    @Override
+    protected ISelectableDataProvider<PrismContainerValueWrapper<MappingType>> createProvider() {
+        return new MultivalueContainerListDataProvider<>(
+                InboundAttributeMappingsTable.this,
+                getSearchModel(),
+                new PropertyModel<>(getContainerModel(), "values")) {
+
+            @Override
+            protected PageStorage getPageStorage() {
+                return InboundAttributeMappingsTable.this.getPageStorage();
+            }
+
+            @Override
+            protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {
+                List<PrismContainerValueWrapper<MappingType>> list = super.searchThroughList();
+
+                if (list == null || list.isEmpty()) {
+                    return null;
+                }
+
+                UsedFor usedFor = getSelectedTypeOfMappings();
+                if (usedFor == null) {
+                    return list;
+                }
+
+                list.removeIf(valueWrapper -> {
+                    InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
+                    InboundMappingUseType valueUse = realValue.getUse();
+                    if (valueUse == null) {
+                        valueUse = InboundMappingUseType.ALL;
+                    }
+                    UsedFor valueUsedFor = UsedFor.valueOf(valueUse.name());
+
+                    return !usedFor.equals(valueUsedFor);
+                });
+                return list;
+            }
+        };
+    }
+
+    private UsedFor getSelectedTypeOfMappings() {
+        DropDownChoicePanel<UsedFor> header = (DropDownChoicePanel<UsedFor>) getTable().getHeader();
+        return header.getModel().getObject();
     }
 }

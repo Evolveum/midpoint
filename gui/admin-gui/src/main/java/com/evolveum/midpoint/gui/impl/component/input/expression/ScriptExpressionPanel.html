@@ -8,9 +8,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="prism-property-label p-0">
-        <span wicket:id="valueContainerLabel"/>
+    <div class="pb-2">
+        <div class="prism-property-label p-0">
+            <span wicket:id="languageLabel"/>
+        </div>
+        <div class="prism-property-value" wicket:id="languageInput"/>
     </div>
-    <div class="prism-property-value" wicket:id="valueInput"/>
+    <div class="pb-2">
+        <div class="prism-property-label p-0">
+            <span wicket:id="codeLabel"/>
+        </div>
+        <div class="prism-property-value" wicket:id="codeInput"/>
+    </div>
 </wicket:extend>
 </html>
