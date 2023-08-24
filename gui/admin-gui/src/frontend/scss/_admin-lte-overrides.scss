@@ -5,13 +5,6 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-@mixin smooth-transition($duration, $important: "") {
-  $important-flag: if($important == "important", ' !important', '');
-
-  transition: all ease $duration#{$important-flag};
-  -webkit-transition: all ease $duration#{$important-flag};
-}
-
 .user-panel {
   border-bottom: 0 !important;
 }
@@ -25,11 +18,16 @@
 }
 
 .btn, .btn:hover {
-  @include smooth-transition(0.08s, important);
+  transition: all ease 0.08s !important;
+  -webkit-transition: all ease 0.08s !important;
 }
 
 // this is a fix for card widget with tool buttons which is inside of tab panel
 .card.card-outline-tabs .card-tools {
   margin: 0;
   margin-right: -0.625rem;
+}
+
+.role-catalog-tiles-table div.img-circle {
+  background-color: #f5f5f5;
 }
