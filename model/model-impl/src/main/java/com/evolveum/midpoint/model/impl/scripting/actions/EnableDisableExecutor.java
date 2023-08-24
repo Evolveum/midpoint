@@ -7,25 +7,25 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.DisableActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.EnableActionExpressionType;
-import jakarta.annotation.PostConstruct;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 
 /**
  * Implements "enable" and "disable" actions.
@@ -34,9 +34,10 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVA
 public abstract class EnableDisableExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
     @Override
-    public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
@@ -59,13 +60,15 @@ public abstract class EnableDisableExecutor extends AbstractObjectBasedActionExe
 
     private void enableOrDisable(
             ObjectType object, boolean dryRun, ModelExecuteOptions options,
-            ExecutionContext context, OperationResult result) throws ScriptExecutionException, SchemaException {
+            ExecutionContext context, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (object instanceof FocusType || object instanceof ShadowType) {
             ObjectDelta<? extends ObjectType> delta = createEnableDisableDelta(object);
             operationsHelper.applyDelta(delta, options, dryRun, context, result);
             context.println(getVerbPast() + " " + object + optionsSuffix(options, dryRun));
         } else {
-            throw new ScriptExecutionException("Object is not a FocusType nor ShadowType: " + object);
+            throw new UnsupportedOperationException("Object is not a FocusType nor ShadowType: " + object);
         }
     }
 
@@ -84,22 +87,14 @@ public abstract class EnableDisableExecutor extends AbstractObjectBasedActionExe
     @Component
     static class Enable extends EnableDisableExecutor {
 
-        private static final String NAME = "enable";
-
         @PostConstruct
         public void init() {
-            actionExecutorRegistry.register(NAME, EnableActionExpressionType.class, this);
+            actionExecutorRegistry.register(this);
         }
 
         @Override
-        @NotNull
-        String getLegacyActionName() {
-            return NAME;
-        }
-
-        @Override
-        @NotNull String getConfigurationElementName() {
-            return SchemaConstantsGenerated.SC_ENABLE.getLocalPart();
+        public @NotNull BulkAction getActionType() {
+            return BulkAction.ENABLE;
         }
 
         @Override
@@ -121,21 +116,14 @@ public abstract class EnableDisableExecutor extends AbstractObjectBasedActionExe
     @Component
     static class Disable extends EnableDisableExecutor {
 
-        private static final String NAME = "disable";
-
         @PostConstruct
         public void init() {
-            actionExecutorRegistry.register(NAME, DisableActionExpressionType.class, this);
-        }
-        @Override
-        @NotNull
-        String getLegacyActionName() {
-            return NAME;
+            actionExecutorRegistry.register(this);
         }
 
         @Override
-        @NotNull String getConfigurationElementName() {
-            return SchemaConstantsGenerated.SC_DISABLE.getLocalPart();
+        public @NotNull BulkAction getActionType() {
+            return BulkAction.DISABLE;
         }
 
         @Override

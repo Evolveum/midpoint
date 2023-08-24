@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -118,7 +120,7 @@ public class IterativeScriptingActivityHandler
                     getActivityHandler().bulkActionsService.executeBulkAction(
                             requestCloned,
                             VariablesMap.emptyMap(),
-                            false,
+                            BulkActionExecutionOptions.create(),
                             workerTask,
                             result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());

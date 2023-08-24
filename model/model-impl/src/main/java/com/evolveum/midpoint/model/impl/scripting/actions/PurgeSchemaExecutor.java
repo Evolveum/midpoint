@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import jakarta.annotation.PostConstruct;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
+import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -22,8 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PurgeSchemaActionExpressionType;
 
 /**
  * Executes "purge-schema" action.
@@ -31,16 +29,21 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PurgeSchemaActionE
 @Component
 public class PurgeSchemaExecutor extends AbstractObjectBasedActionExecutor<ResourceType> {
 
-    private static final String NAME = "purge-schema";
-
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, PurgeSchemaActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.PURGE_SCHEMA;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         PipelineData output = PipelineData.createEmpty();
 
@@ -54,9 +57,10 @@ public class PurgeSchemaExecutor extends AbstractObjectBasedActionExecutor<Resou
         return output;
     }
 
-    private void purge(PrismObject<? extends ResourceType> resource, PipelineItem item, PipelineData output,
-            ExecutionContext context, OperationResult result) throws ScriptExecutionException,
-            ExpressionEvaluationException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
+    private void purge(
+            PrismObject<? extends ResourceType> resource, PipelineItem item, PipelineData output,
+            ExecutionContext context, OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
         ResourceUtils.deleteSchema(resource, modelService, prismContext, context.getTask(), result);
@@ -73,15 +77,5 @@ public class PurgeSchemaExecutor extends AbstractObjectBasedActionExecutor<Resou
     @Override
     Class<ResourceType> getObjectType() {
         return ResourceType.class;
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_PURGE_SCHEMA.getLocalPart();
     }
 }

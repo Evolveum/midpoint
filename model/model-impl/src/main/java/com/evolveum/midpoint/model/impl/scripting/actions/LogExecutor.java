@@ -7,23 +7,20 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.LogActionExpressionType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
 
 /**
  * Executes "log" scripting action.
@@ -33,7 +30,6 @@ public class LogExecutor extends BaseActionExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(LogExecutor.class);
 
-    public static final String NAME = "log";
     private static final String PARAM_LEVEL = "level";
     private static final String PARAM_MESSAGE = "message";
     private static final String LEVEL_INFO = "info";
@@ -45,17 +41,24 @@ public class LogExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, LogActionExpressionType.class,this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.LOG;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
 
         String message = expressionHelper.getActionArgument(String.class, expression,
-                LogActionExpressionType.F_MESSAGE, PARAM_MESSAGE, input, context, DEFAULT_MESSAGE, NAME, globalResult) + "{}";
+                LogActionExpressionType.F_MESSAGE, PARAM_MESSAGE, input, context, DEFAULT_MESSAGE, BulkAction.LOG.getName(), globalResult) + "{}";
         String level = expressionHelper.getActionArgument(String.class, expression,
-                LogActionExpressionType.F_LEVEL, PARAM_LEVEL, input, context, DEFAULT_LEVEL, NAME, globalResult);
+                LogActionExpressionType.F_LEVEL, PARAM_LEVEL, input, context, DEFAULT_LEVEL, BulkAction.LOG.getName(), globalResult);
 
         if (LEVEL_INFO.equalsIgnoreCase(level)) {
             LOGGER.info(message, DebugUtil.debugDumpLazily(input));
@@ -67,15 +70,5 @@ public class LogExecutor extends BaseActionExecutor {
             LOGGER.warn("Invalid logging level specified for 'log' scripting action: " + level);
         }
         return input;
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_LOG.getLocalPart();
     }
 }

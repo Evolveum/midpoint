@@ -24,6 +24,7 @@ public class AuthorizationConstants {
     public static final String NS_AUTHORIZATION_UI = NS_SECURITY_PREFIX + "authorization-ui-3";
     public static final String NS_AUTHORIZATION_WS = NS_SECURITY_PREFIX + "authorization-ws-3";
     public static final String NS_AUTHORIZATION_REST = NS_SECURITY_PREFIX + "authorization-rest-3";
+    public static final String NS_AUTHORIZATION_BULK = NS_SECURITY_PREFIX + "authorization-bulk-3";
     public static final String NS_AUTHORIZATION_MODEL = NS_SECURITY_PREFIX + "authorization-model-3";
     public static final String NS_AUTHORIZATION_ACTUATOR = NS_SECURITY_PREFIX + "authorization-actuator-3";
 
@@ -39,6 +40,9 @@ public class AuthorizationConstants {
      */
     public static final QName AUTZ_REST_ALL_QNAME = new QName(NS_AUTHORIZATION_REST, "all");
     public static final String AUTZ_REST_ALL_URL = QNameUtil.qNameToUri(AUTZ_REST_ALL_QNAME);
+
+    public static final QName AUTZ_BULK_ALL_QNAME = new QName(NS_AUTHORIZATION_BULK, "all");
+    public static final String AUTZ_BULK_ALL_URL = QNameUtil.qNameToUri(AUTZ_BULK_ALL_QNAME);
 
     /**
      * Authorization for a proxy user. The proxy user may impersonate other users. Special HTTP

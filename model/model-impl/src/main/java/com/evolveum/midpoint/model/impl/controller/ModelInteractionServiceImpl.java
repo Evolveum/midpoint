@@ -24,6 +24,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -100,10 +102,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.*;
@@ -134,7 +132,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private SchemaTransformer schemaTransformer;
     @Autowired private ProvisioningService provisioning;
-    @Autowired private ModelBeans modelBeans;
+    @Autowired private BulkActionsExecutor bulkActionsExecutor;
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private ObjectMerger objectMerger;
     @Autowired
@@ -2429,10 +2427,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void checkBulkActionsAuthorization(Task task, OperationResult result)
+    public void authorizeBulkActionExecution(
+            @Nullable BulkAction action,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        securityEnforcer.authorize(
-                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, result);
+        bulkActionsExecutor.authorizeBulkActionExecution(action, phase, task, result);
     }
 }

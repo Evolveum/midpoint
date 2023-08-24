@@ -11,6 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -43,7 +47,7 @@ public class ExecutionContext {
     private final VariablesMap initialVariables;
     /** used only when passing result to external clients (TODO do this more cleanly) */
     private PipelineData finalOutput;
-    private final boolean recordProgressAndIterationStatistics;
+    @NotNull private final BulkActionExecutionOptions executionOptions;
 
     /**
      * Used for all evaluations in this context. The whole bulk action shares the same origin (it is a property, not a container),
@@ -52,15 +56,17 @@ public class ExecutionContext {
     @NotNull private final ExpressionProfile expressionProfile;
 
     public ExecutionContext(
-            ScriptingExpressionEvaluationOptionsType options, Task task,
+            ScriptingExpressionEvaluationOptionsType options,
+            Task task,
             BulkActionsExecutor bulkActionsExecutor,
-            boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
+            @NotNull BulkActionExecutionOptions executionOptions,
+            VariablesMap initialVariables,
             @NotNull ExpressionProfile expressionProfile) {
         this.options = options;
         this.task = task;
         this.bulkActionsExecutor = bulkActionsExecutor;
         this.initialVariables = initialVariables;
-        this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
+        this.executionOptions = executionOptions;
         this.expressionProfile = expressionProfile;
     }
 
@@ -113,7 +119,7 @@ public class ExecutionContext {
     }
 
     public boolean isRecordProgressAndIterationStatistics() {
-        return recordProgressAndIterationStatistics;
+        return executionOptions.recordProgressAndIterationStatistics();
     }
 
     public BulkActionExecutionResult toExecutionResult() {
@@ -159,5 +165,13 @@ public class ExecutionContext {
 
     public @NotNull ExpressionProfile getExpressionProfile() {
         return expressionProfile;
+    }
+
+    public AuthorizationPhaseType getExecutionPhase() {
+        if (executionOptions.executionPhase()) {
+            return AuthorizationPhaseType.EXECUTION;
+        } else {
+            return null;
+        }
     }
 }

@@ -9,11 +9,11 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import static com.evolveum.midpoint.model.impl.scripting.actions.EvaluateExpressionExecutor.ExpressionEvaluationParameters;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -34,24 +34,23 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.EvaluateExpression
 @Component
 public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<ExpressionEvaluationParameters> {
 
-    private static final String NAME = "evaluate-expression";
     private static final String PARAM_EXPRESSION = "expression";
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, EvaluateExpressionActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    @NotNull String getName() {
-        return NAME;
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.EVALUATE_EXPRESSION;
     }
 
     @Override
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            CommunicationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         ExpressionType expressionBean = expressionHelper.getActionArgument(
                 ExpressionType.class, action,
@@ -91,21 +90,11 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
                     parameters.expressionBean,
                     context.getExpressionProfile(),
                     expressionFactory,
-                    "in '" + NAME + "' action",
+                    "in '" + getName() + "' action",
                     context.getTask(), result);
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_EVALUATE_EXPRESSION.getLocalPart();
     }
 
     static class ExpressionEvaluationParameters extends Parameters {

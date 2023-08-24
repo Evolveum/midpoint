@@ -54,6 +54,11 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
         return AuthorizationParameters.Builder.buildObject(asPrismObject(object));
     }
 
+    /** Just a convenience method. */
+    public static @NotNull AuthorizationParameters<ObjectType, ObjectType> empty() {
+        return EMPTY;
+    }
+
     public ObjectDeltaObject<O> getOdo() {
         return odo;
     }

@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -598,7 +599,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         var executionResult = bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, ConfigurationItemOrigin.rest()),
                 VariablesMap.emptyMap(),
-                false,
+                BulkActionExecutionOptions.create(),
                 task, result);
         assertSuccess(result);
 
@@ -693,7 +694,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, origin),
                 VariablesMap.emptyMap(),
-                false,
+                BulkActionExecutionOptions.create(),
                 task, result);
         assertSuccess(result);
 
@@ -731,13 +732,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             bulkActionsService.executeBulkAction(
                     ExecuteScriptConfigItem.of(script, origin),
                     VariablesMap.emptyMap(),
-                    false,
+                    BulkActionExecutionOptions.create(),
                     task, result);
             fail("unexpected success");
-        } catch (ScriptExecutionException e) {
-            var cause = ExceptionUtil.findCause(e, SecurityViolationException.class);
-            assertThat(cause).as("security violation cause").isNotNull();
-            assertExpectedException(cause)
+        } catch (SecurityViolationException e) {
+            assertExpectedException(e)
                     .hasMessageContaining(msg1)
                     .hasMessageContaining(msg2);
         }
@@ -767,7 +766,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                         script,
                         ConfigurationItemOrigin.rest()),
                 VariablesMap.emptyMap(),
-                false,
+                BulkActionExecutionOptions.create(),
                 task, result);
 
         then("not boomed");

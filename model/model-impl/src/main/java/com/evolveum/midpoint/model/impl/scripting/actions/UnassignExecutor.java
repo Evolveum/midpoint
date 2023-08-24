@@ -7,42 +7,38 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import static com.evolveum.midpoint.model.impl.scripting.actions.UnassignExecutor.UnassignParameters;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.UnassignActionExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import static com.evolveum.midpoint.model.impl.scripting.actions.UnassignExecutor.*;
 
 /**
  * Executor for "unassign" actions.
@@ -51,8 +47,6 @@ import static com.evolveum.midpoint.model.impl.scripting.actions.UnassignExecuto
 public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParameters> {
 
     private static final Trace LOGGER = TraceManager.getTrace(UnassignExecutor.class);
-
-    private static final String NAME = "unassign";
 
     protected static class UnassignParameters extends AssignmentOperationsExecutor.Parameters {
         // These come from dynamic parameters (~ legacy way)
@@ -65,13 +59,19 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, UnassignActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    UnassignParameters parseParameters(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult result) throws SchemaException, ScriptExecutionException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.UNASSIGN;
+    }
+
+    @Override
+    UnassignParameters parseParameters(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         UnassignParameters parameters = new UnassignParameters();
         parameters.dynamicResourceRefs.addAll(getResourcesParameter(action, input, context, result));
         parameters.dynamicRoleRefs.addAll(getRolesParameter(action, input, context, result));
@@ -172,15 +172,5 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     private boolean matchesRelation(QName existingRelation, Collection<QName> relationsToUnassign) {
         return relationsToUnassign.stream()
                 .anyMatch(relationToUnassign -> prismContext.relationMatches(relationToUnassign, existingRelation));
-    }
-
-    @Override
-    protected @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_UNASSIGN.getLocalPart();
     }
 }

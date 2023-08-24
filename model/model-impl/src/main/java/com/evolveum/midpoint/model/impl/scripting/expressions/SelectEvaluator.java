@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.scripting.expressions;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.Item;
@@ -26,7 +25,7 @@ import java.util.List;
 @Component
 public class SelectEvaluator extends BaseExpressionEvaluator {
 
-    public PipelineData evaluate(SelectExpressionType selectExpression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData evaluate(SelectExpressionType selectExpression, PipelineData input, ExecutionContext context, OperationResult result) {
         if (selectExpression.getPath() == null) {
             return input;
         }
@@ -40,7 +39,7 @@ public class SelectEvaluator extends BaseExpressionEvaluator {
                     values.forEach((v) ->
                             output.addValue(v, item.getResult().clone(), item.getVariables()));        // clone to avoid aggregating subresults into unrelated results
                 } else {
-                    throw new ScriptExecutionException(
+                    throw new UnsupportedOperationException(
                             "In 'select' commands, only property/container/reference selection is supported for now. Select on '"
                                     + path + "' returned this instead: " + o);
                 }

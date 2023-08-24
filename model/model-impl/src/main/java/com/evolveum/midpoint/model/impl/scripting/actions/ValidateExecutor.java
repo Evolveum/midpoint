@@ -7,30 +7,28 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.schema.statistics.Operation;
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 import jakarta.annotation.PostConstruct;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationResultType;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationResultType;
 
 /**
  * Executes "validate" action.
@@ -41,18 +39,23 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 @Component
 public class ValidateExecutor extends BaseActionExecutor {
 
-    @Autowired
-    private ResourceValidator resourceValidator;
-
-    private static final String NAME = "validate";
+    @Autowired private ResourceValidator resourceValidator;
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.VALIDATE;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         PipelineData output = PipelineData.createEmpty();
 
@@ -84,13 +87,13 @@ public class ValidateExecutor extends BaseActionExecutor {
                         operationsHelper.recordEnd(context, op, e, result);
                         context.println("Error validation " + resourceTypePrismObject + ": " + e.getMessage());
                         //noinspection ThrowableNotThrown
-                        processActionException(e, NAME, value, context);
+                        logOrRethrowActionException(e, value, context);
                         output.add(item);
                     }
                 } else {
                     //noinspection ThrowableNotThrown
-                    processActionException(
-                            new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
+                    logOrRethrowActionException(
+                            new UnsupportedOperationException("Item is not a PrismObject<ResourceType>"), value, context);
                 }
             } catch (Throwable t) {
                 result.recordException(t);
@@ -101,15 +104,5 @@ public class ValidateExecutor extends BaseActionExecutor {
             operationsHelper.trimAndCloneResult(result, item.getResult());
         }
         return output;
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @Nullable String getConfigurationElementName() {
-        return null;
     }
 }

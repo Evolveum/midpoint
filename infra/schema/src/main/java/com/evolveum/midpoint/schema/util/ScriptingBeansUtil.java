@@ -11,12 +11,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.MiscUtil;
-
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
 import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -24,9 +25,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -85,15 +83,15 @@ public class ScriptingBeansUtil {
                 expression);
     }
 
-    public static @NotNull String getActionType(@NotNull ActionExpressionType action) {
-        if (action.getType() != null) {
-            return action.getType();
+    public static @NotNull String getActionType(@NotNull AbstractActionExpressionType action) {
+        if (action instanceof ActionExpressionType dynamic && dynamic.getType() != null) {
+            return dynamic.getType();
         } else {
             return toJaxbElement(action).getName().getLocalPart();
         }
     }
 
-    public static <T> T getBeanPropertyValue(ActionExpressionType action, String propertyName, Class<T> clazz)
+    public static <T> T getBeanPropertyValue(AbstractActionExpressionType action, String propertyName, Class<T> clazz)
             throws SchemaException {
         try {
             try {
@@ -114,7 +112,7 @@ public class ScriptingBeansUtil {
         }
     }
 
-    private static Boolean getBeanBooleanPropertyValue(ActionExpressionType action, String propertyName)
+    private static Boolean getBeanBooleanPropertyValue(AbstractActionExpressionType action, String propertyName)
             throws IllegalAccessException, InvocationTargetException, SchemaException {
         try {
             String methodName = "is" + StringUtils.capitalize(propertyName);

@@ -769,7 +769,7 @@ public class ModelRestController extends AbstractRestController {
                         // detached because of REST origin
                         ExecuteScriptConfigItem.of(command, ConfigurationItemOrigin.rest()),
                         VariablesMap.emptyMap(),
-                        false,
+                        BulkActionExecutionOptions.create(),
                         task,
                         result);
                 ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()

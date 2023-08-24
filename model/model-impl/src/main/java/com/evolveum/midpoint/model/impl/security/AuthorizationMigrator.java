@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -89,7 +90,7 @@ public class AuthorizationMigrator {
                     // to
                     (migrated, original) -> {
                         add(migrated, original, new AuthorizationType()
-                                .action(ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl()));
+                                .action(AuthorizationConstants.AUTZ_BULK_ALL_URL));
                     })
     );
 

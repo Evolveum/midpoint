@@ -11,28 +11,26 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 import jakarta.annotation.PostConstruct;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.factory.CustomEventFactory;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.NotifyActionExpressionType;
 
 /**
@@ -47,7 +45,6 @@ public class NotifyExecutor extends BaseActionExecutor {
     @Autowired(required = false)
     private CustomEventFactory customEventFactory;
 
-    private static final String NAME = "notify";
     private static final String PARAM_SUBTYPE = "subtype";
     private static final String PARAM_HANDLER = "handler";
     private static final String PARAM_STATUS = "status";
@@ -56,13 +53,19 @@ public class NotifyExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, NotifyActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.NOTIFY;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         String subtype = expressionHelper.getActionArgument(String.class, action,
                 NotifyActionExpressionType.F_SUBTYPE, PARAM_SUBTYPE, input, context, null, PARAM_SUBTYPE, globalResult);
@@ -110,15 +113,5 @@ public class NotifyExecutor extends BaseActionExecutor {
         }
         context.println("Produced " + eventCount.get() + " event(s)");
         return input;
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_NOTIFY.getLocalPart();
     }
 }

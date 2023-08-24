@@ -7,7 +7,8 @@
   -->
 
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:type>UserType</s:type>
     <s:searchFilter>
         <q:equal>

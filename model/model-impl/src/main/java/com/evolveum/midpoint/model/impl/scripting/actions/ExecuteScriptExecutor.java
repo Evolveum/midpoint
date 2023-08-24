@@ -11,12 +11,12 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.List;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -37,26 +37,25 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptActio
 @Component
 public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecutionParameters> {
 
-    private static final String NAME = "execute-script";
     private static final String PARAM_SCRIPT = "script";
 
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, ExecuteScriptActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    @NotNull String getName() {
-        return NAME;
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.EXECUTE_SCRIPT;
     }
 
     @Override
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         ScriptExpressionEvaluatorType script = expressionHelper.getActionArgument(
                 ScriptExpressionEvaluatorType.class, action,
@@ -90,7 +89,7 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
         LensContext<?> lensContext = getLensContext(externalVariables);
         List<?> rv = ModelImplUtils.evaluateScript(
                 scriptExpression, lensContext, variables, true,
-                "in '" + NAME + "' action", context.getTask(), result);
+                "in '" + getName() + "' action", context.getTask(), result);
 
         if (rv.isEmpty()) {
             return null;
@@ -99,16 +98,6 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
         } else {
             return rv; // shouldn't occur; would cause problems
         }
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_EXECUTE.getLocalPart();
     }
 
     static class ScriptExecutionParameters extends Parameters {
