@@ -650,7 +650,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeBulkActionTestLoggedIn(
                 FILE_SCRIPTING_GENERATE_VALUE,
                 ConfigurationItemOrigin.rest(),
-                "Access to action 'generate-value' ('generateValue')",
+                "Access to action 'search'",
                 "expression profile 'empty', actions profile 'empty'");
 
         when("*** testing for privileged user");
@@ -658,7 +658,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeBulkActionTestLoggedIn(
                 FILE_SCRIPTING_GENERATE_VALUE,
                 ConfigurationItemOrigin.rest(),
-                "Access to action 'generate-value' ('generateValue')",
+                "Access to action 'search'",
                 "expression profile 'empty', actions profile 'empty'");
     }
 
