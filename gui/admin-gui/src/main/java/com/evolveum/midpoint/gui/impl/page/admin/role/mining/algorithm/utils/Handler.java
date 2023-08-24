@@ -55,7 +55,7 @@ public class Handler implements Serializable {
     public void iterateActualStatus() {
         this.actualStatus++;
         this.endTime = System.currentTimeMillis();
-        this.percentage = (actualStatus / operationCountToProcess) * 100;
+        this.percentage = (int) ((actualStatus / (double) operationCountToProcess) * 100);
         print();
     }
 

@@ -444,17 +444,17 @@ public class PageRoleAnalysis extends PageAdmin {
 
             @Override
             protected String getNothingSelectedMessage() {
-                return getString("pageMining.message.nothingSelected");
+                return getString("PageMining.message.nothingSelected");
             }
 
             @Override
             protected String getConfirmMessageKeyForMultiObject() {
-                return "pageMining.message.confirmationMessageForMultipleObject";
+                return "PageMining.message.confirmationMessageForMultipleObject";
             }
 
             @Override
             protected String getConfirmMessageKeyForSingleObject() {
-                return "pagemMining.message.confirmationMessageForSingleObject";
+                return "PageMining.message.confirmationMessageForSingleObject";
             }
         };
         table.setOutputMarkupId(true);
