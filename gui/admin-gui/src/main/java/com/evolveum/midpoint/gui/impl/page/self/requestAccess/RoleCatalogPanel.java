@@ -500,7 +500,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-6 col-lg-4 col-xxl-2";
+                        return "col-12 col-md-6 col-lg-4 col-xxl-5i px-2";
                     }
 
                     @Override

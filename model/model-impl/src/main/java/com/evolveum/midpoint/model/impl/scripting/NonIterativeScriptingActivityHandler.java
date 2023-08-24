@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 
 import jakarta.annotation.PostConstruct;
@@ -108,7 +109,8 @@ public class NonIterativeScriptingActivityHandler
                                 .executeBulkAction(
                                         getWorkDefinition().getScriptExecutionRequest(),
                                         VariablesMap.emptyMap(),
-                                        true,
+                                        BulkActionExecutionOptions.create()
+                                                .withRecordProgressAndIterationStatistics(),
                                         runningTask,
                                         result);
                 LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());

@@ -7,25 +7,29 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import java.util.Collection;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.schema.statistics.Operation;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
-import java.util.Collection;
 
 /**
  * Executes "reencrypt" action.
@@ -36,21 +40,25 @@ import java.util.Collection;
 @Component
 public class ReencryptExecutor extends BaseActionExecutor {
 
-    //private static final Trace LOGGER = TraceManager.getTrace(ReencryptExecutor.class);
-
-    private static final String NAME = "reencrypt";
-
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.REENCRYPT;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         Protector protector = prismContext.getDefaultProtector();
 
-        boolean dryRun = operationsHelper.getDryRun(expression, input, context, globalResult);
+        boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
 
         PipelineData output = PipelineData.createEmpty();
 
@@ -85,14 +93,14 @@ public class ReencryptExecutor extends BaseActionExecutor {
                     } catch (Throwable ex) {
                         result.recordFatalError("Couldn't reencrypt object", ex);
                         operationsHelper.recordEnd(context, op, ex, result);
-                        Throwable exception = processActionException(ex, NAME, value, context);
+                        Throwable exception = logOrRethrowActionException(ex, value, context);
                         context.println("Couldn't reencrypt " + prismObject + drySuffix(dryRun) + exceptionSuffix(exception));
                     }
                     PrismPropertyValue<String> oidVal = prismContext.itemFactory().createPropertyValue(objectBean.getOid());
                     output.add(new PipelineItem(oidVal, item.getResult()));
                 } else {
                     //noinspection ThrowableNotThrown
-                    processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
+                    logOrRethrowActionException(new UnsupportedOperationException("Item is not a PrismObject"), value, context);
                 }
             } catch (Throwable t) {
                 result.recordException(t);
@@ -103,15 +111,5 @@ public class ReencryptExecutor extends BaseActionExecutor {
             operationsHelper.trimAndCloneResult(result, item.getResult());
         }
         return output;
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @Nullable String getConfigurationElementName() {
-        return null;
     }
 }

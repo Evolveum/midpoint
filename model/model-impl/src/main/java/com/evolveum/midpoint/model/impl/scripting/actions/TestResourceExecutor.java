@@ -7,23 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
 import jakarta.annotation.PostConstruct;
-
-import com.evolveum.midpoint.util.exception.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.TestResourceActionExpressionType;
 
 /**
  * Executes "test-resource" action.
@@ -31,16 +29,21 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.TestResourceAction
 @Component
 public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<ResourceType> {
 
-    private static final String NAME = "test-resource";
-
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, TestResourceActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.TEST_RESOURCE;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         PipelineData output = PipelineData.createEmpty();
 
@@ -60,8 +63,8 @@ public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<Reso
             PipelineItem item,
             ExecutionContext context,
             OperationResult result)
-            throws ObjectNotFoundException, ExpressionEvaluationException, ScriptExecutionException, SchemaException,
-            ConfigurationException {
+            throws ObjectNotFoundException, ExpressionEvaluationException, SchemaException, ConfigurationException,
+            SecurityViolationException, CommunicationException {
         String oid = object.getOid();
         OperationResult testResult = modelService.testResource(oid, context.getTask(), result);
         context.println("Tested " + object + ": " + testResult.getStatus());
@@ -74,15 +77,5 @@ public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<Reso
     @Override
     Class<ResourceType> getObjectType() {
         return ResourceType.class;
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_TEST_RESOURCE.getLocalPart();
     }
 }

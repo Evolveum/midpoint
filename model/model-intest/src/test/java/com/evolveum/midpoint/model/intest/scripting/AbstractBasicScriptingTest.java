@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.intest.CommonArchetypes;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
@@ -248,22 +249,22 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     }
 
     ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result)
-            throws ScriptExecutionException {
+            throws CommonException {
         return evaluateExpression(ScriptingBeansUtil.asExecuteScriptCommand(expression), task, result);
     }
 
     ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result)
-            throws ScriptExecutionException {
+            throws CommonException {
         return evaluateExpression(executeScript, VariablesMap.emptyMap(), task, result);
     }
 
     private ExecutionContext evaluateExpression(
             ExecuteScriptType executeScript, VariablesMap variablesMap, Task task, OperationResult result)
-            throws ScriptExecutionException {
+            throws CommonException{
         return executor.execute(
                 ExecuteScriptConfigItem.of(executeScript, ConfigurationItemOrigin.generated()),
                 variablesMap,
-                false,
+                BulkActionExecutionOptions.create(),
                 task,
                 result);
     }
@@ -720,7 +721,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         try {
             evaluateExpression(expression, task, result);
             fail("unexpected success");
-        } catch (ScriptExecutionException e) {
+        } catch (UnsupportedOperationException e) {
             displayExpectedException(e);
             assertThat(e).hasMessageContaining("previewChanges is not supported in raw mode");
         }

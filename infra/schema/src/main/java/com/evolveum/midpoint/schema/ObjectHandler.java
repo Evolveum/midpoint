@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 
 /**
  * Classes implementing this interface are used to handle arbitrary objects (not always {@link PrismObject} instances),

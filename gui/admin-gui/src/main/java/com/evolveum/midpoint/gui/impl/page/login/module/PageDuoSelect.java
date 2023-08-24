@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login.module;
 
+import com.evolveum.midpoint.authentication.api.IdentityProvider;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 
 import org.apache.wicket.model.IModel;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author skublik
@@ -51,11 +52,24 @@ public class PageDuoSelect extends AbstractPageRemoteAuthenticationSelect implem
 
     @Override
     protected String getErrorKeyUnsupportedType() {
-        return "PageDuoSelect.unsupported.authentication.type";
+        return null;
     }
 
     @Override
     protected String getErrorKeyEmptyProviders() {
-        return "PageDuoSelect.empty.providers";
+        return "PageSamlSelect.empty.providers";
+    }
+
+    @Override
+    protected List<IdentityProvider> customizeProviders(List<IdentityProvider> providers) {
+        if (providers.isEmpty()) {
+            return providers;
+        }
+
+        IdentityProvider provider = new IdentityProvider()
+                .setRedirectLink(providers.get(0).getRedirectLink())
+                .setLinkText(getString("PageDuoSelect.redirectToServer"));
+
+        return List.of(provider);
     }
 }

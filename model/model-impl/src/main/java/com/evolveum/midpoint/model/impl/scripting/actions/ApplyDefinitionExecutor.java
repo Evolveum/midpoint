@@ -7,8 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -16,13 +21,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ApplyDefinitionActionExpressionType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
 
 /**
  * Applies definitions to relevant objects. Currently supports ShadowType and ResourceType
@@ -31,16 +29,22 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class ApplyDefinitionExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
-    private static final String NAME = "apply-definition";
-
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, ApplyDefinitionActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input,
-            ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.APPLY_DEFINITION;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType expression, PipelineData input,
+            ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         iterateOverObjects(input, context, globalResult,
                 (object, item, result) ->
@@ -64,15 +68,5 @@ public class ApplyDefinitionExecutor extends AbstractObjectBasedActionExecutor<O
     @Override
     protected Class<ObjectType> getObjectType() {
         return ObjectType.class;
-    }
-
-    @Override
-    protected @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_APPLY_DEFINITION.getLocalPart();
     }
 }

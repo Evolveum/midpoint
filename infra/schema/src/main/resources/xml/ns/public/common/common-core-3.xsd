@@ -11778,16 +11778,28 @@
                         Free-form description (comment).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ExpressionProfileType.name</a:displayName>
+                        <a:displayName>ExpressionProfileType.description</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <!-- TODO because of the symmetry reasons, we could put the decision + evaluator items into a separate type -->
+            <!--
+                TODO because of the symmetry reasons, we may consider putting the decision + evaluator items
+                  into a separate type; this would also help with the clear interpretation of what "default decision" means,
+                  see the comment below.
+            -->
             <xsd:element name="decision" type="tns:AuthorizationDecisionType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Default decision for the profile. I.e. decision of those evaluators that are not explicitly enumerated.
+                        Default decision for evaluators in this profile: this is the decision of those evaluators that
+                        are not explicitly enumerated within it.
+
+                        Currently, this property does NOT apply for other parts of the profile.
+
+                        In particular, bulkActionsProfile and functionLibrariesProfile have their own defaults: If not
+                        specified, the "allow all" values are applied for them.
+
+                        Also, the "privilegeElevation" has a separate default of "allow".
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionProfileType.decision</a:displayName>

@@ -15,11 +15,11 @@
         </equal>
     </s:searchFilter>
     <s:assign>
-        <s:targetRef oid="12345678-d34d-b33f-f00d-55555555cccc" type="RoleType" />
         <!-- the following options are conflicting -->
-        <s:dryRun>true</s:dryRun>
         <s:executeOptions>
             <c:raw>true</c:raw>
         </s:executeOptions>
+        <s:dryRun>true</s:dryRun>
+        <s:targetRef oid="12345678-d34d-b33f-f00d-55555555cccc" type="RoleType" />
     </s:assign>
 </s:search>

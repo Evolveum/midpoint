@@ -7,59 +7,51 @@
 
 package com.evolveum.midpoint.model.impl.scripting.expressions;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.FilterContentExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class FilterContentEvaluator extends BaseExpressionEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(FilterContentEvaluator.class);
 
-    public PipelineData evaluate(FilterContentExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData evaluate(
+            FilterContentExpressionType expression, PipelineData input, ExecutionContext context)
+            throws SchemaException {
         List<ItemPath> keep = convert(expression.getKeep());
         List<ItemPath> remove = convert(expression.getRemove());
         if (keep.isEmpty() && remove.isEmpty()) {
-            return input;       // nothing to do here
+            return input; // nothing to do here
         }
         for (PipelineItem pipelineItem : input.getData()) {
             PrismValue value = pipelineItem.getValue();
-            if (!(value instanceof PrismContainerValue)) {
+            if (!(value instanceof PrismContainerValue<?> pcv)) {
                 String message =
                         "In 'select' commands in keep/remove mode, we can act only on prism container values, not on " + value;
                 if (context.isContinueOnAnyError()) {
                     LOGGER.error(message);
                 } else {
-                    throw new ScriptExecutionException(message);
+                    throw new SchemaException(message);
                 }
             } else {
-                PrismContainerValue<?> pcv = (PrismContainerValue) value;
                 if (!keep.isEmpty()) {
-                    try {
-                        pcv.keepPaths(keep);
-                    } catch (SchemaException e) {
-                        throw new ScriptExecutionException(e.getMessage(), e);
-                    }
+                    pcv.keepPaths(keep);
                 } else {
-                    try {
-                        pcv.removePaths(remove);
-                    } catch (SchemaException e) {
-                        throw new ScriptExecutionException(e.getMessage(), e);
-                    }
+                    pcv.removePaths(remove);
                 }
             }
         }

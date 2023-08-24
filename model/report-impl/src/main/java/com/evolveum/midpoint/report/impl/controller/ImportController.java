@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 
@@ -199,7 +200,7 @@ public class ImportController {
 
     private void evaluateImportScript(InputReportLine line, RunningTask task, OperationResult result) throws CommonException {
         reportService.getBulkActionsService().executeBulkAction(
-                script, line.getVariables(), false, task, result);
+                script, line.getVariables(), BulkActionExecutionOptions.create(), task, result);
     }
 
     private Object evaluateImportExpression(ExpressionType expression, TypedValue<?> typedValue, Task task, OperationResult result) {

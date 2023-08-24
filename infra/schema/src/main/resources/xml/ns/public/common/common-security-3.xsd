@@ -452,10 +452,10 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="thresholds" type="tns:CorrelationModuleThresholds" minOccurs="0">
+                    <xsd:element name="options" type="tns:CorrelationModuleOptionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Thresholds for correlation module. For example, restriction for the number of users which can be found by
+                                Options for correlation module. For example, limitation for the number of users which can be found by
                                 correlation.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -551,6 +551,14 @@
                                 'sha256/9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=',
                                 C=BM, O=QuoVadis Limited, CN=QuoVadis Root CA 2
                                 'sha256/j9ESw8g3DxR9XM06fYZeuN1UB4O6xp/GAIjjdD/zM3g='
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="pathForDuoUsername" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The path to the user attribute which should be sent to duo server as username of authenticated user.
+                                Default path is for name attribute.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -3384,7 +3392,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="CorrelationModuleThresholds">
+    <xsd:complexType name="CorrelationModuleOptionsType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines some restrictions for the correlation authentication module.
@@ -3395,7 +3403,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="correlationResultMaxUsersNumber" type="xsd:int" minOccurs="0" >
+            <xsd:element name="candidateLimit" type="xsd:int" minOccurs="0" >
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines the maximum number of users which can be found by the correlation module.

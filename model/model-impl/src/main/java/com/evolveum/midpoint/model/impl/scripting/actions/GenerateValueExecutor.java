@@ -9,17 +9,15 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
 import jakarta.annotation.PostConstruct;
-
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.GenerateValueActionExpressionType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinit
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.GenerateValueActionExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -37,20 +35,25 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 @Component
 public class GenerateValueExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
-    private static final String NAME = "generate-value";
     private static final String PARAMETER_ITEMS = "items";
 
     @Autowired private ModelInteractionService modelInteraction;
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, GenerateValueActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.GENERATE_VALUE;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         PolicyItemsDefinitionType itemsDefinition;
         PolicyItemsDefinitionType configured = expressionHelper.getActionArgument(PolicyItemsDefinitionType.class, action,
@@ -64,6 +67,7 @@ public class GenerateValueExecutor extends AbstractObjectBasedActionExecutor<Obj
                         .execute(false));
         }
 
+        //noinspection CodeBlock2Expr
         iterateOverObjects(input, context, globalResult,
                 (object, item, result) -> {
                     modelInteraction.generateValue(object, itemsDefinition, context.getTask(), result);
@@ -73,17 +77,6 @@ public class GenerateValueExecutor extends AbstractObjectBasedActionExecutor<Obj
                     context.println("Failed to generate value(s) for " + object + exceptionSuffix(exception));
                 });
         return input;
-    }
-
-    @Override
-    @NotNull
-    String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_GENERATE_VALUE.getLocalPart();
     }
 
     @Override

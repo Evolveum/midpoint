@@ -9,13 +9,6 @@
  * Contains all styles for all kinds of tile panels
  */
 
-@mixin smooth-transition($duration, $important: "") {
-  $important-flag: if($important == "important", ' !important', '');
-
-  transition: all ease $duration#{$important-flag};
-  -webkit-transition: all ease $duration#{$important-flag};
-}
-
 @mixin tile {
   border: 2px solid $white;
   border-radius: $border-radius;
@@ -24,6 +17,10 @@
 
   &.selectable {
     @include selectable-tile();
+  }
+
+  &.simple-tile > i {
+      font-size: 2.625rem;
   }
 }
 

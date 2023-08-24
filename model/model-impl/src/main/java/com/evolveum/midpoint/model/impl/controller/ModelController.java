@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
@@ -2180,22 +2181,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public BulkActionExecutionResult executeBulkAction(
             @NotNull ExecuteScriptConfigItem scriptExecutionCommand,
             @NotNull VariablesMap initialVariables,
-            boolean recordProgressAndIterationStatistics,
+            @NotNull BulkActionExecutionOptions options,
             @NotNull Task task, @NotNull OperationResult result)
-            throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        checkBulkActionAuthorization(task, result);
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, ObjectAlreadyExistsException {
+        // Authorization checking was moved to bulk action executor.
         ExecutionContext executionContext =
                 bulkActionsExecutor.execute(
-                        scriptExecutionCommand, initialVariables, recordProgressAndIterationStatistics, task, result);
+                        scriptExecutionCommand,
+                        initialVariables,
+                        options,
+                        task, result);
         return executionContext.toExecutionResult();
-    }
-
-    private void checkBulkActionAuthorization(Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(
-                ModelAuthorizationAction.EXECUTE_BULK_ACTIONS.getUrl(), task, parentResult);
     }
     //endregion
 
