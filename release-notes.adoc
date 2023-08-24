@@ -482,11 +482,11 @@ If needed, the access to the functionality provided by these libraries should be
 See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c980015fed12c26e[c9b1ce].
 
 * Using of task template (e.g. to implement custom GUI actions) no longer requires `#read` authorization for the task template object.
-Instead, a new `#use` authorization was created to cover this use case.
+Instead, a new `model-3#use` authorization was created to cover this use case.
 See also commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
 
-* The new `#executeBulkActions` authorization replaces (now deprecated and long-time confusing) `#executeScript` one.
-See also commit https://github.com/Evolveum/midpoint/commit/291313570a62cea67addc43d3dc310c142810581[291313].
+* The new `bulk-3#` authorizations replace (now deprecated and long-time confusing) `#executeScript` one.
+See also commits https://github.com/Evolveum/midpoint/commit/291313570a62cea67addc43d3dc310c142810581[291313] and https://github.com/Evolveum/midpoint/commit/3c50c95c2f351bed92165dc4b9bed8140fd06839[3c50c9].
 
 // * The behavior of synchronization reaction to `deleted` situation was changed.
 // Now it checks the existence of (other) accounts of given type, and invokes the actions only if there is none.

@@ -93,19 +93,13 @@ Each individual created object also needs to pass through authorization for `add
 | Allows to invoke `executeChanges` operation with modify deltas for specified objects that add assignment to specified targets
 
 
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeBulkActions
-(called `#executeScript` before 4.8)
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript
+(deprecated)
 | N/A
 | N/A
 | Allows to execute xref:/midpoint/reference/misc/bulk/[midPoint scripts a.k.a. bulk actions]
 | Authorizes the possibility to execute the bulk actions.
-(The additional authorizations to execute specific operations should be present as well.)
-footnote:[For example, if you want to create a set of users via a bulk action, you need both `#executeBulkActions` (`#executeScript`) and `#add` authorizations:
-The former to execute the bulk action at all, the latter to allow the bulk action to add the users.
-The main purpose of `#executeBulkActions` authorization is to provide a protection against e.g. denial of service attacks based on execution of resource-intensive bulk actions.
-Note that the execution of arbitrary Groovy scripts (or Velocity, Python, JavaScript, and similar ones) is _not_ covered by this authorization.
-Because of their power, they required the super-user ("all") authorization (before 4.8).
-Starting with 4.8, they require the xref:/midpoint/reference/security/trusted-actions/index.adoc[expression profile] to be set.]
+See xref:bulk-actions.adoc[].
 |===
 
 The `assign` and `unassign` authorizations are designed especially to allow assignment and un-assignment of specific roles and orgs, e.g. in cases of delegated administration, multi-tenancy and similar set-ups.
@@ -114,4 +108,4 @@ E.g. `assign` authorization can be used to allow assignment only selected roles 
 The `assign` and `unassign` authorizations work only in the request phase.
 They are not effective in the execution phase.
 Therefore `modify` authorization is still needed in the execution phase.
-However as the operation needs to pass both phases to be allowed this is a sufficient set-up.
+However, as the operation needs to pass both phases to be allowed this is a sufficient set-up.
