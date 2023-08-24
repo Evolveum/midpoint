@@ -201,7 +201,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (shouldEvaluateAuthentication()) {
             return allProcessedModulesWithNecessityAreSuccessful() && wasSuccessfullyProcessedOtherThanUnsufficientModules();
         }
-        return allAuthenticationModulesExist() && wasSuccessfullyProcessedOtherThanUnsufficientModules() && (allModulesAreSuccessful() || getAuthenticationModuleNecessityDecision());
+        return allAuthenticationModulesExist()
+                && wasSuccessfullyProcessedOtherThanUnsufficientModules()
+                && (allModulesAreSuccessful() || getAuthenticationModuleNecessityDecision());
     }
 
     private boolean wasSuccessfullyProcessedOtherThanUnsufficientModules() {

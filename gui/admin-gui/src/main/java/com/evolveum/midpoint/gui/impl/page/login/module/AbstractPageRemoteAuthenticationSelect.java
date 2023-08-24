@@ -90,6 +90,7 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
             Class<?> detailsClass,
             String actualModuleName) {
         return getClass().getAnnotation(PageDescriptor.class).authModule().equals(actualModuleName)
+                && getSupportedAuthToken() != null
                 && (getSupportedAuthToken().isAssignableFrom(actualAuthClass)
                 || (AnonymousAuthenticationToken.class.isAssignableFrom(actualAuthClass)
                 && detailsClass != null
@@ -107,7 +108,7 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
                     String key = getErrorKeyEmptyProviders();
                     error(getString(key));
                 }
-                return providers;
+                return customizeProviders(providers);
             }
             String key = getErrorKeyUnsupportedType();
             error(getString(key));
@@ -115,6 +116,10 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
         }
         String key = "web.security.flexAuth.unsupported.auth.type";
         error(getString(key));
+        return providers;
+    }
+
+    protected List<IdentityProvider> customizeProviders(List<IdentityProvider> providers) {
         return providers;
     }
 

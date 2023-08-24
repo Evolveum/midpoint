@@ -64,7 +64,7 @@ public class DuoAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
         DuoRequestToken token = new DuoRequestToken(
                 params.getFirst(DUO_CODE),
-                ((DuoModuleAuthentication)duoModule).getUsername());
+                ((DuoModuleAuthentication)duoModule).getDuoUsername());
 
         return getAuthenticationManager().authenticate(token);
     }

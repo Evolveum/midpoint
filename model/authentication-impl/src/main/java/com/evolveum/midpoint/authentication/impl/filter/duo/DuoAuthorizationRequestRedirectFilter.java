@@ -81,7 +81,7 @@ public class DuoAuthorizationRequestRedirectFilter extends RemoteModuleAuthoriza
             String duoState = duoClient.generateState();
             ((DuoModuleAuthentication) duoModule).setDuoState(duoState);
 
-            String username = ((DuoModuleAuthentication) duoModule).getUsername();
+            String username = ((DuoModuleAuthentication) duoModule).getDuoUsername();
             if (username == null) {
                 LOGGER.error("Couldn't get principal username for duo module");
                 throw new AuthenticationServiceException("web.security.provider.invalid");

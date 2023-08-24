@@ -8,31 +8,26 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.IdentityProvider;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.channel.RestAuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.module.authentication.DuoModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
-import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.DuoModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.module.configuration.OidcClientModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.DuoModuleWebSecurityConfigurer;
-import com.evolveum.midpoint.authentication.impl.module.configurer.OidcClientModuleWebSecurityConfigurer;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DuoAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import jakarta.servlet.ServletRequest;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -69,7 +64,15 @@ public class DuoModuleFactory extends RemoteModuleFactory<
             DuoModuleWebSecurityConfiguration configuration,
             AuthenticationSequenceModuleType sequenceModule,
             ServletRequest request) {
-        DuoModuleAuthentication moduleAuthentication = new DuoModuleAuthentication(sequenceModule);
+
+        ItemPathType pathToUsernameAttributeBean = moduleType.getPathForDuoUsername();
+        ItemPath pathToUsernameAttribute;
+        if (pathToUsernameAttributeBean != null) {
+            pathToUsernameAttribute = moduleType.getPathForDuoUsername().getItemPath();
+        } else {
+            pathToUsernameAttribute = FocusType.F_NAME;
+        }
+        DuoModuleAuthentication moduleAuthentication = new DuoModuleAuthentication(sequenceModule, pathToUsernameAttribute);
 
         IdentityProvider provider = createIdentityProvider(
                 RemoteModuleAuthenticationImpl.AUTHORIZATION_REQUEST_PROCESSING_URL_SUFFIX,
