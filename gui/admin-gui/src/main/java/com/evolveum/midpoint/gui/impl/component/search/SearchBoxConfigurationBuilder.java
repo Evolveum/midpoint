@@ -54,8 +54,7 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(ObjectType.F_NAME))
         );
         FIXED_SEARCH_ITEMS.put(UserType.class, Arrays.asList(
-                ItemPath.create(UserType.F_GIVEN_NAME),
-                ItemPath.create(UserType.F_FAMILY_NAME)
+                ItemPath.create(UserType.F_FULL_NAME)
         ));
         FIXED_SEARCH_ITEMS.put(AbstractRoleType.class, Arrays.asList(
                 ItemPath.create(RoleType.F_DISPLAY_NAME)

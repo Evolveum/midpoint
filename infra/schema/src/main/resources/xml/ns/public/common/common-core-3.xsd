@@ -2307,11 +2307,16 @@
                                     Typically used as correlation identifier and for
                                     auditing purposes. Should be immutable, but the
                                     specific properties and usage are deployment-specific.
+
+                                    DEPRECATED, use personalNumber instead.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.employeeNumber</a:displayName>
                                 <a:displayOrder>400</a:displayOrder>
+                                <a:deprecated/>
+                                <a:deprecatedSince>4.8</a:deprecatedSince>
+                                <a:plannedRemoval>5.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2374,6 +2379,25 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
+                    <xsd:element name="personalNumber" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Unique, business-oriented identifier of the user.
+                                    Typically used as correlation identifier and for
+                                    auditing purposes. Should be immutable, but the
+                                    specific properties and usage are deployment-specific.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.employeeNumber</a:displayName>
+                                <a:displayOrder>400</a:displayOrder>
+                                <a:since>4.8</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
