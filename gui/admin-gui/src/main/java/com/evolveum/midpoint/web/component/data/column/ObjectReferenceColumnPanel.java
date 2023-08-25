@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -43,7 +45,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                WebComponentUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(), ObjectReferenceColumnPanel.this, false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(), ObjectReferenceColumnPanel.this, false);
             }
         };
         add(name);
@@ -81,7 +83,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
                 return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
                         new OperationResult("create_assignment_composited_icon"), getPageBase());
             }
-            String displayType = WebComponentUtil.createDefaultBlackIcon(ref.getType());
+            String displayType = IconAndStylesUtil.createDefaultBlackIcon(ref.getType());
             CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
             iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
             return iconBuilder.build();

@@ -9,8 +9,9 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -90,7 +91,7 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
                 }
                 ObjectReferenceType ort = new ObjectReferenceType();
                 ort.setupReferenceValue(refValue);
-                WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
             }
         };
         link.add(visibleIfReference);
@@ -173,7 +174,7 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
                 return null;
             }
             if (val.getSourceValue() != null && val.getSourceValue() instanceof PrismReferenceValue) {
-                return "[" + WebComponentUtil.getRelationLabelValue((PrismReferenceValue) val.getSourceValue(), getPageBase()) + "]";
+                return "[" + RelationUtil.getRelationLabelValue((PrismReferenceValue) val.getSourceValue(), getPageBase()) + "]";
             }
             return WebComponentUtil.translateMessage(getModelObject().getAdditionalText());
         }

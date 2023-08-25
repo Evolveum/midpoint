@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -259,7 +260,7 @@ public class PageResourceTemplates extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
-                        WebComponentUtil.toggleResourceMaintenance(rowDto.getValue().asPrismContainer(),
+                        ProvisioningObjectsUtil.toggleResourceMaintenance(rowDto.getValue().asPrismContainer(),
                                 OPERATION_SET_MAINTENANCE, target, PageResourceTemplates.this);
                         target.add(getResourceTable());
                     }

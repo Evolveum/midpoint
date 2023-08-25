@@ -9,9 +9,9 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
@@ -34,7 +34,7 @@ public abstract class AbstractObjectClassFactory extends AbstractInputGuiCompone
                 if (resourceType == null) {
                     return Collections.emptyList();
                 }
-                return WebComponentUtil.loadResourceObjectClassValues(resourceType.asObjectable(), panelCtx.getPageBase());
+                return ProvisioningObjectsUtil.loadResourceObjectClassValues(resourceType.asObjectable(), panelCtx.getPageBase());
             }
 
             @Override

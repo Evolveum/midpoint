@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -33,12 +33,12 @@ public class AssociationSearchItemWrapper extends ChoicesSearchItemWrapper<ItemN
         if (objectDefinition == null) {
             return List.of();
         }
-        List<ResourceAssociationDefinition> associations = WebComponentUtil.getRefinedAssociationDefinition(objectDefinition);
+        List<ResourceAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(objectDefinition);
         List<DisplayableValue<ItemName>> values = new ArrayList<>();
         associations.forEach(association -> values.add(
                 new SearchValue<>(
                         association.getName(),
-                        WebComponentUtil.getAssociationDisplayName(association))));
+                        ProvisioningObjectsUtil.getAssociationDisplayName(association))));
         return values;
     }
 
@@ -62,7 +62,7 @@ public class AssociationSearchItemWrapper extends ChoicesSearchItemWrapper<ItemN
 
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
-        return WebComponentUtil.getShadowTypeFilterForAssociation(objectDefinition, getValue().getValue());
+        return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(objectDefinition, getValue().getValue());
     }
 
     public boolean allowNull() {

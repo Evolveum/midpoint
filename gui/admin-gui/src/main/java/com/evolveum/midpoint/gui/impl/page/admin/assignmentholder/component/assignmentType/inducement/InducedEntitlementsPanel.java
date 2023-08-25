@@ -15,8 +15,8 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrappe
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -120,14 +120,14 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
                     @Override
                     protected ObjectFilter getCustomFilter() {
                         ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
-                        return WebComponentUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
+                        return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
                                 InducedEntitlementsPanel.this.getPageBase());
                     }
 
                     @Override
                     protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
                         if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
-                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
+                            ExpressionType expression = ProvisioningObjectsUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
                             ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
                         }
                     }

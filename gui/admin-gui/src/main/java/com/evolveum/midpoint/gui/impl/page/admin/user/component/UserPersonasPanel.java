@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -87,7 +88,7 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
                                 ort.setOid(personaRefObj.getOid());
                                 ort.setType(WebComponentUtil.classToQName(
                                         UserPersonasPanel.this.getPrismContext(), personaRefObj.getClass()));
-                                WebComponentUtil.dispatchToObjectDetailsPage(ort, UserPersonasPanel.this, false);
+                                DetailsPageUtil.dispatchToObjectDetailsPage(ort, UserPersonasPanel.this, false);
                             }
                         };
                     }

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
@@ -249,7 +250,7 @@ public class PageAuditLogDetails extends PageBase {
             public void onClick(AjaxRequestTarget target) {
                 TaskType finalTask = taskModel.getObject();
                 if (finalTask != null) {
-                    WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(finalTask, getPrismContext()), this, false);
+                    DetailsPageUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(finalTask, getPrismContext()), this, false);
                 }
             }
         };

@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -157,7 +158,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
     }
 
     protected List<QName> getAllowedRelations() {
-        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+        return RelationUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
     }
 
     protected boolean isAllowedNotFoundObjectRef(){

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -14,7 +15,6 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -52,7 +52,7 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 ((PageBase) getPage()).hideMainPopup(target);
-                WebComponentUtil.dispatchToObjectDetailsPage(createTask(target), true, ConfigureTaskConfirmationPanel.this);
+                DetailsPageUtil.dispatchToObjectDetailsPage(createTask(target), true, ConfigureTaskConfirmationPanel.this);
             }
         };
         configuredButton.setOutputMarkupId(true);

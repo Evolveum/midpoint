@@ -14,12 +14,13 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -117,7 +118,7 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                         return list;
                     }
                     PrismObject<ResourceType> resource =
-                            WebComponentUtil.getConstructionResource(construction, "load resource", getPageBase());
+                            ProvisioningObjectsUtil.getConstructionResource(construction, "load resource", getPageBase());
                     if (resource == null) {
                         return list;
                     }
@@ -127,12 +128,12 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                         if (schema == null) {
                             return list;
                         }
-                        ResourceObjectDefinition resourceObjectDefinition = WebComponentUtil.getResourceObjectDefinition(construction, getPageBase());
+                        ResourceObjectDefinition resourceObjectDefinition = ProvisioningObjectsUtil.getResourceObjectDefinition(construction, getPageBase());
                         ResourceObjectTypeDefinition actualOc = resourceObjectDefinition instanceof ResourceObjectTypeDefinition
                                 ? (ResourceObjectTypeDefinition) resourceObjectDefinition
                                 : null;
                         schema.getObjectTypeDefinitions().forEach(oc -> {
-                            String icon = WebComponentUtil.createShadowIcon(oc.getKind());
+                            String icon = IconAndStylesUtil.createShadowIcon(oc.getKind());
 
                             String description = oc.getDescription();
 

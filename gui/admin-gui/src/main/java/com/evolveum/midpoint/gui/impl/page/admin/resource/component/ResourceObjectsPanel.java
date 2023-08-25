@@ -12,30 +12,10 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
-import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import jakarta.xml.bind.JAXBElement;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -45,13 +25,17 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -59,13 +43,15 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -380,7 +366,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 });
 
         if (newTask != null) {
-            WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
+            DetailsPageUtil.dispatchToNewObject(newTask, getPageBase());
         }
     }
 

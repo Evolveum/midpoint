@@ -11,6 +11,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.web.component.dialog.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -209,7 +212,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     return false;
                 }
                 Class<?> objectClass = rowModel.getObject().getValue().getClass();
-                return WebComponentUtil.hasDetailsPage(objectClass);
+                return DetailsPageUtil.hasDetailsPage(objectClass);
             }
 
             @Override
@@ -361,7 +364,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     private String getTranslatedRelationValue(ObjectReferenceType roleMembershipRef) {
         QName relationQName = roleMembershipRef.getRelation();
         String relation = relationQName.getLocalPart();
-        RelationDefinitionType relationDef = WebComponentUtil.getRelationDefinition(relationQName);
+        RelationDefinitionType relationDef = RelationUtil.getRelationDefinition(relationQName);
         if (relationDef != null) {
             PolyStringType label = GuiDisplayTypeUtil.getLabel(relationDef.getDisplay());
             if (PolyStringUtils.isNotEmpty(label)) {
@@ -447,7 +450,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private CompositedIcon createCompositedIcon(AssignmentObjectRelation relation, DisplayType additionalButtonDisplayType) {
         CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,
-                additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
+                additionalButtonDisplayType.getIcon(), IconAndStylesUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
         return builder.build();
     }
 
@@ -1271,7 +1274,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 }
                 QName newMemberType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) :
                         getSupportedObjectTypes().get(0); //getSupportedObjectTypes(false).get(0);
-                WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
+                DetailsPageUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
             } catch (SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
@@ -1314,7 +1317,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         for (QName relation : relations) {
                             newReferences.add(ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relation));
                         }
-                        WebComponentUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), type, newReferences);
+                        DetailsPageUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), type, newReferences);
                     } catch (SchemaException e) {
                         throw new SystemException(e.getMessage(), e);
                     }

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.util;
 import java.text.Collator;
 import java.util.Comparator;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -91,7 +92,7 @@ public abstract class LocalizationMessageComparator<T> implements Comparator<T> 
 
         @Override
         protected String getTranslation(PolyString object) {
-            return WebComponentUtil.getTranslatedPolyString(object);
+            return LocalizationUtil.translatePolyString(object);
         }
     }
 }

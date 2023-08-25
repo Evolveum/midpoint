@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.application.PanelTypeConstants;
 
 import org.apache.commons.lang3.StringUtils;
@@ -24,18 +25,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -213,7 +209,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     }
 
     protected boolean isHistoryPageAuthorized() {
-        Class<? extends PageBase> pageHistoryDetailsPage = WebComponentUtil.getPageHistoryDetailsPage(getPage().getPageClass());
+        Class<? extends PageBase> pageHistoryDetailsPage = DetailsPageUtil.getPageHistoryDetailsPage(getPage().getPageClass());
         return SecurityUtils.isPageAuthorized(pageHistoryDetailsPage);
     }
 

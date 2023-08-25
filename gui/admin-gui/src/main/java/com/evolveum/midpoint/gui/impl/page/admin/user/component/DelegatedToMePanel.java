@@ -7,19 +7,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -33,7 +30,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -136,7 +132,7 @@ public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDe
                 AssignmentEditorDto dto = item.getModel().getObject();
                 ObjectReferenceType targetRef = dto.getTargetRef();
                 if (targetRef != null && targetRef.getType() != null) {
-                    return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+                    return IconAndStylesUtil.getBoxThinCssClasses(targetRef.getType());
                 } else {
                     return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
                 }

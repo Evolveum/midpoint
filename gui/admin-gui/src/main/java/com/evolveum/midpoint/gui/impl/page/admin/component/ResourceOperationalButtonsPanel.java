@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -84,7 +85,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                WebComponentUtil.toggleResourceMaintenance(getPrismObject(), OPERATION_SET_MAINTENANCE, target, getPageBase());
+                ProvisioningObjectsUtil.toggleResourceMaintenance(getPrismObject(), OPERATION_SET_MAINTENANCE, target, getPageBase());
                 refreshStatus(target);
             }
         };
@@ -99,7 +100,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                WebComponentUtil.refreshResourceSchema(getPrismObject(), OPERATION_REFRESH_SCHEMA, target, getPageBase());
+                ProvisioningObjectsUtil.refreshResourceSchema(getPrismObject(), OPERATION_REFRESH_SCHEMA, target, getPageBase());
             }
 
             @Override

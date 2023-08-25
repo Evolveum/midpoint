@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -194,7 +195,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private void initLayout() {
 
         DropDownChoice relation = new DropDownChoice(ID_RELATION, () -> requestAccess.getObject().getRelation(), relationChoices,
-                WebComponentUtil.getRelationChoicesRenderer());
+                RelationUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
 

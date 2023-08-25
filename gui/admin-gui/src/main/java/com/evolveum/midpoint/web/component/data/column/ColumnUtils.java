@@ -6,13 +6,16 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -178,21 +181,21 @@ public class ColumnUtils {
     public static <T extends ObjectType> String getIconColumnValue(T object, OperationResult result) {
         Class<?> type = object.getClass();
         if (type.equals(ObjectType.class)) {
-            return WebComponentUtil.createDefaultIcon(object.asPrismObject());
+            return IconAndStylesUtil.createDefaultIcon(object.asPrismObject());
         } else if (type.equals(UserType.class)) {
-            return WebComponentUtil.createUserIcon(object.asPrismContainer());
+            return IconAndStylesUtil.createUserIcon(object.asPrismContainer());
         } else if (RoleType.class.equals(type)) {
-            return WebComponentUtil.createRoleIcon(object.asPrismContainer());
+            return IconAndStylesUtil.createRoleIcon(object.asPrismContainer());
         } else if (OrgType.class.equals(type)) {
-            return WebComponentUtil.createOrgIcon();
+            return IconAndStylesUtil.createOrgIcon();
         } else if (ServiceType.class.equals(type)) {
-            return WebComponentUtil.createServiceIcon();
+            return IconAndStylesUtil.createServiceIcon();
         } else if (ShadowType.class.equals(type)) {
-            return WebComponentUtil.createShadowIcon(object.asPrismContainer());
+            return IconAndStylesUtil.createShadowIcon(object.asPrismContainer());
         } else if (type.equals(TaskType.class)) {
-            return WebComponentUtil.createTaskIcon();
+            return IconAndStylesUtil.createTaskIcon();
         } else if (type.equals(ResourceType.class)) {
-            return WebComponentUtil.createResourceIcon(object.asPrismContainer());
+            return IconAndStylesUtil.createResourceIcon(object.asPrismContainer());
         } else if (type.equals(AccessCertificationDefinitionType.class)) {
             return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
         } else if (type.equals(CaseType.class)) {
@@ -237,7 +240,7 @@ public class ColumnUtils {
         if (object == null && !ShadowType.class.equals(type)) {
             return null;
         } else if (type.equals(UserType.class)) {
-            String iconClass = object != null ? WebComponentUtil.createUserIcon(object.asPrismContainer()) : null;
+            String iconClass = object != null ? IconAndStylesUtil.createUserIcon(object.asPrismContainer()) : null;
             String compareStringValue = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE;
             String compareStringValueNormal = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
             String titleValue = "";
@@ -1143,7 +1146,7 @@ public class ColumnUtils {
                     createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
                 @Override
                 public void populateItem(Item<ICellPopulator<S>> item, String componentId, IModel<S> assignmentModel) {
-                    item.add(new Label(componentId, WebComponentUtil.getRelationLabelValue(unwrapSelectableRowModel(assignmentModel), pageBase)));
+                    item.add(new Label(componentId, RelationUtil.getRelationLabelValue(unwrapSelectableRowModel(assignmentModel), pageBase)));
                 }
             });
 
@@ -1206,7 +1209,7 @@ public class ColumnUtils {
                     return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
                             new OperationResult("create_assignment_composited_icon"), pageBase);
                 }
-                String displayType = WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(assignment));
+                String displayType = IconAndStylesUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(assignment));
                 CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
                 iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
                 return iconBuilder.build();

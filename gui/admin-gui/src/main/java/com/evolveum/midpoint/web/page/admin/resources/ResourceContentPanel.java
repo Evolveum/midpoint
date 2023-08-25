@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -567,7 +568,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 });
 
         if (newTask != null) {
-            WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
+            DetailsPageUtil.dispatchToNewObject(newTask, getPageBase());
         }
     }
 
