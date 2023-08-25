@@ -13,6 +13,7 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -388,7 +389,7 @@ public class AssignmentsUtil {
         if (targetRefObj != null) {
             sb.append(pageBase.createStringResource("AbstractRoleAssignmentPanel.relationLabel").getString());
             sb.append(": ");
-            String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(targetRefObj.getRelation());
+            String relationDisplayName = RelationUtil.getRelationHeaderLabelKeyIfKnown(targetRefObj.getRelation());
             sb.append(StringUtils.isNotEmpty(relationDisplayName) ?
                     pageBase.createStringResource(relationDisplayName).getString() :
                     pageBase.createStringResource(targetRefObj.getRelation().getLocalPart()).getString());

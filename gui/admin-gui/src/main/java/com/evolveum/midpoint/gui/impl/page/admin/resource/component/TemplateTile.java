@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -91,7 +92,7 @@ public class TemplateTile<T extends Serializable> extends Tile<T> {
     public static <O extends ObjectType> TemplateTile<SelectableBean<O>> createTileFromObject(SelectableBean<O> object, PageBase pageBase) {
         O obj = object.getValue();
         PrismObject prism = obj != null ? obj.asPrismObject() : null;
-        String icon = WebComponentUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
+        String icon = IconAndStylesUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
 
         String description = object.getValue().getDescription();
         if (obj instanceof UserType) {

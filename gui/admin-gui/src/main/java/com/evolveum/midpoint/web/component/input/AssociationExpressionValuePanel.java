@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,7 +22,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -105,7 +105,7 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
 
             @Override
             protected ObjectFilter createCustomFilter() {
-                return WebComponentUtil.getShadowTypeFilterForAssociation(
+                return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(
                         construction, OPERATION_LOAD_RESOURCE,
                         AssociationExpressionValuePanel.this.getPageBase());
             }

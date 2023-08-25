@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -30,7 +32,6 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
@@ -78,7 +79,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         add(type);
 
         ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<>(ID_RELATION, Model.ofList(getDefaultRelations()),
-                new ListModel<>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(), null);
+                new ListModel<>(getSupportedRelations()), RelationUtil.getRelationChoicesRenderer(), null);
         relation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relation.setOutputMarkupId(true);
         add(relation);
@@ -140,7 +141,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
                     return;
                 }
                 ((PageBase) getPage()).hideMainPopup(target);
-                WebComponentUtil.dispatchToObjectDetailsPage(
+                DetailsPageUtil.dispatchToObjectDetailsPage(
                         task, true, ChooseFocusTypeAndRelationDialogPanel.this);
             }
         };
@@ -196,7 +197,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
     }
 
     protected List<QName> getSupportedRelations() {
-        return WebComponentUtil.getAllRelations(getPageBase());
+        return RelationUtil.getAllRelations(getPageBase());
     }
 
     protected List<QName> getDefaultRelations() {

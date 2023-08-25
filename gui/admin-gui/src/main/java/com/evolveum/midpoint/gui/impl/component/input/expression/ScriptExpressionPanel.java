@@ -17,13 +17,11 @@ import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPan
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -71,7 +69,6 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
         DropDownChoicePanel<ExpressionUtil.Language> languagePanel =
                 WebComponentUtil.createEnumPanel(
-                        ExpressionUtil.Language.class,
                         ID_LANGUAGE_INPUT,
                         WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
                         Model.of(defaultLanguage),

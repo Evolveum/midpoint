@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -19,7 +19,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -151,25 +150,25 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     private ItemVisibility checkShadowContainerVisibility(ItemWrapper itemWrapper, IModel<ShadowWrapper> model) {
 
         ShadowType shadowType = model.getObject().getObjectOld().asObjectable();
-        return WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, shadowType);
+        return ProvisioningObjectsUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, shadowType);
     }
 
     private boolean checkAssociationsVisibility() {
 
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
 
-        return WebComponentUtil.isAssociationSupported(shadowType, resourceModel);
+        return ProvisioningObjectsUtil.isAssociationSupported(shadowType, resourceModel);
 
     }
 
     private boolean isActivationSupported() {
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-        return WebComponentUtil.isActivationSupported(shadowType, resourceModel);
+        return ProvisioningObjectsUtil.isActivationSupported(shadowType, resourceModel);
     }
 
     private boolean isCredentialsSupported() {
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-        return WebComponentUtil.isPasswordSupported(shadowType, resourceModel);
+        return ProvisioningObjectsUtil.isPasswordSupported(shadowType, resourceModel);
     }
 
     private boolean isPolicyStatementSupported() {

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectCollectionSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
@@ -37,7 +38,7 @@ public class ObjectCollectionSearchItemPanel extends SingleSearchItemPanel<Objec
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                WebComponentUtil.dispatchToObjectDetailsPage(ObjectCollectionType.class, finalOid, this, true);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ObjectCollectionType.class, finalOid, this, true);
             }
 
             @Override

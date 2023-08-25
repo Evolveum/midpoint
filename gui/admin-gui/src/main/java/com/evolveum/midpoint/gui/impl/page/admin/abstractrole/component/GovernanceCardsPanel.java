@@ -16,13 +16,14 @@ import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -321,7 +322,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         }
         ret.stream().filter(tile -> tile.getValue().getCustomData() != null)
                 .forEach(tile -> tile.addTag(
-                        WebComponentUtil.getRelationDefinition(
+                        RelationUtil.getRelationDefinition(
                                 (QName) tile.getValue().getCustomData()).getDisplay()));
 
         return ret;
@@ -331,7 +332,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         return assignment.getTargetRef() != null
                 && getObjectWrapper().getOid() != null
                 && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
-                && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE);
+                && RelationUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE);
     }
 
     private WebMarkupContainer createBaseTileForAssignMembers() {
@@ -430,8 +431,8 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             @Override
             protected void onDetails(AjaxRequestTarget target) {
                 SelectableBean<FocusType> bean = model.getObject().getValue();
-                if (WebComponentUtil.hasDetailsPage(bean.getValue().getClass())) {
-                    WebComponentUtil.dispatchToObjectDetailsPage(
+                if (DetailsPageUtil.hasDetailsPage(bean.getValue().getClass())) {
+                    DetailsPageUtil.dispatchToObjectDetailsPage(
                             bean.getValue().getClass(), bean.getValue().getOid(), this, true);
                 } else {
                     error("Could not find proper response page");

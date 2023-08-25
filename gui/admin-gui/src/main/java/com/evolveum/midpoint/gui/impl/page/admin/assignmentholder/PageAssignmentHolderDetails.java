@@ -11,11 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -25,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -35,7 +33,6 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -352,7 +349,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                         String oid = getPrismObject().getOid();
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                        Class<? extends PageBase> page = WebComponentUtil.getObjectDetailsPage(getType());
+                        Class<? extends PageBase> page = DetailsPageUtil.getObjectDetailsPage(getType());
                         navigateToNext(page, parameters);
                         WebComponentUtil.createToastForCreateObject(target, getType());
                     } else {
@@ -370,7 +367,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
                 SerializableConsumer<AjaxRequestTarget> consumer =
-                        consumerTarget -> navigateToNext(WebComponentUtil.getObjectListPage(getType()));
+                        consumerTarget -> navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
                 checkDeltasExitPerformed(consumer, target);
             }
 

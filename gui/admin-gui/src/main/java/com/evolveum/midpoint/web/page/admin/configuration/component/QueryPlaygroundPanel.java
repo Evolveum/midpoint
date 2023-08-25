@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 
 import org.apache.commons.io.IOUtils;
@@ -396,7 +397,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
             // TODO add containerable option too (or split the code sooner?)
             //noinspection unchecked
-            Class<? extends PageBase> listPageClass = WebComponentUtil.getObjectListPage((Class<? extends ObjectType>) request.getType());
+            Class<? extends PageBase> listPageClass = DetailsPageUtil.getObjectListPage((Class<? extends ObjectType>) request.getType());
             String storageKey = listPageClass != null ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart()) : null;
             if (storageKey == null) {
                 // shouldn't occur because of button visibility

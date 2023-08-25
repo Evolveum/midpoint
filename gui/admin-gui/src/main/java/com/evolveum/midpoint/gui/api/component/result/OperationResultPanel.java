@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -138,7 +139,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                     return; // just for safety
                 }
                 ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TASK);
-                WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
             }
         };
         backgroundTaskLink.add(new VisibleBehaviour(
@@ -165,7 +166,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                     return; // just for safety
                 }
                 ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.CASE);
-                WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
             }
         };
         aCase.add(new VisibleBehaviour(() -> getModelObject().getCaseOid() != null && getModelObject().isCaseVisible()));

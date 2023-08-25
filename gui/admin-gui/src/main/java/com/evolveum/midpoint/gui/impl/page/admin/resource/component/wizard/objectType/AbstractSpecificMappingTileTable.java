@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -20,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.SpecificMappingProvider;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -91,7 +91,7 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
     @Override
     protected MappingTile createTileObject(PrismContainerValueWrapper object) {
         MappingTile tile = new MappingTile(object);
-        tile.setIcon(WebComponentUtil.createMappingIcon(object));
+        tile.setIcon(IconAndStylesUtil.createMappingIcon(object));
         switch (tile.getMappingDefinitionType()) {
             case CONFIGURED:
                 tile.setTitle(GuiDisplayNameUtil.getDisplayName(

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -19,7 +20,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -128,7 +128,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             }
             if (object instanceof UserType) {
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
-                        WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION), getPageBase());
+                        RelationUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION), getPageBase());
                 dto.getTargetRef().setRelation(relation);
                 return dto;
             } else {

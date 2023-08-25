@@ -11,12 +11,12 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -75,7 +75,7 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
             @Override
             protected CreateActivationMappingTile createTileObject(PrismContainerDefinition definition) {
                 CreateActivationMappingTile tile = new CreateActivationMappingTile(definition);
-                tile.setIcon(WebComponentUtil.createMappingIcon(definition));
+                tile.setIcon(IconAndStylesUtil.createMappingIcon(definition));
                 try {
                     Item item = definition.instantiate();
                     item.setParent(parentModel.getObject().getNewValue());

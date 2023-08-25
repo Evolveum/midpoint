@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebPage;
@@ -67,7 +69,7 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
     protected void onTemplateChosePerformed(CompiledObjectCollectionView collectionViews, AjaxRequestTarget target) {
         List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionViews);
         try {
-            WebComponentUtil.initNewObjectWithReference(getPageBase(),
+            DetailsPageUtil.initNewObjectWithReference(getPageBase(),
                     getType(),
                     archetypeRef);
         } catch (SchemaException ex) {
@@ -118,7 +120,7 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
     }
 
     private DisplayType getDefaultButtonDisplayType() {
-        String iconCssStyle = WebComponentUtil.createDefaultBlackIcon(getType());
+        String iconCssStyle = IconAndStylesUtil.createDefaultBlackIcon(getType());
 
         String sb = createStringResource("MainObjectListPanel.newObject").getString()
                 + " "

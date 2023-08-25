@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
@@ -160,7 +162,7 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
             //This is really ugly HACK FIXME TODO
             if (item.getDefinition() != null && UserType.F_LINK_REF.equivalent(item.getDefinition().getItemName())) {
                 //noinspection unchecked
-                number = WebComponentUtil.countLinkFroNonDeadShadows((Collection<ObjectReferenceType>) item.getRealValues());
+                number = ProvisioningObjectsUtil.countLinkFroNonDeadShadows((Collection<ObjectReferenceType>) item.getRealValues());
             } else {
                 number = String.valueOf(item.getValues().size());
             }
@@ -233,7 +235,7 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
                 if (prismPropertyValue.getValue() == null) {
                     return "";
                 } else if (isPolyString(prismPropertyValue.getTypeName())) {
-                    return WebComponentUtil.getTranslatedPolyString((PolyString) prismPropertyValue.getValue());
+                    return LocalizationUtil.translatePolyString((PolyString) prismPropertyValue.getValue());
                 } else if (prismPropertyValue.getValue() instanceof Enum) {
                     object = prismPropertyValue.getValue();
                 } else if (prismPropertyValue.getValue() instanceof ObjectType) {

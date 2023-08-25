@@ -10,6 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -77,7 +83,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
                     ObjectReferenceType ort = new ObjectReferenceType();
                     ort.setOid(o.getOid());
                     ort.setType(WebComponentUtil.classToQName(DisplayNamePanel.this.getPageBase().getPrismContext(), o.getClass()));
-                    WebComponentUtil.dispatchToObjectDetailsPage(ort, DisplayNamePanel.this, false);
+                    DetailsPageUtil.dispatchToObjectDetailsPage(ort, DisplayNamePanel.this, false);
                 }
             }
         };
@@ -117,7 +123,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
         if (StringUtils.isBlank(((ObjectType) containerable).getOid())) {
             return false;
         }
-        return WebComponentUtil.hasDetailsPage(containerable.getClass());
+        return DetailsPageUtil.hasDetailsPage(containerable.getClass());
     }
 
     protected WebMarkupContainer createTypeImagePanel(String idTypeImage) {
@@ -138,10 +144,10 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
             return "";
         }
         if (ConstructionType.class.isAssignableFrom(getModelObject().getClass())) {
-            return WebComponentUtil.createDefaultColoredIcon(ResourceType.COMPLEX_TYPE);
+            return IconAndStylesUtil.createDefaultColoredIcon(ResourceType.COMPLEX_TYPE);
         }
 
-        return WebComponentUtil.createDefaultColoredIcon(getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName());
+        return IconAndStylesUtil.createDefaultColoredIcon(getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName());
 
     }
 
@@ -176,7 +182,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
             if (QNameUtil.match(DOMUtil.XSD_STRING, name.getDefinition().getTypeName())) {
                 return (String) name.getRealValue();
             } else if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, name.getDefinition().getTypeName())) {
-                return WebComponentUtil.getTranslatedPolyString((PolyString) name.getRealValue());
+                return LocalizationUtil.translatePolyString((PolyString) name.getRealValue());
             }
 
             return name.getRealValue().toString();
@@ -207,7 +213,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
     // TODO: maybe move relation methods to subclass if we want this panel to be really reusable
 
     private boolean isRelationVisible() {
-        return !WebComponentUtil.isDefaultRelation(getRelation());
+        return !RelationUtil.isDefaultRelation(getRelation());
     }
 
     private boolean isKindIntentVisible(IModel<String> kindIntentLabelModel) {

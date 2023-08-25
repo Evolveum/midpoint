@@ -11,7 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -45,8 +45,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
@@ -168,7 +166,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 referenceList.addAll(getNewObjectReferencesList(collectionView, relation));
             }
             TaskOperationUtils.addArchetypeReferencesList(referenceList);
-            WebComponentUtil.initNewObjectWithReference(getPageBase(),
+            DetailsPageUtil.initNewObjectWithReference(getPageBase(),
                     relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
                             relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
                     referenceList);

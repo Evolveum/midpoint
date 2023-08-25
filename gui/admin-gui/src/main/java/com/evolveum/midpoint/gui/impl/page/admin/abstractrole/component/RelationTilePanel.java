@@ -7,12 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.MemberTilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
@@ -41,7 +40,7 @@ public class RelationTilePanel extends MemberTilePanel<QName> {
         return new LoadableDetachableModel<>() {
             @Override
             protected TemplateTile<QName> load() {
-                RelationDefinitionType definition = WebComponentUtil.getRelationDefinition(relation);
+                RelationDefinitionType definition = RelationUtil.getRelationDefinition(relation);
                 QName relation = definition.getRef();
 
                 DisplayType display = definition.getDisplay();

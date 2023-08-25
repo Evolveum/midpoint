@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -128,7 +130,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(CaseWorkItemType.COMPLEX_TYPE));
+                return GuiDisplayTypeUtil.createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(CaseWorkItemType.COMPLEX_TYPE));
             }
 
         };

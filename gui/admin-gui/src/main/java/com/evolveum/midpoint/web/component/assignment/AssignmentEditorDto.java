@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -418,7 +419,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
         if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation() != null) {
             String relationName = pageBase
-                    .getString(WebComponentUtil.getRelationHeaderLabelKey(assignment.getTargetRef().getRelation()));
+                    .getString(RelationUtil.getRelationHeaderLabelKey(assignment.getTargetRef().getRelation()));
             sb.append(" - ").append(relationName);
         }
 
@@ -775,7 +776,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
     }
 
     public List<QName> getNotAssignedRelationsList() {
-        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
+        List<QName> availableRelations = RelationUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
         List<QName> assignedRelationsList = getAssignedRelationsList();
         if (assignedRelationsList == null || assignedRelationsList.size() == 0) {
             return availableRelations;
@@ -803,7 +804,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         if (defaultAssignmentConstraints.isAllowSameTarget() && defaultAssignmentConstraints.isAllowSameRelation()) {
             return true;
         }
-        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
+        List<QName> availableRelations = RelationUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
         int relationsListSize = availableRelations == null ? 0 : availableRelations.size();
         if (defaultAssignmentConstraints.isAllowSameTarget() && !defaultAssignmentConstraints.isAllowSameRelation()
                 && getAssignedRelationsList().size() < relationsListSize) {

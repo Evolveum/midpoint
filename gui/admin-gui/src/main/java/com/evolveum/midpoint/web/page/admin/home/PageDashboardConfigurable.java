@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.home;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -268,7 +269,7 @@ public class PageDashboardConfigurable extends PageDashboard {
                 if (object == null) {
                     return false;
                 }
-                return WebComponentUtil.hasDetailsPage(object.getClass());
+                return DetailsPageUtil.hasDetailsPage(object.getClass());
         }
         return false;
     }
@@ -402,7 +403,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         if (object == null) {
             return;
         }
-        Class<? extends WebPage> pageType = WebComponentUtil.getObjectDetailsPage(object.getClass());
+        Class<? extends WebPage> pageType = DetailsPageUtil.getObjectDetailsPage(object.getClass());
         if (pageType == null) {
             return;
         }
