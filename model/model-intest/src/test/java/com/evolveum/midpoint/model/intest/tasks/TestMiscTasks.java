@@ -68,6 +68,10 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             new TestTask(TEST_DIR, "task-execute-changes-multi.xml", "8427d4a9-f0cb-4771-ae51-c6979630068a");
     private static final TestTask TASK_ROLE_MEMBERSHIP_MANAGEMENT_BASIC =
             new TestTask(TEST_DIR, "task-role-membership-management-basic.xml", "07e8c51b-e5ae-496e-9b24-4f8701621c0d");
+    private static final TestTask TASK_ROLE_ANALYSIS_CLUSTERING_BASIC =
+            new TestTask(TEST_DIR, "task-role-analysis-clustering-basic.xml", "908e8dd3-66ba-4568-80aa-75c1a4e06b4a");
+    private static final TestTask TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC =
+            new TestTask(TEST_DIR, "task-role-analysis-pattern-detection-basic.xml", "a3429097-52c4-4474-80b7-fc1667584831");
 
     private static final TestObject<RoleType> ROLE_BUSINESS_1 = TestObject.file(
             TEST_DIR, "role-business-1.xml", "b48628a2-a032-47c2-947d-adc51940e920");
@@ -626,5 +630,37 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                     .assertRole(ROLE_APPLICATION_1.oid)
                     .assertRole(ROLE_APPLICATION_2.oid);
         // @formatter:on
+    }
+
+    /** Currently does nothing, as the activity handler has no implementation. */
+    @Test
+    public void test400RoleAnalysisClusteringBasic() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("task is run");
+        TASK_ROLE_ANALYSIS_CLUSTERING_BASIC.init(this, task, result);
+        TASK_ROLE_ANALYSIS_CLUSTERING_BASIC.rerun(result); // asserts success
+
+        then("task is OK");
+        TASK_ROLE_ANALYSIS_CLUSTERING_BASIC.assertAfter()
+                .display()
+                .assertProgress(1);
+    }
+
+    /** Currently does nothing, as the activity handler has no implementation. */
+    @Test
+    public void test410RoleAnalysisPatternDetectionBasic() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("task is run");
+        TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.init(this, task, result);
+        TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.rerun(result); // asserts success
+
+        then("task is OK");
+        TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.assertAfter()
+                .display()
+                .assertProgress(1);
     }
 }

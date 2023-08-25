@@ -2043,6 +2043,30 @@
                         <xsd:documentation>
                             Executes the "role membership management" activity.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.8</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="roleAnalysisClustering" type="tns:RoleAnalysisClusteringWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.8</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="roleAnalysisPatternDetection" type="tns:RoleAnalysisPatternDetectionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.8</a:since>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
@@ -9135,4 +9159,62 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="roleMembershipManagementWorkDefinition" type="tns:RoleMembershipManagementWorkDefinitionType"/>
+
+    <xsd:complexType name="RoleAnalysisClusteringWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="sessionRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:RoleAnalysisSessionType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisClusteringWorkDefinition" type="tns:RoleAnalysisClusteringWorkDefinitionType"/>
+
+    <xsd:complexType name="RoleAnalysisPatternDetectionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="clusterRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:RoleAnalysisClusterType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisPatternDetectionWorkDefinition" type="tns:RoleAnalysisPatternDetectionWorkDefinitionType"/>
 </xsd:schema>
