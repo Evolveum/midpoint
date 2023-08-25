@@ -255,8 +255,12 @@ public class CollectionProcessor {
         return view;
     }
 
-    private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec,
-            Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
+    private void compileObjectCollectionView(
+            CompiledObjectCollectionView existingView,
+            CollectionRefSpecificationType collectionSpec,
+            Class<?> targetTypeClass,
+            Task task,
+            OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
@@ -313,7 +317,13 @@ public class CollectionProcessor {
         }
     }
 
-    private void compileArchetypeCollectionView(CompiledObjectCollectionView existingView, Class<? extends Containerable> targetTypeClass, String collectionRefOid, CollectionRefSpecificationType baseCollectionRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private void compileArchetypeCollectionView(
+            CompiledObjectCollectionView existingView,
+            Class<?> targetTypeClass,
+            String collectionRefOid,
+            CollectionRefSpecificationType baseCollectionRef,
+            Task task,
+            OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         RefFilter archetypeFilter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRefOid)
                 .buildFilter();
@@ -358,7 +368,7 @@ public class CollectionProcessor {
     }
 
     private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType baseCollectionSpec,
-            @NotNull ObjectCollectionType objectCollectionType, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
+            @NotNull ObjectCollectionType objectCollectionType, Class<?> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
@@ -438,7 +448,7 @@ public class CollectionProcessor {
             CompiledObjectCollectionView existingView,
             Collection<SelectorOptions<GetOperationOptions>> options,
             CollectionRefSpecificationType baseCollectionRef,
-            Class<? extends Containerable> targetTypeClass,
+            Class<?> targetTypeClass,
             Task task,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -451,7 +461,7 @@ public class CollectionProcessor {
             SearchFilterType filter,
             CompiledObjectCollectionView existingView,
             CollectionRefSpecificationType baseCollectionRef,
-            Class<? extends Containerable> explicitTargetTypeClass,
+            Class<?> explicitTargetTypeClass,
             Task task,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -511,11 +521,15 @@ public class CollectionProcessor {
             ExpressionEvaluationException, ObjectNotFoundException {
 
         QName targetObjectType = existingView.getContainerType();
-        Class<? extends Containerable> targetTypeClass = ObjectType.class;
+        Class<?> targetTypeClass = ObjectType.class;
         if (targetObjectType != null) {
-            PrismContainerDefinition<? extends Containerable> containerDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetObjectType);
-            if (containerDefinition != null) {
-                targetTypeClass = containerDefinition.getTypeClass();
+            if (QNameUtil.match(targetObjectType, ObjectReferenceType.COMPLEX_TYPE)) {
+                targetTypeClass = ObjectReferenceType.class;
+            } else {
+                PrismContainerDefinition<? extends Containerable> containerDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetObjectType);
+                if (containerDefinition != null) {
+                    targetTypeClass = containerDefinition.getTypeClass();
+                }
             }
         }
         compileObjectCollectionView(existingView, collectionSpec, targetTypeClass, task, result);
