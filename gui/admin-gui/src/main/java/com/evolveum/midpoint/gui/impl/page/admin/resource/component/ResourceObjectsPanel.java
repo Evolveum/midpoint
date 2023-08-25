@@ -12,29 +12,30 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -44,10 +45,13 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -74,6 +78,8 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
     private static final String ID_CONFIGURATION = "configuration";
+    private static final String ID_LIFECYCLE_STATE = "lifecycleState";
+    private static final String OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE = DOT_CLASS + "setLyfecycleStateForObjectType";
     private static final String ID_STATISTICS = "statistics";
     private static final String ID_SHOW_STATISTICS = "showStatistics";
     private static final String ID_CREATE_TASK = "createTask";
@@ -89,6 +95,8 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     protected void initLayout() {
         createPanelTitle();
         createObjectTypeChoice();
+
+        createLifecycleStatePanel();
         createConfigureButton();
         createTaskCreateButton();
 
@@ -98,6 +106,59 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         createShadowTable();
 
         //TODO tasks
+    }
+
+    private void createLifecycleStatePanel() {
+        IModel<PrismPropertyWrapper<String>> model = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismPropertyWrapper<String> load() {
+                ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                        .append(getSelectedObjectType().asPrismContainerValue().getPath())
+                        .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
+                try {
+                    return getObjectWrapperModel().getObject().findProperty(pathToProperty);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find property with path " + pathToProperty);
+                }
+                return null;
+            }
+        };
+
+        LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, model) {
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        Task task = getPageBase().createSimpleTask(OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE);
+                        OperationResult result = task.getResult();
+                        ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                                .append(getSelectedObjectType().asPrismContainerValue().getPath())
+                                .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
+
+                        WebComponentUtil.saveLifeCycleStateOnPath(
+                                getObjectWrapperObject(),
+                                pathToProperty,
+                                target,
+                                task,
+                                result,
+                                getPageBase());
+
+                        try {
+                            if (result.isSuccess()) {
+                                String realValue = model.getObject().getValue().getRealValue();
+                                model.getObject().getValue().getOldValue().setValue(realValue);
+                            }
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't get value of " + model.getObject());
+                        }
+                    }
+                });
+            }
+        };
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     private void createPanelTitle() {

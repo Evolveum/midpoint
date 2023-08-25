@@ -2000,17 +2000,27 @@ public final class WebComponentUtil {
     }
 
     public static void saveObjectLifeCycle(
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull PrismObject resource,
             String operation,
             AjaxRequestTarget target,
             PageBase pageBase) {
         Task task = pageBase.createSimpleTask(operation);
         OperationResult parentResult = new OperationResult(operation);
+        saveLifeCycleStateOnPath(resource, ObjectType.F_LIFECYCLE_STATE, target, task, parentResult, pageBase);
+    }
 
+    public static void saveLifeCycleStateOnPath(
+            @NotNull PrismObject resource,
+            ItemPath pathToProperty,
+            AjaxRequestTarget target,
+            Task task,
+            OperationResult parentResult,
+            PageBase pageBase) {
         try {
+            Object realValue = resource.findProperty(pathToProperty).getRealValue();
             ObjectDelta<ResourceType> objectDelta = pageBase.getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(
-                            ResourceType.class, resource.getOid(), ResourceType.F_LIFECYCLE_STATE, resource.asObjectable().getLifecycleState());
+                            ResourceType.class, resource.getOid(), pathToProperty, realValue);
 
             pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
 
@@ -2019,11 +2029,11 @@ public final class WebComponentUtil {
                 | PolicyViolationException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error changing resource lifecycle state", e);
             parentResult.recordFatalError(
-                    pageBase.createStringResource("OperationalButtonsPanel.setSimulationMode.failed").getString(), e);
+                    pageBase.createStringResource("OperationalButtonsPanel.changeLifecycleState.failed").getString(), e);
         }
 
         parentResult.computeStatus();
-        pageBase.showResult(parentResult, "OperationalButtonsPanel.setSimulationMode.failed");
+        pageBase.showResult(parentResult, "OperationalButtonsPanel.changeLifecycleState.failed");
         target.add(pageBase.getFeedbackPanel());
     }
 

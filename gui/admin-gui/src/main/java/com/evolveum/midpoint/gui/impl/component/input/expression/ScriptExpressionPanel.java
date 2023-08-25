@@ -207,7 +207,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         }
 
         public ScriptExpressionEvaluatorType toEvaluator() {
-            return new ScriptExpressionEvaluatorType().code(code).language(language.getLanguage());
+            return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getLanguage());
         }
 
         public ScriptExpressionWrapper code(String code) {
