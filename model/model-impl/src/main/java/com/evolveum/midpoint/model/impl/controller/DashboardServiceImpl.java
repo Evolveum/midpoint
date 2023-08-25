@@ -356,6 +356,7 @@ public class DashboardServiceImpl implements DashboardService {
             Collection<EvaluatedPolicyRule> evalPolicyRules = new ArrayList<>();
             if (collectionSpec.getCollectionRef() != null
                     && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionSpec.getCollectionRef().getType())) {
+                // [EP:APSO] DONE, collection is fetched from the repository
                 ObjectCollectionType valueCollection = getObjectCollectionType(widget, task, result);
                 evalPolicyRules = modelInteractionService.evaluateCollectionPolicyRules(
                         valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());

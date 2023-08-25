@@ -9058,7 +9058,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="multiSource" type="tns:IdentityDataHandlingType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:MultiSourceDataHandlingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of handling of the data in "multi-source" mode.
@@ -9156,7 +9156,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="multiSource" type="tns:IdentityItemDefinitionType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:MultiSourceItemDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Marks the item as the one with multiple sources. Such items are not stored directly in their

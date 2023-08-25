@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -375,7 +377,8 @@ public class LensUtil {
                 taskExecutionMode);
     }
 
-    public static @NotNull <R extends AbstractRoleType> List<ConfigurationItem<AssignmentType>> getForcedAssignments(
+    // [EP:APSO] DONE origins are correct here
+    public static @NotNull <R extends AbstractRoleType> List<AssignmentConfigItem> getForcedAssignments(
             LifecycleStateModelType lifecycleModel, String stateName,
             ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
@@ -394,7 +397,7 @@ public class LensUtil {
                     prismContext.queryFactory().createQuery(forcedAssignmentSpec.filter()),
                     createReadOnlyCollection(),
                     (object, result1) -> {
-                        forcedAssignments.add(
+                        forcedAssignments.add( // [EP:APSO] this results in pure generated assignment, no expressions
                                 ObjectTypeUtil.createAssignmentTo(object));
                         return true;
                     },
@@ -402,9 +405,12 @@ public class LensUtil {
         }
         // Technically, the targetRef comes from forced assignment specification (potentially from various sources),
         // but for the purpose of expression profile determination, these assignments are considered to be generated
-        // i.e. safe to evaluate under any profile. [Moreover, there are no expressions in these assignments ;)]
+        // i.e. safe to evaluate under any profile. [Moreover, there are no expressions in these assignments anyway ;)]
         var originProvider = OriginProvider.generated();
-        return ConfigurationItem.ofList(new ArrayList<>(forcedAssignments), originProvider);
+        return ConfigurationItem.ofList(
+                new ArrayList<>(forcedAssignments),
+                originProvider,
+                AssignmentConfigItem.class);
     }
 
     public static boolean isFocusValid(

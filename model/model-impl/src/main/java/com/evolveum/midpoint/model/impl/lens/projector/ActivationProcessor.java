@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -350,6 +351,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account {}", projCtxDesc);
             return;
         }
+        // [EP:M:OM] DONE, the bean is bound to the resource
         ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
         if (activationDefinitionBean == null) {
             LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", projCtxDesc);
@@ -370,7 +372,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         if (capStatus != null) {
             evaluateActivationMapping(context, projCtx, activationDefinitionBean,
-                    activationDefinitionBean.getAdministrativeStatus(),
+                    activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
@@ -384,8 +386,8 @@ public class ActivationProcessor implements ProjectorProcessor {
         } else if (capValidFrom == null && !ExpressionUtil.hasExplicitTarget(validFromMappingType.getOutbound())) {
             LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
-            evaluateActivationMapping(context, projCtx,
-                    activationDefinitionBean, activationDefinitionBean.getValidFrom(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean,
+                    activationDefinitionBean.getValidFrom(), // [EP:M:OM] DONE
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
@@ -397,17 +399,16 @@ public class ActivationProcessor implements ProjectorProcessor {
         } else if (capValidTo == null && !ExpressionUtil.hasExplicitTarget(validToMappingType.getOutbound())) {
             LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
-            evaluateActivationMapping(context, projCtx,
-                    activationDefinitionBean, activationDefinitionBean.getValidTo(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean,
+                    activationDefinitionBean.getValidTo(), // [EP:M:OM] DONE
                     SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
         }
 
         if (capLockoutStatus != null) {
-            evaluateActivationMapping(context, projCtx,
-                    activationDefinitionBean,
-                    activationDefinitionBean.getLockoutStatus(),
+            evaluateActivationMapping(context, projCtx, activationDefinitionBean,
+                    activationDefinitionBean.getLockoutStatus(), // [EP:M:OM] DONE
                     SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
                     capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
         } else {
@@ -486,16 +487,24 @@ public class ActivationProcessor implements ProjectorProcessor {
     /**
      * We'll evaluate the mappings just to create the triggers.
      */
-    private <F extends FocusType> void processActivationMappingsFuture(LensContext<F> context, LensProjectionContext projCtx,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <F extends FocusType> void processActivationMappingsFuture(
+            LensContext<F> context,
+            LensProjectionContext projCtx,
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         String accCtxDesc = projCtx.toHumanReadableString();
         SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
 
         LOGGER.trace("processActivationUserFuture starting for {}. Existing decision = {}", projCtx, decision);
 
-        if (projCtx.isGone() || decision == SynchronizationPolicyDecision.BROKEN
+        if (projCtx.isGone()
+                || decision == SynchronizationPolicyDecision.BROKEN
                 || decision == SynchronizationPolicyDecision.IGNORE
-                || decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
+                || decision == SynchronizationPolicyDecision.UNLINK
+                || decision == SynchronizationPolicyDecision.DELETE) {
             return;
         }
 
@@ -514,6 +523,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         if (resourceObjectDefinition == null) {
             return;
         }
+        // [EP:M:OM] DONE, as the bean is bound to the resource
         ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
         if (activationDefinitionBean == null) {
             return;
@@ -530,22 +540,25 @@ public class ActivationProcessor implements ProjectorProcessor {
         ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
 
         if (capStatus != null) {
-            evaluateActivationMapping(context, projCtx,
-                    activationDefinitionBean, activationDefinitionBean.getAdministrativeStatus(),
+            evaluateActivationMapping(
+                    context, projCtx, activationDefinitionBean, // [EP:M:OM] DONE
+                    activationDefinitionBean.getAdministrativeStatus(),
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     capActivation, now, MappingTimeEval.FUTURE, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
         }
 
         if (capValidFrom != null) {
-            evaluateActivationMapping(context, projCtx,
-                    activationDefinitionBean, activationDefinitionBean.getAdministrativeStatus(),
+            evaluateActivationMapping(
+                    context, projCtx, activationDefinitionBean,
+                    activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
         if (capValidTo != null) {
-            evaluateActivationMapping(context, projCtx,
-                    activationDefinitionBean, activationDefinitionBean.getAdministrativeStatus(),
+            evaluateActivationMapping(
+                    context, projCtx, activationDefinitionBean,
+                    activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
                     SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
@@ -596,10 +609,12 @@ public class ActivationProcessor implements ProjectorProcessor {
         MappingEvaluatorParams<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>, ShadowType, F> params =
                 new MappingEvaluatorParams<>();
 
+        // [EP:M:OM] DONE as the outbound mappings are bound to the resource in question
         OriginProvider<MappingType> originProvider =
                 item -> ConfigurationItemOrigin.inResourceOrAncestor(projCtx.getResource());
 
-        params.setMappingBeans(ConfigurationItem.ofList(outbound, originProvider));
+        params.setMappingConfigItems(
+                ConfigurationItem.ofList(outbound, originProvider, MappingConfigItem.class)); // [EP:M:OM] DONE
         params.setMappingDesc("outbound existence mapping in projection " + projCtxDesc);
         params.setNow(now);
         params.setAPrioriTargetObject(projCtx.getObjectOld());
@@ -759,11 +774,18 @@ public class ActivationProcessor implements ProjectorProcessor {
     }
 
     private <T, F extends FocusType> void evaluateActivationMapping(
-            final LensContext<F> context, final LensProjectionContext projCtx,
-            ResourceActivationDefinitionType activationDefinitionBean, ResourceBidirectionalMappingType bidirectionalMappingType,
-            final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
-            final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final MappingTimeEval current,
-            String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            LensContext<F> context,
+            LensProjectionContext projCtx,
+            ResourceActivationDefinitionType activationDefinitionBean,
+            ResourceBidirectionalMappingType bidirectionalMappingBean, // [EP:M:OM] DONE 8/8
+            ItemPath focusPropertyPath,
+            ItemPath projectionPropertyPath,
+            ActivationCapabilityType capActivation,
+            XMLGregorianCalendar now,
+            MappingTimeEval current,
+            String desc, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         if (MappingTimeEval.FUTURE.equals(current)) {
             createTriggerForPredefinedActivationMapping(
@@ -819,21 +841,29 @@ public class ActivationProcessor implements ProjectorProcessor {
                     return builder;
                 };
 
-        evaluateOutboundMapping(context, projCtx, bidirectionalMappingType, focusPropertyPath, projectionPropertyPath, initializer,
+        evaluateOutboundMapping( // [EP:M:OM] DONE
+                context, projCtx, bidirectionalMappingBean, focusPropertyPath, projectionPropertyPath, initializer,
                 now, current, desc + " outbound activation mapping", task, result);
     }
 
-    private <T, F extends FocusType> void evaluateOutboundMapping(final LensContext<F> context,
-            final LensProjectionContext projCtx, ResourceBidirectionalMappingType bidirectionalMappingType,
-            final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
-            final MappingInitializer<PrismPropertyValue<T>, PrismPropertyDefinition<T>> initializer,
-            XMLGregorianCalendar now, final MappingTimeEval evaluateCurrent, String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <T, F extends FocusType> void evaluateOutboundMapping(
+            LensContext<F> context,
+            LensProjectionContext projCtx,
+            ResourceBidirectionalMappingType bidirectionalMappingBean, // [EP:M:OM] DONE 1/1
+            ItemPath focusPropertyPath,
+            ItemPath projectionPropertyPath,
+            MappingInitializer<PrismPropertyValue<T>, PrismPropertyDefinition<T>> initializer,
+            XMLGregorianCalendar now,
+            MappingTimeEval evaluateCurrent,
+            String desc, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
-        if (bidirectionalMappingType == null) {
+        if (bidirectionalMappingBean == null) {
             LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
             return;
         }
-        List<MappingType> outboundMappingBeans = bidirectionalMappingType.getOutbound();
+        List<MappingType> outboundMappingBeans = bidirectionalMappingBean.getOutbound();
         if (outboundMappingBeans == null || outboundMappingBeans.isEmpty()) {
             LOGGER.trace("No outbound definition in '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
             return;
@@ -857,11 +887,13 @@ public class ActivationProcessor implements ProjectorProcessor {
                     return builder;
                 };
 
+        // [EP:M:OM] DONE as the outboundMappingBeans are shown to belong to the resource in question, see above
         OriginProvider<MappingType> originProvider =
                 item -> ConfigurationItemOrigin.inResourceOrAncestor(projCtx.getResourceRequired());
 
         MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
-        params.setMappingBeans(ConfigurationItem.ofList(outboundMappingBeans, originProvider));
+        params.setMappingConfigItems( // [EP:M:OM] DONE
+                ConfigurationItem.ofList(outboundMappingBeans, originProvider, MappingConfigItem.class));
         params.setMappingDesc(desc + " in projection " + projCtxDesc);
         params.setNow(now);
         params.setInitializer(internalInitializer);
@@ -1056,7 +1088,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        ResourceBidirectionalMappingType lifecycleStateMapping = getLifecycleStateMapping(projCtx);
+        ResourceBidirectionalMappingType lifecycleStateMapping = getLifecycleStateMapping(projCtx); // [EP:M:OM] DONE
         if (lifecycleStateMapping == null || lifecycleStateMapping.getOutbound() == null) {
 
             if (!projCtx.isAdd()) {
@@ -1094,7 +1126,9 @@ public class ActivationProcessor implements ProjectorProcessor {
         } else {
 
             LOGGER.trace("Computing projection lifecycle (using mapping): {}", lifecycleStateMapping);
-            evaluateActivationMapping(context, projCtx, null, lifecycleStateMapping,
+            evaluateActivationMapping(
+                    context, projCtx, null,
+                    lifecycleStateMapping, // [EP:M:OM] DONE
                     SchemaConstants.PATH_LIFECYCLE_STATE, SchemaConstants.PATH_LIFECYCLE_STATE,
                     null, now, MappingTimeEval.CURRENT, ObjectType.F_LIFECYCLE_STATE.getLocalPart(), task, result);
         }
@@ -1104,6 +1138,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         context.checkConsistenceIfNeeded();
     }
 
+    // [EP:M:OM] DONE, the bean is obtained from the resource
     @Nullable
     private ResourceBidirectionalMappingType getLifecycleStateMapping(LensProjectionContext projCtx)
             throws SchemaException, ConfigurationException {

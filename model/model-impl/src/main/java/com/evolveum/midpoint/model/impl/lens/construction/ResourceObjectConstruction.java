@@ -68,6 +68,8 @@ public abstract class ResourceObjectConstruction<
 
     /**
      * The object type or object class definition for the resource object.
+     *
+     * [EP:M:Tag] DONE we rely on the fact that this definition is related to {@link #getResource()}
      */
     private ResourceObjectDefinition resourceObjectDefinition;
 
@@ -133,7 +135,9 @@ public abstract class ResourceObjectConstruction<
         }
     }
 
-    private void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private void createEvaluatedConstructions(Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         evaluatedConstructionTriple = PrismContext.get().deltaFactory().createDeltaSetTriple();
 
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTriple(task, result);
@@ -164,10 +168,11 @@ public abstract class ResourceObjectConstruction<
             return null;
         }
 
+        // [EP:M:Tag] DONE, obviously the tag corresponds to the resource
         ConfigurationItemOrigin origin = ConfigurationItemOrigin.inResourceOrAncestor(getResource());
 
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
-                getMappingFactory().createMappingBuilder(
+                getMappingFactory().createMappingBuilder( // [EP:M:Tag] DONE
                         tagMappingBean, origin,
                         "for outbound tag mapping in " + getSource());
 

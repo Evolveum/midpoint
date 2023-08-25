@@ -33,7 +33,7 @@ public class AutoassignRoleMappingEvaluationRequest
     private AssignmentType assignment;
 
     public AutoassignRoleMappingEvaluationRequest(
-            @NotNull AutoAssignMappingConfigItem mapping,
+            @NotNull AutoAssignMappingConfigItem mapping, // [EP:M:AAFM] DONE 1/1
             @NotNull AbstractRoleType role) {
         super(mapping.value(), mapping.origin(), MappingKindType.AUTO_ASSIGN, role);
     }

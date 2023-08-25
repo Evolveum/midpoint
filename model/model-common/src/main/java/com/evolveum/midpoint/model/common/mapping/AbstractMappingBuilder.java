@@ -97,6 +97,7 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
+    // [EP:M:OM] [EP:M:IM] [EP:M:Tag] [EP:M:FM] [EP:M:ARC] [EP:M:MM] [EP:M:PRC] DONE 6/6
     public RT mappingBean(MBT bean, @NotNull ConfigurationItemOrigin origin) {
         mappingConfigItem = ConfigurationItem.of(bean, origin);
         return typedThis();

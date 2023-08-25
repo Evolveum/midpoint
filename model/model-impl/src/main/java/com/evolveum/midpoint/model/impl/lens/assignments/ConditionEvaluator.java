@@ -44,7 +44,7 @@ class ConditionEvaluator {
 
     @NotNull ConditionState computeConditionState(
             @NotNull MappingType condition,
-            @NotNull ConfigurationItemOrigin conditionOrigin,
+            @NotNull ConfigurationItemOrigin conditionOrigin, // [EP:M:ARC] DONE^
             ObjectType source,
             String description,
             OperationResult result)
@@ -56,10 +56,10 @@ class ConditionEvaluator {
         } else {
             AssignmentPathVariables assignmentPathVariables = ctx.assignmentPath.computePathVariablesRequired();
             PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleAbsolute =
-                    evaluateCondition(
+                    evaluateCondition( // [EP:M:ARC] DONE^
                             condition, conditionOrigin, source, assignmentPathVariables, description, true, result);
             PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleRelative =
-                    evaluateCondition(
+                    evaluateCondition( // [EP:M:ARC] DONE^
                             condition, conditionOrigin, source, assignmentPathVariables, description, false, result);
             // TODO eliminate repeated "new" computation
             boolean condOld = ExpressionUtil.computeConditionResult(conditionTripleAbsolute.getNonPositiveValues());
@@ -71,7 +71,7 @@ class ConditionEvaluator {
 
     private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(
             MappingType condition,
-            ConfigurationItemOrigin mappingOrigin,
+            ConfigurationItemOrigin mappingOrigin, // [EP:M:ARC] DONE 2/2
             ObjectType source,
             @NotNull AssignmentPathVariables assignmentPathVariables,
             String contextDescription,
@@ -82,7 +82,7 @@ class ConditionEvaluator {
         MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 ctx.ae.mappingFactory.createMappingBuilder();
         ObjectDeltaObject<?> focusOdo = absolute ? ctx.ae.focusOdoAbsolute : ctx.ae.focusOdoRelative;
-        builder = builder.mappingBean(condition, mappingOrigin)
+        builder = builder.mappingBean(condition, mappingOrigin) // [EP:M:ARC] DONE^
                 .mappingKind(MappingKindType.ASSIGNMENT_CONDITION)
                 .contextDescription((absolute ? "(absolute) " : "(relative) ") + contextDescription)
                 .sourceContext(focusOdo)

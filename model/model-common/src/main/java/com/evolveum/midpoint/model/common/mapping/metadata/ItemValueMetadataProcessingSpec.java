@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.MetadataMappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,6 +52,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemValueMetadataProcessingSpec.class);
 
+    /** [EP:M:MM] DONE 2/2 (two places at which elements are added to this collection) */
     @NotNull private final Collection<MetadataMappingConfigItem> mappings = new ArrayList<>();
     @NotNull private final Collection<MetadataItemDefinitionType> itemDefinitions = new ArrayList<>();
     @NotNull private final Collection<ItemPath> metadataPathsToIgnore = new ArrayList<>();
@@ -141,7 +141,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         }
     }
 
-    /** Assumes that `handling` is embedded in its originating object. */
+    /** [EP:M:MM] DONE 2/2 Checked that `handling` is embedded in its originating object. */
     private void addHandling(@Nullable MetadataHandlingType handling, @NotNull ItemPath dataPath)
             throws SchemaException {
         if (isHandlingApplicable(handling, dataPath)) {
@@ -155,7 +155,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
                 && ProcessingUtil.doesApplicabilityMatch(handling.getApplicability(), dataPath);
     }
 
-    /** Assumes that each item is embedded in its originating object. */
+    /** [EP:M:MM] Assumes that each item is embedded in its originating object. */
     private void addMetadataItems(List<MetadataItemDefinitionType> items, ItemPath dataPath)
             throws SchemaException {
         for (MetadataItemDefinitionType item : items) {
@@ -166,7 +166,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
                         mappings.add(
                                 MetadataMappingConfigItem.of(
                                         provideDefaultTarget(itemMapping, item),
-                                        ConfigurationItemOrigin.embedded(itemMapping)));
+                                        ConfigurationItemOrigin.embedded(itemMapping))); // [EP:M:MM] DONE
                     }
                 }
             }
@@ -205,12 +205,12 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
         for (MetadataMappingType mapping : mappingsToAdd) {
             if (isMetadataMappingApplicable(mapping)) {
                 mappings.add(
-                        MetadataMappingConfigItem.of(mapping, originProvider));
+                        MetadataMappingConfigItem.of(mapping, originProvider)); // [EP:M:MM] DONE 2/2
             }
         }
     }
 
-    public @NotNull Collection<ConfigurationItem<MetadataMappingType>> getMappings() {
+    public @NotNull Collection<MetadataMappingConfigItem> getMappings() {
         return Collections.unmodifiableCollection(mappings);
     }
 

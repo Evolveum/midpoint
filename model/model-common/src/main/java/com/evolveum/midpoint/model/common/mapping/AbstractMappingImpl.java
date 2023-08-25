@@ -199,6 +199,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Information on the object where the mapping is defined (e.g. role, resource, and so on).
      * Used for diagnostic and reporting purposes.
+     *
+     * Probably will be replaced by the origin in {@link #mappingConfigItem}.
      */
     private final ObjectType originObject;
 
@@ -760,9 +762,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (explicitExpressionProfile != null) {
             profile = explicitExpressionProfile;
         } else {
-            var configItem = Objects.requireNonNull(mappingConfigItem, "no mapping");
             profile = ModelCommonBeans.get().expressionProfileManager.determineExpressionProfileStrict(
-                    configItem.origin(), getTask(), result);
+                    mappingConfigItem.origin(), getTask(), result);
         }
         expressionProfileReference.setValue(profile);
         expressionProfileReference.freeze();

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySuppl
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -146,11 +147,14 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             return;
         }
 
+        // [EP:M:OM] DONE as the mapping obviously belong to the resource
         List<MappingType> outboundMappingBeans = objectDefinition.getPasswordOutbound();
         if (outboundMappingBeans.isEmpty()) {
             LOGGER.trace("No outbound password mapping for {}, skipping credentials processing", key);
             return;
         }
+        OriginProvider<MappingType> originProvider =
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(projCtx.getResourceRequired());
 
         ObjectDeltaObject<F> objectDeltaObject = focusContext.getObjectDeltaObjectAbsolute();
 
@@ -271,11 +275,9 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                     return builder;
                 };
 
-        OriginProvider<MappingType> originProvider =
-                item -> ConfigurationItemOrigin.inResourceOrAncestor(projCtx.getResourceRequired());
-
         MappingEvaluatorParams<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>, ShadowType, F> params = new MappingEvaluatorParams<>();
-        params.setMappingBeans(ConfigurationItem.ofList(outboundMappingBeans, originProvider));
+        params.setMappingConfigItems( // [EP:M:OM] DONE, see above
+                ConfigurationItem.ofList(outboundMappingBeans, originProvider, MappingConfigItem.class));
         params.setMappingDesc("password mapping" + " in projection " + projCtxDesc);
         params.setNow(now);
         params.setInitializer(internalInitializer);

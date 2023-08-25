@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
 import jakarta.xml.bind.JAXBElement;
 
@@ -86,12 +86,14 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     @NotNull private final D itemPrismDefinition;
 
     /**
-     * Mapping definition.
+     * Mapping definition including the origin.
+     *
+     * [EP:M:OM] DONE
      */
-    @NotNull private final ConfigurationItem<MappingType> mappingBeanWithOrigin;
+    @NotNull private final MappingConfigItem mappingConfigItem;
 
     /**
-     * Mapping origin.
+     * Legacy mapping "origin". (Will be probably removed soon.)
      */
     @NotNull private final OriginType originType;
 
@@ -111,7 +113,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             @NotNull ItemPath itemPath,
             @NotNull RD itemRefinedDefinition,
             @NotNull D itemPrismDefinition,
-            @NotNull ConfigurationItem<MappingType> mappingBeanWithOrigin,
+            @NotNull MappingConfigItem mappingConfigItem, // [EP:M:OM] DONE 2/2
             @NotNull OriginType originType,
             @NotNull MappingKindType mappingKind) {
         this.constructionEvaluation = constructionEvaluation;
@@ -120,7 +122,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         this.itemPath = itemPath;
         this.itemRefinedDefinition = itemRefinedDefinition;
         this.itemPrismDefinition = itemPrismDefinition;
-        this.mappingBeanWithOrigin = mappingBeanWithOrigin;
+        this.mappingConfigItem = mappingConfigItem;
         this.originType = originType;
         this.mappingKind = mappingKind;
     }
@@ -163,7 +165,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     }
 
     public @NotNull MappingType getMappingBean() {
-        return mappingBeanWithOrigin.value();
+        return mappingConfigItem.value();
     }
 
     boolean hasEvaluatedMapping() {
@@ -175,8 +177,8 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        MappingBuilder<V, D> mappingBuilder =
-                construction.getMappingFactory().createMappingBuilder(mappingBeanWithOrigin, getShortDesc());
+        MappingBuilder<V, D> mappingBuilder = // [EP:M:OM] DONE
+                construction.getMappingFactory().createMappingBuilder(mappingConfigItem, getShortDesc());
 
         LensProjectionContext projCtx = constructionEvaluation.projectionContext;
         ObjectDeltaObject<ShadowType> projectionOdo = constructionEvaluation.getProjectionOdo();
@@ -234,7 +236,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             @Override
             public ValuePolicyType get(OperationResult result) {
 
-                ExpressionType expressionBean = mappingBeanWithOrigin.value().getExpression();
+                ExpressionType expressionBean = mappingConfigItem.value().getExpression();
                 if (expressionBean == null) {
                     return null;
                 }

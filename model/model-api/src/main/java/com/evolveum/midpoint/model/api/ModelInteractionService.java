@@ -526,6 +526,8 @@ public interface ModelInteractionService {
      * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
      * But for now we support only policy rules that are directly placed in collection assignments.
      * EXPERIMENTAL. Quite likely to change later.
+     *
+     * [EP:APSO] DONE We assume that the collection is provided from the repository! Verified with the caller.
      */
     @Experimental
     @NotNull

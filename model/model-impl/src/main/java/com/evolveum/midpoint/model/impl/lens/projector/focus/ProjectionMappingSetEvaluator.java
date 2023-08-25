@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -91,13 +91,14 @@ public class ProjectionMappingSetEvaluator {
         Map<UniformItemPath, MappingOutputStruct<V>> outputTripleMap = new HashMap<>();
         XMLGregorianCalendar nextRecomputeTime = null;
         String triggerOriginDescription = null;
-        Collection<ConfigurationItem<MappingType>> mappingBeans = params.getMappingBeans();
-        Collection<MappingImpl<V, D>> mappings = new ArrayList<>(mappingBeans.size());
+        Collection<MappingConfigItem> mappingConfigItems = params.getMappingConfigItems(); // [EP:M:OM] [EP:M:IM] DONE
+        Collection<MappingImpl<V, D>> mappings = new ArrayList<>(mappingConfigItems.size());
 
-        for (ConfigurationItem<MappingType> mappingBeanWithOrigin : mappingBeans) {
+        for (MappingConfigItem mappingConfigItem : mappingConfigItems) {
 
-            MappingType mappingBean = mappingBeanWithOrigin.value();
-            MappingBuilder<V, D> mappingBuilder = mappingFactory.createMappingBuilder(mappingBeanWithOrigin, mappingDesc);
+            MappingType mappingBean = mappingConfigItem.value();
+            // [EP:M:OM] [EP:M:IM] DONE
+            MappingBuilder<V, D> mappingBuilder = mappingFactory.createMappingBuilder(mappingConfigItem, mappingDesc);
             String mappingName = mappingBean.getName();
 
             if (!mappingBuilder.isApplicableToChannel(params.getContext().getChannel())) {

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
@@ -65,12 +66,17 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
      * Fills-in this collection from given sources and freezes origins afterwards.
      *
      * Origin freeze is needed if "replace" delta is present, because we have to set final values for "isNew" origin flags.
+     *
+     * `objectCurrent` and `objectOld` and `currentAssignmentDelta` must be EP-compliant, i.e. must come from trusted
+     * sources (e.g. objects must come from repo, and delta must be checked for authorizations).
+     *
+     * [EP:APSO] DONE: it is so (I believe)
      */
     public void collectAndFreeze(
             PrismObject<F> objectCurrent, PrismObject<F> objectOld,
             @NotNull OriginProvider<? super AssignmentType> deltaItemOriginProvider,
             ContainerDelta<AssignmentType> currentAssignmentDelta,
-            Collection<ConfigurationItem<AssignmentType>> virtualAssignments) throws SchemaException {
+            Collection<AssignmentConfigItem> virtualAssignments) throws SchemaException {
 
         PrismContainer<AssignmentType> assignmentContainerOld = getAssignmentContainer(objectOld);
         PrismContainer<AssignmentType> assignmentContainerCurrent = getAssignmentContainer(objectCurrent);
@@ -82,11 +88,11 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
         }
 
         if (objectCurrent != null) {
-            // These assignments reside physically in their object. Hence "embedded".
+            // [EP:APSO] DONE These assignments reside physically in their object. Hence "embedded" is OK.
             collectAssignments(assignmentContainerCurrent, Mode.CURRENT, OriginProvider.embedded());
         }
         if (objectOld != null) {
-            // These assignments reside physically in their object. Hence "embedded".
+            // [EP:APSO] DONE These assignments reside physically in their object. Hence "embedded" is OK.
             collectAssignments(assignmentContainerOld, Mode.OLD, OriginProvider.embedded());
         }
 
@@ -108,10 +114,12 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
                 allValues().forEach(v -> v.getOrigin().setNew(false));
                 PrismContainer<AssignmentType> assignmentContainerNew =
                         computeAssignmentContainerNew(assignmentContainerCurrent, currentAssignmentDelta);
+                // [EP:APSO] DONE, the delta item origin provider is correct
                 collectAssignments(assignmentContainerNew, Mode.NEW, deltaItemOriginProvider);
             } else {
                 // For performance reasons it is better to process only changes than to process
                 // the whole new assignment set (that can have hundreds of assignments)
+                // [EP:APSO] DONE, the delta item origin provider is correct
                 collectAssignmentsFromAddDeleteDelta(currentAssignmentDelta, deltaItemOriginProvider);
             }
         }
@@ -140,10 +148,11 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
     private void collectAssignments(
             @Nullable PrismContainer<AssignmentType> assignmentContainer,
             @NotNull Mode mode,
-            @NotNull OriginProvider<? super AssignmentType> originProvider)
+            @NotNull OriginProvider<? super AssignmentType> originProvider) // [EP:APSO] DONE 3/3
             throws SchemaException {
         if (assignmentContainer != null) {
             for (PrismContainerValue<AssignmentType> assignmentCVal : assignmentContainer.getValues()) {
+                // [EP:APSO] DONE
                 collectAssignment(
                         assignmentCVal, mode, false, null, false,
                         originProvider.origin(assignmentCVal.asContainerable()));
@@ -151,9 +160,10 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
         }
     }
 
-    private void collectVirtualAssignments(Collection<ConfigurationItem<AssignmentType>> forcedAssignments)
+    private void collectVirtualAssignments(Collection<AssignmentConfigItem> virtualAssignments)
             throws SchemaException {
-        for (ConfigurationItem<AssignmentType> assignment : emptyIfNull(forcedAssignments)) {
+        for (ConfigurationItem<AssignmentType> assignment : emptyIfNull(virtualAssignments)) {
+            // [EP:APSO] DONE, virtual assignments are already correct (ensured by the caller)
             //noinspection unchecked
             collectAssignment(
                     assignment.value().asPrismContainerValue(),
@@ -175,6 +185,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
             @NotNull OriginProvider<? super AssignmentType> deltaItemOriginProvider) throws SchemaException {
         for (PrismContainerValue<AssignmentType> assignmentCVal: emptyIfNull(assignments)) {
             boolean doNotCreateNew = deltaSet == AddDeleteReplace.DELETE;
+            // [EP:APSO] DONE, delta item origin provider is correct
             collectAssignment(
                     assignmentCVal, Mode.IN_ADD_OR_DELETE_DELTA, false, deltaSet, doNotCreateNew,
                     deltaItemOriginProvider.origin(assignmentCVal.asContainerable()));
@@ -182,10 +193,12 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
     }
 
     /**
-     * @param doNotCreateNew If an assignment does not exist, please DO NOT create it.
+     * `doNotCreateNew` If an assignment does not exist, please DO NOT create it.
      * This flag is used for "delta delete" assignments that do not exist in object current.
      *
      * This also means that delete delta assignments must be processed last.
+     *
+     * [EP:APSO] DONE 3/3
      */
     private void collectAssignment(
             PrismContainerValue<AssignmentType> assignmentCVal,
@@ -215,13 +228,14 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
                 // Deleting non-existing assignment.
                 return;
             } else {
-                element = put(assignmentCVal, virtual, origin);
+                element = put(assignmentCVal, virtual, origin); // [EP:APSO] DONE, see signature
             }
         }
 
         element.updateOrigin(mode, deltaSet);
     }
 
+    // [EP:APSO] DONE 1/1
     private SmartAssignmentElement put(
             PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual, @NotNull ConfigurationItemOrigin origin) {
         SmartAssignmentElement element = new SmartAssignmentElement(assignmentCVal, virtual, origin);
