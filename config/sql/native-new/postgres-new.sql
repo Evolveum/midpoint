@@ -49,8 +49,6 @@ CREATE TYPE ContainerType AS ENUM (
     'SIMULATION_RESULT_PROCESSED_OBJECT',
     'TRIGGER');
 
-ALTER TYPE ObjectType ADD VALUE 'ROLE_ANALYSIS_CLUSTER';
-ALTER TYPE ObjectType ADD VALUE 'ROLE_ANALYSIS_SESSION';
 -- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
 CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
