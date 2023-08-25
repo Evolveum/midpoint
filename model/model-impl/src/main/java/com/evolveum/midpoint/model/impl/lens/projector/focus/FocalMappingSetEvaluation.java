@@ -319,8 +319,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                         .rootNode(focusOdo)
                         .mappingPreExpression(request.getMappingPreExpression()) // Used to populate auto-assign assignments
                         .mappingSpecification(specification)
-                        .now(now)
-                        .computeExpressionProfile(result);
+                        .now(now);
 
         MappingImpl<V, D> mapping = mappingBuilder.build();
 

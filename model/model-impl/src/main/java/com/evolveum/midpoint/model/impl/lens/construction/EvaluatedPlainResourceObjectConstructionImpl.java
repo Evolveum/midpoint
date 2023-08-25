@@ -79,9 +79,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 continue;
             }
 
-
-            // FIXME Undetermined because of resource/object type inheritance
-            var origin = ConfigurationItemOrigin.undetermined();
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
 
             attributesToEvaluate.add(
                     new AttributeEvaluation<>(
@@ -109,8 +107,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 continue;
             }
 
-            // FIXME Undetermined because of resource/object type inheritance
-            var origin = ConfigurationItemOrigin.undetermined();
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
 
             associationsToEvaluate.add(
                     new AssociationEvaluation<>(

@@ -57,6 +57,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Evaluation of a mapping. It is non-recyclable single-use object. Once evaluated it should not be evaluated again.
  * It will retain its original inputs and outputs that can be read again and again. But these should not be
@@ -174,10 +177,17 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private final Collection<V> originalTargetValues;
 
     /**
-     * Expression profile to be used when evaluating various expressions (condition,
-     * "main" expression, value set expressions, etc).
+     * Expression profile for tests, where archetype manager is not available, so they must be set explicitly.
+     * NEVER use in production.
      */
-    @NotNull final ExpressionProfile expressionProfile;
+    @VisibleForTesting
+    @Nullable private final ExpressionProfile explicitExpressionProfile;
+
+    /**
+     * Expression profile to be used when evaluating various expressions (condition,
+     * "main" expression, value set expressions, etc). Initialized right at the start of the evaluation.
+     */
+    @NotNull private final FreezableReference<ExpressionProfile> expressionProfileReference;
 
     /**
      * Information on the kind of mapping. (Partially overlaps with {@link #mappingKind}.)
@@ -385,7 +395,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         targetPathOverride = builder.getTargetPathOverride();
         defaultSource = builder.getDefaultSource();
         defaultTargetDefinition = builder.getDefaultTargetDefinition();
-        expressionProfile = Objects.requireNonNull(builder.getExpressionProfile(), "no expression profile");
+        explicitExpressionProfile = builder.getExplicitExpressionProfile();
+        expressionProfileReference = new FreezableReference<>();
         defaultTargetPath = builder.getDefaultTargetPath();
         originalTargetValues = builder.getOriginalTargetValues();
         sourceContext = builder.getSourceContext();
@@ -436,7 +447,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.defaultTargetPath = prototype.defaultTargetPath;
         this.defaultTargetDefinition = prototype.defaultTargetDefinition;
         this.originalTargetValues = prototype.originalTargetValues;
-        this.expressionProfile = prototype.expressionProfile;
+        this.explicitExpressionProfile = prototype.explicitExpressionProfile;
+        this.expressionProfileReference = prototype.expressionProfileReference;
 
         this.originType = prototype.originType;
         this.originObject = prototype.originObject;
@@ -515,6 +527,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     @NotNull
     public MBT getMappingBean() {
         return mappingBean;
+    }
+
+    /** Should be called on prepared mapping. */
+    public @NotNull ExpressionProfile getExpressionProfile() {
+        return MiscUtil.stateNonNull(
+                expressionProfileReference.getValue(),
+                "no expression profile; state = %s", state);
     }
 
     @Override
@@ -614,8 +633,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Evaluate the mapping. Can be called in UNINITIALIZED or PREPARED states only.
      */
-    public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    public void evaluate(Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, CommunicationException {
         this.task = task;
         OperationResult result = createOpResultAndRecordStart(OP_EVALUATE, task, parentResult);
         try {
@@ -635,16 +655,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Evaluate the time validity. Can be called in UNINITIALIZED or PREPARED states only.
      */
-    public void evaluateTimeValidity(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException,
+    public void evaluateTimeValidity(Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         this.task = task;
         OperationResult result = createOpResultAndRecordStart(OP_EVALUATE_TIME_VALIDITY, task, parentResult);
         try {
             assertUninitializedOrPrepared();
-
             prepare(result);
             recordSources();
-
             evaluateTimeConstraint(result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -720,6 +739,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         assertState(MappingEvaluationState.UNINITIALIZED);
         try {
 
+            determineExpressionProfile(result);
+
             parser.parseSourcesAndTarget(result);
 
         } catch (Throwable t) {
@@ -729,6 +750,22 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         transitionState(MappingEvaluationState.PREPARED);
         result.recordSuccess();
+    }
+
+    /** Determines and sets the expression profile in {@link #expressionProfileReference}. Callable only once. */
+    private void determineExpressionProfile(OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        @NotNull ExpressionProfile profile;
+        if (explicitExpressionProfile != null) {
+            profile = explicitExpressionProfile;
+        } else {
+            var configItem = Objects.requireNonNull(mappingConfigItem, "no mapping");
+            profile = ModelCommonBeans.get().expressionProfileManager.determineExpressionProfileStrict(
+                    configItem.origin(), getTask(), result);
+        }
+        expressionProfileReference.setValue(profile);
+        expressionProfileReference.freeze();
     }
 
     public boolean isActivated() {
@@ -903,7 +940,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 rangeSetDefBean,
                 getOutputDefinition(),
                 valueMetadataDefinition,
-                expressionProfile,
+                getExpressionProfile(),
                 ModelCommonBeans.get().expressionFactory,
                 name,
                 mappingSpecification,
@@ -1196,7 +1233,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             sb.append(expression.shortDebugDump());
         }
 
-        sb.append("\nExpression profile: ").append(expressionProfile);
+        sb.append("\nExpression profile: ").append(getExpressionProfile());
         sb.append("\nOrigin: ").append(mappingConfigItem.origin().fullDescription());
 
         if (stateProperties != null) {
@@ -1307,7 +1344,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     ExpressionUtil.createCondition(
                             conditionExpressionBean,
-                            expressionProfile,
+                            getExpressionProfile(),
                             ModelCommonBeans.get().expressionFactory,
                             "condition in " + getMappingContextDescription(),
                             task, result);
@@ -1329,7 +1366,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         expression = ModelCommonBeans.get().expressionFactory.makeExpression(
                 mappingBean.getExpression(),
                 getOutputDefinition(),
-                expressionProfile,
+                getExpressionProfile(),
                 "expression in " + getMappingContextDescription(),
                 task,
                 result);
@@ -1440,7 +1477,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         result = prime * result + ((conditionOutputTriple == null) ? 0 : conditionOutputTriple.hashCode());
         result = prime * result + ((defaultSource == null) ? 0 : defaultSource.hashCode());
         result = prime * result + ((defaultTargetDefinition == null) ? 0 : defaultTargetDefinition.hashCode());
-        result = prime * result + expressionProfile.hashCode();
         result = prime * result + mappingBean.hashCode();
         result = prime * result + ((originObject == null) ? 0 : originObject.hashCode());
         result = prime * result + ((originType == null) ? 0 : originType.hashCode());
@@ -1471,7 +1507,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (defaultTargetDefinition == null) {
             if (other.defaultTargetDefinition != null) { return false; }
         } else if (!defaultTargetDefinition.equals(other.defaultTargetDefinition)) { return false; }
-        if (!expressionProfile.equals(other.expressionProfile)) { return false; }
+        if (!Objects.equals(expressionProfileReference, other.expressionProfileReference)) { return false; }
         if (!mappingBean.equals(other.mappingBean)) { return false; }
         if (originObject == null) {
             if (other.originObject != null) { return false; }
@@ -1553,8 +1589,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return sb.toString();
     }
 
-    public Task getTask() {
-        return task;
+    /** Available only during mapping evaluation. */
+    public @NotNull Task getTask() {
+        return Objects.requireNonNull(task);
     }
 
     void recordTimeFrom(XMLGregorianCalendar timeFrom) {

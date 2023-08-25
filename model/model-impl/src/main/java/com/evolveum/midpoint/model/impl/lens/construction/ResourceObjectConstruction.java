@@ -164,8 +164,7 @@ public abstract class ResourceObjectConstruction<
             return null;
         }
 
-        // FIXME Undetermined because of resource/object type inheritance
-        ConfigurationItemOrigin origin = ConfigurationItemOrigin.undetermined();
+        ConfigurationItemOrigin origin = ConfigurationItemOrigin.inResourceOrAncestor(getResource());
 
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
                 getMappingFactory().createMappingBuilder(
@@ -177,7 +176,6 @@ public abstract class ResourceObjectConstruction<
         if (builder == null) {
             return null;
         }
-        builder.computeExpressionProfile(result);
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
         getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);

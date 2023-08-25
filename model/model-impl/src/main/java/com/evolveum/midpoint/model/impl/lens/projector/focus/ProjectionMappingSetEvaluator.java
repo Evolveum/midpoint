@@ -123,7 +123,6 @@ public class ProjectionMappingSetEvaluator {
             // Initialize mapping (using Inversion of Control)
             MappingBuilder<V, D> initializedMappingBuilder = params.getInitializer().initialize(mappingBuilder);
 
-            initializedMappingBuilder.computeExpressionProfile(result);
             MappingImpl<V, D> mapping = initializedMappingBuilder.build();
 
             mapping.evaluateTimeValidity(task, result);

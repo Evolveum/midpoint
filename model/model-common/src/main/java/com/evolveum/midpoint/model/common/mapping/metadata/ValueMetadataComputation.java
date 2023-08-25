@@ -170,8 +170,7 @@ abstract public class ValueMetadataComputation {
         createCustomMappingVariables(builder, mappingBean);
         builder.targetContext(metadataDefinition)
                 .now(env.now)
-                .conditionMaskOld(false) // We are not interested in old values (deltas are irrelevant in metadata mappings).
-                .computeExpressionProfile(result);
+                .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
         return builder.build();
     }
 

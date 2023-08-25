@@ -98,8 +98,6 @@ class ConditionEvaluator {
                 .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, ctx.ae, AssignmentEvaluator.class);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 
-        builder = builder.computeExpressionProfile(result);
-
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
         ctx.ae.mappingEvaluator.evaluateMapping(mapping, ctx.ae.lensContext, ctx.task, result);

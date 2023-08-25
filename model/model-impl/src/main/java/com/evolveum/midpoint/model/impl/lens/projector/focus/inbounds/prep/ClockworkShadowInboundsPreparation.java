@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -233,8 +235,8 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
                     return false;
                 };
 
-        // FIXME Undetermined because of resource/object type inheritance
-        var originProvider = OriginProvider.undetermined();
+        OriginProvider<MappingType> originProvider =
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
 
         MappingEvaluatorParams<PrismValue, ItemDefinition<?>, F, F> params = new MappingEvaluatorParams<>();
         params.setMappingBeans(ConfigurationItem.ofList(inboundMappingBeans, originProvider));

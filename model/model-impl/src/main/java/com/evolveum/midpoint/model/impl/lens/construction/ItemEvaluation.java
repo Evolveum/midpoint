@@ -213,8 +213,6 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
         // TODO: other variables?
 
-        mappingBuilder.computeExpressionProfile(constructionEvaluation.result);
-
         MappingImpl<V, D> mapping = mappingBuilder.build();
         construction.getMappingEvaluator().evaluateMapping(mapping, context, projCtx,
                 constructionEvaluation.task, constructionEvaluation.result);

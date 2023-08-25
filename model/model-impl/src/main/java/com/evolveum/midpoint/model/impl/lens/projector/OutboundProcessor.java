@@ -61,7 +61,7 @@ public class OutboundProcessor {
 
         ResourceType resource = projCtx.getResourceRequired();
         PlainResourceObjectConstructionBuilder<AH> builder = new PlainResourceObjectConstructionBuilder<AH>()
-                .noConstructionBean(ConfigurationItemOrigin.undetermined()) // FIXME
+                .noConstructionBean(ConfigurationItemOrigin.inResourceOrAncestor(resource))
                 .projectionContext(projCtx)
                 .source(resource)
                 .lensContext(context)

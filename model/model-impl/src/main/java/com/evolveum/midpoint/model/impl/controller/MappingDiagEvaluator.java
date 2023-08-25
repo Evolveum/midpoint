@@ -63,8 +63,7 @@ public class MappingDiagEvaluator {
                     .sourceContext(sourceContext)
                     .targetContext(createTargetContext(request, sourceContext))
                     .profiling(true)
-                    .now(clock.currentTimeXMLGregorianCalendar())
-                    .computeExpressionProfile(result);
+                    .now(clock.currentTimeXMLGregorianCalendar());
 
             MappingImpl<?, ?> mapping = builder.build();
 

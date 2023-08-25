@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -595,8 +596,8 @@ public class ActivationProcessor implements ProjectorProcessor {
         MappingEvaluatorParams<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>, ShadowType, F> params =
                 new MappingEvaluatorParams<>();
 
-        // FIXME Undetermined because of resource/object type inheritance
-        var originProvider = OriginProvider.undetermined();
+        OriginProvider<MappingType> originProvider =
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(projCtx.getResource());
 
         params.setMappingBeans(ConfigurationItem.ofList(outbound, originProvider));
         params.setMappingDesc("outbound existence mapping in projection " + projCtxDesc);
@@ -856,8 +857,8 @@ public class ActivationProcessor implements ProjectorProcessor {
                     return builder;
                 };
 
-        // FIXME Undetermined because of resource/object type inheritance
-        var originProvider = OriginProvider.undetermined();
+        OriginProvider<MappingType> originProvider =
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(projCtx.getResourceRequired());
 
         MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
         params.setMappingBeans(ConfigurationItem.ofList(outboundMappingBeans, originProvider));
