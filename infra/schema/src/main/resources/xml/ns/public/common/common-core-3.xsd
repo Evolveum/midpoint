@@ -2391,7 +2391,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>UserType.employeeNumber</a:displayName>
+                                <a:displayName>UserType.personalNumber</a:displayName>
                                 <a:displayOrder>400</a:displayOrder>
                                 <a:since>4.8</a:since>
                             </xsd:appinfo>
