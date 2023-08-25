@@ -575,6 +575,7 @@ CREATE TABLE m_user (
     honorificSuffixNorm TEXT,
     nickNameOrig TEXT,
     nickNameNorm TEXT,
+    personalNumber TEXT,
     titleOrig TEXT,
     titleNorm TEXT,
     organizations JSONB, -- array of {o,n} objects (poly-strings)
@@ -2116,4 +2117,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(20, $$ SELECT 1 $$, true);
+call apply_change(21, $$ SELECT 1 $$, true);
