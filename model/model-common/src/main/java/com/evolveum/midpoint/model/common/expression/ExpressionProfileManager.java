@@ -261,7 +261,14 @@ public class ExpressionProfileManager {
      * Origin for custom workflow notifications is blurred, because they travel from policy rules to object triggers.
      * Hence, we should either disable them completely, or use a safe profile for them.
      */
-    public @NotNull ExpressionProfile getProfileForCustomWorkflowNotifications(OperationResult result) {
-        return ExpressionProfile.full(); // FIXME!!!
+    public @NotNull ExpressionProfile getProfileForCustomWorkflowNotifications(OperationResult result)
+            throws SchemaException, ConfigurationException {
+        var defaults = getDefaults(result);
+        var notifications = defaults != null ? defaults.getCustomWorkflowNotifications() : null;
+        if (notifications != null) {
+            return systemObjectCache.getExpressionProfile(notifications, result);
+        } else {
+            return ExpressionProfile.legacyUnprivilegedBulkActions();
+        }
     }
 }
