@@ -1,0 +1,237 @@
+= Expression Profiles Coverage
+:page-since: "4.8"
+
+The coverage by expression profiles is *NOT COMPLETE*.
+
+This means that even if an object has attached an expression profile through its archetype, the profile may not be consistently applied to all expressions present in that object.
+
+== Supported Profiles
+
+=== Bulk Actions
+
+Explicitly *supported* profiles are the following ones:
+
+. Profiles for bulk actions in task templates.
+. Profiles for bulk actions in policy rules in objects: both in conditions and actions of these rules.
+. Profiles for bulk actions entered via GUI ("Bulk actions" page) and via REST ("/rpc/executeScript").
+
+This means that the specified profiles are applied to bulk actions and any expressions contained in them for these cases.
+
+.Support for expression profiles for bulk actions
+[%autowidth]
+|===
+| Description | Covered path | Reference
+
+| Bulk actions provided via GUI or REST
+| N/A
+| `TestExpressionProfiles.test310UntrustedBulkExecutingScriptDirectly` and following tests
+
+| Bulk actions in an iterative scripting task
+| `activity/work/iterativeScripting/scriptExecutionRequest`
+| `TestTrustedBulkActions.test100TemplateWithoutProfile`
+
+| Bulk actions in an non-iterative scripting task
+| `activity/work/nonIterativeScripting/scriptExecutionRequest`
+| `TestTrustedBulkActions.test105TemplateWithoutProfileNonIterative`
+
+| Bulk actions in policy constraint
+| `assignment/policyRule/policyConstraints/objectState/executeScript`
+| `TestTrustedBulkActions.test200PolicyRule`
+
+| Bulk actions in policy action
+| `assignment/policyRule/policyActions/scriptExecution/executeScript`
+| `TestTrustedBulkActions.test200PolicyRule`
+|===
+
+NOTE: The reference above means the test method(s) that check that the profiles are really applied.
+It is obviously not a proof of correctness and/or completeness of the implementation, just a reminder that it was tested to some degree.
+
+== Profiles Supported Experimentally
+
+As an *experimental feature*, expressions profiles (EPs for short) are supported also at the following places:
+
+.Support for expression profiles for expressions
+[%autowidth]
+|===
+| Description | Covered path | Description | Reference
+
+| EP applied to role auto-assignment mapping
+| `autoassign/focus/mapping`
+| #TODO#
+This row just states that that profile is correctly set up for role auto-assignment mappings.
+| `test120RestrictedRoleAutoBadMappingExpression`,
+`test130RestrictedRoleAutoBadMappingCondition`
+
+
+
+| Role auto-assignment mapping expression
+| `autoassign/focus/mapping/expression`
+|
+
+| Role auto-assignment mapping condition
+| `autoassign/focus/mapping/condition`
+| `test130RestrictedRoleAutoBadMappingCondition`
+
+| Induced focus mapping expression
+| `inducement/focusMappings/mapping/expression`
+| `test210RestrictedRoleBadFocusMapping`
+
+| Induced construction mapping expression
+| `inducement/construction/attribute/outbound/expression`
+| `test220RestrictedRoleBadConstructionMapping`
+
+| Assignment condition expression
+| `assignment/condition/expression`
+| `test230RestrictedRoleBadAssignmentCondition`
+
+| Inducement condition expression
+| `inducement/condition/expression`
+| `test240RestrictedRoleBadInducementCondition`
+
+| Role condition expression
+| `condition/expression` (in role)
+| `test245RestrictedRoleBadRoleCondition`
+
+| Filter in assignment target reference
+| `assignment/targetRef/filter/.../expression`
+| `test250RestrictedRoleBadAssignmentTargetFilter`
+
+| Filter in inducement target reference
+| `inducement/targetRef/filter/.../expression`
+| `test260RestrictedRoleBadInducementTargetFilter`
+
+| Explicit script in bulk action
+| `executeScript/.../execute`
+| `test310UntrustedBulkExecutingScriptDirectly`
+
+| Explicit expression in bulk action
+| `executeScript/.../evaluateExpression`
+| `test315UntrustedBulkExecutingScriptViaExpression`
+
+| Script embedded in a custom notification in bulk action
+| `executeScript/.../notify/handler/expressionFilter`
+| `test320UntrustedBulkExecutingScriptViaNotification`
+
+| Script in object query in `search` bulk action
+| `executeScript/.../search/query/filter/.../expression`
+| `test325UntrustedBulkExecutingScriptViaSearchFilter`
+
+| Script in filter in `unassign` bulk action
+| `executeScript/.../unassign/filter/.../expression`
+| `test330UntrustedBulkExecutingScriptViaUnassignFilter`
+
+|===
+
+NOTE: The `autoassign/focus/selector/filter` does not need expression profiles, because expressions are not supported at that place.
+See `test110RestrictedRoleAutoFilterExpression`.
+
+=== Mappings
+
+The whole mapping evaluation (including the "main" expression, condition, value set expressions, and so on) is driven by `expressionProfile` in `AbstractMappingImpl` class.
+(The fact that really all the expressions are supported is a question of thorough testing and/or code analysis.)
+
+This field is set when the class is instantiated, and is determined from the mapping origin, using `ExpressionProfileManager.determineExpressionProfileStrict` method that does not accept unknown or external origins.
+
+So, the crucial thing is to identify the origin of a mapping correctly.
+
+Currently, the mappings can be used in the following places #TODO fill the table#:
+
+[%authowidth]
+|===
+| Ident | Place | Description | Status | Path | Reference
+
+.2+| `[EP:M:PRC]`
+.2+| policy rule condition
+.2+| The policy rule conditions are evaluated as mappings.
+.2+| OK
+
+| `systemConfiguration:globalPolicyRule/condition`
+| not needed
+
+| `mark:policyRule/condition`
+| #TODO#
+
+| `[EP:M:IM]`
+| inbound mappings
+| Inbound mappings come from the particular resource.
+| OK (Except for resource inheritance.)
+| attribute, association, and auxiliary object class definitions
+|
+
+.2+| `[EP:M:ARC]`
+.2+| assignment or role condition
+.2+| The assignment and role conditions are evaluated as mappings.
+.2+| OK
+
+| assignment condition
+|
+
+| role condition
+|
+
+| `[EP:M:RC]`
+| role condition
+| The role conditions are evaluated as mappings.
+| OK
+|
+|
+
+| `[EP:M:MM]`
+| metadata mapping
+| This is experimental functionality, anyway.
+| OK (Not sure about object template inclusion, though.)
+|
+|
+
+| `[EP:M:Tag]`
+| shadow tags
+| (Outbound) shadow tags are computed as mappings.
+| OK (Except for resource inheritance.)
+|
+|
+
+| `[EP:M:FM]`
+| focus mappings
+|
+| OK
+|
+|
+
+| `[EP:M:AFM]`
+| assigned focus mappings
+|
+| OK
+|
+|
+
+| `[EP:M:AAFM]`
+| auto-assignment focus mappings
+|
+| OK
+|
+|
+
+| `[EP:M:TFM]`
+| template focus mappings
+|
+| OK
+|
+|
+
+| `[EP:M:OM]`
+| outbound mappings
+|
+| OK
+|
+|
+|===
+
+The status of `OK` means that the code was checked for compliance.
+However, no guarantees can be provided at this time.
+
+==== Limitations
+
+Configuration items in resources are currently determined without taking resource inheritance into account.
+See also bug:MID-9018[].
+
+The effects of object template inclusion are unclear. See e.g. [EP:M:MM].
