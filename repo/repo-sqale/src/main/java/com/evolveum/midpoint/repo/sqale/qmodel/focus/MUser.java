@@ -28,6 +28,7 @@ public class MUser extends MFocus {
     public String honorificSuffixNorm;
     public String nickNameOrig;
     public String nickNameNorm;
+    public String personalNumber;
     public String titleOrig;
     public String titleNorm;
     public Jsonb organizations;
