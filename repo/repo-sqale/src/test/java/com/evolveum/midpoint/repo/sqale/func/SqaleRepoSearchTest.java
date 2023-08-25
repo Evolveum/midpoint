@@ -252,6 +252,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .subtype("workerA")
                 .subtype("workerC")
                 .employeeNumber("user1")
+                .personalNumber("personal1")
                 .policySituation("situationA")
                 .policySituation("situationC")
                 .activation(new ActivationType()
@@ -3283,6 +3284,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
             throws SchemaException {
         searchUsersTest("with string item matching ignore-case comparison",
                 f -> f.item(UserType.F_EMPLOYEE_NUMBER).contains("USer1")
+                        // Use QName without namespace
+                        .matching(new QName(STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart())),
+                user1Oid);
+    }
+
+    @Test(description = "MID-8005")
+    public void test992SearchObjectWithStringIgnoreCaseWithoutNamespace()
+            throws SchemaException {
+        searchUsersTest("with string item matching ignore-case comparison",
+                f -> f.item(UserType.F_PERSONAL_NUMBER).contains("Personal1")
                         // Use QName without namespace
                         .matching(new QName(STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart())),
                 user1Oid);
