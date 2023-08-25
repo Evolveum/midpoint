@@ -50,80 +50,82 @@ It is obviously not a proof of correctness and/or completeness of the implementa
 
 As an *experimental feature*, expressions profiles (EPs for short) are supported also at the following places:
 
-.Support for expression profiles for expressions
-[%autowidth]
-|===
-| Description | Covered path | Description | Reference
+#TODO#
 
-| EP applied to role auto-assignment mapping
-| `autoassign/focus/mapping`
-| #TODO#
-This row just states that that profile is correctly set up for role auto-assignment mappings.
-| `test120RestrictedRoleAutoBadMappingExpression`,
-`test130RestrictedRoleAutoBadMappingCondition`
-
-
-
-| Role auto-assignment mapping expression
-| `autoassign/focus/mapping/expression`
-|
-
-| Role auto-assignment mapping condition
-| `autoassign/focus/mapping/condition`
-| `test130RestrictedRoleAutoBadMappingCondition`
-
-| Induced focus mapping expression
-| `inducement/focusMappings/mapping/expression`
-| `test210RestrictedRoleBadFocusMapping`
-
-| Induced construction mapping expression
-| `inducement/construction/attribute/outbound/expression`
-| `test220RestrictedRoleBadConstructionMapping`
-
-| Assignment condition expression
-| `assignment/condition/expression`
-| `test230RestrictedRoleBadAssignmentCondition`
-
-| Inducement condition expression
-| `inducement/condition/expression`
-| `test240RestrictedRoleBadInducementCondition`
-
-| Role condition expression
-| `condition/expression` (in role)
-| `test245RestrictedRoleBadRoleCondition`
-
-| Filter in assignment target reference
-| `assignment/targetRef/filter/.../expression`
-| `test250RestrictedRoleBadAssignmentTargetFilter`
-
-| Filter in inducement target reference
-| `inducement/targetRef/filter/.../expression`
-| `test260RestrictedRoleBadInducementTargetFilter`
-
-| Explicit script in bulk action
-| `executeScript/.../execute`
-| `test310UntrustedBulkExecutingScriptDirectly`
-
-| Explicit expression in bulk action
-| `executeScript/.../evaluateExpression`
-| `test315UntrustedBulkExecutingScriptViaExpression`
-
-| Script embedded in a custom notification in bulk action
-| `executeScript/.../notify/handler/expressionFilter`
-| `test320UntrustedBulkExecutingScriptViaNotification`
-
-| Script in object query in `search` bulk action
-| `executeScript/.../search/query/filter/.../expression`
-| `test325UntrustedBulkExecutingScriptViaSearchFilter`
-
-| Script in filter in `unassign` bulk action
-| `executeScript/.../unassign/filter/.../expression`
-| `test330UntrustedBulkExecutingScriptViaUnassignFilter`
-
-|===
-
-NOTE: The `autoassign/focus/selector/filter` does not need expression profiles, because expressions are not supported at that place.
-See `test110RestrictedRoleAutoFilterExpression`.
+// .Support for expression profiles for expressions
+// [%autowidth]
+// |===
+// | Description | Covered path | Description | Reference
+//
+// | EP applied to role auto-assignment mapping
+// | `autoassign/focus/mapping`
+// | #TODO#
+// This row just states that that profile is correctly set up for role auto-assignment mappings.
+// | `test120RestrictedRoleAutoBadMappingExpression`,
+// `test130RestrictedRoleAutoBadMappingCondition`
+//
+//
+//
+// | Role auto-assignment mapping expression
+// | `autoassign/focus/mapping/expression`
+// |
+//
+// | Role auto-assignment mapping condition
+// | `autoassign/focus/mapping/condition`
+// | `test130RestrictedRoleAutoBadMappingCondition`
+//
+// | Induced focus mapping expression
+// | `inducement/focusMappings/mapping/expression`
+// | `test210RestrictedRoleBadFocusMapping`
+//
+// | Induced construction mapping expression
+// | `inducement/construction/attribute/outbound/expression`
+// | `test220RestrictedRoleBadConstructionMapping`
+//
+// | Assignment condition expression
+// | `assignment/condition/expression`
+// | `test230RestrictedRoleBadAssignmentCondition`
+//
+// | Inducement condition expression
+// | `inducement/condition/expression`
+// | `test240RestrictedRoleBadInducementCondition`
+//
+// | Role condition expression
+// | `condition/expression` (in role)
+// | `test245RestrictedRoleBadRoleCondition`
+//
+// | Filter in assignment target reference
+// | `assignment/targetRef/filter/.../expression`
+// | `test250RestrictedRoleBadAssignmentTargetFilter`
+//
+// | Filter in inducement target reference
+// | `inducement/targetRef/filter/.../expression`
+// | `test260RestrictedRoleBadInducementTargetFilter`
+//
+// | Explicit script in bulk action
+// | `executeScript/.../execute`
+// | `test310UntrustedBulkExecutingScriptDirectly`
+//
+// | Explicit expression in bulk action
+// | `executeScript/.../evaluateExpression`
+// | `test315UntrustedBulkExecutingScriptViaExpression`
+//
+// | Script embedded in a custom notification in bulk action
+// | `executeScript/.../notify/handler/expressionFilter`
+// | `test320UntrustedBulkExecutingScriptViaNotification`
+//
+// | Script in object query in `search` bulk action
+// | `executeScript/.../search/query/filter/.../expression`
+// | `test325UntrustedBulkExecutingScriptViaSearchFilter`
+//
+// | Script in filter in `unassign` bulk action
+// | `executeScript/.../unassign/filter/.../expression`
+// | `test330UntrustedBulkExecutingScriptViaUnassignFilter`
+//
+// |===
+//
+// NOTE: The `autoassign/focus/selector/filter` does not need expression profiles, because expressions are not supported at that place.
+// See `test110RestrictedRoleAutoFilterExpression`.
 
 === Mappings
 
@@ -140,17 +142,6 @@ Currently, the mappings can be used in the following places #TODO fill the table
 |===
 | Ident | Place | Description | Status | Path | Reference
 
-.2+| `[EP:M:PRC]`
-.2+| policy rule condition
-.2+| The policy rule conditions are evaluated as mappings.
-.2+| OK
-
-| `systemConfiguration:globalPolicyRule/condition`
-| not needed
-
-| `mark:policyRule/condition`
-| #TODO#
-
 | `[EP:M:IM]`
 | inbound mappings
 | Inbound mappings come from the particular resource.
@@ -158,42 +149,10 @@ Currently, the mappings can be used in the following places #TODO fill the table
 | attribute, association, and auxiliary object class definitions
 |
 
-.2+| `[EP:M:ARC]`
-.2+| assignment or role condition
-.2+| The assignment and role conditions are evaluated as mappings.
-.2+| OK
-
-| assignment condition
+| `[EP:M:OM]`
+| outbound mappings
 |
-
-| role condition
-|
-
-| `[EP:M:RC]`
-| role condition
-| The role conditions are evaluated as mappings.
-| OK
-|
-|
-
-| `[EP:M:MM]`
-| metadata mapping
-| This is experimental functionality, anyway.
-| OK (Not sure about object template inclusion, though.)
-|
-|
-
-| `[EP:M:Tag]`
-| shadow tags
-| (Outbound) shadow tags are computed as mappings.
 | OK (Except for resource inheritance.)
-|
-|
-
-| `[EP:M:FM]`
-| focus mappings
-|
-| OK
 |
 |
 
@@ -218,12 +177,49 @@ Currently, the mappings can be used in the following places #TODO fill the table
 |
 |
 
-| `[EP:M:OM]`
-| outbound mappings
+.2+| `[EP:M:ARC]`
+.2+| assignment or role condition
+.2+| The assignment and role conditions are evaluated as mappings.
+.2+| OK
+
+| assignment condition
 |
+
+| role condition
+|
+
+| `[EP:M:RC]`
+| role condition
+| The role conditions are evaluated as mappings.
 | OK
 |
 |
+
+.2+| `[EP:M:PRC]`
+.2+| policy rule condition
+.2+| The policy rule conditions are evaluated as mappings.
+.2+| OK
+
+| `systemConfiguration:globalPolicyRule/condition`
+| not needed
+
+| `mark:policyRule/condition`
+| #TODO#
+
+| `[EP:M:MM]`
+| metadata mapping
+| This is experimental functionality, anyway.
+| OK (Not sure about object template inclusion, though.)
+|
+|
+
+| `[EP:M:Tag]`
+| shadow tags
+| (Outbound) shadow tags are computed as mappings.
+| OK (Except for resource inheritance.)
+|
+|
+
 |===
 
 The status of `OK` means that the code was checked for compliance.
