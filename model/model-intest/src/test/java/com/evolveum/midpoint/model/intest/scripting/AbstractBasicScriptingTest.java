@@ -721,7 +721,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         try {
             evaluateExpression(expression, task, result);
             fail("unexpected success");
-        } catch (UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException | SystemException e) {
+            // Old repo throws UnsupportedOperationException, new repo throws SystemException
+            // (not a problem, for now)
             displayExpectedException(e);
             assertThat(e).hasMessageContaining("previewChanges is not supported in raw mode");
         }
