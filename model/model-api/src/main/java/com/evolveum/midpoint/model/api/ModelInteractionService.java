@@ -715,4 +715,11 @@ public interface ModelInteractionService {
             @NotNull OperationResult result,
             @NotNull SimulatedFunctionCall<X> functionCall)
             throws CommonException;
+
+    /**
+     * Helper method to properly apply definitions to shadow. It is only needed when raw option is used for shadow search.
+     * Not sure about correctness of the method place and if even should be needed.
+     */
+    void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException;
 }

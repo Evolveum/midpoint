@@ -161,6 +161,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private TaskManager taskManager;
     @Autowired private SimulationResultManager simulationResultManager;
+    @Autowired private ProvisioningService provisioningService;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -2435,5 +2436,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         bulkActionsExecutor.authorizeBulkActionExecution(action, phase, task, result);
+    }
+
+    public void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
 }

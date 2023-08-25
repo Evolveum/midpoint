@@ -11,6 +11,12 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -23,6 +29,8 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import java.util.Collection;
 
 @PageDescriptor(
         urls = {
@@ -83,6 +91,16 @@ public class PageShadows extends PageAdmin {
                 return false;
             }
 
+            @Override
+            protected ISelectableDataProvider<SelectableBean<ShadowType>> createProvider() {
+                return new RepositoryShadowBeanObjectDataProvider(this, getSearchModel(), null) {
+
+                    @Override
+                    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+                        return getObjectCollectionView().getOptions();
+                    }
+                };
+            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);

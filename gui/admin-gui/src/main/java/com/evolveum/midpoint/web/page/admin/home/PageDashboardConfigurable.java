@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -33,12 +33,14 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.SelectorQualifiedGetOptionsUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -76,7 +78,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
         })
 public class PageDashboardConfigurable extends PageDashboard {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboardConfigurable.class);
     private static final String DOT_CLASS = PageDashboardConfigurable.class.getName() + ".";
@@ -138,7 +140,12 @@ public class PageDashboardConfigurable extends PageDashboard {
                     throw new RestartResponseException(PageDashboardInfo.class);
                 }
                 Task task = createSimpleTask("Search dashboard");
-                return WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid.toString(), PageDashboardConfigurable.this, task, task.getResult()).getRealValue();
+                PrismObject<DashboardType> dashboard = WebModelServiceUtils.loadObject(DashboardType.class,
+                        dashboardOid.toString(), PageDashboardConfigurable.this, task, task.getResult());
+                if (dashboard == null) {
+                    return null; //TODO what to do if null?
+                }
+                return dashboard.getRealValue();
             }
         };
     }
@@ -155,22 +162,22 @@ public class PageDashboardConfigurable extends PageDashboard {
                 DashboardWidgetType dw = item.getModelObject();
                 DashboardWidgetSourceTypeType sourceType = dw.getData() != null ? dw.getData().getSourceType() : null;
                 if (DashboardWidgetSourceTypeType.METRIC == sourceType) {
-                    item.add(populateMetricWidget(ID_WIDGET, item.getModel()));
+                    item.add(populateMetricWidget(item.getModel()));
                 } else {
-                    item.add(populateDashboardWidget(ID_WIDGET, item.getModel()));
+                    item.add(populateDashboardWidget(item.getModel()));
                 }
             }
         });
     }
 
-    private Component populateMetricWidget(String id, IModel<DashboardWidgetType> model) {
-        return new MetricWidgetPanel(id, model);
+    private Component populateMetricWidget(IModel<DashboardWidgetType> model) {
+        return new MetricWidgetPanel(PageDashboardConfigurable.ID_WIDGET, model);
     }
 
-    private Component populateDashboardWidget(String id, IModel<DashboardWidgetType> model) {
+    private Component populateDashboardWidget(IModel<DashboardWidgetType> model) {
         IModel<DashboardWidgetDto> widgetModel = loadWidgetData(model);
 
-        SmallBox box = new SmallBox(id, () -> {
+        SmallBox box = new SmallBox(PageDashboardConfigurable.ID_WIDGET, () -> {
             DashboardWidgetDto widget = widgetModel.getObject();
 
             SmallBoxData data = new SmallBoxData();
@@ -230,8 +237,9 @@ public class PageDashboardConfigurable extends PageDashboard {
         Task task = createSimpleTask(OPERATION_COMPILE_DASHBOARD_COLLECTION);
         OperationResult result = new OperationResult(OPERATION_COMPILE_DASHBOARD_COLLECTION);
         try {
-            return getModelInteractionService().compileObjectCollectionView(getDashboardService()
-                    .getCollectionRefSpecificationType(widget, task, result), null, task, result) != null;
+            getModelInteractionService().compileObjectCollectionView(getDashboardService()
+                    .getCollectionRefSpecificationType(widget, task, result), null, task, result);
+            return true;
         } catch (Exception e) {
             return false;
         }
@@ -246,36 +254,49 @@ public class PageDashboardConfigurable extends PageDashboard {
             return false;
         }
         switch (source) {
-            case OBJECT_COLLECTION:
-                ObjectCollectionType collection = getObjectCollectionType(widget);
-                if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
-                    if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
-                        String oid = getResourceOid(collection.getFilter());
-                        return StringUtils.isNotBlank(oid);
-                    }
-                    return LINKS_REF_COLLECTIONS.containsKey(collection.getType().getLocalPart()) && isCollectionLoadable(widget);
-                } else {
-                    return false;
-                }
-            case AUDIT_SEARCH:
-                Task task = createSimpleTask("Is audit collection");
-                if (DashboardUtils.isAuditCollection(getObjectCollectionRef(widget), getModelService(), task, task.getResult())) {
-                    return LINKS_REF_COLLECTIONS.containsKey(AuditEventRecordType.COMPLEX_TYPE.getLocalPart());
-                } else {
-                    return false;
-                }
-            case OBJECT:
-                ObjectType object = getObjectFromObjectRef(widget);
-                if (object == null) {
-                    return false;
-                }
-                return DetailsPageUtil.hasDetailsPage(object.getClass());
+            case OBJECT_COLLECTION -> {
+                return linkRefForObjectCollectionExists(widget);
+            }
+            case AUDIT_SEARCH -> {
+                return linkRefForAuditExists(widget);
+            }
+            case OBJECT -> {
+                return linkRefForObjectExists(widget);
+            }
         }
         return false;
     }
 
+    private boolean linkRefForObjectCollectionExists(DashboardWidgetType widget) {
+        ObjectCollectionType collection = getObjectCollectionType(widget);
+        if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
+            if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
+                String oid = getResourceOid(collection.getFilter());
+                return StringUtils.isNotBlank(oid) || SelectorQualifiedGetOptionsUtil.hasRawOption(collection.getGetOptions());
+            }
+            return LINKS_REF_COLLECTIONS.containsKey(collection.getType().getLocalPart()) && isCollectionLoadable(widget);
+        }
+        return false;
+    }
+
+    private boolean linkRefForAuditExists(DashboardWidgetType widget) {
+        Task task = createSimpleTask("Is audit collection");
+        if (DashboardUtils.isAuditCollection(getObjectCollectionRef(widget), getModelService(), task, task.getResult())) {
+            return LINKS_REF_COLLECTIONS.containsKey(AuditEventRecordType.COMPLEX_TYPE.getLocalPart());
+        }
+        return false;
+    }
+
+    private boolean linkRefForObjectExists(DashboardWidgetType widget) {
+        ObjectType object = getObjectFromObjectRef(widget);
+        if (object == null) {
+            return false;
+        }
+        return DetailsPageUtil.hasDetailsPage(object.getClass());
+    }
+
     private CollectionRefSpecificationType getObjectCollectionRef(DashboardWidgetType model) {
-        if (isCollectionRefOfCollectionNull(model)) {
+        if (DashboardUtils.isCollectionRefOfCollectionNull(model)) {
             return null;
         }
         return model.getData().getCollection();
@@ -294,32 +315,6 @@ public class PageDashboardConfigurable extends PageDashboard {
         }
 
         return objectCollection.asObjectable();
-    }
-
-    private boolean isCollectionRefOfCollectionNull(DashboardWidgetType model) {
-        if (isDataNull(model)) {
-            return true;
-        }
-        if (isCollectionOfDataNull(model)) {
-            return true;
-        }
-        ObjectReferenceType ref = model.getData().getCollection().getCollectionRef();
-        if (ref == null) {
-            LOGGER.error("CollectionRef of collection is not found in widget " + model.getIdentifier());
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isCollectionOfDataNull(DashboardWidgetType model) {
-        if (isDataNull(model)) {
-            return true;
-        }
-        if (model.getData().getCollection() == null) {
-            LOGGER.error("Collection of data is not found in widget " + model.getIdentifier());
-            return true;
-        }
-        return false;
     }
 
     private boolean isDataNull(DashboardWidgetType dashboardWidgetType) {
@@ -368,13 +363,8 @@ public class PageDashboardConfigurable extends PageDashboard {
         }
 
         switch (source) {
-            case OBJECT_COLLECTION:
-            case AUDIT_SEARCH:
-                navigateToObjectCollectionPage(widget);
-                break;
-            case OBJECT:
-                navigateToObjectPage(widget);
-                break;
+            case OBJECT_COLLECTION, AUDIT_SEARCH -> navigateToObjectCollectionPage(widget);
+            case OBJECT -> navigateToObjectPage(widget);
         }
     }
 
