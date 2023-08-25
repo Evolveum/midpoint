@@ -22,6 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+/**
+ * See https://docs.evolveum.com/midpoint/reference/security/authorization/configuration/selectors/delegator/.
+ */
 public class DelegatorClause extends SelectorClause {
 
     @NotNull private final ValueSelector selector;
@@ -69,7 +72,7 @@ public class DelegatorClause extends SelectorClause {
         }
 
         if (allowInactive) {
-            for (AssignmentType assignment : ((UserType) object).getAssignment()) {
+            for (AssignmentType assignment : user.getAssignment()) {
                 ObjectReferenceType assignmentTargetRef = assignment.getTargetRef();
                 if (assignmentTargetRef == null) {
                     continue;

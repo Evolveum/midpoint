@@ -5,11 +5,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000d001"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Universal Self Delegator</name>
-    <delegable>true</delegable>
     <authorization>
         <name>authz-read-basic</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
@@ -23,17 +20,32 @@
         </object>
     </authorization>
     <authorization>
-        <name>authz-read-delagate-assignments</name>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <name>authz-read-relevant-delegate-assignments</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
         <object>
-            <type>UserType</type>
-            <delegator>
-                <special>self</special>
-            </delegator>
+            <parent>
+                <type>UserType</type>
+                <delegator>
+                    <special>self</special>
+                </delegator>
+                <path>assignment</path>
+            </parent>
+            <special>selfDeputyAssignment</special>
         </object>
-        <item>assignment</item>
-        <item>roleMembershipRef</item>
-        <item>delegatedRef</item>
+    </authorization>
+    <authorization>
+        <name>authz-read-relevant-delegate-delegateRef</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <parent>
+                <type>UserType</type>
+                <delegator>
+                    <special>self</special>
+                </delegator>
+                <path>delegatedRef</path>
+            </parent>
+            <special>selfDeputyRef</special>
+        </object>
     </authorization>
     <authorization>
         <name>delegator-req</name>
@@ -73,4 +85,5 @@
             <type>ShadowType</type>
         </object>
     </authorization>
+    <delegable>true</delegable>
 </role>

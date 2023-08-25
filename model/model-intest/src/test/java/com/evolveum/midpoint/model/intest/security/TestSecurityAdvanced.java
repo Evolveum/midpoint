@@ -25,7 +25,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -361,9 +360,17 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
     @Test
     public void test120AutzJackDelegator() throws Exception {
-        // GIVEN
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR.oid);
+
+        and("barbossa has three unrelated assignments, invisible to jack");
+        assignRole(USER_BARBOSSA_OID, ROLE_ORDINARY.oid);
+        assignDeputy(USER_BARBOSSA_OID, USER_DRAKE_OID, task, result);
+        assignDeputy(USER_BARBOSSA_OID, USER_ADMINISTRATOR_OID, TestSecurityAdvanced::disableAssignment, task, result);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -382,21 +389,21 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertAssignedRole(userJack, ROLE_DELEGATOR.oid);
 
         PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
-        assertNoAssignments(userBarbossa);
+        assertNoAssignments(userBarbossa); // there are other assignments but jack does not see them
 
         assertDeny("assign business role to jack",
-                (task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1.oid, task, result));
+                (lTask, lResult) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1.oid, lTask, lResult));
 
         userJack = getUser(USER_JACK_OID);
         assertAssignments(userJack, 1);
 
         // Wrong direction. It should NOT work.
         assertDeny("delegate from Barbossa to Jack",
-                (task, result) -> assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result));
+                (lTask, lResult) -> assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, lTask, lResult));
 
         // Good direction
         assertAllow("delegate to Barbossa",
-                (task, result) -> assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result));
+                (lTask, lResult) -> assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, lTask, lResult));
 
         userJack = getUser(USER_JACK_OID);
         display("Jack delegator", userJack);
@@ -404,11 +411,12 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
         userBarbossa = getUser(USER_BARBOSSA_OID);
         display("Barbossa delegate", userBarbossa);
-        assertAssignments(userBarbossa, 1);
+        assertAssignments(userBarbossa, 1); // jack sees only a single assignment
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        assertDelegatedRef(userBarbossa, USER_JACK_OID);
 
-        assertDeputySearchDelegatorRef(USER_JACK_OID, USER_BARBOSSA_OID);
-        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaDelegatedRef(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaAssignmentTargetRef(USER_JACK_OID, USER_BARBOSSA_OID);
 
         // Non-delegate. We should be able to read just the name. Not the assignments.
         PrismObject<UserType> userRum = getUser(userRumRogersOid);
@@ -431,7 +439,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         display("Logged in as Jack");
 
         assertAllow("undelegate from Barbossa",
-                (task, result) -> unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result));
+                (lTask, lResult) -> unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, lTask, lResult));
 
         userJack = getUser(USER_JACK_OID);
         assertAssignments(userJack, 1);
@@ -452,12 +460,24 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertDeleteDeny();
 
         assertDeny("delegate to Jack",
-                (task, result) -> assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result));
+                (lTask, lResult) -> assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, lTask, lResult));
 
         assertDeny("delegate from Jack to Barbossa",
-                (task, result) -> assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result));
+                (lTask, lResult) -> assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, lTask, lResult));
 
         assertGlobalStateUntouched();
+
+        // cleanup
+        login(USER_ADMINISTRATOR_USERNAME);
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertAssignments(userBarbossa, 3);
+        unassignRole(USER_BARBOSSA_OID, ROLE_ORDINARY.oid);
+        unassignDeputy(USER_BARBOSSA_OID, USER_DRAKE_OID, task, result);
+        unassignDeputy(USER_BARBOSSA_OID, USER_ADMINISTRATOR_OID, TestSecurityAdvanced::disableAssignment, task, result);
+    }
+
+    private static void disableAssignment(AssignmentType a) {
+        a.setActivation(new ActivationType().administrativeStatus(ActivationStatusType.DISABLED));
     }
 
     /**
@@ -466,7 +486,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
      * MID-4172
      */
     @Test
-    public void test122AutzJackDelagatorValidity() throws Exception {
+    public void test122AutzJackDelegatorValidity() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR.oid);
@@ -505,9 +525,9 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         // Delegation is not active yet. Therefore jack cannot see it.
         assertAssignments(userBarbossa, 0);
 
-        assertDeputySearchDelegatorRef(USER_JACK_OID /* nothing */);
-        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID); // WRONG!!!
-//        assertDeputySearchAssignmentTarget(USER_JACK_OID /* nothing */);
+        assertDeputySearchViaDelegatedRef(USER_JACK_OID /* nothing */);
+        assertDeputySearchViaAssignmentTargetRef(USER_JACK_OID, USER_BARBOSSA_OID); // WRONG!!!
+//        assertDeputySearchViaAssignmentTargetRef(USER_JACK_OID /* nothing */);
 
         // Non-delegate. We should be able to read just the name. Not the assignments.
         PrismObject<UserType> userRum = getUser(userRumRogersOid);
@@ -540,8 +560,8 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertAssignments(userBarbossa, 1);
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
 
-        assertDeputySearchDelegatorRef(USER_JACK_OID, USER_BARBOSSA_OID);
-        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaDelegatedRef(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaAssignmentTargetRef(USER_JACK_OID, USER_BARBOSSA_OID);
 
         login(USER_BARBOSSA_USERNAME);
         // WHEN
@@ -611,7 +631,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
      * MID-4172
      */
     @Test
-    public void test124AutzJackDelagatorPlusValidity() throws Exception {
+    public void test124AutzJackDelegatorPlusValidity() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_PLUS.oid);
@@ -651,8 +671,8 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
 
         // delegatorRef is allowed, but returns nothing. The delegation is not yet active, it is not in the delgatorRef.
-        assertDeputySearchDelegatorRef(USER_JACK_OID /* nothing */);
-        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaDelegatedRef(USER_JACK_OID /* nothing */);
+        assertDeputySearchViaAssignmentTargetRef(USER_JACK_OID, USER_BARBOSSA_OID);
 
         // Non-delegate. We should be able to read just the name. Not the assignments.
         PrismObject<UserType> userRum = getUser(userRumRogersOid);
@@ -685,8 +705,8 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertAssignments(userBarbossa, 1);
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
 
-        assertDeputySearchDelegatorRef(USER_JACK_OID, USER_BARBOSSA_OID);
-        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaDelegatedRef(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaAssignmentTargetRef(USER_JACK_OID, USER_BARBOSSA_OID);
 
         login(USER_BARBOSSA_USERNAME);
         // WHEN
@@ -714,8 +734,8 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
 
         // delegatorRef is allowed, but returns nothing. The delegation is not yet active, it is not in the delgatorRef.
-        assertDeputySearchDelegatorRef(USER_JACK_OID /* nothing */);
-        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchViaDelegatedRef(USER_JACK_OID /* nothing */);
+        assertDeputySearchViaAssignmentTargetRef(USER_JACK_OID, USER_BARBOSSA_OID);
 
         login(USER_BARBOSSA_USERNAME);
         // WHEN
@@ -3406,26 +3426,30 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         assignRole(userRumRogersOid, ROLE_UNINTERESTING.oid, task, result);
         assignRole(userCobbOid, ROLE_ORDINARY.oid, task, result);
         assignRole(userCobbOid, ROLE_UNINTERESTING.oid, task, result);
-
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids)
+    private void assertDeputySearchViaDelegatedRef(String delegatorOid, String... expectedDeputyOids)
             throws Exception {
-        PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
-        rval.setRelation(SchemaConstants.ORG_DEPUTY);
-        ObjectQuery query = queryFor(UserType.class).item(UserType.F_DELEGATED_REF).ref(rval).build();
-        assertSearch(UserType.class, query, expectedDeputyOids);
+        assertSearch(
+                UserType.class,
+                queryFor(UserType.class)
+                        .item(UserType.F_DELEGATED_REF)
+                        .ref(delegatorOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY)
+                        .build(),
+                expectedDeputyOids);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void assertDeputySearchAssignmentTarget(
+    private void assertDeputySearchViaAssignmentTargetRef(
             String delegatorOid, String... expectedDeputyOids) throws Exception {
-        PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
-        rval.setRelation(SchemaConstants.ORG_DEPUTY);
-        ObjectQuery query = queryFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(rval).build();
-        assertSearch(UserType.class, query, expectedDeputyOids);
+        assertSearch(
+                UserType.class,
+                queryFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(delegatorOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY)
+                        .build(),
+                expectedDeputyOids);
     }
 
     @Override

@@ -8640,6 +8640,32 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="selfDeputyAssignment">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>
+                            "Deputy" assignment that points to the subject.
+                            May be replaced with something more general in the future.
+                        </xsd:documentation>
+                        <jaxb:typesafeEnumMember name="SELF_DEPUTY_ASSIGNMENT"/>
+                        <a:since>4.8</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selfDeputyRef">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>
+                            "Deputy" reference that points to the subject.
+                            May be replaced with something more general in the future.
+                        </xsd:documentation>
+                        <jaxb:typesafeEnumMember name="SELF_DEPUTY_REF"/>
+                        <a:since>4.8</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
