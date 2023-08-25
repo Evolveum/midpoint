@@ -846,6 +846,66 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <description>Persons</description>
+                <documentation>This view displays all users with archetype "Person"</documentation>
+                <identifier>person-view</identifier>
+                <displayOrder>10</displayOrder>
+                <type>UserType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000702" relation="org:default" type="c:ArchetypeType">
+                        <!-- Person -->
+                    </collectionRef>
+                </collection>
+                <searchBoxConfiguration>
+                    <searchItems>
+                        <searchItem>
+                            <description>Allow searching for users having account on specific resource. Intent is not considered. The search item is not displayed by default
+                                (visibleByDefault=false).
+                            </description>
+                            <visibleByDefault>true</visibleByDefault>
+                            <filter>
+                                <q:text>
+                                    linkRef/@ matches (
+                                    . type ShadowType
+                                    and resourceRef/@/name = `resourceParameter?.getName()?.getOrig()`
+                                    and kind = "account" )
+                                </q:text>
+                            </filter>
+                            <display>
+                                <label>Users with account</label>
+                            </display>
+                            <parameter>
+                                <name>resourceParameter</name>
+                                <type>c:ObjectReferenceType</type>
+                                <targetType>ResourceType</targetType>
+                            </parameter>
+                        </searchItem>
+                        <searchItem>
+                            <description>Allow searching for users not having account on specific resource. Intent is not considered. The search item is not displayed by default
+                                (visibleByDefault=false).
+                            </description>
+                            <visibleByDefault>true</visibleByDefault>
+                            <filter>
+                                <q:text>
+                                    linkRef/@ not matches (
+                                    . type ShadowType
+                                    and resourceRef/@/name = `resourceParameter?.getName()?.getOrig()`
+                                    and kind = "account" )
+                                </q:text>
+                            </filter>
+                            <display>
+                                <label>Users without account</label>
+                            </display>
+                            <parameter>
+                                <name>resourceParameter</name>
+                                <type>c:ObjectReferenceType</type>
+                                <targetType>ResourceType</targetType>
+                            </parameter>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage>
