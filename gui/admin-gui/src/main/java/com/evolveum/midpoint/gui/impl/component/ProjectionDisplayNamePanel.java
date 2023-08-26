@@ -6,29 +6,28 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
-import java.util.ArrayList;
+import java.io.Serial;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.apache.wicket.model.Model;
 
 /**
  * @author skublik
  */
 public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_PENDING_OPERATION_CONTAINER = "pendingOperationContainer";
     private static final String ID_PENDING_OPERATION = "pendingOperation";
@@ -65,14 +64,12 @@ public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType> {
 
     @Override
     protected IModel<String> getKindIntentLabelModel() {
-        return WebComponentUtil.getResourceLabelModel(getModelObject(), getPageBase());
+        return ProvisioningObjectsUtil.getResourceLabelModel(getModelObject(), getPageBase());
     }
 
     @Override
     protected IModel<List<String>> getDescriptionLabelsModel() {
-        List<String> descriptionLabels = new ArrayList<>();
-        descriptionLabels.add(WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase()).getObject());
-        return (IModel<List<String>>) () -> descriptionLabels;
+        return () -> List.of(ProvisioningObjectsUtil.determineDisplayNameForDefinition(getModelObject(), getPageBase()));
     }
 
     @Override

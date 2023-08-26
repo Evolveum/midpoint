@@ -12,6 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingTyp
 
 import org.jetbrains.annotations.NotNull;
 
+/** Unfortunately, this cannot extend MappingConfigItem because of the conflict in generic type parameters. */
 public class AutoAssignMappingConfigItem
         extends ConfigurationItem<AutoassignMappingType>
         implements AbstractMappingConfigItem<AutoassignMappingType> {

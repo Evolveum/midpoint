@@ -10,6 +10,10 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,6 +113,8 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
      *
      * Also it is not clear why these mappings are not collected to the map for later execution,
      * just like regular mappings are.
+     *
+     * [EP:M:IM] DONE 4/4
      */
     private void evaluateSpecialInbounds(
             List<MappingType> inboundMappingBeans,
@@ -233,11 +239,13 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
                     return false;
                 };
 
-        // FIXME Undetermined because of resource/object type inheritance
-        var originProvider = OriginProvider.undetermined();
+        // [EP:M:IM] DONE, see above
+        OriginProvider<MappingType> originProvider =
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
 
         MappingEvaluatorParams<PrismValue, ItemDefinition<?>, F, F> params = new MappingEvaluatorParams<>();
-        params.setMappingBeans(ConfigurationItem.ofList(inboundMappingBeans, originProvider));
+        params.setMappingConfigItems( // [EP:M:IM] DONE, see above
+                ConfigurationItem.ofList(inboundMappingBeans, originProvider, MappingConfigItem.class));
         params.setMappingDesc("inbound mapping for " + sourcePath + " in " + projectionContext.getResource());
         params.setNow(context.env.now);
         params.setInitializer(initializer);
@@ -257,13 +265,17 @@ public class ClockworkShadowInboundsPreparation<F extends FocusType> extends Sha
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         // TODO convert to mapping creation requests
-        evaluateSpecialInbounds(source.resourceObjectDefinition.getPasswordInbound(),
+        evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
+                source.resourceObjectDefinition.getPasswordInbound(),
                 SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE);
-        evaluateSpecialInbounds(getActivationInbound(ActivationType.F_ADMINISTRATIVE_STATUS),
+        evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
+                getActivationInbound(ActivationType.F_ADMINISTRATIVE_STATUS),
                 SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        evaluateSpecialInbounds(getActivationInbound(ActivationType.F_VALID_FROM),
+        evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
+                getActivationInbound(ActivationType.F_VALID_FROM),
                 SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM);
-        evaluateSpecialInbounds(getActivationInbound(ActivationType.F_VALID_TO),
+        evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
+                getActivationInbound(ActivationType.F_VALID_TO),
                 SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO);
     }
 

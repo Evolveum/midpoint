@@ -65,15 +65,16 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
      */
     private boolean isInDeltaDelete;
 
+    /** [EP:APSO] DONE */
     @NotNull private final ConfigurationItemOrigin configurationItemOrigin;
 
     AssignmentOrigin(boolean virtual, @NotNull ConfigurationItemOrigin configurationItemOrigin) {
         this.virtual = virtual;
-        this.configurationItemOrigin = configurationItemOrigin;
+        this.configurationItemOrigin = configurationItemOrigin; // [EP:APSO] DONE 4/4
     }
 
     public static AssignmentOrigin inObject(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
-        AssignmentOrigin rv = new AssignmentOrigin(false, configurationItemOrigin);
+        AssignmentOrigin rv = new AssignmentOrigin(false, configurationItemOrigin); // [EP:APSO] DONE 2/2
         rv.isCurrent = true;
         return rv;
     }
@@ -81,11 +82,11 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
     /** Not in object, not virtual - to be used in tests. */
     @VisibleForTesting
     public static AssignmentOrigin other(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
-        return new AssignmentOrigin(false, configurationItemOrigin);
+        return new AssignmentOrigin(false, configurationItemOrigin); // [EP:APSO] DONE (testing only)
     }
 
     public static AssignmentOrigin virtual(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
-        return new AssignmentOrigin(true, configurationItemOrigin);
+        return new AssignmentOrigin(true, configurationItemOrigin); // [EP:APSO] DONE 1/1
     }
 
     public boolean isVirtual() {
@@ -118,7 +119,7 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
     }
 
     public @NotNull ConfigurationItemOrigin getConfigurationItemOrigin() {
-        return configurationItemOrigin;
+        return configurationItemOrigin; // [EP:APSO] DONE
     }
 
     @Override

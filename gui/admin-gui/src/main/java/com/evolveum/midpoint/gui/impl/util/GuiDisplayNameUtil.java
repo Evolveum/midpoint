@@ -346,11 +346,4 @@ public class GuiDisplayNameUtil {
         return "";
     }
 
-    public static String getDisplayName(Object object) {
-        if (object == null) {
-            return "";
-        }
-        return object.toString();
-
-    }
 }

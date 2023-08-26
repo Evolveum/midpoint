@@ -80,7 +80,9 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             LOGGER.trace("Preparing construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
             AssignedConstructionBuilder<AH> builder = new AssignedConstructionBuilder<>();
-            populateConstructionBuilder(builder, constructionBean, segment.assignmentOrigin);
+            // [EP:CONSTR] DONE because [EP:APSO] DONE
+            ConfigurationItemOrigin constructionOrigin = segment.assignmentOrigin.child(AssignmentType.F_CONSTRUCTION);
+            populateConstructionBuilder(builder, constructionBean, constructionOrigin);
             AssignedResourceObjectConstruction<AH> construction = builder.build();
 
             // Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
@@ -94,18 +96,21 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             LOGGER.trace("Preparing persona construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
             PersonaConstructionBuilder<AH> builder = new PersonaConstructionBuilder<>();
-            populateConstructionBuilder(builder, constructionBean, segment.assignmentOrigin);
+            // [EP:CONSTR] DONE because [EP:APSO] DONE
+            ConfigurationItemOrigin constructionOrigin = segment.assignmentOrigin.child(AssignmentType.F_PERSONA_CONSTRUCTION);
+            populateConstructionBuilder(builder, constructionBean, constructionOrigin);
             PersonaConstruction<AH> construction = builder.build();
 
             ctx.evalAssignment.addPersonaConstruction(construction, segment.getAbsoluteAssignmentRelativityMode()); // TODO
         }
     }
 
+    /** [EP:CONSTR] DONE 2/2 */
     private <ACT extends AbstractConstructionType> void populateConstructionBuilder(
             AbstractConstructionBuilder<AH, ACT, ? extends EvaluatedAbstractConstruction<AH>, ?> builder,
             ACT constructionBean,
             @NotNull ConfigurationItemOrigin constructionOrigin) {
-        builder.constructionBean(constructionBean, constructionOrigin)
+        builder.constructionBean(constructionBean, constructionOrigin) // [EP:CONSTR] DONE
                 .assignmentPath(ctx.assignmentPath.clone()) // We have to clone here as the path is constantly changing during evaluation
                 .source(segment.source)
                 .lensContext(ctx.ae.lensContext)
@@ -127,7 +132,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                     AssignedFocusMappingEvaluationRequest request =
                             new AssignedFocusMappingEvaluationRequest(
                                     mappingBean,
-                                    segment.assignmentOrigin.child(
+                                    segment.assignmentOrigin.child( // [EP:M:AFM] DONE because [EP:APSO] DONE
                                             AssignmentType.F_FOCUS_MAPPINGS, mappingBean.getId()),
                                     segment.source,
                                     ctx.evalAssignment,

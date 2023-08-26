@@ -161,6 +161,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private TaskManager taskManager;
     @Autowired private SimulationResultManager simulationResultManager;
+    @Autowired private ProvisioningService provisioningService;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -1589,6 +1590,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
+            // [EP:APSO] DONE potential deputy is from repository
             if (determineDeputyValidity(
                     potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitations.Type.CASES, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
@@ -1611,6 +1613,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
+            // [EP:APSO] DONE, potential deputy is from repository
             if (determineDeputyValidity(
                     potentialDeputy, List.of(assigneeRef), null, limitationType, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
@@ -1619,8 +1622,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
+    /**
+     * Potential deputy must be from the repository.
+     *
+     * [EP:APSO] DONE it is so, currently
+     */
     private boolean determineDeputyValidity(
-            PrismObject<UserType> potentialDeputy,
+            PrismObject<UserType> potentialDeputy, // [EP:APSO] DONE 2/2 verified that the object is from repository
             List<ObjectReferenceType> assignees,
             @Nullable AbstractWorkItemType workItem,
             @NotNull OtherPrivilegesLimitations.Type limitationType,
@@ -1651,7 +1659,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                                 assignmentIdi, null,
                                 PlusMinusZero.ZERO, false,
                                 potentialDeputyBean, potentialDeputy.toString(),
-                                AssignmentOrigin.inObject(embedded(assignmentBean)),
+                                AssignmentOrigin.inObject(embedded(assignmentBean)), // [EP:APSO] DONE from object from repo
                                 task, result);
                 if (!assignment.isValid()) {
                     continue;
@@ -2109,7 +2117,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Experimental
     @NotNull
     public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
-            @NotNull PrismObject<ObjectCollectionType> collection,
+            @NotNull PrismObject<ObjectCollectionType> collection, // [EP:APSO] DONE 1/1
             @Nullable CompiledObjectCollectionView preCompiledView,
             @Nullable Class<? extends ObjectType> targetTypeClass,
             @NotNull Task task,
@@ -2435,5 +2443,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         bulkActionsExecutor.authorizeBulkActionExecution(action, phase, task, result);
+    }
+
+    public void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
 }

@@ -10,8 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -309,8 +310,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected void navigateAction() {
-        Class<? extends PageBase> objectListPage = WebComponentUtil.getObjectListPage(getType());
-        if (!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null) {
+        Class<? extends PageBase> objectListPage = DetailsPageUtil.getObjectListPage(getType());
+        if (!canRedirectBack() && DetailsPageUtil.getObjectListPage(getType()) != null) {
             navigateToNext(objectListPage);
         } else {
             redirectBack();

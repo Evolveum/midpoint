@@ -69,7 +69,7 @@ public interface AssociationDefinitionStore {
 
     default @NotNull Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
         return getAssociationDefinitions().stream()
-                .filter(assocDef -> CollectionUtils.isNotEmpty(assocDef.getInboundMappingTypes()))
+                .filter(assocDef -> CollectionUtils.isNotEmpty(assocDef.getInboundMappingBeans()))
                 .map(ResourceAssociationDefinition::getName)
                 .collect(Collectors.toCollection(HashSet::new));
     }

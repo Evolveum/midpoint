@@ -9,6 +9,9 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -155,7 +158,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
             PrismContainerValue<?> value = visualization.getSourceValue();
             QName type = value.getTypeName();
-            String icon = WebComponentUtil.createDefaultBlackIcon(type);
+            String icon = IconAndStylesUtil.createDefaultBlackIcon(type);
 
             return StringUtils.isNotEmpty(icon) ? "mr-1 " + icon : null;
         };
@@ -209,7 +212,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 PrismContainerValue<?> value = VisualizationPanel.this.getModelObject().getVisualization().getSourceValue();
                 if (value != null && value.getParent() instanceof PrismObject) {
                     PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) value.getParent();
-                    WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext()), getPageBase(), false);
+                    DetailsPageUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext()), getPageBase(), false);
                 }
             }
         };
@@ -312,7 +315,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         PrismObject<?> obj = (PrismObject<?>) value.getParent();
 
-        return WebComponentUtil.hasDetailsPage(obj) &&
+        return DetailsPageUtil.hasDetailsPage(obj) &&
                 obj.getOid() != null && (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
     }
 

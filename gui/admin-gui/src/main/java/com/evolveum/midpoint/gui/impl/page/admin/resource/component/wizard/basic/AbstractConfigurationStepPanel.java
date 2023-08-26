@@ -7,16 +7,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,7 +57,7 @@ public abstract class AbstractConfigurationStepPanel extends AbstractFormWizardS
     public boolean onNextPerformed(AjaxRequestTarget target) {
 
         CapabilityCollectionType capabilities
-                = WebComponentUtil.getNativeCapabilities(getDetailsModel().getObjectType(), getPageBase());
+                = ProvisioningObjectsUtil.getNativeCapabilities(getDetailsModel().getObjectType(), getPageBase());
 
         if (capabilities.getSchema() != null || capabilities.getTestConnection() != null) {
             PageBase pageBase = getPageBase();

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -297,7 +298,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                     String rightBottomIcon = null;
                     String iconColor = null;
                     if (targetRef != null && targetRef.getType() != null) {
-                        defaultIcon = WebComponentUtil.createDefaultBlackIcon(targetRef.getType());
+                        defaultIcon = IconAndStylesUtil.createDefaultBlackIcon(targetRef.getType());
                     }
                     if (eventType != null && eventType.getDisplay() != null && eventType.getDisplay().getIcon() != null) {
                         if (defaultIcon == null) {

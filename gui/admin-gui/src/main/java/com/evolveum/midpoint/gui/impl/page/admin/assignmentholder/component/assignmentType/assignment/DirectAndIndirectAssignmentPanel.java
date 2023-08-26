@@ -9,6 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -140,7 +144,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
-                item.add(new Label(componentId, WebComponentUtil.getRelationLabelValue(assignmentModel.getObject(), getPageBase())));
+                item.add(new Label(componentId, RelationUtil.getRelationLabelValue(assignmentModel.getObject(), getPageBase())));
             }
 
             @Override
@@ -174,7 +178,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                         if (displayType != null) {
                             String disabledStyle;
                             if (targetObject instanceof FocusType) {
-                                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType) targetObject).asPrismObject());
+                                disabledStyle = IconAndStylesUtil.getIconEnabledDisabled(((FocusType) targetObject).asPrismObject());
                                 if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
                                         disabledStyle != null) {
                                     displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
@@ -185,7 +189,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                         }
                     }
                 }
-                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
+                return GuiDisplayTypeUtil.createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(
                         AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue())));
             }
 
@@ -222,7 +226,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                 }
                 if (ref != null) {
                     try {
-                        WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), true);
+                        DetailsPageUtil.dispatchToObjectDetailsPage(ref, getPageBase(), true);
                     } catch (Exception e) {
                         getPageBase().error("Cannot determine details page for " + ref);
                         target.add(getPageBase().getFeedbackPanel());

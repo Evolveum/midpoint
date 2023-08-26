@@ -34,4 +34,11 @@ public class GlobalPolicyRuleConfigItem extends AbstractPolicyRuleConfigItem<Glo
     public GlobalPolicyRuleConfigItem clone() {
         return new GlobalPolicyRuleConfigItem(super.clone());
     }
+
+    public @Nullable MappingConfigItem getCondition() {
+        return child(
+                value().getCondition(),
+                MappingConfigItem.class,
+                GlobalPolicyRuleType.F_CONDITION);
+    }
 }

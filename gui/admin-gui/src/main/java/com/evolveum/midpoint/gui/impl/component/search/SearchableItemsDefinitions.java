@@ -97,7 +97,8 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(UserType.F_TELEPHONE_NUMBER),
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
-                ItemPath.create(UserType.F_LOCALITY)
+                ItemPath.create(UserType.F_LOCALITY),
+                ItemPath.create(UserType.F_PERSONAL_NUMBER)
         ));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 ItemPath.create(RoleType.F_NAME),

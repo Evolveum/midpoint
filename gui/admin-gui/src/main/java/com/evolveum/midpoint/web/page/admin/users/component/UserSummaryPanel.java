@@ -10,12 +10,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 
@@ -57,7 +57,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
                     }
 
                     QName relation = objectReferenceType.getRelation();
-                    if (!WebComponentUtil.isDefaultRelation(relation)) {
+                    if (!RelationUtil.isDefaultRelation(relation)) {
                         continue;
                     }
 
@@ -99,7 +99,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
                 boolean isManager = false;
                 boolean isMember = false;
                 for (ObjectReferenceType parentOrgRef : object.getParentOrgRef()) {
-                    if (WebComponentUtil.isManagerRelation(parentOrgRef.getRelation())) {
+                    if (RelationUtil.isManagerRelation(parentOrgRef.getRelation())) {
                         isManager = true;
                     } else {
                         isMember = true;

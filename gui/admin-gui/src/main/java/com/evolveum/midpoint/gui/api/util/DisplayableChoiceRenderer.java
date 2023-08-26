@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class DisplayableChoiceRenderer<T extends Serializable> implements IChoiceRenderer<DisplayableValue<T>> {
+public class DisplayableChoiceRenderer<T> implements IChoiceRenderer<DisplayableValue<T>> {
 
     private static final long serialVersionUID = 1L;
 

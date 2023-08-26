@@ -1289,7 +1289,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="IdentityItemDefinitionType">
+    <xsd:complexType name="MultiSourceItemDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -1323,7 +1323,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="IdentityDataHandlingType">
+    <xsd:complexType name="MultiSourceDataHandlingType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO (better name?)

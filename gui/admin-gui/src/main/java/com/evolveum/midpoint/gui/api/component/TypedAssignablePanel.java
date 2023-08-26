@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -240,7 +241,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         relationContainer.setOutputMarkupId(true);
         add(relationContainer);
 
-        DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
+        DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER), TypedAssignablePanel.this, false);
         relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relationSelector.setOutputMarkupId(true);
@@ -259,7 +260,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         kindContainer.setOutputMarkupId(true);
         add(kindContainer);
 
-        DropDownChoicePanel kindSelector = WebComponentUtil.createEnumPanel(ShadowKindType.class, ID_KIND,
+        DropDownChoicePanel kindSelector = WebComponentUtil.createEnumPanel(ID_KIND,
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(ShadowKindType.ACCOUNT), TypedAssignablePanel.this, false);
         kindSelector.setOutputMarkupId(true);
         kindSelector.getBaseFormComponent().add(new VisibleEnableBehaviour() {
@@ -358,7 +359,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                 (DropDownChoicePanel<RelationTypes>) get(ID_RELATION_CONTAINER).get(ID_RELATION);
         RelationTypes relation = relationPanel.getModel().getObject();
         if (relation == null) {
-            return WebComponentUtil.getDefaultRelationOrFail();
+            return RelationUtil.getDefaultRelationOrFail();
         }
         return relation.getRelation();
     }

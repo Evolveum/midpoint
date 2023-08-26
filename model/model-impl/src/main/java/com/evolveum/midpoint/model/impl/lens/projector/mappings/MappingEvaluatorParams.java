@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -30,7 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefinition<?>, T extends ObjectType, F extends FocusType> {
 
-    private Collection<ConfigurationItem<MappingType>> mappingBeans;
+    /** [EP:M:IM] [EP:M:OM] 1/1 */
+    private Collection<MappingConfigItem> mappingConfigItems;
     private String mappingDesc;
     private XMLGregorianCalendar now;
     private MappingInitializer<V,D> initializer;
@@ -50,12 +52,13 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
     // If set to true then the target cannot be overridden in mapping
     private boolean fixTarget = false;
 
-    public Collection<ConfigurationItem<MappingType>> getMappingBeans() {
-        return mappingBeans;
+    public Collection<MappingConfigItem> getMappingConfigItems() {
+        return mappingConfigItems;
     }
 
-    public void setMappingBeans(Collection<ConfigurationItem<MappingType>> mappingBeans) {
-        this.mappingBeans = mappingBeans;
+    // [EP:M:OM] 3/3 [EP:M:IM] 1/1
+    public void setMappingConfigItems(Collection<MappingConfigItem> mappingConfigItems) {
+        this.mappingConfigItems = mappingConfigItems;
     }
 
     public String getMappingDesc() {

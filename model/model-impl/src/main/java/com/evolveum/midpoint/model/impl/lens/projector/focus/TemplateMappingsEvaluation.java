@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+
+import com.evolveum.midpoint.schema.config.*;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -347,63 +350,72 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         }
     }
 
-    private void collectLocalMappings(ObjectTemplateType objectTemplate) {
+    private void collectLocalMappings(ObjectTemplateType objectTemplate) throws ConfigurationException {
         for (ObjectTemplateMappingType mapping: objectTemplate.getMapping()) {
             mappings.add(
-                    new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+                    new TemplateMappingEvaluationRequest(
+                            // [EP:M:TFM] DONE, obviously in the object
+                            ObjectTemplateMappingConfigItem.of(mapping, OriginProvider.embedded()),
+                            objectTemplate));
         }
         for (ObjectTemplateItemDefinitionType templateItemDefBean: objectTemplate.getItem()) {
-            ItemPathType ref = templateItemDefBean.getRef();
-            for (ObjectTemplateMappingType mapping: templateItemDefBean.getMapping()) {
+            ObjectTemplateItemDefinitionConfigItem itemDefCI = // [EP:M:TFM] DONE, obviously in the object
+                    ObjectTemplateItemDefinitionConfigItem.of(templateItemDefBean, OriginProvider.embedded());
+            for (ObjectTemplateMappingConfigItem mapping: itemDefCI.getMappings()) {
                 mappings.add(
                         new TemplateMappingEvaluationRequest(
-                                setMappingTarget(mapping, ref),
+                                // [EP:M:TFM] DONE, from upstream CI
+                                mapping.setTargetIfMissing(itemDefCI.getRef()),
                                 objectTemplate));
             }
-            IdentityItemDefinitionType multiSourceDefBean = templateItemDefBean.getMultiSource();
-            if (multiSourceDefBean != null) {
+            var multiSourceCI = itemDefCI.getMultiSource();
+            if (multiSourceCI != null) {
+                var mappingConfigItem = getOrCreateItemSelectionMapping(multiSourceCI, itemDefCI.getRef());
                 mappings.add(
-                        new TemplateMappingEvaluationRequest(
-                                getOrCreateItemSelectionMapping(multiSourceDefBean, ref),
-                                objectTemplate));
+                        // [EP:M:TFM] DONE, from upstream CI and the getOrCreateItemSelectionMapping method
+                        new TemplateMappingEvaluationRequest(mappingConfigItem, objectTemplate));
             }
         }
-        IdentityDataHandlingType identityHandlingBean = objectTemplate.getMultiSource();
-        if (identityHandlingBean != null) {
-            ObjectTemplateMappingType mapping = getAuthoritativeSourceMapping(identityHandlingBean);
-            if (mapping != null) {
+        var multiSourceDataHandlingBean = objectTemplate.getMultiSource();
+        if (multiSourceDataHandlingBean != null) {
+            var multiSourceDataHandlingCI = // [EP:M:TFM] DONE, obviously in the object
+                    MultiSourceDataHandlingConfigItem.of(multiSourceDataHandlingBean, OriginProvider.embedded());
+            var mappingCI = getAuthoritativeSourceMapping(multiSourceDataHandlingCI);
+            if (mappingCI != null) {
                 mappings.add(
-                        new TemplateMappingEvaluationRequest(mapping, objectTemplate));
+                        // [EP:M:TFM] DONE, from upstream CI
+                        new TemplateMappingEvaluationRequest(mappingCI, objectTemplate));
             }
         }
     }
 
-    private ObjectTemplateMappingType getOrCreateItemSelectionMapping(
-            @NotNull IdentityItemDefinitionType multiSourceDefBean, ItemPathType ref) {
-        ObjectTemplateMappingType explicitMapping = multiSourceDefBean.getSelection();
-        ObjectTemplateMappingType selectionMapping;
+    private ObjectTemplateMappingConfigItem getOrCreateItemSelectionMapping(
+            @NotNull MultiSourceItemDefinitionConfigItem multiSourceDefCI, @NotNull ItemPath ref) {
+        var explicitMapping = multiSourceDefCI.getSelection();
+        ObjectTemplateMappingConfigItem selectionMapping;
         if (explicitMapping != null) {
             selectionMapping = explicitMapping.clone();
         } else {
             String code = String.format(
                     "midpoint.selectIdentityItemValues("
                             + "identity, defaultAuthoritativeSource, prismContext.itemPathParser().asItemPath('%s'))",
-                    ref.getItemPath().toStringStandalone()
+                    ref.toStringStandalone()
                             .replace("'", "\\'"));
-            selectionMapping = new ObjectTemplateMappingType()
+            var mappingBean = new ObjectTemplateMappingType()
                     .expression(new ExpressionType()
                             .expressionEvaluator(
                                     new ObjectFactory().createScript(
                                             new ScriptExpressionEvaluatorType()
                                                     .code(code))));
+            selectionMapping = ObjectTemplateMappingConfigItem.of(mappingBean, OriginProvider.generated());
         }
-        setDefaultStrong(selectionMapping);
-        setDefaultRelativityAbsolute(selectionMapping);
-        selectionMapping.getSource().add(new VariableBindingDefinitionType()
+        selectionMapping.setDefaultStrong();
+        selectionMapping.setDefaultRelativityAbsolute();
+        selectionMapping.value().getSource().add(new VariableBindingDefinitionType()
                 .path(new ItemPathType(SchemaConstants.PATH_FOCUS_IDENTITY)));
-        selectionMapping.getSource().add(new VariableBindingDefinitionType()
+        selectionMapping.value().getSource().add(new VariableBindingDefinitionType()
                 .path(new ItemPathType(SchemaConstants.PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE)));
-        return setMappingTarget(selectionMapping, ref);
+        return selectionMapping.setTargetIfMissing(ref);
     }
 
     private void setDefaultStrong(ObjectTemplateMappingType mapping) {
@@ -427,15 +439,15 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         }
     }
 
-    private ObjectTemplateMappingType getAuthoritativeSourceMapping(IdentityDataHandlingType identityDataHandlingBean) {
-        ObjectTemplateMappingType mapping = identityDataHandlingBean.getDefaultAuthoritativeSource();
+    private ObjectTemplateMappingConfigItem getAuthoritativeSourceMapping(MultiSourceDataHandlingConfigItem handlingCI) {
+        var mapping = handlingCI.getDefaultAuthoritativeSource();
         if (mapping != null) {
-            ObjectTemplateMappingType clone = mapping.clone();
-            clone.getSource().add(new VariableBindingDefinitionType()
+            var clone = mapping.clone();
+            clone.value().getSource().add(new VariableBindingDefinitionType()
                     .path(new ItemPathType(SchemaConstants.PATH_FOCUS_IDENTITY)));
-            setDefaultStrong(clone);
-            setDefaultRelativityAbsolute(clone);
-            return setMappingTarget(clone, new ItemPathType(SchemaConstants.PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE));
+            clone.setDefaultStrong();
+            clone.setDefaultRelativityAbsolute();
+            return clone.setTargetIfMissing(SchemaConstants.PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE);
         } else {
             return null;
         }

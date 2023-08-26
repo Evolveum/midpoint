@@ -45,6 +45,7 @@ public class QUserMapping
         addItemMapping(F_ADDITIONAL_NAME, polyStringMapper(
                 q -> q.additionalNameOrig, q -> q.additionalNameNorm));
         addItemMapping(F_EMPLOYEE_NUMBER, stringMapper(q -> q.employeeNumber));
+        addItemMapping(F_PERSONAL_NUMBER, stringMapper(q -> q.personalNumber));
         addItemMapping(F_FAMILY_NAME, polyStringMapper(
                 q -> q.familyNameOrig, q -> q.familyNameNorm));
         addItemMapping(F_FULL_NAME, polyStringMapper(
@@ -81,6 +82,7 @@ public class QUserMapping
         setPolyString(user.getAdditionalName(),
                 o -> row.additionalNameOrig = o, n -> row.additionalNameNorm = n);
         row.employeeNumber = user.getEmployeeNumber();
+        row.personalNumber = user.getPersonalNumber();
         setPolyString(user.getFamilyName(),
                 o -> row.familyNameOrig = o, n -> row.familyNameNorm = n);
         setPolyString(user.getFullName(), o -> row.fullNameOrig = o, n -> row.fullNameNorm = n);

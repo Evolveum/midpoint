@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -16,13 +17,10 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
@@ -77,7 +75,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
         }
 
         if (PendingOperationType.class.isAssignableFrom(realValue.getClass())) {
-            return WebComponentUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
+            return ProvisioningObjectsUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
         }
 
         return realValue.toString();

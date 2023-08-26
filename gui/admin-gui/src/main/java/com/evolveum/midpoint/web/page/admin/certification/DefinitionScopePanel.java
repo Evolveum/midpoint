@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
@@ -119,7 +120,7 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
                 createStringResource("PageCertDefinition.scopeEnabledItemsOnly")));
         add(WebComponentUtil.createHelp(ID_INCLUDE_BY_STATUS_HELP));
 
-        List<QName> relationsList = WebComponentUtil.getAllRelations(getPageBase());
+        List<QName> relationsList = RelationUtil.getAllRelations(getPageBase());
         relationsList.add(0, new QName(PrismConstants.NS_QUERY, "any"));
 
         ListMultipleChoicePanel<QName> relationsPanel = new ListMultipleChoicePanel<>(ID_SCOPE_RELATIONS,

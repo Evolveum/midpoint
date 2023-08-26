@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -425,7 +427,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
                     List<RelationDefinitionType> systemRelations = CartSummaryPanel.this.systemRelations.getObject();
                     String relation = LocalizationUtil.translatePolyString(
-                            WebComponentUtil.getRelationLabel(cartItem.getRelation(), systemRelations));
+                            RelationUtil.getRelationLabel(cartItem.getRelation(), systemRelations));
 
                     return LocalizationUtil.translate(
                             "ShoppingCartPanel.accessNameValue", new Object[] {

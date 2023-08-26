@@ -54,6 +54,8 @@ public abstract class AbstractConstruction<
     /**
      * Definition of the assigned construction wrapped as a configuration item.
      * (For "artificial" constructions created during outbound mappings evaluations it is null.)
+     *
+     * [EP:CONSTR] DONE 1/1
      */
     @Nullable final ConfigurationItem<ACT> constructionConfigItem;
 
@@ -127,7 +129,7 @@ public abstract class AbstractConstruction<
 
     AbstractConstruction(AbstractConstructionBuilder<AH, ACT, EC, ?> builder) {
         this.assignmentPath = builder.assignmentPath;
-        this.constructionConfigItem = builder.constructionConfigItem;
+        this.constructionConfigItem = builder.constructionConfigItem; // [EP:CONSTR] DONE
         this.constructionBean = constructionConfigItem != null ? constructionConfigItem.value() : null;
         this.source = builder.source;
         this.originType = builder.originType;

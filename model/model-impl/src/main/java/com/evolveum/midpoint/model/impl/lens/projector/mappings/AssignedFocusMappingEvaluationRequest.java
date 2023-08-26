@@ -41,7 +41,7 @@ public class AssignedFocusMappingEvaluationRequest extends FocalMappingEvaluatio
 
     public AssignedFocusMappingEvaluationRequest(
             @NotNull MappingType mapping,
-            @NotNull ConfigurationItemOrigin mappingOrigin,
+            @NotNull ConfigurationItemOrigin mappingOrigin, // [EP:M:AFM] DONE 1/1
             @NotNull ObjectType originObject,
             @NotNull EvaluatedAssignmentImpl<?> evaluatedAssignment,
             @NotNull PlusMinusZero relativeMode,

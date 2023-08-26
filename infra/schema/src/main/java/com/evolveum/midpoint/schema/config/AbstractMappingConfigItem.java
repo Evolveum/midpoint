@@ -9,11 +9,11 @@ package com.evolveum.midpoint.schema.config;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,5 +46,26 @@ public interface AbstractMappingConfigItem<M extends AbstractMappingType> extend
 
     default @Nullable String getName() {
         return value().getName();
+    }
+
+    default void setDefaultStrong() {
+        if (value().getStrength() == null) {
+            value().setStrength(MappingStrengthType.STRONG);
+        }
+    }
+
+    default void setDefaultRelativityAbsolute() {
+        ExpressionType expression = value().getExpression();
+        if (expression == null) {
+            return;
+        }
+        for (JAXBElement<?> evaluator : expression.getExpressionEvaluator()) {
+            Object evaluatorValue = evaluator.getValue();
+            if (evaluatorValue instanceof TransformExpressionEvaluatorType transform) {
+                if (transform.getRelativityMode() == null) {
+                    transform.setRelativityMode(TransformExpressionRelativityModeType.ABSOLUTE);
+                }
+            }
+        }
     }
 }

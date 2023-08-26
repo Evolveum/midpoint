@@ -11,6 +11,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -155,7 +156,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
         DropDownChoicePanel<QName> relation = new DropDownChoicePanel<>(ID_RELATION,
                 new PropertyModel<>(getModel(), "relation"),
-                Model.ofList(allowedRelations), WebComponentUtil.getRelationChoicesRenderer(), true);
+                Model.ofList(allowedRelations), RelationUtil.getRelationChoicesRenderer(), true);
         relation.setOutputMarkupId(true);
         relation.add(new VisibleEnableBehaviour() {
 
@@ -187,7 +188,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
     }
 
     protected List<QName> getAllowedRelations() {
-        return WebComponentUtil.getAllRelations(getPageBase());
+        return RelationUtil.getAllRelations(getPageBase());
     }
 
     protected List<QName> getSupportedTargetList() {

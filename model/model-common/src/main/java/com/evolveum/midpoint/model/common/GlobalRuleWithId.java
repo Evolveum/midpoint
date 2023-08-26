@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.common;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
@@ -27,8 +29,12 @@ public record GlobalRuleWithId(
         var ruleBean = ruleCI.value();
         var ruleId = PolicyRuleTypeUtil.createId(
                 originatingObjectOid,
-                MiscUtil.stateNonNull(ruleBean.getId(), () -> "Policy rule ID is null: " + ruleBean));
+                MiscUtil.stateNonNull(ruleBean.getId(), "Policy rule ID is null: %s", ruleBean));
         return new GlobalRuleWithId(ruleCI, ruleId);
+    }
+
+    public @NotNull ConfigurationItemOrigin ruleOrigin() {
+        return ruleCI.origin();
     }
 
     @Override

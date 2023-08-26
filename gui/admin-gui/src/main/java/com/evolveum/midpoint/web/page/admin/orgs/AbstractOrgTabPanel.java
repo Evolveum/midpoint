@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -172,11 +174,11 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
                 if (compare == 0){
                     String display1 = WebComponentUtil.getDisplayName(o1);
                     if (StringUtils.isBlank(display1)) {
-                        display1 = WebComponentUtil.getTranslatedPolyString(o1.getName());
+                        display1 = LocalizationUtil.translatePolyString(o1.getName());
                     }
                     String display2 = WebComponentUtil.getDisplayName(o2);
                     if (StringUtils.isBlank(display2)) {
-                        display2 = WebComponentUtil.getTranslatedPolyString(o2.getName());
+                        display2 = LocalizationUtil.translatePolyString(o2.getName());
                     }
 
                     if(StringUtils.isEmpty(display1) && StringUtils.isEmpty(display2)) {

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemWrapperComparator;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -165,7 +166,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
             collectExtensionItems(newItem, false, nonContainers);
 
-            if (WebComponentUtil.isNewDesignEnabled()) {
+            if (DetailsPageUtil.isNewDesignEnabled()) {
                 if (!((PrismContainerWrapper) newItem).isVirtual()) {
                     containers.add((PrismContainerWrapper) newItem);
                 }
@@ -255,7 +256,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             collectExtensionItems(container, true, containers);
 
             if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())) {
-                if (WebComponentUtil.isNewDesignEnabled()) {
+                if (DetailsPageUtil.isNewDesignEnabled()) {
                     if (!((PrismContainerWrapper) container).isVirtual()) {
                         containers.add((PrismContainerWrapper<? extends Containerable>) container);
                     }

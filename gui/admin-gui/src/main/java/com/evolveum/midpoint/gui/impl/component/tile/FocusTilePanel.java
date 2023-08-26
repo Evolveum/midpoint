@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.data.column.RoundedImagePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -21,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -124,7 +123,7 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
             return null;
         }
 
-        String icon = WebComponentUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
+        String icon = IconAndStylesUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
 
         return new DisplayType()
                 .icon(new IconType()

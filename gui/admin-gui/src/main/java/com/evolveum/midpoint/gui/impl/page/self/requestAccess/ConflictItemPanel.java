@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -219,7 +220,7 @@ public class ConflictItemPanel extends CardOutlineLeftPanel<Conflict> {
 
         ObjectReferenceType ref = assignment.getTargetRef();
 
-        WebComponentUtil.dispatchToObjectDetailsPage(ref, this, true);
+        DetailsPageUtil.dispatchToObjectDetailsPage(ref, this, true);
     }
 
     protected void fixConflictPerformed(AjaxRequestTarget target, IModel<ConflictItem> assignmentToKeep) {

@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.RelationSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -40,7 +41,7 @@ public class RelationSearchItemPanel extends SingleSearchItemPanel<RelationSearc
 
         @Override
         public Object getDisplayValue(QName relation) {
-            RelationDefinitionType relationDef = WebComponentUtil.getRelationDefinition(relation);
+            RelationDefinitionType relationDef = RelationUtil.getRelationDefinition(relation);
             if (relationDef != null) {
                 DisplayType display = relationDef.getDisplay();
                 if (display != null) {

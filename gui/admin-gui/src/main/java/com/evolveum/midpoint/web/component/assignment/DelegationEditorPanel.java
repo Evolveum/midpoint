@@ -11,9 +11,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -165,11 +166,11 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         WebMarkupContainer delegatedToTypeImage = new WebMarkupContainer(ID_DELEGATED_TO_IMAGE);
         if (delegatedToMe){
             delegatedToTypeImage.add(AttributeModifier.append("class",
-                    WebComponentUtil.createDefaultIcon(((PageUser)pageBase).getObjectDetailsModels().getObjectWrapperModel().getObject().getObject())));
+                    IconAndStylesUtil.createDefaultIcon(((PageUser)pageBase).getObjectDetailsModels().getObjectWrapperModel().getObject().getObject())));
         } else {
             if (getModelObject().getDelegationOwner() != null) {
                 delegatedToTypeImage.add(AttributeModifier.append("class",
-                    WebComponentUtil.createDefaultIcon(getModelObject().getDelegationOwner().asPrismObject())));
+                    IconAndStylesUtil.createDefaultIcon(getModelObject().getDelegationOwner().asPrismObject())));
             }
         }
         headerRow.add(delegatedToTypeImage);
@@ -227,7 +228,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             public void yesPerformed(AjaxRequestTarget target) {
                 PageParameters params = new PageParameters();
                 params.add(OnePageParameterEncoder.PARAMETER, oid);
-                Class<? extends PageBase> detailsPageClass = WebComponentUtil.getObjectDetailsPage(UserType.class);
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(UserType.class);
                 getPageBase().navigateToNext(detailsPageClass, params);
             }
         };

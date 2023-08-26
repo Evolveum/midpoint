@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -99,7 +101,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 displayType = new DisplayType();
             }
             if (displayType.getIcon() == null) {
-                displayType.setIcon(WebComponentUtil.createIconType(WebComponentUtil.createDefaultBlackIcon(ref.getTargetType())));
+                displayType.setIcon(IconAndStylesUtil.createIconType(IconAndStylesUtil.createDefaultBlackIcon(ref.getTargetType())));
             }
             return displayType;
         };
@@ -111,7 +113,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
         AjaxLink<PrismReferenceValue> nameLink = new AjaxLink<>(ID_NAME, referenceModel) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                WebComponentUtil.dispatchToObjectDetailsPage(referenceModel.getObject(), LinkedReferencePanel.this, false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(referenceModel.getObject(), LinkedReferencePanel.this, false);
             }
         };
         nameLink.add(new EnableBehaviour(() -> {

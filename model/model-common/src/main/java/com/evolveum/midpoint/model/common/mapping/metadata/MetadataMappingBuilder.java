@@ -12,9 +12,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 
-/**
- * TODO
- */
 public class MetadataMappingBuilder<V extends PrismValue, D extends ItemDefinition<?>>
     extends AbstractMappingBuilder<V, D, MetadataMappingType, MetadataMappingBuilder<V, D>> {
 

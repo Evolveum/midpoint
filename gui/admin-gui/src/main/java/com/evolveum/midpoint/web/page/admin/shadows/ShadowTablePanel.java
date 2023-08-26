@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResultObjects;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
@@ -446,9 +447,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         List<ColumnTypeDto<String>> columnDefs = Arrays.asList(
                 new ColumnTypeDto<>("ShadowType.synchronizationSituation",
                         SelectableBeanImpl.F_VALUE + ".synchronizationSituation",
-                        ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart()),
-                new ColumnTypeDto<>("ShadowType.intent", SelectableBeanImpl.F_VALUE + ".intent",
-                        ShadowType.F_INTENT.getLocalPart()));
+                        ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart()));
 
         List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
 
@@ -533,7 +532,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             return;
         }
 
-        WebComponentUtil.dispatchToObjectDetailsPage(ShadowType.class, accountOid, this, false);
+        DetailsPageUtil.dispatchToObjectDetailsPage(ShadowType.class, accountOid, this, false);
     }
 
     private <F extends FocusType> F loadShadowOwner(IModel<SelectableBean<ShadowType>> model) {
@@ -583,7 +582,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         if (owner == null) {
             return;
         }
-        WebComponentUtil.dispatchToObjectDetailsPage(owner.getClass(), owner.getOid(), this, true);
+        DetailsPageUtil.dispatchToObjectDetailsPage(owner.getClass(), owner.getOid(), this, true);
     }
 
     protected void importPreviewResourceObject(ShadowType selected, AjaxRequestTarget target) {

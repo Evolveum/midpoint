@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+oid="00000000-0000-0000-0000-000000000380">
+<name>Person Object Template</name>
+<description>Object template for Person users, contains mappings to generate fullName and username. Please enable appropriate mappings as needed.</description>
+    <iterationSpecification>
+        <maxIterations>99</maxIterations>
+        <tokenExpression>
+            <description>The iteration starts with empty string, then a number is appended, starting with 2 (skipping 1), 3, ... up to 99.</description>
+            <documentation>
+                Example, how the iteration could look like if `jsmith` username is already taken:
+
+                . jsmith
+                . jsmith2
+                . jsmith3
+                . ... up to jsmith99
+
+                If even `jsmith99` cannot be used because it already exists, the attempt to create user in midPoint will fail.
+
+                `maxIterations` can be updated.
+
+                Also, the script can be updated to prepare iterationToken variable in a different way.
+
+                E.g. iterationToken can be created as '02' instead of just '2'. Or a random number instead of a sequential iterator can be used.
+            </documentation>
+            <script>
+                <code>
+                    if (iteration == 0) {
+                        return ""
+                    } else {
+                        // for 8+2 naming convention, we might want to use %02d instead
+                        //return sprintf("%02d", iteration+1)
+                        return iteration + 1
+                    }
+                </code>
+            </script>
+        </tokenExpression>
+    </iterationSpecification>
+    <mapping>
+        <name>Generate unique name for users using jsmith and iterator suitable for sAMAccountName (8 + up to 2 characters)</name>
+        <description>Generate login name - only once. Does not change the login name when user is renamed. Example: John Smith-Baker, jsmithba or jsmithba2</description>
+        <documentation>
+            Generate a login based on "jsmith" convention. Maximum length of login is 10 characters (8 + up-to 2-digit iterator).
+
+            If the login is not unique, a number 2-99 is appended.
+
+            Example:
+
+            * First name: Juan-Carlos
+            * Last name: de la    Garcia
+            * Returns: jdelagar (normalized, spaces trimmed, shortened to 8)
+
+            This algorithm can be further improved, e.g. to remove "von", "von der", "van", "van der", "de la" from lastName before doing normalization.
+        </documentation>
+        <lifecycleState>draft</lifecycleState>
+        <strength>weak</strength> <!-- do not change name automatically if user's givenName/familyName changes -->
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    tmpGivenName = basic.trim(basic.norm(basic.stringify(givenName)))
+                    tmpFamilyName  = basic.trim(basic.norm(basic.stringify(familyName)))
+                    tmpGivenNameInitial = tmpGivenName?.take(1) // safe even with empty firstName (but not null)
+                    return (tmpGivenNameInitial + tmpFamilyName?.replaceAll(" ", ""))?.take(8) + iterationToken // no spaces
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+    <mapping>
+        <name>Generate fullName</name>
+        <description>Generate fullName (enforcing on renames because of strong mapping)</description>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    basic.concatName(givenName, familyName)
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+</objectTemplate>
