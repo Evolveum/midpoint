@@ -23,12 +23,12 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 /**
  * @author lazyman
  */
-public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
+public class MenuLinkPanel<I extends InlineMenuItem> extends BasePanel<I> {
 
     private static final String ID_MENU_ITEM_LINK = "menuItemLink";
     private static final String ID_MENU_ITEM_LABEL = "menuItemLabel";
 
-    public MenuLinkPanel(String id, IModel<InlineMenuItem> item) {
+    public MenuLinkPanel(String id, IModel<I> item) {
         super(id, item);
     }
 
@@ -39,7 +39,7 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
     }
 
     private void initLayout() {
-        InlineMenuItem dto = getModelObject();
+        I dto = getModelObject();
 
         AbstractLink a;
         if (dto.isSubmit()) {
@@ -91,7 +91,7 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
         a.add(span);
     }
 
-    protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+    protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<I> item) {
         if (action != null) {
             if (item.getObject().showConfirmationDialog() && item.getObject().getConfirmationMessageModel() != null) {
                 showConfirmationPopup(item.getObject(), target);
@@ -107,7 +107,7 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
         }
     }
 
-    protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+    protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<I> item) {
         if (action != null) {
             if (item.getObject().showConfirmationDialog() && item.getObject().getConfirmationMessageModel() != null) {
                 showConfirmationPopup(item.getObject(), target);
@@ -117,7 +117,7 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
         }
     }
 
-    private void showConfirmationPopup(InlineMenuItem menuItem, AjaxRequestTarget target) {
+    private void showConfirmationPopup(I menuItem, AjaxRequestTarget target) {
         ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
                 menuItem.getConfirmationMessageModel()) {
             private static final long serialVersionUID = 1L;
@@ -128,6 +128,10 @@ public class MenuLinkPanel extends BasePanel<InlineMenuItem> {
             }
         };
         ((PageBase)getPage()).showMainPopup(dialog, target);
+    }
+
+    protected final AbstractLink getLinkContainer() {
+        return (AbstractLink) get(ID_MENU_ITEM_LINK);
     }
 
 }

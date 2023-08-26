@@ -58,7 +58,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
             }
 
             @Override
-            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
                 MenuMultiButtonPanel.this.onBeforeClickMenuItem(target, action, item);
             }
         };
@@ -76,7 +76,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         }));
     }
 
-    protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+    protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
     }
 
 
