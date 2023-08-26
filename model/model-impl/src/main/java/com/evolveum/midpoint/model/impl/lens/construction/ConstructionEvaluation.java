@@ -26,7 +26,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
  *
  * Intentionally not a public class.
  */
-class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>> {
+public class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>> {
 
     /**
      * Reference to the parent (evaluated construction).

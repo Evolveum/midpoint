@@ -80,7 +80,7 @@ public class CollectionProcessor {
     @Autowired private SchemaService schemaService;
 
     Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
-            PrismObject<ObjectCollectionType> collection,
+            PrismObject<ObjectCollectionType> collection, // [EP:APSO] DONE 1/1
             CompiledObjectCollectionView preCompiledCollectionView,
             Class<? extends ObjectType> targetTypeClass,
             Task task,
@@ -105,6 +105,7 @@ public class CollectionProcessor {
                         evaluatePolicyRule(
                                 collection,
                                 collectionView,
+                                // [EP:APSO] DONE, as the collection is taken from repository (see call chain upwards)^
                                 AssignmentConfigItem.of(assignmentBean, OriginProvider.embedded()),
                                 task, result));
             }
@@ -120,7 +121,7 @@ public class CollectionProcessor {
     private EvaluatedPolicyRule evaluatePolicyRule(
             @NotNull PrismObject<ObjectCollectionType> collection,
             @NotNull CompiledObjectCollectionView collectionView,
-            @NotNull AbstractAssignmentConfigItem assignmentCI,
+            @NotNull AbstractAssignmentConfigItem assignmentCI, // [EP:APSO] DONE 1/1
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
@@ -130,7 +131,7 @@ public class CollectionProcessor {
                 .source(collection.asObjectable())
                 .sourceDescription("object collection " + collection)
                 .assignment(assignmentCI.value())
-                .assignmentOrigin(assignmentCI.origin())
+                .assignmentOrigin(assignmentCI.origin()) // [EP:APSO] DONE
                 .isAssignment()
                 .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))

@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
+
 /**
  * Evaluates resolved assignment target: its payload (authorizations, GUI config) and assignments/inducements.
  */
@@ -36,6 +38,9 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
 
     /**
      * The resolved target.
+     *
+     * - [EP:M:ARC] DONE we rely on the fact that the target here is just as retrieved from the repository.
+     * - the same for [EP:APSO] DONE
      */
     @NotNull private final AssignmentHolderType target;
 
@@ -165,8 +170,13 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         for (AssignmentType assignment : target.getAssignment()) {
             new TargetAssignmentEvaluation<>(
-                    segment, targetOverallConditionState, targetActivity, ctx, result,
-                    assignment, ConfigurationItemOrigin.embedded(assignment))
+                    segment,
+                    targetOverallConditionState,
+                    targetActivity,
+                    ctx,
+                    result,
+                    assignment,
+                    ConfigurationItemOrigin.embedded(assignment)) // [EP:APSO] DONE assignment is right from the target ^
                     .evaluate();
         }
     }
@@ -176,8 +186,14 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
         if (target instanceof AbstractRoleType abstractRole) {
             for (AssignmentType inducement : abstractRole.getInducement()) {
                 new TargetInducementEvaluation<>(
-                        segment, targetOverallConditionState, targetActivity, ctx, result,
-                        inducement, ConfigurationItemOrigin.embedded(inducement), false)
+                        segment,
+                        targetOverallConditionState,
+                        targetActivity,
+                        ctx,
+                        result,
+                        inducement,
+                        ConfigurationItemOrigin.embedded(inducement), // [EP:APSO] DONE inducement is right from the role ^
+                        false)
                         .evaluate();
             }
         }
@@ -195,15 +211,29 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
         }
 
         AssignmentType artificialInducement = createInducementWithDefinition(superArchetypeRef);
-        ConfigurationItemOrigin inducementOrigin = ConfigurationItemOrigin.generated();
+        // [EP:APSO] DONE right from the target ^
+        // NOTE: the origin is partly generated, as the assignment "wrapper" is provided by midPoint.
+        //  However, any expressions are provided by the reference (the generated envelope is almost empty).
+        //  TODO think about this case, as it questions the idea of the origin as such!
+        ConfigurationItemOrigin inducementOrigin =
+                ConfigurationItemOrigin.inObjectApproximate(archetype, ArchetypeType.F_SUPER_ARCHETYPE_REF);
 
         new TargetInducementEvaluation<>(
-                segment, targetOverallConditionState, targetActivity, ctx, result,
-                artificialInducement, inducementOrigin, true)
+                segment,
+                targetOverallConditionState,
+                targetActivity,
+                ctx,
+                result,
+                artificialInducement,
+                inducementOrigin, // [EP:APSO] DONE^
+                true)
                 .evaluate();
     }
 
-    /** We need to have the definition, as we are going to put the value into {@link ItemDeltaItem} later. */
+    /**
+     * We need to have the definition, as we are going to put the value into {@link ItemDeltaItem} later.
+     * That is the reason for this rather complex code.
+     */
     private @NotNull AssignmentType createInducementWithDefinition(ObjectReferenceType superArchetypeRef) throws SchemaException {
         PrismContainer<AssignmentType> inducementContainer =
                 target.asPrismObject().getDefinition()
@@ -225,12 +255,16 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
         if (conditionBean == null) {
             return ConditionState.allTrue();
         }
+
+        // [EP:M:ARC] DONE; we rely on the fact that `target` is retrieved right from the repository.
+        ConfigurationItemOrigin conditionOrigin = ConfigurationItemOrigin.embedded(conditionBean);
+
         // TODO why we use "segment.source" as source object for condition evaluation even if
         //  we evaluate condition in target role? We should probably use the role itself as the source here.
         AssignmentHolderType source = segment.source;
         return ctx.conditionEvaluator.computeConditionState(
                 conditionBean,
-                ConfigurationItemOrigin.embedded(conditionBean),
+                conditionOrigin,
                 source,
                 "condition in " + segment.getTargetDescription(),
                 result);

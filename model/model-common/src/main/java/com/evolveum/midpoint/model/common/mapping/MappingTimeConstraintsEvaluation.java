@@ -106,9 +106,9 @@ class MappingTimeConstraintsEvaluation implements Serializable {
         timeConstraintValid = timeTo == null;
     }
 
-    private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeBean, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+    private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeBean, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         if (timeBean == null) {
             return null;
         }
@@ -151,7 +151,7 @@ class MappingTimeConstraintsEvaluation implements Serializable {
                             timeVariables,
                             timeDefinition,
                             expressionBean,
-                            m.expressionProfile,
+                            m.getExpressionProfile(),
                             ModelCommonBeans.get().expressionFactory,
                             "time expression in " + m.getMappingContextDescription(),
                             m.getTask(),

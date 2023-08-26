@@ -69,6 +69,7 @@ public class AutoAssignMappingCollector {
             if (bean == null) {
                 return true;
             }
+            // [EP:M:AAFM] DONE, obviously in the object
             var autoassignSpec = AutoassignSpecificationConfigItem.embedded(bean);
             if (!autoassignSpec.isEnabled()) {
                 return true;
@@ -83,6 +84,7 @@ public class AutoAssignMappingCollector {
             for (var autoMapping: focalAutoassignSpec.getMappings()) {
                 var mappingWithTarget = autoMapping.setTargetIfMissing(SchemaConstants.PATH_ASSIGNMENT);
                 mappings.add(
+                        // [EP:M:AAFM] DONE, chained calls from verified CI above
                         new AutoassignRoleMappingEvaluationRequest(mappingWithTarget, role.asObjectable()));
                 LOGGER.trace("Collected autoassign mapping {} from {}", mappingWithTarget.getName(), role);
             }

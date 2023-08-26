@@ -120,10 +120,10 @@ public class GuiProfileCompiler {
             AuthorizationTransformer authorizationTransformer,
             Task task,
             OperationResult result) throws SchemaException, ConfigurationException {
-        FocusType focusType = principal.getFocus();
+        FocusType focus = principal.getFocus(); // [EP:APSO] DONE, focus is from repository
 
-        Collection<? extends EvaluatedAssignment> evaluatedAssignments =
-                assignmentCollector.collect(focusType.asPrismObject(), task, result);
+        Collection<? extends EvaluatedAssignment> evaluatedAssignments = // [EP:APSO] DONE, see the called method
+                assignmentCollector.collect(focus.asPrismObject(), task, result);
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
                 // TODO: Should we add also invalid assignments?
@@ -141,11 +141,11 @@ public class GuiProfileCompiler {
             }
         }
 
-        if (focusType instanceof UserType && ((UserType) focusType).getAdminGuiConfiguration() != null) {
+        if (focus instanceof UserType user && user.getAdminGuiConfiguration() != null) {
             // config from the user object should go last (to be applied as the last one)
-            adminGuiConfigurations.add(((UserType) focusType).getAdminGuiConfiguration());
-        } else if (focusType instanceof AbstractRoleType && ((AbstractRoleType) focusType).getAdminGuiConfiguration() != null) {
-            adminGuiConfigurations.add(((AbstractRoleType) focusType).getAdminGuiConfiguration());
+            adminGuiConfigurations.add(user.getAdminGuiConfiguration());
+        } else if (focus instanceof AbstractRoleType role && role.getAdminGuiConfiguration() != null) {
+            adminGuiConfigurations.add(role.getAdminGuiConfiguration());
         }
     }
 

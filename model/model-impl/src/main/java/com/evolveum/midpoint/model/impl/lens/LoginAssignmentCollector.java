@@ -13,6 +13,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -64,6 +67,11 @@ public class LoginAssignmentCollector {
     @Autowired private Clock clock;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
+    /**
+     * The focus must come from the repository (directly or indirectly).
+     *
+     * [EP:APSO] DONE (currently it is) + see the method body comments
+     */
     public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment> collect(
             @NotNull PrismObject<AH> focus, Task task, OperationResult result) throws SchemaException, ConfigurationException {
 
@@ -73,12 +81,14 @@ public class LoginAssignmentCollector {
 
         Collection<EvaluatedAssignment> evaluatedAssignments = new ArrayList<>();
 
-        List<ConfigurationItem<AssignmentType>> explicitAssignments =
-                ConfigurationItem.ofListEmbedded(
-                        focusBean.getAssignment());
+        List<AssignmentConfigItem> explicitAssignments =
+                ConfigurationItem.ofList(
+                        focusBean.getAssignment(),
+                        OriginProvider.embedded(), // [EP:APSO] DONE (right from the object)
+                        AssignmentConfigItem.class);
 
-        Collection<ConfigurationItem<AssignmentType>> forcedAssignments =
-                collectForcedAssignments(
+        Collection<AssignmentConfigItem> forcedAssignments =
+                collectForcedAssignments( // [EP:APSO] DONE
                         focusBean, lensContext.getFocusContext().getLifecycleModel(), task, result);
 
         if (!explicitAssignments.isEmpty() || !forcedAssignments.isEmpty()) {
@@ -102,14 +112,14 @@ public class LoginAssignmentCollector {
             evaluatedAssignments.addAll(
                     evaluateAssignments(
                             focusBean,
-                            explicitAssignments,
+                            explicitAssignments, // [EP:APSO] DONE (see above)
                             origin -> AssignmentOrigin.inObject(origin),
                             assignmentEvaluator, task, result));
 
             evaluatedAssignments.addAll(
                     evaluateAssignments(
                             focusBean,
-                            forcedAssignments,
+                            forcedAssignments, // [EP:APSO] DONE (see above)
                             origin -> AssignmentOrigin.virtual(origin),
                             assignmentEvaluator, task, result));
         }
@@ -117,10 +127,13 @@ public class LoginAssignmentCollector {
         return evaluatedAssignments;
     }
 
+    /**
+     * `originFunction` must preserve the configuration item origin!
+     */
     private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment> evaluateAssignments(
             @NotNull AH focus,
-            @NotNull Collection<ConfigurationItem<AssignmentType>> assignments,
-            @NotNull Function<ConfigurationItemOrigin, AssignmentOrigin> originFunction,
+            @NotNull Collection<AssignmentConfigItem> assignments, // [EP:APSO] DONE 2/2 (origins are correct here)
+            @NotNull Function<ConfigurationItemOrigin, AssignmentOrigin> originFunction, // [EP:APSO] DONE (it preserves)
             AssignmentEvaluator<AH> assignmentEvaluator,
             Task task,
             OperationResult result) {
@@ -131,7 +144,7 @@ public class LoginAssignmentCollector {
             PrismContainerDefinition<AssignmentType> standardAssignmentDefinition = prismContext.getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
                     .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
-            for (ConfigurationItem<AssignmentType> assignmentWithOrigin : assignments) {
+            for (AssignmentConfigItem assignmentWithOrigin : assignments) {
                 AssignmentType assignment = assignmentWithOrigin.value();
                 try {
                     //noinspection unchecked
@@ -147,7 +160,7 @@ public class LoginAssignmentCollector {
                                     false,
                                     focus,
                                     focus.toString(),
-                                    originFunction.apply(assignmentWithOrigin.origin()),
+                                    originFunction.apply(assignmentWithOrigin.origin()), // [EP:APSO] DONE
                                     task,
                                     result));
                 } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException
@@ -171,11 +184,14 @@ public class LoginAssignmentCollector {
         return lensContext;
     }
 
-    private <AH extends AssignmentHolderType> @NotNull Collection<ConfigurationItem<AssignmentType>> collectForcedAssignments(
+    /**
+     * [EP:APSO] DONE
+     */
+    private <AH extends AssignmentHolderType> @NotNull Collection<AssignmentConfigItem> collectForcedAssignments(
             AH focusBean, LifecycleStateModelType lifecycleModel, Task task, OperationResult result) {
         String lifecycleState = focusBean.getLifecycleState();
         try {
-            return LensUtil.getForcedAssignments(
+            return LensUtil.getForcedAssignments( // [EP:APSO] DONE
                     lifecycleModel, lifecycleState, objectResolver, prismContext, task, result);
         } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
                 | ExpressionEvaluationException | SchemaException e) {

@@ -29,8 +29,9 @@ public class AbstractConstructionBuilder
         EC extends EvaluatedAbstractConstruction<AH>,
         RT extends AbstractConstructionBuilder<AH, ACT, EC, RT>> {
 
+    /** [EP:CONSTR] DONE 1/1 */
     ConfigurationItem<ACT> constructionConfigItem;
-    ConfigurationItemOrigin constructionOrigin;
+
     AssignmentPathImpl assignmentPath;
     ObjectType source;
     OriginType originType;
@@ -38,15 +39,14 @@ public class AbstractConstructionBuilder
     XMLGregorianCalendar now;
     boolean valid;
 
+    /** [EP:CONSTR] DONE 1/1 */
     public RT constructionBean(@NotNull ACT bean, @NotNull ConfigurationItemOrigin constructionOrigin) {
         constructionConfigItem = ConfigurationItem.of(bean, constructionOrigin);
-        this.constructionOrigin = constructionOrigin;
         return typedThis();
     }
 
-    public RT noConstructionBean(@NotNull ConfigurationItemOrigin constructionOrigin) {
+    public RT noConstructionBean() {
         constructionConfigItem = null;
-        this.constructionOrigin = constructionOrigin;
         return typedThis();
     }
 

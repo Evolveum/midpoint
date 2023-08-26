@@ -191,7 +191,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                     domainSetType,
                     sourceItemDefinition,
                     m.valueMetadataDefinition,
-                    m.expressionProfile,
+                    m.getExpressionProfile(),
                     ModelCommonBeans.get().expressionFactory,
                     variableName,
                     null,

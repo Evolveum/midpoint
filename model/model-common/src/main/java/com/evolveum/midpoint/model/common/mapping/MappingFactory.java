@@ -73,11 +73,13 @@ public class MappingFactory {
                 .profiling(profiling);
     }
 
+    // [EP:M:OM] [EP:M:IM] DONE
     public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder(
             @NotNull ConfigurationItem<MappingType> mappingCI, String shortDesc) {
         return createMappingBuilder(mappingCI.value(), mappingCI.origin(), shortDesc);
     }
 
+    // [EP:M:OM] [EP:M:IM] [EP:M:Tag] [EP:M:FM] ALL DONE
     public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder(
             @Nullable MappingType mappingBean, @NotNull ConfigurationItemOrigin context, String shortDesc) {
         return this.<V,D>createMappingBuilder()
@@ -85,6 +87,7 @@ public class MappingFactory {
                 .contextDescription(shortDesc);
     }
 
+    // [EP:M:MM] DONE 1/1
     public <V extends PrismValue, D extends ItemDefinition<?>> MetadataMappingBuilder<V, D> createMappingBuilder(
             @Nullable MetadataMappingType mappingBean, @NotNull ConfigurationItemOrigin context, String shortDesc) {
         return this.<V,D>createMetadataMappingBuilder()

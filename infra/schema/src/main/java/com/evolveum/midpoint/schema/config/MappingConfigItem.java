@@ -16,7 +16,7 @@ public class MappingConfigItem
         implements AbstractMappingConfigItem<MappingType> {
 
     @SuppressWarnings("unused") // called dynamically
-    public MappingConfigItem(@NotNull ConfigurationItem<MappingType> original) {
+    public MappingConfigItem(@NotNull ConfigurationItem<? extends MappingType> original) {
         super(original);
     }
 
