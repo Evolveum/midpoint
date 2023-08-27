@@ -14,11 +14,11 @@ import java.io.IOException;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 
 import org.apache.wicket.request.resource.DynamicImageResource;
 
@@ -51,8 +51,8 @@ public class CustomImageResource extends DynamicImageResource {
         Graphics2D graphics;
 
         if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.NONE);
-            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.JACCARD);
+            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.JACCARD);
             width = miningRoleTypeChunks.size();
             height = miningUserTypeChunks.size();
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -71,8 +71,8 @@ public class CustomImageResource extends DynamicImageResource {
                 }
             }
         } else {
-            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(ClusterObjectUtils.SORT.JACCARD);
-            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(ClusterObjectUtils.SORT.NONE);
+            List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.JACCARD);
+            List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
             width = miningUserTypeChunks.size();
             height = miningRoleTypeChunks.size();
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);

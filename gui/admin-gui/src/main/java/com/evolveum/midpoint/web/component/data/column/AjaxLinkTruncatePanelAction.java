@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import java.io.Serial;
+
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,8 +27,6 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-import java.io.Serial;
-
 public class AjaxLinkTruncatePanelAction extends Panel {
     @Serial private static final long serialVersionUID = 1L;
 
@@ -38,7 +38,7 @@ public class AjaxLinkTruncatePanelAction extends Panel {
     private static final String ID_IMAGE = "image";
 
     public AjaxLinkTruncatePanelAction(String id, IModel<?> labelModel, StringResourceModel popupText, DisplayType displayType,
-             LoadableDetachableModel<ClusterObjectUtils.Status> status) {
+             LoadableDetachableModel<RoleAnalysisOperationMode> status) {
         super(id);
 
         WebMarkupContainer webMarkupContainer = new WebMarkupContainer("container");
@@ -99,11 +99,11 @@ public class AjaxLinkTruncatePanelAction extends Panel {
 
 
 
-    public String getModel(LoadableDetachableModel<ClusterObjectUtils.Status> status) {
+    public String getModel(LoadableDetachableModel<RoleAnalysisOperationMode> status) {
         return status.getObject().getDisplayString();
     }
 
-    private void initLayout(LoadableDetachableModel<ClusterObjectUtils.Status> status, WebMarkupContainer webMarkupContainer) {
+    private void initLayout(LoadableDetachableModel<RoleAnalysisOperationMode> status, WebMarkupContainer webMarkupContainer) {
         setOutputMarkupId(true);
 
         Label image = new Label(ID_IMAGE);
@@ -113,14 +113,14 @@ public class AjaxLinkTruncatePanelAction extends Panel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ClusterObjectUtils.Status status = onClickPerformedAction(target, null);
+                RoleAnalysisOperationMode roleAnalysisOperationMode = onClickPerformedAction(target, null);
 
-                if (status.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-                    image.add(AttributeModifier.replace("class", ClusterObjectUtils.Status.ADD.getDisplayString()));
-                } else if (status.equals(ClusterObjectUtils.Status.ADD)) {
-                    image.add(AttributeModifier.replace("class", ClusterObjectUtils.Status.REMOVE.getDisplayString()));
-                } else if (status.equals(ClusterObjectUtils.Status.REMOVE)) {
-                    image.add(AttributeModifier.replace("class", ClusterObjectUtils.Status.NEUTRAL.getDisplayString()));
+                if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.NEUTRAL)) {
+                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.ADD.getDisplayString()));
+                } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.ADD)) {
+                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.REMOVE.getDisplayString()));
+                } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.REMOVE)) {
+                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.NEUTRAL.getDisplayString()));
                 }
                 target.add(image);
             }
@@ -132,7 +132,7 @@ public class AjaxLinkTruncatePanelAction extends Panel {
 
     }
 
-    protected ClusterObjectUtils.Status onClickPerformedAction(AjaxRequestTarget target, ClusterObjectUtils.Status status) {
-        return status;
+    protected RoleAnalysisOperationMode onClickPerformedAction(AjaxRequestTarget target, RoleAnalysisOperationMode roleAnalysisOperationMode) {
+        return roleAnalysisOperationMode;
     }
 }

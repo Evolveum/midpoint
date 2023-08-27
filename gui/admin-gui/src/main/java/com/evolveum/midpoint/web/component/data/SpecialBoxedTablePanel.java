@@ -31,12 +31,12 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -75,7 +75,7 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
     static boolean isRoleMining = false;
     private List<IColumn<T, String>> columns;
 
-    ClusterObjectUtils.SORT sortMode;
+    RoleAnalysisSortMode roleAnalysisSortModeMode;
 
     //interval in seconds
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
@@ -86,24 +86,24 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     public SpecialBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId) {
-        this(id, provider, columns, tableId, false, false, 0, ClusterObjectUtils.SORT.NONE);
+        this(id, provider, columns, tableId, false, false, 0, RoleAnalysisSortMode.NONE);
     }
 
     public SpecialBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId, boolean isRoleMining) {
-        this(id, provider, columns, tableId, false, isRoleMining, 0, ClusterObjectUtils.SORT.NONE);
+        this(id, provider, columns, tableId, false, isRoleMining, 0, RoleAnalysisSortMode.NONE);
     }
 
     int columnCount;
 
     public SpecialBoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRefreshEnabled, boolean isRoleMining, int columnCount, ClusterObjectUtils.SORT sortMode) {
+            UserProfileStorage.TableId tableId, boolean isRefreshEnabled, boolean isRoleMining, int columnCount, RoleAnalysisSortMode roleAnalysisSortModeMode) {
         super(id);
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
         SpecialBoxedTablePanel.isRoleMining = isRoleMining;
         this.columnCount = columnCount;
-        this.sortMode = sortMode;
+        this.roleAnalysisSortModeMode = roleAnalysisSortModeMode;
         initLayout(columns, provider, columnCount);
     }
 
@@ -504,11 +504,11 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
             Form<?> formSortMode = new MidpointForm<>("form_sort_model");
             footerContainer.add(formSortMode);
 
-            ChoiceRenderer<ClusterObjectUtils.SORT> renderer = new ChoiceRenderer<>("displayString");
+            ChoiceRenderer<RoleAnalysisSortMode> renderer = new ChoiceRenderer<>("displayString");
 
-            DropDownChoice<ClusterObjectUtils.SORT> modeSelector = new DropDownChoice<>(
-                    "modeSelector", Model.of(sortMode),
-                    new ArrayList<>(EnumSet.allOf(ClusterObjectUtils.SORT.class)), renderer);
+            DropDownChoice<RoleAnalysisSortMode> modeSelector = new DropDownChoice<>(
+                    "modeSelector", Model.of(roleAnalysisSortModeMode),
+                    new ArrayList<>(EnumSet.allOf(RoleAnalysisSortMode.class)), renderer);
             modeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
@@ -605,7 +605,7 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
     public void onChange(String value, AjaxRequestTarget target) {
     }
 
-    public void onChangeSortMode(ClusterObjectUtils.SORT sortMode, AjaxRequestTarget target) {
+    public void onChangeSortMode(RoleAnalysisSortMode roleAnalysisSortModeMode, AjaxRequestTarget target) {
     }
 
     public BusinessRoleApplicationDto getOperationData() {

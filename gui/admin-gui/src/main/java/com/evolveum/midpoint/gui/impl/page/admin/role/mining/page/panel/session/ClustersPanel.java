@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.deleteSingleRoleAnalysisCluster;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.deleteSingleRoleAnalysisCluster;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.densityBasedColor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -258,7 +258,7 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 columns.add(column);
 
                 column = new AbstractColumn<>(
-                        createStringResource("RoleMining.cluster.table.column.header.reduction")) {
+                        createStringResource("")) {
 
                     @Override
                     public Component getHeader(String componentId) {

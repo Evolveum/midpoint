@@ -20,7 +20,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.Handler;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 public class ProgressStatus extends BasePanel<String> implements Popupable {

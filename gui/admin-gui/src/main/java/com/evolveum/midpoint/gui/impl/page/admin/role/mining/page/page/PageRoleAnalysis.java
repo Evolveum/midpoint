@@ -7,8 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.densityBasedColor;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getSessionOptionType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.densityBasedColor;
 
 import java.io.Serial;
 import java.text.DecimalFormat;
@@ -231,7 +232,7 @@ public class PageRoleAnalysis extends PageAdmin {
                         }
 
                         if (sessionOptionType != null && sessionOptionType.getSimilarityThreshold() != null) {
-                            cellItem.add(new Label(componentId, sessionOptionType.getSimilarityThreshold()));
+                            cellItem.add(new Label(componentId, sessionOptionType.getSimilarityThreshold() + " (%)"));
                         } else {
                             cellItem.add(new EmptyPanel(componentId));
                         }

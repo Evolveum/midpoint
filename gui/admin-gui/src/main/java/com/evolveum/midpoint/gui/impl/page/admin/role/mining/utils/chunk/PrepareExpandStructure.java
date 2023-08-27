@@ -7,22 +7,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.extractOid;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.CacheUtils.*;
 
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -99,7 +103,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             String chunkName = role.getName().toString();
 
             miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(roleId),
-                    users, chunkName, 0, Status.NEUTRAL));
+                    users, chunkName, 0, RoleAnalysisOperationMode.NEUTRAL));
 
             for (String user : users) {
                 userChunk.putAll(user, Collections.singletonList(roleId));
@@ -134,7 +138,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             }
 
             miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(key), roleIds, chunkName, frequency,
-                    Status.NEUTRAL));
+                    RoleAnalysisOperationMode.NEUTRAL));
 
         }
 
@@ -184,7 +188,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             }
 
             miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(userOid), existingRolesAssignment, chunkName,
-                    0, Status.NEUTRAL));
+                    0, RoleAnalysisOperationMode.NEUTRAL));
 
         }
 
@@ -215,7 +219,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             }
 
             miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), userOids, chunkName, frequency,
-                    Status.NEUTRAL));
+                    RoleAnalysisOperationMode.NEUTRAL));
 
         }
 
@@ -290,7 +294,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
                     chunkName = user.getName().toString();
                 }
             }
-            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, Status.NEUTRAL));
+            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
         }
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
@@ -369,7 +373,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
                     chunkName = role.getName().toString();
                 }
             }
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, Status.NEUTRAL));
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
         }
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }

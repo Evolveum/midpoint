@@ -95,6 +95,9 @@
                                 based on the set parameters. These objects are subsequently processed as proposals for
                                 implementing changes in the system (Business role).
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisDetectionPatternType.detectedPattern</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -583,38 +586,41 @@
             <xsd:element name="userOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Set of objects that was analyzed and determined to be part of this group.
-                        In the case of ROLE MODE, the list of roles (members) objects
-                        that make up the given group. In the case of USER MODE,
-                        the list of users (members) objects that make up the given group.
+                        The number of users from the cluster to which the detected pattern can be applied.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionPatternType.userOccupancy</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="rolesOccupancy" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Properties used for comparison.
-                        USER MODE (properties) - role assign.
-                        ROLE MODE (properties) - members count.
+                        The number of roles from the cluster from which the detected pattern can be assembled.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionPatternType.rolesOccupancy</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="clusterMetric" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            It expresses the range of reduced values when applying the business role design.
+                            Expresses the range of reduced values when applying the detected pattern.
                             (Included in the group (cluster))
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>RoleAnalysisDetectionType.clusterMetric</a:displayName>
+                        <a:displayName>RoleAnalysisDetectionPatternType.clusterMetric</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="roleAnalysisDetectionPattern" type="tns:RoleAnalysisDetectionPatternType"/>
+
 
     <xsd:complexType name="RoleAnalysisDetectionOptionType">
         <xsd:annotation>
@@ -638,7 +644,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Define the minimum required count of properties occupancy for detected patterns.
+                            Define the minimum required count of roles occupancy for detected patterns.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -650,10 +656,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Define the minimum required count of members occupancy for detected patterns.
-                            The minimum number of objects covered by the found business role.
-                            In the case of USER MODE - the number of roles of which the business role consists.
-                            In the case of ROLE MODE - the number of users to which the business role can be applied.
+                            Define the minimum required count of users occupancy for detected patterns.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -690,6 +693,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:since>4.8</a:since>
                         <a:displayName>RoleAnalysisDetectionOptionType.detectionProcessMode</a:displayName>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>

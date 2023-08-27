@@ -8,12 +8,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.Handler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public interface MiningStructure {

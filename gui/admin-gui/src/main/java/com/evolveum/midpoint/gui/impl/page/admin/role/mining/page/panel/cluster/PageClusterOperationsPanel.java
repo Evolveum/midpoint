@@ -7,14 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.ClusterAlgorithmUtils.transformDefaultPattern;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.*;
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.loadDetectionOption;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
+
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,11 +28,11 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningIntersectionTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningRoleBasedTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.MiningUserBasedTable;
@@ -55,13 +59,14 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
+
     OperationResult result = new OperationResult("GetObject");
     DetectionOption detectionOption;
     List<DetectedPattern> detectedPatternList = new ArrayList<>();
     DetectedPattern detectedPattern = null;
     List<ObjectReferenceType> reductionObjects = new ArrayList<>();
     MiningOperationChunk miningOperationChunk;
-    SORT sortMode;
+    RoleAnalysisSortMode roleAnalysisSortMode;
     RoleAnalysisProcessModeType processMode;
     boolean compress = true;
 
@@ -92,9 +97,9 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
         int max = Math.max(clusterStatistics.getRolesCount(), clusterStatistics.getUsersCount());
 
         if (max <= 500) {
-            sortMode = SORT.JACCARD;
+            roleAnalysisSortMode = RoleAnalysisSortMode.JACCARD;
         } else {
-            sortMode = SORT.NONE;
+            roleAnalysisSortMode = RoleAnalysisSortMode.NONE;
         }
 
         if (cluster.getDetectionOption() != null) {
@@ -106,7 +111,6 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
         detectedPatternList = transformDefaultPattern(cluster);
         loadMiningTableData();
         loadMiningTable();
-
 
         Component component = generateTableIntersection(ID_DATATABLE_INTERSECTIONS, detectedPatternList);
         component.setOutputMarkupId(true);
@@ -153,10 +157,10 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
         if (resetStatus) {
             for (MiningRoleTypeChunk miningRoleTypeChunk : simpleMiningRoleTypeChunks) {
-                miningRoleTypeChunk.setStatus(Status.NEUTRAL);
+                miningRoleTypeChunk.setStatus(RoleAnalysisOperationMode.NEUTRAL);
             }
             for (MiningUserTypeChunk miningUserTypeChunk : simpleMiningUserTypeChunks) {
-                miningUserTypeChunk.setStatus(Status.NEUTRAL);
+                miningUserTypeChunk.setStatus(RoleAnalysisOperationMode.NEUTRAL);
             }
         }
 
@@ -187,7 +191,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
     public MiningUserBasedTable generateMiningUserBasedTable(double frequency, DetectedPattern intersection, double maxFrequency) {
         return new MiningUserBasedTable(ID_DATATABLE, miningOperationChunk, frequency / 100,
                 intersection, maxFrequency / 100,
-                reductionObjects, sortMode, getObjectWrapperObject()) {
+                reductionObjects, roleAnalysisSortMode, getObjectWrapperObject()) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false);
@@ -195,7 +199,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
             @Override
             protected String getCompressStatus() {
-                return !compress ? CHUNK.EXPAND.getDisplayString() : CHUNK.COMPRESS.getDisplayString();
+                return !compress ? RoleAnalysisChunkMode.EXPAND.getDisplayString() : RoleAnalysisChunkMode.COMPRESS.getDisplayString();
             }
 
             @Override
@@ -215,7 +219,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
                 minFrequency / 100, maxFrequency / 100,
                 intersection,
                 reductionObjects,
-                sortMode, getObjectWrapperObject()) {
+                roleAnalysisSortMode, getObjectWrapperObject()) {
             @Override
             public void resetTable(AjaxRequestTarget target) {
                 updateMiningTable(target, false);
@@ -223,7 +227,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
             @Override
             protected String getCompressStatus() {
-                return !compress ? CHUNK.EXPAND.getDisplayString() : CHUNK.COMPRESS.getDisplayString();
+                return !compress ? RoleAnalysisChunkMode.EXPAND.getDisplayString() : RoleAnalysisChunkMode.COMPRESS.getDisplayString();
             }
 
             @Override

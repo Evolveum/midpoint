@@ -7,21 +7,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -46,12 +51,10 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectedPattern;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class MiningIntersectionTable extends Panel {
 
@@ -90,6 +93,9 @@ public class MiningIntersectionTable extends Panel {
 
     public List<IColumn<DetectedPattern, String>> initColumns() {
 
+        LoadableModel<PrismContainerDefinition<RoleAnalysisClusterType>> containerDefinitionModel
+                = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisClusterType.class);
+
         List<IColumn<DetectedPattern, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
@@ -97,7 +103,7 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             protected DisplayType getIconDisplayType(IModel<DetectedPattern> rowModel) {
-                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
+                return GuiDisplayTypeUtil.createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE));
             }
         });
 
@@ -123,12 +129,12 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public Component getHeader(String componentId) {
-                return new Label(componentId, getHeaderTitle("metric"));
+                return new Label(componentId, createStringResource("RoleMining.cluster.table.column.header.reduction.metric"));
             }
 
         });
 
-        columns.add(new AbstractColumn<>(getIntersectionHeaderTitle()) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
 
             @Override
             public String getSortProperty() {
@@ -153,12 +159,12 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public Component getHeader(String componentId) {
-                return new Label(componentId, getIntersectionHeaderTitle());
+                return new Label(componentId, createStringResource("RoleMining.cluster.table.column.header.user.occupation"));
             }
 
         });
 
-        columns.add(new AbstractColumn<>(getOccupancyHeaderTitle()) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
 
             @Override
             public String getSortProperty() {
@@ -183,12 +189,12 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public Component getHeader(String componentId) {
-                return new Label(componentId, getOccupancyHeaderTitle());
+                return new Label(componentId, createStringResource("RoleMining.cluster.table.column.header.role.occupation"));
             }
 
         });
 
-        columns.add(new AbstractExportableColumn<>(getTotalOccupancyHeaderTitle()) {
+        columns.add(new AbstractExportableColumn<>(createStringResource("")) {
 
             @Override
             public String getSortProperty() {
@@ -246,7 +252,7 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public Component getHeader(String componentId) {
-                return new Label(componentId, getTotalOccupancyHeaderTitle());
+                return new Label(componentId, createStringResource("RoleMining.button.title.compute"));
             }
 
         });
@@ -322,30 +328,6 @@ public class MiningIntersectionTable extends Panel {
 
     }
 
-    protected StringResourceModel getIntersectionHeaderTitle() {
-        if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return createStringResource("RoleMining.cluster.table.column.header.role.occupation");
-        } else {
-            return createStringResource("RoleMining.cluster.table.column.header.user.occupation");
-        }
-    }
-
-    protected StringResourceModel getOccupancyHeaderTitle() {
-        if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return createStringResource("RoleMining.cluster.table.column.header.role.cluster.occupation");
-        } else {
-            return createStringResource("RoleMining.cluster.table.column.header.user.cluster.occupation");
-        }
-    }
-
-    protected StringResourceModel getTotalOccupancyHeaderTitle() {
-        if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return createStringResource("RoleMining.cluster.table.column.header.user.total.occupation");
-        } else {
-            return createStringResource("RoleMining.cluster.table.column.header.role.total.occupation");
-        }
-    }
-
     private Set<String> resolveTotalOccupancy(RoleAnalysisProcessModeType roleAnalysisProcessModeType, DetectedPattern detectedPattern,
             OperationResult result, PageBase pageBase) {
 
@@ -355,7 +337,7 @@ public class MiningIntersectionTable extends Panel {
         if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.USER)) {
             ResultHandler<UserType> resultHandler = (object, parentResult) -> {
                 try {
-                    List<String> properties = ClusterObjectUtils.getRolesOidAssignment(object.asObjectable());
+                    List<String> properties = getRolesOidAssignment(object.asObjectable());
                     if (new HashSet<>(properties).containsAll(detectedProperties)) {
                         membersOidList.add(object.getOid());
                     }
@@ -380,7 +362,7 @@ public class MiningIntersectionTable extends Panel {
             ResultHandler<UserType> resultHandler = (object, parentResult) -> {
                 try {
                     UserType properties = object.asObjectable();
-                    List<String> members = ClusterObjectUtils.getRolesOidAssignment(properties);
+                    List<String> members = getRolesOidAssignment(properties);
                     for (String roleId : members) {
                         roleToUserMap.putAll(roleId, Collections.singletonList(properties.getOid()));
                     }
@@ -410,5 +392,25 @@ public class MiningIntersectionTable extends Panel {
         }
 
         return membersOidList;
+    }
+
+    private <C extends Containerable> PrismPropertyHeaderPanel<?> createColumnHeader(String componentId,
+            LoadableModel<PrismContainerDefinition<C>> containerDefinitionModel,
+            ItemPath itemPath) {
+        return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperHeaderModel<>(
+                containerDefinitionModel,
+                itemPath,
+                (PageBase) getPage())) {
+
+            @Override
+            protected boolean isAddButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isButtonEnabled() {
+                return false;
+            }
+        };
     }
 }

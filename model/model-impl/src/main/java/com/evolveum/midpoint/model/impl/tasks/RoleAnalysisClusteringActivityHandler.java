@@ -8,6 +8,10 @@ package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringAction;
+
+import com.evolveum.midpoint.repo.api.RepositoryService;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -89,12 +93,17 @@ public class RoleAnalysisClusteringActivityHandler
 
             // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
             OperationResult result = parentResult.createSubresult(OP_EXECUTE);
+
             try {
                 LOGGER.info(
                         "Running role analysis clustering activity - FIXME add the implementation; session OID = {}",
                         getWorkDefinition().sessionOid);
 
                 // FIXME add the implementation
+
+                RepositoryService repositoryService = getBeans().repositoryService;
+                ClusteringAction clusteringAction = new ClusteringAction();
+                clusteringAction.execute(repositoryService, getWorkDefinition().sessionOid, result);
 
             } catch (Throwable t) {
                 result.recordException(t);

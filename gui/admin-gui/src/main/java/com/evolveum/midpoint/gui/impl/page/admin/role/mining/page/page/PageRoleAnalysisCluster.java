@@ -6,8 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.recomputeRoleAnalysisClusterDetectionOptions;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.simple.Tools.getScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.recomputeRoleAnalysisClusterDetectionOptions;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getScaleScript;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -21,19 +27,14 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.detection.DetectionActionExecutorNew;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.object.DetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.ClusterSummaryPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -77,13 +78,48 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
 
         recomputeRoleAnalysisClusterDetectionOptions(clusterOid, (PageBase) getPage(), detectionOption, result);
 
-        new DetectionActionExecutorNew(clusterOid, (PageBase) getPage(), result)
-                .executeDetectionProcess();
+        Task task = ((PageBase) getPage()).createSimpleTask("Pattern detection");
+        executeDetectionTask(result, task, clusterOid);
 
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-        Class<? extends PageBase> detailsPageClass = WebComponentUtil.getObjectDetailsPage(RoleAnalysisClusterType.class);
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(RoleAnalysisClusterType.class);
         ((PageBase) getPage()).navigateToNext(detailsPageClass, params);
+
+        ((PageBase) getPage()).showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
+    private void executeDetectionTask(OperationResult result, Task task, String clusterOid) {
+        try {
+            ActivityDefinitionType activity = createActivity(clusterOid);
+
+            getModelInteractionService().submit(
+                    activity,
+                    ActivitySubmissionOptions.create()
+                            .withTaskTemplate(new TaskType()
+                                    .name("Pattern detection  (" + clusterOid + ")"))
+                            .withArchetypes(
+                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
+                    task, result);
+
+        } catch (CommonException e) {
+            //TODO
+        }
+    }
+
+    private ActivityDefinitionType createActivity(String clusterOid) {
+
+        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+        objectReferenceType.setType(RoleAnalysisClusterType.COMPLEX_TYPE);
+        objectReferenceType.setOid(clusterOid);
+
+        RoleAnalysisPatternDetectionWorkDefinitionType rdw = new RoleAnalysisPatternDetectionWorkDefinitionType();
+        rdw.setClusterRef(objectReferenceType);
+
+        return new ActivityDefinitionType()
+                .work(new WorkDefinitionsType()
+                        .roleAnalysisPatternDetection(rdw));
     }
 
     @Override
@@ -94,7 +130,7 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
 
         RoleAnalysisClusterType cluster = getModelWrapperObject().getObjectOld().asObjectable();
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-        ClusterObjectUtils.recomputeSessionStatic(result, roleAnalysisSessionRef.getOid(), cluster, pageBase);
+        RoleAnalysisObjectUtils.recomputeSessionStatic(result, roleAnalysisSessionRef.getOid(), cluster, pageBase);
     }
 
     public PageRoleAnalysisCluster() {

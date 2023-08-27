@@ -8,6 +8,12 @@ package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+
+import com.evolveum.midpoint.model.impl.mining.algorithm.detection.DetectionActionExecutorNew;
+
+import com.evolveum.midpoint.repo.api.RepositoryService;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +64,11 @@ public class RoleAnalysisPatternDetectionActivityHandler
     }
 
     @Override
+    public @NotNull ModelBeans getModelBeans() {
+        return super.getModelBeans();
+    }
+
+    @Override
     public String getIdentifierPrefix() {
         return "role-analysis-pattern-detection";
     }
@@ -96,6 +107,10 @@ public class RoleAnalysisPatternDetectionActivityHandler
                         getWorkDefinition().clusterOid);
 
                 // FIXME add the implementation here
+
+                RepositoryService repositoryService = getBeans().repositoryService;
+                new DetectionActionExecutorNew(getWorkDefinition().clusterOid, repositoryService, result)
+                        .executeDetectionProcess();
 
             } catch (Throwable t) {
                 result.recordException(t);

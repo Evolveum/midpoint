@@ -19,6 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
+import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
+
 public class SessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
     private static final String WORK_PANEL_TYPE = "tw-work";
@@ -57,8 +59,11 @@ public class SessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPa
     private void setNewValue(PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,
             ItemName itemName, Object realValue) throws SchemaException {
 
-        sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-
+        if (sessionType.findProperty(itemName) != null) {
+            sessionType.findProperty(itemName).getValue().setRealValue(realValue);
+        } else {
+            LOGGER.warn("Property not found: " + itemName);
+        }
     }
 
     @Override

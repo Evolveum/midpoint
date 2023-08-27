@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -14,23 +16,21 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils;
-
 public class LinkIconPanelStatus extends Panel {
 
     private static final String ID_LINK = "link";
     private static final String ID_IMAGE = "image";
 
-    public LinkIconPanelStatus(String id, LoadableDetachableModel<ClusterObjectUtils.Status> status) {
+    public LinkIconPanelStatus(String id, LoadableDetachableModel<RoleAnalysisOperationMode> status) {
         super(id);
         initLayout(status);
     }
 
-    public String getModel(LoadableDetachableModel<ClusterObjectUtils.Status> status) {
+    public String getModel(LoadableDetachableModel<RoleAnalysisOperationMode> status) {
         return status.getObject().getDisplayString();
     }
 
-    private void initLayout(LoadableDetachableModel<ClusterObjectUtils.Status> status) {
+    private void initLayout(LoadableDetachableModel<RoleAnalysisOperationMode> status) {
         setOutputMarkupId(true);
 
         Label image = new Label(ID_IMAGE);
@@ -40,14 +40,14 @@ public class LinkIconPanelStatus extends Panel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ClusterObjectUtils.Status status = onClickPerformed(target, null);
+                RoleAnalysisOperationMode roleAnalysisOperationMode = onClickPerformed(target, null);
 
-                if (status.equals(ClusterObjectUtils.Status.NEUTRAL)) {
-                    image.add(AttributeModifier.replace("class", ClusterObjectUtils.Status.ADD.getDisplayString()));
-                } else if (status.equals(ClusterObjectUtils.Status.ADD)) {
-                    image.add(AttributeModifier.replace("class", ClusterObjectUtils.Status.REMOVE.getDisplayString()));
-                } else if (status.equals(ClusterObjectUtils.Status.REMOVE)) {
-                    image.add(AttributeModifier.replace("class", ClusterObjectUtils.Status.NEUTRAL.getDisplayString()));
+                if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.NEUTRAL)) {
+                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.ADD.getDisplayString()));
+                } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.ADD)) {
+                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.REMOVE.getDisplayString()));
+                } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.REMOVE)) {
+                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.NEUTRAL.getDisplayString()));
                 }
                 target.add(image);
             }
@@ -60,7 +60,7 @@ public class LinkIconPanelStatus extends Panel {
     }
 
 
-    protected ClusterObjectUtils.Status onClickPerformed(AjaxRequestTarget target, ClusterObjectUtils.Status status) {
-        return status;
+    protected RoleAnalysisOperationMode onClickPerformed(AjaxRequestTarget target, RoleAnalysisOperationMode roleAnalysisOperationMode) {
+        return roleAnalysisOperationMode;
     }
 }

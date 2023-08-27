@@ -11,10 +11,13 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,11 +26,9 @@ import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.cluster.ClusteringAction;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -115,8 +116,10 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
                 String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
                         RoleAnalysisSessionType.class);
 
-                ClusteringAction clusteringAction = new ClusteringAction();
-                clusteringAction.execute((PageBase) getPage(), sessionOid, result, task);
+//                ClusteringAction clusteringAction = new ClusteringAction();
+//                clusteringAction.execute((PageBase) getPage(), sessionOid, result, task);
+
+                executeDetectionTask(result, task, sessionOid);
             }
 
             @Override
@@ -182,6 +185,38 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
 //            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
             exitToPreview(target);
         }
+    }
+
+    private void executeDetectionTask(OperationResult result, Task task, String sessionOid) {
+        try {
+            ActivityDefinitionType activity = createActivity(sessionOid);
+
+            getPageBase().getModelInteractionService().submit(
+                    activity,
+                    ActivitySubmissionOptions.create()
+                            .withTaskTemplate(new TaskType()
+                                    .name("Session clustering  (" + sessionOid + ")"))
+                            .withArchetypes(
+                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
+                    task, result);
+
+        } catch (CommonException e) {
+            //TODO
+        }
+    }
+
+    private ActivityDefinitionType createActivity(String sessionOid) {
+
+        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+        objectReferenceType.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
+        objectReferenceType.setOid(sessionOid);
+
+        RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
+        rdw.setSessionRef(objectReferenceType);
+
+        return new ActivityDefinitionType()
+                .work(new WorkDefinitionsType()
+                        .roleAnalysisClustering(rdw));
     }
 
     private void exitToPreview(AjaxRequestTarget target) {

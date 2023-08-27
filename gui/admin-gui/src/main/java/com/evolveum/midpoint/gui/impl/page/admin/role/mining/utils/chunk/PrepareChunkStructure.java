@@ -7,22 +7,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.*;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.extractOid;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.CacheUtils.*;
 
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.algorithm.utils.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningOperationChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningRoleTypeChunk;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -134,7 +138,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
 
             double frequency = Math.min(users.size() / (double) roleMapSize, 1);
 
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, users, chunkName, frequency, Status.NEUTRAL));
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, users, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
 
         }
 
@@ -158,7 +162,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
                     chunkName = user.getName().toString();
                 }
             }
-            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, Status.NEUTRAL));
+            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
 
         }
 
@@ -236,7 +240,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
 
             double frequency = Math.min(key.size() / (double) roleMapSize, 1);
 
-            miningUserTypeChunks.add(new MiningUserTypeChunk(usersElements, key, chunkName, frequency, Status.NEUTRAL));
+            miningUserTypeChunks.add(new MiningUserTypeChunk(usersElements, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
 
         }
 
@@ -262,7 +266,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
                     chunkName = role.getName().toString();
                 }
             }
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, Status.NEUTRAL));
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
 
         }
 
@@ -338,7 +342,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
                     chunkName = user.getName().toString();
                 }
             }
-            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, Status.NEUTRAL));
+            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
         }
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
@@ -411,7 +415,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
                 }
             }
 
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, Status.NEUTRAL));
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
         }
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
