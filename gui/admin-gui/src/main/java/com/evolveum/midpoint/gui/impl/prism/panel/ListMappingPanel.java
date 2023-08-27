@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -113,7 +115,6 @@ public class ListMappingPanel extends BasePanel<PrismContainerWrapper<MappingTyp
                 List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
                 columns.add(new PrismPropertyWrapperColumn<>(ListMappingPanel.this.getModel(), MappingType.F_DESCRIPTION, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
-                columns.add(new PrismPropertyWrapperColumn<>(ListMappingPanel.this.getModel(), MappingType.F_ENABLED, AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()));
                 columns.add(new AbstractColumn<>(createStringResource("ListMappingPanel.mappingDescription")) {
 
                     @Override
@@ -168,6 +169,9 @@ public class ListMappingPanel extends BasePanel<PrismContainerWrapper<MappingTyp
                         return "col-xs-1";
                     }
                 });
+
+                columns.add(new LifecycleStateColumn<>(getContainerModel(), getPageBase()));
+
                 return columns;
             }
 
