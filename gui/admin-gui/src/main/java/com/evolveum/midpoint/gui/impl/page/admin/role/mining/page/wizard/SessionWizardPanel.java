@@ -10,15 +10,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -33,6 +37,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -116,10 +122,11 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
                 String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
                         RoleAnalysisSessionType.class);
 
-//                ClusteringAction clusteringAction = new ClusteringAction();
-//                clusteringAction.execute((PageBase) getPage(), sessionOid, result, task);
+                executeClusteringTask(result, task, sessionOid);
 
-                executeDetectionTask(result, task, sessionOid);
+                setResponsePage(PageRoleAnalysis.class);
+                ((PageBase) getPage()).showResult(result);
+                target.add(getFeedbackPanel());
             }
 
             @Override
@@ -127,54 +134,6 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
                 SessionWizardPanel.this.onExitPerformed(target);
             }
         });
-
-//        List<BusinessRoleApplicationDto> patterns = getAssignmentHolderModel().getPatternDeltas();
-//        if (CollectionUtils.isNotEmpty(patterns)) {
-//            steps.add(new ExsitingAccessApplicationRoleStepPanel<>(getAssignmentHolderModel()) {
-//
-//                @Override
-//                protected void onExitPerformed(AjaxRequestTarget target) {
-//                    SessionWizardPanel.this.onExitPerformed(target);
-//                }
-//
-//                @Override
-//                public VisibleEnableBehaviour getBackBehaviour() {
-//                    return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-//                }
-//            });
-//
-//            steps.add(new CandidateMembersPanel<>(getAssignmentHolderModel()) {
-//
-//                @Override
-//                protected void onExitPerformed(AjaxRequestTarget target) {
-//                    SessionWizardPanel.this.onExitPerformed(target);
-//                }
-//
-//                @Override
-//                public VisibleEnableBehaviour getBackBehaviour() {
-//                    return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-//                }
-//            });
-//
-//            steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel()) {
-//                @Override
-//                protected void onSubmitPerformed(AjaxRequestTarget target) {
-//                    super.onSubmitPerformed(target);
-//                    SessionWizardPanel.this.onFinishBasicWizardPerformed(target);
-//                }
-//
-//                @Override
-//                protected boolean isSubmitEnable() {
-//                    return getHelper().getDetailsModel().getPatternDeltas() != null;
-//                }
-//
-//                @Override
-//                protected void onExitPerformed(AjaxRequestTarget target) {
-//                    SessionWizardPanel.this.onExitPerformed(target);
-//                }
-//            });
-//
-//        }
 
         return steps;
     }
@@ -187,7 +146,7 @@ public class SessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionT
         }
     }
 
-    private void executeDetectionTask(OperationResult result, Task task, String sessionOid) {
+    private void executeClusteringTask(OperationResult result, Task task, String sessionOid) {
         try {
             ActivityDefinitionType activity = createActivity(sessionOid);
 
