@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -53,8 +54,7 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(ObjectType.F_NAME))
         );
         FIXED_SEARCH_ITEMS.put(UserType.class, Arrays.asList(
-                ItemPath.create(UserType.F_GIVEN_NAME),
-                ItemPath.create(UserType.F_FAMILY_NAME)
+                ItemPath.create(UserType.F_FULL_NAME)
         ));
         FIXED_SEARCH_ITEMS.put(AbstractRoleType.class, Arrays.asList(
                 ItemPath.create(RoleType.F_DISPLAY_NAME)
@@ -359,7 +359,7 @@ public class SearchBoxConfigurationBuilder {
 
         switch (collectionPanelType) {
             case MEMBER_ORGANIZATION:
-                return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, modelServiceLocator);
+                return RelationUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, modelServiceLocator);
             case ROLE_MEMBER_GOVERNANCE:
             case SERVICE_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
@@ -378,14 +378,14 @@ public class SearchBoxConfigurationBuilder {
     }
 
     private List<QName> getSupportedMembersTabRelations() {
-        List<QName> relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, modelServiceLocator);
-        List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, modelServiceLocator);
+        List<QName> relations = RelationUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, modelServiceLocator);
+        List<QName> governance = RelationUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, modelServiceLocator);
         governance.forEach(relations::remove);
         return relations;
     }
 
     private static List<QName> getSupportedGovernanceTabRelations(ModelServiceLocator modelServiceLocator) {
-        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, modelServiceLocator);
+        return RelationUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, modelServiceLocator);
     }
 
     public static List<QName> getSupportedObjectTypes(CollectionPanelType collectionPanelType) {

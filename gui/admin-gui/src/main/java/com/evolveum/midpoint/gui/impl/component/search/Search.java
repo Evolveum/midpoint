@@ -12,6 +12,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +69,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     private OidSearchItemWrapper oidSearchItemWrapper;
     private String collectionViewName;
     private String collectionRefOid;
+    private ObjectFilter collectionFilter;
 
     private List<AvailableFilterType> availableFilterTypes;
 
@@ -84,6 +87,10 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
 
     public void setCollectionRefOid(String collectionRefOid) {
         this.collectionRefOid = collectionRefOid;
+    }
+
+    public void setCollectionFilter(ObjectFilter collectionFilter) {
+        this.collectionFilter = collectionFilter;
     }
 
     public Search(ObjectTypeSearchItemWrapper type, SearchBoxConfigurationType searchBoxConfigurationType) {
@@ -343,10 +350,14 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
             return getCollectionFilterFromView(view);
         }
 
+        ObjectFilter filter = null;
         if (StringUtils.isNotEmpty(getCollectionRefOid())) {
-            return parseFilterFromCollectionRef(getCollectionRefOid(), pageBase, task, result);
+            filter = parseFilterFromCollectionRef(getCollectionRefOid(), pageBase, task, result);
         }
-        return null;
+        if (collectionFilter != null) {
+            filter = ObjectQueryUtil.filterAnd(filter, collectionFilter);
+        }
+        return filter;
     }
 
     private CompiledObjectCollectionView determineObjectCollectionView(PageAdminLTE parentPage) {

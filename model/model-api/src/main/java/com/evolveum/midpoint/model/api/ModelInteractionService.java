@@ -526,6 +526,8 @@ public interface ModelInteractionService {
      * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
      * But for now we support only policy rules that are directly placed in collection assignments.
      * EXPERIMENTAL. Quite likely to change later.
+     *
+     * [EP:APSO] DONE We assume that the collection is provided from the repository! Verified with the caller.
      */
     @Experimental
     @NotNull
@@ -715,4 +717,11 @@ public interface ModelInteractionService {
             @NotNull OperationResult result,
             @NotNull SimulatedFunctionCall<X> functionCall)
             throws CommonException;
+
+    /**
+     * Helper method to properly apply definitions to shadow. It is only needed when raw option is used for shadow search.
+     * Not sure about correctness of the method place and if even should be needed.
+     */
+    void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException;
 }

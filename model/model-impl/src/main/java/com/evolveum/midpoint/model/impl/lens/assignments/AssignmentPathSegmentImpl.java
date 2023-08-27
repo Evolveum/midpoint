@@ -63,7 +63,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      */
     final String sourceDescription;
 
-    /** The "physical" origin of the assignment. */
+    /** The "physical" origin of the assignment. [EP:APSO] DONE 2/2 */
     @NotNull final ConfigurationItemOrigin assignmentOrigin;
 
     /**
@@ -214,6 +214,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         sourceDescription = builder.sourceDescription;
         assignmentIdi = builder.assignmentIdi;
         externalAssignmentId = builder.externalAssignmentId;
+        // [EP:APSO] from builder DONE 1/1
         assignmentOrigin = Objects.requireNonNull(builder.assignmentOrigin, "no assignmentOrigin");
         evaluateOld = builder.evaluateOld;
         assignment = Util.getAssignment(assignmentIdi, evaluateOld);
@@ -245,7 +246,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.sourceDescription = origSegment.sourceDescription;
         this.assignmentIdi = origSegment.assignmentIdi;
         this.externalAssignmentId = origSegment.externalAssignmentId;
-        this.assignmentOrigin = origSegment.assignmentOrigin;
+        this.assignmentOrigin = origSegment.assignmentOrigin; // [EP:APSO] from itself
         this.evaluateOld = origSegment.evaluateOld;
         this.assignment = origSegment.assignment;
         this.assignmentConfigItem = origSegment.assignmentConfigItem;
@@ -611,7 +612,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private String sourceDescription;
         private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
         private Long externalAssignmentId;
-        private ConfigurationItemOrigin assignmentOrigin;
+        private ConfigurationItemOrigin assignmentOrigin; // [EP:APSO] DONE 1/1
         private boolean evaluateOld;
         private boolean isAssignment;
         private boolean archetypeHierarchy;
@@ -663,7 +664,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         }
 
         public Builder assignmentOrigin(ConfigurationItemOrigin val) {
-            assignmentOrigin = val;
+            assignmentOrigin = val; // [EP:APSO] DONE 4/4
             return this;
         }
 

@@ -752,6 +752,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected String getStorageKey() {
+
+        CompiledObjectCollectionView compiledView = getCompiledCollectionViewFromPanelConfiguration();
+        if (compiledView != null) {
+            return WebComponentUtil.getObjectListPageStorageKey(compiledView.getViewIdentifier());
+        }
+
         if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
             String collectionNameValue = collectionName != null ? collectionName.toString() : "";

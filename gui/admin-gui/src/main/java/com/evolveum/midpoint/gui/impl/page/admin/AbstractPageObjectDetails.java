@@ -6,16 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.clusterMigrationRecompute;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getRoleTypeObject;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleDto;
-
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -39,7 +35,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.objects.BusinessRoleDto;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -47,6 +48,8 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,9 +59,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.getRoleTypeObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.ClusterObjectUtils.clusterMigrationRecompute;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
 
@@ -108,9 +108,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 //        }
     }
 
-    protected void postProcessModel(ODM objectDetailsModels) {
-
-    }
 
     public AbstractPageObjectDetails(PrismObject<O> object, List<BusinessRoleDto> patternDeltas) {
         this(null, object, patternDeltas);
@@ -119,7 +116,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        postProcessModel(objectDetailsModels);
         initLayout();
     }
 
@@ -443,8 +439,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected void navigateAction() {
-        Class<? extends PageBase> objectListPage = WebComponentUtil.getObjectListPage(getType());
-        if (!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null) {
+        Class<? extends PageBase> objectListPage = DetailsPageUtil.getObjectListPage(getType());
+        if (!canRedirectBack() && DetailsPageUtil.getObjectListPage(getType()) != null) {
             navigateToNext(objectListPage);
         } else {
             redirectBack();

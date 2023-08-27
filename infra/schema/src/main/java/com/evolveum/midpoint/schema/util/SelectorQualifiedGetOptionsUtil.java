@@ -7,13 +7,15 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -32,10 +34,10 @@ public class SelectorQualifiedGetOptionsUtil {
             }
         }
         if (value != null) {
-            GetOperationOptionsType newOptions = new GetOperationOptionsType(PrismContext.get());
+            GetOperationOptionsType newOptions = new GetOperationOptionsType();
             setter.accept(newOptions, value);
             base.getOption().add(
-                    new SelectorQualifiedGetOptionType(PrismContext.get())
+                    new SelectorQualifiedGetOptionType()
                             .options(newOptions));
         }
     }
@@ -53,5 +55,10 @@ public class SelectorQualifiedGetOptionsUtil {
 
     private static boolean isEmpty(ItemPathType itemPathType) {
         return itemPathType == null || itemPathType.getItemPath().isEmpty();
+    }
+
+    public static boolean hasRawOption(SelectorQualifiedGetOptionsType options) {
+        List<SelectorOptions<GetOperationOptions>> selectorOptions = GetOperationOptionsUtil.optionsBeanToOptions(options);
+        return GetOperationOptions.isRaw(selectorOptions);
     }
 }

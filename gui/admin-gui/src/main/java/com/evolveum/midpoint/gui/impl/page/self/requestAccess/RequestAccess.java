@@ -16,6 +16,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -863,7 +864,7 @@ public class RequestAccess implements Serializable {
         List<QName> relations = getAssignableRelationList(page);
 
         if (CollectionUtils.isEmpty(relations)) {
-            relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, page);
+            relations = RelationUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, page);
         }
 
         RelationSelectionType config = getRelationConfiguration(page);

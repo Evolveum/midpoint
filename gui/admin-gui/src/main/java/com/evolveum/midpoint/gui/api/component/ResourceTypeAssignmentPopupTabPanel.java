@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -83,7 +84,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         kindContainer.setOutputMarkupId(true);
         parametersPanel.add(kindContainer);
 
-        DropDownChoicePanel<ShadowKindType> kindSelector = WebComponentUtil.createEnumPanel(ShadowKindType.class, ID_KIND,
+        DropDownChoicePanel<ShadowKindType> kindSelector = WebComponentUtil.createEnumPanel(ID_KIND,
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(),
                 ResourceTypeAssignmentPopupTabPanel.this, true);
         kindSelector.setOutputMarkupId(true);
@@ -145,7 +146,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
 
             @Override
             public Object getDisplayValue(ResourceAssociationDefinition refinedAssociationDefinition) {
-                return WebComponentUtil.getAssociationDisplayName(refinedAssociationDefinition);
+                return ProvisioningObjectsUtil.getAssociationDisplayName(refinedAssociationDefinition);
             }
 
             @Override
@@ -213,7 +214,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                 if (resource == null) {
                     return new ArrayList<>();
                 }
-                return WebComponentUtil.getRefinedAssociationDefinition(resource, getKindValue(), getIntentValue());
+                return ProvisioningObjectsUtil.getRefinedAssociationDefinition(resource, getKindValue(), getIntentValue());
             }
         };
     }

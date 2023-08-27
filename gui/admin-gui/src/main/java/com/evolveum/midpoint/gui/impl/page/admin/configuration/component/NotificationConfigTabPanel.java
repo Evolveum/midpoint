@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -33,7 +34,6 @@ import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -327,7 +327,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             @Override
             protected DisplayType getIconDisplayType(IModel<MailServerConfiguration> rowModel) {
-                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+                return GuiDisplayTypeUtil.createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
             }
 
         });

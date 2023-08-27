@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -430,7 +431,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
                         ObjectType obj = object.getValue();
                         PrismObject prism = obj != null ? obj.asPrismObject() : null;
-                        String icon = WebComponentUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
+                        String icon = IconAndStylesUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
 
                         CatalogTile<SelectableBean<ObjectType>> t = new CatalogTile<>(icon, WebComponentUtil.getDisplayNameOrName(prism));
                         t.setDescription(object.getValue().getDescription());
@@ -915,7 +916,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
                 ObjectType obj = model.getObject().getValue();
-                String icon = WebComponentUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
+                String icon = IconAndStylesUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
 
                 return new DisplayType()
                         .icon(new IconType()

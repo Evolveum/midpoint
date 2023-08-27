@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -69,8 +70,8 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
 
             @Override
             public void onClick() {
-                WebComponentUtil.redirectFromDashboardWidget(getDefinedAction(),
-                        StatisticDashboardWidget.this.getPageBase(), StatisticDashboardWidget.this);
+                DetailsPageUtil.redirectFromDashboardWidget(getDefinedAction(),
+                        StatisticDashboardWidget.this.getPageBase());
             }
 
         };

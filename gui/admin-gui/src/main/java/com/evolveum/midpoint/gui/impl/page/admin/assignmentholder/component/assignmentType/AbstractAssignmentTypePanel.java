@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -307,7 +308,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             PrismReferenceValueWrapperImpl<ObjectReferenceType> refWrapper = targetRef.getValues().get(0);
             if (!StringUtils.isEmpty(refWrapper.getNewValue().getOid())) {
                 Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(refWrapper.getRealValue().getType()).getClassDefinition();
-                WebComponentUtil.dispatchToObjectDetailsPage(targetClass, refWrapper.getNewValue().getOid(), AbstractAssignmentTypePanel.this, false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(targetClass, refWrapper.getNewValue().getOid(), AbstractAssignmentTypePanel.this, false);
             }
         }
     }

@@ -69,7 +69,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         super(elementName, functionEvaluatorBean, outputDefinition, protector);
         this.functionCallCI = FunctionExpressionEvaluatorConfigItem.of(
                 functionEvaluatorBean,
-                ConfigurationItemOrigin.undetermined()); // TODO origin
+                ConfigurationItemOrigin.undeterminedSafe()); // TODO origin
     }
 
     @Override

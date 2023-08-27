@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -110,7 +111,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     private boolean nonExistAssociations() {
-        List<ResourceAssociationDefinition> associations = WebComponentUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        List<ResourceAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
     }
 
@@ -287,7 +288,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
         SearchContext searchContext = new SearchContext();
         searchContext.setPanelType(CollectionPanelType.ASSOCIABLE_SHADOW);
         try {
-            ResourceObjectDefinition oc = WebComponentUtil.getResourceObjectDefinition(
+            ResourceObjectDefinition oc = ProvisioningObjectsUtil.getResourceObjectDefinition(
                     getValueModel().getObject().getRealValue(), getPageBase());
             searchContext.setResourceObjectDefinition(oc);
         } catch (Exception ex) {

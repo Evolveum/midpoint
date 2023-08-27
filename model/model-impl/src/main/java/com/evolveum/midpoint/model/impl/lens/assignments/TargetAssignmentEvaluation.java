@@ -37,7 +37,7 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
     private final OperationResult result;
 
     @NotNull private final AssignmentType nextAssignment;
-    @NotNull private final ConfigurationItemOrigin nextAssignmentOrigin;
+    @NotNull private final ConfigurationItemOrigin nextAssignmentOrigin; // [EP:APSO] DONE 1/1
 
     TargetAssignmentEvaluation(
             AssignmentPathSegmentImpl segment,
@@ -46,13 +46,13 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
             EvaluationContext<AH> ctx,
             OperationResult result,
             @NotNull AssignmentType nextAssignment,
-            @NotNull ConfigurationItemOrigin nextAssignmentOrigin) {
+            @NotNull ConfigurationItemOrigin nextAssignmentOrigin) { // [EP:APSO] DONE 1/1
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
         this.targetActivity = targetActivity;
         this.result = result;
         this.nextAssignment = nextAssignment;
-        this.nextAssignmentOrigin = nextAssignmentOrigin;
+        this.nextAssignmentOrigin = nextAssignmentOrigin; // [EP:APSO] DONE
     }
 
     void evaluate()
@@ -83,7 +83,7 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .source((AssignmentHolderType) segment.target)
                 .sourceDescription(segment.target + " in " + segment.sourceDescription)
                 .assignment(nextAssignment)
-                .assignmentOrigin(nextAssignmentOrigin)
+                .assignmentOrigin(nextAssignmentOrigin) // [EP:APSO] DONE
                 .isAssignment()
                 .evaluationOrder(nextEvaluationOrder)
                 .evaluationOrderForTarget(nextEvaluationOrderForTarget)

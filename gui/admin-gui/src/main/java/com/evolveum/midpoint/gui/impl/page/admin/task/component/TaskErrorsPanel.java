@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -160,7 +161,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImpl> rowModel) {
                 TaskErrorSelectableBeanImpl object = rowModel.getObject();
                 PrismObject<ObjectType> realOwner = object.getRealOwner();
-                WebComponentUtil.dispatchToObjectDetailsPage(
+                DetailsPageUtil.dispatchToObjectDetailsPage(
                         realOwner.getCompileTimeClass(), realOwner.getOid(), TaskErrorsPanel.this, false);
             }
         });
@@ -249,7 +250,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImplOld<ObjectType>> rowModel) {
                 TaskErrorSelectableBeanImplOld<ObjectType> object = rowModel.getObject();
                 PrismObject<ObjectType> realOwner = object.getRealOwner();
-                WebComponentUtil.dispatchToObjectDetailsPage(
+                DetailsPageUtil.dispatchToObjectDetailsPage(
                         realOwner.getCompileTimeClass(), realOwner.getOid(), TaskErrorsPanel.this, false);
             }
         });

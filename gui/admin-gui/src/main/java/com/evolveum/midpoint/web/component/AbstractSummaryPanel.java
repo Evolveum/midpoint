@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -128,7 +129,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 ObjectReferenceType ort = getReferencedObjectToNavigate();
-                WebComponentUtil.dispatchToObjectDetailsPage(ort, AbstractSummaryPanel.this, false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ort, AbstractSummaryPanel.this, false);
             }
         };
         navigateToObject.add(AttributeAppender.append("title", getReferenceObjectTitleModel()));
@@ -138,7 +139,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
                     ? WebComponentUtil.qnameToClass(AbstractSummaryPanel.this.getPageBase().getPrismContext(), ort.getType())
                     : null;
             return ort != null && refType != null
-                    && WebComponentUtil.getObjectDetailsPage(refType) != null;
+                    && DetailsPageUtil.getObjectDetailsPage(refType) != null;
         }));
         navigateToObject.setOutputMarkupId(true);
         box.add(navigateToObject);

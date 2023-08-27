@@ -131,7 +131,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             }
 
             @Override
-            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
                 if (action instanceof ColumnMenuAction) {
                     if (!isHeaderPanel) {
                         ((ColumnMenuAction) action).setRowModel(rowModel);

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -275,6 +276,64 @@ public class SecurityUtils {
         }
         return getAuthLinkUrl(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy);
     }
+
+    public static String getRegistrationLabel(SecurityPolicyType securityPolicy) {
+        SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
+        if (selfRegistrationPolicy == null || selfRegistrationPolicy.getDisplay() == null) {
+            return "";
+        }
+        DisplayType display = selfRegistrationPolicy.getDisplay();
+        return GuiDisplayTypeUtil.getTranslatedLabel(display);
+    }
+
+    public static String getIdentityRecoveryUrl(SecurityPolicyType securityPolicy) {
+        var identityRecoveryPolicy = securityPolicy.getIdentityRecovery();
+        if (identityRecoveryPolicy == null) {
+            return "";
+        }
+        return SecurityUtils.getAuthLinkUrl(identityRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
+    }
+
+    public static String getIdentityRecoveryLabel(SecurityPolicyType securityPolicy) {
+        var identityRecoveryPolicy = securityPolicy.getIdentityRecovery();
+        if (identityRecoveryPolicy == null || identityRecoveryPolicy.getDisplay() == null) {
+            return "";
+        }
+        DisplayType display = identityRecoveryPolicy.getDisplay();
+        return GuiDisplayTypeUtil.getTranslatedLabel(display);
+    }
+
+    public static String getPasswordResetUrl(SecurityPolicyType securityPolicy) {
+        String resetSequenceIdOrName = getResetPasswordAuthenticationSequenceName(securityPolicy);
+        if (StringUtils.isBlank(resetSequenceIdOrName)) {
+            return "";
+        }
+        return SecurityUtils.getAuthLinkUrl(resetSequenceIdOrName, securityPolicy);
+    }
+
+    public static String getPasswordResetLabel(SecurityPolicyType securityPolicy) {
+        CredentialsResetPolicyType credentialsResetPolicyType = securityPolicy.getCredentialsReset();
+        if (credentialsResetPolicyType == null || credentialsResetPolicyType.getDisplay() == null) {
+            return null;
+        }
+        DisplayType display = credentialsResetPolicyType.getDisplay();
+        return GuiDisplayTypeUtil.getTranslatedLabel(display);
+    }
+
+    public static String getResetPasswordAuthenticationSequenceName(SecurityPolicyType securityPolicyType) {
+        if (securityPolicyType == null) {
+            return null;
+        }
+
+        CredentialsResetPolicyType credentialsResetPolicyType = securityPolicyType.getCredentialsReset();
+        if (credentialsResetPolicyType == null) {
+            return null;
+        }
+
+        return credentialsResetPolicyType.getAuthenticationSequenceName();
+    }
+
+
 
     public static String getAuthLinkUrl(String sequenceIdentifier, SecurityPolicyType securityPolicy) {
         String channelUrlSuffix = SecurityUtils.getChannelUrlSuffixFromAuthSequence(sequenceIdentifier, securityPolicy);

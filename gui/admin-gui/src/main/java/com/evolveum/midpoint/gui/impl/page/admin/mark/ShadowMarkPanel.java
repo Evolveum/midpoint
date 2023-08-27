@@ -7,19 +7,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.mark;
 
 import java.io.Serializable;
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.dialog.*;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -52,8 +50,6 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
@@ -84,6 +80,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
 
 @PanelType(name = "markedShadowList")
 @PanelDisplay(label = "Members", order = 60)
@@ -173,7 +170,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
                     return false;
                 }
                 Class<?> objectClass = rowModel.getObject().getValue().getClass();
-                return WebComponentUtil.hasDetailsPage(objectClass);
+                return DetailsPageUtil.hasDetailsPage(objectClass);
             }
 
             @Override

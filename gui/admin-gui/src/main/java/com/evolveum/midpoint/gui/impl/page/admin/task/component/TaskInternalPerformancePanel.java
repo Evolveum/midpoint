@@ -58,7 +58,7 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
 
     protected void initLayout() {
         DropDownChoicePanel<Format> formatPanel =
-                WebComponentUtil.createEnumPanel(Format.class, ID_FORMAT, createFormatListModel(), formatModel, this, false);
+                WebComponentUtil.createEnumPanel(ID_FORMAT, createFormatListModel(), formatModel, this, false);
         formatPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

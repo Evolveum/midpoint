@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.construction;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.prism.*;
@@ -23,13 +24,14 @@ import java.util.stream.Collectors;
 /**
  * Evaluation of an association mapping in resource object construction (assigned/plain).
  */
-class AssociationEvaluation<AH extends AssignmentHolderType>
+public class AssociationEvaluation<AH extends AssignmentHolderType>
         extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>, ResourceAssociationDefinition> {
 
+    // [EP:M:OM] DONE 2/2
     AssociationEvaluation(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
             ResourceAssociationDefinition associationDefinition,
-            ConfigurationItem<MappingType> mappingBeanWithOrigin,
+            MappingConfigItem mappingConfigItem,
             OriginType originType,
             MappingKindType mappingKind) {
         super(
@@ -38,7 +40,7 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
                 ShadowType.F_ASSOCIATION.append(associationDefinition.getName()),
                 associationDefinition,
                 constructionEvaluation.construction.getAssociationContainerDefinition(),
-                mappingBeanWithOrigin,
+                mappingConfigItem, // [EP:M:OM] DONE
                 originType,
                 mappingKind);
     }

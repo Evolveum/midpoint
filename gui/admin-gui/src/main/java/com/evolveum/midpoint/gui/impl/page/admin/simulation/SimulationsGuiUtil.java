@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -114,11 +115,11 @@ public class SimulationsGuiUtil {
                 ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
                 if (obj == null || obj.asPrismObject() == null) {
                     return new DisplayType()
-                            .icon(new IconType().cssClass(WebComponentUtil.createDefaultColoredIcon(object.getType())));
+                            .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultColoredIcon(object.getType())));
                 }
 
                 return new DisplayType()
-                        .icon(new IconType().cssClass(WebComponentUtil.createDefaultIcon(obj.asPrismObject())));
+                        .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultIcon(obj.asPrismObject())));
             }
         };
     }

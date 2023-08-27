@@ -22,9 +22,4 @@ public interface OriginProvider<T> {
     static @NotNull <T> OriginProvider<T> generated() {
         return item -> ConfigurationItemOrigin.generated();
     }
-
-    /** Use with care! See {@link ConfigurationItemOrigin#undetermined()}. */
-    static @NotNull <T> OriginProvider<T> undetermined() {
-        return item -> ConfigurationItemOrigin.undetermined();
-    }
 }

@@ -13,9 +13,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,8 +70,11 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
     private static final String ID_IDENTITY_RECOVERY = "identityRecovery";
+    private static final String ID_IDENTITY_RECOVERY_LABEL = "identityRecoveryLabel";
     private static final String ID_RESET_PASSWORD = "resetPassword";
+    private static final String ID_RESET_PASSWORD_LABEL = "resetPasswordLabel";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
+    private static final String ID_SELF_REGISTRATION_LABEL = "selfRegistrationLabel";
 
 
     public PageAbstractAuthenticationModule(PageParameters parameters) {
@@ -164,15 +169,22 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
     }
 
     private void addIdentityRecoveryLink(SecurityPolicyType securityPolicy) {
-        String identityRecoveryUrl = getIdentityRecoveryUrl(securityPolicy);
-        addExternalLink(ID_IDENTITY_RECOVERY, identityRecoveryUrl);
+        String identityRecoveryUrl = SecurityUtils.getIdentityRecoveryUrl(securityPolicy);
+        var label = SecurityUtils.getIdentityRecoveryLabel(securityPolicy);
+        addExternalLink(ID_IDENTITY_RECOVERY, identityRecoveryUrl, ID_IDENTITY_RECOVERY_LABEL,
+                StringUtils.isEmpty(label) ? "PageLogin.loginRecovery" : label);
     }
 
-    private void addExternalLink(String componentId, String linkUrl) {
+    private void addExternalLink(String componentId, String linkUrl, String labelComponentId, String labelKeyOrValue) {
         ExternalLink link = new ExternalLink(componentId, linkUrl);
         link.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(linkUrl) && isLoginAndFirstModule()));
         add(link);
+
+        Label linkLabel = new Label(labelComponentId, createStringResource(labelKeyOrValue));
+        link.add(linkLabel);
     }
+
+
 
     private boolean isLoginAndFirstModule() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -190,48 +202,22 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     }
 
-    private String getIdentityRecoveryUrl(SecurityPolicyType securityPolicy) {
-        var identityRecoveryPolicy = securityPolicy.getIdentityRecovery();
-        if (identityRecoveryPolicy == null) {
-            return "";
-        }
-        return SecurityUtils.getAuthLinkUrl(identityRecoveryPolicy.getAuthenticationSequenceIdentifier(), securityPolicy);
-    }
-
     private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {
-        String urlResetPass = getPasswordResetUrl(securityPolicy);
-        addExternalLink(ID_RESET_PASSWORD, urlResetPass);
-    }
-
-    private String getPasswordResetUrl(SecurityPolicyType securityPolicy) {
-        String resetSequenceIdOrName = getResetPasswordAuthenticationSequenceName(securityPolicy);
-        if (StringUtils.isBlank(resetSequenceIdOrName)) {
-            return "";
-        }
-        return SecurityUtils.getAuthLinkUrl(resetSequenceIdOrName, securityPolicy);
+        String urlResetPass = SecurityUtils.getPasswordResetUrl(securityPolicy);
+        var label = SecurityUtils.getPasswordResetLabel(securityPolicy);
+        addExternalLink(ID_RESET_PASSWORD, urlResetPass, ID_RESET_PASSWORD_LABEL,
+                StringUtils.isEmpty(label) ? "PageLogin.resetPassword" : label);
     }
 
     private void addRegistrationLink(SecurityPolicyType securityPolicyType) {
-
         String urlRegistration = SecurityUtils.getRegistrationUrl(securityPolicyType);
-        addExternalLink(ID_SELF_REGISTRATION, urlRegistration);
+        var label = SecurityUtils.getRegistrationLabel(securityPolicyType);
+        addExternalLink(ID_SELF_REGISTRATION, urlRegistration, ID_SELF_REGISTRATION_LABEL,
+                StringUtils.isEmpty(label) ? "PageLogin.registerNewAccount" : label);
     }
 
     private SecurityPolicyType loadSecurityPolicyType() {
         return securityPolicyModel.getObject();
-    }
-
-    private String getResetPasswordAuthenticationSequenceName(SecurityPolicyType securityPolicyType) {
-        if (securityPolicyType == null) {
-            return null;
-        }
-
-        CredentialsResetPolicyType credentialsResetPolicyType = securityPolicyType.getCredentialsReset();
-        if (credentialsResetPolicyType == null) {
-            return null;
-        }
-
-        return credentialsResetPolicyType.getAuthenticationSequenceName();
     }
 
     protected String getUrlProcessingLogin() {

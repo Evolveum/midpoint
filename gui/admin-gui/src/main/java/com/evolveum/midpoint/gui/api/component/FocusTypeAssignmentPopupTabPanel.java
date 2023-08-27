@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoice;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -78,7 +78,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected List<QName> getSupportedRelations() {
-        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+        return RelationUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
     }
 
     protected QName getPredefinedRelation() {

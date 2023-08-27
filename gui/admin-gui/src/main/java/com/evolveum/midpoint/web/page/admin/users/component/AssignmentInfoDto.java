@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -264,7 +264,7 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
         if (relation == null) {
             return Model.of("");
         }
-        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
+        String relationDisplayName = RelationUtil.getRelationHeaderLabelKeyIfKnown(relation);
         return StringUtils.isNotEmpty(relationDisplayName) ?
                 PageBase.createStringResourceStatic(relationDisplayName) :
                 PageBase.createStringResourceStatic(relation.getLocalPart());

@@ -57,14 +57,14 @@ public class MappingDiagEvaluator {
         MappingType mappingBean = request.getMapping();
         if (task.canSee(mappingBean)) {
             builder
+                    // [EP:M] DONE (should be evaluated under the rights of logged-in principal)
                     .mappingBean(mappingBean, ConfigurationItemOrigin.external(task.getChannel()))
                     .mappingKind(MappingKindType.OTHER)
                     .contextDescription("mapping diagnostic execution")
                     .sourceContext(sourceContext)
                     .targetContext(createTargetContext(request, sourceContext))
                     .profiling(true)
-                    .now(clock.currentTimeXMLGregorianCalendar())
-                    .computeExpressionProfile(result);
+                    .now(clock.currentTimeXMLGregorianCalendar());
 
             MappingImpl<?, ?> mapping = builder.build();
 

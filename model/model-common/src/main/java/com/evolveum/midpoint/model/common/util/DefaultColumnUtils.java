@@ -68,8 +68,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION), "ConnectorType.connectorVersion")))
                 .put(UserType.class, Arrays.asList(
                         new ColumnWrapper(UserType.F_NAME, true),
-                        new ColumnWrapper(UserType.F_GIVEN_NAME, true),
-                        new ColumnWrapper(UserType.F_FAMILY_NAME, true),
+                        new ColumnWrapper(UserType.F_PERSONAL_NUMBER, true),
                         new ColumnWrapper(UserType.F_FULL_NAME, true),
                         new ColumnWrapper(UserType.F_EMAIL_ADDRESS),
                         new ColumnWrapper(UserType.F_LINK_REF, "FocusType.accounts", DisplayValueType.NUMBER)))

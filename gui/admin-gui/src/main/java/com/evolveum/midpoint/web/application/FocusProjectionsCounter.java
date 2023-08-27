@@ -8,8 +8,8 @@ package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class FocusProjectionsCounter<F extends FocusType> extends SimpleCounter<FocusDetailsModels<F>, F> {
@@ -27,6 +27,6 @@ public class FocusProjectionsCounter<F extends FocusType> extends SimpleCounter<
         PrismObjectWrapper<F> assignmentHolderWrapper = objectDetailsModels.getObjectWrapperModel().getObject();
         F object = assignmentHolderWrapper.getObject().asObjectable();
 
-        return WebComponentUtil.countLinkForNonDeadShadows(object.getLinkRef());
+        return ProvisioningObjectsUtil.countLinkForNonDeadShadows(object.getLinkRef());
     }
 }

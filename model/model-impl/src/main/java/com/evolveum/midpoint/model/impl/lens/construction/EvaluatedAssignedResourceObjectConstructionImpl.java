@@ -55,12 +55,14 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
 
         List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
 
+        // [EP:CONST] DONE
         for (ResourceAttributeDefinitionConfigItem attributeConstrDefinitionCI : getTypedConfigItemRequired().getAttributes()) {
             QName attrName = attributeConstrDefinitionCI.getAttributeName();
 
             attributeConstrDefinitionCI.configCheck(
                     !attributeConstrDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
 
+            // [EP:M:OM] DONE, transforming to [EP:CONSTR] (via attribute definition in the construction)
             MappingConfigItem outboundMappingCI =
                     attributeConstrDefinitionCI.configNonNull(
                             attributeConstrDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
@@ -81,7 +83,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                     new AttributeEvaluation<>(
                             constructionEvaluation,
                             attributeDef,
-                            outboundMappingCI,
+                            outboundMappingCI, // [EP:M:OM] DONE
                             OriginType.ASSIGNMENTS,
                             MappingKindType.CONSTRUCTION));
         }
@@ -100,6 +102,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
             associationDefinitionCI.configCheck(
                     !associationDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);
 
+            // [EP:M:OM] DONE, transforming to [EP:CONSTR] (via association definition in the construction)
             var outboundMappingCI =
                     associationDefinitionCI.configNonNull(
                             associationDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
@@ -119,7 +122,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                     new AssociationEvaluation<>(
                             constructionEvaluation,
                             associationDef,
-                            outboundMappingCI,
+                            outboundMappingCI, // [EP:M:OM] DONE
                             OriginType.ASSIGNMENTS,
                             MappingKindType.CONSTRUCTION));
         }

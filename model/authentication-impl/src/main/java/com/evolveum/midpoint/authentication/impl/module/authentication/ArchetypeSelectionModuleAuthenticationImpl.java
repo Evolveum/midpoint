@@ -12,7 +12,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeSelectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
-public class ArchetypeSelectionModuleAuthenticationImpl extends CredentialModuleAuthenticationImpl implements ArchetypeSelectionModuleAuthentication {
+import java.io.Serializable;
+
+public class ArchetypeSelectionModuleAuthenticationImpl extends CredentialModuleAuthenticationImpl implements
+        ArchetypeSelectionModuleAuthentication, Serializable {
 
     private boolean allowUndefined;
     private ArchetypeSelectionType archetypeSelection;

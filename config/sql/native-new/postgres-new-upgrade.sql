@@ -376,6 +376,11 @@ ALTER TABLE m_task_affected_objects
   ADD COLUMN predefinedConfigurationToUse PredefinedConfigurationType;
 $aa$);
 
+call apply_change(21, $aa$
+ALTER TABLE m_user
+  ADD COLUMN personalNumber TEXT;
+$aa$);
+
 
 ---
 -- WRITE CHANGES ABOVE ^^

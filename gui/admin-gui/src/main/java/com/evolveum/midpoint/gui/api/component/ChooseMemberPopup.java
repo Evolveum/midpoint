@@ -18,6 +18,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -447,7 +449,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 DisplayType additionalDispayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(ChooseMemberPopup.this.getPageBase(),
                         relation, "abstractRoleMemberPanel.menu.assignMember");
                 CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(ChooseMemberPopup.this.getPageBase(), relation,
-                        additionalDispayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+                        additionalDispayType.getIcon(), IconAndStylesUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
                 CompositedIcon icon = builder.build();
                 CompositedIconButtonDto buttonDto = createCompositedIconButtonDto(additionalDispayType, relation, icon);
                 buttons.add(buttonDto);
@@ -538,7 +540,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             stableRelation = relations.stream().findFirst().orElse(null);
         }
         if (stableRelation != null) {
-            RelationDefinitionType def = WebComponentUtil.getRelationDefinition(stableRelation);
+            RelationDefinitionType def = RelationUtil.getRelationDefinition(stableRelation);
             if (def != null) {
                 String label = GuiDisplayTypeUtil.getTranslatedLabel(def.getDisplay());
                 return createStringResource("ChooseMemberPopup.selectObjectWithRelation", label);

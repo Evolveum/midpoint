@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
@@ -103,6 +104,6 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
     }
 
     protected void viewAllActionPerformed(AjaxRequestTarget target, GuiActionType action) {
-        WebComponentUtil.redirectFromDashboardWidget(action, WebComponentUtil.getPageBase(this), this);
+        DetailsPageUtil.redirectFromDashboardWidget(action, WebComponentUtil.getPageBase(this));
     }
 }

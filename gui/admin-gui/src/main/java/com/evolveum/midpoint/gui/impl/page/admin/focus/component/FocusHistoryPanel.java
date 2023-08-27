@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.application.PanelTypeConstants;
 
 import org.apache.commons.lang3.StringUtils;
@@ -208,7 +209,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     }
 
     protected boolean isHistoryPageAuthorized() {
-        Class<? extends PageBase> pageHistoryDetailsPage = WebComponentUtil.getPageHistoryDetailsPage(getPage().getPageClass());
+        Class<? extends PageBase> pageHistoryDetailsPage = DetailsPageUtil.getPageHistoryDetailsPage(getPage().getPageClass());
         return SecurityUtils.isPageAuthorized(pageHistoryDetailsPage);
     }
 

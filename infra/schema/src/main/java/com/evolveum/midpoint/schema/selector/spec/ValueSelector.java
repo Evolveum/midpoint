@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -183,23 +184,22 @@ public class ValueSelector implements DebugDumpable, Serializable {
             }
 
             for (SpecialObjectSpecificationType special : new HashSet<>(sBean.getSpecial())) {
-                if (special == SpecialObjectSpecificationType.SELF) {
-                    clauses.add(new SelfClause());
+                clauses.add(
+                        switch (special) {
+                            case SELF -> SelfClause.object();
+                            case SELF_DEPUTY_ASSIGNMENT -> SelfClause.deputyAssignment();
+                            case SELF_DEPUTY_REF -> SelfClause.deputyReference();
+                        });
 
-                    if (filter != null
-                            || orgRef != null
-                            || orgRelation != null
-                            || roleRelation != null
-                            || (bean instanceof OwnedObjectSelectorType oBean && oBean.getTenant() != null)
-                            || !archetypeRefList.isEmpty()) {
-                        throw new ConfigurationException(String.format(
-                                "Both filter/org/role/archetype/tenant and special clause specified in %s",
-                                ConfigErrorReporter.describe(bean)));
-                    }
-
-                } else {
-                    throw new ConfigurationException(
-                            "Unsupported special clause: " + special + " in " + ConfigErrorReporter.describe(sBean));
+                if (filter != null
+                        || orgRef != null
+                        || orgRelation != null
+                        || roleRelation != null
+                        || (bean instanceof OwnedObjectSelectorType oBean && oBean.getTenant() != null)
+                        || !archetypeRefList.isEmpty()) {
+                    throw new ConfigurationException(String.format(
+                            "Both filter/org/role/archetype/tenant and special clause specified in %s",
+                            ConfigErrorReporter.describe(bean)));
                 }
             }
         }
@@ -293,17 +293,6 @@ public class ValueSelector implements DebugDumpable, Serializable {
 
     @NotNull TypeClause getEffectiveTypeClause() {
         return effectiveTypeClause;
-    }
-
-    /** Returns complex type definition for the object, derived from [effective] type clause. */
-    @NotNull ComplexTypeDefinition getComplexTypeDefinitionRequired() throws ConfigurationException {
-        TypeClause typeClause = getEffectiveTypeClause();
-        var typeDef = typeClause.getTypeDefinitionRequired();
-        if (typeDef instanceof ComplexTypeDefinition ctd) {
-            return ctd;
-        } else {
-            throw new ConfigurationException("Type clause for " + this + " does not correspond to a complex type definition");
-        }
     }
 
     public @NotNull List<SelectorClause> getClauses() {

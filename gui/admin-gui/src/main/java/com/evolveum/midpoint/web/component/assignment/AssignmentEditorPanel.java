@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.schema.processor.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -361,7 +363,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 AssignmentEditorDto object = getModel().getObject();
                 if (object.getTargetRef() != null) {
                     QName relation = object.getTargetRef() != null ? object.getTargetRef().getRelation() : null;
-                    String propertyKey = WebComponentUtil.getRelationHeaderLabelKey(relation);
+                    String propertyKey = RelationUtil.getRelationHeaderLabelKey(relation);
                     return createStringResource(propertyKey).getString();
                 } else {
                     return "";
@@ -703,7 +705,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         List<ACAttributeDto> attributes = new ArrayList<>();
         try {
             ConstructionType construction = WebComponentUtil.getContainerValue(dto.getOldValue(),
-                    AssignmentType.F_CONSTRUCTION, ConstructionType.class);
+                    AssignmentType.F_CONSTRUCTION);
 
             if (construction == null) {
                 return attributes;
@@ -822,7 +824,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                     AssignmentEditorDtoType type = assignmentEditorDto.getType();
                     return type.getIconCssClass();
                 } else {
-                    return WebComponentUtil.createDefaultIcon(targetObject);
+                    return IconAndStylesUtil.createDefaultIcon(targetObject);
                 }
             }
         };
@@ -865,7 +867,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         QName assignmentRelation = getModelObject().getTargetRef() != null ? getModelObject().getTargetRef().getRelation() : null;
 
         RelationDropDownChoicePanel relationDropDown = new RelationDropDownChoicePanel(ID_RELATION,
-                assignmentRelation != null ? assignmentRelation : WebComponentUtil.getDefaultRelationOrFail(), getSupportedRelations(), false) {
+                assignmentRelation != null ? assignmentRelation : RelationUtil.getDefaultRelationOrFail(), getSupportedRelations(), false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -908,7 +910,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         AssignmentConstraintsType constraints = AssignmentEditorPanel.this.getModelObject().getDefaultAssignmentConstraints();
         if (constraints == null ||
                 constraints.isAllowSameTarget() && constraints.isAllowSameRelation()) {
-            return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+            return RelationUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
         } else {
             return getModelObject().getNotAssignedRelationsList();
         }

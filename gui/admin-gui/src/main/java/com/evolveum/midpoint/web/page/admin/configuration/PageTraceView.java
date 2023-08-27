@@ -15,7 +15,6 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.schema.traces.PerformanceCategory;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -115,56 +114,56 @@ public class PageTraceView extends PageAdminConfiguration {
         add(mainForm);
 
         DropDownChoicePanel<GenericTraceVisualizationType> clockworkExecutionChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_CLOCKWORK_EXECUTION, createClockworkLevels(),
+                ID_CLOCKWORK_EXECUTION, createClockworkLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_CLOCKWORK_EXECUTION),
                 this, false);
         clockworkExecutionChoice.setOutputMarkupId(true);
         mainForm.add(clockworkExecutionChoice);
 
         DropDownChoicePanel<GenericTraceVisualizationType> clockworkClickChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_CLOCKWORK_CLICK, createClockworkLevels(),
+                ID_CLOCKWORK_CLICK, createClockworkLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_CLOCKWORK_CLICK),
                 this, false);
         clockworkClickChoice.setOutputMarkupId(true);
         mainForm.add(clockworkClickChoice);
 
         DropDownChoicePanel<GenericTraceVisualizationType> mappingEvaluationChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_MAPPING_EVALUATION, createMappingLevels(),
+                ID_MAPPING_EVALUATION, createMappingLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_MAPPING_EVALUATION),
                 this, false);
         mappingEvaluationChoice.setOutputMarkupId(true);
         mainForm.add(mappingEvaluationChoice);
 
         DropDownChoicePanel<GenericTraceVisualizationType> focusLoadChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_FOCUS_LOAD, createStandardLevels(),
+                ID_FOCUS_LOAD, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_FOCUS_LOAD),
                 this, false);
         focusLoadChoice.setOutputMarkupId(true);
         mainForm.add(focusLoadChoice);
 
         DropDownChoicePanel<GenericTraceVisualizationType> projectionLoadChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_PROJECTION_LOAD, createStandardLevels(),
+                ID_PROJECTION_LOAD, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_PROJECTION_LOAD),
                 this, false);
         projectionLoadChoice.setOutputMarkupId(true);
         mainForm.add(projectionLoadChoice);
 
         DropDownChoicePanel<GenericTraceVisualizationType> focusChangeChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_FOCUS_CHANGE, createStandardLevels(),
+                ID_FOCUS_CHANGE, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_FOCUS_CHANGE),
                 this, false);
         focusChangeChoice.setOutputMarkupId(true);
         mainForm.add(focusChangeChoice);
 
         DropDownChoicePanel<GenericTraceVisualizationType> projectionChangeChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_PROJECTION_CHANGE, createStandardLevels(),
+                ID_PROJECTION_CHANGE, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_PROJECTION_CHANGE),
                 this, false);
         projectionChangeChoice.setOutputMarkupId(true);
         mainForm.add(projectionChangeChoice);
 
         DropDownChoicePanel<GenericTraceVisualizationType> otherChoice = WebComponentUtil.createEnumPanel(
-                GenericTraceVisualizationType.class, ID_OTHERS, createOthersLevels(),
+                ID_OTHERS, createOthersLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_OTHERS),
                 this, false);
         otherChoice.setOutputMarkupId(true);

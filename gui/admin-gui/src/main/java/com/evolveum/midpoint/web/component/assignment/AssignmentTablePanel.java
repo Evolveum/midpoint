@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -170,7 +173,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
                 AssignmentEditorDto dto = item.getModel().getObject();
                 ObjectReferenceType targetRef = dto.getTargetRef();
                 if (targetRef != null && targetRef.getType() != null) {
-                    return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+                    return IconAndStylesUtil.getBoxThinCssClasses(targetRef.getType());
                 } else {
                     return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
                 }
@@ -234,7 +237,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
                                     protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
                                                                               AjaxRequestTarget target) {
                                         // TODO Auto-generated method stub
-                                        addSelectedAssignablePerformed(target, (List) selectedOrgs, WebComponentUtil.getDefaultRelationOrFail(),
+                                        addSelectedAssignablePerformed(target, (List) selectedOrgs, RelationUtil.getDefaultRelationOrFail(),
                                                 getPageBase().getMainPopup().getId());
                                         reloadMainFormButtons(target);
                                     }

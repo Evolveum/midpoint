@@ -2308,11 +2308,16 @@
                                     Typically used as correlation identifier and for
                                     auditing purposes. Should be immutable, but the
                                     specific properties and usage are deployment-specific.
+
+                                    DEPRECATED, use personalNumber instead.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.employeeNumber</a:displayName>
                                 <a:displayOrder>400</a:displayOrder>
+                                <a:deprecated/>
+                                <a:deprecatedSince>4.8</a:deprecatedSince>
+                                <a:plannedRemoval>5.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2375,6 +2380,25 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
+                    <xsd:element name="personalNumber" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Unique, business-oriented identifier of the user.
+                                    Typically used as correlation identifier and for
+                                    auditing purposes. Should be immutable, but the
+                                    specific properties and usage are deployment-specific.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.personalNumber</a:displayName>
+                                <a:displayOrder>400</a:displayOrder>
+                                <a:since>4.8</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8641,6 +8665,32 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="selfDeputyAssignment">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>
+                            "Deputy" assignment that points to the subject.
+                            May be replaced with something more general in the future.
+                        </xsd:documentation>
+                        <jaxb:typesafeEnumMember name="SELF_DEPUTY_ASSIGNMENT"/>
+                        <a:since>4.8</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selfDeputyRef">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>
+                            "Deputy" reference that points to the subject.
+                            May be replaced with something more general in the future.
+                        </xsd:documentation>
+                        <jaxb:typesafeEnumMember name="SELF_DEPUTY_REF"/>
+                        <a:since>4.8</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -9033,7 +9083,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="multiSource" type="tns:IdentityDataHandlingType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:MultiSourceDataHandlingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of handling of the data in "multi-source" mode.
@@ -9131,7 +9181,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="multiSource" type="tns:IdentityItemDefinitionType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:MultiSourceItemDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Marks the item as the one with multiple sources. Such items are not stored directly in their
@@ -12257,7 +12307,7 @@
                         Expression profile for midPoint bulk actions running under an unprivileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActions</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12267,7 +12317,22 @@
                         Expression profile for midPoint bulk actions running under a privileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedBulkActions</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="customWorkflowNotifications" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression profile for custom workflow notifications, used e.g. for escalations.
+                        Probably a temporary solution until expression profiles are implemented in full, or until
+                        custom workflow notifications are removed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.customWorkflowNotifications</a:displayName>
+                        <a:experimental>true</a:experimental>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

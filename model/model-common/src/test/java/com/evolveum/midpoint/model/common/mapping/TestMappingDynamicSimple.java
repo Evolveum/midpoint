@@ -530,6 +530,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     @Test
     public void testScriptExtraVariablesRef() throws Exception {
         // GIVEN
+        var result = createOperationResult();
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
                 "testScriptExtraVariablesRef", "subtype", null);
 
@@ -545,7 +546,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
         // WHEN
-        mapping.evaluate(createTask(), createOperationResult());
+        mapping.evaluate(createTask(), result);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -558,6 +559,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     @Test
     public void testScriptExtraVariablesJaxb() throws Exception {
         // GIVEN
+        var result = createOperationResult();
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
                 evaluator.createMappingBuilder(
                         "mapping-script-extra-variables.xml", getTestNameShort(), "subtype", null);
@@ -570,7 +572,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
         // WHEN
-        mapping.evaluate(createTask(), createOperationResult());
+        mapping.evaluate(createTask(), result);
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -1162,10 +1164,11 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "c0c010c0-d34d-b33f-f00d-999888111112.xml", "longType");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T> void generatePolicyNumeric(
             String mappingFileName, String policyFileName, String extensionPropName)
             throws Exception {
-
+        OperationResult opResult = createOperationResult();
         // This is just for validation. The expression has to resolve reference of its own
         PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
                 new File(MidPointTestConstants.OBJECTS_DIR, policyFileName));
@@ -1177,8 +1180,6 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                         ItemPath.create(UserType.F_EXTENSION, new QName(NS_EXTENSION, extensionPropName)),
                         null)
                 .build();
-
-        OperationResult opResult = createOperationResult();
 
         // WHEN (1)
         mapping.evaluate(createTask(), opResult);

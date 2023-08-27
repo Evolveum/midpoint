@@ -102,8 +102,7 @@ public class ExpressionFactory implements Cache {
      * Temporary method, until migrated to {@link #makeExpression(ExpressionConfigItem, ItemDefinition,
      * ExpressionProfile, String, Task, OperationResult)}.
      *
-     * The use of {@link ConfigurationItemOrigin#undetermined()} seems dangerous but in fact it isn't such a big deal,
-     * as it is *not* used for expression profile determination.
+     * We use {@link ConfigurationItemOrigin#undeterminedSafe()}, as it is *not* used for expression profile determination.
      */
     @Deprecated // use the variant with config item instead
     public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> makeExpression(
@@ -116,7 +115,7 @@ public class ExpressionFactory implements Cache {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         return makeExpression(
                 expressionBean != null ? // This is temporary, see the javadoc
-                        ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.undetermined()) :
+                        ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.undeterminedSafe()) :
                         null,
                 outputDefinition, expressionProfile, shortDesc, task, result
         );

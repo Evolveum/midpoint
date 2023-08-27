@@ -12,12 +12,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoice;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.jetbrains.annotations.NotNull;
 
@@ -106,7 +106,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     protected QName getDefaultRelation() {
         QName relation = getRelationValueFromSearch();
         if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
-            QName defRelation = WebComponentUtil.getDefaultRelation();
+            QName defRelation = RelationUtil.getDefaultRelation();
             if (getSupportedRelations().contains(defRelation)) {
                 relation = defRelation;
             } else {

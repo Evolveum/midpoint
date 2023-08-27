@@ -21,7 +21,7 @@ public class AssignmentConfigItem extends AbstractAssignmentConfigItem {
         super(value, origin);
     }
 
-    public static AbstractAssignmentConfigItem of(
+    public static AssignmentConfigItem of(
             @NotNull AssignmentType bean,
             @NotNull OriginProvider<? super AssignmentType> originProvider) {
         return new AssignmentConfigItem(bean, originProvider.origin(bean));

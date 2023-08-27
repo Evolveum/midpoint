@@ -7,39 +7,101 @@
 
 package com.evolveum.midpoint.schema.selector.spec;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
 import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class SelfClause extends SelectorClause {
 
+    @NotNull private final RelationRegistry relationRegistry = SchemaService.get().relationRegistry();
+    @NotNull private final Matching matching;
+
+    private SelfClause(@NotNull Matching matching) {
+        this.matching = matching;
+    }
+
+    static SelfClause object() {
+        return new SelfClause(Matching.OBJECT);
+    }
+
+    static SelfClause deputyAssignment() {
+        return new SelfClause(Matching.DEPUTY_ASSIGNMENT);
+    }
+
+    static SelfClause deputyReference() {
+        return new SelfClause(Matching.DEPUTY_REFERENCE);
+    }
+
     @Override
     public @NotNull String getName() {
-        return "self";
+        return "self(%s)".formatted(matching);
     }
 
     @Override
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        var object = ObjectTypeUtil.asObjectTypeIfPossible(value);
-        if (object == null) {
-            traceNotApplicable(ctx, "Not an object");
+
+        // "Parsing" the incoming value
+        String objectOid;
+        switch (matching) {
+            case OBJECT -> {
+                var object = ObjectTypeUtil.asObjectTypeIfPossible(value);
+                if (object == null) {
+                    traceNotApplicable(ctx, "Not an object");
+                    return false;
+                }
+                objectOid = object.getOid();
+            }
+            case DEPUTY_ASSIGNMENT -> {
+                var assignment = toAssignmentIfPossible(value);
+                if (assignment == null) {
+                    traceNotApplicable(ctx, "Not an assignment");
+                    return false;
+                }
+                var targetRef = assignment.getTargetRef();
+                if (targetRef == null) {
+                    traceNotApplicable(ctx, "Assignment without targetRef");
+                    return false;
+                }
+                if (!relationMatches(targetRef, ctx)) {
+                    return false;
+                }
+                objectOid = targetRef.getOid();
+            }
+            case DEPUTY_REFERENCE -> {
+                if (!(value instanceof PrismReferenceValue prv)) {
+                    traceNotApplicable(ctx, "Not a reference value");
+                    return false;
+                }
+                if (!relationMatches(prv.asReferencable(), ctx)) {
+                    return false;
+                }
+                objectOid = prv.getOid();
+            }
+            default -> throw new AssertionError(matching);
+        }
+        if (objectOid == null) {
+            traceNotApplicable(ctx, "No OID in object");
             return false;
         }
+
+        // Comparing OIDs (relations were already matched)
         String principalOid = ctx.getPrincipalOid();
         if (principalOid == null) {
             traceNotApplicable(ctx, "no principal OID");
             return false;
         } else {
-            String objectOid = object.getOid();
             if (principalOid.equals(objectOid)) {
                 traceApplicable(ctx, "match on principal OID (%s)", objectOid);
                 return true;
@@ -52,6 +114,28 @@ public class SelfClause extends SelectorClause {
                 return false;
             }
         }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean relationMatches(@NotNull Referencable referencable, @NotNull MatchingContext ctx) {
+        QName objectRelation = referencable.getRelation();
+        if (relationRegistry.isDelegation(objectRelation)) {
+            return true;
+        } else {
+            traceNotApplicable(ctx, "Relation is not a deputy: %s", objectRelation);
+            return false;
+        }
+    }
+
+    private AssignmentType toAssignmentIfPossible(PrismValue value) {
+        if (!(value instanceof PrismContainerValue<?> pcv)) {
+            return null;
+        }
+        var clazz = pcv.getCompileTimeClass();
+        if (clazz == null || !AssignmentType.class.isAssignableFrom(clazz)) {
+            return null;
+        }
+        return (AssignmentType) pcv.asContainerable();
     }
 
     @Override
@@ -81,5 +165,9 @@ public class SelfClause extends SelectorClause {
     @Override
     public String toString() {
         return "SelfClause{}";
+    }
+
+    enum Matching {
+        OBJECT, DEPUTY_ASSIGNMENT, DEPUTY_REFERENCE
     }
 }

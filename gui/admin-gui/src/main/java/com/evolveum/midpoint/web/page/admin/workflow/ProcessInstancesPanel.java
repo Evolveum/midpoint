@@ -44,7 +44,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 import static com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel.View.FULL_LIST;
 import static com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel.View.TASKS_FOR_PROCESS;
 import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.*;

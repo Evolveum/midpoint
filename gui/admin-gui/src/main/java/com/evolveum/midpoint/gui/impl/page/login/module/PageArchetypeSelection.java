@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ChooseRelationPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -42,6 +43,8 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import javax.xml.namespace.QName;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
@@ -215,13 +218,18 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
                 target.add(getArchetypesContainer());
             }
         };
-//        tilePanel.add(AttributeModifier.append("class", getActiveClassModel(tileModel.getObject())));
         return tilePanel;
     }
 
     private void archetypeSelected(IModel<Tile<ArchetypeType>> tileModel, AjaxRequestTarget target) {
         archetypeOidModel.setObject(getArchetypeOid(tileModel));
-        tileModel.getObject().setSelected(true);
+
+        Tile<ArchetypeType> tile = tileModel.getObject();
+        boolean tileState = tile.isSelected();
+
+        tilesModel.getObject().forEach(t -> t.setSelected(false));
+        tile.setSelected(!tileState);
+
         target.add(getArchetypeOidField());
     }
 
@@ -229,10 +237,6 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
         return tileModel.getObject().getValue().getOid();
     }
 
-//    private IModel<String> getActiveClassModel(Tile<ArchetypeType> tile) {
-//        var isArchetypeSelected = tile.getValue().isSelected();
-//        return isArchetypeSelected ? Model.of("active") : Model.of();
-//    }
 
     private WebMarkupContainer getArchetypesContainer() {
         return (WebMarkupContainer) getForm().get(ID_ARCHETYPE_SELECTION_PANEL);

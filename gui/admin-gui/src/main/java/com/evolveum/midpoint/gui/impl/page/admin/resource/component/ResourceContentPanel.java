@@ -398,8 +398,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private void initSychronizationButton(RepeatingView topButtons) {
         AjaxIconButton synchConfButton = new AjaxIconButton(
                 topButtons.newChildId(),
-                Model.of(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG.getIcon()),
-                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.SYNCHRONIZATION_CONFIG)) {
+                Model.of(ResourceObjectTypePreviewTileType.SYNCHRONIZATION.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.SYNCHRONIZATION)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
@@ -420,8 +420,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private void initCorrelationButton(RepeatingView topButtons) {
         AjaxIconButton correlationConfButton = new AjaxIconButton(
                 topButtons.newChildId(),
-                Model.of(ResourceObjectTypePreviewTileType.CORRELATION_CONFIG.getIcon()),
-                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CORRELATION_CONFIG)) {
+                Model.of(ResourceObjectTypePreviewTileType.CORRELATION.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CORRELATION)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
@@ -442,8 +442,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     private void initCapabilitiesButton(RepeatingView topButtons) {
         AjaxIconButton capabilitiesConfButton = new AjaxIconButton(
                 topButtons.newChildId(),
-                Model.of(ResourceObjectTypePreviewTileType.CAPABILITIES_CONFIG.getIcon()),
-                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CAPABILITIES_CONFIG)) {
+                Model.of(ResourceObjectTypePreviewTileType.CAPABILITIES.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CAPABILITIES)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =

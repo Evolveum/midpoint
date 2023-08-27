@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.util;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -145,7 +147,7 @@ public class GuiDisplayTypeUtil {
         String relationValue = "";
         String relationTitle = "";
         if (relation != null) {
-            RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
+            RelationDefinitionType def = RelationUtil.getRelationDefinition(relation);
             if (def != null) {
                 DisplayType displayType = null;
                 if (def.getDisplay() == null) {
@@ -159,7 +161,7 @@ public class GuiDisplayTypeUtil {
                     }
                 }
                 if (def.getDisplay().getLabel() != null) {
-                    relationValue = WebComponentUtil.getTranslatedPolyString(def.getDisplay().getLabel());
+                    relationValue = LocalizationUtil.translatePolyString(def.getDisplay().getLabel());
                 } else {
                     String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
                     relationValue = pageBase.createStringResource(relationKey).getString();
@@ -172,7 +174,7 @@ public class GuiDisplayTypeUtil {
                 relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
 
                 if (displayType.getIcon() == null || StringUtils.isEmpty(displayType.getIcon().getCssClass())) {
-                    displayType.setIcon(WebComponentUtil.createIconType(""));
+                    displayType.setIcon(IconAndStylesUtil.createIconType(""));
                 }
                 displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString()));
                 return displayType;
@@ -193,11 +195,10 @@ public class GuiDisplayTypeUtil {
         }
 
         if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(pageBase.createStringResource("MainObjectListPanel.newObject").getString());
-            sb.append(" ");
-            sb.append(displayType.getLabel().getOrig().toLowerCase());
-            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb.toString()));
+            String sb = pageBase.createStringResource("MainObjectListPanel.newObject").getString()
+                    + " "
+                    + displayType.getLabel().getOrig().toLowerCase();
+            displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb));
         }
         return view != null ? view.getDisplay() : null;
     }
@@ -217,7 +218,7 @@ public class GuiDisplayTypeUtil {
         DisplayType displayType = getArchetypePolicyDisplayType(obj.asPrismObject(), pageBase);
 
         if (displayType == null) {
-            displayType = createDisplayType(WebComponentUtil.createDefaultIcon(obj.asPrismObject()),
+            displayType = createDisplayType(IconAndStylesUtil.createDefaultIcon(obj.asPrismObject()),
                     "", ColumnUtils.getIconColumnTitle(obj, result));
         }
         return displayType;
@@ -238,7 +239,7 @@ public class GuiDisplayTypeUtil {
         if (displayType == null || displayType.getLabel() == null) {
             return "";
         }
-        return WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
+        return LocalizationUtil.translatePolyString(displayType.getLabel());
     }
 
     public static String getIconColor(DisplayType displayType) {
@@ -252,7 +253,7 @@ public class GuiDisplayTypeUtil {
         if (displayType == null || displayType.getHelp() == null) {
             return "";
         }
-        return WebComponentUtil.getTranslatedPolyString(displayType.getHelp());
+        return LocalizationUtil.translatePolyString(displayType.getHelp());
     }
 
     public static String getDisplayTypeTitle(DisplayType displayType) {
