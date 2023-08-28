@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.catalina.User;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,16 +79,10 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
 
     private static final String ID_RECOVERED_IDENTITIES = "recoveredIdentities";
-    private static final String ID_LOGIN_NAME_PANEL = "loginNamePanel";
-    private static final String ID_LOGIN_NAME = "loginName";
-    private static final String ID_PHOTO = "photo";
-    private static final String ID_CONFIGURED_ITEMS_PANEL = "configuredItemsPanel";
-    private static final String ID_ITEM_NAME = "itemName";
-    private static final String ID_ITEM_VALUE = "itemValue";
+    private static final String ID_DETAILS_PANEL = "detailsPanel";
     private static final String ID_REGISTRATION_LINK = "registrationLink";
 
     private LoadableModel<List<UserType>> recoveredIdentitiesModel;
-    private LoadableModel<List<ItemPathType>> configuredItemsModel;
     private LoadableModel<SecurityPolicyType> securityPolicyModel;
 
 
@@ -106,7 +101,10 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         ListView<UserType> recoveredIdentitiesPanel = new ListView<>(ID_RECOVERED_IDENTITIES, recoveredIdentitiesModel) {
             @Override
             protected void populateItem(ListItem<UserType> item) {
-                initRecoveredIdentitiesPanel(item);
+                IdentityDetailsPanel<UserType> detailsPanel = new IdentityDetailsPanel<>(ID_DETAILS_PANEL, item.getModel(),
+                        securityPolicyModel.getObject(), isSingleRecoveredIdentity());
+                detailsPanel.setOutputMarkupId(true);
+                item.add(detailsPanel);
             }
         };
         recoveredIdentitiesPanel.setOutputMarkupId(true);
@@ -125,11 +123,6 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         add(registrationLink);
     }
 
-    private void initRecoveredIdentitiesPanel(ListItem<UserType> item) {
-        initLoginNamePanel(item);
-        initConfiguredItemsPanel(item);
-    }
-
     private void initModels() {
         recoveredIdentitiesModel = new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
@@ -137,14 +130,6 @@ public class PageIdentityRecovery extends AbstractPageLogin {
             @Override
             protected List<UserType> load() {
                 return getRecoveredIdentities();
-            }
-        };
-        configuredItemsModel = new LoadableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<ItemPathType> load() {
-                return loadConfiguredItemPathList();
             }
         };
         securityPolicyModel = new LoadableModel<>(false) {
@@ -168,88 +153,6 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         };
     }
 
-    private List<ItemPathType> loadConfiguredItemPathList() {
-                 var identityRecoveryConfig = securityPolicyModel.getObject().getIdentityRecovery();
-                return identityRecoveryConfig.getItemToDisplay();
-    }
-
-    private boolean configuredItemsExist() {
-        return configuredItemsModel != null && CollectionUtils.isNotEmpty(configuredItemsModel.getObject());
-    }
-
-    private AbstractResource getImageResource(UserType user) {
-        byte[] photo = null;
-        if (user != null) {
-            photo = user.getJpegPhoto();
-        }
-        if (photo == null) {
-            URL defaultImage = this.getClass().getClassLoader().getResource("static/img/placeholder.png");
-            if (defaultImage == null) {
-                return null;
-            }
-            try {
-                photo = IOUtils.toByteArray(defaultImage);
-            } catch (IOException e) {
-                return null;
-            }
-        }
-        return new ByteArrayResource("image/jpeg", photo);
-    }
-
-    private void initLoginNamePanel(ListItem<UserType> item) {
-        WebMarkupContainer loginNamePanel = new WebMarkupContainer(ID_LOGIN_NAME_PANEL);
-        loginNamePanel.setOutputMarkupId(true);
-        loginNamePanel.add(new VisibleBehaviour(() -> recoveredIdentitiesExist() && !configuredItemsExist()));
-        item.add(loginNamePanel);
-
-        NonCachingImage img = new NonCachingImage(ID_PHOTO, getImageResource(item.getModelObject()));
-        loginNamePanel.add(img);
-
-        Label label = new Label(ID_LOGIN_NAME, getUserLoginNameModel(item.getModelObject()));
-        loginNamePanel.add(label);
-    }
-
-    private IModel<String> getUserLoginNameModel(UserType user) {
-        return Model.of(LocalizationUtil.translatePolyString(user.getName()));
-    }
-
-    private void initConfiguredItemsPanel(ListItem<UserType> userItem) {
-        var user = userItem.getModelObject();
-        ListView<ItemPathType> configuredItemsPanel = new ListView<>(ID_CONFIGURED_ITEMS_PANEL, configuredItemsModel) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<ItemPathType> attributeItem) {
-                Label itemName = new Label(ID_ITEM_NAME, resolveItemName(user, attributeItem.getModelObject()));
-                itemName.setOutputMarkupId(true);
-                attributeItem.add(itemName);
-
-                Label itemValue = new Label(ID_ITEM_VALUE, resolveItemValue(user, attributeItem.getModelObject()));
-                itemValue.setOutputMarkupId(true);
-                attributeItem.add(itemValue);
-            }
-        };
-        configuredItemsPanel.setOutputMarkupId(true);
-        configuredItemsPanel.add(new VisibleBehaviour(() -> recoveredIdentitiesExist() && configuredItemsExist()));
-        userItem.add(configuredItemsPanel);
-    }
-
-    private IModel<String> resolveItemName(UserType user, ItemPathType itemPath) {
-        return () -> {
-            ItemDefinition<?> def = user.asPrismObject().getDefinition().findItemDefinition(itemPath.getItemPath());
-            return WebComponentUtil.getItemDefinitionDisplayNameOrName(def);
-        };
-    }
-
-    private IModel<String> resolveItemValue(UserType user, ItemPathType itemPath) {
-        return () -> {
-            var item = user.asPrismObject().findItem(itemPath.getItemPath());
-            var value = item != null ? item.getRealValue() : null;
-            return value == null ? "" : value.toString();
-        };
-    }
-
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
         return createStringResource(getTitleKey());
@@ -265,22 +168,23 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private String getTitleDescriptionKey() {
-        if (recoveredIdentitiesExist() && configuredItemsExist()) {
-            return "PageIdentityRecovery.title.success.configuredItems.description";
-        }
+        //todo change description according to figma
+//        if (recoveredIdentitiesExist() && configuredItemsExist()) {
+//            return "PageIdentityRecovery.title.success.configuredItems.description";
+//        }
         if (recoveredIdentitiesExist()) {
             return "PageIdentityRecovery.title.success.description";
         }
         return "PageIdentityRecovery.title.fail.description";
     }
 
-    private boolean recoveredIdentitiesExist() {
-        return CollectionUtils.isNotEmpty(getRecoveredIdentities());
-    }
-
     private boolean isSingleRecoveredIdentity() {
         List<UserType> recoveredIdentities = getRecoveredIdentities();
         return recoveredIdentities != null && recoveredIdentities.size() == 1;
+    }
+
+    private boolean recoveredIdentitiesExist() {
+        return CollectionUtils.isNotEmpty(getRecoveredIdentities());
     }
 
     private List<UserType> getRecoveredIdentities() {
@@ -294,6 +198,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         }
         return Collections.emptyList();
     }
+
     private boolean isSuccessfullyAuthenticated(CorrelationModuleAuthentication auth) {
         return auth != null && AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState());
     }
