@@ -11,23 +11,8 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div wicket:id="recoveredIdentities">
-        <div wicket:id="loginNamePanel" class="user-panel info-box my-3 pb-2 d-flex justify-content-start align-items-center">
-            <div class="image">
-                <img wicket:id="photo" class="user-image img-circle elevation-2"/>
-            </div>
-            <div class="info">
-                <div class="text-lg" wicket:id="loginName"/>
-            </div>
-        </div>
-        <wicket:enclosure child="configuredItemsPanel">
-            <div class="user-panel info-box d-flex flex-column justify-content-start mt-5 col-12">
-                <div wicket:id="configuredItemsPanel" class="d-flex justify-content-start">
-                    <label class="col-md-5" wicket:id="itemName"></label>
-                    <div wicket:id="itemValue"/>
-                </div>
-            </div>
-        </wicket:enclosure>
+    <div wicket:id="recoveredIdentities" class="user-panel info-box my-3 pb-2 ">
+        <div wicket:id="detailsPanel" />
     </div>
     <div class="d-flex justify-content-end mt-2">
         <a wicket:id="registrationLink" class="text-center login-panel-control">
