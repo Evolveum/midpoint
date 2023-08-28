@@ -1,0 +1,20 @@
+/*!
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+
+.role-mining-static-header-name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: rotate(180deg);
+  writing-mode: revert;
+  width: 40px;
+  height: 120px;
+  border: 1px solid #f4f4f4;
+}
+
+

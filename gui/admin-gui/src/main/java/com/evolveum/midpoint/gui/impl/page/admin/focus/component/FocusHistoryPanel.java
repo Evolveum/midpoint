@@ -26,7 +26,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrgHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;

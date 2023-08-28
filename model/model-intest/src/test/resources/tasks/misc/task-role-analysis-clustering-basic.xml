@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="908e8dd3-66ba-4568-80aa-75c1a4e06b4a">
+    <name>role-analysis-clustering-basic</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <roleAnalysisClustering>
+                <sessionRef oid="67e46b84-3742-43c0-a510-3a399181dddf"/> <!-- random OID for now -->
+            </roleAnalysisClustering>
+        </work>
+    </activity>
+</task>

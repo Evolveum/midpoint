@@ -6,7 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -57,8 +58,8 @@ public class PageRoleSelfProfile extends PageRole {
     }
 
     @Override
-    protected FocusDetailsModels<RoleType> createObjectDetailsModels(PrismObject<RoleType> object) {
-        FocusDetailsModels<RoleType> roleDetailsModel = super.createObjectDetailsModels(object);
+    protected AbstractRoleDetailsModel<RoleType> createObjectDetailsModels(PrismObject<RoleType> object) {
+        AbstractRoleDetailsModel<RoleType> roleDetailsModel = super.createObjectDetailsModels(object);
         roleDetailsModel.setSelfProfile(true);
         return roleDetailsModel;
     }

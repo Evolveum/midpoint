@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.task.QAffectedObjectsMapping;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +27,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationWo
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.QCaseMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.cases.workitem.QCaseWorkItemMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
@@ -61,6 +61,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfigurationMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMarkMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.task.QAffectedObjectsMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
@@ -176,6 +177,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(OrgType.COMPLEX_TYPE, QOrgMapping.initOrgMapping(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
+                .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
+                .register(RoleAnalysisSessionType.COMPLEX_TYPE, QSessionObjectMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.init(repositoryContext))
                 .register(SecurityPolicyType.COMPLEX_TYPE,

@@ -7,9 +7,16 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+
+import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
+
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -23,8 +30,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +42,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * "Compiled" specification of items that are to be processed by {@link SearchBasedActivityRun}.
@@ -111,9 +115,7 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
             throws SchemaException, ConfigurationException {
 
         PrismContext prismContext = PrismContext.get();
-        ObjectQuery bareQuery = ObjectQueryUtil.emptyIfNull(
-                prismContext.getQueryConverter().createObjectQuery(
-                        containerType, objectSetSpecification.getQueryBean()));
+        ObjectQuery bareQuery = createBareQuery(containerType, objectSetSpecification);
         var archetypeOid = objectSetSpecification.getArchetypeOid();
         if (archetypeOid != null) {
             return ObjectQueryUtil.addConjunctions(bareQuery, prismContext.queryFor(containerType)
@@ -121,6 +123,33 @@ public class SearchSpecification<C extends Containerable> implements DebugDumpab
                     .buildFilter());
         } else {
             return bareQuery;
+        }
+    }
+
+    /** Processes "query" or "objectRef" data into a parsed query. */
+    private static @NotNull ObjectQuery createBareQuery(
+            @NotNull Class<? extends Containerable> containerType,
+            @NotNull RepositoryObjectSetSpecificationImpl objectSetSpecification)
+            throws SchemaException, ConfigurationException {
+        var explicitObjectReferences = objectSetSpecification.getExplicitObjectReferences();
+        var queryBean = objectSetSpecification.getQueryBean();
+        if (!explicitObjectReferences.isEmpty()) {
+            configCheck(queryBean == null, "Both query and explicit objects are present"); // todo origin
+            Set<String> oids = new HashSet<>();
+            for (ObjectReferenceType ref : explicitObjectReferences) {
+                oids.add(
+                        configNonNull(
+                                getOid(ref),
+                                "No OID in explicit object reference in %s",
+                                objectSetSpecification)); // todo origin
+            }
+            assert !oids.isEmpty();
+            return PrismContext.get().queryFor(containerType)
+                    .id(oids.toArray(new String[0]))
+                    .build();
+        } else {
+            return ObjectQueryUtil.emptyIfNull(
+                    PrismContext.get().getQueryConverter().createObjectQuery(containerType, queryBean));
         }
     }
 

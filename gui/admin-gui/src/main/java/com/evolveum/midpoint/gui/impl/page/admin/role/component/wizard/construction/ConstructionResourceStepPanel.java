@@ -3,7 +3,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construc
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.wizard.SelectTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.SingleTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
@@ -26,7 +25,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.PanelDisplay;

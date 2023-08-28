@@ -5,7 +5,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.gui.impl.component.wizard.SingleTileWizardStepPanel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;

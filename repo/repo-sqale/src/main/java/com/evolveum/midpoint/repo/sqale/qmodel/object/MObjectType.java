@@ -11,6 +11,10 @@ import java.util.Map;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterData;
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionData;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.accesscert.QAccessCertificationCampaign;
@@ -29,10 +33,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.other.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportData;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRole;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetype;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QRole;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicy;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
@@ -78,6 +78,8 @@ public enum MObjectType {
     REPORT_DATA(QReportData.class, ReportDataType.class),
     RESOURCE(QResource.class, ResourceType.class),
     ROLE(QRole.class, RoleType.class),
+    ROLE_ANALYSIS_CLUSTER(QClusterData.class, RoleAnalysisClusterType.class),
+    ROLE_ANALYSIS_SESSION(QSessionData.class, RoleAnalysisSessionType.class),
     SECURITY_POLICY(QSecurityPolicy.class, SecurityPolicyType.class),
     SEQUENCE(QSequence.class, SequenceType.class),
     SERVICE(QService.class, ServiceType.class),

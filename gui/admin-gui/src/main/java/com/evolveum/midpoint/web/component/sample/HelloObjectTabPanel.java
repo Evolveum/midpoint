@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.component.sample;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
