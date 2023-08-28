@@ -11,11 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -79,14 +80,13 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 continue;
             }
 
-
-            // FIXME Undetermined because of resource/object type inheritance
-            var origin = ConfigurationItemOrigin.undetermined();
+            // [EP:M:OM] DONE: the construction sits in the resource, so the origin is correct
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
 
             attributesToEvaluate.add(
                     new AttributeEvaluation<>(
                             constructionEvaluation, attributeDef,
-                            ConfigurationItem.of(outboundMappingBean, origin),
+                            MappingConfigItem.of(outboundMappingBean, origin), // [EP:M:OM] DONE
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
 
@@ -109,13 +109,13 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 continue;
             }
 
-            // FIXME Undetermined because of resource/object type inheritance
-            var origin = ConfigurationItemOrigin.undetermined();
+            // [EM:M:OM] DONE: the construction sits in the resource, so the origin is correct
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
 
             associationsToEvaluate.add(
                     new AssociationEvaluation<>(
                             constructionEvaluation, associationDefinition,
-                            ConfigurationItem.of(outboundMappingBean, origin),
+                            MappingConfigItem.of(outboundMappingBean, origin), // [EM:M:OM] DONE
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
         return associationsToEvaluate;

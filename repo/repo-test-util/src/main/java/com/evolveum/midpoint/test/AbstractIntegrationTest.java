@@ -4445,7 +4445,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    public ConfigurationItemOrigin testOrigin() {
-        return ConfigurationItemOrigin.external(CHANNEL_TEST_URI);
+    protected ConfigurationItemOrigin testOrigin() {
+        return ConfigurationItemOrigin.generated(); // to be considered safe by the expression profile manager
     }
 }

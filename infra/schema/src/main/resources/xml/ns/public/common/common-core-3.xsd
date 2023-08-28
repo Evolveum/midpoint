@@ -9082,7 +9082,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="multiSource" type="tns:IdentityDataHandlingType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:MultiSourceDataHandlingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of handling of the data in "multi-source" mode.
@@ -9180,7 +9180,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="multiSource" type="tns:IdentityItemDefinitionType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:MultiSourceItemDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Marks the item as the one with multiple sources. Such items are not stored directly in their
@@ -12306,7 +12306,7 @@
                         Expression profile for midPoint bulk actions running under an unprivileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActions</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -12316,7 +12316,22 @@
                         Expression profile for midPoint bulk actions running under a privileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>DefaultExpressionProfilesConfigurationType.scripting</a:displayName>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedBulkActions</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="customWorkflowNotifications" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression profile for custom workflow notifications, used e.g. for escalations.
+                        Probably a temporary solution until expression profiles are implemented in full, or until
+                        custom workflow notifications are removed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.customWorkflowNotifications</a:displayName>
+                        <a:experimental>true</a:experimental>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

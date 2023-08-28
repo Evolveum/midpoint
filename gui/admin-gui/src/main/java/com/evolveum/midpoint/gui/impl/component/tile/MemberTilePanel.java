@@ -110,7 +110,7 @@ public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, T
             }
 
             @Override
-            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+            protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
                 if (action instanceof ColumnMenuAction) {
                     ((ColumnMenuAction) action).setRowModel(() -> MemberTilePanel.this.getModelObject().getValue());
                 }

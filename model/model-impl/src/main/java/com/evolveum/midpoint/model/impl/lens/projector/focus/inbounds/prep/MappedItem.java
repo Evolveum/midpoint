@@ -55,6 +55,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
     private final Target<F> target;
     private final Context context;
 
+    /** [EP:M:IM] DONE These mappings must come from `source.resource`. Currently it seems so. */
     private final Collection<? extends MappingType> mappingBeans;
     private final ItemPath implicitSourcePath;
     final String itemDescription;
@@ -178,11 +179,10 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
             ItemPath targetPathOverride = source.determineTargetPathOverride(declaredTargetPath);
             LOGGER.trace("Target path override: {}", targetPathOverride);
 
-            // FIXME Undetermined because of resource/object type inheritance
-            var origin = ConfigurationItemOrigin.undetermined();
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(resource);
 
             MappingBuilder<V, D> builder = beans.mappingFactory.<V, D>createMappingBuilder()
-                    .mappingBean(mappingBean, origin)
+                    .mappingBean(mappingBean, origin) // [EP:M:IM] DONE (mapping bean is from the resource, see callers)
                     .mappingKind(MappingKindType.INBOUND)
                     .implicitSourcePath(implicitSourcePath)
                     .targetPathOverride(targetPathOverride)
@@ -221,7 +221,6 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                                 context.result));
             }
 
-            builder.computeExpressionProfile(context.result);
             MappingImpl<V, D> mapping = builder.build();
 
             ItemPath realTargetPath = mapping.getOutputPath();

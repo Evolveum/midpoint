@@ -1128,9 +1128,13 @@
                             <xsd:documentation>
                                 Ad-hoc event handler that will be used to process these event emitted. In addition to it,
                                 a system-wide handler for workItemCustomEvent will be invoked.
+
+                                DEPRECATED. Please place your event handling logic to system configuration instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>WorkItemNotificationActionType.handler</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.8</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

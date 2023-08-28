@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiSourceItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +40,7 @@ public class IdentityItemConfigurationImpl implements Serializable, IdentityItem
 
     @NotNull public static IdentityItemConfigurationImpl of(
             @NotNull ItemRefinedDefinitionType itemDefBean,
-            @NotNull IdentityItemDefinitionType identityDefBean) throws ConfigurationException {
+            @NotNull MultiSourceItemDefinitionType identityDefBean) throws ConfigurationException {
         ItemPath path = ItemRefinedDefinitionTypeUtil.getRef(itemDefBean);
         QName explicitName = identityDefBean.getName();
         QName name = explicitName != null ? explicitName : deriveName(path, itemDefBean);

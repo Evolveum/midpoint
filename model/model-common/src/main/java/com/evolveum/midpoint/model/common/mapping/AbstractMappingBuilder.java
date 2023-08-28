@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.common.mapping;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -19,10 +18,7 @@ import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +37,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Builder is used to construct a configuration of Mapping object, which - after building - becomes
@@ -70,7 +68,8 @@ public abstract class AbstractMappingBuilder<
     private Source<?, ?> defaultSource;
     private final List<Source<?, ?>> additionalSources = new ArrayList<>();
     private D defaultTargetDefinition;
-    private ExpressionProfile expressionProfile;
+    @VisibleForTesting // NEVER use for production code
+    private ExpressionProfile explicitExpressionProfile;
     private ItemPath defaultTargetPath;
     private Collection<V> originalTargetValues;
     private ObjectDeltaObject<?> sourceContext;
@@ -98,6 +97,7 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
+    // [EP:M:OM] [EP:M:IM] [EP:M:Tag] [EP:M:FM] [EP:M:ARC] [EP:M:MM] [EP:M:PRC] DONE 6/6
     public RT mappingBean(MBT bean, @NotNull ConfigurationItemOrigin origin) {
         mappingConfigItem = ConfigurationItem.of(bean, origin);
         return typedThis();
@@ -133,14 +133,9 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
+    @VisibleForTesting // NEVER use for production code
     RT explicitExpressionProfile(ExpressionProfile val) {
-        expressionProfile = val;
-        return typedThis();
-    }
-
-    public RT computeExpressionProfile(@NotNull OperationResult result) throws SchemaException, ConfigurationException {
-        var configItem = Objects.requireNonNull(mappingConfigItem, "no mapping");
-        expressionProfile = beans.expressionProfileManager.determineExpressionProfile(configItem.origin(), result);
+        explicitExpressionProfile = val;
         return typedThis();
     }
 
@@ -398,8 +393,8 @@ public abstract class AbstractMappingBuilder<
         return defaultTargetDefinition;
     }
 
-    public ExpressionProfile getExpressionProfile() {
-        return expressionProfile;
+    public ExpressionProfile getExplicitExpressionProfile() {
+        return explicitExpressionProfile;
     }
 
     ItemPath getDefaultTargetPath() {

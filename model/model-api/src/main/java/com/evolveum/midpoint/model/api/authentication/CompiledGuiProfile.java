@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Compiled user profile. This class contains information about configuration and customization
  * of individual parts of user interface and user preferences. This class contains pre-processed
@@ -222,6 +224,19 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     @NotNull
     public <O extends ObjectType>List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull Class<O> objectType, OperationTypeType operationType) {
         return findAllApplicableArchetypeViews(ObjectTypes.getObjectType(objectType).getTypeQName(), operationType);
+    }
+
+    /**
+     * Find archetype view for archetype defined by oid.
+     */
+    @Nullable
+    public <O extends ObjectType> CompiledObjectCollectionView findApplicableArchetypeView(@NotNull String archetypeOid) {
+        for (CompiledObjectCollectionView objectCollectionView : objectCollectionViews) {
+            if (archetypeOid.equals(objectCollectionView.getArchetypeOid())) {
+                return objectCollectionView;
+            }
+        }
+        return null;
     }
 
     /**

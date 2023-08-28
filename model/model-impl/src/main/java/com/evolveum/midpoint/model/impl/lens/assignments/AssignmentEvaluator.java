@@ -133,7 +133,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
             boolean evaluateOld,
             @NotNull AssignmentHolderType source,
             @NotNull String sourceDescription,
-            @NotNull AssignmentOrigin origin,
+            @NotNull AssignmentOrigin origin, // [EP:APSO] DONE 3/3
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
@@ -174,7 +174,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .sourceDescription(sourceDescription)
                     .assignmentIdi(assignmentIdi)
                     .externalAssignmentId(externalAssignmentId)
-                    .assignmentOrigin(origin.getConfigurationItemOrigin())
+                    .assignmentOrigin(origin.getConfigurationItemOrigin()) // [EP:APSO] DONE
                     .isAssignment()
                     .evaluateOld(evaluateOld)
                     .evaluationOrder(getInitialEvaluationOrder(evaluatedAssignment.getNormalizedRelation()))

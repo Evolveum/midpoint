@@ -151,44 +151,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return resource == null || StringUtils.isNotEmpty(resource.getOid());
     }
 
-    public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        ResourceObjectTypeBasicWizardPanel wizardPanel = showWizard(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
-    }
-
     public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(target, pathToValue);
         wizard.setShowObjectTypePreview(true);
-    }
-
-    public void showSynchronizationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        SynchronizationWizardPanel wizardPanel = showWizard(target, pathToValue, SynchronizationWizardPanel.class);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
-    }
-
-    public void showCorrelationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        CorrelationWizardPanel wizardPanel = showWizard(target, pathToValue, CorrelationWizardPanel.class);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
-    }
-
-    public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        CapabilitiesWizardPanel wizardPanel = showWizard(target, pathToValue, CapabilitiesWizardPanel.class);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
-    }
-
-    public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        CredentialsWizardPanel wizardPanel = showWizard(target, pathToValue, CredentialsWizardPanel.class);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
-    }
-
-    public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        ActivationsWizardPanel wizardPanel = showWizard(target, pathToValue, ActivationsWizardPanel.class);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
-    }
-
-    public void showAssociationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        AssociationsWizardPanel wizardPanel = showWizard(target, pathToValue, AssociationsWizardPanel.class);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 
     public ResourceObjectTypeWizardPanel showObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -197,8 +162,41 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return wizard;
     }
 
+    public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizard(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
+    }
+
+    public void showSynchronizationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizard(target, pathToValue, SynchronizationWizardPanel.class);
+    }
+
     public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        AttributeMappingWizardPanel wizardPanel = showWizard(target, pathToValue, AttributeMappingWizardPanel.class);
+        showContainerWizard(target, pathToValue, AttributeMappingWizardPanel.class);
+    }
+
+    public void showCorrelationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizard(target, pathToValue, CorrelationWizardPanel.class);
+    }
+
+    public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizard(target, pathToValue, CapabilitiesWizardPanel.class);
+    }
+
+    public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizard(target, pathToValue, CredentialsWizardPanel.class);
+    }
+
+    public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizard(target, pathToValue, ActivationsWizardPanel.class);
+    }
+
+    public void showAssociationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizard(target, pathToValue, AssociationsWizardPanel.class);
+    }
+
+    private <P extends AbstractWizardPanel> void showContainerWizard(
+            AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
+        P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
         addWizardBreadcrumbsForObjectType(wizardPanel);
     }
 

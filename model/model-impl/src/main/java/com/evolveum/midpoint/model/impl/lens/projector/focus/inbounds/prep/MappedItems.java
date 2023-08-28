@@ -115,7 +115,7 @@ class MappedItems<F extends FocusType> {
                         source.resourceObjectDefinition.findAttributeDefinition(attributeName),
                         () -> "No definition for attribute " + attributeName);
 
-        List<InboundMappingType> mappingBeans =
+        List<InboundMappingType> mappingBeans = // [EP:M:IM] DONE beans are really from the resource
                 source.selectMappingBeansForEvaluationPhase(
                         attributeDefinition.getInboundMappingBeans(),
                         attributeDefinition.getCorrelatorDefinition() != null,
@@ -154,7 +154,7 @@ class MappedItems<F extends FocusType> {
                         source,
                         target,
                         context,
-                        mappingBeans,
+                        mappingBeans, // [EP:M:IM] DONE beans are from the resource
                         attributePath,
                         itemDescription,
                         attributeAPrioriDelta,
@@ -185,7 +185,7 @@ class MappedItems<F extends FocusType> {
         String itemDescription = "association " + associationName;
         List<InboundMappingType> mappingBeans =
                 source.selectMappingBeansForEvaluationPhase(
-                        associationDefinition.getInboundMappingTypes(),
+                        associationDefinition.getInboundMappingBeans(),
                         false,
                         Set.of()); // Associations are not evaluated before clockwork anyway
         if (mappingBeans.isEmpty()) {
@@ -221,7 +221,7 @@ class MappedItems<F extends FocusType> {
                         source,
                         target,
                         context,
-                        mappingBeans,
+                        mappingBeans, // [EP:M:IM] DONE mappings are from the resource
                         itemPath, // source path (cannot point to specified association name!)
                         itemDescription,
                         associationAPrioriDelta, // a priori delta for all associations - see TO-DO above
@@ -290,7 +290,7 @@ class MappedItems<F extends FocusType> {
                         source,
                         target,
                         context,
-                        mappingBeans,
+                        mappingBeans, // [EP:M:IM] DONE mappings are from the resource
                         itemPath,
                         itemDescription,
                         null, // ignoring a priori delta

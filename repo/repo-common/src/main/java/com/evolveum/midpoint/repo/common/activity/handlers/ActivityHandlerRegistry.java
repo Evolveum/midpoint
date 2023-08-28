@@ -113,7 +113,7 @@ public class ActivityHandlerRegistry {
             throws SchemaException, ConfigurationException {
         // the origin is not important here (bean is used only to get the definition class)
         AbstractWorkDefinition parsedDefinition =
-                WorkDefinition.fromBean(activityDefinitionBean, ConfigurationItemOrigin.undetermined());
+                WorkDefinition.fromBean(activityDefinitionBean, ConfigurationItemOrigin.undeterminedSafe());
         if (parsedDefinition == null) {
             return null;
         }

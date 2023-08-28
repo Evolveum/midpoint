@@ -8,16 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -52,9 +48,9 @@ public abstract class ResourceObjectTypeWizardPreviewPanel
         BASIC("fa fa-circle"),
 //        PREVIEW_DATA("fa fa-magnifying-glass"),
         ATTRIBUTE_MAPPING("fa fa-retweet"),
-        SYNCHRONIZATION_CONFIG("fa fa-arrows-rotate"),
-        CORRELATION_CONFIG("fa fa-code-branch"),
-        CAPABILITIES_CONFIG("fa fa-atom"),
+        SYNCHRONIZATION("fa fa-arrows-rotate"),
+        CORRELATION("fa fa-code-branch"),
+        CAPABILITIES("fa fa-atom"),
         ACTIVATION("fa fa-toggle-off"),
         CREDENTIALS("fa fa-key"),
         ASSOCIATIONS("fa fa-shield");

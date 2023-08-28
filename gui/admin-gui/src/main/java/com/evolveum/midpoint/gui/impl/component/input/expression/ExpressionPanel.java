@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,7 +61,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private static final String ID_INFO_ICON = "infoIcon";
     private static final String ID_RESET_BUTTON = "resetButton";
 
-    private final IModel<ExpressionWrapper> parent;
+    private final IModel<PrismPropertyWrapper<ExpressionType>> parent;
     private LoadableModel<RecognizedEvaluator> typeModel;
     private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
@@ -95,7 +96,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionPanel.class);
 
-    public ExpressionPanel(String id, IModel<ExpressionWrapper> parent, IModel<ExpressionType> model) {
+    public ExpressionPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> parent, IModel<ExpressionType> model) {
         super(id, model);
         this.parent = parent;
     }
@@ -171,7 +172,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     }
 
     private boolean useAsIsForNull() {
-        return parent.getObject().isAttributeExpression();
+        return parent.getObject() instanceof ExpressionWrapper &&
+                ((ExpressionWrapper)parent.getObject()).isAttributeExpression();
     }
 
     private void initLayout() {

@@ -42,7 +42,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
     @NotNull private final TargetEvaluation.TargetActivity targetActivity;
     private final OperationResult result;
     @NotNull private final AssignmentType inducement;
-    @NotNull private final ConfigurationItemOrigin inducementOrigin;
+    @NotNull private final ConfigurationItemOrigin inducementOrigin; // [EP:APSO] DONE
     private final boolean archetypeHierarchy;
 
     TargetInducementEvaluation(
@@ -52,14 +52,14 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
             EvaluationContext<AH> ctx,
             OperationResult result,
             @NotNull AssignmentType inducement,
-            @NotNull ConfigurationItemOrigin inducementOrigin,
+            @NotNull ConfigurationItemOrigin inducementOrigin, // [EP:APSO] DONE 2/2
             boolean archetypeHierarchy) {
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
         this.targetActivity = targetActivity;
         this.result = result;
         this.inducement = inducement;
-        this.inducementOrigin = inducementOrigin;
+        this.inducementOrigin = inducementOrigin; // [EP:APSO] DONE
         this.archetypeHierarchy = archetypeHierarchy;
     }
 
@@ -96,7 +96,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .source((AssignmentHolderType) segment.target)
                 .sourceDescription(nextSourceDescription)
                 .assignment(inducement)
-                .assignmentOrigin(inducementOrigin)
+                .assignmentOrigin(inducementOrigin) // [EP:APSO] DONE
                 .isInducement()
                 .isHierarchy(archetypeHierarchy)
                 .pathToSourceValid(targetActivity.pathAndTargetActive)

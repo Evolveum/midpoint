@@ -9,6 +9,11 @@ package com.evolveum.midpoint.notifications.impl;
 import java.util.List;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -127,8 +132,12 @@ public class CaseEventCreationListenerImpl implements CaseEventCreationListener 
             customHandlerCI =
                     EventHandlerConfigItem.of(
                             customHandler,
-                            ConfigurationItemOrigin.undeterminedSafe()); // FIXME
-            customHandlerProfile = expressionProfileManager.getProfileForCustomWorkflowNotifications(result);
+                            ConfigurationItemOrigin.undeterminedSafe());
+            try {
+                customHandlerProfile = expressionProfileManager.getProfileForCustomWorkflowNotifications(result);
+            } catch (SchemaException | ConfigurationException e) {
+                throw SystemException.unexpected(e); // FIXME later
+            }
         } else {
             customHandlerCI = null;
             customHandlerProfile = null;

@@ -66,8 +66,10 @@ public class SchemaTransformer {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaTransformer.class);
 
-    private static final String OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT = SchemaTransformer.class.getName() + ".applySchemasAndSecurityToObject";
-    private static final String OP_APPLY_SECURITY_TO_LENS_CONTEXT = SchemaTransformer.class.getName() + ".applySecurityToLensContext";
+    private static final String OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT =
+            SchemaTransformer.class.getName() + ".applySchemasAndSecurityToObject";
+    private static final String OP_APPLY_SECURITY_TO_LENS_CONTEXT =
+            SchemaTransformer.class.getName() + ".applySecurityToLensContext";
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private SecurityEnforcer securityEnforcer;

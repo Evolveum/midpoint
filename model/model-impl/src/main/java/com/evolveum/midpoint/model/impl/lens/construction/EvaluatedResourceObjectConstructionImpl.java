@@ -193,6 +193,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
                 "')";
     }
 
+    /** [EP:CONSTR] DONE */
     @NotNull ConstructionConfigItem getTypedConfigItemRequired() {
         return Objects.requireNonNull(construction.constructionConfigItem)
                 .as(ConstructionConfigItem.class);

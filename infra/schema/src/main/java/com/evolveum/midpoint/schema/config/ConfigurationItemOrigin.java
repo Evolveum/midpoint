@@ -15,11 +15,15 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
+
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
  * Description of an origin of a configuration item (expression, mapping, and so on).
@@ -39,17 +43,6 @@ import java.util.Objects;
 public abstract class ConfigurationItemOrigin implements Serializable {
 
     @Serial private static final long serialVersionUID = 0L;
-
-    /**
-     * TEMPORARY until the implementation is complete.
-     *
-     * We may search for occurrences of this method to find all the places where we need to implement the origin determination.
-     *
-     * Use with care! Careless use of this origin may render expression profiles ineffective.
-     */
-    public static ConfigurationItemOrigin undetermined() {
-        return new ConfigurationItemOrigin.Undetermined(false);
-    }
 
     /** Undetermined but safe, because it is never used to determine the expression profile. */
     public static ConfigurationItemOrigin undeterminedSafe() {
@@ -115,12 +108,23 @@ public abstract class ConfigurationItemOrigin implements Serializable {
 
     public static ConfigurationItemOrigin inObject(
             @NotNull ObjectType originatingObject, @NotNull ItemPath path) {
-        return new InObject(originatingObject, path, true);
+        return new InObject(originatingObject, true, path, true);
+    }
+
+    /**
+     * Very approximate origin: we know that the configuration item is used in a given (resolved, i.e., expanded) resource.
+     * But we don't know how it got there. It may be the resource object itself, but also any super-resource from which
+     * this resource inherits.
+     *
+     * See MID-9018.
+     */
+    public static ConfigurationItemOrigin inResourceOrAncestor(@NotNull ResourceType resource) {
+        return new InObject(resource, false, ItemPath.EMPTY_PATH, false);
     }
 
     public static ConfigurationItemOrigin inObjectApproximate(
             @NotNull ObjectType originatingObject, @NotNull ItemPath knownPath) {
-        return new InObject(originatingObject, knownPath, false);
+        return new InObject(originatingObject, true, knownPath, false);
     }
 
     public static ConfigurationItemOrigin inDelta(
@@ -190,6 +194,10 @@ public abstract class ConfigurationItemOrigin implements Serializable {
             return "detached(" + channelUri + ")";
         }
 
+        public @NotNull String getChannelUri() {
+            return channelUri;
+        }
+
         @Override
         public ConfigurationItemOrigin child(@NotNull ItemPath path) {
             return this;
@@ -223,61 +231,70 @@ public abstract class ConfigurationItemOrigin implements Serializable {
     public static class InObject extends ConfigurationItemOrigin {
 
         private final @NotNull ObjectType originatingObject;
+
+        /**
+         * If `false`, we know the object only approximately. This is currently the case for resource inheritance.
+         * See MID-9018.
+         */
+        private final boolean preciseObject;
+
         private final @NotNull ItemPath path;
 
         /**
          * If `false`, we know the position only approximately. The {@link #path} is then all that we know;
          * the value can be anywhere in that subtree.
          */
-        private final boolean precise;
+        private final boolean precisePath;
 
         private InObject(
-                @NotNull ObjectType originatingObject, @NotNull ItemPath path, boolean precise) {
+                @NotNull ObjectType originatingObject, boolean preciseObject, @NotNull ItemPath path, boolean precisePath) {
             // explicit nullity check is here for additional safety
             this.originatingObject = Objects.requireNonNull(originatingObject);
+            this.preciseObject = preciseObject;
             this.path = path;
-            this.precise = precise;
+            this.precisePath = precisePath;
+            if (!preciseObject) {
+                argCheck(!precisePath, "Not knowing the object but knowing the path?! %s, %s", originatingObject, path);
+            }
         }
 
         @Override
         public @NotNull ConfigurationItemOrigin toApproximate() {
-            if (precise) {
-                return new InObject(originatingObject, path, false);
+            if (precisePath) {
+                return new InObject(originatingObject, preciseObject, path, false);
             } else {
                 return this;
             }
-        }
-
-        public @NotNull ObjectType getOriginatingObject() {
-            return originatingObject;
         }
 
         public @NotNull PrismObject<? extends ObjectType> getOriginatingPrismObject() {
             return originatingObject.asPrismObject();
         }
 
-        public @NotNull String getOriginatingObjectOid() {
-            return originatingObject.getOid();
-        }
-
         public @NotNull ItemPath getPath() {
             return path;
         }
 
-        public boolean isPrecise() {
-            return precise;
-        }
-
         @Override
         public ConfigurationItemOrigin child(@NotNull ItemPath path) {
-            return precise ?
-                    new InObject(originatingObject, this.path.append(path), true) :
+            return precisePath ?
+                    new InObject(originatingObject, preciseObject, this.path.append(path), true) :
                     this;
         }
 
         @Override
         public String toString() {
-            return "in " + originatingObject + " @" + path + (precise ? "" : " (approximate)");
+            var sb = new StringBuilder();
+            sb.append("in ").append(originatingObject);
+            if (preciseObject) {
+                sb.append(" @").append(path);
+                if (!precisePath) {
+                    sb.append(" (approximate)");
+                }
+            } else {
+                sb.append(" (or some of its ancestors");
+            }
+            return sb.toString();
         }
 
         @Override

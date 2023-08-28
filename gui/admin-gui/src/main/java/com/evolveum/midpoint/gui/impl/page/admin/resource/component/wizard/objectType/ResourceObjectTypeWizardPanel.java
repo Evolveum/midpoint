@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
@@ -15,15 +13,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.basic.ResourceObjectTypeBasicWizardPanel;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -44,10 +36,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.apache.wicket.model.Model;
-
-import java.util.List;
 
 /**
  * @author lskublik
@@ -127,10 +115,10 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
                     case ATTRIBUTE_MAPPING:
                         showTableForAttributes(target);
                         break;
-                    case SYNCHRONIZATION_CONFIG:
+                    case SYNCHRONIZATION:
                         showSynchronizationConfigWizard(target);
                         break;
-                    case CORRELATION_CONFIG:
+                    case CORRELATION:
                         showCorrelationItemsTable(target);
                         break;
                     case CREDENTIALS:
@@ -142,7 +130,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceO
                     case ACTIVATION:
                         showActivationsWizard(target);
                         break;
-                    case CAPABILITIES_CONFIG:
+                    case CAPABILITIES:
                         showCapabilitiesConfigWizard(target);
                         break;
                 }
