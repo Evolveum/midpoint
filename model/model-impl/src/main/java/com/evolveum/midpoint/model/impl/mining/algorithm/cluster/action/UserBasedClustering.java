@@ -11,10 +11,11 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
 
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.task.api.Task;
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -33,19 +34,18 @@ public class UserBasedClustering implements Clusterable {
     //TODO add progress handler
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, RepositoryService pageBase, Handler handler) {
+            OperationResult result, ModelService modelService, Handler handler, Task task) {
 
         UserAnalysisSessionOptionType sessionOptionType = session.getUserModeOptions();
 
         int minRolesOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
         int maxRolesOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
 
-
         handler.setSubTitle("Load Data");
         handler.setOperationCountToProcess(1);
         //roles //users
-        ListMultimap<List<String>, String> chunkMap = loadData(result, pageBase,
-                minRolesOccupancy, maxRolesOccupancy, sessionOptionType.getQuery());
+        ListMultimap<List<String>, String> chunkMap = loadData(result, modelService,
+                minRolesOccupancy, maxRolesOccupancy, sessionOptionType.getQuery(), task);
         handler.iterateActualStatus();
 
         handler.setSubTitle("Prepare Data");
@@ -57,7 +57,7 @@ public class UserBasedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
 
         if (similarityDifference == 0.00) {
-            return new RoleAnalysisAlgorithmUtils().processExactMatch(pageBase, result, dataPoints, session, handler);
+            return new RoleAnalysisAlgorithmUtils().processExactMatch(modelService, task, result, dataPoints, session, handler);
         }
 
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
@@ -68,16 +68,16 @@ public class UserBasedClustering implements Clusterable {
                 minUsersCount, distanceMeasure);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
-        return new RoleAnalysisAlgorithmUtils().processClusters(pageBase, result, dataPoints, clusters, session, handler);
+        return new RoleAnalysisAlgorithmUtils().processClusters(modelService, task, result, dataPoints, clusters, session, handler);
     }
 
-    private ListMultimap<List<String>, String> loadData(OperationResult result, RepositoryService pageBase,
-            int minProperties, int maxProperties, SearchFilterType userQuery) {
+    private ListMultimap<List<String>, String> loadData(OperationResult result, ModelService modelService,
+            int minProperties, int maxProperties, SearchFilterType userQuery, Task task) {
 
-        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, pageBase);
+        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, modelService, task);
 
         //role //user
-        return ClusterDataLoaderUtils.getUserBasedRoleToUserMap(result, pageBase, minProperties, maxProperties, userQuery, existingRolesOidsSet);
+        return ClusterDataLoaderUtils.getUserBasedRoleToUserMap(result, modelService, task, minProperties, maxProperties, userQuery, existingRolesOidsSet);
     }
 
 }

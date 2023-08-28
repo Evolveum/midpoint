@@ -15,14 +15,9 @@ import java.util.List;
 
 public class MiningUserTypeChunk implements Serializable {
 
-    List<String> users;
-    List<String> roles;
-    String chunkName;
-
-    public void setFrequency(double frequency) {
-        this.frequency = frequency;
-    }
-
+    private final List<String> users;
+    private final List<String> roles;
+    private final String chunkName;
     double frequency;
     RoleAnalysisOperationMode roleAnalysisOperationMode;
 
@@ -33,6 +28,10 @@ public class MiningUserTypeChunk implements Serializable {
         this.chunkName = chunkName;
         this.frequency = frequency;
         this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+    }
+
+    public void setFrequency(double frequency) {
+        this.frequency = frequency;
     }
 
     public RoleAnalysisOperationMode getStatus() {

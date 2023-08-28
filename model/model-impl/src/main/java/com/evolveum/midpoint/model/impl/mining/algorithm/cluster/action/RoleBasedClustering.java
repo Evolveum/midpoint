@@ -12,16 +12,16 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.C
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
@@ -31,7 +31,7 @@ public class RoleBasedClustering implements Clusterable {
 
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, RepositoryService pageBase, Handler handler) {
+            OperationResult result, ModelService modelService, Handler handler, Task task) {
 
         RoleAnalysisSessionOptionType sessionOptionType = session.getRoleModeOptions();
 
@@ -40,8 +40,8 @@ public class RoleBasedClustering implements Clusterable {
 
         handler.setSubTitle("Load Data");
         handler.setOperationCountToProcess(1);
-        ListMultimap<List<String>, String> chunkMap = loadData(result, pageBase,
-                minUserOccupancy, maxUserOccupancy, sessionOptionType.getQuery());
+        ListMultimap<List<String>, String> chunkMap = loadData(result, modelService,
+                minUserOccupancy, maxUserOccupancy, sessionOptionType.getQuery(), task);
         handler.iterateActualStatus();
 
         handler.setSubTitle("Prepare Data");
@@ -53,7 +53,7 @@ public class RoleBasedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
 
         if (similarityDifference == 0.00) {
-            return new RoleAnalysisAlgorithmUtils().processExactMatch(pageBase, result, dataPoints, session, handler);
+            return new RoleAnalysisAlgorithmUtils().processExactMatch(modelService, task, result, dataPoints, session, handler);
         }
 
         int minUsersOverlap = sessionOptionType.getMinPropertiesOverlap();
@@ -63,25 +63,23 @@ public class RoleBasedClustering implements Clusterable {
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
                 similarityDifference, minRolesCount, distanceMeasure);
 
-
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
-        return new RoleAnalysisAlgorithmUtils().processClusters(pageBase, result, dataPoints, clusters, session, handler);
+        return new RoleAnalysisAlgorithmUtils().processClusters(modelService, task, result, dataPoints, clusters, session, handler);
 
     }
 
-    private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull RepositoryService pageBase,
-            int minProperties, int maxProperties, SearchFilterType userQuery) {
+    private ListMultimap<List<String>, String> loadData(OperationResult result, @NotNull ModelService modelService,
+            int minProperties, int maxProperties, SearchFilterType userQuery, Task task) {
 
-        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, pageBase);
+        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, modelService, task);
 
         //role //user
-        ListMultimap<String, String> roleToUserMap = ClusterDataLoaderUtils.getRoleBasedRoleToUserMap(result, pageBase, userQuery,
+        ListMultimap<String, String> roleToUserMap = ClusterDataLoaderUtils.getRoleBasedRoleToUserMap(result, modelService, task, userQuery,
                 existingRolesOidsSet);
 
         //user //role
         return ClusterDataLoaderUtils.getRoleBasedUserToRoleMap(minProperties, maxProperties, roleToUserMap);
     }
-
 
 }

@@ -7,31 +7,32 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
+import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
+
 import java.io.Serializable;
 import java.util.*;
-
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.DataPoint;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.DataPoint;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-
 public class ClusterDataLoaderUtils implements Serializable {
 
     @NotNull
-    protected static Set<String> getExistingRolesOidsSet(OperationResult result, @NotNull RepositoryService repoService) {
+    protected static Set<String> getExistingRolesOidsSet(OperationResult result, @NotNull ModelService modelService, Task task) {
         Set<String> existingRolesOidsSet = new HashSet<>();
         ResultHandler<RoleType> roleTypeHandler = (object, parentResult) -> {
             try {
@@ -43,17 +44,19 @@ public class ClusterDataLoaderUtils implements Serializable {
         };
 
         try {
-            repoService.searchObjectsIterative(RoleType.class, null, roleTypeHandler,
-                    null, true, result);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+            modelService.searchObjectsIterative(RoleType.class, null, roleTypeHandler,
+                    null, task, result);
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't search  RoleType ", e);
         }
         return existingRolesOidsSet;
+
     }
 
     @NotNull
     protected static ListMultimap<List<String>, String> getUserBasedRoleToUserMap(OperationResult result,
-            RepositoryService repoService, int minProperties, int maxProperties, SearchFilterType userQuery,
+            @NotNull ModelService modelService, Task task, int minProperties, int maxProperties, SearchFilterType userQuery,
             Set<String> existingRolesOidsSet) {
         ListMultimap<List<String>, String> roleToUserMap = ArrayListMultimap.create();
 
@@ -79,17 +82,19 @@ public class ClusterDataLoaderUtils implements Serializable {
             throw new RuntimeException(e);
         }
         try {
-            repoService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, null,
-                    true, result);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, null,
+                    task, result);
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't search UserType ", e);
         }
+
         return roleToUserMap;
     }
 
     @NotNull
     protected static ListMultimap<String, String> getRoleBasedRoleToUserMap(OperationResult result,
-            @NotNull RepositoryService repoService, SearchFilterType userQuery, Set<String> existingRolesOidsSet) {
+            @NotNull ModelService modelService, Task task, SearchFilterType userQuery, Set<String> existingRolesOidsSet) {
         ListMultimap<String, String> roleToUserMap = ArrayListMultimap.create();
 
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {
@@ -114,10 +119,11 @@ public class ClusterDataLoaderUtils implements Serializable {
         }
 
         try {
-            repoService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, null,
-                    true, result);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, null,
+                    task, result);
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't search UserType ", e);
         }
         return roleToUserMap;
     }

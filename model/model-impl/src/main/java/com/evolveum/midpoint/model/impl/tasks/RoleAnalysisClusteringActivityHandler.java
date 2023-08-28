@@ -8,15 +8,13 @@ package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringAction;
-
-import com.evolveum.midpoint.repo.api.RepositoryService;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringAction;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
@@ -28,6 +26,8 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -77,7 +77,7 @@ public class RoleAnalysisClusteringActivityHandler
         return new MyActivityRun(context);
     }
 
-    final static class MyActivityRun
+    class MyActivityRun
             extends LocalActivityRun<MyWorkDefinition, RoleAnalysisClusteringActivityHandler, AbstractActivityWorkStateType> {
 
         MyActivityRun(
@@ -101,9 +101,12 @@ public class RoleAnalysisClusteringActivityHandler
 
                 // FIXME add the implementation
 
-                RepositoryService repositoryService = getBeans().repositoryService;
+                TaskManager taskManager = getModelBeans().taskManager;
+                ModelService modelService = getModelBeans().modelService;
+                Task task = taskManager.createTaskInstance("ClusteringActionActivity");
+
                 ClusteringAction clusteringAction = new ClusteringAction();
-                clusteringAction.execute(repositoryService, getWorkDefinition().sessionOid, result);
+                clusteringAction.execute(modelService, getWorkDefinition().sessionOid, result, task);
 
             } catch (Throwable t) {
                 result.recordException(t);

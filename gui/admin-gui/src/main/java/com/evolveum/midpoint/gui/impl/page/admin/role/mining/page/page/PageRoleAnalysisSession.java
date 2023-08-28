@@ -15,8 +15,9 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.SessionWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.SessionSummaryPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -71,7 +72,10 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         searchAndDeleteCluster(pageBase, result, sessionOid);
     }
 
-
+    @Override
+    protected boolean isHideSaveButton() {
+        return true;
+    }
 
     @Override
     protected void onInitialize() {
@@ -106,14 +110,20 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         if (canShowWizard()) {
             setShowedByWizard(true);
             getObjectDetailsModels().reset();
-            return createRoleWizardFragment(SessionWizardPanel.class);
+            return createRoleWizardFragment(RoleAnalysisSessionWizardPanel.class);
         }
 
         return super.createDetailsFragment();
     }
 
     @Override
+    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> createObjectDetailsModels(PrismObject<RoleAnalysisSessionType> object) {
+        return super.createObjectDetailsModels(object);
+    }
+
+    @Override
     public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
+
         IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
         RoleAnalysisProcessModeType processMode = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable().getProcessMode();
 

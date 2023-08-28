@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
+import static java.util.Collections.singleton;
+
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
@@ -16,10 +18,13 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -29,86 +34,126 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisObjectUtils {
 
-    public static PrismObject<UserType> getUserTypeObject(@NotNull PageBase pageBase, String oid,
-            OperationResult result) {
+    public static PrismObject<UserType> getUserTypeObject(@NotNull ModelService modelService, String oid,
+            OperationResult result, Task task) {
+
         try {
-            return pageBase.getRepositoryService().getObject(UserType.class, oid, null, result);
-        } catch (ObjectNotFoundException ignored) {
-//            LOGGER.warn("Object not found. User UUID {} cannot be resolved", oid, e);
-            return null;
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
+            return modelService.getObject(UserType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get UserType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
         }
+        return null;
     }
 
-    public static PrismObject<FocusType> getFocusTypeObject(@NotNull PageBase pageBase, String oid,
-            OperationResult result) {
+    public static PrismObject<FocusType> getFocusTypeObject(@NotNull ModelService modelService, String oid,
+            OperationResult result, Task task) {
+
         try {
-            return pageBase.getRepositoryService().getObject(FocusType.class, oid, null, result);
-        } catch (ObjectNotFoundException e) {
-            LOGGER.error("Object not found. Focus UUID {} cannot be resolved", oid, e);
-            return null;
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
+            return modelService.getObject(FocusType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get FocusType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
         }
+        return null;
+    }
+
+    public static PrismObject<RoleType> getRoleTypeObject(@NotNull ModelService modelService, String oid,
+            OperationResult result, Task task) {
+
+        try {
+            return modelService.getObject(RoleType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        return null;
     }
 
     public static PrismObject<RoleType> getRoleTypeObject(@NotNull PageBase pageBase, String oid,
             OperationResult result) {
+
+        Task task = pageBase.createSimpleTask("getRoleTypeObject");
         try {
-            return pageBase.getRepositoryService().getObject(RoleType.class, oid, null, result);
-        } catch (ObjectNotFoundException ignored) {
-//            LOGGER.warn("Object not found. Role UUID {} cannot be resolved", oid, ignored);
-            return null;
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
+            return pageBase.getModelService().getObject(RoleType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
         }
+        return null;
     }
 
-    public static PrismObject<RoleAnalysisClusterType> getClusterTypeObject(@NotNull PageBase pageBase,
-            OperationResult result, String oid) {
+    public static PrismObject<UserType> getUserTypeObject(@NotNull PageBase pageBase, String oid,
+            OperationResult result) {
+
+        Task task = pageBase.createSimpleTask("getRoleTypeObject");
         try {
-            return pageBase.getRepositoryService().getObject(RoleAnalysisClusterType.class, oid, null, result);
-        } catch (ObjectNotFoundException e) {
-            LOGGER.error("Object not found. RoleAnalysisCluster UUID {} cannot be resolved", oid, e);
-            return null;
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
+            return pageBase.getModelService().getObject(UserType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get UserType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
         }
+        return null;
     }
 
-    public static PrismObject<RoleAnalysisSessionType> getSessionTypeObject(@NotNull PageBase pageBase,
-            OperationResult result, String oid) {
+    public static PrismObject<FocusType> getFocusTypeObject(@NotNull PageBase pageBase, String oid,
+            OperationResult result) {
+
+        Task task = pageBase.createSimpleTask("getFocusTypeObject");
+
         try {
-            return pageBase.getRepositoryService().getObject(RoleAnalysisSessionType.class, oid, null, result);
-        } catch (ObjectNotFoundException e) {
-            LOGGER.error("Object not found. RoleAnalysisSession UUID {} cannot be resolved", oid, e);
-            return null;
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
+            return pageBase.getModelService().getObject(FocusType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get FocusType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
         }
+        return null;
     }
 
-    public static @NotNull PrismObject<RoleAnalysisSessionType> getParentClusterByOid(@NotNull PageBase pageBase,
-            String oid, OperationResult result) {
+    public static PrismObject<RoleAnalysisClusterType> getClusterTypeObject(@NotNull ModelService modelService, String oid,
+            OperationResult result, Task task) {
+
         try {
-            return pageBase.getRepositoryService()
-                    .getObject(RoleAnalysisSessionType.class, oid, null, result);
-        } catch (ObjectNotFoundException | SchemaException e) {
-            throw new RuntimeException(e);
+            return modelService.getObject(RoleAnalysisClusterType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleAnalysisClusterType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
         }
+        return null;
+    }
+
+    public static PrismObject<RoleAnalysisSessionType> getSessionTypeObject(@NotNull ModelService modelService,
+            OperationResult result, String oid, Task task) {
+
+        try {
+            return modelService.getObject(RoleAnalysisSessionType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleAnalysisSessionType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        return null;
     }
 
     public static List<PrismObject<UserType>> extractRoleMembers(ObjectFilter userFilter, OperationResult result,
-            PageBase pageBase, String objectId) {
+            ModelService modelService, String objectId, Task task) {
 
-        ObjectQuery query = pageBase.getPrismContext().queryFor(UserType.class)
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .exists(AssignmentHolderType.F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
@@ -118,12 +163,43 @@ public class RoleAnalysisObjectUtils {
         if (userFilter != null) {
             query.addFilter(userFilter);
         }
+
         try {
-            return pageBase.getMidpointApplication().getRepositoryService()
-                    .searchObjects(UserType.class, query, null, result);
-        } catch (CommonException e) {
-            throw new RuntimeException("Failed to search role member objects: " + e);
+            return modelService.searchObjects(UserType.class, query, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
+        } finally {
+            result.recomputeStatus();
         }
+
+        return null;
+    }
+
+    public static Integer countRoleMembers(ObjectFilter userFilter, OperationResult result,
+            PageBase pageBase, String objectId) {
+
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class)
+                .exists(AssignmentHolderType.F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(objectId)
+                .endBlock().build();
+
+        if (userFilter != null) {
+            query.addFilter(userFilter);
+        }
+
+        Task task = pageBase.createSimpleTask("countRoleMembers");
+
+        try {
+            return pageBase.getModelService().countObjects(UserType.class, query, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        return null;
     }
 
     public static @NotNull PrismObject<RoleType> generateBusinessRole(PageBase pageBase, List<AssignmentType> assignmentTypes,
@@ -152,9 +228,10 @@ public class RoleAnalysisObjectUtils {
             @NotNull RoleAnalysisClusterType roleAnalysisClusterType, @NotNull PageBase pageBase) {
         try {
 
+            Task task = pageBase.createSimpleTask("deleteSingleRoleAnalysisCluster");
             String clusterOid = roleAnalysisClusterType.getOid();
-            PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(pageBase, result,
-                    roleAnalysisClusterType.getRoleAnalysisSessionRef().getOid());
+            PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(pageBase.getModelService(), result,
+                    roleAnalysisClusterType.getRoleAnalysisSessionRef().getOid(), task);
 
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
@@ -170,7 +247,7 @@ public class RoleAnalysisObjectUtils {
 
             pageBase.getRepositoryService().deleteObject(AssignmentHolderType.class, clusterOid, result);
 
-            recomputeSessionStatic(result, sessionObject.getOid(), roleAnalysisClusterType, pageBase);
+            recomputeSessionStatic(result, sessionObject.getOid(), roleAnalysisClusterType, pageBase.getModelService(), task);
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
             throw new RuntimeException(e);
         }
@@ -213,14 +290,14 @@ public class RoleAnalysisObjectUtils {
 
     }
 
-    public static RoleAnalysisProcessModeType resolveClusterProcessMode(@NotNull PageBase pageBase, @NotNull OperationResult result,
-            @NotNull PrismObject<RoleAnalysisClusterType> cluster) {
+    public static RoleAnalysisProcessModeType resolveClusterProcessMode(@NotNull ModelService modelService, @NotNull OperationResult result,
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster, Task task) {
 
         RoleAnalysisClusterType clusterObject = cluster.asObjectable();
         ObjectReferenceType roleAnalysisSessionRef = clusterObject.getRoleAnalysisSessionRef();
         String sessionRefOid = roleAnalysisSessionRef.getOid();
 
-        PrismObject<RoleAnalysisSessionType> session = getSessionTypeObject(pageBase, result, sessionRefOid);
+        PrismObject<RoleAnalysisSessionType> session = getSessionTypeObject(modelService, result, sessionRefOid, task);
 
         if (session == null) {
             LOGGER.error("Failed to resolve processMode from RoleAnalysisSession object: {}", sessionRefOid);
@@ -232,8 +309,8 @@ public class RoleAnalysisObjectUtils {
     }
 
     public static void recomputeSessionStatic(OperationResult result, String sessionOid,
-            @NotNull RoleAnalysisClusterType roleAnalysisClusterType, @NotNull PageBase pageBase) {
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, result, sessionOid);
+            @NotNull RoleAnalysisClusterType roleAnalysisClusterType, @NotNull ModelService modelService, Task task) {
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(modelService, result, sessionOid, task);
 
         assert sessionTypeObject != null;
         RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
@@ -260,22 +337,23 @@ public class RoleAnalysisObjectUtils {
         }
         recomputeSessionStatistic.setClusterCount(newClusterCount);
 
-        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-
         try {
-            modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisSessionType.class)
-                    .item(RoleAnalysisSessionType.F_SESSION_STATISTIC).replace(recomputeSessionStatistic.asPrismContainerValue())
-                    .asItemDelta());
-            pageBase.getRepositoryService().modifyObject(RoleAnalysisSessionType.class, sessionOid, modifications, result);
 
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-            throw new RuntimeException(e);
+            ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_SESSION_STATISTIC).replace(recomputeSessionStatistic.asPrismContainerValue())
+                    .asObjectDelta(sessionOid);
+
+            modelService.executeChanges(singleton(delta), null, task, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionOid, e);
         }
 
     }
 
-    public static void recomputeRoleAnalysisClusterDetectionOptions(String clusterOid, PageBase pageBase,
-            DetectionOption detectionOption, OperationResult result) {
+    public static void recomputeRoleAnalysisClusterDetectionOptions(String clusterOid, ModelService modelService,
+            DetectionOption detectionOption, OperationResult result, Task task) {
 
         RoleAnalysisDetectionOptionType roleAnalysisDetectionOptionType = new RoleAnalysisDetectionOptionType();
         roleAnalysisDetectionOptionType.setFrequencyRange(new RangeType()
@@ -285,52 +363,55 @@ public class RoleAnalysisObjectUtils {
         roleAnalysisDetectionOptionType.setMinRolesOccupancy(detectionOption.getMinRoles());
 
         try {
-            List<ItemDelta<?, ?>> modifications = new ArrayList<>(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
-                    .item(RoleAnalysisClusterType.F_DETECTION_OPTION)
-                    .replace(roleAnalysisDetectionOptionType.asPrismContainerValue())
-                    .asItemDeltas());
-            pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, clusterOid, modifications, result);
 
-        } catch (Throwable e) {
-            LOGGER.error("Error while Import new RoleAnalysisDetectionOption {}, {}", clusterOid, e.getMessage(), e);
+            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_DETECTION_OPTION).replace(roleAnalysisDetectionOptionType.asPrismContainerValue())
+                    .asObjectDelta(clusterOid);
+
+            modelService.executeChanges(singleton(delta), null, task, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't recompute RoleAnalysisClusterDetectionOptions {}", clusterOid, e);
         }
 
     }
 
     public static void clusterMigrationRecompute(OperationResult result,
-            @NotNull String clusterRefOid, String roleRefOid, @NotNull PageBase pageBase) {
+            @NotNull String clusterRefOid, String roleRefOid, @NotNull PageBase pageBase, Task task) {
+
+        PrismObject<RoleAnalysisClusterType> cluster = getClusterTypeObject(pageBase.getModelService(), clusterRefOid, result, task);
+        if (cluster == null) {
+            LOGGER.error("Failed to resolve RoleAnalysisCluster OBJECT from UUID: {}", clusterRefOid);
+            return;
+        }
+        RoleAnalysisClusterType clusterObject = cluster.asObjectable();
+
+        ItemName fClusterUserBasedStatistic = RoleAnalysisClusterType.F_CLUSTER_STATISTICS;
+
+        RoleAnalysisProcessModeType processMode = resolveClusterProcessMode(pageBase.getModelService(), result, cluster, task);
+        if (processMode == null) {
+            LOGGER.error("Failed to resolve processMode from RoleAnalysisCluster object: {}", clusterRefOid);
+            return;
+        }
+
+        ItemName fMember = AnalysisClusterStatisticType.F_USERS_COUNT;
+        Integer memberCount = clusterObject.getClusterStatistics().getUsersCount();
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            fMember = AnalysisClusterStatisticType.F_ROLES_COUNT;
+            memberCount = clusterObject.getClusterStatistics().getRolesCount();
+        }
+
+        PrismObject<RoleType> object = getRoleTypeObject(pageBase.getModelService(), roleRefOid, result, task);
+        if (object == null) {
+            return;
+        }
+
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(object.getOid());
+        ref.setType(RoleType.COMPLEX_TYPE);
+
         try {
-
-            PrismObject<RoleAnalysisClusterType> cluster = getClusterTypeObject(pageBase, result, clusterRefOid);
-            if (cluster == null) {
-                LOGGER.error("Failed to resolve RoleAnalysisCluster OBJECT from UUID: {}", clusterRefOid);
-                return;
-            }
-            RoleAnalysisClusterType clusterObject = cluster.asObjectable();
-
-            ItemName fClusterUserBasedStatistic = RoleAnalysisClusterType.F_CLUSTER_STATISTICS;
-
-            RoleAnalysisProcessModeType processMode = resolveClusterProcessMode(pageBase, result, cluster);
-            if (processMode == null) {
-                LOGGER.error("Failed to resolve processMode from RoleAnalysisCluster object: {}", clusterRefOid);
-                return;
-            }
-
-            ItemName fMember = AnalysisClusterStatisticType.F_USERS_COUNT;
-            Integer memberCount = clusterObject.getClusterStatistics().getUsersCount();
-            if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                fMember = AnalysisClusterStatisticType.F_ROLES_COUNT;
-                memberCount = clusterObject.getClusterStatistics().getRolesCount();
-            }
-
-            PrismObject<RoleType> object = getRoleTypeObject(pageBase, roleRefOid, result);
-            if (object == null) {
-                return;
-            }
-
-            ObjectReferenceType ref = new ObjectReferenceType();
-            ref.setOid(object.getOid());
-            ref.setType(RoleType.COMPLEX_TYPE);
 
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
@@ -358,8 +439,9 @@ public class RoleAnalysisObjectUtils {
 
             pageBase.getRepositoryService().modifyObject(RoleAnalysisClusterType.class, clusterRefOid, modifications, result);
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Couldn't execute migration recompute RoleAnalysisClusterDetectionOptions {}", clusterRefOid, e);
         }
+
     }
 
 }

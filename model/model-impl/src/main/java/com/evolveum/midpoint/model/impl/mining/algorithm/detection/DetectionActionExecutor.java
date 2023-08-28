@@ -22,7 +22,7 @@ public class DetectionActionExecutor implements Serializable {
 
     Handler handler = new Handler("Pattern Detection", 6);
 
-    DetectionOption detectionOption;
+    private final DetectionOption detectionOption;
 
     public DetectionActionExecutor(DetectionOption detectionOption) {
         this.detectionOption = detectionOption;

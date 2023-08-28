@@ -18,9 +18,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,6 +36,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -46,6 +44,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,14 +60,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class MiningUserBasedTable extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
-    OperationResult result = new OperationResult("GetObject");
+    private final OperationResult result = new OperationResult("GetObject");
 
-    int fromCol;
-    int toCol;
-    int specialColumnCount;
-    PrismObject<RoleAnalysisClusterType> cluster;
+    private String valueTitle = null;
+    private int columnPageCount = 100;
+    private int fromCol;
+    private int toCol;
+    private final int specialColumnCount;
+    private final PrismObject<RoleAnalysisClusterType> cluster;
 
-    MiningOperationChunk miningOperationChunk;
+    private final MiningOperationChunk miningOperationChunk;
 
     public MiningUserBasedTable(String id, MiningOperationChunk miningOperationChunk, double minFrequency, DetectedPattern intersection,
             double maxFrequency, List<ObjectReferenceType> reductionObjects, RoleAnalysisSortMode roleAnalysisSortMode,
@@ -88,6 +89,13 @@ public class MiningUserBasedTable extends Panel {
             toCol = specialColumnCount;
         }
 
+        initLayout(minFrequency, intersection, maxFrequency, reductionObjects, roleAnalysisSortMode, users, roles);
+    }
+
+    private void initLayout(double minFrequency, DetectedPattern intersection, double maxFrequency,
+            List<ObjectReferenceType> reductionObjects, RoleAnalysisSortMode roleAnalysisSortMode,
+            List<MiningUserTypeChunk> users, List<MiningRoleTypeChunk> roles) {
+
         RoleMiningProvider<MiningRoleTypeChunk> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(roles) {
 
@@ -104,9 +112,6 @@ public class MiningUserBasedTable extends Panel {
 
         add(table);
     }
-
-    String valueTitle = null;
-    int columnPageCount = 100;
 
     public SpecialBoxedTablePanel<MiningRoleTypeChunk> generateTable(RoleMiningProvider<MiningRoleTypeChunk> provider,
             List<MiningUserTypeChunk> users,
@@ -285,8 +290,8 @@ public class MiningUserBasedTable extends Panel {
                     public void onClick(AjaxRequestTarget target) {
 
                         List<PrismObject<FocusType>> objects = new ArrayList<>();
-                        for (String s : elements) {
-                            objects.add(getFocusTypeObject((PageBase) getPage(), s, result));
+                        for (String oid : elements) {
+                            objects.add(getFocusTypeObject(getPageBase(), oid, result));
                         }
                         MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                 Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.ROLE) {
@@ -438,7 +443,7 @@ public class MiningUserBasedTable extends Panel {
 
                             List<PrismObject<FocusType>> objects = new ArrayList<>();
                             for (String s : elements) {
-                                objects.add(getFocusTypeObject((PageBase) getPage(), s, result));
+                                objects.add(getFocusTypeObject(getPageBase(), s, result));
                             }
                             MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                     Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.USER) {

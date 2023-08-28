@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.detection;
 
-
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
@@ -60,7 +59,6 @@ public class PatternResolver implements DetectionOperation, Serializable {
 
         handler.setSubTitle("Outer Detection");
         handler.setOperationCountToProcess(preparedObjects.size());
-
 
         Set<List<String>> outerIntersections = new HashSet<>();
         for (int i = 0; i < preparedObjects.size(); i++) {
@@ -182,7 +180,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
             Set<String> properties = new HashSet<>(miningUserTypeChunk.getUsers());
             int propertiesCount = miningUserTypeChunk.getUsers().size();
             if (propertiesCount >= minOccupancy) {
-                intersections.add(prepareDetectedPattern(properties, members));
+                intersections.add(prepareDetectedPattern(members, properties));
             }
         }
 
@@ -247,7 +245,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
 
             int propertiesCount = properties.size();
             if (propertiesCount >= minOccupancy) {
-                intersections.add(prepareDetectedPattern(properties, new HashSet<>(members)));
+                intersections.add(prepareDetectedPattern(new HashSet<>(members), properties));
             }
         }
 
@@ -271,7 +269,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
             }
 
             if (propertiesCount >= minOccupancy) {
-                intersections.add(prepareDetectedPattern(properties, new HashSet<>(members)));
+                intersections.add(prepareDetectedPattern(new HashSet<>(members), properties));
             }
 
         }

@@ -7,26 +7,27 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.chunk;
 
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getUserTypeObject;
-
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getUserTypeObject;
+
 public class CacheUtils {
 
-    protected static PrismObject<RoleType> cacheRole(RepositoryService repoService, OperationResult result,
-            Map<String, PrismObject<RoleType>> roleExistCache, String roleOid) {
+    protected static PrismObject<RoleType> cacheRole(ModelService modelService, OperationResult result,
+            Map<String, PrismObject<RoleType>> roleExistCache, String roleOid, Task task) {
         PrismObject<RoleType> role = roleExistCache.get(roleOid);
         if (role == null) {
-            role = getRoleTypeObject(repoService, roleOid, result);
+            role = getRoleTypeObject(modelService, roleOid, result, task);
             if (role == null) {
                 return null;
             }
@@ -36,11 +37,11 @@ public class CacheUtils {
     }
 
     @Nullable
-    protected static PrismObject<UserType> cacheUser(RepositoryService repoService, OperationResult result,
-            Map<String, PrismObject<UserType>> userExistCache, String userOid) {
+    protected static PrismObject<UserType> cacheUser(ModelService modelService, OperationResult result,
+            Map<String, PrismObject<UserType>> userExistCache, String userOid, Task task) {
         PrismObject<UserType> user = userExistCache.get(userOid);
         if (user == null) {
-            user = getUserTypeObject(repoService, userOid, result);
+            user = getUserTypeObject(modelService, userOid, result, task);
             if (user == null) {
                 return null;
             }

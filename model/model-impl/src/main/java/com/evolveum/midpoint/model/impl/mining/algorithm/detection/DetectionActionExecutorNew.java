@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.detection;
 
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.detection.DefaultPatternResolver.loadTopPatterns;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.*;
 
 import java.io.Serializable;
@@ -20,10 +21,12 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.Handler;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.chunk.PrepareChunkStructure;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
@@ -32,24 +35,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 public class DetectionActionExecutorNew implements Serializable {
     private final DetectionOperation detectionType;
     Handler handler;
-    String clusterOid;
-    RepositoryService pageBase;
-    OperationResult result;
+    private final String clusterOid;
+    private final ModelService modelService;
+    private final OperationResult result;
+    private final Task task;
 
-    public DetectionActionExecutorNew(String clusterOid, RepositoryService pageBase, OperationResult result) {
+    public DetectionActionExecutorNew(String clusterOid, ModelService modelService, OperationResult result, Task task) {
         this.detectionType = new PatternResolver();
         this.clusterOid = clusterOid;
-        this.pageBase = pageBase;
+        this.modelService = modelService;
         this.result = result;
         this.handler = new Handler("Pattern Detection", 6);
+        this.task = task;
     }
-
 
     public void executeDetectionProcess() {
         handler.setSubTitle("Load Data");
         handler.setActive(true);
         handler.setOperationCountToProcess(1);
-        PrismObject<RoleAnalysisClusterType> clusterPrismObject = getClusterTypeObject(pageBase, result, clusterOid);
+        PrismObject<RoleAnalysisClusterType> clusterPrismObject = getClusterTypeObject(modelService, clusterOid, result, task);
         if (clusterPrismObject == null) {
             LOGGER.error("Failed to resolve RoleAnalysisClusterType from UUID: {}", clusterOid);
             return;
@@ -60,8 +64,8 @@ public class DetectionActionExecutorNew implements Serializable {
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
 
         String sessionOid = roleAnalysisSessionRef.getOid();
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(pageBase, result,
-                sessionOid);
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(modelService, result,
+                sessionOid, task);
 
         if (sessionTypeObject == null) {
             LOGGER.error("Failed to resolve RoleAnalysisSessionType from UUID: {}", sessionOid);
@@ -71,7 +75,7 @@ public class DetectionActionExecutorNew implements Serializable {
         RoleAnalysisProcessModeType processMode = sessionTypeObject.asObjectable().getProcessMode();
 
         MiningOperationChunk miningOperationChunk = new PrepareChunkStructure().executeOperation(cluster, true,
-                processMode, pageBase, result);
+                processMode, modelService, result, task);
 
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
@@ -81,10 +85,14 @@ public class DetectionActionExecutorNew implements Serializable {
         List<DetectedPattern> detectedPatterns = executeDetection(miningRoleTypeChunks, miningUserTypeChunks,
                 processMode, detectionOption);
 
-        replaceRoleAnalysisClusterDetectionPattern(clusterOid, pageBase,
+        if (detectedPatterns != null) {
+            detectedPatterns = loadTopPatterns(detectedPatterns);
+        }
+
+        replaceRoleAnalysisClusterDetectionPattern(clusterOid, modelService,
                 result,
-                detectedPatterns,
-                processMode);
+                detectedPatterns, task
+        );
     }
 
     private List<DetectedPattern> executeDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,

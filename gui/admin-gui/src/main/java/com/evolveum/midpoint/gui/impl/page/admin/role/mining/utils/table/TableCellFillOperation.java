@@ -51,8 +51,8 @@ public class TableCellFillOperation {
         if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.DISABLE) || colRoleAnalysisOperationMode.equals(RoleAnalysisOperationMode.DISABLE)) {
             filledCell(cellItem, componentId, rowRoles, colRoles, "bg-danger", "");
         } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.NEUTRAL) || colRoleAnalysisOperationMode.equals(RoleAnalysisOperationMode.NEUTRAL)) {
-            if (intersection != null && intersection.getUsers() != null) {
-                Set<String> roles = intersection.getUsers();
+            if (intersection != null && intersection.getRoles() != null) {
+                Set<String> roles = intersection.getRoles();
                 boolean found = new HashSet<>(roles).containsAll(colRoles) && new HashSet<>(rowRoles).containsAll(roles);
 
                 if (found) {

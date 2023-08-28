@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.task.api.Task;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,13 +19,13 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public interface MiningStructure {
-    MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, Handler handler);
-    MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, Handler handler);
-    MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, Handler state);
-    MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, Handler handler);
+    MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
+            OperationResult result, Handler handler, Task task);
+    MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
+            OperationResult result, Handler handler, Task task);
+    MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
+            OperationResult result, Handler state, Task task);
+    MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
+            OperationResult result, Handler handler, Task task);
 
 }

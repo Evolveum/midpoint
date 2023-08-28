@@ -19,11 +19,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectio
 
 public class ExtractPatternUtils {
 
-    public static DetectedPattern prepareDetectedPattern(Set<String> properties, Set<String> members) {
+    public static DetectedPattern prepareDetectedPattern(Set<String> roles, Set<String> users) {
         return new DetectedPattern(
-                properties,
-                members,
-                members.size() * properties.size());
+                roles,
+                users,
+                users.size() * roles.size());
     }
 
     public static List<DetectedPattern> transformDefaultPattern(RoleAnalysisClusterType clusterType) {
@@ -32,21 +32,24 @@ public class ExtractPatternUtils {
 
         for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
 
-            List<ObjectReferenceType> propertiesRef = roleAnalysisClusterDetectionType.getRolesOccupancy();
-            List<ObjectReferenceType> membersObject = roleAnalysisClusterDetectionType.getUserOccupancy();
+            List<ObjectReferenceType> rolesRef = roleAnalysisClusterDetectionType.getRolesOccupancy();
 
-            Set<String> members = new HashSet<>();
-            for (ObjectReferenceType objectReferenceType : membersObject) {
-                members.add(objectReferenceType.getOid());
+            List<ObjectReferenceType> usersRef = roleAnalysisClusterDetectionType.getUserOccupancy();
+
+            Set<String> roles = new HashSet<>();
+            for (ObjectReferenceType objectReferenceType : rolesRef) {
+                roles.add(objectReferenceType.getOid());
             }
 
-            Set<String> properties = new HashSet<>();
-            for (ObjectReferenceType objectReferenceType : propertiesRef) {
-                properties.add(objectReferenceType.getOid());
+            Set<String> users = new HashSet<>();
+            for (ObjectReferenceType objectReferenceType : usersRef) {
+                users.add(objectReferenceType.getOid());
             }
 
-            mergedIntersection.add(prepareDetectedPattern(properties,
-                    members));
+            DetectedPattern detectedPattern = prepareDetectedPattern(roles,
+                    users);
+
+            mergedIntersection.add(detectedPattern);
 
         }
 

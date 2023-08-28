@@ -8,10 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.recomputeRoleAnalysisClusterDetectionOptions;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getScaleScript;
+import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -74,11 +76,12 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable();
 
+        Task task = ((PageBase) getPage()).createSimpleTask("Pattern detection");
+        ModelService modelService = ((PageBase) getPage()).getModelService();
         DetectionOption detectionOption = new DetectionOption(cluster);
 
-        recomputeRoleAnalysisClusterDetectionOptions(clusterOid, (PageBase) getPage(), detectionOption, result);
+        recomputeRoleAnalysisClusterDetectionOptions(clusterOid, modelService, detectionOption, result, task);
 
-        Task task = ((PageBase) getPage()).createSimpleTask("Pattern detection");
         executeDetectionTask(result, task, clusterOid);
 
         PageParameters params = new PageParameters();
@@ -104,7 +107,7 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
                     task, result);
 
         } catch (CommonException e) {
-            //TODO
+            LOGGER.error("Couldn't execute Cluster Detection Task {}", clusterOid, e);
         }
     }
 
@@ -130,7 +133,8 @@ public class PageRoleAnalysisCluster extends AbstractPageObjectDetails<RoleAnaly
 
         RoleAnalysisClusterType cluster = getModelWrapperObject().getObjectOld().asObjectable();
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-        RoleAnalysisObjectUtils.recomputeSessionStatic(result, roleAnalysisSessionRef.getOid(), cluster, pageBase);
+        RoleAnalysisObjectUtils.recomputeSessionStatic(result, roleAnalysisSessionRef.getOid(), cluster, pageBase.getModelService(), task);
+
     }
 
     public PageRoleAnalysisCluster() {

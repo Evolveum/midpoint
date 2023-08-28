@@ -20,6 +20,9 @@ import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -60,15 +63,14 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
 
-    OperationResult result = new OperationResult("GetObject");
-    DetectionOption detectionOption;
-    List<DetectedPattern> detectedPatternList = new ArrayList<>();
-    DetectedPattern detectedPattern = null;
-    List<ObjectReferenceType> reductionObjects = new ArrayList<>();
-    MiningOperationChunk miningOperationChunk;
-    RoleAnalysisSortMode roleAnalysisSortMode;
-    RoleAnalysisProcessModeType processMode;
-    boolean compress = true;
+    private final OperationResult result = new OperationResult("GetObject");
+    private DetectionOption detectionOption;
+    private DetectedPattern detectedPattern = null;
+    private List<ObjectReferenceType> reductionObjects = new ArrayList<>();
+    private MiningOperationChunk miningOperationChunk;
+    private RoleAnalysisSortMode roleAnalysisSortMode;
+    private RoleAnalysisProcessModeType processMode;
+    private boolean compress = true;
 
     public PageClusterOperationsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -76,10 +78,12 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
     @Override
     protected void initLayout() {
+        Task task = ((PageBase) getPage()).createSimpleTask("loadObject");
+        ModelService modelService = ((PageBase) getPage()).getModelService();
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-        PrismObject<RoleAnalysisSessionType> getParent = getParentClusterByOid((PageBase) getPage(),
-                cluster.getRoleAnalysisSessionRef().getOid(), result);
+        PrismObject<RoleAnalysisSessionType> getParent = getSessionTypeObject(modelService, result,
+                cluster.getRoleAnalysisSessionRef().getOid(), task);
         reductionObjects = cluster.getResolvedPattern();
 
         if (reductionObjects != null && !reductionObjects.isEmpty()) {
@@ -90,7 +94,9 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
             }
         }
 
-        processMode = getParent.asObjectable().getProcessMode();
+        if (getParent != null) {
+            processMode = getParent.asObjectable().getProcessMode();
+        }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
@@ -108,7 +114,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
             detectionOption = new DetectionOption(30, 100, 10, 10);
         }
 
-        detectedPatternList = transformDefaultPattern(cluster);
+        List<DetectedPattern> detectedPatternList = transformDefaultPattern(cluster);
         loadMiningTableData();
         loadMiningTable();
 
@@ -118,14 +124,18 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
     }
 
     private void loadMiningTableData() {
+
+        Task task = ((PageBase) getPage()).createSimpleTask("loadMiningTableData");
+        ModelService modelService = ((PageBase) getPage()).getModelService();
+
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
         if (compress) {
             miningOperationChunk = new PrepareChunkStructure().executeOperation(cluster, true,
-                    processMode, (PageBase) getPage(), result);
+                    processMode, modelService, result, task);
 
         } else {
             miningOperationChunk = new PrepareExpandStructure().executeOperation(cluster, true,
-                    processMode, (PageBase) getPage(), result);
+                    processMode, modelService, result, task);
         }
 
     }
@@ -214,6 +224,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
     public MiningRoleBasedTable generateMiningRoleBasedTable(double minFrequency, DetectedPattern intersection,
             double maxFrequency) {
+
         return new MiningRoleBasedTable(ID_DATATABLE,
                 miningOperationChunk,
                 minFrequency / 100, maxFrequency / 100,

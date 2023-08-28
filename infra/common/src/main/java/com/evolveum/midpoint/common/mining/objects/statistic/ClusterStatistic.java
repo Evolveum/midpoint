@@ -15,15 +15,15 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ClusterStatistic implements Serializable {
 
-    Set<ObjectReferenceType> membersRef;
-    int propertiesCount;
-    int membersCount;
-    int minVectorPoint;
-    int maxVectorPoint;
-    double propertiesMean;
-    double propertiesDensity;
-    PolyStringType name;
-    Set<ObjectReferenceType> propertiesRef;
+    private final Set<ObjectReferenceType> membersRef;
+    private final int propertiesCount;
+    private final int membersCount;
+    private final int minVectorPoint;
+    private final int maxVectorPoint;
+    private final double propertiesMean;
+    private final double propertiesDensity;
+    private final PolyStringType name;
+    private final Set<ObjectReferenceType> propertiesRef;
 
     public ClusterStatistic(PolyStringType name, Set<ObjectReferenceType> membersRef, int membersCount,
             int propertiesCount, int minVectorPoint, int maxVectorPoint, double propertiesMean, double propertiesDensity) {

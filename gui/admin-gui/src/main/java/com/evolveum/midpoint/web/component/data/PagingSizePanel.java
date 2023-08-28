@@ -94,9 +94,10 @@ public class PagingSizePanel extends BasePanel<Integer> {
                         tablePanel.setItemsPerPage(o);
                         return;
                     }
+
+                    getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
                 }
 
-                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
             }
 
             @Override

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelService;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -259,12 +261,16 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
             @Override
             protected boolean isSaveButtonVisible() {
-                return super.isSaveButtonVisible();
+                return super.isSaveButtonVisible() && !isHideSaveButton();
             }
         };
     }
 
-    public StringResourceModel setSaveButtonTitle() {
+    protected boolean isHideSaveButton() {
+        return false;
+    }
+
+    protected StringResourceModel setSaveButtonTitle() {
         return ((PageBase) getPage()).createStringResource("PageBase.button.save");
     }
 
@@ -329,13 +335,14 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas;
         BusinessRoleApplicationDto patternDeltas = ((AbstractRoleDetailsModel) getObjectDetailsModels()).getPatternDeltas();
         if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
+            ModelService modelService = ((PageBase) getPage()).getModelService();
             executedDeltas = new ObjectChangesExecutorImpl()
                     .executeChanges(deltas, previewOnly, task, result, target);
 
             String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
-            clusterMigrationRecompute(result, patternDeltas.getCluster().getOid(), roleOid, (PageBase) getPage());
+            clusterMigrationRecompute(result, patternDeltas.getCluster().getOid(), roleOid, ((PageBase) getPage()), task);
 
-            PrismObject<RoleType> roleObject = getRoleTypeObject((PageBase) getPage(), roleOid, result);
+            PrismObject<RoleType> roleObject = getRoleTypeObject(modelService, roleOid, result, task);
 
             if (roleObject != null) {
                 executeMigrationTask(result, task, patternDeltas.getBusinessRoleDtos(), roleObject);
@@ -353,10 +360,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         return executedDeltas;
-    }
-
-    public void executeAditionalChanges() {
-
     }
 
     private void executeMigrationTask(OperationResult result, Task task, List<BusinessRoleDto> patternDeltas, PrismObject<RoleType> roleObject) {

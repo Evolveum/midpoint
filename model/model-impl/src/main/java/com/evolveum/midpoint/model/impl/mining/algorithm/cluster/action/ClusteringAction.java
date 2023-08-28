@@ -7,20 +7,20 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.*;
 
 public class ClusteringAction {
 
@@ -31,10 +31,10 @@ public class ClusteringAction {
     public ClusteringAction() {
     }
 
-    public void execute(@NotNull RepositoryService pageBase, String sessionOid,
-            @NotNull OperationResult result) {
+    public void execute(@NotNull ModelService modelService, String sessionOid,
+            @NotNull OperationResult result, Task task) {
 
-        PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(pageBase, result, sessionOid);
+        PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(modelService, result, sessionOid, task);
         if (prismSession != null) {
 
             RoleAnalysisProcessModeType processMode = prismSession.asObjectable().getProcessMode();
@@ -46,9 +46,9 @@ public class ClusteringAction {
 
             RoleAnalysisSessionType session = prismSession.asObjectable();
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(session,
-                    result, pageBase, handler);
+                    result, modelService, handler, task);
 
-            importObjects(clusterObjects, session, pageBase, result, handler);
+            importObjects(clusterObjects, session, modelService, result, handler, task);
 
         }
     }
@@ -56,9 +56,9 @@ public class ClusteringAction {
     private void importObjects(
             List<PrismObject<RoleAnalysisClusterType>> clusters,
             @NotNull RoleAnalysisSessionType session,
-            RepositoryService pageBase,
+            ModelService modelService,
             OperationResult result,
-            Handler handler) {
+            Handler handler, Task task) {
         List<ObjectReferenceType> roleAnalysisClusterRef = new ArrayList<>();
         String sessionOid = session.getOid();
 
@@ -94,7 +94,7 @@ public class ClusteringAction {
             objectReferenceType.setType(complexType);
             roleAnalysisClusterRef.add(objectReferenceType);
 
-            importRoleAnalysisClusterObject(result, pageBase,
+            importRoleAnalysisClusterObject(result, task, modelService,
                     clusterTypePrismObject,
                     sessionRef,
                     session.getDefaultDetectionOption()
@@ -113,8 +113,9 @@ public class ClusteringAction {
         handler.setOperationCountToProcess(clusters.size());
         modifySessionAfterClustering(sessionRef,
                 sessionStatistic,
-                pageBase,
-                result
+                modelService,
+                result,
+                task
         );
     }
 

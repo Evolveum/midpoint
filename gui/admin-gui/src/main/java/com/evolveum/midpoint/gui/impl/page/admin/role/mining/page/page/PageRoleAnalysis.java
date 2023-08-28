@@ -79,7 +79,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
                         description = "PageUsers.auth.users.view.description")
         })
 
-//TODO rename to PageRoleAnalysisSessions
 public class PageRoleAnalysis extends PageAdmin {
     @Serial private static final long serialVersionUID = 1L;
 

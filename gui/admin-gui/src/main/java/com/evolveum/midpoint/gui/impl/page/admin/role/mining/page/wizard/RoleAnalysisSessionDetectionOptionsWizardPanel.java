@@ -21,16 +21,22 @@ import org.apache.wicket.model.IModel;
 
 import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
 
-public class SessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    private static final String WORK_PANEL_TYPE = "tw-work";
+    private static final String WORK_PANEL_TYPE = "rm-detection";
 
-    public SessionDetectionOptionsWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
+    public RoleAnalysisSessionDetectionOptionsWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(model);
     }
 
     @Override
     protected void onInitialize() {
+        updateNewValues();
+
+        super.onInitialize();
+    }
+
+    private void updateNewValues() {
         try {
             RoleAnalysisSessionType realValue = getDetailsModel().getObjectWrapper().getValue().getRealValue();
             PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType = getContainerFormModel().getObject()
@@ -52,8 +58,6 @@ public class SessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPa
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
-
-        super.onInitialize();
     }
 
     private void setNewValue(PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,

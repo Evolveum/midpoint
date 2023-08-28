@@ -8,17 +8,14 @@ package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
-import com.evolveum.midpoint.model.impl.ModelBeans;
-
-import com.evolveum.midpoint.model.impl.mining.algorithm.detection.DetectionActionExecutorNew;
-
-import com.evolveum.midpoint.repo.api.RepositoryService;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.mining.algorithm.detection.DetectionActionExecutorNew;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
@@ -30,6 +27,8 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -85,7 +84,7 @@ public class RoleAnalysisPatternDetectionActivityHandler
         return new MyActivityRun(context);
     }
 
-    final static class MyActivityRun
+    class MyActivityRun
             extends LocalActivityRun<MyWorkDefinition, RoleAnalysisPatternDetectionActivityHandler, AbstractActivityWorkStateType> {
 
         MyActivityRun(
@@ -107,9 +106,12 @@ public class RoleAnalysisPatternDetectionActivityHandler
                         getWorkDefinition().clusterOid);
 
                 // FIXME add the implementation here
+                TaskManager taskManager = getModelBeans().taskManager;
+                ModelService modelService = getModelBeans().modelService;
+                Task task = taskManager.createTaskInstance("DetectionActionActivity");
 
-                RepositoryService repositoryService = getBeans().repositoryService;
-                new DetectionActionExecutorNew(getWorkDefinition().clusterOid, repositoryService, result)
+//                RepositoryService repositoryService = getBeans().repositoryService;
+                new DetectionActionExecutorNew(getWorkDefinition().clusterOid, modelService, result, task)
                         .executeDetectionProcess();
 
             } catch (Throwable t) {

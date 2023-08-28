@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.common.mining.objects.detection;
 
-
 import java.io.Serializable;
 import java.util.Set;
 
@@ -17,9 +16,9 @@ public class DetectedPattern implements Serializable {
 
     public static final String F_TYPE = "searchMode";
 
-    Set<String> roles;
-    Set<String> users;
-    Double clusterMetric;
+    private final Set<String> roles;
+    private final Set<String> users;
+    private final Double clusterMetric;
 
     public DetectedPattern(Set<String> roles, Set<String> users,
             double clusterMetric) {

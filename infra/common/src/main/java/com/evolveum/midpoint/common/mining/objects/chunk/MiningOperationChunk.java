@@ -16,9 +16,9 @@ import java.util.List;
 
 public class MiningOperationChunk implements Serializable {
 
-    List<MiningUserTypeChunk> miningUserTypeChunks;
+    private List<MiningUserTypeChunk> miningUserTypeChunks;
 
-    List<MiningRoleTypeChunk> miningRoleTypeChunks;
+    private List<MiningRoleTypeChunk> miningRoleTypeChunks;
 
     public MiningOperationChunk(List<MiningUserTypeChunk> miningUserTypeChunks, List<MiningRoleTypeChunk> miningRoleTypeChunks) {
         resetList();

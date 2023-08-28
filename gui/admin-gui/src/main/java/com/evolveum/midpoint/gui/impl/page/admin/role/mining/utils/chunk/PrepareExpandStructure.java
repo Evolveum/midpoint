@@ -19,11 +19,13 @@ import com.evolveum.midpoint.common.mining.objects.handler.Handler;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.task.api.Task;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
@@ -36,42 +38,42 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
     Handler handler = new Handler("Data Preparation", 3);
 
     public MiningOperationChunk executeOperation(@NotNull RoleAnalysisClusterType cluster, boolean fullProcess,
-            RoleAnalysisProcessModeType mode, PageBase pageBase, OperationResult result) {
+            RoleAnalysisProcessModeType mode, ModelService modelService, OperationResult result, Task task) {
         if (fullProcess) {
-            return resolveFullStructures(cluster, mode, pageBase, result);
+            return resolveFullStructures(cluster, mode, modelService, result, task);
         } else {
-            return resolvePartialStructures(cluster, mode, pageBase, result);
+            return resolvePartialStructures(cluster, mode, modelService, result, task);
         }
     }
 
     private MiningOperationChunk resolvePartialStructures(@NotNull RoleAnalysisClusterType cluster,
-            RoleAnalysisProcessModeType mode, PageBase pageBase, OperationResult result) {
+            RoleAnalysisProcessModeType mode, ModelService modelService, OperationResult result, Task task) {
 
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return preparePartialRoleBasedStructure(cluster, pageBase, result, handler);
+            return preparePartialRoleBasedStructure(cluster, modelService, result, handler, task);
 
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return preparePartialUserBasedStructure(cluster, pageBase, result, handler);
+            return preparePartialUserBasedStructure(cluster, modelService, result, handler, task);
         }
 
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
     }
 
     private MiningOperationChunk resolveFullStructures(@NotNull RoleAnalysisClusterType cluster,
-            RoleAnalysisProcessModeType mode, PageBase pageBase, OperationResult result) {
+            RoleAnalysisProcessModeType mode, ModelService pageBase, OperationResult result, Task task) {
 
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return prepareUserBasedStructure(cluster, pageBase, result, handler);
+            return prepareUserBasedStructure(cluster, pageBase, result, handler, task);
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return prepareRoleBasedStructure(cluster, pageBase, result, handler);
+            return prepareRoleBasedStructure(cluster, pageBase, result, handler, task);
         }
 
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
     }
 
     @Override
-    public MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, Handler handler) {
+    public MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
+            OperationResult result, Handler handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -91,13 +93,13 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             handler.iterateActualStatus();
 
             String roleId = rolesElement.getOid();
-            PrismObject<RoleType> role = cacheRole(pageBase, result, roleExistCache, roleId);
+            PrismObject<RoleType> role = cacheRole(modelService, result, roleExistCache, roleId, task);
             if (role == null) {
                 continue;
             }
             membersOidSet.add(roleId);
             //TODO add filter
-            List<PrismObject<UserType>> userMembers = extractRoleMembers(null, result, pageBase, roleId);
+            List<PrismObject<UserType>> userMembers = extractRoleMembers(null, result, modelService, roleId, task);
             List<String> users = extractOid(userMembers);
 
             String chunkName = role.getName().toString();
@@ -131,7 +133,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             List<String> roleIds = userChunk.get(key);
             roleIds.retainAll(membersOidSet);
             double frequency = Math.min(roleIds.size() / (double) memberCount, 1);
-            PrismObject<UserType> user = cacheUser(pageBase, result, userExistCache, key);
+            PrismObject<UserType> user = cacheUser(modelService, result, userExistCache, key, task);
             String chunkName = "NOT FOUND";
             if (user != null) {
                 chunkName = user.getName().toString();
@@ -146,8 +148,8 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
     }
 
     @Override
-    public MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, PageBase pageBase,
-            OperationResult result, Handler handler) {
+    public MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
+            OperationResult result, Handler handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -168,7 +170,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             handler.iterateActualStatus();
 
             String userOid = members.get(i).getOid();
-            PrismObject<UserType> user = cacheUser(pageBase, result, userExistCache, userOid);
+            PrismObject<UserType> user = cacheUser(modelService, result, userExistCache, userOid, task);
             if (user == null) {continue;}
 
             String chunkName = "NOT FOUND";
@@ -180,7 +182,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             List<String> roleOids = getRolesOidAssignment(user.asObjectable());
             List<String> existingRolesAssignment = new ArrayList<>();
             for (String roleId : roleOids) {
-                PrismObject<RoleType> role = cacheRole(pageBase, result, roleExistCache, roleId);
+                PrismObject<RoleType> role = cacheRole(modelService, result, roleExistCache, roleId, task);
                 if (role == null) {continue;}
                 existingRolesAssignment.add(roleId);
                 roleChunk.putAll(roleId, Collections.singletonList(user.getOid()));
@@ -212,7 +214,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             List<String> userOids = roleChunk.get(key);
             double frequency = Math.min(userOids.size() / (double) memberCount, 1);
 
-            PrismObject<RoleType> role = cacheRole(pageBase, result, roleExistCache, key);
+            PrismObject<RoleType> role = cacheRole(modelService, result, roleExistCache, key, task);
             String chunkName = "NOT FOUND";
             if (role != null) {
                 chunkName = role.getName().toString();
@@ -228,7 +230,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster,
-            PageBase pageBase, OperationResult result, Handler handler) {
+            ModelService modelService, OperationResult result, Handler handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -248,12 +250,12 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             handler.iterateActualStatus();
 
             String oid = objectReferenceType.getOid();
-            PrismObject<RoleType> role = cacheRole(pageBase, result, roleExistCache, oid);
+            PrismObject<RoleType> role = cacheRole(modelService, result, roleExistCache, oid, task);
             if (role == null) {continue;}
             membersOidSet.add(oid);
 
             //TODO add filter
-            List<PrismObject<UserType>> userMembers = extractRoleMembers(null, result, pageBase, oid);
+            List<PrismObject<UserType>> userMembers = extractRoleMembers(null, result, modelService, oid, task);
             List<String> users = extractOid(userMembers);
             Collections.sort(users);
 
@@ -288,7 +290,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             int userSize = users.size();
             String chunkName = "Group (" + userSize + " Users)";
             if (userSize == 1) {
-                PrismObject<UserType> user = cacheUser(pageBase, result, userExistCache, users.get(0));
+                PrismObject<UserType> user = cacheUser(modelService, result, userExistCache, users.get(0), task);
                 chunkName = "NOT FOUND";
                 if (user != null) {
                     chunkName = user.getName().toString();
@@ -301,7 +303,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster,
-            PageBase pageBase, OperationResult result, Handler handler) {
+            ModelService modelService, OperationResult result, Handler handler, Task task) {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 
@@ -321,7 +323,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             handler.iterateActualStatus();
 
             String oid = objectReferenceType.getOid();
-            PrismObject<UserType> user = cacheUser(pageBase, result, userExistCache, oid);
+            PrismObject<UserType> user = cacheUser(modelService, result, userExistCache, oid, task);
             if (user == null) {
                 continue;
             }
@@ -330,7 +332,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
             List<String> rolesOid = getRolesOidAssignment(user.asObjectable());
             List<String> existingRolesAssignment = new ArrayList<>();
             for (String roleId : rolesOid) {
-                PrismObject<RoleType> role = cacheRole(pageBase, result, roleExistCache, roleId);
+                PrismObject<RoleType> role = cacheRole(modelService, result, roleExistCache, roleId, task);
                 if (role == null) {continue;}
                 existingRolesAssignment.add(roleId);
                 roleMap.putAll(roleId, Collections.singletonList(oid));

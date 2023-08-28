@@ -13,21 +13,6 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -48,20 +33,33 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class MiningIntersectionTable extends Panel {
 
     private static final String ID_DATATABLE = "datatable_extra";
 
-    RoleAnalysisProcessModeType roleAnalysisProcessModeType;
-//    String clusterOid;
+    private final RoleAnalysisProcessModeType roleAnalysisProcessModeType;
 
     public MiningIntersectionTable(String id, List<DetectedPattern> detectedPatternList,
             RoleAnalysisProcessModeType roleAnalysisProcessModeType) {
@@ -93,8 +91,8 @@ public class MiningIntersectionTable extends Panel {
 
     public List<IColumn<DetectedPattern, String>> initColumns() {
 
-        LoadableModel<PrismContainerDefinition<RoleAnalysisClusterType>> containerDefinitionModel
-                = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisClusterType.class);
+        LoadableModel<PrismContainerDefinition<RoleAnalysisDetectionPatternType>> containerDefinitionModel
+                = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisDetectionPatternType.class);
 
         List<IColumn<DetectedPattern, String>> columns = new ArrayList<>();
 
@@ -129,7 +127,9 @@ public class MiningIntersectionTable extends Panel {
 
             @Override
             public Component getHeader(String componentId) {
-                return new Label(componentId, createStringResource("RoleMining.cluster.table.column.header.reduction.metric"));
+                return createColumnHeader(componentId, containerDefinitionModel,
+                        RoleAnalysisDetectionPatternType.F_CLUSTER_METRIC);
+
             }
 
         });
@@ -397,6 +397,7 @@ public class MiningIntersectionTable extends Panel {
     private <C extends Containerable> PrismPropertyHeaderPanel<?> createColumnHeader(String componentId,
             LoadableModel<PrismContainerDefinition<C>> containerDefinitionModel,
             ItemPath itemPath) {
+
         return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperHeaderModel<>(
                 containerDefinitionModel,
                 itemPath,

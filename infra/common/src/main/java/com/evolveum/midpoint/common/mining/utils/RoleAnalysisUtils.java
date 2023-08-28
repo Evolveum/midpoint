@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.common.mining.utils;
 
+import static com.evolveum.midpoint.util.ClassPathUtil.LOGGER;
+
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.objects.statistic.ClusterStatistic;
@@ -16,18 +30,6 @@ import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.util.roles.RoleManagementUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.util.ClassPathUtil.LOGGER;
 
 public class RoleAnalysisUtils {
 
@@ -112,38 +114,37 @@ public class RoleAnalysisUtils {
         return dateString + ", " + timeString;
     }
 
-    public static List<RoleAnalysisDetectionPatternType> loadIntersections(List<DetectedPattern> possibleBusinessRole,
-            QName processedObjectComplexType, QName propertiesComplexType) {
+    public static List<RoleAnalysisDetectionPatternType> loadIntersections(List<DetectedPattern> possibleBusinessRole) {
         List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
 
         loadSimpleIntersection(possibleBusinessRole,
-                roleAnalysisClusterDetectionTypeList, processedObjectComplexType, propertiesComplexType);
+                roleAnalysisClusterDetectionTypeList);
 
         return roleAnalysisClusterDetectionTypeList;
     }
 
     private static void loadSimpleIntersection(List<DetectedPattern> possibleBusinessRole,
-            List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList,
-            QName processedObjectComplexType, QName propertiesComplexType) {
+            List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList) {
         RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType;
         for (DetectedPattern detectedPattern : possibleBusinessRole) {
             roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
 
+            Set<String> users = detectedPattern.getUsers();
+            Set<String> roles = detectedPattern.getRoles();
+
             ObjectReferenceType objectReferenceType;
-            Set<String> members = detectedPattern.getUsers();
-            for (String memberRef : members) {
+            for (String usersRef : users) {
                 objectReferenceType = new ObjectReferenceType();
-                objectReferenceType.setOid(memberRef);
-                objectReferenceType.setType(processedObjectComplexType);
+                objectReferenceType.setOid(usersRef);
+                objectReferenceType.setType(UserType.COMPLEX_TYPE);
                 roleAnalysisClusterDetectionType.getUserOccupancy().add(objectReferenceType);
 
             }
 
-            Set<String> properties = detectedPattern.getRoles();
-            for (String propertiesRef : properties) {
+            for (String rolesRef : roles) {
                 objectReferenceType = new ObjectReferenceType();
-                objectReferenceType.setOid(propertiesRef);
-                objectReferenceType.setType(propertiesComplexType);
+                objectReferenceType.setOid(rolesRef);
+                objectReferenceType.setType(RoleType.COMPLEX_TYPE);
                 roleAnalysisClusterDetectionType.getRolesOccupancy().add(objectReferenceType);
             }
 

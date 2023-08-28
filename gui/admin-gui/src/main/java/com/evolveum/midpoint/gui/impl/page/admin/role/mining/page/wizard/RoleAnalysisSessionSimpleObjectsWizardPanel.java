@@ -26,11 +26,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-public class SessionSimpleObjectsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    private static final String WORK_PANEL_TYPE = "tw-work";
+    private static final String WORK_PANEL_TYPE = "rm-options";
 
-    public SessionSimpleObjectsWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
+    public RoleAnalysisSessionSimpleObjectsWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(model);
 
     }
@@ -41,13 +41,24 @@ public class SessionSimpleObjectsWizardPanel extends AbstractFormWizardStepPanel
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
 
-            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);
-            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, 10);
-            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
-                    .min(10.0)
-                    .max(100.0));
-            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, 10);
+            if (sessionType.getNewValue().getValue().getSimilarityThreshold() == null) {
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);
+            }
 
+            if (sessionType.getNewValue().getValue().getMinMembersCount() == null) {
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, 10);
+            }
+
+            if (sessionType.getNewValue().getValue().getPropertiesRange() == null
+                    || sessionType.getNewValue().getValue().getPropertiesRange().getMin() == null
+                    || sessionType.getNewValue().getValue().getPropertiesRange().getMax() == null) {
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
+                        .min(10.0)
+                        .max(100.0));
+            }
+            if (sessionType.getNewValue().getValue().getMinPropertiesOverlap() == null) {
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, 10);
+            }
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

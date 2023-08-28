@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.countRoleMembers;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
+
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -28,10 +30,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -43,9 +45,6 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
 
 @PanelType(name = "migratedRoles")
 @PanelInstance(
@@ -62,7 +61,7 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panel";
 
-    OperationResult operationResult = new OperationResult("LoadMigratedRoles");
+    private final OperationResult operationResult = new OperationResult("LoadMigratedRoles");
 
     public MigratedRolesPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
             ContainerPanelConfigurationType config) {
@@ -202,7 +201,12 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
             @Override
             public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
                     IModel<RoleType> rowModel) {
-                int membersCount = extractRoleMembers(null,operationResult, getPageBase(), rowModel.getObject().getOid()).size();
+                Integer membersCount = countRoleMembers(null, operationResult, getPageBase(), rowModel.getObject().getOid());
+
+                if (membersCount == null) {
+                    membersCount = 0;
+                }
+
                 item.add(new Label(componentId, membersCount));
             }
 

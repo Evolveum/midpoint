@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getClusterTypeObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getParentClusterByOid;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getImageScaleScript;
+
+import com.evolveum.midpoint.model.api.ModelService;
+
+import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -50,14 +53,16 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
     }
 
     private void initLayout() {
+        Task task = ((PageBase) getPage()).createSimpleTask("loadObject");
+        ModelService modelService = ((PageBase) getPage()).getModelService();
 
-        RoleAnalysisClusterType cluster = getClusterTypeObject((PageBase) getPage(), result, clusterOid).asObjectable();
+        RoleAnalysisClusterType cluster = getClusterTypeObject(modelService, clusterOid, result, task).asObjectable();
         String oid = cluster.getRoleAnalysisSessionRef().getOid();
-        PrismObject<RoleAnalysisSessionType> parentClusterByOid = getParentClusterByOid((PageBase) getPage(), oid, result);
+        PrismObject<RoleAnalysisSessionType> parentClusterByOid = getSessionTypeObject(modelService, result, oid, task);
         RoleAnalysisProcessModeType processMode = parentClusterByOid.asObjectable().getProcessMode();
 
         MiningOperationChunk miningOperationChunk = new PrepareExpandStructure().executeOperation(cluster, true, processMode,
-                (PageBase) getPage(), result);
+                modelService, result, task);
 
         CustomImageResource imageResource;
 

@@ -10,7 +10,9 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.handler.Handler;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.model.api.ModelService;
+
+import com.evolveum.midpoint.task.api.Task;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,5 +23,5 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 
 public interface Clusterable {
     List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, RepositoryService pageBase, Handler handler);
+            OperationResult result, ModelService modelService, Handler handler, Task task);
 }
