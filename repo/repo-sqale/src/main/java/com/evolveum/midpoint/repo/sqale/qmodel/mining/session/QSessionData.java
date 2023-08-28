@@ -24,7 +24,7 @@ import java.sql.Types;
 @SuppressWarnings("unused")
 public class QSessionData extends QAssignmentHolder<MSessionObject> {
 
-    public static final String TABLE_NAME = "m_role_analysis_session_table";
+    public static final String TABLE_NAME = "m_role_analysis_session";
 
     public QSessionData(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

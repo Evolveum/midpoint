@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  */
 public class QClusterData extends QAssignmentHolder<MClusterObject> {
 
-    public static final String TABLE_NAME = "m_role_analysis_cluster_table";
+    public static final String TABLE_NAME = "m_role_analysis_cluster";
 
     public static final ColumnMetadata PARENT_REF_TARGET_OID =
             ColumnMetadata.named("parentRefTargetOid").ofType(UuidPath.UUID_TYPE);
