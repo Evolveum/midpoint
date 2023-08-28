@@ -30,15 +30,15 @@ import java.util.List;
 import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 
-@PanelType(name = "sw-process")
-@PanelInstance(identifier = "sw-process",
+@PanelType(name = "rm-process")
+@PanelInstance(identifier = "rm-process",
         applicableForType = RoleAnalysisSessionType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessModeChoiceStepPanel.ProcessMode, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    public static final String PANEL_TYPE = "sw-process";
+    public static final String PANEL_TYPE = "rm-process";
 
     /**
      * @param id
