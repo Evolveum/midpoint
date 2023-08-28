@@ -1171,12 +1171,7 @@ CREATE TABLE m_role_analysis_cluster_table (
         CHECK (objectType = 'ROLE_ANALYSIS_CLUSTER'),
         parentRefTargetOid UUID,
         parentRefTargetType ObjectType,
-        parentRefRelationId INTEGER REFERENCES m_uri(id),
-        usersCount INTEGER,
-        rolesCount INTEGER,
-        membershipDensity DECIMAL,
-        membershipMean DECIMAL,
-        detectedReductionMetric DECIMAL
+        parentRefRelationId INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_assignment_holder);
 
@@ -1197,13 +1192,7 @@ CREATE TYPE RoleAnalysisProcessModeType AS ENUM ('ROLE', 'USER');
 CREATE TABLE m_role_analysis_session_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_SESSION') STORED
-        CHECK (objectType = 'ROLE_ANALYSIS_SESSION'),
---        processedObjectCount INTEGER,
---        clusterCount INTEGER,
---        clustersMeanDensity DECIMAL,
-        similarityOption DECIMAL,
-        minMembersOption INTEGER,
-        overlapOption INTEGER
+        CHECK (objectType = 'ROLE_ANALYSIS_SESSION')
         )
     INHERITS (m_assignment_holder);
 

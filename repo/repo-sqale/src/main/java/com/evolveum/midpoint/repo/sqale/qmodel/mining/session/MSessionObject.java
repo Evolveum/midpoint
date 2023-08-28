@@ -12,17 +12,4 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
 
 public class MSessionObject extends MObject {
 
-    //TODO change long to decimal and add processMode?.
-    public String riskLevel;
-
-    public RoleAnalysisProcessModeType processMode;
-
-    public Long clustersMeanDensity;
-    public Integer clusterCount;
-    public Integer processedObjectCount;
-
-    public Long similarityOption;
-    public Integer minMembersOption;
-    public Integer overlapOption;
-
 }

@@ -23,7 +23,6 @@ public class QClusterObjectMapping
         extends QAssignmentHolderMapping<RoleAnalysisClusterType, QClusterData, MClusterObject> {
 
     public static final String DEFAULT_ALIAS_NAME = "roleAnalysisCluster";
-    private static final int DEFAULT_DECIMALS = 1000;
 
     public static QClusterObjectMapping init(@NotNull SqaleRepoContext repositoryContext) {
         return new QClusterObjectMapping(repositoryContext);
@@ -38,18 +37,6 @@ public class QClusterObjectMapping
                 q -> q.parentRefTargetType,
                 q -> q.parentRefRelationId,
                 QObjectMapping::getObjectMapping);
-
-        addNestedMapping(F_CLUSTER_STATISTICS, AnalysisClusterStatisticType.class)
-                .addItemMapping(F_DETECTED_REDUCTION_METRIC,
-                        longMapper(q -> q.detectedReductionMetric))
-                .addItemMapping(AnalysisClusterStatisticType.F_MEMBERSHIP_DENSITY,
-                        longMapper(q -> q.membershipDensity))
-                .addItemMapping(AnalysisClusterStatisticType.F_MEMBERSHIP_MEAN,
-                        longMapper(q -> q.membershipMean))
-                .addItemMapping(AnalysisClusterStatisticType.F_USERS_COUNT,
-                        integerMapper(q -> q.usersCount))
-                .addItemMapping(AnalysisClusterStatisticType.F_ROLES_COUNT,
-                        integerMapper(q -> q.rolesCount));
 
     }
 
@@ -72,19 +59,6 @@ public class QClusterObjectMapping
                 o -> row.parentRefTargetOid = o,
                 t -> row.parentRefTargetType = t,
                 r -> row.parentRefRelationId = r);
-
-        AnalysisClusterStatisticType clusterStatistics = clusterObject.getClusterStatistics();
-        if (clusterStatistics != null) {
-            row.membershipMean = (long) (clusterStatistics.getMembershipMean() * DEFAULT_DECIMALS);
-            row.membershipDensity = (long) (clusterStatistics.getMembershipDensity() * DEFAULT_DECIMALS);
-            row.detectedReductionMetric = (long) (clusterStatistics.getDetectedReductionMetric() * DEFAULT_DECIMALS);
-
-            row.usersCount = clusterObject.getClusterStatistics().getUsersCount();
-            row.rolesCount = clusterObject.getClusterStatistics().getRolesCount();
-
-            row.riskLevel = clusterStatistics.getRiskLevel();
-
-        }
 
         return row;
     }

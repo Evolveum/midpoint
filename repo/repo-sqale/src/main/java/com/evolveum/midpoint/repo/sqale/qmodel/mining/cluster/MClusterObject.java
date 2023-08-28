@@ -14,16 +14,6 @@ import java.util.UUID;
 
 public class MClusterObject extends MObject {
 
-    //TODO change long to decimal
-
-    public String riskLevel;
-    public Integer usersCount;
-    public Integer rolesCount;
-
-    public Long membershipDensity;
-    public Long detectedReductionMetric;
-    public Long membershipMean;
-
     public UUID parentRefTargetOid;
     public MObjectType parentRefTargetType;
     public Integer parentRefRelationId;
