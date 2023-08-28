@@ -22,6 +22,14 @@
   &.simple-tile > i {
       font-size: 2.625rem;
   }
+
+  &.simple-tile.vertical > i {
+      font-size: 1.3rem;
+      line-height: 1.5;
+      width: 1.625rem;
+      text-align: center;
+      margin-right: 0.65rem;
+  }
 }
 
 @mixin selectable-tile {

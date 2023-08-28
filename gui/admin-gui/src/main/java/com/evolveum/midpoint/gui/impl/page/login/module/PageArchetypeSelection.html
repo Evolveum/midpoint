@@ -15,13 +15,13 @@
         <div wicket:id="csrfField"/>
         <input type="hidden" wicket:id="archetypeOid"/>
         <input type="hidden" wicket:id="allowUndefinedArchetype"/>
-        <div class="d-flex flex-wrap gap-3 justify-content-center" wicket:id="archetypeSelectionPanel">
+        <div class="tiles-wizard d-flex flex-wrap gap-2h justify-content-center" wicket:id="archetypeSelectionPanel">
             <wicket:container wicket:id="archetypes">
                 <div class="card mb-0 simple-tile selectable" wicket:id="archetype"/>
             </wicket:container>
         </div>
         <div>
-            <input type="submit" class="btn btn-primary mt-5 login-panel-control" wicket:message="value:PageBase.button.send" />
+            <input type="submit" class="btn btn-primary mt-4 login-panel-control" wicket:message="value:PageBase.button.send" />
         </div>
     </form>
 </wicket:extend>

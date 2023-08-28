@@ -257,6 +257,10 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 return "btn-sm btn-primary";
             }
 
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-left";
+            }
+
             @Override
             protected boolean showIcon() {
                 return true;

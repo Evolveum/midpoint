@@ -31,3 +31,15 @@
 .role-catalog-tiles-table div.img-circle {
   background-color: #f5f5f5;
 }
+
+.dropdown-toggle:after {
+  vertical-align: middle;
+  /*margin: 0 0.255em;*/
+  margin-bottom: 0.05rem;
+}
+
+.login-box-msg,
+.register-box-msg {
+  padding: 0 20px 10px;
+}
+
