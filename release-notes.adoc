@@ -69,6 +69,8 @@ For more info see: xref:/midpoint/reference/security/audit/index.adoc[Auditing]
 *** Optional configuration contains attributes description, exclusive, authoritative, channel and except channel.
 ** Identifiers _arw-construction-mapping_,_rw-attribute-inbound_ and _rw-attribute-outbound_ of old wizard panels is ignored, so we can remove it from configuration.
 
+* xref:/midpoint/reference/security/credentials/identity-recovery/[Identity Recovery] feature brings a possibility to recover user's data.
+
 === Miscellaneous Improvements
 
 * TODO
