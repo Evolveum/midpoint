@@ -1803,7 +1803,11 @@ th.debug-list-buttons {
     width: 220px;
     height: 220px;
   }
-
+  & .simple-tile.vertical {
+    width: 100%;
+    height: auto;
+    padding: 0.65rem 1rem;
+  }
   & .role-catalog-tiles-table .catalog-tile-panel {
     height: 376px;
     margin-bottom: $grid-gutter-width;

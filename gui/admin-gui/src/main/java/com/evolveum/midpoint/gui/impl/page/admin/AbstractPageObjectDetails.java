@@ -332,8 +332,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
 
+
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas;
-        BusinessRoleApplicationDto patternDeltas = ((AbstractRoleDetailsModel) getObjectDetailsModels()).getPatternDeltas();
+        //TODO this isn't good place? It's not safe to just cast to any model, there might be others, like UserDetailsModel etc.
+        //if it's only related to roles, think about moving it to the role details page or so.
+        BusinessRoleApplicationDto patternDeltas = null;
+        if (getObjectDetailsModels() instanceof AbstractRoleDetailsModel abstractRoleDetailsModel) {
+            patternDeltas = abstractRoleDetailsModel.getPatternDeltas();
+        }
+
         if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
             ModelService modelService = ((PageBase) getPage()).getModelService();
             executedDeltas = new ObjectChangesExecutorImpl()

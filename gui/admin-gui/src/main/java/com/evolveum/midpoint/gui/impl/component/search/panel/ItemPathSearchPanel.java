@@ -11,26 +11,34 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
+
 /**
  * @author honchar
  */
 public class ItemPathSearchPanel extends PopoverSearchPanel<ItemPathType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public ItemPathSearchPanel(String id, IModel<ItemPathType> itemPathModel) {
         super(id, itemPathModel);
     }
 
     @Override
-    protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
-        return new ItemPathSearchPopupPanel(id, getModel()) {
+    protected PopoverSearchPopupPanel createPopupPopoverPanel() {
+        return new ItemPathSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, getModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void confirmPerformed(AjaxRequestTarget target) {
                 target.add(ItemPathSearchPanel.this);
+            }
+
+            @Override
+            protected void removeSearchValue(AjaxRequestTarget target) {
+                ItemPathSearchPanel.this.getModel().setObject(null);
+                target.add(this);
             }
         };
     }

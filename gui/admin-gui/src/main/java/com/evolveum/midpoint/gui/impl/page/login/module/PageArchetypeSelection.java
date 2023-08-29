@@ -218,6 +218,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
                 target.add(getArchetypesContainer());
             }
         };
+        tilePanel.setHorizontal(false);
         return tilePanel;
     }
 

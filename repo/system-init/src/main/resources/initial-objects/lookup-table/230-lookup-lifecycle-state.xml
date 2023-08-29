@@ -24,6 +24,10 @@
         <label>Active</label>
     </row>
     <row>
+        <key>suspended</key>
+        <label>Suspended</label>
+    </row>
+    <row>
         <key>deprecated</key>
         <label>Deprecated</label>
     </row>

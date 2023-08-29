@@ -6,35 +6,35 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
-import com.evolveum.midpoint.gui.impl.util.RelationUtil;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author honchar
  */
 public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenceType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private final PrismReferenceDefinition referenceDef;
-    private static final String ID_SELECT_OBJECT_BUTTON = "selectObjectButton";
 
     public ReferenceValueSearchPanel(String id, IModel<ObjectReferenceType> model, PrismReferenceDefinition referenceDef) {
         super(id, model);
@@ -59,15 +59,12 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
         ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<>(
                 getPageBase().getMainPopupBodyId(), null, supportedTypes, false, getPageBase(),
                 null) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, O object) {
                 getPageBase().hideMainPopup(target);
-                ObjectReferenceType ort = new ObjectReferenceType();
-                ort.setOid(object.getOid());
-                ort.setTargetName(object.getName());
-                ort.setType(object.asPrismObject().getComplexTypeDefinition().getTypeName());
+                ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
                 ReferenceValueSearchPanel.this.getModel().setObject(ort);
                 referenceValueUpdated(ort, target);
                 target.add(ReferenceValueSearchPanel.this);
@@ -78,10 +75,8 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
     }
 
     @Override
-    protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
-        return new ReferenceValueSearchPopupPanel(id, ReferenceValueSearchPanel.this.getModel()) {
-
-            private static final long serialVersionUID1 = 1L;
+    protected PopoverSearchPopupPanel createPopupPopoverPanel() {
+        return new ReferenceValueSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, ReferenceValueSearchPanel.this.getModel()) {
 
             @Override
             protected List<QName> getAllowedRelations() {
@@ -110,36 +105,27 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
             }
 
             @Override
-            protected boolean isChooseObjectVisible() {
-                return notDisplayedInPopup();
-            }
-
-            @Override
             protected void chooseObjectPerformed(AjaxRequestTarget target) {
                 selectObjectPerformed(target);
             }
+
+            @Override
+            protected void removeSearchValue(AjaxRequestTarget target) {
+                ObjectReferenceType ref = ReferenceValueSearchPanel.this.getModelObject();
+                ref.asReferenceValue().setObject(null);
+                ref.setOid(null);
+                ref.setTargetName(null);
+                ref.setRelation(null);
+
+                target.add(this);
+            }
+
         };
     }
 
     @Override
-    protected boolean isRemoveVisible() {
-        return true;
-    }
-
-    @Override
-    protected void removeSearchValue(AjaxRequestTarget target) {
-        ObjectReferenceType ref = getModelObject();
-        ref.asReferenceValue().setObject(null);
-        ref.setOid(null);
-        ref.setTargetName(null);
-        ref.setRelation(null);
-
-        target.add(this);
-    }
-
-    @Override
     protected LoadableModel<String> getTextValue() {
-        return new LoadableModel<String>() {
+        return new LoadableModel<>() {
             @Override
             protected String load() {
                 return WebComponentUtil.getReferenceObjectTextValue(getModelObject(), referenceDef, getPageBase());
