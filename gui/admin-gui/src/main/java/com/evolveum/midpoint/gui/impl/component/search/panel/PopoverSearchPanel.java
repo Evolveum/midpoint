@@ -6,31 +6,30 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import java.io.Serial;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 
 /**
  * @author honchar
  */
 public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TEXT_FIELD = "valueTextField";
-    private static final String ID_EDIT_BUTTON = "editButton";
-    private static final String ID_POPOVER_PANEL = "popoverPanel";
+    public static final String ID_POPOVER_PANEL = "popoverPanel";
     private static final String ID_POPOVER = "popover";
-    private static final String ID_REMOVE="remove";
+
+    private static final String ID_CONFIGURE = "configure";
 
     public PopoverSearchPanel(String id) {
         super(id);
@@ -57,17 +56,17 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         add(textField);
 
         Popover popover = new Popover(ID_POPOVER) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Component getPopoverReferenceComponent() {
-                return PopoverSearchPanel.this.get(ID_EDIT_BUTTON);
+                return PopoverSearchPanel.this.get(ID_CONFIGURE);
             }
         };
         add(popover);
 
-        AjaxButton edit = new AjaxButton(ID_EDIT_BUTTON) {
-            private static final long serialVersionUID = 1L;
+        AjaxButton edit = new AjaxButton(ID_CONFIGURE) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -77,43 +76,26 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         edit.setOutputMarkupId(true);
         add(edit);
 
-        AjaxLink<?> remove = new AjaxLink<>(ID_REMOVE) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                removeSearchValue(target);
-            }
-        };
-        remove.add(new VisibleBehaviour(() -> isRemoveVisible()));
-        add(remove);
-
-        WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(ID_POPOVER_PANEL);
+        WebMarkupContainer searchPopupPanel = createPopupPopoverPanel();
         popover.add(searchPopupPanel);
     }
 
     protected abstract IModel<String> getTextValue();
 
-    protected abstract PopoverSearchPopupPanel createPopupPopoverPanel(String id);
+    protected abstract PopoverSearchPopupPanel createPopupPopoverPanel();
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
-        StringBuilder script = new StringBuilder();
-        script.append("MidPointTheme.toggleSearchPopover('");
-        script.append(button.getMarkupId()).append("','");
-        script.append(popover.getMarkupId()).append("',");
-        script.append(paddingRight).append(");");
+        String script = "MidPointTheme.toggleSearchPopover('"
+                + button.getMarkupId() + "','"
+                + popover.getMarkupId() + "',"
+                + paddingRight + ");";
 
-        target.appendJavaScript(script.toString());
+        target.appendJavaScript(script);
     }
 
     public Boolean isItemPanelEnabled() {
         return true;
     }
 
-    protected boolean isRemoveVisible() {
-        return false;
-    }
-
-    protected void removeSearchValue(AjaxRequestTarget target) {
-
-    }
 }

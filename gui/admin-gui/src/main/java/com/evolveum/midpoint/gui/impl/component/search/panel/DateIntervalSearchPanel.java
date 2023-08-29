@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
  */
 public class DateIntervalSearchPanel extends PopoverSearchPanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private final IModel<XMLGregorianCalendar> fromDateModel;
     private final IModel<XMLGregorianCalendar> toDateModel;
@@ -31,10 +32,10 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
     }
 
     @Override
-    protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
-        return new DateIntervalSearchPopupPanel(id, fromDateModel, toDateModel) {
+    protected PopoverSearchPopupPanel createPopupPopoverPanel() {
+        return new DateIntervalSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, fromDateModel, toDateModel) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void confirmPerformed(AjaxRequestTarget target) {
@@ -44,6 +45,13 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
             @Override
             protected boolean isInterval() {
                 return DateIntervalSearchPanel.this.isInterval();
+            }
+
+            @Override
+            protected void removeSearchValue(AjaxRequestTarget target) {
+                fromDateModel.setObject(null);
+                toDateModel.setObject(null);
+                target.add(this);
             }
         };
     }
