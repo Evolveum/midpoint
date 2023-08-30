@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.testing.story.sysperf;
 
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import java.io.File;
@@ -31,7 +31,7 @@ class ReconciliationConfiguration {
     private final int threads;
     private final int runs;
 
-    private final List<TestResource<TaskType>> generatedTasks;
+    private final List<TestObject<TaskType>> generatedTasks;
 
     private ReconciliationConfiguration() {
         threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
@@ -48,7 +48,7 @@ class ReconciliationConfiguration {
         return runs;
     }
 
-    List<TestResource<TaskType>> getGeneratedTasks() {
+    List<TestObject<TaskType>> getGeneratedTasks() {
         return generatedTasks;
     }
 
@@ -66,12 +66,12 @@ class ReconciliationConfiguration {
         return configuration;
     }
 
-    private List<TestResource<TaskType>> generateTasks() {
-        List<TestResource<TaskType>> tasks = new ArrayList<>();
+    private List<TestObject<TaskType>> generateTasks() {
+        List<TestObject<TaskType>> tasks = new ArrayList<>();
         List<DummyTestResource> sourceResources = TestSystemPerformance.SOURCES_CONFIGURATION.getGeneratedResources();
         for (int i = 0; i < sourceResources.size(); i++) {
             String taskOid = UUID.randomUUID().toString();
-            tasks.add(new TestResource<>(TARGET_DIR, createFile(i, sourceResources.get(i), taskOid), taskOid));
+            tasks.add(TestObject.file(TARGET_DIR, createFile(i, sourceResources.get(i), taskOid), taskOid));
         }
         return tasks;
     }

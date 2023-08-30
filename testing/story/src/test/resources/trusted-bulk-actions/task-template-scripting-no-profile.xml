@@ -5,7 +5,6 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!--suppress UnnecessaryQualifiedReference -->
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
     oid="f38b71ad-e212-4c46-8594-032202e0e9b9">
@@ -17,10 +16,11 @@
                 <scriptExecutionRequest>
                     <s:execute>
                         <s:script>
-                            <code>import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
+                            <code>
+                                import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
 
-                            TestTrustedBulkActions.FLAG.set()
-                            log.info('executed')
+                                TestTrustedBulkActions.FLAG.set()
+                                log.info('executed')
                             </code>
                         </s:script>
                     </s:execute>

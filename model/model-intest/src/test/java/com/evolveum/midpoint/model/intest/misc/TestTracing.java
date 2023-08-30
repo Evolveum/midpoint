@@ -30,7 +30,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.traces.TraceParser;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -47,13 +47,13 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<UserType> USER_JOE = new TestResource<>(TEST_DIR, "user-joe.xml", "c279c1c8-a160-4442-88b2-72b358e0c745");
-    private static final TestResource<RoleType> ROLE_ILLEGAL = new TestResource<>(TEST_DIR, "role-illegal.xml", "13ca97ae-5919-42fb-91fb-cbc88704fd91");
+    private static final TestObject<UserType> USER_JOE = TestObject.file(TEST_DIR, "user-joe.xml", "c279c1c8-a160-4442-88b2-72b358e0c745");
+    private static final TestObject<RoleType> ROLE_ILLEGAL = TestObject.file(TEST_DIR, "role-illegal.xml", "13ca97ae-5919-42fb-91fb-cbc88704fd91");
     private static final DummyTestResource RESOURCE_ILLEGAL = new DummyTestResource(TEST_DIR, "resource-illegal.xml", "793bb9f5-edae-4251-bce7-4e99a72ac23f", "illegal");
 
-    private static final TestResource<UserType> USER_JIM = new TestResource<>(TEST_DIR, "user-jim.xml", "5a85ea58-ecf7-4e23-ab4f-750f877dc13a");
-    private static final TestResource<RoleType> ROLE_CLASS_LESS_VALUES = new TestResource<>(TEST_DIR, "role-class-less-values.xml", "c903aee4-8726-47cd-99e9-8aad7a60b12f");
-    private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY_HACKING = new TestResource<>(TEST_DIR, "function-library-hacking.xml", "87b91749-5f92-4328-bcc3-6f1b6e6e8364");
+    private static final TestObject<UserType> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "5a85ea58-ecf7-4e23-ab4f-750f877dc13a");
+    private static final TestObject<RoleType> ROLE_CLASS_LESS_VALUES = TestObject.file(TEST_DIR, "role-class-less-values.xml", "c903aee4-8726-47cd-99e9-8aad7a60b12f");
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_HACKING = TestObject.file(TEST_DIR, "function-library-hacking.xml", "87b91749-5f92-4328-bcc3-6f1b6e6e8364");
 
     private static final String CONTAINERS_NS = "http://super.org/midpoint";
     private static final ItemName NAME_MY_CONTAINER = new ItemName(CONTAINERS_NS, "myContainer");

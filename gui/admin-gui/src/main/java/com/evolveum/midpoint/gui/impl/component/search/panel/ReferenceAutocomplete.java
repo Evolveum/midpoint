@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
@@ -22,11 +22,15 @@ import org.apache.wicket.util.convert.IConverter;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.ReferenceConverter;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -34,7 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author honchar
  */
 public class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReferenceType> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
+
+    private static final String ID_CHOOSE_OBJECT="chooseObject";
 
     private final PageBase pageBase;
     private final IModel<ObjectReferenceType> model;
@@ -43,6 +49,29 @@ public class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReference
         super(id, model, ObjectReferenceType.class, renderer);
         this.pageBase = pageBase;
         this.model = model;
+
+        AjaxButton chooseObject = new AjaxButton(ID_CHOOSE_OBJECT ) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                chooseObjectPerformed(target);
+            }
+        };
+        chooseObject.add(new VisibleBehaviour(this::isChooseObjectVisible));
+        add(chooseObject);
+    }
+
+    @Override
+    protected boolean isShowChoicesVisible() {
+        return false;
+    }
+
+    private boolean isChooseObjectVisible() {
+        return ReferenceAutocomplete.this.findParent(Popupable.class) == null;
+    }
+
+    protected void chooseObjectPerformed(AjaxRequestTarget target) {
+
     }
 
     @Override
@@ -66,6 +95,8 @@ public class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReference
         return ObjectTypeUtil.objectListToReferences(objectsList).iterator();
     }
 
+    //TODO can we clean this?
+    @SuppressWarnings("unchecked")
     @Override
     protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
         IConverter<C> converter = super.getAutoCompleteConverter(type, originConverter);

@@ -23,7 +23,6 @@
                             <s:forWholeInput>true</s:forWholeInput>
                             <s:script>
                                 <code>
-
                                     import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
 
                                     log.info('object = {}', object)
@@ -41,7 +40,6 @@
                         <s:execute>
                             <s:script>
                                 <code>
-
                                     import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
 
                                     log.info('focus = {}', focus)

@@ -11,17 +11,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
-import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -37,7 +39,7 @@ public class ExecutionContext {
 
     private final ScriptingExpressionEvaluationOptionsType options;
     private final Task task;
-    private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    private final BulkActionsExecutor bulkActionsExecutor;
     private final StringBuilder consoleOutput = new StringBuilder();
     /** will probably remain unused */
     private final Map<String, PipelineData> globalVariables = new HashMap<>();
@@ -45,7 +47,7 @@ public class ExecutionContext {
     private final VariablesMap initialVariables;
     /** used only when passing result to external clients (TODO do this more cleanly) */
     private PipelineData finalOutput;
-    private final boolean recordProgressAndIterationStatistics;
+    @NotNull private final BulkActionExecutionOptions executionOptions;
 
     /**
      * Used for all evaluations in this context. The whole bulk action shares the same origin (it is a property, not a container),
@@ -54,15 +56,17 @@ public class ExecutionContext {
     @NotNull private final ExpressionProfile expressionProfile;
 
     public ExecutionContext(
-            ScriptingExpressionEvaluationOptionsType options, Task task,
-            ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
+            ScriptingExpressionEvaluationOptionsType options,
+            Task task,
+            BulkActionsExecutor bulkActionsExecutor,
+            @NotNull BulkActionExecutionOptions executionOptions,
+            VariablesMap initialVariables,
             @NotNull ExpressionProfile expressionProfile) {
         this.options = options;
         this.task = task;
-        this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
+        this.bulkActionsExecutor = bulkActionsExecutor;
         this.initialVariables = initialVariables;
-        this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
+        this.executionOptions = executionOptions;
         this.expressionProfile = expressionProfile;
     }
 
@@ -115,15 +119,15 @@ public class ExecutionContext {
     }
 
     public boolean isRecordProgressAndIterationStatistics() {
-        return recordProgressAndIterationStatistics;
+        return executionOptions.recordProgressAndIterationStatistics();
     }
 
-    public ScriptExecutionResult toExecutionResult() {
+    public BulkActionExecutionResult toExecutionResult() {
         List<PipelineItem> items = null;
         if (getFinalOutput() != null) {
             items = getFinalOutput().getData();
         }
-        return new ScriptExecutionResult(getConsoleOutput(), items);
+        return new BulkActionExecutionResult(getConsoleOutput(), items);
     }
 
     public String getChannel() {
@@ -148,11 +152,11 @@ public class ExecutionContext {
     }
 
     public ModelService getModelService() {
-        return scriptingExpressionEvaluator.getModelService();
+        return bulkActionsExecutor.getModelService();
     }
 
     public PrismContext getPrismContext() {
-        return scriptingExpressionEvaluator.getPrismContext();
+        return bulkActionsExecutor.getPrismContext();
     }
 
     public QueryConverter getQueryConverter() {
@@ -161,5 +165,13 @@ public class ExecutionContext {
 
     public @NotNull ExpressionProfile getExpressionProfile() {
         return expressionProfile;
+    }
+
+    public AuthorizationPhaseType getExecutionPhase() {
+        if (executionOptions.executionPhase()) {
+            return AuthorizationPhaseType.EXECUTION;
+        } else {
+            return null;
+        }
     }
 }

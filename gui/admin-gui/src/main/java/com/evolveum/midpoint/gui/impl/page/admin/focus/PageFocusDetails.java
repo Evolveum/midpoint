@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -29,11 +26,11 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ProgressAwareChangesExecutorImpl;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressReportingAwarePage;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -66,6 +63,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     public PageFocusDetails() {
         super();
+    }
+
+    public PageFocusDetails(PrismObject<F> focus, List<BusinessRoleDto> patternDeltas) {
+        super(focus, patternDeltas);
     }
 
     public PageFocusDetails(PageParameters pageParameters) {
@@ -313,7 +314,6 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     protected void collectObjectsForPreview(Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap) {
         modelContextMap.put(getModelPrismObject(), getProgressPanel().getPreviewResult());
     }
-
 
     @Override
     public void continueEditing(AjaxRequestTarget target) {

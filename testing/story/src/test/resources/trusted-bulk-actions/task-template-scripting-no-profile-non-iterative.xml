@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+    oid="bf575791-eabd-438e-855e-09824a99b088">
+    <name>template-scripting-no-profile-non-iterative</name>
+    <executionState>waiting</executionState>
+    <activity>
+        <work>
+            <nonIterativeScripting>
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:forWholeInput>true</s:forWholeInput>
+                        <s:script>
+                            <code>
+                                import com.evolveum.midpoint.testing.story.TestTrustedBulkActions
+
+                                TestTrustedBulkActions.FLAG.set()
+                                log.info('executed')
+                            </code>
+                        </s:script>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </nonIterativeScripting>
+        </work>
+    </activity>
+</task>

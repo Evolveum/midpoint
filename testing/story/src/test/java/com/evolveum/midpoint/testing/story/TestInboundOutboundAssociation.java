@@ -81,7 +81,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 
         addObject(TASK_DUMMY_DIR_LIVESYNC_FILE);
         // This is to make sure the 1st run (initializing the token) is executed before Pirates group is created.
-        waitForTaskFinish(TASK_DUMMY_DIR_LIVESYNC_OID, false);
+        waitForTaskFinish(TASK_DUMMY_DIR_LIVESYNC_OID);
 
         importObjectFromFile(USER_MANCOMB_FILE, initResult);
     }

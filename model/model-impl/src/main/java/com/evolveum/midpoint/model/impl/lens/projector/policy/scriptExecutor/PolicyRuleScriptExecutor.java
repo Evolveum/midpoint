@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.model.impl.security.RunAsRunner;
 import com.evolveum.midpoint.model.impl.security.RunAsRunnerFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -64,7 +64,7 @@ public class PolicyRuleScriptExecutor {
     @Autowired ModelObjectResolver modelObjectResolver;
     @Autowired ReferenceResolver referenceResolver;
     @Autowired ExpressionFactory expressionFactory;
-    @Autowired ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired BulkActionsExecutor bulkActionsExecutor;
     @Autowired RunAsRunnerFactory runAsRunnerFactory;
     @Autowired LinkManager linkManager;
 

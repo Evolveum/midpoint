@@ -8,15 +8,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-<div class="d-flex gap-3 m-2">
-    <h3 wicket:id="title" />
-    <div wicket:id="objectType"/>
-    <div>
-        <button wicket:id="configuration" class="btn btn-sm btn-primary mr-1"/>
-        <button wicket:id="createTask" class="btn btn-sm btn-default"/>
+    <div class="d-flex gap-2 m-2 align-items-center">
+        <h3 wicket:id="title" class="m-0"/>
+        <div wicket:id="objectType"/>
+        <div wicket:id="lifecycleState"/>
+        <div wicket:id="configuration"/>
+        <div wicket:id="tasks"/>
+        <div wicket:id="showStatistics" class="ml-auto"/>
     </div>
-    <div wicket:id="showStatistics" class="ml-auto"/>
-</div>
 
     <div class="col-12 mb-4">
         <canvas wicket:id="statistics" width="400" height="80"></canvas>

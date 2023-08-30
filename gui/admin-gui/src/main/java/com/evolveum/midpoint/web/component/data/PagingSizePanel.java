@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -49,7 +50,7 @@ public class PagingSizePanel extends BasePanel<Integer> {
         add(AttributeAppender.append("class", "d-flex flex-nowrap align-items-center paging-size"));
 
         DropDownChoice size = new DropDownChoice(ID_SIZE, createModel(),
-                Model.ofList(Arrays.asList(UserProfileStorage.DEFAULT_PAGING_SIZES)));
+                Model.ofList(getPagingSizes()));
         size.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
@@ -63,6 +64,10 @@ public class PagingSizePanel extends BasePanel<Integer> {
 
     protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
 
+    }
+
+    protected List<Integer> getPagingSizes() {
+        return Arrays.asList(UserProfileStorage.DEFAULT_PAGING_SIZES);
     }
 
     @Override
@@ -84,12 +89,15 @@ public class PagingSizePanel extends BasePanel<Integer> {
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
-                if (tableId == null || !tablePanel.enableSavePageSize()) {
-                    tablePanel.setItemsPerPage(o);
-                    return;
+                if (o != null) {
+                    if (tableId == null || !tablePanel.enableSavePageSize()) {
+                        tablePanel.setItemsPerPage(o);
+                        return;
+                    }
+
+                    getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
                 }
 
-                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
             }
 
             @Override

@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.EvaluatedOrphanedTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -52,7 +52,7 @@ public class OrphanedConstraintEvaluator
 
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
-    @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired protected BulkActionsExecutor bulkActionsExecutor;
     @Autowired protected TaskManager taskManager;
 
     @Override

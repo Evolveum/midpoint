@@ -347,7 +347,7 @@ public class TaskActivityManager {
             return null;
         }
         // The origin has no use here; but we need to provide any.
-        ConfigurationItemOrigin origin = ConfigurationItemOrigin.undetermined();
+        ConfigurationItemOrigin origin = ConfigurationItemOrigin.undeterminedSafe();
         var definition = ActivityDefinition.createActivityDefinition(activityDefinitionBean, origin);
         if (definition == null) {
             return null; // Normally should not occur, but let's not fail here.

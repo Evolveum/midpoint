@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -108,7 +110,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
+        setAdditionalBoxCssClasses(IconAndStylesUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
     }
 
     @Override
@@ -121,7 +123,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             collectionView = getObjectCollectionView();
         }
         try {
-            WebComponentUtil.initNewObjectWithReference(getPageBase(),
+            DetailsPageUtil.initNewObjectWithReference(getPageBase(),
                     relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
                             relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
                     getNewObjectReferencesList(collectionView, relation));
@@ -349,7 +351,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private AjaxCompositedIconButton createCreateReportButton(String buttonId) {
         final CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setBasicIcon(WebComponentUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
+        builder.setBasicIcon(IconAndStylesUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
         IconType plusIcon = new IconType();
         plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
         plusIcon.setColor("green");
@@ -543,8 +545,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected void objectDetailsPerformed(O object) {
-        if (WebComponentUtil.hasDetailsPage(object.getClass())) {
-            WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
+        if (DetailsPageUtil.hasDetailsPage(object.getClass())) {
+            DetailsPageUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
         } else {
             error("Could not find proper response page");
             throw new RestartResponseException(getPageBase());

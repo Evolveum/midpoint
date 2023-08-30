@@ -7,26 +7,24 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
 import jakarta.annotation.PostConstruct;
-
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.util.exception.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ModifyActionExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
@@ -38,17 +36,23 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @Component
 public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
-    private static final String NAME = "modify";
     private static final String PARAM_DELTA = "delta";
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, ModifyActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.MODIFY;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
@@ -57,7 +61,8 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
                 PARAM_DELTA, globalResult);
         if (deltaBean == null) {
             Throwable ex = new SchemaException("Found no delta to be applied");
-            processActionException(ex, NAME, null, context); // TODO value for error reporting (3rd parameter)
+            //noinspection ThrowableNotThrown
+            logOrRethrowActionException(ex, null, context); // TODO value for error reporting (2nd parameter)
             context.println("Found no delta to be applied");
             return input;
         }
@@ -74,7 +79,8 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
 
     private void modify(PrismObject<? extends ObjectType> object, boolean dryRun, ModelExecuteOptions options,
             ObjectDeltaType deltaBean, ExecutionContext context, OperationResult result)
-            throws ScriptExecutionException, SchemaException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ObjectDelta<? extends ObjectType> delta = createDelta(object.asObjectable(), deltaBean);
         result.addParam("delta", delta);
 
@@ -94,7 +100,7 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
     }
 
     private ObjectDelta<? extends ObjectType> createDelta(ObjectType object, ObjectDeltaType deltaBean)
-            throws ScriptExecutionException, SchemaException {
+            throws SchemaException {
         ObjectDeltaType deltaBeanClone = deltaBean.clone();
         if (deltaBeanClone.getChangeType() == null) {
             deltaBeanClone.setChangeType(ChangeTypeType.MODIFY);
@@ -105,7 +111,7 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
         if (deltaBeanClone.getObjectType() == null) {
             PrismObjectDefinition<? extends ObjectType> definition = object.asPrismObject().getDefinition();
             if (definition == null) {
-                throw new ScriptExecutionException("No definition for prism object " + object);
+                throw new SchemaException("No definition for prism object " + object);
             }
             deltaBeanClone.setObjectType(definition.getTypeName());
         }
@@ -115,16 +121,5 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
     @Override
     Class<ObjectType> getObjectType() {
         return ObjectType.class;
-    }
-
-    @Override
-    @NotNull
-    String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_MODIFY.getLocalPart();
     }
 }

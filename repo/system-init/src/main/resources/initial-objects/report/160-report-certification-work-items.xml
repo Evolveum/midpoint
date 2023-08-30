@@ -13,7 +13,7 @@
         oid="00000000-0000-0000-0000-000000000160">
     <name>Certification work items report</name>
     <description>Work items created for certification campaign(s).</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
@@ -35,7 +35,7 @@
             <!-- We do sorting on object name. Hence, it is the first column. The campaign name would be more logical as the
                  first one, but we currently cannot sort on both campaign name and object name. And perhaps the primary use
                  case will be reporting on a specific campaign. -->
-            <column>
+            <column id="2">
                 <name>object</name>
                 <path>objectRef</path>
                 <display>
@@ -55,7 +55,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="3">
                 <name>target</name>
                 <path>targetRef</path>
                 <display>
@@ -76,7 +76,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="4">
                 <name>campaignName</name>
                 <display>
                     <label>Campaign</label>
@@ -95,7 +95,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="5">
                 <name>iteration</name>
                 <display>
                     <label>Iteration</label>
@@ -113,7 +113,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="6">
                 <name>stageNumber</name>
                 <display>
                     <label>Stage number</label>
@@ -131,7 +131,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="7">
                 <name>originalAssigneeRef</name>
                 <display>
                     <label>Original assignee</label>
@@ -149,7 +149,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="8">
                 <name>deadline</name>
                 <display>
                     <label>Deadline</label>
@@ -167,7 +167,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="9">
                 <name>assigneeRef</name>
                 <display>
                     <label>Current assignee(s)</label>
@@ -185,7 +185,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="10">
                 <name>escalationLevel</name>
                 <display>
                     <label>Escalation level</label>
@@ -203,7 +203,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="11">
                 <name>performerRef</name>
                 <display>
                     <label>Performer</label>
@@ -221,7 +221,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="12">
                 <name>outcome</name>
                 <display>
                     <label>Outcome</label>
@@ -241,7 +241,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="13">
                 <name>comment</name>
                 <display>
                     <label>Comment</label>
@@ -259,7 +259,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="14">
                 <name>outputChangeTimestamp</name>
                 <display>
                     <label>Last changed on</label>
@@ -277,7 +277,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="15">
                 <name>closeTimestamp</name>
                 <display>
                     <label>Closed on</label>
@@ -300,7 +300,7 @@
             </paging>
             <type>c:AccessCertificationCaseType</type>
         </view>
-        <parameter>
+        <parameter id="16">
             <name>campaignRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:AccessCertificationCampaignType</targetType>
@@ -313,7 +313,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="17">
             <name>stageNumber</name>
             <type>xsd:int</type>
             <display>
@@ -325,7 +325,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="18">
             <name>iteration</name>
             <type>xsd:int</type>
             <display>
@@ -337,7 +337,7 @@
                 </label>
             </display>
         </parameter>
-        <subreport>
+        <subreport id="19">
             <name>workItems</name>
             <type>AccessCertificationWorkItemType</type>
             <expression>

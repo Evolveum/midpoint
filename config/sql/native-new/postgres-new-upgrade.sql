@@ -365,7 +365,7 @@ CREATE TABLE m_task_affected_objects (
     PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
-$aa$)
+$aa$);
 
 call apply_change(20, $aa$
 CREATE TYPE ExecutionModeType AS ENUM ('FULL', 'PREVIEW', 'SHADOW_MANAGEMENT_PREVIEW', 'DRY_RUN', 'NONE', 'BUCKET_ANALYSIS');
@@ -374,7 +374,58 @@ CREATE TYPE PredefinedConfigurationType AS ENUM ( 'PRODUCTION', 'DEVELOPMENT' );
 ALTER TABLE m_task_affected_objects
   ADD COLUMN executionMode ExecutionModeType,
   ADD COLUMN predefinedConfigurationToUse PredefinedConfigurationType;
-$aa$)
+$aa$);
+
+call apply_change(21, $aa$
+ALTER TABLE m_user
+  ADD COLUMN personalNumber TEXT;
+$aa$);
+
+
+-- Role Mining --
+
+call apply_change(22, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_CLUSTER' AFTER 'ROLE';
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_SESSION' AFTER 'ROLE_ANALYSIS_CLUSTER';
+$aa$);
+
+call apply_change(23, $aa$
+CREATE TABLE m_role_analysis_cluster (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_CLUSTER') STORED
+        CHECK (objectType = 'ROLE_ANALYSIS_CLUSTER'),
+        parentRefTargetOid UUID,
+        parentRefTargetType ObjectType,
+        parentRefRelationId INTEGER REFERENCES m_uri(id)
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_role_analysis_cluster_oid_insert_tr BEFORE INSERT ON m_role_analysis_cluster
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_role_analysis_cluster_update_tr BEFORE UPDATE ON m_role_analysis_cluster
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_role_analysis_cluster_oid_delete_tr AFTER DELETE ON m_role_analysis_cluster
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_role_analysis_cluster_parentRefTargetOid_idx ON m_role_analysis_cluster (parentRefTargetOid);
+CREATE INDEX m_role_analysis_cluster_parentRefTargetType_idx ON m_role_analysis_cluster (parentRefTargetType);
+CREATE INDEX m_role_analysis_cluster_parentRefRelationId_idx ON m_role_analysis_cluster (parentRefRelationId);
+
+
+CREATE TABLE m_role_analysis_session (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_SESSION') STORED
+        CHECK (objectType = 'ROLE_ANALYSIS_SESSION')
+        )
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_role_analysis_session_oid_insert_tr BEFORE INSERT ON m_role_analysis_session
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_role_analysis_session_update_tr BEFORE UPDATE ON m_role_analysis_session
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_role_analysis_session_oid_delete_tr AFTER DELETE ON m_role_analysis_session
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+$aa$);
 
 
 ---

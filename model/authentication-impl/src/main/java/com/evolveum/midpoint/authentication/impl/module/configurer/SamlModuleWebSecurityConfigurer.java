@@ -12,10 +12,10 @@ import java.util.Collections;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointMetadataRelyingPartyRegistrationResolver;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LoginConfigurer;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LogoutRequestResolver;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2LogoutRequestSuccessHandler;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointMetadataRelyingPartyRegistrationResolver;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointSaml2LoginConfigurer;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointSaml2LogoutRequestResolver;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointSaml2LogoutRequestSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlModuleWebSecurityConfiguration;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2AuthenticationModuleType;

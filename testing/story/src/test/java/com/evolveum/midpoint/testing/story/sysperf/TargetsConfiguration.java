@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 
+import com.evolveum.midpoint.test.TestObject;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
@@ -132,9 +134,9 @@ class TargetsConfiguration {
     private void generateRoleTargets() {
         List<String> targetOidList = generatedResources.stream()
                 .map(r -> r.oid)
-                .collect(Collectors.toList());
+                .toList();
         VelocityGenerator.generate(
-                ROLE_TARGETS_TEMPLATE_FILE, ROLE_TARGETS.getFile(),
+                ROLE_TARGETS_TEMPLATE_FILE, ((TestObject.FileBasedTestObjectSource) ROLE_TARGETS.source).getFile(),
                 Map.of("oidList", targetOidList));
     }
 

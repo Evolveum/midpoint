@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class FocusTriggersCounter<F extends FocusType> extends SimpleCounter<FocusDetailsModels<F>, F> {

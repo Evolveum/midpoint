@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,30 +47,30 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "000-system-configuration.xml");
 
-    private static final TestResource<FunctionLibraryType> FUNCTION_LIBRARY_IDMATCH =
-            new TestResource<>(TEST_DIR, "005-function-library.xml", "c4b1f289-e45a-4788-9c53-00601e1c8ed2");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PROGRAM =
-            new TestResource<>(TEST_DIR, "011-archetype-program.xml", "cc5626d8-1347-46b9-971d-f03dc129991e");
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_PERSON =
-            new TestResource<>(TEST_DIR, "020-object-template-person.xml", "81268f26-d4e5-4a32-8318-4b0f7b0c9a20");
-    private static final TestResource<ArchetypeType> ARCHETYPE_PERSON =
-            new TestResource<>(TEST_DIR, "021-archetype-person.xml", "eaf32546-3584-46e9-bdb8-2efbd7ecac47");
-    private static final TestResource<OrgType> ORG_PROGRAMS =
-            new TestResource<>(TEST_DIR, "030-org-programs.xml", "d62065fb-651a-453f-9884-67d271e1fc2b");
-    private static final TestResource<OrgType> ORG_PROGRAM_BIOCH =
-            new TestResource<>(TEST_DIR, "034-org-program-bioch.xml", "233e78b7-9db8-4503-8d71-6ebf60d9329b");
-    private static final TestResource<OrgType> ORG_PROGRAM_COMP_BIO =
-            new TestResource<>(TEST_DIR, "035-org-program-comp-bio.xml", "083de604-23fd-4d1f-82e0-6c66b448440d");
-    private static final TestResource<OrgType> ORG_PROGRAM_E_ENG =
-            new TestResource<>(TEST_DIR, "036-org-program-e-eng.xml", "ed0b9007-c851-4686-80aa-d9970032e0cb");
-    private static final TestResource<OrgType> ORG_PROGRAM_MAT_ENG =
-            new TestResource<>(TEST_DIR, "037-org-program-mat-eng.xml", "d025526d-8025-44de-a5ed-9d8068beed47");
-    private static final TestResource<OrgType> ORG_PROGRAM_MATH =
-            new TestResource<>(TEST_DIR, "038-org-program-math.xml", "d0bbb2a8-3835-46dd-850f-f6c4ec034de0");
-    private static final TestResource<OrgType> ORG_PROGRAM_SW_ENG =
-            new TestResource<>(TEST_DIR, "039-org-program-sw-eng.xml", "0406dab5-3e86-451e-acc3-3ccfda892115");
-    private static final TestResource<OrgType> ORG_PROGRAM_SW_ENG_DOCTORAL =
-            new TestResource<>(TEST_DIR, "040-org-program-sw-eng-doctoral.xml", "474c95ce-59f0-4104-8a64-f3d0406234f0");
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_IDMATCH =
+            TestObject.file(TEST_DIR, "005-function-library.xml", "c4b1f289-e45a-4788-9c53-00601e1c8ed2");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PROGRAM =
+            TestObject.file(TEST_DIR, "011-archetype-program.xml", "cc5626d8-1347-46b9-971d-f03dc129991e");
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_PERSON =
+            TestObject.file(TEST_DIR, "020-object-template-person.xml", "81268f26-d4e5-4a32-8318-4b0f7b0c9a20");
+    private static final TestObject<ArchetypeType> ARCHETYPE_PERSON =
+            TestObject.file(TEST_DIR, "021-archetype-person.xml", "eaf32546-3584-46e9-bdb8-2efbd7ecac47");
+    private static final TestObject<OrgType> ORG_PROGRAMS =
+            TestObject.file(TEST_DIR, "030-org-programs.xml", "d62065fb-651a-453f-9884-67d271e1fc2b");
+    private static final TestObject<OrgType> ORG_PROGRAM_BIOCH =
+            TestObject.file(TEST_DIR, "034-org-program-bioch.xml", "233e78b7-9db8-4503-8d71-6ebf60d9329b");
+    private static final TestObject<OrgType> ORG_PROGRAM_COMP_BIO =
+            TestObject.file(TEST_DIR, "035-org-program-comp-bio.xml", "083de604-23fd-4d1f-82e0-6c66b448440d");
+    private static final TestObject<OrgType> ORG_PROGRAM_E_ENG =
+            TestObject.file(TEST_DIR, "036-org-program-e-eng.xml", "ed0b9007-c851-4686-80aa-d9970032e0cb");
+    private static final TestObject<OrgType> ORG_PROGRAM_MAT_ENG =
+            TestObject.file(TEST_DIR, "037-org-program-mat-eng.xml", "d025526d-8025-44de-a5ed-9d8068beed47");
+    private static final TestObject<OrgType> ORG_PROGRAM_MATH =
+            TestObject.file(TEST_DIR, "038-org-program-math.xml", "d0bbb2a8-3835-46dd-850f-f6c4ec034de0");
+    private static final TestObject<OrgType> ORG_PROGRAM_SW_ENG =
+            TestObject.file(TEST_DIR, "039-org-program-sw-eng.xml", "0406dab5-3e86-451e-acc3-3ccfda892115");
+    private static final TestObject<OrgType> ORG_PROGRAM_SW_ENG_DOCTORAL =
+            TestObject.file(TEST_DIR, "040-org-program-sw-eng-doctoral.xml", "474c95ce-59f0-4104-8a64-f3d0406234f0");
 
     private static final CsvTestResource RESOURCE_SIS = new CsvTestResource(TEST_DIR, "resource-sis.xml",
             "afb142f9-2218-491a-8b99-ce5713ca424d", "resource-sis.csv",

@@ -31,6 +31,8 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     private FocusType preFocus;
     private Map<ItemPath, String> processedAttributes = new HashMap<>();
 
+    private Integer correlationMaxUsersNumber;
+
     public CorrelationModuleAuthenticationImpl(AuthenticationSequenceModuleType sequenceModule) {
         super(AuthenticationModuleNameConstants.CORRELATION, sequenceModule);
         setType(ModuleType.LOCAL);
@@ -41,13 +43,14 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         CorrelationModuleAuthenticationImpl module = new CorrelationModuleAuthenticationImpl(this.getSequenceModule());
         module.setAuthentication(this.getAuthentication());
         module.setCorrelators(this.correlators);
+        module.setCorrelationMaxUsersNumber(this.correlationMaxUsersNumber);
         super.clone(module);
         return module;
     }
 
     public void setCorrelators(List<CorrelationModuleConfigurationType> correlators) {
-        //todo sort by order
         this.correlators = correlators;
+        sortCorrelators();
     }
 
     @Override
@@ -105,4 +108,28 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         return preFocus;
     }
 
+    public boolean isCorrelationMaxUsersNumberSet() {
+        return correlationMaxUsersNumber != null;
+    }
+
+    public Integer getCorrelationMaxUsersNumber() {
+        return correlationMaxUsersNumber;
+    }
+
+    public void setCorrelationMaxUsersNumber(Integer correlationMaxUsersNumber) {
+        this.correlationMaxUsersNumber = correlationMaxUsersNumber;
+    }
+
+    private void sortCorrelators() {
+        if (correlators != null && correlators.size() > 2) {
+            correlators.sort(this::compareCorrelatorsByOrder);
+        }
+    }
+
+    private int compareCorrelatorsByOrder(CorrelationModuleConfigurationType module1, CorrelationModuleConfigurationType module2) {
+        int order1 = module1.getOrder();
+        int order2 = module2.getOrder();
+
+        return Integer.compare(order1, order2);
+    }
 }

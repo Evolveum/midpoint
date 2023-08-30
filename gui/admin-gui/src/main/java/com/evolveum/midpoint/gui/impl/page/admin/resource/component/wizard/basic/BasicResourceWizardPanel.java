@@ -9,11 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -94,9 +94,10 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
 
         PrismObject<ConnectorType> connector = WebModelServiceUtils.loadObject(getAssignmentHolderModel().getObjectType().getConnectorRef(), getPageBase());
 
+        CapabilityCollectionType capabilities
+                = ProvisioningObjectsUtil.getNativeCapabilities(getAssignmentHolderModel().getObjectType(), getPageBase());
+
         if (connector != null && SchemaConstants.ICF_FRAMEWORK_URI.equals(connector.asObjectable().getFramework())) {
-            CapabilityCollectionType capabilities
-                    = WebComponentUtil.getNativeCapabilities(getAssignmentHolderModel().getObjectType(), getPageBase());
 
             if (capabilities.getDiscoverConfiguration() != null) {
                 steps.add(new PartialConfigurationStepPanel(getAssignmentHolderModel()));
@@ -108,7 +109,7 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
                     }
                 });
             } else {
-                steps.add(new ConfigurationStepPanel(getAssignmentHolderModel()) {
+                steps.add(new ConfigurationStepPanel(getAssignmentHolderModel(), true) {
                     @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
                         target.add(getFeedback());
@@ -116,17 +117,25 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
                     }
                 });
             }
+        } else {
+            steps.add(new ConfigurationStepPanel(getAssignmentHolderModel(), false) {
+                @Override
+                protected void onSubmitPerformed(AjaxRequestTarget target) {
+                    target.add(getFeedback());
+                    BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
+                }
+            });
+        }
 
-            if (capabilities.getSchema() != null) {
-                steps.add(new SelectObjectClassesStepPanel(getAssignmentHolderModel()) {
-                    @Override
-                    protected void onSubmitPerformed(AjaxRequestTarget target) {
-                        target.add(getFeedback());
-                        super.onSubmitPerformed(target);
-                        BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
-                    }
-                });
-            }
+        if (capabilities.getSchema() != null) {
+            steps.add(new SelectObjectClassesStepPanel(getAssignmentHolderModel()) {
+                @Override
+                protected void onSubmitPerformed(AjaxRequestTarget target) {
+                    target.add(getFeedback());
+                    super.onSubmitPerformed(target);
+                    BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
+                }
+            });
         }
 
         return steps;

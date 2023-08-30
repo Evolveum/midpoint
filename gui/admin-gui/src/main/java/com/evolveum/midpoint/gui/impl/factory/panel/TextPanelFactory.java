@@ -61,7 +61,7 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
 
         Collection<? extends DisplayableValue<T>> allowedValues = panelCtx.getAllowedValues();
         if (CollectionUtils.isNotEmpty(allowedValues)) {
-            IModel<List<DisplayableValue<T>>> choices = Model.ofList(allowedValues.stream().collect(Collectors.toCollection(ArrayList::new)));
+            IModel<List<DisplayableValue<T>>> choices = Model.ofList(new ArrayList<>(allowedValues));
             IModel convertModel = new IModel<DisplayableValue<T>>(){
                 @Override
                 public DisplayableValue<T> getObject() {

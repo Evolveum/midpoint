@@ -22,8 +22,6 @@ import java.util.function.Supplier;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.test.ReportTestUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,7 +32,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -44,14 +42,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestCsvReportImportClassic extends TestCsvReport {
 
-    private static final TestResource<TaskType> TASK_IMPORT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
+    private static final TestObject<TaskType> TASK_IMPORT_CLASSIC = TestObject.file(TEST_DIR_REPORTS,
             "task-import.xml", "ebc7b177-7ce1-421b-8fb2-94ecd6980f12");
 
-    private static final TestResource<ReportType> REPORT_IMPORT_USERS_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
+    private static final TestObject<ReportType> REPORT_IMPORT_USERS_CLASSIC = TestObject.file(TEST_DIR_REPORTS,
             "report-import-object-collection-with-view.xml", "2b77aa2e-dd86-4842-bcf5-762c8a9a85de");
-    private static final TestResource<ReportType> REPORT_REIMPORT_USERS_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
+    private static final TestObject<ReportType> REPORT_REIMPORT_USERS_CLASSIC = TestObject.file(TEST_DIR_REPORTS,
             "report-object-collection-with-condition.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a851a");
-    private static final TestResource<ReportType> REPORT_IMPORT_WITH_SCRIPT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
+    private static final TestObject<ReportType> REPORT_IMPORT_WITH_SCRIPT_CLASSIC = TestObject.file(TEST_DIR_REPORTS,
             "report-with-import-script.xml", "2b44aa2e-dd86-4842-bcf5-762c8c4a851a");
 
     private static final String REPORT_DATA_TEST100_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a8588";
@@ -59,7 +57,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
     private static final String REPORT_DATA_TEST102_OID = "3b77aa2e-dd86-4842-bcf5-762c8a9a8588";
 
     private static final String IMPORT_USERS_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-users.csv";
-    public static final String IMPORT_MODIFY_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-modify-user.csv";
+    private static final String IMPORT_MODIFY_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-modify-user.csv";
 
     // Needed by the import (to proceed without warnings)
     private static final File ROLE_END_USER_FILE = new File(TEST_DIR_COMMON, "role-end-user.xml");
@@ -143,7 +141,9 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         addObject(OBJECT_COLLECTION_ALL_USERS, task, result);
         addObject(REPORT_REIMPORT_USERS_CLASSIC, task, result);
         runExportTaskClassic(REPORT_REIMPORT_USERS_CLASSIC, result);
-        PrismObject<UserType> oldWill = getObject(UserType.class, USER_WILL.oid);
+        PrismObject<UserType> oldWillUser = getObject(UserType.class, USER_WILL.oid);
+        assertNotNull("No user will", oldWillUser);
+        UserType oldWill = oldWillUser.asObjectable();
 
         waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
         assertTask(TASK_EXPORT_CLASSIC.oid, "after")
@@ -181,13 +181,14 @@ public class TestCsvReportImportClassic extends TestCsvReport {
                 .assertSuccess()
                 .display();
 
-        PrismObject<UserType> newWill = searchObjectByName(UserType.class, "will");
-        assertNotNull("User will was not created", newWill);
-        assertThat(newWill.asObjectable().getTelephoneNumber()).isNull();
-        assertEquals(oldWill.asObjectable().getGivenName(), newWill.asObjectable().getGivenName());
-        assertEquals(oldWill.asObjectable().getFamilyName(), newWill.asObjectable().getFamilyName());
-        assertEquals(oldWill.asObjectable().getFullName(), newWill.asObjectable().getFullName());
-        assertEquals(oldWill.asObjectable().getEmailAddress(), newWill.asObjectable().getEmailAddress());
+        PrismObject<UserType> newWillUser = searchObjectByName(UserType.class, "will");
+        assertNotNull("User will was not created", newWillUser);
+        UserType newWill = newWillUser.asObjectable();
+        assertThat(newWill.getTelephoneNumber()).isNull();
+        assertEquals(oldWill.getPersonalNumber(), newWill.getPersonalNumber());
+        assertEquals("123456", newWill.getPersonalNumber());
+        assertEquals(oldWill.getFullName(), newWill.getFullName());
+        assertEquals(oldWill.getEmailAddress(), newWill.getEmailAddress());
     }
 
     /** This removes the last line with subscription appeal. */
@@ -268,7 +269,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         assertEquals(validTo, jack.asObjectable().getAssignment().get(0).getActivation().getValidTo());
     }
 
-    private void runImportTask(TestResource<ReportType> reportResource, String reportDataOid, OperationResult result) throws CommonException {
+    private void runImportTask(TestObject<ReportType> reportResource, String reportDataOid, OperationResult result) throws CommonException {
         changeImportReport(reportResource, reportDataOid);
         rerunTask(TASK_IMPORT_CLASSIC.oid, result);
     }
@@ -281,7 +282,7 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         }
     }
 
-    private void changeImportReport(TestResource<ReportType> reportResource, String reportDataOid) throws CommonException {
+    private void changeImportReport(TestObject<ReportType> reportResource, String reportDataOid) throws CommonException {
         changeTaskReport(reportResource,
                 ItemPath.create(TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,

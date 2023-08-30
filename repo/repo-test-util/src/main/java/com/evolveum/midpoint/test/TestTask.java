@@ -87,13 +87,13 @@ public class TestTask extends TestObject<TaskType> {
     public void rerun(OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, true, startTime, defaultTimeout, false);
+        test.waitForTaskFinish(oid, startTime, defaultTimeout, false);
     }
 
     public void rerunErrorsOk(OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, true, startTime, defaultTimeout, true);
+        test.waitForTaskFinish(oid, startTime, defaultTimeout, true);
     }
 
     public void restart(OperationResult result) throws CommonException {
@@ -128,6 +128,6 @@ public class TestTask extends TestObject<TaskType> {
     public void resumeAndWaitForFinish(OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
         resume(result);
-        test.waitForTaskFinish(oid, true, startTime, defaultTimeout, true);
+        test.waitForTaskFinish(oid, startTime, defaultTimeout, true);
     }
 }

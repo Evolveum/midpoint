@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.
 import java.io.File;
 import java.util.Map;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 class RecomputationConfiguration {
@@ -27,7 +27,7 @@ class RecomputationConfiguration {
 
     private final int threads;
 
-    private final TestResource<TaskType> generatedTask;
+    private final TestObject<TaskType> generatedTask;
 
     private RecomputationConfiguration() {
         threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
@@ -38,7 +38,7 @@ class RecomputationConfiguration {
         return threads;
     }
 
-    TestResource<TaskType> getGeneratedTask() {
+    TestObject<TaskType> getGeneratedTask() {
         return generatedTask;
     }
 
@@ -55,8 +55,8 @@ class RecomputationConfiguration {
         return configuration;
     }
 
-    private TestResource<TaskType> generateTask() {
-        return new TestResource<>(TARGET_DIR, createFile(), RECOMPUTE_TASK_OID);
+    private TestObject<TaskType> generateTask() {
+        return TestObject.file(TARGET_DIR, createFile(), RECOMPUTE_TASK_OID);
     }
 
     private String createFile() {

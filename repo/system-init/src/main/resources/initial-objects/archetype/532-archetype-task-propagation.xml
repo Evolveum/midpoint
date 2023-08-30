@@ -26,11 +26,11 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="1">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="2">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="3">
                             <identifier>work-propagation</identifier>
                             <path>activity/work/propagation</path>
                         </container>
@@ -39,14 +39,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="4">
+        <assignmentRelation id="5">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="6">
         <focusMappings>
-            <mapping>
+            <mapping id="7">
                 <strength>weak</strength>
                 <expression>
                     <script>

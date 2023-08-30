@@ -68,3 +68,15 @@
   background-color:rgba($red, .2);
   color: $red;
 }
+
+.gap-2h {
+    gap: 0.75rem!important;
+}
+
+//Extra smooth transition function with importance flag
+@mixin smooth-transition($duration, $important: "") {
+  $important-flag: if($important == "important", ' !important', '');
+
+  transition: all ease $duration#{$important-flag};
+  -webkit-transition: all ease $duration#{$important-flag};
+}

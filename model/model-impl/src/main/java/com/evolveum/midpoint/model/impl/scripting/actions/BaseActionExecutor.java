@@ -9,18 +9,12 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
-import com.evolveum.midpoint.schema.AccessDecision;
-import com.evolveum.midpoint.schema.statistics.Operation;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.scripting.*;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
@@ -33,13 +27,16 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,7 +50,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseActionExecutor.class);
 
-    @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired protected BulkActionsExecutor bulkActionsExecutor;
     @Autowired protected PrismContext prismContext;
     @Autowired protected OperationsHelper operationsHelper;
     @Autowired protected ExpressionFactory expressionFactory;
@@ -64,7 +61,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @Autowired protected SecurityContextManager securityContextManager;
     @Autowired protected TaskService taskService;
     @Autowired @Qualifier("cacheRepositoryService") protected RepositoryService cacheRepositoryService;
-    @Autowired protected ScriptingActionExecutorRegistry actionExecutorRegistry;
+    @Autowired protected BulkActionExecutorRegistry actionExecutorRegistry;
     @Autowired protected MidpointFunctions midpointFunctions;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
@@ -72,17 +69,11 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
     /**
      * Returns the name used to invoke this action in a dynamic way, e.g. `execute-script`, `generate-value`, etc.
-     *
-     * TODO should we really call this "legacy"? Not all actions have their "modern" names.
+     * This is currently considered to be the "canonical" name.
      * */
-    abstract @NotNull String getLegacyActionName();
-
-    /**
-     * Returns the name used to invoke this action in a static way, e.g. `execute`, `generateValue`, etc.
-     *
-     * Not all actions have such a name; e.g. `reencrypt` has not.
-     */
-    abstract @Nullable String getConfigurationElementName();
+    @NotNull String getName() {
+        return getActionType().getName();
+    }
 
     private String optionsSuffix(ModelExecuteOptions options) {
         return options.notEmpty() ? " " + options : "";
@@ -100,22 +91,47 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         return t != null ? " (error: " + t.getClass().getSimpleName() + ": " + t.getMessage() + ")" : "";
     }
 
-    Throwable processActionException(Throwable e, String actionName, PrismValue value, ExecutionContext context)
-            throws ScriptExecutionException {
+    @SuppressWarnings("RedundantThrows") // Due to MiscUtil.throwAsSame hack
+    Throwable logOrRethrowActionException(Throwable e, PrismValue value, ExecutionContext context)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (context.isContinueOnAnyError()) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute action '{}' on {}: {}", e,
-                    actionName, value, e.getMessage());
+                    getName(), value, e.getMessage());
             return e;
         } else {
-            throw new ScriptExecutionException(
-                    "Couldn't execute action '" + actionName + "' on " + value + ": " + e.getMessage(),
-                    e);
+            // UnsupportedOperationException is often used when the specific action is not supported for given input
+            if (e instanceof SchemaException
+                    || e instanceof ObjectNotFoundException
+                    || e instanceof ObjectAlreadyExistsException
+                    || e instanceof SecurityViolationException
+                    || e instanceof PolicyViolationException
+                    || e instanceof CommunicationException
+                    || e instanceof ConfigurationException
+                    || e instanceof ExpressionEvaluationException
+                    || e instanceof UnsupportedOperationException) {
+                MiscUtil.throwAsSame(e, getExceptionMessage(e, value));
+                throw new NotHereAssertionError();
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else if (e instanceof Error) {
+                throw (Error) e;
+            } else {
+                throw new SystemException(getExceptionMessage(e, value), e);
+            }
         }
+    }
+
+    @NotNull
+    private String getExceptionMessage(Throwable e, PrismValue value) {
+        return "Couldn't execute action '" + getName() + "' on " + value + ": " + e.getMessage();
     }
 
     @FunctionalInterface
     public interface ItemProcessor {
-        void process(PrismValue value, PipelineItem item, OperationResult result) throws CommonException;
+        void process(PrismValue value, PipelineItem item, OperationResult result)
+                throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+                PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     }
 
     @FunctionalInterface
@@ -123,9 +139,11 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         void write(PrismValue value, @NotNull Throwable exception);
     }
 
-    void iterateOverItems(PipelineData input, ExecutionContext context, OperationResult globalResult,
+    void iterateOverItems(
+            PipelineData input, ExecutionContext context, OperationResult globalResult,
             ItemProcessor itemProcessor, ConsoleFailureMessageWriter writer)
-            throws ScriptExecutionException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         for (PipelineItem item : input.getData()) {
             PrismValue value = item.getValue();
@@ -145,7 +163,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             } catch (Throwable ex) {
                 result.recordFatalError(ex);
                 operationsHelper.recordEnd(context, op, ex, result);
-                Throwable exception = processActionException(ex, getLegacyActionName(), value, context);
+                Throwable exception = logOrRethrowActionException(ex, value, context);
                 writer.write(value, exception);
             } finally {
                 result.close();
@@ -183,15 +201,18 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     }
 
     @Override
-    public void checkExecutionAllowed(ExecutionContext context) throws SecurityViolationException {
+    public void checkExecutionAllowed(ExecutionContext context, OperationResult result)
+            throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
 
         var expressionProfile = context.getExpressionProfile();
         var scriptingProfile = expressionProfile.getScriptingProfile();
 
-        String legacyName = getLegacyActionName();
-        String modernName = getConfigurationElementName();
+        BulkAction actionType = getActionType();
+        @NotNull String legacyName = actionType.getName();
+        @Nullable String modernName = actionType.getBeanLocalName();
         var decision = scriptingProfile.decideActionAccess(legacyName, modernName);
-        var names = modernName != null ?
+        var names = modernName != null && !legacyName.equals(modernName) ?
                 "'%s' ('%s')".formatted(legacyName, modernName) :
                 "'%s'".formatted(legacyName);
 
@@ -204,5 +225,11 @@ public abstract class BaseActionExecutor implements ActionExecutor {
                                     expressionProfile.getIdentifier(),
                                     scriptingProfile.getIdentifier()));
         }
+
+        bulkActionsExecutor.authorizeBulkActionExecution(
+                actionType,
+                context.getExecutionPhase(),
+                context.getTask(),
+                result);
     }
 }

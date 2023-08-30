@@ -44,7 +44,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.CheckedRunnable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -68,9 +68,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private static final File METAROLE_DEFAULT_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
     private static final File METAROLE_SECURITY_FILE = new File(TEST_RESOURCE_DIR, "metarole-security.xml");
-    private static final TestResource<ObjectType> METAROLE_ADMINISTRATOR_APPROVAL = new TestResource<>(
+    private static final TestObject<ObjectType> METAROLE_ADMINISTRATOR_APPROVAL = TestObject.file(
             TEST_RESOURCE_DIR, "metarole-administrator-approval.xml", "715dc3b6-eb2c-4cc8-b2bf-0f7968bbc52a");
-    private static final TestResource<ObjectType> METAROLE_ADMINISTRATOR_APPROVAL_IDEMPOTENT = new TestResource<>(
+    private static final TestObject<ObjectType> METAROLE_ADMINISTRATOR_APPROVAL_IDEMPOTENT = TestObject.file(
             TEST_RESOURCE_DIR, "metarole-administrator-approval-idempotent.xml", "00586339-50f0-4aa8-aa0a-d600810f6577");
 
     private static final File ROLE_ROLE21_FILE = new File(TEST_RESOURCE_DIR, "role-role21-standard.xml");
@@ -82,26 +82,26 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final File ROLE_ROLE27_FILE = new File(TEST_RESOURCE_DIR, "role-role27-modifications-and.xml");
     private static final File ROLE_ROLE28_FILE = new File(TEST_RESOURCE_DIR, "role-role28-modifications-or.xml");
     private static final File ROLE_ROLE29_FILE = new File(TEST_RESOURCE_DIR, "role-role29-modifications-no-items.xml");
-    private static final TestResource<RoleType> ROLE_EXTENSION_PROPERTY_MOD_APPROVAL = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_EXTENSION_PROPERTY_MOD_APPROVAL = TestObject.file(
             TEST_RESOURCE_DIR, "role-extension-property-mod-approval.xml", "60459cec-7bdb-4872-99ae-65063c9c2e82");
 
-    private static final TestResource<ObjectType> ROLE_SKIPPED_FILE = new TestResource<>(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
-    private static final TestResource<RoleType> ROLE_APPROVE_UNASSIGN = new TestResource<>(TEST_RESOURCE_DIR, "role-approve-unassign.xml", "3746aa73-ae91-4326-8493-f5ac5b22f3b6");
+    private static final TestObject<ObjectType> ROLE_SKIPPED_FILE = TestObject.file(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
+    private static final TestObject<RoleType> ROLE_APPROVE_UNASSIGN = TestObject.file(TEST_RESOURCE_DIR, "role-approve-unassign.xml", "3746aa73-ae91-4326-8493-f5ac5b22f3b6");
 
-    private static final TestResource<ObjectType> ROLE_IDEMPOTENT = new TestResource<>(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
-    private static final TestResource<ObjectType> ROLE_WITH_IDEMPOTENT_METAROLE = new TestResource<>(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
+    private static final TestObject<ObjectType> ROLE_IDEMPOTENT = TestObject.file(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
+    private static final TestObject<ObjectType> ROLE_WITH_IDEMPOTENT_METAROLE = TestObject.file(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
 
     private static final File ORG_LEADS2122_FILE = new File(TEST_RESOURCE_DIR, "org-leads2122.xml");
 
-    private static final TestResource<RoleType> ROLE_BEING_ENABLED = new TestResource<>(TEST_RESOURCE_DIR, "role-being-enabled.xml", "4fcf187a-09b7-4d32-b998-9cd978195a82");
-    private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_ENABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-enabled.xml", "c6f7ddbe-a596-4a53-8acf-e03282f3da33");
-    private static final TestResource<UserType> USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-approver-of-role-being-enabled-and-disabled.xml", "39764050-fbd8-4746-a8a6-cb9141ae31ae");
+    private static final TestObject<RoleType> ROLE_BEING_ENABLED = TestObject.file(TEST_RESOURCE_DIR, "role-being-enabled.xml", "4fcf187a-09b7-4d32-b998-9cd978195a82");
+    private static final TestObject<UserType> USER_HOLDER_OF_ROLE_BEING_ENABLED = TestObject.file(TEST_RESOURCE_DIR, "user-holder-of-role-being-enabled.xml", "c6f7ddbe-a596-4a53-8acf-e03282f3da33");
+    private static final TestObject<UserType> USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED = TestObject.file(TEST_RESOURCE_DIR, "user-approver-of-role-being-enabled-and-disabled.xml", "39764050-fbd8-4746-a8a6-cb9141ae31ae");
 
-    private static final TestResource<RoleType> ROLE_BEING_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "role-being-disabled.xml", "4835efdc-6fee-438b-bb09-fd428a200dbb");
-    private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled.xml", "586fc857-71d8-4906-a61d-46ba7941be00");
+    private static final TestObject<RoleType> ROLE_BEING_DISABLED = TestObject.file(TEST_RESOURCE_DIR, "role-being-disabled.xml", "4835efdc-6fee-438b-bb09-fd428a200dbb");
+    private static final TestObject<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED = TestObject.file(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled.xml", "586fc857-71d8-4906-a61d-46ba7941be00");
 
-    private static final TestResource<RoleType> ROLE_BEING_DISABLED_WITH_APPROVAL = new TestResource<>(TEST_RESOURCE_DIR, "role-being-disabled-with-approval.xml", "04c8d15f-da0a-4553-9b43-af835a7c8b82");
-    private static final TestResource<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL = new TestResource<>(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled-with-approval.xml", "411258e6-191b-4957-95d3-86b6e25024d3");
+    private static final TestObject<RoleType> ROLE_BEING_DISABLED_WITH_APPROVAL = TestObject.file(TEST_RESOURCE_DIR, "role-being-disabled-with-approval.xml", "04c8d15f-da0a-4553-9b43-af835a7c8b82");
+    private static final TestObject<UserType> USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL = TestObject.file(TEST_RESOURCE_DIR, "user-holder-of-role-being-disabled-with-approval.xml", "411258e6-191b-4957-95d3-86b6e25024d3");
 
     private static final File USER_LEAD21_FILE = new File(TEST_RESOURCE_DIR, "user-lead21.xml");
     private static final File USER_LEAD22_FILE = new File(TEST_RESOURCE_DIR, "user-lead22.xml");

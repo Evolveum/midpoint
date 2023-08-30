@@ -17,7 +17,7 @@ import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExce
 import com.evolveum.midpoint.authentication.impl.module.configuration.JwtOidcResourceServerConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OpaqueTokenOidcResourceServerConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configuration.RemoteModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.oidc.OidcBearerTokenAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.oidc.OidcBearerTokenAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.provider.OidcResourceServerProvider;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.security.api.SecurityContextManager;

@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.commons.csv.CSVFormat;
@@ -103,8 +104,8 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         try {
             UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeItems);
             for (PrismObject object : objects) {
-                boolean changedOne = executor.execute(object);
-                if (changedOne) {
+                UpgradeObjectResult result = executor.execute(object);
+                if (result == UpgradeObjectResult.UPDATED) {
                     changed = true;
                 }
             }

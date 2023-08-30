@@ -12,12 +12,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.model.api.BulkAction;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -27,7 +29,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AssignActionExpressionType;
 
@@ -51,8 +52,6 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignExecutor.class);
 
-    private static final String NAME = "assign";
-
     /**
      * These are "purified" parameters: targets and constructions to assign.
      * They are created by merging dynamically and statically defined parameters, resolving
@@ -65,13 +64,19 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
 
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, AssignActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    AssignParameters parseParameters(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult result) throws SchemaException, ScriptExecutionException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.ASSIGN;
+    }
+
+    @Override
+    AssignParameters parseParameters(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         AssignParameters parameters = new AssignParameters();
 
@@ -213,15 +218,5 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
                 .item(AssignmentHolderType.F_ASSIGNMENT)
                     .addRealValues(assignmentsToAdd)
                 .asObjectDelta(object.getOid());
-    }
-
-    @Override
-    protected @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_ASSIGN.getLocalPart();
     }
 }

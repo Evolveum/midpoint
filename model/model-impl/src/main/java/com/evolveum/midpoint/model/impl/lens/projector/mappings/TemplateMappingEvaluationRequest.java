@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.OriginProvider;
+import com.evolveum.midpoint.schema.config.ObjectTemplateMappingConfigItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
@@ -20,15 +20,11 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 public class TemplateMappingEvaluationRequest
         extends FocalMappingEvaluationRequest<ObjectTemplateMappingType, ObjectTemplateType> {
 
-    /**
-     * The caller is responsible that the mapping either physically resides in the template, or is artificially created.
-     */
     public TemplateMappingEvaluationRequest(
-            @NotNull ObjectTemplateMappingType mapping,
+            @NotNull ObjectTemplateMappingConfigItem mappingConfigItem,
             @NotNull ObjectTemplateType objectTemplate) {
-        super(
-                mapping,
-                ConfigurationItemOrigin.embedded(mapping, OriginProvider.generated()),
+        super(mappingConfigItem.value(),
+                mappingConfigItem.origin(), // [EP:M:TFM] DONE 4/4
                 MappingKindType.TEMPLATE,
                 objectTemplate);
     }

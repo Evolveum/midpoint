@@ -53,22 +53,22 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
         return 10;
     }
 
-    @Override
-    protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper parent, PrismContainerValue value) {
-        List<PrismContainerDefinition> relevantDefinitions = new ArrayList<>();
-        List<? extends ItemDefinition> defs = parent.getDefinitions();
-        for (ItemDefinition<?> def : defs) {
-            if (def instanceof PrismContainerDefinition) {
-                relevantDefinitions.add((PrismContainerDefinition) def);
-            }
-        }
-        relevantDefinitions.sort((o1, o2) -> {
-            int ord1 = o1.getDisplayOrder() != null ? o1.getDisplayOrder() : Integer.MAX_VALUE;
-            int ord2 = o2.getDisplayOrder() != null ? o2.getDisplayOrder() : Integer.MAX_VALUE;
-            return Integer.compare(ord1, ord2);
-        });
-        return relevantDefinitions;
-    }
+//    @Override
+//    protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper parent, PrismContainerValue value) {
+//        List<PrismContainerDefinition> relevantDefinitions = new ArrayList<>();
+//        List<? extends ItemDefinition> defs = parent.getDefinitions();
+//        for (ItemDefinition<?> def : defs) {
+//            if (def instanceof PrismContainerDefinition) {
+//                relevantDefinitions.add((PrismContainerDefinition) def);
+//            }
+//        }
+//        relevantDefinitions.sort((o1, o2) -> {
+//            int ord1 = o1.getDisplayOrder() != null ? o1.getDisplayOrder() : Integer.MAX_VALUE;
+//            int ord2 = o2.getDisplayOrder() != null ? o2.getDisplayOrder() : Integer.MAX_VALUE;
+//            return Integer.compare(ord1, ord2);
+//        });
+//        return relevantDefinitions;
+//    }
 
     @Override
     public PrismContainerWrapper<ConnectorConfigurationType> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {

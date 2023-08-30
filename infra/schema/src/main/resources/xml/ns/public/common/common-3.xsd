@@ -103,4 +103,6 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-provisioning-3"/>
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3"/>
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-simulations-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-mining-3"/>
+
 </xsd:schema>

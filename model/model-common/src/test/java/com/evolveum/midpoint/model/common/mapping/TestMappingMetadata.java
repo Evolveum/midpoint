@@ -45,7 +45,7 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -65,8 +65,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     private static final String MAPPING_VALUE_FULLNAME_METADATA_XML = "mapping-value-fullname-metadata.xml";
     private MappingTestEvaluator evaluator;
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE =
-            new TestResource<>(TEST_DIR, "template-provenance.xml", "0ca5cef4-6df3-42c3-82b6-daae691e960d");
+    private static final TestObject<ObjectTemplateType> TEMPLATE_PROVENANCE =
+            TestObject.file(TEST_DIR, "template-provenance.xml", "0ca5cef4-6df3-42c3-82b6-daae691e960d");
 
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {

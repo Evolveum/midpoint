@@ -10,10 +10,10 @@
     <name>Superuser</name>
     <description>Role that gives user full authorization in MidPoint.</description>
     <indestructible>true</indestructible>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000320" type="ArchetypeType"/> <!-- System role -->
     </assignment>
-    <authorization>
+    <authorization id="2">
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
     </authorization>
 </role>

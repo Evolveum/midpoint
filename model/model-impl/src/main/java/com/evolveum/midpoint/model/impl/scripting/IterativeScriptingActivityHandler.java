@@ -10,10 +10,12 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -114,11 +116,11 @@ public class IterativeScriptingActivityHandler
                 throws CommonException {
             ExecuteScriptConfigItem requestCloned = getWorkDefinition().getScriptExecutionRequest().clone();
             requestCloned.value().setInput(new ValueListType().value(object));
-            ScriptExecutionResult executionResult =
-                    getActivityHandler().scriptingService.evaluateExpression(
+            BulkActionExecutionResult executionResult =
+                    getActivityHandler().bulkActionsService.executeBulkAction(
                             requestCloned,
                             VariablesMap.emptyMap(),
-                            false,
+                            BulkActionExecutionOptions.create(),
                             workerTask,
                             result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());

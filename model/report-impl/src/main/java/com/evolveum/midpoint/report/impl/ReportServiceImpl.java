@@ -93,7 +93,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private DashboardService dashboardService;
     @Autowired private LocalizationService localizationService;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
-    @Autowired private ScriptingService scriptingService;
+    @Autowired private BulkActionsService bulkActionsService;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ReportFunctions reportFunctions;
 
@@ -446,8 +446,8 @@ public class ReportServiceImpl implements ReportService {
         return schemaService;
     }
 
-    public ScriptingService getScriptingService() {
-        return scriptingService;
+    public BulkActionsService getBulkActionsService() {
+        return bulkActionsService;
     }
 
     public @NotNull List<ReportOutputCreatedListener> getReportCreatedListeners() {

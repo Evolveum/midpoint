@@ -32,7 +32,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -52,7 +52,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "consistency-simple");
 
-    private static final TestResource<UserType> USER_JIM = new TestResource<>(
+    private static final TestObject<UserType> USER_JIM = TestObject.file(
             TEST_DIR, "user-jim.xml", "99576c2e-4edf-40d1-a7ea-47add9362c3a");
 
     @Override

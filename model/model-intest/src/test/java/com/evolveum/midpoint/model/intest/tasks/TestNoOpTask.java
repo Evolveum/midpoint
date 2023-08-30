@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.common.activity.run.reports.SimpleReportReader
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -33,12 +33,12 @@ public class TestNoOpTask extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/noop");
 
-    private static final TestResource<TaskType> TASK_BUCKET_ANALYSIS_WITH_CONDITION =
-            new TestResource<>(TEST_DIR, "task-bucket-analysis-with-condition.xml", "a0e77ba4-ca5c-41e7-8020-e4d48f4165c5");
-    private static final TestResource<TaskType> TASK_BUCKET_ANALYSIS_WITH_REGULAR_SAMPLING =
-            new TestResource<>(TEST_DIR, "task-bucket-analysis-with-regular-sampling.xml", "61534931-bee7-4dbf-b5c8-8710bf61489d");
-    private static final TestResource<TaskType> TASK_BUCKET_ANALYSIS_WITH_RANDOM_SAMPLING =
-            new TestResource<>(TEST_DIR, "task-bucket-analysis-with-random-sampling.xml", "8c515cb9-19f9-434e-88f4-6bc2519cd9cf");
+    private static final TestObject<TaskType> TASK_BUCKET_ANALYSIS_WITH_CONDITION =
+            TestObject.file(TEST_DIR, "task-bucket-analysis-with-condition.xml", "a0e77ba4-ca5c-41e7-8020-e4d48f4165c5");
+    private static final TestObject<TaskType> TASK_BUCKET_ANALYSIS_WITH_REGULAR_SAMPLING =
+            TestObject.file(TEST_DIR, "task-bucket-analysis-with-regular-sampling.xml", "61534931-bee7-4dbf-b5c8-8710bf61489d");
+    private static final TestObject<TaskType> TASK_BUCKET_ANALYSIS_WITH_RANDOM_SAMPLING =
+            TestObject.file(TEST_DIR, "task-bucket-analysis-with-random-sampling.xml", "8c515cb9-19f9-434e-88f4-6bc2519cd9cf");
 
     @Test
     public void test100BucketAnalysisUsingCondition() throws Exception {

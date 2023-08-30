@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -113,11 +114,43 @@ public class ExpressionProfileManager {
 
     /**
      * Determines {@link ExpressionProfile} for given configuration item origin.
+     * Does not allow undetermined profiles, and treats external profiles with care.
+     */
+    public @NotNull ExpressionProfile determineExpressionProfileStrict(
+            @NotNull ConfigurationItemOrigin origin, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        if (origin instanceof ConfigurationItemOrigin.External external) {
+            return determineExpressionProfileForChannel(external.getChannelUri(), task, result);
+        } else {
+            return determineExpressionProfileCommon(origin, result);
+        }
+    }
+
+    /**
+     * Determines {@link ExpressionProfile} for given configuration item origin.
      *
-     * FIXME this is a transitory implementation: various unknown/external origins are treated as trustworthy.
+     * FIXME this is a transitory, unsafe implementation: various unknown/external origins are treated as trustworthy.
      *   This should be changed before expression profiles are declared fully functional.
      */
-    public @NotNull ExpressionProfile determineExpressionProfile(
+    public @NotNull ExpressionProfile determineExpressionProfileUnsafe(
+            @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException {
+        if (origin instanceof ConfigurationItemOrigin.Undetermined undetermined) {
+            stateCheck(!undetermined.isSafe(), "Safe undetermined origin cannot be used to derive expression profile");
+            return ExpressionProfile.full(); // Later, we may throw an exception here
+        } else if (origin instanceof ConfigurationItemOrigin.External) {
+            return ExpressionProfile.full(); // FIXME we should perhaps return a restricted profile here (from the configuration?)
+        } else {
+            return determineExpressionProfileCommon(origin, result);
+        }
+    }
+
+    /**
+     * A strict version of {@link #determineExpressionProfileUnsafe(ConfigurationItemOrigin, OperationResult)} that does not
+     * allow undetermined nor external profiles.
+     */
+    private @NotNull ExpressionProfile determineExpressionProfileCommon(
             @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
@@ -126,22 +159,49 @@ public class ExpressionProfileManager {
             return determineExpressionProfile(inDelta.getTargetPrismObject(), result);
         } else if (origin instanceof ConfigurationItemOrigin.Generated) {
             return ExpressionProfile.full(); // Most probably OK
-        } else if (origin instanceof ConfigurationItemOrigin.Undetermined undetermined) {
-            stateCheck(!undetermined.isSafe(), "Safe undetermined origin cannot be used to derive expression profile");
-            return ExpressionProfile.full(); // Later, we may throw an exception here
+        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
+            throw new IllegalStateException("Undetermined origin for expression profile is not supported");
         } else if (origin instanceof ConfigurationItemOrigin.External) {
-            return ExpressionProfile.full(); // FIXME we should perhaps return a restricted profile here (from the configuration?)
+            throw new IllegalStateException("'External' origin for expression profile is not supported");
         } else {
             throw new AssertionError(origin);
         }
     }
 
     /**
-     * Special version of {@link #determineExpressionProfile(ConfigurationItemOrigin, OperationResult)}
+     * Determines expression profile for {@link ConfigurationItemOrigin.External} origin.
+     *
+     * We assume that the configuration item was entered via GUI or provided via REST right by the logged-in principal.
+     * Hence, we allow everything only if the principal is a root. Otherwise, we allow nothing.
+     *
+     * For the "init" channel, we could allow everything, but its safer to assume that the initialization is always
+     * carried out with full privileges, and that it's safe to check the authorization there as well.
+     *
+     * This could be made configurable in the future.
+     */
+    private @NotNull ExpressionProfile determineExpressionProfileForChannel(
+            @NotNull String channelUri, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        if (SchemaConstants.CHANNEL_INIT_URI.equals(channelUri)
+                || SchemaConstants.CHANNEL_REST_URI.equals(channelUri)
+                || SchemaConstants.CHANNEL_USER_URI.equals(channelUri)) {
+            if (securityEnforcer.isAuthorizedAll(task, result)) {
+                return ExpressionProfile.full();
+            } else {
+                return ExpressionProfile.none();
+            }
+        } else {
+            throw new UnsupportedOperationException("The expression profile cannot be determined for channel: " + channelUri);
+        }
+    }
+
+    /**
+     * Special version of {@link #determineExpressionProfileUnsafe(ConfigurationItemOrigin, OperationResult)}
      * for scripting (bulk actions). It is not as permissive: some origins are banned, and the default for non-root users
      * is the restricted profile (unless `privileged` is set to true - in order to provide backwards compatibility with 4.7).
      */
-    public @NotNull ExpressionProfile determineScriptingExpressionProfile(
+    public @NotNull ExpressionProfile determineBulkActionsProfile(
             @NotNull ConfigurationItemOrigin origin, boolean privileged, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
@@ -153,7 +213,7 @@ public class ExpressionProfileManager {
         } else if (origin instanceof ConfigurationItemOrigin.Generated) {
             profile = ExpressionProfile.full(); // Most probably OK
         } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
-            throw new UnsupportedOperationException("Undetermined origin for scripting expressions is not supported");
+            throw new UnsupportedOperationException("Undetermined origin for bulk actions is not supported");
         } else if (origin instanceof ConfigurationItemOrigin.External) {
             profile = null;
         } else {
@@ -201,7 +261,14 @@ public class ExpressionProfileManager {
      * Origin for custom workflow notifications is blurred, because they travel from policy rules to object triggers.
      * Hence, we should either disable them completely, or use a safe profile for them.
      */
-    public @NotNull ExpressionProfile getProfileForCustomWorkflowNotifications(OperationResult result) {
-        return ExpressionProfile.full(); // FIXME!!!
+    public @NotNull ExpressionProfile getProfileForCustomWorkflowNotifications(OperationResult result)
+            throws SchemaException, ConfigurationException {
+        var defaults = getDefaults(result);
+        var notifications = defaults != null ? defaults.getCustomWorkflowNotifications() : null;
+        if (notifications != null) {
+            return systemObjectCache.getExpressionProfile(notifications, result);
+        } else {
+            return ExpressionProfile.legacyUnprivilegedBulkActions();
+        }
     }
 }

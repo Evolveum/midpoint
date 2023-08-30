@@ -135,7 +135,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
         // THEN
         then();
 
-        waitForTaskStart(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
+        waitForTaskStart(TASK_RECONCILE_DUMMY_CLASSIFIER_OID);
 
         assertServices(1);
         assertUsers(getNumberOfUsers());
@@ -154,7 +154,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
         getDummyResource().addAccount(account);
 
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID);
 
         // THEN
         then();
@@ -182,7 +182,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
         getDummyResource().addAccount(account);
 
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID);
 
         // THEN
         then();
@@ -207,7 +207,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
         getDummyResource().addAccount(account);
 
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID);
 
         // THEN
         then();
@@ -284,7 +284,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 
         // WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID);
 
         // THEN
         then();

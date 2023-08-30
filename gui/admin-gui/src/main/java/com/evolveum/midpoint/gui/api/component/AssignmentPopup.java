@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -115,7 +116,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
             CompositedIconBuilder builder = new CompositedIconBuilder();
             builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                     .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(defaultButtonDisplayType))
-                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                    .appendLayerIcon(IconAndStylesUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
             defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
             defaultButton.setCompositedIcon(builder.build());
@@ -155,7 +156,7 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
         buttonDto.setAdditionalButtonDisplayType(additionalButtonDisplayType);
 
         CompositedIconBuilder builder = WebComponentUtil.getAssignmentRelationIconBuilder(getPageBase(), relation,
-                additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
+                additionalButtonDisplayType.getIcon(), IconAndStylesUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
         CompositedIcon icon = null;
         if (builder != null) {
             icon = builder.build();

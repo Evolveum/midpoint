@@ -82,8 +82,8 @@ public abstract class AbstractUuidTest extends AbstractStoryTest {
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
-        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
-        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID);
     }
 
 }

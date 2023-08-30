@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -47,7 +49,7 @@ public class ModificationsPanel extends BasePanel<DeltaDto> {
                     item.add(new Label(ID_VALUE, () -> {
                         Object value = item.getModelObject().getValue();
                         if (value instanceof PolyString) {
-                            return WebComponentUtil.getTranslatedPolyString((PolyString) value);
+                            return LocalizationUtil.translatePolyString((PolyString) value);
                         }
 
                         return value;

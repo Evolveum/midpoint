@@ -32,7 +32,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseEventUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,12 +56,12 @@ public class TestPreview extends AbstractWfTestPolicy {
      * 2. by Martin the Department Head
      * 3. By Peter the Dean *OR* Kate the Administrator
      */
-    private static final TestResource<RoleType> ROLE_LAB_MANAGER = new TestResource<>(TEST_RESOURCE_DIR, "role-lab-manager.xml", "e4b5d89a-cb7f-4d26-b31f-e86556e2a4ca");
-    private static final TestResource<UserType> USER_ALICE = new TestResource<>(TEST_RESOURCE_DIR, "user-alice.xml", "0b728b21-1649-40d2-80dd-566a5faaeb86");
-    private static final TestResource<UserType> USER_JANE = new TestResource<>(TEST_RESOURCE_DIR, "user-jane-the-lab-owner.xml", "feb34927-7671-401e-9f5b-8f7ec94f3112");
-    private static final TestResource<UserType> USER_MARTIN = new TestResource<>(TEST_RESOURCE_DIR, "user-martin-the-dept-head.xml", "072bf16a-e424-456c-a212-7996f34c3c5c");
-    private static final TestResource<UserType> USER_PETER = new TestResource<>(TEST_RESOURCE_DIR, "user-peter-the-dean.xml", "408beff8-c988-4c77-ac5e-ed26697d6982");
-    private static final TestResource<UserType> USER_KATE = new TestResource<>(TEST_RESOURCE_DIR, "user-kate-the-administrator.xml", "4aab211b-5faf-45e2-acaf-a17a89d39fd1");
+    private static final TestObject<RoleType> ROLE_LAB_MANAGER = TestObject.file(TEST_RESOURCE_DIR, "role-lab-manager.xml", "e4b5d89a-cb7f-4d26-b31f-e86556e2a4ca");
+    private static final TestObject<UserType> USER_ALICE = TestObject.file(TEST_RESOURCE_DIR, "user-alice.xml", "0b728b21-1649-40d2-80dd-566a5faaeb86");
+    private static final TestObject<UserType> USER_JANE = TestObject.file(TEST_RESOURCE_DIR, "user-jane-the-lab-owner.xml", "feb34927-7671-401e-9f5b-8f7ec94f3112");
+    private static final TestObject<UserType> USER_MARTIN = TestObject.file(TEST_RESOURCE_DIR, "user-martin-the-dept-head.xml", "072bf16a-e424-456c-a212-7996f34c3c5c");
+    private static final TestObject<UserType> USER_PETER = TestObject.file(TEST_RESOURCE_DIR, "user-peter-the-dean.xml", "408beff8-c988-4c77-ac5e-ed26697d6982");
+    private static final TestObject<UserType> USER_KATE = TestObject.file(TEST_RESOURCE_DIR, "user-kate-the-administrator.xml", "4aab211b-5faf-45e2-acaf-a17a89d39fd1");
 
     @Override
     protected PrismObject<UserType> getDefaultActor() {

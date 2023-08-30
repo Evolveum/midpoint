@@ -12,7 +12,7 @@
         oid="00000000-0000-0000-0000-000000000110">
     <name>Users in MidPoint</name>
     <description>Users listed in MidPoint.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
@@ -50,7 +50,7 @@
                 </q:and>
             </filter>
         </collection>
-        <parameter>
+        <parameter id="2">
             <name>activation</name>
             <type>ActivationStatusType</type>
             <display>
@@ -62,7 +62,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="3">
             <name>organizationRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:OrgType</targetType>
@@ -75,7 +75,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="4">
             <name>roleRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:RoleType</targetType>
@@ -88,7 +88,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="5">
             <name>resourceRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:ResourceType</targetType>
@@ -102,21 +102,21 @@
             </display>
         </parameter>
         <view>
-            <column>
+            <column id="6">
                 <name>nameColumn</name>
                 <path>name</path>
             </column>
-            <column>
+            <column id="7">
                 <name>fullNameColumn</name>
                 <path>fullName</path>
                 <previousColumn>nameColumn</previousColumn>
             </column>
-            <column>
+            <column id="8">
                 <name>activationColumn</name>
                 <path>activation/administrativeStatus</path>
                 <previousColumn>fullNameColumn</previousColumn>
             </column>
-            <column>
+            <column id="9">
                 <name>roleColumn</name>
                 <path>assignment</path>
                 <display>
@@ -143,7 +143,7 @@
                 </export>
                 <previousColumn>activationColumn</previousColumn>
             </column>
-            <column>
+            <column id="10">
                 <name>orgColumn</name>
                 <path>assignment</path>
                 <display>
@@ -170,7 +170,7 @@
                 </export>
                 <previousColumn>roleColumn</previousColumn>
             </column>
-            <column>
+            <column id="11">
                 <name>accountColumn</name>
                 <path>linkRef</path>
                 <display>

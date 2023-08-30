@@ -53,7 +53,7 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
 
     /** For internal use. */
     protected ConfigurationItem(
-            @NotNull ConfigurationItem<T> original) {
+            @NotNull ConfigurationItem<? extends T> original) {
         this.value = original.value;
         this.origin = original.origin;
     }
@@ -85,6 +85,13 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
                 .toList();
     }
 
+    public static @NotNull <T extends Serializable & Cloneable, X extends ConfigurationItem<T>> List<X> ofList(
+            @NotNull List<T> items, @NotNull OriginProvider<? super T> originProvider, @NotNull Class<X> clazz) {
+        return asList(
+                ofList(items, originProvider),
+                clazz);
+    }
+
     @Override
     public @NotNull T value() {
         return value;
@@ -107,6 +114,13 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
     protected static <V extends Serializable & Cloneable, CI extends RAW_CI, RAW_CI extends ConfigurationItem<V>> CI as(
             @Nullable RAW_CI value, @NotNull Class<CI> clazz) {
         return value != null ? value.as(clazz) : null;
+    }
+
+    public static <T extends Serializable & Cloneable, X extends ConfigurationItem<T>> @NotNull List<X> asList(
+            @NotNull List<ConfigurationItem<T>> list, @NotNull Class<X> clazz) {
+        return list.stream()
+                .map(ci -> ci.as(clazz))
+                .toList();
     }
 
     @Override

@@ -6,15 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -23,7 +22,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -37,18 +38,17 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends PopoverSearchPopupPanel<ObjectReferenceType> {
+public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<ObjectReferenceType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_OID = "oid";
     private static final String ID_NAME = "name";
     private static final String ID_TYPE = "type";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
-    private static final String ID_SELECT_OBJECT_BUTTON = "selectObject";
     private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_CHOOSE_OBJECT="chooseObject";
+
 
     public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
         super(id, model);
@@ -59,16 +59,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         midpointForm.add(feedback);
-
-        AjaxLink<?> chooseObject = new AjaxLink<>(ID_CHOOSE_OBJECT) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                chooseObjectPerformed(target);
-            }
-        };
-        chooseObject.add(new VisibleBehaviour(() -> isChooseObjectVisible()));
-        midpointForm.add(chooseObject);
 
         PropertyModel<String> oidModel = new PropertyModel<>(getModel(), "oid") {
             @Override
@@ -91,7 +81,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
                 new AutoCompleteReferenceRenderer(),
                 getPageBase()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected boolean isAllowedNotFoundObjectRef() {
@@ -105,12 +95,17 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
                 }
                 return super.getReferenceTargetObjectType();
             }
+
+            @Override
+            protected void chooseObjectPerformed(AjaxRequestTarget target) {
+                ReferenceValueSearchPopupPanel.this.chooseObjectPerformed(target);
+            }
         };
 
         feedback.setFilter(new ComponentFeedbackMessageFilter(nameField));
         nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -126,16 +121,16 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         type.setOutputMarkupId(true);
         type.add(new VisibleEnableBehaviour() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled() {
+            public boolean isVisible() {
                 return getSupportedTargetList().size() > 1 && isItemPanelEnabled();
             }
         });
         type.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         type.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -150,22 +145,13 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
         midpointForm.add(relationContainer);
-        relationContainer.add(new VisibleBehaviour(() -> getAllowedRelations().size() > 0));
+        relationContainer.add(new VisibleBehaviour(() -> getAllowedRelations().size() > 1));
         List<QName> allowedRelations = new ArrayList<>(getAllowedRelations());
 
         DropDownChoicePanel<QName> relation = new DropDownChoicePanel<>(ID_RELATION,
                 new PropertyModel<>(getModel(), "relation"),
-                Model.ofList(allowedRelations), WebComponentUtil.getRelationChoicesRenderer(), true);
+                Model.ofList(allowedRelations), RelationUtil.getRelationChoicesRenderer(), true);
         relation.setOutputMarkupId(true);
-        relation.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return getAllowedRelations().size() > 1 && isItemPanelEnabled();
-            }
-        });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         relationContainer.add(relation);
     }
@@ -187,7 +173,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
     }
 
     protected List<QName> getAllowedRelations() {
-        return WebComponentUtil.getAllRelations(getPageBase());
+        return RelationUtil.getAllRelations(getPageBase());
     }
 
     protected List<QName> getSupportedTargetList() {
@@ -196,10 +182,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
     protected boolean isAllowedNotFoundObjectRef() {
         return false;
-    }
-
-    protected boolean isChooseObjectVisible() {
-        return true;
     }
 
     protected void chooseObjectPerformed(AjaxRequestTarget target) {

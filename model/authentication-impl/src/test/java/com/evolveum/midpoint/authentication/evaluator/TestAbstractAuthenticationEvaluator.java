@@ -30,7 +30,7 @@ import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 
 import org.jetbrains.annotations.NotNull;
@@ -83,17 +83,17 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private static final String USER_JACK_USERNAME = "jack";
     static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
-    private static final TestResource<UserType> USER_PAINTER = new TestResource<>(
+    private static final TestObject<UserType> USER_PAINTER = TestObject.file(
             COMMON_DIR, "user-painter.xml", "4e6b2224-4577-4558-a48b-fac1078124b8");
     private static final String USER_PAINTER_NAME = "painter";
 
     // painter (user) -> blue (role) -> yellow (role);
     // and red role is not assigned
-    private static final TestResource<RoleType> ROLE_RED = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_RED = TestObject.file(
             COMMON_DIR, "role-red.xml", "11cc2082-5e60-480b-9ac0-002ba20ab5c5");
-    private static final TestResource<RoleType> ROLE_YELLOW = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_YELLOW = TestObject.file(
             COMMON_DIR, "role-yellow.xml", "b40d6287-5c76-4a45-a61a-3cedebcf99b2");
-    private static final TestResource<RoleType> ROLE_BLUE = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_BLUE = TestObject.file(
             COMMON_DIR, "role-blue.xml", "8eed0da1-e949-4d0d-b154-0a81167e287b");
 
     private static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");

@@ -125,7 +125,7 @@ public class TestLdapComplex extends AbstractLongTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         then();
 
@@ -161,7 +161,7 @@ public class TestLdapComplex extends AbstractLongTest {
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         then(); // use and(description) instead
 

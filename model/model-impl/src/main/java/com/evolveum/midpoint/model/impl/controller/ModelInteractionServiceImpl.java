@@ -24,6 +24,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
+import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.enforcer.api.*;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -98,14 +102,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
-import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.*;
@@ -136,7 +132,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private SchemaTransformer schemaTransformer;
     @Autowired private ProvisioningService provisioning;
-    @Autowired private ModelBeans modelBeans;
+    @Autowired private BulkActionsExecutor bulkActionsExecutor;
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private ObjectMerger objectMerger;
     @Autowired
@@ -165,6 +161,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private TaskManager taskManager;
     @Autowired private SimulationResultManager simulationResultManager;
+    @Autowired private ProvisioningService provisioningService;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -1593,6 +1590,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
+            // [EP:APSO] DONE potential deputy is from repository
             if (determineDeputyValidity(
                     potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitations.Type.CASES, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
@@ -1615,6 +1613,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             if (oidsToSkip.contains(potentialDeputy.getOid())) {
                 continue;
             }
+            // [EP:APSO] DONE, potential deputy is from repository
             if (determineDeputyValidity(
                     potentialDeputy, List.of(assigneeRef), null, limitationType, task, result)) {
                 deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
@@ -1623,8 +1622,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
+    /**
+     * Potential deputy must be from the repository.
+     *
+     * [EP:APSO] DONE it is so, currently
+     */
     private boolean determineDeputyValidity(
-            PrismObject<UserType> potentialDeputy,
+            PrismObject<UserType> potentialDeputy, // [EP:APSO] DONE 2/2 verified that the object is from repository
             List<ObjectReferenceType> assignees,
             @Nullable AbstractWorkItemType workItem,
             @NotNull OtherPrivilegesLimitations.Type limitationType,
@@ -1655,7 +1659,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                                 assignmentIdi, null,
                                 PlusMinusZero.ZERO, false,
                                 potentialDeputyBean, potentialDeputy.toString(),
-                                AssignmentOrigin.inObject(embedded(assignmentBean)),
+                                AssignmentOrigin.inObject(embedded(assignmentBean)), // [EP:APSO] DONE from object from repo
                                 task, result);
                 if (!assignment.isValid()) {
                     continue;
@@ -1911,6 +1915,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return submitTaskFromTemplate(templateTaskOid, extensionItems, opTask, parentResult);
     }
 
+    @Override
     public @NotNull String submitTaskFromTemplate(
             @NotNull String templateOid,
             @NotNull ActivityCustomization customization,
@@ -1919,19 +1924,26 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(SUBMIT_TASK_FROM_TEMPLATE);
         try {
-            TaskType newTask =
-                    modelService
-                            .getObject(TaskType.class, templateOid, createCollection(createExecutionPhase()), task, result)
+            TaskType template =
+                    cacheRepositoryService
+                            .getObject(TaskType.class, templateOid, null, result)
                             .asObjectable();
 
-            newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
-            newTask.setOid(null);
-            newTask.setTaskIdentifier(null);
-            newTask.setOwnerRef(null);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.USE.getUrl(),
+                    null,
+                    AuthorizationParameters.forObject(template),
+                    task, result);
 
+            template.setName(PolyStringType.fromOrig(template.getName().getOrig() + " " + (int) (Math.random() * 10000)));
+            template.setOid(null);
+            template.setTaskIdentifier(null);
+            template.setOwnerRef(null);
+
+            ActivityDefinitionType activityDefinition = customization.applyTo(template);
             return submit(
-                    customization.applyTo(newTask),
-                    ActivitySubmissionOptions.create().withTaskTemplate(newTask),
+                    activityDefinition,
+                    ActivitySubmissionOptions.create().withTaskTemplate(template),
                     task, result);
 
         } catch (Throwable t) {
@@ -2105,7 +2117,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Experimental
     @NotNull
     public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
-            @NotNull PrismObject<ObjectCollectionType> collection,
+            @NotNull PrismObject<ObjectCollectionType> collection, // [EP:APSO] DONE 1/1
             @Nullable CompiledObjectCollectionView preCompiledView,
             @Nullable Class<? extends ObjectType> targetTypeClass,
             @NotNull Task task,
@@ -2423,10 +2435,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void checkScriptingAuthorization(Task task, OperationResult result)
+    public void authorizeBulkActionExecution(
+            @Nullable BulkAction action,
+            @Nullable AuthorizationPhaseType phase,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        securityEnforcer.authorize(
-                ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), task, result);
+        bulkActionsExecutor.authorizeBulkActionExecution(action, phase, task, result);
+    }
+
+    public void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
 }

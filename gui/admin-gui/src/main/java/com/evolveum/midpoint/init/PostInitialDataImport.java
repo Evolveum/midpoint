@@ -9,6 +9,7 @@ package com.evolveum.midpoint.init;
 import java.io.File;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
@@ -18,8 +19,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.context.SecurityContext;
 
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
+import com.evolveum.midpoint.model.api.BulkActionsService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -49,9 +50,9 @@ public class PostInitialDataImport extends DataImport {
     private static final String SUFFIX_FOR_IMPORTED_FILE = "done";
     private static final String XML_SUFFIX = "xml";
 
-    private ScriptingService scripting;
+    private BulkActionsService scripting;
 
-    public void setScripting(ScriptingService scripting) {
+    public void setScripting(BulkActionsService scripting) {
         Validate.notNull(scripting, "Scripting service must not be null.");
         this.scripting = scripting;
     }
@@ -154,14 +155,15 @@ public class PostInitialDataImport extends DataImport {
                     ScriptingBeansUtil.asExecuteScriptCommand(
                             expression.getAnyValue().getValue());
 
-            ScriptExecutionResult executionResult =
-                    scripting.evaluateExpression(
+            BulkActionExecutionResult executionResult =
+                    scripting.executeBulkAction(
                             ExecuteScriptConfigItem.of(
                                     parsed,
                                     // TODO or should we create some "fully trusted origin"?
                                     ConfigurationItemOrigin.external(SchemaConstants.CHANNEL_INIT_URI)),
                             VariablesMap.emptyMap(),
-                            false,
+                            BulkActionExecutionOptions.create()
+                                    .withExecutionPhase(),
                             task,
                             result);
             result.recordSuccess();

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.SamlAdditi
 import com.evolveum.midpoint.authentication.impl.module.configuration.SamlModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.SamlModuleWebSecurityConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.Saml2Provider;
-import com.evolveum.midpoint.authentication.impl.saml.MidpointSaml2WebSsoAuthenticationRequestFilter;
+import com.evolveum.midpoint.authentication.impl.filter.saml.MidpointSaml2WebSsoAuthenticationRequestFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2AuthenticationModuleType;

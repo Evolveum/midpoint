@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -60,7 +60,7 @@ public class TestRbac extends AbstractRbacTest {
 
     private static final String LOCALITY_TORTUGA = "Tortuga";
 
-    private static final TestResource<RoleType> ROLE_NON_UNASSIGNABLE = new TestResource<>(TEST_DIR, "role-non-unassignable.xml", "26081889-83e2-461f-a8cc-4c9ef415a4ff");
+    private static final TestObject<RoleType> ROLE_NON_UNASSIGNABLE = TestObject.file(TEST_DIR, "role-non-unassignable.xml", "26081889-83e2-461f-a8cc-4c9ef415a4ff");
     private static final File GLOBAL_POLICY_RULES_ASSIGNMENT_DELETION = new File(TEST_DIR, "global-policy-rules-assignment-deletion.xml");
 
     private String userSharptoothOid;

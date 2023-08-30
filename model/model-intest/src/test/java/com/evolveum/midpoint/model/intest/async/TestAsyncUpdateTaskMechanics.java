@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.sources.Amqp091AsyncUpdateSource;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.amqp.EmbeddedBroker;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
@@ -45,12 +45,12 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
 
     private static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/task");
 
-    private static final TestResource<?> RESOURCE_HR =
-            new TestResource<>(TEST_DIR, "resource-hr-amqp091.xml", "63693a4a-07ee-4903-a206-3f777f4495a5");
-    private static final TestResource<?> TASK_ASYNC_UPDATE_HR_NO_WORKERS =
-            new TestResource<>(TEST_DIR, "task-async-update-hr-no-workers.xml", "074fe1fd-3099-42f7-b6ad-1e1e5eec51d5");
-    private static final TestResource<?> TASK_ASYNC_UPDATE_HR_ONE_WORKER =
-            new TestResource<>(TEST_DIR, "task-async-update-hr-one-worker.xml", "e6cc59c5-8404-4a0f-9ad0-2cd5c81d9f6b");
+    private static final TestObject<?> RESOURCE_HR =
+            TestObject.file(TEST_DIR, "resource-hr-amqp091.xml", "63693a4a-07ee-4903-a206-3f777f4495a5");
+    private static final TestObject<?> TASK_ASYNC_UPDATE_HR_NO_WORKERS =
+            TestObject.file(TEST_DIR, "task-async-update-hr-no-workers.xml", "074fe1fd-3099-42f7-b6ad-1e1e5eec51d5");
+    private static final TestObject<?> TASK_ASYNC_UPDATE_HR_ONE_WORKER =
+            TestObject.file(TEST_DIR, "task-async-update-hr-one-worker.xml", "e6cc59c5-8404-4a0f-9ad0-2cd5c81d9f6b");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
@@ -98,7 +98,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         importObject(TASK_ASYNC_UPDATE_HR_NO_WORKERS, task, result);
 
         then();
-        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid, false, 30000);
+        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid);
         displayTaskWithOperationStats("Task after", taskAfter);
@@ -125,7 +125,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         importObject(TASK_ASYNC_UPDATE_HR_ONE_WORKER, task, result);
 
         then();
-        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid, false, 30000);
+        waitForTaskFinish(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid, 30000);
 
         PrismObject<TaskType> taskAfter = getTask(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid);
         displayTaskWithOperationStats("Task after", taskAfter);

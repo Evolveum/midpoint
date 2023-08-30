@@ -63,6 +63,7 @@ public class QUser extends QFocus<MUser> {
             ColumnMetadata.named("organizations").ofType(JSONB_TYPE);
     public static final ColumnMetadata ORGANIZATION_UNITS =
             ColumnMetadata.named("organizationUnits").ofType(JSONB_TYPE);
+    private static final ColumnMetadata PERSONAL_NUMBER = ColumnMetadata.named("personalNumber").ofType(Types.VARCHAR);
 
     public final StringPath additionalNameOrig = createString("additionalNameOrig", ADDITIONAL_NAME_ORIG);
     public final StringPath additionalNameNorm = createString("additionalNameNorm", ADDITIONAL_NAME_NORM);
@@ -85,6 +86,8 @@ public class QUser extends QFocus<MUser> {
             addMetadata(add(new JsonbPath(forProperty("organizations"))), ORGANIZATIONS);
     public final JsonbPath organizationUnits =
             addMetadata(add(new JsonbPath(forProperty("organizationUnits"))), ORGANIZATION_UNITS);
+
+    public StringPath personalNumber = createString("personalNumber", PERSONAL_NUMBER);
 
     public QUser(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

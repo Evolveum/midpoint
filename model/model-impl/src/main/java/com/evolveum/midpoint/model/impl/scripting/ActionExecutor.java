@@ -7,21 +7,32 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AbstractActionExpressionType;
+
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * Executes an action of a given type. Instances of this type must be registered with ScriptingExpressionEvaluator.
+ * Executes an action of a given type. Instances of this type must be registered with BulkActionsExecutor.
  */
 public interface ActionExecutor {
 
+    /** Returns the type of action supported by this executor. */
+    @NotNull BulkAction getActionType();
+
     /**
-     * Checks if the execution is allowed; we may put this inside the {@link #execute(ActionExpressionType, PipelineData,
-     * ExecutionContext, OperationResult)} method later, if needed.
+     * Checks if the execution is allowed: both expression profile and authorizations are checked.
+     *
+     * We may put this inside the {@link #execute(AbstractActionExpressionType, PipelineData, ExecutionContext, OperationResult)}
+     * method later, if needed.
      */
-    void checkExecutionAllowed(ExecutionContext context) throws SecurityViolationException;
+    void checkExecutionAllowed(ExecutionContext context, OperationResult result)
+            throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /**
      * Executes given action command.
@@ -38,7 +49,16 @@ public interface ActionExecutor {
      *                     actions executions. (But individual results are stored also into the pipeline, to indicate success/failure of
      *                     individual pipeline items processing.)
      */
-    PipelineData execute(ActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException;
+    PipelineData execute(
+            ActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /** To be used only if the "dynamic" version is not supported. */
+    default PipelineData execute(
+            AbstractActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        throw new UnsupportedOperationException();
+    }
 }

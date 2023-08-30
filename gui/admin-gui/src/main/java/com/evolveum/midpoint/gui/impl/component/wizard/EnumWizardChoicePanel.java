@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
@@ -99,7 +101,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     protected abstract void onTileClickPerformed(T value, AjaxRequestTarget target);
 
     private Tile<T> createDefaultTile(QName type) {
-        String icon = WebComponentUtil.createDefaultBlackIcon(type);
+        String icon = IconAndStylesUtil.createDefaultBlackIcon(type);
         if (StringUtils.isEmpty(icon)) {
             icon = "fa fa-server";
         }
@@ -118,7 +120,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
             return;
         }
 
-        Class<? extends PageBase> detailPage = WebComponentUtil.getObjectDetailsPage(typeClass);
+        Class<? extends PageBase> detailPage = DetailsPageUtil.getObjectDetailsPage(typeClass);
         if (detailPage == null) {
             return;
         }

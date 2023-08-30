@@ -32,7 +32,6 @@ public class TaskFinishChecker implements Checker {
     private final TaskManager taskManager;
     private final String taskOid;
     private final OperationResult waitResult;
-    private final boolean checkSubresult;
     private final boolean errorOk;
     private final long timeout;
     private final int showProgressEach;
@@ -47,7 +46,6 @@ public class TaskFinishChecker implements Checker {
         taskManager = builder.taskManager;
         taskOid = builder.taskOid;
         waitResult = builder.waitResult;
-        checkSubresult = builder.checkSubresult;
         errorOk = builder.errorOk;
         timeout = builder.timeout;
         showProgressEach = builder.showProgressEach;
@@ -73,7 +71,7 @@ public class TaskFinishChecker implements Checker {
         }
         if (freshTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
             return false;
-        } else if (isError(result, checkSubresult)) {
+        } else if (isError(result)) {
             if (errorOk) {
                 return schedulingStateIsDone();
             } else {
@@ -81,7 +79,7 @@ public class TaskFinishChecker implements Checker {
                 throw new AssertionError("Error in " + freshTask + ": " + result);
             }
         } else {
-            boolean resultDone = !isUnknown(result, checkSubresult) && !isInProgress(result, checkSubresult);
+            boolean resultDone = !isUnknown(result) && !isInProgress(result);
             return resultDone && schedulingStateIsDone();
         }
     }
@@ -121,7 +119,6 @@ public class TaskFinishChecker implements Checker {
         private TaskManager taskManager;
         private String taskOid;
         private OperationResult waitResult;
-        private boolean checkSubresult;
         private boolean errorOk;
         private long timeout;
         private int showProgressEach;
@@ -146,11 +143,6 @@ public class TaskFinishChecker implements Checker {
 
         public Builder waitResult(OperationResult val) {
             waitResult = val;
-            return this;
-        }
-
-        public Builder checkSubresult(boolean val) {
-            checkSubresult = val;
             return this;
         }
 

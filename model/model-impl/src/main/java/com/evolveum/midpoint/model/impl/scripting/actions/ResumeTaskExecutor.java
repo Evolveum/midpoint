@@ -9,19 +9,19 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import static java.util.Collections.singleton;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import jakarta.annotation.PostConstruct;
+import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.BulkAction;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ResumeTaskActionExpressionType;
 
 /**
  * Executes "resume" action.
@@ -29,16 +29,21 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ResumeTaskActionEx
 @Component
 public class ResumeTaskExecutor extends AbstractObjectBasedActionExecutor<TaskType> {
 
-    private static final String NAME = "resume";
-
     @PostConstruct
     public void init() {
-        actionExecutorRegistry.register(NAME, ResumeTaskActionExpressionType.class, this);
+        actionExecutorRegistry.register(this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException {
+    public @NotNull BulkAction getActionType() {
+        return BulkAction.RESUME;
+    }
+
+    @Override
+    public PipelineData execute(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         iterateOverObjects(input, context, globalResult,
                 (object, item, result) -> {
@@ -48,16 +53,6 @@ public class ResumeTaskExecutor extends AbstractObjectBasedActionExecutor<TaskTy
                         context.println("Failed to resume " + object + exceptionSuffix(exception))
         );
         return input;
-    }
-
-    @Override
-    @NotNull String getLegacyActionName() {
-        return NAME;
-    }
-
-    @Override
-    @NotNull String getConfigurationElementName() {
-        return SchemaConstantsGenerated.SC_RESUME_TASK.getLocalPart();
     }
 
     @Override

@@ -249,6 +249,9 @@ public class SearchBuilder<C extends Serializable> {
             if (collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null) {
                 search.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
             }
+            if (collectionView.getFilter() != null) {
+                search.setCollectionFilter(collectionView.getFilter());
+            }
         }
 
         return search;

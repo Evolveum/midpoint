@@ -12,6 +12,7 @@
         <s:type>UserType</s:type>
     </s:search>
     <s:execute>
+        <s:outputTypeName>UserType</s:outputTypeName>
         <s:script>
             <code>
                 cloned = input.clone()
@@ -19,6 +20,5 @@
                 cloned
             </code>
         </s:script>
-        <s:outputTypeName>UserType</s:outputTypeName>
     </s:execute>
 </s:pipeline>

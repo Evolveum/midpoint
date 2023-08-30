@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectClassSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -59,7 +60,7 @@ public class ObjectClassSearchItemPanel extends PropertySearchItemPanel {
         if (resourceRef != null && StringUtils.isNotBlank(resourceRef.getOid())) {
             PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRef, getPageBase(), task, task.getResult());
             if (resource != null) {
-                Collection<QName> objectClasses = WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), getPageBase());
+                Collection<QName> objectClasses = ProvisioningObjectsUtil.loadResourceObjectClassValues(resource.asObjectable(), getPageBase());
                 for (QName objectClass : objectClasses) {
                     list.add(new SearchValue(objectClass, getPageBase().createStringResource(objectClass.getLocalPart()).getString()));
                 }

@@ -13,7 +13,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -75,8 +74,8 @@ public class TestMigration extends AbstractMiscTest {
 
         // WHEN
         when();
-        waitForTaskStart(TASK_SHADOW_REFRESH_OID, false);
-        waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
+        waitForTaskStart(TASK_SHADOW_REFRESH_OID);
+        waitForTaskFinish(TASK_SHADOW_REFRESH_OID);
 
         // THEN
         then();
@@ -97,8 +96,8 @@ public class TestMigration extends AbstractMiscTest {
 
         // WHEN
         when();
-        waitForTaskStart(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
-        waitForTaskFinish(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
+        waitForTaskStart(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID);
+        waitForTaskFinish(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID);
 
         // THEN
         then();

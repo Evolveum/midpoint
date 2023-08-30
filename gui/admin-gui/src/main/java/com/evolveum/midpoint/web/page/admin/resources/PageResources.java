@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -328,7 +329,7 @@ public class PageResources extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
-                        WebComponentUtil.toggleResourceMaintenance(rowDto.getValue().asPrismContainer(),
+                        ProvisioningObjectsUtil.toggleResourceMaintenance(rowDto.getValue().asPrismContainer(),
                                 OPERATION_SET_MAINTENANCE, target, PageResources.this);
                         target.add(getResourceTable());
                     }
@@ -367,7 +368,7 @@ public class PageResources extends PageAdmin {
                 createStringResource("pageResources.message.refreshResourceSchemaConfirm")) {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                WebComponentUtil.refreshResourceSchema(resource.asPrismObject(),
+                ProvisioningObjectsUtil.refreshResourceSchema(resource.asPrismObject(),
                         OPERATION_REFRESH_SCHEMA, target, PageResources.this);
             }
         };

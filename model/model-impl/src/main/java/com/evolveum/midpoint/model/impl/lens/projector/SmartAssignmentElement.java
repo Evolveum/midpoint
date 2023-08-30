@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 public class SmartAssignmentElement implements DebugDumpable {
 
     @NotNull private final PrismContainerValue<AssignmentType> assignmentCVal;
-    @NotNull private final AssignmentOrigin origin;
+    @NotNull private final AssignmentOrigin origin; // [EP:APSO] DONE
 
     /** External ID can be obtained from repository as pre-allocated assignment PCV ID (for new assignments). */
     private Long externalId;
@@ -29,9 +29,9 @@ public class SmartAssignmentElement implements DebugDumpable {
     SmartAssignmentElement(
             @NotNull PrismContainerValue<AssignmentType> assignmentCVal,
             boolean virtual,
-            @NotNull ConfigurationItemOrigin origin) {
+            @NotNull ConfigurationItemOrigin origin) { // [EP:APSO] DONE 1/1
         this.assignmentCVal = assignmentCVal;
-        this.origin = new AssignmentOrigin(virtual, origin);
+        this.origin = new AssignmentOrigin(virtual, origin); // [EP:APSO] DONE
     }
 
     public @NotNull AssignmentOrigin getOrigin() {

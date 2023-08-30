@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.button;
 
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,8 +20,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -123,25 +121,47 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
         menuItem.setRenderBodyOnly(true);
 
-        MenuLinkPanel menuItemBody = new MenuLinkPanel(componentId, menuItem.getModel()){
-            @Override
-            protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
-                onBeforeClickMenuItem(target, action, item);
-                super.onClick(target, action, item);
-            }
+        MenuLinkPanel menuItemBody;
+        if (showIcon() && menuItem.getModelObject() instanceof ButtonInlineMenuItem) {
+            IModel model = menuItem.getModel();
+            menuItemBody = new IconMenuLinkPanel(componentId, model) {
+                @Override
+                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> item) {
+                    onBeforeClickMenuItem(target, action, item);
+                    super.onClick(target, action, item);
+                }
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
-                onBeforeClickMenuItem(target, action, item);
-                super.onSubmit(target, action, item);
-            }
-        };
+                @Override
+                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> item) {
+                    onBeforeClickMenuItem(target, action, item);
+                    super.onSubmit(target, action, item);
+                }
+            };
+        } else {
+            menuItemBody = new MenuLinkPanel<>(componentId, menuItem.getModel()) {
+                @Override
+                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+                    onBeforeClickMenuItem(target, action, item);
+                    super.onClick(target, action, item);
+                }
+
+                @Override
+                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+                    onBeforeClickMenuItem(target, action, item);
+                    super.onSubmit(target, action, item);
+                }
+            };
+        }
         menuItemBody.setRenderBodyOnly(true);
         menuItem.add(menuItemBody);
         menuItem.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
     }
 
-    protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+    protected boolean showIcon() {
+        return false;
+    }
+
+    protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
     }
 
     protected String getSpecialButtonClass() {

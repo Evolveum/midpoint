@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="cb97aba7-c581-4f1e-a099-255a63530655">
+    <name>task-template-dummy</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>waiting</executionState>
+    <activity>
+        <work>
+            <noOp/>
+        </work>
+    </activity>
+</task>

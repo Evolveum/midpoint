@@ -6,12 +6,19 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
+import static com.evolveum.midpoint.schema.util.SchemaDebugUtil.prettyPrintLazily;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -30,8 +37,9 @@ import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -41,14 +49,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
-import static com.evolveum.midpoint.schema.util.SchemaDebugUtil.prettyPrintLazily;
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and "kept" assignments.
@@ -109,10 +109,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Assignment current delta (i.e. from current to new object):\n{}", currentAssignmentDelta.debugDumpLazily());
 
-        Collection<ConfigurationItem<AssignmentType>> virtualAssignments = getVirtualAssignments();
+        Collection<AssignmentConfigItem> virtualAssignments = getVirtualAssignments(); // [EP:APSO] DONE
 
         SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
-        assignmentCollection.collectAndFreeze(
+        assignmentCollection.collectAndFreeze( // [EP:APSO] DONE
                 focusContext.getObjectCurrent(),
                 focusContext.getObjectOld(),
                 assignment -> ConfigurationItemOrigin.inDelta(
@@ -124,6 +124,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         if (context.areAccessesMetadataEnabled() // this is the main use case for ID pre-allocation
                 && beans.cacheRepositoryService.isNative() // generic repo does not provide ID allocation
                 && task.isExecutionFullyPersistent()) { // don't want effects in repo + don't care about multiple "audit" entries
+            // Note that the origins will not be precise (regarding PCV IDs); but that is not a problem for now.
             assignmentCollection.generateExternalIds(focusContext, result);
         }
 
@@ -143,11 +144,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         return evaluatedAssignmentTriple;
     }
 
-    @NotNull
-    private Collection<ConfigurationItem<AssignmentType>> getVirtualAssignments()
+    // [EP:APSO] DONE
+    private @NotNull Collection<AssignmentConfigItem> getVirtualAssignments()
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        Collection<ConfigurationItem<AssignmentType>> forcedAssignments =
+        Collection<AssignmentConfigItem> forcedAssignments = // [EP:APSO] DONE
                 focusContext.isDelete() ?
                         List.of() :
                         LensUtil.getForcedAssignments(
@@ -159,23 +160,25 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         LOGGER.trace("Task for process (operation result is not updated): {}",
                 lazy(() -> task.getRawTaskObjectClonedIfNecessary().debugDump()));
         Collection<Task> allTasksToRoot = task.getPathToRootTask(result);
-        Collection<ConfigurationItem<AssignmentType>> taskAssignments = allTasksToRoot.stream()
-                .filter(Task::hasAssignments)
-                .map(this::createTaskAssignment)
-                .collect(Collectors.toList());
+        Collection<AssignmentConfigItem> taskAssignments =
+                allTasksToRoot.stream()
+                        .filter(Task::hasAssignments)
+                        .map(this::createTaskAssignment) // [EP:APSO] DONE
+                        .toList();
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
-        List<ConfigurationItem<AssignmentType>> virtualAssignments = new ArrayList<>(forcedAssignments);
+        List<AssignmentConfigItem> virtualAssignments = new ArrayList<>(forcedAssignments);
         virtualAssignments.addAll(taskAssignments);
         return virtualAssignments;
     }
 
-    private ConfigurationItem<AssignmentType> createTaskAssignment(Task fromTask) {
+    // [EP:APSO] DONE
+    private AssignmentConfigItem createTaskAssignment(Task fromTask) {
         AssignmentType taskAssignment = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.asReferenceValue().setObject(fromTask.getRawTaskObjectClonedIfNecessary());
         taskAssignment.setTargetRef(targetRef);
-        return ConfigurationItem.of(taskAssignment, ConfigurationItemOrigin.generated());
+        return AssignmentConfigItem.of(taskAssignment, OriginProvider.generated());
     }
 
     private String getNewObjectLifecycleState(LensFocusContext<AH> focusContext) {
@@ -630,7 +633,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                             evaluateOld,
                             source,
                             emptyIfNull(assignmentPlacementDesc),
-                            smartAssignment.getOrigin(),
+                            smartAssignment.getOrigin(), // [EP:APSO] DONE
                             task,
                             subResult);
             subResult.recordSuccess();

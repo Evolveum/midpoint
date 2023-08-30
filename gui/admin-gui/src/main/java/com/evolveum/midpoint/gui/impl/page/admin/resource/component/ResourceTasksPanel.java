@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -115,7 +115,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                                                     getObjectClass()) // FIXME not static
                                             .create(task, result);
 
-                                    WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
+                                    DetailsPageUtil.dispatchToNewObject(newTask, getPageBase());
                                 });
                     }
 

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 @PanelType(name = "userAllAccesses")
 @PanelInstance(identifier = "igaAccesses",
@@ -94,7 +97,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
             @Override
             protected IColumn<SelectableBean<ObjectReferenceType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
                 return createAccessNameColumn();
-//                return createCustomExportableColumn(displayModel, customColumn, expression);
             }
 
             @Override

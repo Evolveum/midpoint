@@ -89,6 +89,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
         }
         processingSpec.addMetadataMappings(
                 mappingBean.getMetadataMapping(),
+                // [EP:M:MM] DONE (mappingCI is assumed to be OK)
                 mappingConfigItem.originProviderFor(MappingType.F_METADATA_MAPPING));
         return processingSpec;
     }

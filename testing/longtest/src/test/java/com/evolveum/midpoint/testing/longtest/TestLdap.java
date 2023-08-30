@@ -341,7 +341,7 @@ public class TestLdap extends AbstractLongTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
@@ -367,7 +367,7 @@ public class TestLdap extends AbstractLongTest {
 
         // THEN
         then();
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(task, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
@@ -393,7 +393,7 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES * 2000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
@@ -431,7 +431,7 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES * 3000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, 20000 + NUM_LDAP_ENTRIES * 3000);
 
         // THEN
         then();

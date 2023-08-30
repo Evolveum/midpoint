@@ -9,20 +9,20 @@
     oid="00000000-0000-0000-0000-000000000738">
     <name>Resource object affected</name>
     <description>Operation that made any change (addition, modification, deletion) to a resource object</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>360</displayOrder>
-    <policyRule>
+    <policyRule id="2">
         <name>resource-object-affected</name>
         <policyConstraints>
-            <or>
+            <or id="3">
                 <name>$resource-object-affected</name>
-                <modification>
+                <modification id="4">
                     <operation>modify</operation>
                     <specialItem>resourceObjectItem</specialItem>
                 </modification>
-                <modification>
+                <modification id="5">
                     <!-- We assume that ADD/DELETE always modifies the state of the resource -->
                     <operation>add</operation>
                     <operation>delete</operation>

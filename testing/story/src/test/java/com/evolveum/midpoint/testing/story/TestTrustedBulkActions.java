@@ -57,6 +57,8 @@ public class TestTrustedBulkActions extends AbstractStoryTest {
 
     private static final TestTask TASK_TEMPLATE_SCRIPTING_NO_PROFILE = new TestTask(
             TEST_DIR, "task-template-scripting-no-profile.xml", "f38b71ad-e212-4c46-8594-032202e0e9b9");
+    private static final TestTask TASK_TEMPLATE_SCRIPTING_NO_PROFILE_NON_ITERATIVE = new TestTask(
+            TEST_DIR, "task-template-scripting-no-profile-non-iterative.xml", "bf575791-eabd-438e-855e-09824a99b088");
     private static final TestTask TASK_TEMPLATE_SCRIPTING_TRUSTED = new TestTask(
             TEST_DIR, "task-template-scripting-trusted.xml", "a801db00-cd4b-4998-a08b-3b964b9d7cf1");
     private static final TestTask TASK_TEMPLATE_SCRIPTING_LITTLE_TRUSTED = new TestTask(
@@ -84,6 +86,7 @@ public class TestTrustedBulkActions extends AbstractStoryTest {
                 ARCHETYPE_LITTLE_TRUSTED_TASK,
                 ARCHETYPE_TRUSTED_ROLE,
                 TASK_TEMPLATE_SCRIPTING_NO_PROFILE,
+                TASK_TEMPLATE_SCRIPTING_NO_PROFILE_NON_ITERATIVE,
                 TASK_TEMPLATE_SCRIPTING_TRUSTED,
                 TASK_TEMPLATE_SCRIPTING_LITTLE_TRUSTED,
                 TASK_TEMPLATE_SCRIPTING_LITTLE_TRUSTED_RUN_PRIVILEGED,
@@ -119,6 +122,30 @@ public class TestTrustedBulkActions extends AbstractStoryTest {
         assertTask(taskOid, "after")
                 .display()
                 .assertPartialError()
+                .assertResultMessageContains("Access to script expression evaluator not allowed");
+
+        FLAG.assertNotSet();
+    }
+
+    /** Baseline: the same as above for non-iterative task. It should fail. */
+    @Test
+    public void test105TemplateWithoutProfileNonIterative() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+        login(USER_JOE.getNameOrig());
+        FLAG.reset();
+
+        when("task template is instantiated");
+        var taskOid = modelInteractionService.submitTaskFromTemplate(
+                TASK_TEMPLATE_SCRIPTING_NO_PROFILE_NON_ITERATIVE.oid,
+                ActivityCustomization.none(),
+                task, result);
+        waitForTaskCloseOrSuspend(taskOid, 30000L);
+
+        then("the execution is not successful");
+        assertTask(taskOid, "after")
+                .display()
+                .assertFatalError()
                 .assertResultMessageContains("Access to script expression evaluator not allowed");
 
         FLAG.assertNotSet();

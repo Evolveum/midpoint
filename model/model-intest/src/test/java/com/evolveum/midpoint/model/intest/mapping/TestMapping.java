@@ -3383,7 +3383,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         addObject(TASK_IMPORT_PWD_COPY, task, result);
-        waitForTaskFinish(TASK_IMPORT_PWD_COPY.oid, true);
+        waitForTaskFinish(TASK_IMPORT_PWD_COPY.oid);
 
         then();
         assertServiceByName(SERVICE_BRIDGE_NAME, "service")
@@ -3431,7 +3431,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
         addObject(TASK_IMPORT_PWD_GENERATE, task, result);
-        waitForTaskFinish(TASK_IMPORT_PWD_GENERATE.oid, true);
+        waitForTaskFinish(TASK_IMPORT_PWD_GENERATE.oid);
 
         then();
         assertServiceByName(SERVICE_GATEWAY_NAME, "service")

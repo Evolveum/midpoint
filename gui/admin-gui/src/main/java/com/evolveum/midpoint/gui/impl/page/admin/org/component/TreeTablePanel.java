@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +32,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -508,7 +509,7 @@ public class TreeTablePanel extends BasePanel<String> {
             objType.getParentOrgRef().add(parentOrgRef.clone());
         }
 
-        WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
+        DetailsPageUtil.dispatchToObjectDetailsPage(obj, true, this);
 
     }
 

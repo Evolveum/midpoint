@@ -9,8 +9,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <head/>
 <body>
-<wicket:panel>
-    <form wicket:id="popoverForm" style="min-width: 400px;">
+<wicket:extend>
         <div class="row">
             <label class="col-form-label-sm col-2" wicket:id="fromLabel">
                 <wicket:message key="UserReportConfigPanel.dateFrom"/>
@@ -25,12 +24,6 @@
             </label>
             <div class="col-10" wicket:id="dateToValue"/>
         </div>
-        <div class="row justify-content-end">
-            <div class="col-auto">
-                <a wicket:id="confirmButton" class="btn btn-sm btn-default"/>
-            </div>
-        </div>
-    </form>
-</wicket:panel>
+</wicket:extend>
 </body>
 </html>

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.archetype;
 
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
@@ -15,8 +15,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;

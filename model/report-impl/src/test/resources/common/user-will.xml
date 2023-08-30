@@ -23,6 +23,8 @@
     <familyName>Turner</familyName>
     <nickName>will_turner</nickName>
 
+    <personalNumber>123456</personalNumber>
+
     <emailAddress>will.turner@evolveum.com</emailAddress>
     <telephoneNumber>555-1235</telephoneNumber>
 

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -21,7 +22,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -132,8 +132,8 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
     private Tile<QName> createTileForRelation(QName name) {
         List<RelationDefinitionType> relations = systemRelations.getObject();
 
-        String icon = WebComponentUtil.getRelationIcon(name, relations);
-        PolyString label = WebComponentUtil.getRelationLabel(name, relations);
+        String icon = RelationUtil.getRelationIcon(name, relations);
+        PolyString label = RelationUtil.getRelationLabel(name, relations);
 
         return createTile(icon, LocalizationUtil.translatePolyString(label), name);
     }

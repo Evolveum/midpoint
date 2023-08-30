@@ -9,11 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,7 +24,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.model.PrismReferenceWrapperHeaderModel;
@@ -95,7 +90,7 @@ public class PrismReferenceWrapperColumn<C extends Containerable, R extends Refe
         PrismReferenceWrapper<R> ref = refModel.getObject();
         if (ref != null) {
             try {
-                WebComponentUtil.dispatchToObjectDetailsPage(ref.getItem().getValue(), pageBase, true);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ref.getItem().getValue(), pageBase, true);
 
             } catch (Exception e) {
                 pageBase.error("Cannot determine details page for " + ref.getItem().getValue());

@@ -117,7 +117,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test110ObjectCollectionReportWithDefaultColumn() throws Exception {
-        testClassicExport(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN, 54, 6, null);
+        testClassicExport(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN, 54, 5, null);
     }
 
     @Test
@@ -142,12 +142,12 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test115ObjectCollectionReportWithCondition() throws Exception {
-        testClassicExport(REPORT_OBJECT_COLLECTION_WITH_CONDITION, 2, 6, null);
+        testClassicExport(REPORT_OBJECT_COLLECTION_WITH_CONDITION, 2, 5, null);
     }
 
     @Test
     public void test116ObjectCollectionEmptyReport() throws Exception {
-        testClassicExport(REPORT_OBJECT_COLLECTION_EMPTY, 1, 6, null);
+        testClassicExport(REPORT_OBJECT_COLLECTION_EMPTY, 1, 5, null);
     }
 
     @Test
@@ -168,7 +168,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test120RunMidpointUsers() throws Exception {
-        testClassicExport(REPORT_USER_LIST, 54, 6, null);
+        testClassicExport(REPORT_USER_LIST, 54, 5, null);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
             displaySkip();
             return;
         }
-        testClassicExport(REPORT_USER_LIST_SCRIPT, 54, 6, null);
+        testClassicExport(REPORT_USER_LIST_SCRIPT, 54, 5, null);
         File targetFile = new File(MidPointTestConstants.TARGET_DIR_PATH, "report-users");
         assertTrue("Target file is not there", targetFile.exists());
     }

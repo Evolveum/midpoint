@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -448,19 +449,24 @@ public interface ModelInteractionService {
 
     List<RelationDefinitionType> getRelationDefinitions();
 
+    /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
+    @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
+    /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
+    @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
-     * Submits a task from template (pointed to by `templateOid`), customizing it according to given
-     * {@link ActivityCustomization}. The template must be compatible with the customization required.
+     * Submits a task from template (pointed to by `templateOid`).
+     *
+     * See {@link MidpointFunctions#submitTaskFromTemplate(String, ActivityCustomization)} for details.
      */
     @NotNull String submitTaskFromTemplate(
             @NotNull String templateOid,
@@ -520,6 +526,8 @@ public interface ModelInteractionService {
      * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
      * But for now we support only policy rules that are directly placed in collection assignments.
      * EXPERIMENTAL. Quite likely to change later.
+     *
+     * [EP:APSO] DONE We assume that the collection is provided from the repository! Verified with the caller.
      */
     @Experimental
     @NotNull
@@ -642,14 +650,13 @@ public interface ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result) throws CommonException;
 
-    /** A convenience method, moved here from the {@link ScriptingService} (and scripting expression evaluator). */
+    /** A convenience method, moved here from the {@link BulkActionsService} (and bulk action executor). */
     default @NotNull String submitScriptingExpression(
             @NotNull ExecuteScriptType executeScriptCommand,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-
-        checkScriptingAuthorization(task, result);
+        // Note that authorizations are checked when the bulk action is evaluated.
         return submit(
                 new ActivityDefinitionType()
                         .work(new WorkDefinitionsType()
@@ -659,8 +666,15 @@ public interface ModelInteractionService {
                 task, result);
     }
 
-    /** Just a convenience method that checks that `#executeScript` authorization is present. */
-    void checkScriptingAuthorization(Task task, OperationResult result)
+    /**
+     * Just a convenience method that checks that relevant authorization is present.
+     * (No action means the authorization for all actions is checked.)
+     */
+    void authorizeBulkActionExecution(
+            @Nullable BulkAction action,
+            @Nullable AuthorizationPhaseType phase,
+            Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
@@ -703,4 +717,11 @@ public interface ModelInteractionService {
             @NotNull OperationResult result,
             @NotNull SimulatedFunctionCall<X> functionCall)
             throws CommonException;
+
+    /**
+     * Helper method to properly apply definitions to shadow. It is only needed when raw option is used for shadow search.
+     * Not sure about correctness of the method place and if even should be needed.
+     */
+    void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException;
 }

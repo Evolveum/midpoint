@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +31,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AbstractExecuteActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 /**
  * Executes either `execute-script` or `evaluate-expression` actions.
@@ -44,8 +45,8 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
     P getParameters(
             ActionExpressionType action, PipelineData input, ExecutionContext context,
             OperationResult globalResult, Function<Parameters, P> function)
-            throws CommunicationException, ObjectNotFoundException, SchemaException,
-            ScriptExecutionException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
         ItemDefinition<?> outputDefinition;
         String outputItemUri = expressionHelper.getSingleArgumentValue(
@@ -76,9 +77,7 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
         return function.apply(new Parameters(outputDefinition, forWholeInput, quiet));
     }
 
-    @NotNull abstract String getName();
-
-    private @NotNull ItemDefinition<?> getItemDefinition(String uri) throws ScriptExecutionException {
+    private @NotNull ItemDefinition<?> getItemDefinition(String uri) throws ConfigurationException {
         QName name = QNameUtil.uriToQName(uri, true);
         ItemDefinition<?> byName = prismContext.getSchemaRegistry().findItemDefinitionByElementName(name);
         if (byName != null) {
@@ -90,19 +89,19 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
             return byType;
         }
 
-        throw new ScriptExecutionException(
+        throw new ConfigurationException(
                 "Supplied item identification '" + uri + "' corresponds neither to item name nor type name");
     }
 
-    private @NotNull ItemDefinition<?> getItemDefinitionFromItemName(QName itemName) throws ScriptExecutionException {
+    private @NotNull ItemDefinition<?> getItemDefinitionFromItemName(QName itemName) throws ConfigurationException {
         ItemDefinition<?> def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(itemName);
         if (def != null) {
             return def;
         }
-        throw new ScriptExecutionException("Item with name '" + itemName + "' couldn't be found.");
+        throw new ConfigurationException("Item with name '" + itemName + "' couldn't be found.");
     }
 
-    private @NotNull ItemDefinition<?> getItemDefinitionFromTypeName(QName typeName) throws ScriptExecutionException {
+    private @NotNull ItemDefinition<?> getItemDefinitionFromTypeName(QName typeName) throws ConfigurationException {
         ItemDefinition<?> byType = prismContext.getSchemaRegistry().findItemDefinitionByType(typeName);
         if (byType != null) {
             return byType;
@@ -122,16 +121,17 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
                 return prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, typeName);
             }
         } else if (typeDef != null) {
-            throw new ScriptExecutionException("Type with name '" + typeName + "' couldn't be used as output type: " + typeDef);
+            throw new ConfigurationException("Type with name '" + typeName + "' couldn't be used as output type: " + typeDef);
         } else {
-            throw new ScriptExecutionException("Type with name '" + typeName + "' couldn't be found.");
+            throw new ConfigurationException("Type with name '" + typeName + "' couldn't be found.");
         }
     }
 
 
     @NotNull PipelineData executeInternal(
             PipelineData input, P parameters, ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException {
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, PolicyViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         PipelineData output = PipelineData.createEmpty();
         if (parameters.forWholeInput) {
             executeForWholeInput(input, output, parameters, context, globalResult);
@@ -147,8 +147,9 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
     }
 
     private void executeForWholeInput(
-            PipelineData input, PipelineData output, P parameters, ExecutionContext context,
-            OperationResult globalResult) throws ScriptExecutionException {
+            PipelineData input, PipelineData output, P parameters, ExecutionContext context, OperationResult globalResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         context.checkTaskStop();
         OperationResult result = operationsHelper.createActionResult(null, this, globalResult);
         try {
@@ -168,7 +169,7 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
             }
         } catch (Throwable ex) {
             result.recordException(ex);
-            Throwable exception = processActionException(ex, getName(), null, context); // TODO value for error reporting (3rd parameter)
+            Throwable exception = logOrRethrowActionException(ex, null, context); // TODO value for error reporting (2nd parameter)
             context.println("Failed to execute script/expression on the pipeline" + exceptionSuffix(exception));
         } finally {
             result.close();

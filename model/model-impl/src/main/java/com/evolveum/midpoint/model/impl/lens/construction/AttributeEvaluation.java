@@ -7,30 +7,30 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Evaluation of an attribute mapping in resource object construction (assigned/plain).
  */
-class AttributeEvaluation<AH extends AssignmentHolderType>
+public class AttributeEvaluation<AH extends AssignmentHolderType>
         extends ItemEvaluation<AH, PrismPropertyValue<?>, PrismPropertyDefinition<?>, ResourceAttributeDefinition<?>> {
 
+    // [EP:M:OM] DONE 2/2
     AttributeEvaluation(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
             ResourceAttributeDefinition<?> refinedAttributeDefinition,
-            ConfigurationItem<MappingType> mappingBeanWithOrigin,
+            MappingConfigItem mappingConfigItem,
             OriginType origin,
             MappingKindType mappingKind) {
         super(
@@ -39,7 +39,7 @@ class AttributeEvaluation<AH extends AssignmentHolderType>
                 ShadowType.F_ATTRIBUTES.append(refinedAttributeDefinition.getItemName()),
                 refinedAttributeDefinition,
                 refinedAttributeDefinition,
-                mappingBeanWithOrigin,
+                mappingConfigItem, // [EP:M:OM] DONE
                 origin,
                 mappingKind);
     }
@@ -63,7 +63,7 @@ class AttributeEvaluation<AH extends AssignmentHolderType>
     protected Collection<PrismPropertyValue<?>> getOriginalTargetValuesFromShadow(@NotNull PrismObject<ShadowType> shadow) {
         PrismProperty<?> attribute = shadow.findProperty(itemPath);
         if (attribute != null) {
-            //noinspection unchecked
+            //noinspection unchecked,rawtypes
             return (Collection) attribute.getValues();
         } else {
             // Either the projection is fully loaded and the attribute does not exist,

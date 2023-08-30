@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.tasks.simple;
 
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
@@ -20,7 +22,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.BulkActionsService;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -65,7 +67,8 @@ public abstract class SimpleActivityHandler<
     @Autowired protected Clock clock;
     @Autowired protected Clockwork clockwork;
     @Autowired protected ContextFactory contextFactory;
-    @Autowired protected ScriptingService scriptingService;
+    @Autowired public ModelObjectResolver modelObjectResolver;
+    @Autowired protected BulkActionsService bulkActionsService;
 
     @PostConstruct
     public void register() {

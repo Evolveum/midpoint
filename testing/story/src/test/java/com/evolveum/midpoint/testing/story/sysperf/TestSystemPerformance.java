@@ -47,7 +47,7 @@ import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
@@ -88,20 +88,20 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     private static final List<DummyTestResource> RESOURCE_SOURCE_LIST;
     private static final List<DummyTestResource> RESOURCE_TARGET_LIST;
 
-    private static final TestResource<ArchetypeType> ARCHETYPE_BASIC_USER =
-            new TestResource<>(TEST_DIR, "archetype-basic-user.xml", "463e21c5-9959-48e9-bc2a-5356eafb0589");
+    private static final TestObject<ArchetypeType> ARCHETYPE_BASIC_USER =
+            TestObject.file(TEST_DIR, "archetype-basic-user.xml", "463e21c5-9959-48e9-bc2a-5356eafb0589");
 
-    private static final TestResource<RoleType> METAROLE_TECHNICAL =
-            new TestResource<>(TEST_DIR, "metarole-technical.xml", "7c359aa0-d798-4781-a58b-d6336cb9b1ee");
+    private static final TestObject<RoleType> METAROLE_TECHNICAL =
+            TestObject.file(TEST_DIR, "metarole-technical.xml", "7c359aa0-d798-4781-a58b-d6336cb9b1ee");
 
-    static final TestResource<RoleType> ROLE_TARGETS = new TestResource<>(TARGET_DIR, "generated-role-targets.xml", "3b65aad7-7d6b-412e-bfc7-2cee44d22c32");
-    private static final TestResource<RoleType> TEMPLATE_USER = new TestResource<>(TEST_DIR, "template-user.xml", "0c77fde5-4ad5-49ce-8ee9-14f330660d8e");
+    static final TestObject<RoleType> ROLE_TARGETS = TestObject.file(TARGET_DIR, "generated-role-targets.xml", "3b65aad7-7d6b-412e-bfc7-2cee44d22c32");
+    private static final TestObject<RoleType> TEMPLATE_USER = TestObject.file(TEST_DIR, "template-user.xml", "0c77fde5-4ad5-49ce-8ee9-14f330660d8e");
 
-    private static final List<TestResource<RoleType>> BUSINESS_ROLE_LIST;
-    private static final List<TestResource<RoleType>> TECHNICAL_ROLE_LIST;
-    private static final List<TestResource<TaskType>> TASK_IMPORT_LIST;
-    private static final List<TestResource<TaskType>> TASK_RECONCILIATION_LIST;
-    private static final TestResource<TaskType> TASK_RECOMPUTE;
+    private static final List<TestObject<RoleType>> BUSINESS_ROLE_LIST;
+    private static final List<TestObject<RoleType>> TECHNICAL_ROLE_LIST;
+    private static final List<TestObject<TaskType>> TASK_IMPORT_LIST;
+    private static final List<TestObject<TaskType>> TASK_RECONCILIATION_LIST;
+    private static final TestObject<TaskType> TASK_RECOMPUTE;
 
     static final long START = System.currentTimeMillis();
 
@@ -171,11 +171,11 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             repoAdd(METAROLE_TECHNICAL, initResult);
         }
 
-        for (TestResource<?> resource : TECHNICAL_ROLE_LIST) {
+        for (TestObject<?> resource : TECHNICAL_ROLE_LIST) {
             addObject(resource, initTask, initResult); // creates resource objects
         }
 
-        for (TestResource<?> resource : BUSINESS_ROLE_LIST) {
+        for (TestObject<?> resource : BUSINESS_ROLE_LIST) {
             repoAdd(resource, initResult);
         }
 
@@ -293,11 +293,11 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
             when(importName);
 
-            TestResource<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
+            TestObject<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
 
             lastProgress = 0;
             addTask(taskImport, result);
-            waitForTaskFinish(taskImport.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+            waitForTaskFinish(taskImport.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                     builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
             then(importName);
@@ -399,13 +399,13 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
                 when(importName);
 
-                TestResource<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
+                TestObject<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
 
                 lastProgress = 0;
                 restartTask(taskImport.oid, result);
                 Thread.sleep(500);
 
-                waitForTaskFinish(taskImport.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+                waitForTaskFinish(taskImport.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                         builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
                 then(importName);
@@ -437,7 +437,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
                 when(importName);
 
-                TestResource<TaskType> reconTask = TASK_RECONCILIATION_LIST.get(taskIndex);
+                TestObject<TaskType> reconTask = TASK_RECONCILIATION_LIST.get(taskIndex);
 
                 lastProgress = 0;
                 if (run == 0) {
@@ -447,7 +447,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                     Thread.sleep(500);
                 }
 
-                waitForTaskFinish(reconTask.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+                waitForTaskFinish(reconTask.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                         builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
 
                 then(importName);
@@ -472,7 +472,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         lastProgress = 0;
         addTask(TASK_RECOMPUTE, result);
-        waitForTaskFinish(TASK_RECOMPUTE.oid, false, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+        waitForTaskFinish(TASK_RECOMPUTE.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                 builder -> builder.taskConsumer(task1 -> recordProgress("", task1)));
 
         then();

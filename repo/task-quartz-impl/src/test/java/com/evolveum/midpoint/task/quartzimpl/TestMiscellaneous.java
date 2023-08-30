@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +48,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class TestMiscellaneous extends AbstractTaskManagerTest {
 
     private static final File TEST_DIR = new File("src/test/resources/miscellaneous");
-    private static final TestResource<TaskType> TASK_42_RUNNABLE = new TestResource<>(TEST_DIR, "task-42-runnable.xml", "e3a64c81-5dd0-4b66-bc5a-572425eb5a63");
-    private static final TestResource<TaskType> TASK_42_SUSPENDED = new TestResource<>(TEST_DIR, "task-42-suspended.xml", "12125ca4-7107-437d-a448-facae780a306");
-    private static final TestResource<TaskType> TASK_42_CLOSED = new TestResource<>(TEST_DIR, "task-42-closed.xml", "c56bf227-8e03-4a52-b873-0ac651b95ed6");
-    private static final TestResource<TaskType> TASK_42_WAITING = new TestResource<>(TEST_DIR, "task-42-waiting.xml", "c9bdc85b-27d0-43f7-8b2a-1e44d1d23594");
+    private static final TestObject<TaskType> TASK_42_RUNNABLE = TestObject.file(TEST_DIR, "task-42-runnable.xml", "e3a64c81-5dd0-4b66-bc5a-572425eb5a63");
+    private static final TestObject<TaskType> TASK_42_SUSPENDED = TestObject.file(TEST_DIR, "task-42-suspended.xml", "12125ca4-7107-437d-a448-facae780a306");
+    private static final TestObject<TaskType> TASK_42_CLOSED = TestObject.file(TEST_DIR, "task-42-closed.xml", "c56bf227-8e03-4a52-b873-0ac651b95ed6");
+    private static final TestObject<TaskType> TASK_42_WAITING = TestObject.file(TEST_DIR, "task-42-waiting.xml", "c9bdc85b-27d0-43f7-8b2a-1e44d1d23594");
 
     @Autowired private TaskSynchronizer taskSynchronizer;
 

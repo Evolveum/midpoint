@@ -18,7 +18,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -43,11 +43,11 @@ public class TestVeryAuthoritativeSource extends AbstractStoryTest {
     private static final DummyTestResource RESOURCE_TARGET = new DummyTestResource(
             TEST_DIR, "resource-target.xml", "fef05e2f-92fc-4171-ba70-c1132ef3bc36", "target");
 
-    private static final TestResource<RoleType> ROLE_TARGET = new TestResource<>(
+    private static final TestObject<RoleType> ROLE_TARGET = TestObject.file(
             TEST_DIR, "role-target.xml", "7fbffbc6-e7cf-45a2-b527-e646a8c6afdd");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_DELETE_DESCRIPTION = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> TEMPLATE_DELETE_DESCRIPTION = TestObject.file(
             TEST_DIR, "template-delete-description.xml", "987585f0-d457-44d7-8550-d9f1e954dc33");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_GLOBAL = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> TEMPLATE_GLOBAL = TestObject.file(
             TEST_DIR, "template-global.xml", "7223de34-5797-4f71-a4b8-27e33eb11300");
     private static final TestTask TASK_RECONCILIATION_SOURCE = new TestTask(
             TEST_DIR, "task-reconciliation-source.xml", "d76ba51f-3f62-4fed-8141-018a580aa1c4");

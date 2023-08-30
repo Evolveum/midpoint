@@ -19,7 +19,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappin
 import static com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -38,7 +37,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -50,21 +49,21 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
     private static final File TEST_DIR = new File("src/test/resources/merge");
 
-    private static final TestResource<ResourceType> RESOURCE_BASIC_TEMPLATE = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_BASIC_TEMPLATE = TestObject.file(
             TEST_DIR, "resource-basic-template.xml", "2d1bbd38-8292-4895-af07-15de1ae423ec");
-    private static final TestResource<ResourceType> RESOURCE_BASIC_1 = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_BASIC_1 = TestObject.file(
             TEST_DIR, "resource-basic-1.xml", "b6f77fb9-8bdf-42de-b7d4-639c77fa6805");
-    private static final TestResource<ResourceType> RESOURCE_BASIC_2 = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_BASIC_2 = TestObject.file(
             TEST_DIR, "resource-basic-2.xml", "969d0587-b049-4067-a749-2fe61d5fb2f6");
 
-    private static final TestResource<ResourceType> RESOURCE_ADDITIONAL_CONNECTORS_TEMPLATE = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_ADDITIONAL_CONNECTORS_TEMPLATE = TestObject.file(
             TEST_DIR, "resource-additional-connectors-template.xml", "e17dfe38-727f-41b6-ab1c-9106c0bb046d");
-    private static final TestResource<ResourceType> RESOURCE_ADDITIONAL_CONNECTORS_1 = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_ADDITIONAL_CONNECTORS_1 = TestObject.file(
             TEST_DIR, "resource-additional-connectors-1.xml", "dcf805dc-afff-46c1-bf8c-876777ef4af5");
 
-    private static final TestResource<ResourceType> RESOURCE_OBJECT_TYPES_TEMPLATE = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_OBJECT_TYPES_TEMPLATE = TestObject.file(
             TEST_DIR, "resource-object-types-template.xml", "873a5483-ded8-4607-ac06-ea5ae92ce755");
-    private static final TestResource<ResourceType> RESOURCE_OBJECT_TYPES_1_RAW = new TestResource<>(
+    private static final TestObject<ResourceType> RESOURCE_OBJECT_TYPES_1_RAW = TestObject.file(
             TEST_DIR, "resource-object-types-1.xml", "8e355713-c785-441c-88b4-79bdb041103e");
 
     // This is object-types-1 but for schema-related tests
@@ -98,7 +97,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
     }
 
     /** Adds a resource to repository, fills-in connector OID externally. */
-    private void addResourceObject(TestResource<ResourceType> resource, List<String> connectorTypes, OperationResult result)
+    private void addResourceObject(TestObject<ResourceType> resource, List<String> connectorTypes, OperationResult result)
             throws CommonException, EncryptionException {
         addResource(resource, connectorTypes, false, result);
         resource.reload(result);

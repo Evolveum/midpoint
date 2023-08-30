@@ -46,6 +46,7 @@ public class GetVersionOpHandler extends CachedOpHandler {
             } else if (!exec.local.supports) {
                 exec.reportLocalPass();
             } else {
+                assert exec.local.cache != null;
                 String cachedVersion = exec.local.cache.get(oid);
                 if (cachedVersion != null) {
                     exec.reportLocalHit();
@@ -93,7 +94,7 @@ public class GetVersionOpHandler extends CachedOpHandler {
 
         RepositoryGetVersionTraceType trace;
         if (result.isTracingAny(RepositoryGetVersionTraceType.class)) {
-            trace = new RepositoryGetVersionTraceType(prismContext)
+            trace = new RepositoryGetVersionTraceType()
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
                     .oid(oid);

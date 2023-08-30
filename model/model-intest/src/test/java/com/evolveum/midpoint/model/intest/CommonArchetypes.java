@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -22,11 +22,11 @@ import static com.evolveum.midpoint.test.AbstractIntegrationTest.COMMON_DIR;
 @Experimental
 public interface CommonArchetypes {
 
-    TestResource<ArchetypeType> ARCHETYPE_TASK_ITERATIVE_BULK_ACTION = new TestResource<>(
+    TestObject<ArchetypeType> ARCHETYPE_TASK_ITERATIVE_BULK_ACTION = TestObject.file(
             COMMON_DIR, "archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
 
-    TestResource<ArchetypeType> ARCHETYPE_TASK_SINGLE_BULK_ACTION = new TestResource<>(
+    TestObject<ArchetypeType> ARCHETYPE_TASK_SINGLE_BULK_ACTION = TestObject.file(
             COMMON_DIR, "archetype-task-single-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
 }

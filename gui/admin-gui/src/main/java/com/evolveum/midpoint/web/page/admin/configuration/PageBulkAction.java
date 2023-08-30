@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
@@ -21,8 +22,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -148,11 +148,11 @@ public class PageBulkAction extends PageAdminConfiguration {
             } else {
                 try {
                     //noinspection ConstantConditions
-                    ScriptExecutionResult executionResult =
-                            getScriptingService().evaluateExpression(
+                    BulkActionExecutionResult executionResult =
+                            getBulkActionsService().executeBulkAction(
                                     ExecuteScriptConfigItem.of(typed, ConfigurationItemOrigin.user()),
                                     VariablesMap.emptyMap(),
-                                    false,
+                                    BulkActionExecutionOptions.create(),
                                     task,
                                     result);
                     result.recordStatus(
@@ -162,8 +162,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                                     executionResult.getDataOutput().size()).getString());
                     result.addReturn("console", executionResult.getConsoleOutput());
                     result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
-                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                        | ObjectNotFoundException | CommunicationException | ConfigurationException | ClassCastException e) {
+                } catch (Exception e) {
                     result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.execute").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
                 }

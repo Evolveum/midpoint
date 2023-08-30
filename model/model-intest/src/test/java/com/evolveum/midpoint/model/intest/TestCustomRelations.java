@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -33,8 +33,8 @@ public class TestCustomRelations extends AbstractEmptyModelIntegrationTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<UserType> USER_ABRAHAM = new TestResource<>(TEST_DIR, "user-abraham.xml", "855e276c-65d4-49ac-98eb-e871b737bd84");
-    private static final TestResource<UserType> USER_ISAAC = new TestResource<>(TEST_DIR, "user-isaac.xml", "020a0294-7fb7-4d43-845f-dfcd8843bec0");
+    private static final TestObject<UserType> USER_ABRAHAM = TestObject.file(TEST_DIR, "user-abraham.xml", "855e276c-65d4-49ac-98eb-e871b737bd84");
+    private static final TestObject<UserType> USER_ISAAC = TestObject.file(TEST_DIR, "user-isaac.xml", "020a0294-7fb7-4d43-845f-dfcd8843bec0");
 
     private static final String NS_CUSTOM = "http://custom";
     private static final QName CHILD = new QName(NS_CUSTOM, "child");

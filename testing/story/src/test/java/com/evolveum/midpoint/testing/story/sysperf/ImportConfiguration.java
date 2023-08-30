@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 class ImportConfiguration {
@@ -31,7 +31,7 @@ class ImportConfiguration {
     private final int threads;
     private final int noOpRuns;
 
-    private final List<TestResource<TaskType>> generatedTasks;
+    private final List<TestObject<TaskType>> generatedTasks;
 
     private ImportConfiguration() {
         threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
@@ -48,7 +48,7 @@ class ImportConfiguration {
         return noOpRuns;
     }
 
-    List<TestResource<TaskType>> getGeneratedTasks() {
+    List<TestObject<TaskType>> getGeneratedTasks() {
         return generatedTasks;
     }
 
@@ -66,12 +66,12 @@ class ImportConfiguration {
         return configuration;
     }
 
-    private List<TestResource<TaskType>> generateTasks() {
-        List<TestResource<TaskType>> tasks = new ArrayList<>();
+    private List<TestObject<TaskType>> generateTasks() {
+        List<TestObject<TaskType>> tasks = new ArrayList<>();
         List<DummyTestResource> sourceResources = TestSystemPerformance.SOURCES_CONFIGURATION.getGeneratedResources();
         for (int i = 0; i < sourceResources.size(); i++) {
             String taskOid = UUID.randomUUID().toString();
-            tasks.add(new TestResource<>(TARGET_DIR, createFile(i, sourceResources.get(i), taskOid), taskOid));
+            tasks.add(TestObject.file(TARGET_DIR, createFile(i, sourceResources.get(i), taskOid), taskOid));
         }
         return tasks;
     }

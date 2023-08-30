@@ -10,6 +10,10 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.gui.impl.component.input.expression.ScriptExpressionPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+
 import jakarta.annotation.PostConstruct;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -22,7 +26,7 @@ import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPan
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 @Component
-public class ConditionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> implements Serializable {
+public class ConditionPanelFactory extends ExpressionPanelFactory implements Serializable {
 
     @PostConstruct
     public void register() {
@@ -31,13 +35,17 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        SimpleAceEditorPanel conditionPanel = new SimpleAceEditorPanel(panelCtx.getComponentId(),
-                new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200);
-        return conditionPanel;
+        return new ScriptExpressionPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
     }
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return QNameUtil.match(ExpressionType.COMPLEX_TYPE, wrapper.getTypeName());
+        return QNameUtil.match(ExpressionType.COMPLEX_TYPE, wrapper.getTypeName())
+                && wrapper.getItemName().getLocalPart().toLowerCase().contains(MappingType.F_CONDITION.getLocalPart());
+    }
+
+    @Override
+    public Integer getOrder() {
+        return 1000;
     }
 }

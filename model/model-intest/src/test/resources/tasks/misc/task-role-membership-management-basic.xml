@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="07e8c51b-e5ae-496e-9b24-4f8701621c0d">
+    <name>role-membership-management-basic</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <roleMembershipManagement>
+                <roleRef oid="b48628a2-a032-47c2-947d-adc51940e920" type="RoleType"/>
+                <members>
+                    <objectRef oid="f1c3fbc4-85d6-4559-9a1e-647e3caa25df" type="UserType"/>
+                    <objectRef oid="3fc7d5bb-d1a6-446b-925e-5680afaa9df6" type="UserType"/>
+                </members>
+            </roleMembershipManagement>
+        </work>
+    </activity>
+</task>

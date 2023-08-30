@@ -42,6 +42,7 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
         implements ShortDumpable, Serializable {
 
     @NotNull protected final MT mapping;
+    /** [EP:M:FM] DONE 1/1 */
     @NotNull final ConfigurationItemOrigin mappingOrigin;
     @NotNull protected final MappingKindType mappingKind;
 
@@ -56,6 +57,10 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
 
     FocalMappingEvaluationRequest(
             @NotNull MT mapping,
+            // [EP:M:FM] DONE 3/3:
+            //  - [EP:M:AFM] DONE 1/1,
+            //  - [EP:M:AAFM] DONE 1/1,
+            //  - [EP:M:TFM] DONE 1/1
             @NotNull ConfigurationItemOrigin mappingOrigin,
             @NotNull MappingKindType mappingKind,
             @NotNull OO originObject) {
@@ -71,7 +76,7 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
     }
 
     public @NotNull ConfigurationItemOrigin getMappingOrigin() {
-        return mappingOrigin;
+        return mappingOrigin; // [EP:M:FM] DONE
     }
 
     public @NotNull List<VariableBindingDefinitionType> getSources() {

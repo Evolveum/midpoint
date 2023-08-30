@@ -167,6 +167,7 @@
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="correlation" type="tns:CorrelationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="duo" type="tns:DuoAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -451,6 +452,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="options" type="tns:CorrelationModuleOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options for correlation module. For example, limitation for the number of users which can be found by
+                                correlation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -476,9 +485,86 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="order" type="xsd:int"/>
-            <!-- TODO thresholds-->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="DuoAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Module is used for 2FA authentication.
+                Module use duo server for authentication via hardware key of mobile, tablet and so on.
+                We cant use it as only one authentication module. We need some primary authentication module for example saml.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="clientId" type="xsd:string" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the client id provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="clientSecret" type="t:ProtectedStringType" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the client secret provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="apiHostname" type="xsd:string" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This value is the api host provided by Duo in the admin panel.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CACerts" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                List of CA Certificates to use. You need add your cert when it misses in default certs.
+
+                                Default values:
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert Assured ID Root CA
+                                'sha256/I/Lt/z7ekCWanjD0Cvj5EqXls2lOaThEA0H2Bg4BT/o=',
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert Global Root CA
+                                'sha256/r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=',
+                                C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert High Assurance EV Root CA
+                                'sha256/WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=',
+                                C=US, O=SecureTrust Corporation, CN=SecureTrust CA
+                                'sha256/dykHF2FLJfEpZOvbOLX4PKrcD2w2sHd/iA/G3uHTOcw=',
+                                C=US, O=SecureTrust Corporation, CN=Secure Global CA
+                                'sha256/JZaQTcTWma4gws703OR/KFk313RkrDcHRvUt6na6DCg=',
+                                C=US, O=Amazon, CN=Amazon Root CA 1
+                                'sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=',
+                                C=US, O=Amazon, CN=Amazon Root CA 2
+                                'sha256/f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=',
+                                C=US, O=Amazon, CN=Amazon Root CA 3
+                                'sha256/NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=',
+                                C=US, O=Amazon, CN=Amazon Root CA 4
+                                'sha256/9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=',
+                                C=BM, O=QuoVadis Limited, CN=QuoVadis Root CA 2
+                                'sha256/j9ESw8g3DxR9XM06fYZeuN1UB4O6xp/GAIjjdD/zM3g='
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="pathForDuoUsername" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The path to the user attribute which should be sent to duo server as username of authenticated user.
+                                Default path is for name attribute.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="OtherAuthenticationModuleParameterType">
@@ -2211,92 +2297,73 @@
                 </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the password reset scheme. This is a short name that acts both as an
-                        identifier of the scheme and also as a short name used for diagnostics.
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the password reset scheme. This is a short name that acts both as an
+                                identifier of the scheme and also as a short name used for diagnostics.
 
-                        DEPRECATED: use identifier attribute instead of name
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7.1</a:since>
-                        <a:deprecated/>
-                        <a:deprecatedSince>4.7</a:deprecatedSince>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="identifier" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique credentials reset identifier. Can be used for overriding credentials reset in different security
-                        policies. Can be also used as a short name used for diagnostics (instead of name attribute).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="description" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Free form description of the credential reset method (administrator comment).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.1</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines authentication sequence, which will be used for reset credential.
-                        Since 4.7: it's better to specify sequence identifier here instead of sequence name
-                        as name attribute becomes deprecated in some objects which are used for
-                        authentication configuration starting from 4.7 version (e.g. in AuthenticationSequenceType)
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.1</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Source of a new credential value. This setting specifies whether the new credential
-                        value should be provided by the user, randomly generated, derived by a key-exchange
-                        protocol and so on.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7.1</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If set to true then the new credential will have the forceChange flag set.
-                        Which usually means that the user will have to change the credential on next logon.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7.1</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to form which is displayed for reset
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
+                                DEPRECATED: use identifier attribute instead of name
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.7.1</a:since>
+                                <a:deprecated/>
+                                <a:deprecatedSince>4.7</a:deprecatedSince>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="authenticationSequenceName" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines authentication sequence, which will be used for reset credential.
+                                Since 4.7: it's better to specify sequence identifier here instead of sequence name
+                                as name attribute becomes deprecated in some objects which are used for
+                                authentication configuration starting from 4.7 version (e.g. in AuthenticationSequenceType)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Source of a new credential value. This setting specifies whether the new credential
+                                value should be provided by the user, randomly generated, derived by a key-exchange
+                                protocol and so on.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.7.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true then the new credential will have the forceChange flag set.
+                                Which usually means that the user will have to change the credential on next logon.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.7.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to form which is displayed for reset
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="IdentityRecoveryPolicyType">
@@ -2312,39 +2379,27 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique identifier. Can be used for overriding the configuration in different security policies.
-                        Can be also used as a short name used for diagnostics.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="description" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Free form description of the identity recovery policy.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="authenticationSequenceIdentifier" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines authentication sequence, which should be used for identity recovery.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="itemToDisplay" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The path to the user attribute which should be displayed after the user was found. If no attribute is
-                        specified, user's name attribute will be displayed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="authenticationSequenceIdentifier" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines authentication sequence, which should be used for identity recovery.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="itemToDisplay" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The path to the user attribute which should be displayed after the user was found. If no attribute is
+                                specified, user's name attribute will be displayed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="CredentialSourceType">
@@ -2412,38 +2467,59 @@
                 </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-            </xsd:element>
-            <xsd:element name="initialLifecycleState" type="xsd:string" minOccurs="0">
-            </xsd:element>
-            <xsd:element name="requiredLifecycleState" type="xsd:string" minOccurs="0">
-            </xsd:element>
-            <xsd:element name="displayName" type="xsd:string" minOccurs="0">
-            </xsd:element>
-            <xsd:element name="additionalAuthenticationSequence" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defined authentication sequence, which will be use for additional authentication.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.5</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="defaultRole" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to the default roles which will be assigned to the user automatically after registration
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- More registration types may come here in the future. -->
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Use UserInterfaceFeatureType.identifier instead
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated/>
+                                <a:deprecatedSince>4.8</a:deprecatedSince>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="initialLifecycleState" type="xsd:string" minOccurs="0">
+                    </xsd:element>
+                    <xsd:element name="requiredLifecycleState" type="xsd:string" minOccurs="0">
+                    </xsd:element>
+                    <xsd:element name="displayName" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Use UserInterfaceFeatureType.display.label instead
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated/>
+                                <a:deprecatedSince>4.8</a:deprecatedSince>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="additionalAuthenticationSequence" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defined authentication sequence, which will be use for additional authentication.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultRole" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the default roles which will be assigned to the user automatically after registration
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- More registration types may come here in the future. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="SelfRegistrationPolicyType">
@@ -3301,6 +3377,27 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CorrelationModuleOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines some restrictions for the correlation authentication module.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="candidateLimit" type="xsd:int" minOccurs="0" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines the maximum number of users which can be found by the correlation module.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

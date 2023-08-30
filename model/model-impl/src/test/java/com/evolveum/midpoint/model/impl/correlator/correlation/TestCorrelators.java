@@ -62,7 +62,7 @@ import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -92,23 +92,23 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     // The following templates are used for testing the smart correlator (in various settings).
 
     /** Names, date of birth, and national ID are indexed using the default (i.e., polystring norm) algorithm. */
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_DEFAULT_INDEXING = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_DEFAULT_INDEXING = TestObject.file(
             TEST_DIR, "user-template-default-indexing.xml", "204f3615-bcd7-430d-93ec-c36f1db1dccd");
 
     /** Names, date of birth, and national ID are indexed using their original value. */
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_ORIGINAL_INDEXING = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ORIGINAL_INDEXING = TestObject.file(
             TEST_DIR, "user-template-original-indexing.xml", "c3c93da0-d17e-4926-8208-8441ba745381");
 
     /** Names, date of birth, and national ID are indexed in various (complex) ways. */
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_COMPLEX = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_COMPLEX = TestObject.file(
             TEST_DIR, "user-template-complex.xml", "dc393b43-e125-4ebf-987d-366c57120e96");
 
     /** TODO. */
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_MATCHING_RULES_MAIN = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_MATCHING_RULES_MAIN = TestObject.file(
             TEST_DIR, "user-template-matching-rules-main.xml", "e18dc8f8-0e88-4a4d-afb0-3248c704599a");
 
     /** TODO. */
-    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_MATCHING_RULES_CHILD = new TestResource<>(
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_MATCHING_RULES_CHILD = TestObject.file(
             TEST_DIR, "user-template-matching-rules-child.xml", "a9759cd0-d3e1-4aa6-9c26-54e879b4994c");
 
     /** Used for 1xx tests (filter, expression, and ID Match correlators). */
@@ -328,7 +328,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void executeTest(String name, File usersFile, TestResource<ObjectTemplateType> template)
+    private void executeTest(String name, File usersFile, TestObject<ObjectTemplateType> template)
             throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
             InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
         executeTest(
@@ -367,7 +367,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
 
         given("object template is set up");
-        TestResource<ObjectTemplateType> userTemplateResource = correlator.userTemplateResource;
+        TestObject<ObjectTemplateType> userTemplateResource = correlator.userTemplateResource;
         String userTemplateOid = userTemplateResource != null ? userTemplateResource.oid : null;
         if (!Objects.equals(userTemplateOid, currentlyUsedTemplateOid)) {
             if (userTemplateResource != null) {
@@ -435,7 +435,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         }
     }
 
-    private void importUserTemplateIfNeeded(TestResource<ObjectTemplateType> userTemplateResource, OperationResult result)
+    private void importUserTemplateIfNeeded(TestObject<ObjectTemplateType> userTemplateResource, OperationResult result)
             throws SchemaException, IOException, EncryptionException, ObjectNotFoundException, ConfigurationException {
         try {
             repoAdd(userTemplateResource, result);
@@ -629,7 +629,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         return correlator(name, null);
     }
 
-    private static TestCorrelator correlator(String name, TestResource<ObjectTemplateType> template) {
+    private static TestCorrelator correlator(String name, TestObject<ObjectTemplateType> template) {
         return new TestCorrelator(
                 new File(TEST_DIR, name + ".xml"),
                 template);
@@ -642,11 +642,11 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     /** Definition of the correlator and its instance. */
     static class TestCorrelator {
         @NotNull private final File file;
-        @Nullable private final TestResource<ObjectTemplateType> userTemplateResource; // loaded on start of test execution
+        @Nullable private final TestObject<ObjectTemplateType> userTemplateResource; // loaded on start of test execution
         private CorrelatorContext<?> correlatorContext;
         private Correlator instance; // set on initialization
 
-        TestCorrelator(@NotNull File file, @Nullable TestResource<ObjectTemplateType> userTemplateResource) {
+        TestCorrelator(@NotNull File file, @Nullable TestObject<ObjectTemplateType> userTemplateResource) {
             this.file = file;
             this.userTemplateResource = userTemplateResource;
         }

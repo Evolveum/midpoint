@@ -72,7 +72,7 @@ public class TestImportGroups extends AbstractStoryTest {
     public void test001importGroups() throws Exception {
         addObject(TASK_IMPORT_GROUPS);
 
-        waitForTaskFinish(TASK_IMPORT_GROUPS_OID, true);
+        waitForTaskFinish(TASK_IMPORT_GROUPS_OID);
 
         assertObjects(OrgType.class, DEFAULT_GROUPS + GROUPS);
     }

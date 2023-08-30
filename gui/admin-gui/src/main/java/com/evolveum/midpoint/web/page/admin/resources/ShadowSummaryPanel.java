@@ -7,22 +7,23 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
+import java.io.Serial;
+
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public ShadowSummaryPanel(String id, IModel<ShadowType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
         super(id, ShadowType.class, model, summaryPanelSpecificationType);
@@ -38,17 +39,17 @@ public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
 
     @Override
     protected IModel<String> getTitleModel() {
-        return WebComponentUtil.getResourceLabelModel(getModelObject(), getPageBase());
+        return ProvisioningObjectsUtil.getResourceLabelModel(getModelObject(), getPageBase());
     }
 
     @Override
     protected IModel<String> getTitle2Model() {
-        return WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase());
+        return () -> ProvisioningObjectsUtil.determineDisplayNameForDefinition(getModelObject(), getPageBase());
     }
 
     @Override
     protected String getDefaultIconCssClass() {
-        return WebComponentUtil.createShadowIcon(getModelObject().asPrismContainer());    //todo fix
+        return IconAndStylesUtil.createShadowIcon(getModelObject().asPrismContainer());    //todo fix
     }
 
     @Override

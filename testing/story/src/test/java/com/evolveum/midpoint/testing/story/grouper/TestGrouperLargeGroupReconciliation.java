@@ -9,7 +9,9 @@ package com.evolveum.midpoint.testing.story.grouper;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,7 +27,8 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
     private static final int ALUMNI_USERS = 10;
     private static final int STAFF_USERS = 100000;
 
-    private static final TestResource TASK_RECONCILE_GROUPS = new TestResource(TEST_DIR, "task-reconcile-groups.xml", "1fde833d-7105-40fb-b59a-c863a1f53609");
+    private static final TestObject<TaskType> TASK_RECONCILE_GROUPS = TestObject.file(
+            TEST_DIR, "task-reconcile-groups.xml", "1fde833d-7105-40fb-b59a-c863a1f53609");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -61,14 +64,13 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
 
         Thread.sleep(5000L);           // leave the reconciliation task alone ... at least for a minute
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, false, 180000);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, 180000);
         assertSuccess(taskAfter.getResult());
     }
 
     @Test
     public void test110ReconcileGroupsAgain() throws Exception {
         Task task = getTestTask();
-        OperationResult result = getTestOperationResult();
         task.setOwner(userAdministrator);
 
         deleteGroupMember(ALUMNI_NAME, 3);
@@ -80,7 +82,7 @@ public class TestGrouperLargeGroupReconciliation extends AbstractGrouperTest {
 
         Thread.sleep(5000L);           // leave the reconciliation task alone ... at least for a minute
 
-        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, false, 180000);
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_GROUPS.oid, 180000);
         assertSuccess(taskAfter.getResult());
     }
 }

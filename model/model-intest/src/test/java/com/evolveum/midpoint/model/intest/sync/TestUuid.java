@@ -115,7 +115,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         then();
 
-        waitForTaskFinish(TASK_RECONCILE_DUMMY_UUID_OID, false);
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_UUID_OID);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 0, 0, 0);
 
@@ -164,7 +164,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         then();
 
-        waitForTaskNextRunAssertSuccess(taskBefore, true);
+        waitForTaskNextRunAssertSuccess(taskBefore);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
 
@@ -239,7 +239,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         then();
-        waitForTaskNextRunAssertSuccess(taskBefore, true);
+        waitForTaskNextRunAssertSuccess(taskBefore);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 1);
 
@@ -320,7 +320,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         then();
-        waitForTaskNextRunAssertSuccess(taskBefore, true);
+        waitForTaskNextRunAssertSuccess(taskBefore);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 2);
 

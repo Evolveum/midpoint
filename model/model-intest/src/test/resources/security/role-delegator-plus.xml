@@ -10,7 +10,6 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Universal Self Delegator Pl</name>
     <description>Like delegator, but can also access inactive delegations</description>
-    <delegable>true</delegable>
     <authorization>
         <name>authz-read-basic</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
@@ -23,8 +22,9 @@
             <special>self</special>
         </object>
     </authorization>
+    <!-- Here could be more elaborate authorizations (like in role-delegator.xml) but currently we stay with simpler ones -->
     <authorization>
-        <name>authz-read-delagate-assignments</name>
+        <name>authz-read-delegate-assignments</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>UserType</type>
@@ -75,4 +75,5 @@
             <type>ShadowType</type>
         </object>
     </authorization>
+    <delegable>true</delegable>
 </role>

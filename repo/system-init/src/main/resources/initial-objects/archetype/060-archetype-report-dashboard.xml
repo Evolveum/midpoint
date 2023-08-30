@@ -23,14 +23,14 @@
                 <color>#001F3F</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>objectCollection</path>
             <visibility>hidden</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>ReportType</type>
-                <panel>
+                <panel id="2">
                     <identifier>engine</identifier>
                     <displayOrder>11</displayOrder>
                     <display>
@@ -40,18 +40,18 @@
                             <cssClass>fa fa-microchip</cssClass>
                         </icon>
                     </display>
-                    <container>
+                    <container id="4">
                         <identifier>engineContainer</identifier>
                         <display>
                             <label>Engine</label>
                         </display>
-                        <item>
+                        <item id="5">
                             <path>dashboard/dashboardRef</path>
                         </item>
-                        <item>
+                        <item id="6">
                             <path>dashboard/showOnlyWidgetsTable</path>
                         </item>
-                        <item>
+                        <item id="7">
                             <path>dashboard/storeExportedWidgetData</path>
                         </item>
                     </container>
@@ -59,7 +59,7 @@
                     <path>c:dashboard</path>
                     <type>c:DashboardReportEngineConfigurationType</type>
                 </panel>
-                <panel>
+                <panel id="3">
                     <identifier>view</identifier>
                     <display>
                         <label>View</label>
@@ -68,7 +68,7 @@
                             <cssClass>fa fa-eye</cssClass>
                         </icon>
                     </display>
-                    <container>
+                    <container id="8">
                         <identifier>dashboard</identifier>
                         <display>
                             <label>Dashboard</label>
@@ -82,8 +82,8 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="9">
+        <assignmentRelation id="10">
             <holderType>ReportType</holderType>
         </assignmentRelation>
     </assignment>

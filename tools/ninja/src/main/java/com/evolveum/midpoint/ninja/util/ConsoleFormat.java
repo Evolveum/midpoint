@@ -48,18 +48,18 @@ public final class ConsoleFormat {
     }
 
     public static String formatMessageWithErrorParameters(String message, Object... parameters) {
-        return formatMessageWithParameter(message, parameters, Color.ERROR);
+        return formatMessageWithParameters(message, parameters, Color.ERROR);
     }
 
     public static String formatMessageWithWarningParameters(String message, Object... parameters) {
-        return formatMessageWithParameter(message, parameters, Color.WARN);
+        return formatMessageWithParameters(message, parameters, Color.WARN);
     }
 
     public static String formatMessageWithInfoParameters(String message, Object... parameters) {
-        return formatMessageWithParameter(message, parameters, Color.INFO);
+        return formatMessageWithParameters(message, parameters, Color.INFO);
     }
 
-    public static String formatMessageWithParameter(String message, Object[] parameters, Color level) {
+    public static String formatMessageWithParameters(String message, Object[] parameters, Color level) {
         String[] formatted = new String[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             formatted[i] = Ansi.ansi().fgBright(level.color).a(parameters[i]).reset().toString();

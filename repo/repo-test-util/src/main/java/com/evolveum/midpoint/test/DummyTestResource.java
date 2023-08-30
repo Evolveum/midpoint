@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * Representation of Dummy Resource in tests.
  */
 @Experimental
-public class DummyTestResource extends AnyTestResource {
+public class DummyTestResource extends TestResource {
 
     public final String name;
     public final FailableProcessor<DummyResourceContoller> controllerInitLambda;

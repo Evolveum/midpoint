@@ -12,7 +12,7 @@ import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguratio
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IdentityItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiSourceItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
@@ -40,7 +40,7 @@ public class IdentityManagementConfigurationImpl implements IdentityManagementCo
             throws ConfigurationException {
         PathKeyedMap<IdentityItemConfiguration> itemConfigurationMap = new PathKeyedMap<>();
         for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
-            IdentityItemDefinitionType multiSourceDefBean = itemDefBean.getMultiSource();
+            MultiSourceItemDefinitionType multiSourceDefBean = itemDefBean.getMultiSource();
             if (multiSourceDefBean != null) {
                 IdentityItemConfiguration configuration = IdentityItemConfigurationImpl.of(itemDefBean, multiSourceDefBean);
                 itemConfigurationMap.put(configuration.getPath(), configuration);

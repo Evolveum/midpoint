@@ -304,7 +304,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
                 .assignmentId(createAssignmentId(assignmentPathVariables));
 
-        MappingBuilder<V, D> mappingBuilder =
+        MappingBuilder<V, D> mappingBuilder = // [EP:M:FM] DONE
                 beans.mappingFactory.<V, D>createMappingBuilder(mappingBean, request.getMappingOrigin(), contextDesc)
                         .sourceContext(focusOdo)
                         .defaultSource(defaultSource)
@@ -319,8 +319,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                         .rootNode(focusOdo)
                         .mappingPreExpression(request.getMappingPreExpression()) // Used to populate auto-assign assignments
                         .mappingSpecification(specification)
-                        .now(now)
-                        .computeExpressionProfile(result);
+                        .now(now);
 
         MappingImpl<V, D> mapping = mappingBuilder.build();
 

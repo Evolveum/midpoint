@@ -7,11 +7,24 @@
 
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
-import com.evolveum.midpoint.model.api.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -27,20 +40,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AbstractExecutionActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Collections;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 @Component
 public class OperationsHelper {
@@ -54,21 +56,21 @@ public class OperationsHelper {
 
     @Autowired private ModelService modelService;
     @Autowired private ModelInteractionService modelInteractionService;
-    @Autowired private PrismContext prismContext;
     @Autowired private ExpressionHelper expressionHelper;
 
     public boolean getDryRun(ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
-            throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return expressionHelper.getActionArgument(Boolean.class, action,
                 AbstractExecutionActionExpressionType.F_DRY_RUN, PARAM_DRY_RUN,
                 input, context, false, PARAM_DRY_RUN, result);
     }
 
     @NotNull
-    public ModelExecuteOptions getOptions(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult result) throws ScriptExecutionException, SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    public ModelExecuteOptions getOptions(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ModelExecuteOptions options = getRawOptions(action, input, context, result);
 
         // raw and skipApprovals are not part of static schema
@@ -89,9 +91,10 @@ public class OperationsHelper {
     }
 
     @NotNull
-    private ModelExecuteOptions getRawOptions(ActionExpressionType action, PipelineData input, ExecutionContext context,
-            OperationResult result) throws ScriptExecutionException, SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private ModelExecuteOptions getRawOptions(
+            ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ModelExecuteOptionsType optionsBean = expressionHelper.getActionArgument(ModelExecuteOptionsType.class, action,
                 AbstractExecutionActionExpressionType.F_EXECUTE_OPTIONS, PARAM_OPTIONS, input, context, null,
                 "executeOptions", result);
@@ -103,30 +106,35 @@ public class OperationsHelper {
     }
 
 
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(
+            ObjectDelta delta, ExecutionContext context, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return applyDelta(delta, null, context, result);
     }
 
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        try {
-            //noinspection unchecked
-            return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
-        } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
-            throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
-        }
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(
+            ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        //noinspection unchecked
+        return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
     }
 
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, boolean dryRun, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        try {
-            LOGGER.debug("Going to execute delta (raw={}):\n{}", dryRun, delta.debugDumpLazily());
-            if (dryRun) {
-                modelInteractionService.previewChanges(Collections.singleton(delta), options, context.getTask(), result);
-                return null;
-            } else {
-                return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
-            }
-        } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
-            throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(
+            ObjectDelta<? extends ObjectType> delta,
+            ModelExecuteOptions options,
+            boolean dryRun,
+            ExecutionContext context,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        LOGGER.debug("Going to execute delta (raw={}):\n{}", dryRun, delta.debugDumpLazily());
+        if (dryRun) {
+            modelInteractionService.previewChanges(Collections.singleton(delta), options, context.getTask(), result);
+            return null;
+        } else {
+            return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
         }
     }
 
@@ -147,12 +155,15 @@ public class OperationsHelper {
         return rv;
     }
 
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, boolean noFetch, ExecutionContext context, OperationResult result) throws ScriptExecutionException, ExpressionEvaluationException {
-        try {
-            return modelService.getObject(type, oid, createGetOptions(null, noFetch), context.getTask(), result); // TODO readOnly?
-        } catch (ConfigurationException|ObjectNotFoundException|SchemaException|CommunicationException|SecurityViolationException e) {
-            throw new ScriptExecutionException("Couldn't get object: " + e.getMessage(), e);
-        }
+    public <T extends ObjectType> PrismObject<T> getObject(
+            Class<T> type,
+            String oid,
+            boolean noFetch,
+            ExecutionContext context,
+            OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        return modelService.getObject(type, oid, createGetOptions(null, noFetch), context.getTask(), result); // TODO readOnly?
     }
 
     public Operation recordStart(ExecutionContext context, ObjectType object) {

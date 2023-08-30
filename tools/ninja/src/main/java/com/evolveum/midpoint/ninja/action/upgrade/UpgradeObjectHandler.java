@@ -44,19 +44,19 @@ public class UpgradeObjectHandler {
      * @param <O> type of object
      * @return true if object was changed
      */
-    public <O extends ObjectType> boolean execute(PrismObject<O> object) throws Exception {
+    public <O extends ObjectType> UpgradeObjectResult execute(PrismObject<O> object) throws Exception {
         final PrismContext prismContext = context.getPrismContext();
 
         ObjectUpgradeValidator validator = new ObjectUpgradeValidator(prismContext);
         validator.showAllWarnings();
         UpgradeValidationResult result = validator.validate(object);
         if (!result.hasChanges()) {
-            return false;
+            return UpgradeObjectResult.NO_CHANGES;
         }
 
         List<UpgradeValidationItem> applicableItems = filterApplicableItems(object.getOid(), result.getItems());
         if (applicableItems.isEmpty()) {
-            return false;
+            return UpgradeObjectResult.SKIPPED;
         }
 
         // applicable items can't be applied by using delta from each item on object - deltas might
@@ -78,7 +78,7 @@ public class UpgradeObjectHandler {
             processor.process(object, path);
         }
 
-        return true;
+        return UpgradeObjectResult.UPDATED;
     }
 
     private List<UpgradeValidationItem> filterApplicableItems(String oid, List<UpgradeValidationItem> items) {
@@ -111,7 +111,9 @@ public class UpgradeObjectHandler {
 
                     Set<SkipUpgradeItem> skipItems = skipUpgradeItems.getOrDefault(UUID.fromString(oid), new HashSet<>());
                     for (SkipUpgradeItem skipItem : skipItems) {
-                        if (Objects.equals(skipItem.getPath(), path.toString())) {
+                        if (Objects.equals(skipItem.getPath(), path.toString())
+                                && Objects.equals(skipItem.getIdentifier(), item.getIdentifier())) {
+
                             return false;
                         }
                     }

@@ -6,24 +6,18 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueObjectChoosePanel;
 import com.evolveum.midpoint.web.component.input.AssociationExpressionValuePanel;
-
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,16 +28,13 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,9 +42,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -113,7 +102,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
             protected List<ResourceAssociationDefinition> load() {
                 ConstructionType construction = getModelObject().getItem().getRealValue();
 
-                return WebComponentUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
+                return ProvisioningObjectsUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
                         construction.getIntent());
             }
         };
@@ -128,7 +117,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
                 Label label = new Label(
                         ID_ASSOCIATION_REFERENCE_LABEL,
-                        Model.of(WebComponentUtil.getAssociationDisplayName(item.getModelObject())));
+                        Model.of(ProvisioningObjectsUtil.getAssociationDisplayName(item.getModelObject())));
                 item.add(label);
 
                 IModel<ExpressionType> expressionModel = getExpressionModel(item.getModelObject());

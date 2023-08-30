@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -21,7 +22,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -96,7 +97,7 @@ public class UserDetailsModel extends FocusDetailsModels<UserType> {
 
             PrismReferenceValue referenceValue = getPrismContext().itemFactory().createReferenceValue(userOid,
                     UserType.COMPLEX_TYPE);
-            referenceValue.setRelation(WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION));
+            referenceValue.setRelation(RelationUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION));
 
             ObjectFilter refFilter = getPrismContext().queryFor(UserType.class)
                     .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)

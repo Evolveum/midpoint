@@ -30,7 +30,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ActivityPerformanceInformationAsserter;
 import com.evolveum.midpoint.test.asserter.ActivityProgressInformationAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -48,7 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AbstractRepoCommonTest extends AbstractIntegrationTest {
 
-    private static final TestResource<UserType> USER_ADMINISTRATOR = new TestResource<>(COMMON_DIR, "user-administrator.xml", "00000000-0000-0000-0000-000000000002");
+    private static final TestObject<UserType> USER_ADMINISTRATOR = TestObject.file(
+            COMMON_DIR, "user-administrator.xml", "00000000-0000-0000-0000-000000000002");
 
     private static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/repo-common-test/extension";
     private static final ItemName EXT_DISCRIMINATOR = new ItemName(NS_EXT, "discriminator");

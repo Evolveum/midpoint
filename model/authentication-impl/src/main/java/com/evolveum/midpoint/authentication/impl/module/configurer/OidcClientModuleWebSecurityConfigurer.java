@@ -13,8 +13,8 @@ import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationS
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OidcClientModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.authentication.impl.oidc.OidcClientLogoutSuccessHandler;
-import com.evolveum.midpoint.authentication.impl.oidc.OidcLoginConfigurer;
+import com.evolveum.midpoint.authentication.impl.filter.oidc.OidcClientLogoutSuccessHandler;
+import com.evolveum.midpoint.authentication.impl.filter.oidc.OidcLoginConfigurer;
 import com.evolveum.midpoint.authentication.impl.provider.OidcClientProvider;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -22,10 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -76,8 +74,9 @@ public class OidcClientModuleWebSecurityConfigurer extends RemoteModuleWebSecuri
         super.configure(http);
 
         OidcLoginConfigurer configurer = new OidcLoginConfigurer(auditProvider);
-        configurer.midpointFailureHandler(new MidpointAuthenticationFailureHandler())
+        configurer
                 .clientRegistrationRepository(clientRegistrationRepository())
+                .midpointFailureHandler(new MidpointAuthenticationFailureHandler())
                 .loginProcessingUrl(
                         AuthUtil.stripEndingSlashes(getPrefix()) + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID)
                 .authorizationRequestBaseUri(

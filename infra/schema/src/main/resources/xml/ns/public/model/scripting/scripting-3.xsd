@@ -202,7 +202,7 @@
                 <xsd:sequence>
                     <xsd:element ref="tns:scriptingExpression" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
-                <xsd:attribute name="list" type="xsd:boolean" />        <!-- requires there are no elements other than 'expression' -->
+                <xsd:attribute name="list" type="xsd:boolean" /> <!-- requires there are no elements other than 'scriptingExpression' -->
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -214,6 +214,7 @@
         </xsd:annotation>
     </xsd:element>
 
+    <!-- Should be perhaps called SearchActionExpressionType, but keeping this one for compatibility reasons. -->
     <xsd:complexType name="SearchExpressionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -221,7 +222,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ScriptingExpressionType">
+            <xsd:extension base="tns:AbstractActionExpressionType">
                 <xsd:sequence>
                     <xsd:element name="type" type="xsd:QName">
                         <xsd:annotation>
@@ -417,6 +418,24 @@
         </xsd:annotation>
     </xsd:element>
 
+    <!-- Should be perhaps called ActionExpressionType (and that one "DynamicActionExpressionType") but keeping
+         this for compatibility reasons. -->
+    <xsd:complexType name="AbstractActionExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Either traditional "dynamic" action (add, modify, ...), or a search, that is considered to be an action since 4.8.
+                The search cannot be a dynamic action because of the conflict on the "type" property.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since> <!-- Introduced so that "search" can be also an action. -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ScriptingExpressionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="ActionExpressionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -424,7 +443,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ScriptingExpressionType">
+            <xsd:extension base="tns:AbstractActionExpressionType">
                 <xsd:sequence>
                     <xsd:element name="type" type="xsd:string" minOccurs="0">
                         <xsd:annotation>

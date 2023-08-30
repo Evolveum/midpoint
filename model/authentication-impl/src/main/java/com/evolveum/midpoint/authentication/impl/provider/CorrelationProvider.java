@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -76,18 +77,18 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
 
             if (owner != null) {
                 correlationModuleAuthentication.addOwner(owner);
-                return createAuthenticationToken(owner, focusType);
+                return authentication;
             } else if (correlationModuleAuthentication.isLastCorrelator()) {
-                CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
-                if (ownersMap != null && !ownersMap.isEmpty()) {
-                    correlationResult.getCandidateOwnersMap().values()
-                            .forEach(c -> correlationModuleAuthentication.addOwner(c.getObject()));
-                    return createAuthenticationToken(correlationModuleAuthentication.getOwners().get(0), focusType);    //todo FIXME
-                } else {
-                    correlationModuleAuthentication
-                            .setPreFocus(correlationVerificationToken.getPreFocus(focusType,
-                                    correlationModuleAuthentication.getProcessedAttributes()));
+                if (candidateOwnerExist(correlationResult)) {
+                    writeCandidatesToOwners(correlationResult.getCandidateOwnersMap(), correlationModuleAuthentication);
                 }
+
+                isOwnersNumberUnderRestriction(correlationModuleAuthentication);
+
+                correlationModuleAuthentication.setPreFocus(correlationVerificationToken.getPreFocus(focusType,
+                                    correlationModuleAuthentication.getProcessedAttributes()));
+
+                return authentication;
             }
 
             CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
@@ -107,6 +108,26 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             return mpAuthentication.getArchetypeOid();
         }
         return null;
+    }
+
+    private boolean candidateOwnerExist(CompleteCorrelationResult correlationResult) {
+        return correlationResult.getCandidateOwnersMap() != null && !correlationResult.getCandidateOwnersMap().isEmpty();
+    }
+
+    private void writeCandidatesToOwners(@NotNull CandidateOwnersMap candidateOwnersMap,
+            CorrelationModuleAuthenticationImpl correlationModuleAuthentication) {
+        candidateOwnersMap.values()
+                .forEach(c -> correlationModuleAuthentication.addOwner(c.getObject()));
+    }
+
+    private void isOwnersNumberUnderRestriction(CorrelationModuleAuthenticationImpl correlationModuleAuthentication) {
+        if (correlationModuleAuthentication.getCorrelationMaxUsersNumber() == null) {
+            return;
+        }
+        if (correlationModuleAuthentication.getOwners().size() > correlationModuleAuthentication.getCorrelationMaxUsersNumber()) {
+            LOGGER.error("Correlation result owners number exceeds the threshold.");
+            throw new AuthenticationServiceException("web.security.provider.unavailable");
+        }
     }
 
     private Authentication createAuthenticationToken(ObjectType owner, Class<? extends FocusType> focusType) {

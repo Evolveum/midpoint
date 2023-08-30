@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="ac97ca9d-7bb6-44b3-8d10-3b309c97f866">
+    <name>use-task-templates</name>
+    <authorization>
+        <name>use-task-templates</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#use</action>
+        <object>
+            <type>TaskType</type>
+        </object>
+    </authorization>
+</role>

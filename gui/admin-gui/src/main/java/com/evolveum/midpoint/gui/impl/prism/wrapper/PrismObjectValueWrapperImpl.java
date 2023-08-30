@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import org.apache.wicket.model.StringResourceModel;
@@ -43,7 +43,7 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 
             collectExtensionItems(container, true, containers);
 
-            if (!WebComponentUtil.isNewDesignEnabled() && container instanceof PrismContainerWrapper && ((PrismContainerWrapper<?>) container).isVirtual()) {
+            if (!DetailsPageUtil.isNewDesignEnabled() && container instanceof PrismContainerWrapper && ((PrismContainerWrapper<?>) container).isVirtual()) {
                 containers.add((PrismContainerWrapper<? extends Containerable>) container);
             }
 

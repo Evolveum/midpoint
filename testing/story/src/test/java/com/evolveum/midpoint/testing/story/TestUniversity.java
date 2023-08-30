@@ -148,7 +148,7 @@ public class TestUniversity extends AbstractStoryTest {
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task, task.getResult());
         TestUtil.assertSuccess(testResultOpenDj);
 
-        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID, false);
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID);
 
         dumpOrgTree();
     }
@@ -159,7 +159,7 @@ public class TestUniversity extends AbstractStoryTest {
 
         // WHEN
         dummyResourceHr.addPrivilege(comenius);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID);
 
         // THEN
         PrismObject<OrgType> org = getAndAssertFunctionalOrg("UK");
@@ -189,7 +189,7 @@ public class TestUniversity extends AbstractStoryTest {
         dummyResourceHr.addPrivilege(srcFmfi);
         dummyResourceHr.addPrivilege(srcVc);
         dummyResourceHr.addPrivilege(srcPrif);
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID);
 
         // THEN
         dumpOrgTree();
@@ -297,7 +297,7 @@ public class TestUniversity extends AbstractStoryTest {
 
         // WHEN
         srcVc.replaceAttributeValue(DUMMY_PRIVILEGE_ATTRIBUTE_HR_ORGPATH, "UK:PRIF");
-        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true, 999999999);
+        waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, 999999999);
 
         // THEN
         dumpOrgTree();

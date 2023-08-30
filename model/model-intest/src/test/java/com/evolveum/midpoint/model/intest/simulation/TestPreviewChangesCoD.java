@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -94,7 +93,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         RESOURCE_DUMMY.initAndTest(this, initTask, initResult);
 
-        TestResource.getAll(ORG_CHILD, USER_BOB);
+        TestObject.getAll(ORG_CHILD, USER_BOB);
 
         addObject(OBJECT_TEMPLATE_ORG, initTask, initResult);
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);

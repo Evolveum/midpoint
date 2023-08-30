@@ -32,6 +32,10 @@ import java.util.Collection;
  */
 public abstract class ActivityCustomization {
 
+    public static @NotNull ActivityCustomization none() {
+        return new None();
+    }
+
     @SuppressWarnings("WeakerAccess")
     public static @NotNull ActivityCustomization forQuery(QueryType query) {
         return new ObjectQuery(query);
@@ -50,7 +54,7 @@ public abstract class ActivityCustomization {
         }
     }
 
-    /** Applies the customization. May directly modify the task template. */
+    /** Applies the customization: returns the (modified or created) activity def. May directly modify the task template. */
     public abstract @NotNull ActivityDefinitionType applyTo(@NotNull TaskType taskTemplate);
 
     /**

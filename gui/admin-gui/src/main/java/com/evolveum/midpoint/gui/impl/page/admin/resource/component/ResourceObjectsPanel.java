@@ -7,33 +7,46 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItemWithCount;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 
-import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -46,7 +59,7 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -54,17 +67,17 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ResourceObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -78,6 +91,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectsPanel.class);
@@ -87,10 +104,14 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
     private static final String ID_CONFIGURATION = "configuration";
+    private static final String ID_LIFECYCLE_STATE = "lifecycleState";
+    private static final String OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE = DOT_CLASS + "setLyfecycleStateForObjectType";
     private static final String ID_STATISTICS = "statistics";
     private static final String ID_SHOW_STATISTICS = "showStatistics";
-    private static final String ID_CREATE_TASK = "createTask";
+    private static final String ID_TASKS = "tasks";
     private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
+
+    private static final String OP_COUNT_TASKS = DOT_CLASS + "countTasks";
 
     private IModel<Boolean> showStatisticsModel = Model.of(false);
 
@@ -102,8 +123,10 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     protected void initLayout() {
         createPanelTitle();
         createObjectTypeChoice();
+
+        createLifecycleStatePanel();
         createConfigureButton();
-        createTaskCreateButton();
+        createTasksButton();
 
         createShowStatistics();
         createStatisticsPanel();
@@ -111,6 +134,60 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         createShadowTable();
 
         //TODO tasks
+    }
+
+    private void createLifecycleStatePanel() {
+        IModel<PrismPropertyWrapper<String>> model = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismPropertyWrapper<String> load() {
+                ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                        .append(getSelectedObjectType().asPrismContainerValue().getPath())
+                        .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
+                try {
+                    return getObjectWrapperModel().getObject().findProperty(pathToProperty);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find property with path " + pathToProperty);
+                }
+                return null;
+            }
+        };
+
+        LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, model) {
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        Task task = getPageBase().createSimpleTask(OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE);
+                        OperationResult result = task.getResult();
+                        ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                                .append(getSelectedObjectType().asPrismContainerValue().getPath())
+                                .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
+
+                        WebComponentUtil.saveLifeCycleStateOnPath(
+                                getObjectWrapperObject(),
+                                pathToProperty,
+                                target,
+                                task,
+                                result,
+                                getPageBase());
+
+                        try {
+                            if (result.isSuccess()) {
+                                String realValue = model.getObject().getValue().getRealValue();
+                                model.getObject().getValue().getOldValue().setValue(realValue);
+                            }
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't get value of " + model.getObject());
+                        }
+                    }
+                });
+            }
+        };
+        panel.setOutputMarkupId(true);
+        panel.add(new VisibleBehaviour(() -> getSelectedObjectTypeDefinition() != null));
+        add(panel);
     }
 
     private void createPanelTitle() {
@@ -127,6 +204,10 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                target.add(get(ID_LIFECYCLE_STATE));
+                target.add(get(ID_LIFECYCLE_STATE).getParent());
+                target.add(get(ID_CONFIGURATION));
+                target.add(get(ID_TASKS));
                 target.add(getShadowTable());
             }
         });
@@ -135,23 +216,99 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createConfigureButton() {
-        AjaxIconButton configuration = new AjaxIconButton(
-                ID_CONFIGURATION,
-                new Model<>("fa fa-cog"),
-                createStringResource("ResourceObjectsPanel.button.configure")) {
+
+        List<InlineMenuItem> items = new ArrayList<>();
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.BASIC,
+                "showResourceObjectTypeBasicWizard"));
+
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.SYNCHRONIZATION,
+                "showSynchronizationWizard"));
+
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ATTRIBUTE_MAPPING,
+                "showAttributeMappingWizard"));
+
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CORRELATION,
+                "showCorrelationWizard"));
+
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CAPABILITIES,
+                "showCapabilitiesWizard"));
+
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CREDENTIALS,
+                "showCredentialsWizard"));
+
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ACTIVATION,
+                "showActivationsWizard"));
+
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ASSOCIATIONS,
+                "showAssociationsWizard"));
+
+        DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", getString("ResourceObjectsPanel.button.configure"), items);
+        DropdownButtonPanel configurationPanel = new DropdownButtonPanel(ID_CONFIGURATION, model) {
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-sm btn-primary";
+            }
+
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-left";
+            }
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                PrismContainerValue<ResourceObjectTypeDefinitionType> selectedObjectType = getSelectedObjectType().asPrismContainerValue();
-                if (selectedObjectType.isEmpty()) {
-                    showNewObjectTypeWizard(target);
-                } else {
-                    showEditObjectTypeWizard(target, selectedObjectType);
-                }
+            protected boolean showIcon() {
+                return true;
             }
         };
-        configuration.showTitleAsLabel(true);
-        add(configuration);
+        configurationPanel.setOutputMarkupId(true);
+        configurationPanel.add(new VisibleBehaviour(() -> getSelectedObjectTypeDefinition() != null));
+        add(configurationPanel);
+    }
+
+    private ButtonInlineMenuItem createWizardItemPanel(
+            @NotNull ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType wizardType,
+            @NotNull String methodName
+    ) {
+        return new ButtonInlineMenuItem(
+                createStringResource(wizardType)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ResourceObjectTypeDefinitionType selectedObjectType = getSelectedObjectType();
+                        if (selectedObjectType != null) {
+                            try {
+                                Method method = PageResource.class.getMethod(
+                                        methodName, AjaxRequestTarget.class, ItemPath.class);
+                                method.invoke(
+                                        getObjectDetailsModels().getPageResource(),
+                                        target,
+                                        ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                                                .append(selectedObjectType.asPrismContainerValue().getPath()));
+                            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                                LOGGER.error("Couldn't invoke method " + methodName + "in PageResource class");
+                            }
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(wizardType.getIcon());
+            }
+        };
     }
 
     private void createShowStatistics() {
@@ -265,18 +422,203 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         add(shadowTablePanel);
     }
 
-    private void createTaskCreateButton() {
-        AjaxIconButton createTask = new AjaxIconButton(ID_CREATE_TASK, new Model<>("fa fa-tasks"),
-                createStringResource("ResourceObjectsPanel.button.createTask")) {
+    private void createTasksButton() {
+
+        List<InlineMenuItem> items = new ArrayList<>();
+        items.add(new ButtonInlineMenuItem(createStringResource("ResourceObjectsPanel.button.createTask")) {
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-plus-circle");
+            }
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                createTaskPerformed(target);
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        createTaskPerformed(target);
+                    }
+                };
+            }
+        });
+
+        items.add(createTaskViewMenuItem(
+                createStringResource("ResourceObjectsPanel.button.viewSimulatedTasks"),
+                null,
+                true));
+
+        items.add(createTaskViewMenuItem(
+                createStringResource("ResourceObjectsPanel.button.viewImportTasks"),
+                SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
+                false));
+
+        items.add(createTaskViewMenuItem(
+                createStringResource("ResourceObjectsPanel.button.viewLiveSyncTasks"),
+                SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
+                false));
+
+        items.add(createTaskViewMenuItem(
+                createStringResource("ResourceObjectsPanel.button.viewReconciliationTasks"),
+                SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
+                false));
+
+        DropdownButtonDto model = new DropdownButtonDto(
+                null, "fa fa-tasks", getString("ResourceObjectsPanel.button.tasks"), items);
+        DropdownButtonPanel createTask = new DropdownButtonPanel(ID_TASKS, model) {
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-sm btn-default";
+            }
+
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-left";
+            }
+
+            @Override
+            protected boolean showIcon() {
+                return true;
             }
         };
-        createTask.showTitleAsLabel(true);
         createTask.setOutputMarkupId(true);
         add(createTask);
+    }
+
+    private InlineMenuItem createTaskViewMenuItem(StringResourceModel label, String archetypeOid, boolean isSimulationTasks) {
+        return new ButtonInlineMenuItemWithCount(label) {
+            @Override
+            public int getCount() {
+                ObjectQuery query = createQueryFroTasks(isSimulationTasks);
+                if (archetypeOid != null) {
+                    query.addFilter(PrismContext.get()
+                            .queryFor(TaskType.class)
+                            .item(TaskType.F_ARCHETYPE_REF)
+                            .ref(archetypeOid)
+                            .buildFilter());
+                }
+
+                Task task = getPageBase().createSimpleTask(OP_COUNT_TASKS);
+                Integer count = null;
+                try {
+                    count = getPageBase().getModelService().countObjects(
+                            TaskType.class, query, null, task, task.getResult());
+                } catch (CommonException e) {
+                    LOGGER.error("Couldn't count tasks");
+                    getPageBase().showResult(task.getResult());
+                }
+
+                if (count == null) {
+                    return 0;
+                }
+                return count;
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-eye");
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        redirectToTasksListPage(archetypeOid, isSimulationTasks);
+                    }
+                };
+            }
+        };
+    }
+
+    private void redirectToTasksListPage(@Nullable String archetypeOid, boolean isSimulationTasks) {
+        PageParameters pageParameters = new PageParameters();
+        if (archetypeOid != null) {
+            String taskCollectionViewName =
+                    getPageBase().getCompiledGuiProfile().findApplicableArchetypeView(archetypeOid).getViewIdentifier();
+
+            if (StringUtils.isNotEmpty(taskCollectionViewName)) {
+                pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
+            }
+        }
+
+        ObjectQuery query = createQueryFroTasks(isSimulationTasks);
+
+        PageTasks pageTasks = new PageTasks(query, pageParameters);
+        getPageBase().setResponsePage(pageTasks);
+    }
+
+    private ObjectQuery createQueryFroTasks(boolean isSimulationTasks) {
+        S_FilterExit filter = PrismContext.get()
+                .queryFor(TaskType.class)
+                .item(ItemPath.create(
+                        TaskType.F_AFFECTED_OBJECTS,
+                        TaskAffectedObjectsType.F_ACTIVITY,
+                        ActivityAffectedObjectsType.F_RESOURCE_OBJECTS,
+                        BasicResourceObjectSetType.F_RESOURCE_REF))
+                .ref(getObjectDetailsModels().getObjectType().getOid())
+                .and()
+                .item(ItemPath.create(
+                        TaskType.F_AFFECTED_OBJECTS,
+                        TaskAffectedObjectsType.F_ACTIVITY,
+                        ActivityAffectedObjectsType.F_RESOURCE_OBJECTS,
+                        BasicResourceObjectSetType.F_KIND))
+                .eq(getKind());
+        ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
+        if (objectType != null) {
+            filter = filter
+                    .and()
+                    .item(ItemPath.create(
+                            TaskType.F_AFFECTED_OBJECTS,
+                            TaskAffectedObjectsType.F_ACTIVITY,
+                            ActivityAffectedObjectsType.F_RESOURCE_OBJECTS,
+                            BasicResourceObjectSetType.F_INTENT))
+                    .eq(objectType.getIntent());
+        }
+
+        if (isSimulationTasks) {
+            filter = addSimulationRule(
+                    filter.and().block(),
+                    isSimulationTasks,
+                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    ExecutionModeType.PREVIEW);
+            filter = addSimulationRule(
+                    filter.or(),
+                    isSimulationTasks,
+                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
+            filter = filter.endBlock();
+        } else {
+            filter = addSimulationRule(
+                    filter.and(),
+                    isSimulationTasks,
+                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    ExecutionModeType.PREVIEW);
+            filter = addSimulationRule(
+                    filter.and(),
+                    isSimulationTasks,
+                    ActivityAffectedObjectsType.F_EXECUTION_MODE,
+                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
+        }
+
+        filter = addSimulationRule(
+                filter.and(),
+                isSimulationTasks,
+                ActivityAffectedObjectsType.F_PREDEFINED_CONFIGURATION_TO_USE,
+                PredefinedConfigurationType.DEVELOPMENT);
+
+        return filter.build();
+    }
+
+    private S_FilterExit addSimulationRule(S_FilterEntry filter, boolean isSimulationTasks, ItemName itemName, Object value) {
+        if (!isSimulationTasks) {
+            filter = filter.not();
+        }
+
+        return filter
+                .item(ItemPath.create(
+                        TaskType.F_AFFECTED_OBJECTS,
+                        TaskAffectedObjectsType.F_ACTIVITY,
+                        itemName))
+                .eq(value);
     }
 
     private void createTaskPerformed(AjaxRequestTarget target) {
@@ -308,7 +650,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
                     if (isSimulation) {
                         creator = creator
-                                .withExecutionMode(ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW)
+                                .withExecutionMode(ExecutionModeType.PREVIEW)
                                 .withPredefinedConfiguration(PredefinedConfigurationType.DEVELOPMENT)
                                 .withSimulationResultDefinition(
                                         new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
@@ -318,7 +660,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 });
 
         if (newTask != null) {
-            WebComponentUtil.dispatchToNewObject(newTask, getPageBase());
+            DetailsPageUtil.dispatchToNewObject(newTask, getPageBase());
         }
     }
 

@@ -54,4 +54,9 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
         return expressionWrapper.isAssociationExpression()
                 || (expressionWrapper.isAttributeExpression());
     }
+
+    @Override
+    public Integer getOrder() {
+        return 100;
+    }
 }

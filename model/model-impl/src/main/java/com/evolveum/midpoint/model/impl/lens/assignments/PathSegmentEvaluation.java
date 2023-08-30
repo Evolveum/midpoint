@@ -257,7 +257,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
         } else {
             return ctx.conditionEvaluator.computeConditionState(
                     conditionBean,
-                    segment.assignmentOrigin,
+                    segment.assignmentOrigin, // [EP:M:ARC] DONE, because [EP:APSO] DONE
                     segment.source,
                     // The information provided by assignmentConfigItem is currently of little use here,
                     // as it even does not know if it's assignment or inducement! So we stay with the origin description for now.

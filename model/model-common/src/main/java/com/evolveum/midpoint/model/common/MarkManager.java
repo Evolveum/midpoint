@@ -136,12 +136,15 @@ public class MarkManager {
     /**
      * Collects all (global) policy rules from all marks. Adding the `markRef` in case it does not include a reference to the
      * current mark.
+     *
+     * [EP:M:PRC] DONE, the returned values have correct origin
      */
     public @NotNull Collection<GlobalRuleWithId> getAllEnabledMarkPolicyRules(Task task, OperationResult result) {
         List<GlobalRuleWithId> rules = new ArrayList<>();
         for (MarkType mark : getAllMarks(result)) {
             if (isEnabled(mark, task)) {
                 for (GlobalPolicyRuleType rule : mark.getPolicyRule()) {
+                    // [EP:M:PRC] DONE Origin is safe, as the rules are obtained right from the repository.
                     GlobalPolicyRuleConfigItem ruleCI = GlobalPolicyRuleConfigItem.embedded(rule);
                     if (!Referencable.getOids(rule.getMarkRef()).contains(mark.getOid())) {
                         var ruleClone = rule.clone();

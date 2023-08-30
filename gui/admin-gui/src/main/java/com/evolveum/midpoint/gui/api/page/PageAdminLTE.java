@@ -162,7 +162,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     // size.
 
     @SpringBean(name = "modelController")
-    private ScriptingService scriptingService;
+    private BulkActionsService bulkActionsService;
 
     @SpringBean(name = "modelController")
     private ModelService modelService;
@@ -491,8 +491,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return modelObjectResolver;
     }
 
-    public ScriptingService getScriptingService() {
-        return scriptingService;
+    public BulkActionsService getBulkActionsService() {
+        return bulkActionsService;
     }
 
     public TaskService getTaskService() {

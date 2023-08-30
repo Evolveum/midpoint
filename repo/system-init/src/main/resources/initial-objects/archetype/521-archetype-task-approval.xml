@@ -26,25 +26,25 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="1">
                     <identifier>activity</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel>
+                <panel id="2">
                     <identifier>taskBasic</identifier>
                     <default>true</default>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="3">
+        <assignmentRelation id="4">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="5">
         <focusMappings>
-            <mapping>
+            <mapping id="7">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -59,9 +59,9 @@
             </mapping>
         </focusMappings>
     </inducement>
-    <inducement>
+    <inducement id="6">
         <focusMappings>
-            <mapping>
+            <mapping id="8">
                 <strength>weak</strength>
                 <expression>
                     <value>http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3</value>

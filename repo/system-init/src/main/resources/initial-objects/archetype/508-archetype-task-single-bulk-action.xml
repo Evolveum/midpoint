@@ -23,35 +23,35 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>extension/scext:executeScript</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="3">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="5">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="6">
                             <identifier>work-noniterative-scripting</identifier>
                             <path>activity/work/nonIterativeScripting</path>
                         </container>
                     </panel>
                 </panel>
-                <panel>
+                <panel id="4">
                     <identifier>taskBasic</identifier>
-                    <container>
+                    <container id="7">
                         <identifier>bulk-action</identifier>
                         <display>
                             <label>SingleBulkActionTask.bulkAction</label>
                         </display>
-                        <item>
+                        <item id="8">
                             <c:path>extension/scext:executeScript</c:path>
                         </item>
                     </container>
@@ -59,14 +59,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="9">
+        <assignmentRelation id="10">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="11">
         <focusMappings>
-            <mapping>
+            <mapping id="12">
                 <strength>weak</strength>
                 <expression>
                     <script>
