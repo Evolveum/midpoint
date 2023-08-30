@@ -231,6 +231,6 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private boolean singlePageResult() {
         var userList = recoveredIdentitiesModel.getObject();
         int userCount = userList != null ? userList.size() : 0;
-        return userCount > 0 && userCount <= IDENTITY_PER_PAGE;
+        return userCount <= IDENTITY_PER_PAGE;
     }
 }
