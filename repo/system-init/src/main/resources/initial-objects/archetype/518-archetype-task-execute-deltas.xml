@@ -10,14 +10,14 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Execute deltas task (background processing for change execution)</name>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <assignmentRelation id="2">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="3">
         <focusMappings>
-            <mapping>
+            <mapping id="4">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -46,30 +46,30 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="5">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="6">
             <path>extension/mext:objectDeltas</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="7">
             <path>extension/mext:objectDelta</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="8">
             <path>extension/mext:modelExecuteOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="9">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="10">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="11">
                             <identifier>work-explicitChangeExecution</identifier>
                             <path>activity/work/explicitChangeExecution</path>
                         </container>

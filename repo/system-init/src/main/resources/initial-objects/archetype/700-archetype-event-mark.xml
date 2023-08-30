@@ -9,8 +9,8 @@
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Event mark</name>
     <description>Denotes marks for audit and simulation events</description>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <assignmentRelation id="2">
             <holderType>MarkType</holderType>
         </assignmentRelation>
     </assignment>

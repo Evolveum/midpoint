@@ -43,8 +43,8 @@
             </icon>
         </display>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <assignmentRelation id="2">
             <holderType>RoleType</holderType>
         </assignmentRelation>
     </assignment>

@@ -11,11 +11,11 @@
                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   oid="00000000-0000-0000-0001-000000000005">
     <name>Active tasks</name>
-    <assignment>
+    <assignment id="1">
         <policyRule>
             <policyConstraints>
-                <collectionStats>
-                    <collection>
+                <collectionStats id="2">
+                    <collection id="3">
                         <interpretation>explicit</interpretation>
                     </collection>
                 </collectionStats>

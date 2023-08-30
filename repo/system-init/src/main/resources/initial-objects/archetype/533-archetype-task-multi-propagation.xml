@@ -26,11 +26,11 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="1">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="2">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="3">
                             <identifier>work-multiPropagation</identifier>
                             <path>activity/work/multiPropagation</path>
                         </container>
@@ -39,14 +39,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="4">
+        <assignmentRelation id="5">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="6">
         <focusMappings>
-            <mapping>
+            <mapping id="8">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -61,9 +61,9 @@
             </mapping>
         </focusMappings>
     </inducement>
-    <inducement>
+    <inducement id="7">
         <focusMappings>
-            <mapping>
+            <mapping id="9">
                 <strength>weak</strength>
                 <source>
                     <path>activity</path>

@@ -12,7 +12,7 @@
         oid="00000000-0000-0000-0000-000000000140">
     <name>Certification campaigns report</name>
     <description>All certification campaigns along with their state.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType" />
     </assignment>
     <objectCollection>
@@ -53,14 +53,14 @@
             </baseCollectionRef>
         </collection>
         <view>
-            <column>
+            <column id="2">
                 <name>name</name>
                 <path>name</path>
                 <display>
                     <label>Name</label>
                 </display>
             </column>
-            <column>
+            <column id="3">
                 <name>owner</name>
                 <path>ownerRef</path>
                 <display>
@@ -68,7 +68,7 @@
                 </display>
                 <previousColumn>name</previousColumn>
             </column>
-            <column>
+            <column id="4">
                 <name>startTimestamp</name>
                 <path>startTimestamp</path>
                 <display>
@@ -76,7 +76,7 @@
                 </display>
                 <previousColumn>owner</previousColumn>
             </column>
-            <column>
+            <column id="5">
                 <name>endTimestamp</name>
                 <path>endTimestamp</path>
                 <display>
@@ -84,7 +84,7 @@
                 </display>
                 <previousColumn>startTimestamp</previousColumn>
             </column>
-            <column>
+            <column id="6">
                 <name>cases</name>
                 <path>case</path>
                 <display>
@@ -93,7 +93,7 @@
                 <previousColumn>endTimestamp</previousColumn>
                 <displayValue>number</displayValue>
             </column>
-            <column>
+            <column id="7">
                 <name>state</name>
                 <path>state</path>
                 <display>
@@ -101,7 +101,7 @@
                 </display>
                 <previousColumn>cases</previousColumn>
             </column>
-            <column>
+            <column id="8">
                 <name>stageNumber</name>
                 <path>stageNumber</path>
                 <display>
@@ -109,7 +109,7 @@
                 </display>
                 <previousColumn>state</previousColumn>
             </column>
-            <column>
+            <column id="9">
                 <name>stageCases</name>
                 <display>
                     <label>Stage cases</label>
@@ -129,7 +129,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="10">
                 <name>percentComplete</name>
                 <display>
                     <label>% complete</label>
@@ -156,7 +156,7 @@
             <type>AccessCertificationCampaignType</type>
         </view>
         <useOnlyReportView>true</useOnlyReportView>
-        <parameter>
+        <parameter id="11">
             <name>alsoClosedCampaigns</name>
             <type>boolean</type>
             <display>

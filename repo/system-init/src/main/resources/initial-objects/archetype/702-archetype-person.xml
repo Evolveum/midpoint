@@ -21,8 +21,8 @@ oid="00000000-0000-0000-0000-000000000702">
         </display>
         <objectTemplateRef oid="00000000-0000-0000-0000-000000000380"/>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <assignmentRelation id="2">
             <holderType>UserType</holderType>
         </assignmentRelation>
     </assignment>

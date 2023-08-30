@@ -12,7 +12,7 @@
         oid="00000000-0000-0000-0000-000000000150">
     <name>Certification cases report</name>
     <description>Cases within given certification campaign(s).</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
@@ -35,7 +35,7 @@
             <!-- We do sorting on object name. Hence, it is the first column. The campaign name would be more logical as the
                  first one, but we currently cannot sort on both campaign name and object name. And perhaps the primary use
                  case will be reporting on a specific campaign. -->
-            <column>
+            <column id="2">
                 <name>object</name>
                 <path>objectRef</path>
                 <display>
@@ -55,7 +55,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="3">
                 <name>target</name>
                 <path>targetRef</path>
                 <display>
@@ -76,7 +76,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="4">
                 <name>campaignName</name>
                 <display>
                     <label>Campaign</label>
@@ -95,7 +95,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="5">
                 <name>reviewers</name>
                 <display>
                     <label>Reviewers</label>
@@ -113,7 +113,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="6">
                 <name>lastReviewedOn</name>
                 <display>
                     <label>Last reviewed on</label>
@@ -132,7 +132,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="7">
                 <name>reviewedBy</name>
                 <display>
                     <label>Reviewed by</label>
@@ -151,7 +151,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="8">
                 <name>iteration</name>
                 <path>iteration</path>
                 <display>
@@ -159,7 +159,7 @@
                 </display>
                 <previousColumn>reviewedBy</previousColumn>
             </column>
-            <column>
+            <column id="9">
                 <name>inStageNumber</name>
                 <path>stageNumber</path>
                 <display>
@@ -167,7 +167,7 @@
                 </display>
                 <previousColumn>iteration</previousColumn>
             </column>
-            <column>
+            <column id="10">
                 <name>outcome</name>
                 <path>outcome</path>
                 <display>
@@ -186,7 +186,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="11">
                 <name>comments</name>
                 <display>
                     <label>Comments</label>
@@ -205,7 +205,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="12">
                 <name>remediedTimestamp</name>
                 <path>remediedTimestamp</path>
                 <display>
@@ -218,7 +218,7 @@
             </paging>
             <type>AccessCertificationCaseType</type>
         </view>
-        <parameter>
+        <parameter id="13">
             <name>campaignRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:AccessCertificationCampaignType</targetType>

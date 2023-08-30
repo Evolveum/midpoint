@@ -13,14 +13,14 @@
         This is an operation that deleted or effectively disabled the projection.
         (So, previously it existed and was effectively enabled.)
     </documentation>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>310</displayOrder>
-    <policyRule>
+    <policyRule id="2">
         <name>projection-deactivated</name>
         <policyConstraints>
-            <custom>
+            <custom id="3">
                 <name>$projection-deactivated</name>
                 <expression>
                     <script>

@@ -11,7 +11,7 @@
         oid="00000000-0000-0000-0000-000000000130">
     <name>Certification definitions report</name>
     <description>All certification definitions with basic information on related campaigns.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType" />
     </assignment>
     <objectCollection>
@@ -21,11 +21,11 @@
             </filter>
         </collection>
         <view>
-            <column>
+            <column id="2">
                 <name>name</name>
                 <path>name</path>
             </column>
-            <column>
+            <column id="3">
                 <name>owner</name>
                 <path>ownerRef</path>
                 <display>
@@ -33,7 +33,7 @@
                 </display>
                 <previousColumn>name</previousColumn>
             </column>
-            <column>
+            <column id="4">
                 <name>campaigns</name>
                 <display>
                     <label>Campaigns</label>
@@ -48,7 +48,7 @@
                 </export>
                 <displayValue>number</displayValue>
             </column>
-            <column>
+            <column id="5">
                 <name>openCampaigns</name>
                 <display>
                     <label>Open campaigns</label>
@@ -68,7 +68,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="6">
                 <name>lastStarted</name>
                 <path>lastCampaignStartedTimestamp</path>
                 <display>
@@ -76,7 +76,7 @@
                 </display>
                 <previousColumn>openCampaigns</previousColumn>
             </column>
-            <column>
+            <column id="7">
                 <name>lastClosed</name>
                 <path>lastCampaignClosedTimestamp</path>
                 <display>
@@ -91,7 +91,7 @@
             <type>AccessCertificationDefinitionType</type>
         </view>
         <useOnlyReportView>true</useOnlyReportView>
-        <subreport>
+        <subreport id="8">
             <name>campaigns</name>
             <type>AccessCertificationCampaignType</type>
             <expression>

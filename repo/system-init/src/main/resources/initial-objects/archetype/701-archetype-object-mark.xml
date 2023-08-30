@@ -9,8 +9,8 @@
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Object mark</name>
     <description>Denotes marks for objects and assignments. Replaces legacy policy situations.</description>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <assignmentRelation id="2">
             <holderType>MarkType</holderType>
         </assignmentRelation>
     </assignment>
@@ -26,7 +26,7 @@
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <panel>
+                <panel id="3">
                     <identifier>shadowMarksList</identifier>
                     <display>
                         <label>Marked shadows</label>
@@ -34,7 +34,7 @@
                     <applicableForOperation>modify</applicableForOperation>
                     <panelType>markedShadowList</panelType>
                 </panel>
-                <panel>
+                <panel id="4">
                     <identifier>eventMarkInformationPanel</identifier>
                     <visibility>hidden</visibility>
                 </panel>

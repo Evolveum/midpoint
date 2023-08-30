@@ -24,66 +24,66 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>extension/mext:objectType</path>
             <visibility>hidden</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>extension/mext:objectQuery</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="4">
             <path>extension/mext:searchOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="5">
             <path>extension/mext:iterationMethod</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="6">
             <path>extension/mext:useRepositoryDirectly</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="7">
             <path>extension/mext:failedObjectsSelector</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="8">
             <path>extension/mext:workerThreads</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="9">
             <path>extension/mext:dryRun</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="10">
             <path>extension/mext:diagnose</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="11">
             <path>extension/mext:fix</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="12">
             <path>extension/mext:duplicateShadowsResolver</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="13">
             <path>extension/mext:checkDuplicatesOnPrimaryIdentifiersOnly</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="14">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="15">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="16">
                             <identifier>work-shadowIntegrityCheck</identifier>
                             <path>activity/work/shadowIntegrityCheck</path>
                         </container>
@@ -92,14 +92,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="17">
+        <assignmentRelation id="18">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="19">
         <focusMappings>
-            <mapping>
+            <mapping id="20">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -114,9 +114,9 @@
             </mapping>
         </focusMappings>
     </inducement>
-    <inducement>
+    <inducement id="21">
         <focusMappings>
-            <mapping>
+            <mapping id="22">
                 <strength>weak</strength>
                 <expression>
                     <value>shadow</value>

@@ -23,18 +23,18 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension/rext:reportParam</path>
             <visibility>hidden</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="2">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="3">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="4">
                             <path>activity/work/reportImport</path>
                         </container>
                     </panel>
@@ -42,8 +42,8 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="5">
+        <assignmentRelation id="6">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>

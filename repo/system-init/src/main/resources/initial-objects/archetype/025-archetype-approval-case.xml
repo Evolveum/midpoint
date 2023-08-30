@@ -23,7 +23,7 @@
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <panel>
+                <panel id="3">
                     <identifier>caseWorkItems</identifier>
                     <display>
                         <label>Workitems</label>
@@ -34,7 +34,7 @@
                     <panelType>caseWorkItems</panelType>
                     <type>c:CaseType</type>
                 </panel>
-                <panel>
+                <panel id="4">
                     <identifier>approvalCase</identifier>
                     <display>
                         <label>Approvals</label>
@@ -50,8 +50,8 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <assignmentRelation id="2">
             <holderType>CaseType</holderType>
         </assignmentRelation>
     </assignment>

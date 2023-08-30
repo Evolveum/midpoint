@@ -25,14 +25,14 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="1">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="2">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="3">
                             <path>activity/work/distributedReportExport</path>
                         </container>
-                        <container>
+                        <container id="4">
                             <display>
                                 <label>Parameters</label>
                             </display>
