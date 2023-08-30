@@ -11,8 +11,8 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.login.PageSelfRegistration;
-import com.evolveum.midpoint.gui.impl.page.login.module.PageArchetypeSelection;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.Producer;
@@ -22,11 +22,13 @@ import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -177,11 +179,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
 
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
-        return createStringResource(getTitleKey());
-    }
-
-    private String getTitleKey() {
-        return recoveredIdentitiesExist() ? "PageIdentityRecovery.title.success" : "PageIdentityRecovery.title.fail";
+        return createStringResource("PageIdentityRecovery.foundIdentities");
     }
 
     @Override
@@ -190,10 +188,6 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private String getTitleDescriptionKey() {
-        //todo change description according to figma
-//        if (recoveredIdentitiesExist() && configuredItemsExist()) {
-//            return "PageIdentityRecovery.title.success.configuredItems.description";
-//        }
         if (recoveredIdentitiesExist()) {
             return "PageIdentityRecovery.title.success.description";
         }
@@ -216,6 +210,11 @@ public class PageIdentityRecovery extends AbstractPageLogin {
                     .stream()
                     .filter(o -> o instanceof UserType)
                     .map(o -> (UserType) o)
+                    .sorted((o1, o2) -> {
+                        String name1 = WebComponentUtil.getDisplayNameOrName(o1.asPrismObject());
+                        String name2 = WebComponentUtil.getDisplayNameOrName(o2.asPrismObject());
+                        return String.CASE_INSENSITIVE_ORDER.compare(name1, name2);
+                    })
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();

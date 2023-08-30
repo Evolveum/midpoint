@@ -60,6 +60,7 @@ public class IdentityDetailsPanel<F extends FocusType> extends BasePanel<F> {
     private static final String ID_ITEMS_PANEL = "itemsPanel";
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
+    private static final String ID_CONFIRM_IDENTITY = "confirmIdentity";
 
     private boolean expanded;
     private LoadableModel<List<ItemPathType>> itemsModel;
@@ -133,6 +134,14 @@ public class IdentityDetailsPanel<F extends FocusType> extends BasePanel<F> {
         WebMarkupContainer icon = new WebMarkupContainer(ID_ARROW_ICON);
         icon.add(AttributeAppender.append("class", this::getArrowIconCss));
         arrowButton.add(icon);
+
+        AjaxButton confirmIdentity = new AjaxButton(ID_CONFIRM_IDENTITY) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(confirmIdentity);
     }
 
     private void initDetailsPanel() {
