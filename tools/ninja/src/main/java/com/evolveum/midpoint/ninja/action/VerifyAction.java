@@ -74,7 +74,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         }
 
         log.info(
-                "Verification finished. {}, {}, {} optional issues found",
+                "Verification finished. {}, {} and {} optional issues found",
                 ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
                 ConsoleFormat.formatMessageWithWarningParameters("{} necessary", result.getNecessaryCount()),
                 result.getOptionalCount());

@@ -73,9 +73,14 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 
         PrismObject cloned = prismObject.clone();
         UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeForOids);
-        boolean changed = executor.execute(cloned);
-        if (!changed) {
-            return;
+        UpgradeObjectResult result = executor.execute(cloned);
+        switch (result) {
+            case SKIPPED:
+                operation.incrementSkipped();
+            case NO_CHANGES:
+                return;
+            case UPDATED:
+                // we'll continue processing
         }
 
         OperationResult opResult = new OperationResult("Modify object");
