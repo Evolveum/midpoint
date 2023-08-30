@@ -9,10 +9,7 @@ package com.evolveum.midpoint.common.mining.utils;
 
 import static com.evolveum.midpoint.util.ClassPathUtil.LOGGER;
 
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -70,10 +67,15 @@ public class RoleAnalysisUtils {
     public static List<String> getRolesOidAssignment(AssignmentHolderType object) {
         List<String> oidList;
         List<AssignmentType> assignments = object.getAssignment();
-        oidList = assignments.stream().map(AssignmentType::getTargetRef).filter(
-                        targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
-                .map(AbstractReferencable::getOid).sorted()
+
+        oidList = assignments.stream()
+                .map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .filter(targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
+                .map(AbstractReferencable::getOid)
+                .sorted()
                 .collect(Collectors.toList());
+
         return oidList;
     }
 
