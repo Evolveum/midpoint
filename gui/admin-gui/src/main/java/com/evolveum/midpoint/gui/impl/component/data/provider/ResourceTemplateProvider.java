@@ -78,10 +78,6 @@ public class ResourceTemplateProvider
                     .not()
                     .item(ConnectorType.F_CONNECTOR_TYPE)
                     .eq("AsyncProvisioningConnector")
-                    .and()
-                    .not()
-                    .item(ConnectorType.F_CONNECTOR_TYPE)
-                    .eq("ManualConnector")
                     .build();
         }
         return null;

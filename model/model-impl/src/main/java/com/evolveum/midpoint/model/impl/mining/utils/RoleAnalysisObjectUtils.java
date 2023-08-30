@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -215,5 +216,123 @@ public class RoleAnalysisObjectUtils {
 
         }
         return objectReferenceList;
+    }
+
+    public static void deleteRoleAnalysisSessionClusters(ModelService modelService, OperationResult result, String sessionOid,
+            Task task) {
+
+        ResultHandler<RoleAnalysisClusterType> resultHandler = (object, parentResult) -> {
+            try {
+                deleteSingleRoleAnalysisCluster(result, object.asObjectable(), modelService, task);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        };
+
+        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisClusterType.class)
+                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF).ref(sessionOid)
+                .build();
+
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisClusterType.class, query, resultHandler, null,
+                    task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't deleteRoleAnalysisSessionClusters", ex);
+        }
+
+    }
+
+    public static void deleteSingleRoleAnalysisCluster(OperationResult result,
+            @NotNull RoleAnalysisClusterType cluster, @NotNull ModelService modelService, Task task) {
+
+        String clusterOid = cluster.getOid();
+        PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(modelService, result,
+                cluster.getRoleAnalysisSessionRef().getOid(), task);
+
+        if (sessionObject == null) {
+            return;
+        }
+
+        try {
+
+            ObjectDelta<RoleAnalysisClusterType> deleteDelta = PrismContext.get().deltaFactory().object()
+                    .createDeleteDelta(RoleAnalysisClusterType.class, clusterOid);
+
+            modelService.executeChanges(singleton(deleteDelta), null, task, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't delete RoleAnalysisClusterType {}", clusterOid, e);
+        }
+
+        try {
+
+            ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
+                    .asObjectDelta(sessionObject.getOid());
+
+            modelService.executeChanges(singleton(delta), null, task, result);
+
+            recomputeSessionStatic(result, sessionObject.getOid(), cluster, modelService, task);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionObject.getOid(), e);
+        }
+
+    }
+
+    public static void recomputeSessionStatic(OperationResult result, String sessionOid,
+            @NotNull RoleAnalysisClusterType roleAnalysisClusterType, @NotNull ModelService modelService, Task task) {
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(modelService, result,
+                sessionOid, task);
+
+        assert sessionTypeObject != null;
+        RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
+
+        int deletedClusterMembersCount = roleAnalysisClusterType.getMember().size();
+        AnalysisClusterStatisticType clusterStatistics = roleAnalysisClusterType.getClusterStatistics();
+        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+
+        if (sessionStatistic == null || clusterStatistics == null) {
+            LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}. "
+                    + "Statistic container is null:{},{}", sessionOid, sessionStatistic, clusterStatistics);
+            return;
+        }
+        Double membershipDensity = clusterStatistics.getMembershipDensity();
+
+        Integer processedObjectCount = sessionStatistic.getProcessedObjectCount();
+        Double meanDensity = sessionStatistic.getMeanDensity();
+        Integer clusterCount = sessionStatistic.getClusterCount();
+
+        int newClusterCount = clusterCount - 1;
+
+        RoleAnalysisSessionStatisticType recomputeSessionStatistic = new RoleAnalysisSessionStatisticType();
+
+        if (newClusterCount == 0) {
+            recomputeSessionStatistic.setMeanDensity(0.0);
+            recomputeSessionStatistic.setProcessedObjectCount(0);
+        } else {
+            double recomputeMeanDensity = ((meanDensity * clusterCount) - (membershipDensity)) / newClusterCount;
+            int recomputeProcessedObjectCount = processedObjectCount - deletedClusterMembersCount;
+            recomputeSessionStatistic.setMeanDensity(recomputeMeanDensity);
+            recomputeSessionStatistic.setProcessedObjectCount(recomputeProcessedObjectCount);
+        }
+        recomputeSessionStatistic.setClusterCount(newClusterCount);
+
+        try {
+
+            ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_SESSION_STATISTIC).replace(recomputeSessionStatistic.asPrismContainerValue())
+                    .asObjectDelta(sessionOid);
+
+            modelService.executeChanges(singleton(delta), null, task, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionOid, e);
+        }
+
     }
 }

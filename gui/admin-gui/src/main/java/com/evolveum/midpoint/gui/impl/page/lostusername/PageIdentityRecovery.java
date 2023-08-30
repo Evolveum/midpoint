@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -39,6 +40,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.list.PageableListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
@@ -81,10 +83,12 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private static final String ID_RECOVERED_IDENTITIES = "recoveredIdentities";
     private static final String ID_DETAILS_PANEL = "detailsPanel";
     private static final String ID_REGISTRATION_LINK = "registrationLink";
+    private static final String ID_PAGING = "paging";
 
     private LoadableModel<List<UserType>> recoveredIdentitiesModel;
     private LoadableModel<SecurityPolicyType> securityPolicyModel;
 
+    private static final int IDENTITY_PER_PAGE = 3;
 
     public PageIdentityRecovery() {
         super();
@@ -98,7 +102,8 @@ public class PageIdentityRecovery extends AbstractPageLogin {
 
     @Override
     protected void initCustomLayout() {
-        ListView<UserType> recoveredIdentitiesPanel = new ListView<>(ID_RECOVERED_IDENTITIES, recoveredIdentitiesModel) {
+        PageableListView<UserType> recoveredIdentitiesPanel = new PageableListView<>(ID_RECOVERED_IDENTITIES,
+                recoveredIdentitiesModel, IDENTITY_PER_PAGE) {
             @Override
             protected void populateItem(ListItem<UserType> item) {
                 IdentityDetailsPanel<UserType> detailsPanel = new IdentityDetailsPanel<>(ID_DETAILS_PANEL, item.getModel(),
@@ -109,6 +114,17 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         };
         recoveredIdentitiesPanel.setOutputMarkupId(true);
         add(recoveredIdentitiesPanel);
+
+        NavigatorPanel paging = new NavigatorPanel(ID_PAGING, recoveredIdentitiesPanel, true) {
+
+            @Override
+            protected String getPaginationCssClass() {
+                return null;
+            }
+        };
+        paging.add(new VisibleBehaviour(() -> !singlePageResult()));
+        add(paging);
+
 
         String urlRegistration = SecurityUtils.getRegistrationUrl(securityPolicyModel.getObject());
         AjaxLink<String> registrationLink = new AjaxLink<String>(ID_REGISTRATION_LINK) {
@@ -210,5 +226,11 @@ public class PageIdentityRecovery extends AbstractPageLogin {
             throw new RestartResponseException(PageError.class);
         }
         return (MidpointAuthentication) authentication;
+    }
+
+    private boolean singlePageResult() {
+        var userList = recoveredIdentitiesModel.getObject();
+        int userCount = userList != null ? userList.size() : 0;
+        return userCount <= IDENTITY_PER_PAGE;
     }
 }

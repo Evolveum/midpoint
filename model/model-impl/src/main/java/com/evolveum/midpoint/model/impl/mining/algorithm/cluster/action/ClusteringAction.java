@@ -37,6 +37,8 @@ public class ClusteringAction {
         PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(modelService, result, sessionOid, task);
         if (prismSession != null) {
 
+            deleteRoleAnalysisSessionClusters(modelService, result, prismSession.getOid(), task);
+
             RoleAnalysisProcessModeType processMode = prismSession.asObjectable().getProcessMode();
             if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                 this.clusterable = new UserBasedClustering();

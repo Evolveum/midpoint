@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.impl.mining.algorithm.chunk.PrepareChunkStruc
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
@@ -85,14 +84,14 @@ public class DetectionActionExecutorNew implements Serializable {
         List<DetectedPattern> detectedPatterns = executeDetection(miningRoleTypeChunks, miningUserTypeChunks,
                 processMode, detectionOption);
 
-        if (detectedPatterns != null) {
+        if (detectedPatterns != null && !detectedPatterns.isEmpty()) {
             detectedPatterns = loadTopPatterns(detectedPatterns);
+            replaceRoleAnalysisClusterDetectionPattern(clusterOid, modelService,
+                    result,
+                    detectedPatterns, task
+            );
         }
 
-        replaceRoleAnalysisClusterDetectionPattern(clusterOid, modelService,
-                result,
-                detectedPatterns, task
-        );
     }
 
     private List<DetectedPattern> executeDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
