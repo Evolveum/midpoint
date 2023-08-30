@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.lostusername;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,6 +36,7 @@ import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 
@@ -138,7 +141,7 @@ public class IdentityDetailsPanel<F extends FocusType> extends BasePanel<F> {
         AjaxButton confirmIdentity = new AjaxButton(ID_CONFIRM_IDENTITY) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
+                identityConfirmed(getFocusObject(), ajaxRequestTarget);
             }
         };
         add(confirmIdentity);
@@ -213,6 +216,17 @@ public class IdentityDetailsPanel<F extends FocusType> extends BasePanel<F> {
             var value = item != null ? item.getRealValue() : null;
             return value == null ? "" : value.toString();
         };
+    }
+
+    private void identityConfirmed(FocusType focus, AjaxRequestTarget target) {
+        AuthUtil.clearMidpointAuthentication();
+        PageParameters parameters = new PageParameters();
+        parameters.add("name", focus.getName());
+        setResponsePage(new PageLogin(parameters));
+    }
+
+    private F getFocusObject() {
+        return getModelObject();
     }
 
 }

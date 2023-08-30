@@ -162,7 +162,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
             }
         }
 
-        if (authentication.isAuthenticated() || loginPageForAnotherModule) {
+        if (authentication != null && (authentication.isAuthenticated() || loginPageForAnotherModule)) {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }

@@ -22,13 +22,11 @@ import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -98,8 +96,9 @@ public class PageIdentityRecovery extends AbstractPageLogin {
 
             @Override
             protected void populateItem(ListItem<UserType> item) {
+                boolean isFirstItem = item.getIndex() == 0;
                 IdentityDetailsPanel<UserType> detailsPanel = new IdentityDetailsPanel<>(ID_DETAILS_PANEL, item.getModel(),
-                        securityPolicyModel.getObject(), isSingleRecoveredIdentity());
+                        securityPolicyModel.getObject(), isSingleRecoveredIdentity() || isFirstItem);
                 detailsPanel.setOutputMarkupId(true);
                 item.add(detailsPanel);
             }
