@@ -15,8 +15,12 @@
         <div wicket:id="detailsPanel" class="d-flex flex-wrap gap-2 w-100" />
     </div>
     <div wicket:id="paging" class="d-flex gap-2 w-100 justify-content-center" />
-    <div class="d-flex justify-content-end mt-2">
-        <a wicket:id="registrationLink" class="text-center login-panel-control">
+    <div>
+        <a wicket:id="restartFlow" class="d-flex btn btn-default justify-content-center w-100 mt-4">
+            <i class="mt-1 mr-2 fa fa-sync-alt" />
+            <wicket:message key="PageIdentityRecovery.restartFlow"/>
+        </a>
+        <a wicket:id="registrationLink" class="d-flex justify-content-center w-100 mt-4">
             <wicket:message key="PageLogin.registerNewAccount"/>
         </a>
     </div>

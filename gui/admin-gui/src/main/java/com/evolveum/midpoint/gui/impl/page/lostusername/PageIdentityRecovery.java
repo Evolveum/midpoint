@@ -11,10 +11,8 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.login.PageSelfRegistration;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.Producer;
@@ -24,27 +22,20 @@ import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.catalina.User;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.list.PageableListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.AbstractResource;
-import org.apache.wicket.request.resource.ByteArrayResource;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -56,9 +47,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 
-import java.io.IOException;
 import java.io.Serial;
-import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -83,6 +72,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private static final String ID_RECOVERED_IDENTITIES = "recoveredIdentities";
     private static final String ID_DETAILS_PANEL = "detailsPanel";
     private static final String ID_REGISTRATION_LINK = "registrationLink";
+    private static final String ID_RESTART_FLOW_LINK = "restartFlow";
     private static final String ID_PAGING = "paging";
 
     private LoadableModel<List<UserType>> recoveredIdentitiesModel;
@@ -104,6 +94,8 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     protected void initCustomLayout() {
         PageableListView<UserType> recoveredIdentitiesPanel = new PageableListView<>(ID_RECOVERED_IDENTITIES,
                 recoveredIdentitiesModel, IDENTITY_PER_PAGE) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateItem(ListItem<UserType> item) {
                 IdentityDetailsPanel<UserType> detailsPanel = new IdentityDetailsPanel<>(ID_DETAILS_PANEL, item.getModel(),
@@ -117,6 +109,8 @@ public class PageIdentityRecovery extends AbstractPageLogin {
 
         NavigatorPanel paging = new NavigatorPanel(ID_PAGING, recoveredIdentitiesPanel, true) {
 
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected String getPaginationCssClass() {
                 return null;
@@ -125,17 +119,31 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         paging.add(new VisibleBehaviour(() -> !singlePageResult()));
         add(paging);
 
+        AjaxLink<String> restartFlowLink = new AjaxLink<>(ID_RESTART_FLOW_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                AuthUtil.clearMidpointAuthentication();
+                String identityRecoveryUrl = SecurityUtils.getIdentityRecoveryUrl(securityPolicyModel.getObject());
+                throw new RedirectToUrlException(identityRecoveryUrl);
+            }
+        };
+        add(restartFlowLink);
 
         String urlRegistration = SecurityUtils.getRegistrationUrl(securityPolicyModel.getObject());
         AjaxLink<String> registrationLink = new AjaxLink<String>(ID_REGISTRATION_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                PageSelfRegistration p  = new PageSelfRegistration((UserType) SecurityUtils.findCorrelationModuleAuthentication(PageIdentityRecovery.this).getPreFocus());
+                var user = (UserType) SecurityUtils.findCorrelationModuleAuthentication(PageIdentityRecovery.this).getPreFocus();
+                PageSelfRegistration p  = new PageSelfRegistration(user);
                 AuthUtil.clearMidpointAuthentication();
                 setResponsePage(p);
             }
         };
-        registrationLink.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(urlRegistration) && !recoveredIdentitiesExist()));
+        registrationLink.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(urlRegistration)));
         add(registrationLink);
     }
 
@@ -171,11 +179,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
 
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
-        return createStringResource(getTitleKey());
-    }
-
-    private String getTitleKey() {
-        return recoveredIdentitiesExist() ? "PageIdentityRecovery.title.success" : "PageIdentityRecovery.title.fail";
+        return createStringResource("PageIdentityRecovery.foundIdentities");
     }
 
     @Override
@@ -184,10 +188,6 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private String getTitleDescriptionKey() {
-        //todo change description according to figma
-//        if (recoveredIdentitiesExist() && configuredItemsExist()) {
-//            return "PageIdentityRecovery.title.success.configuredItems.description";
-//        }
         if (recoveredIdentitiesExist()) {
             return "PageIdentityRecovery.title.success.description";
         }
@@ -210,6 +210,11 @@ public class PageIdentityRecovery extends AbstractPageLogin {
                     .stream()
                     .filter(o -> o instanceof UserType)
                     .map(o -> (UserType) o)
+                    .sorted((o1, o2) -> {
+                        String name1 = WebComponentUtil.getDisplayNameOrName(o1.asPrismObject());
+                        String name2 = WebComponentUtil.getDisplayNameOrName(o2.asPrismObject());
+                        return String.CASE_INSENSITIVE_ORDER.compare(name1, name2);
+                    })
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();
