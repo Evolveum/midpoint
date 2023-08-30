@@ -45,21 +45,21 @@ if [ "${1}" = "init-native" ]; then
     echo "MP_INIT_DB variable with target for DB init files was not set - skipping db init file processing..." >&2
   else
     if [ "${MP_INIT_DB_CONCAT:-}" = "" ]; then
-      if [ -e "${BASE_DIR}/doc/config/sql/native-new" ]; then
-        find "${BASE_DIR}/doc/config/sql/native-new/" -type f -name "postgres-new*.sql" ! -name "postgres-new-upgrade.sql" -exec cp \{\} "${MP_INIT_DB}/" \;
+      if [ -e "${BASE_DIR}/doc/config/sql/native" ]; then
+        find "${BASE_DIR}/doc/config/sql/native/" -type f -name "postgres*.sql" ! -name "postgres-upgrade.sql" -exec cp \{\} "${MP_INIT_DB}/" \;
       else
         echo "Location with sql init structure (source) have not been found..." >&2
         exit 1
       fi
     else
-      if [ -e "${BASE_DIR}/doc/config/sql/native-new" ]; then
+      if [ -e "${BASE_DIR}/doc/config/sql/native" ]; then
 
-        [ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new.sql" ] &&
-          cp "${BASE_DIR}/doc/config/sql/native-new/postgres-new.sql" "${MP_INIT_DB_CONCAT}"
-        [ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new-audit.sql" ] &&
-          cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-audit.sql" >>"${MP_INIT_DB_CONCAT}"
-        [ -e "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" ] &&
-          cat "${BASE_DIR}/doc/config/sql/native-new/postgres-new-quartz.sql" >>"${MP_INIT_DB_CONCAT}"
+        [ -e "${BASE_DIR}/doc/config/sql/native/postgres.sql" ] &&
+          cp "${BASE_DIR}/doc/config/sql/native/postgres.sql" "${MP_INIT_DB_CONCAT}"
+        [ -e "${BASE_DIR}/doc/config/sql/native/postgres-audit.sql" ] &&
+          cat "${BASE_DIR}/doc/config/sql/native/postgres-audit.sql" >>"${MP_INIT_DB_CONCAT}"
+        [ -e "${BASE_DIR}/doc/config/sql/native/postgres-quartz.sql" ] &&
+          cat "${BASE_DIR}/doc/config/sql/native/postgres-quartz.sql" >>"${MP_INIT_DB_CONCAT}"
       else
         echo "Location with sql init structure (source) have not been found..." >&2
         exit 1
