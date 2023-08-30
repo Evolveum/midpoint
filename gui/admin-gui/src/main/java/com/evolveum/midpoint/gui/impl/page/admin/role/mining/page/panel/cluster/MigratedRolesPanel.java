@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.migratedRoles",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 2
+                order = 30
         )
 )
 public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {

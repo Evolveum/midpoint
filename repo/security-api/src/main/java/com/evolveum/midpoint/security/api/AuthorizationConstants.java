@@ -104,6 +104,15 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_USERS_QNAME = new QName(NS_AUTHORIZATION_UI, "users");
     public static final String AUTZ_UI_USERS_URL = NS_AUTHORIZATION_UI + "#users";
 
+    public static final QName AUTZ_UI_ROLE_ANALYSIS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "roleAnalysis");
+    public static final String AUTZ_UI_ROLE_ANALYSIS_ALL_URL = NS_AUTHORIZATION_UI + "#roleAnalysis";
+
+    public static final QName AUTZ_UI_ROLE_ANALYSIS_CLUSTER_QNAME = new QName(NS_AUTHORIZATION_UI, "roleAnalysisCluster");
+    public static final String AUTZ_UI_ROLE_ANALYSIS_CLUSTER_URL = NS_AUTHORIZATION_UI + "#roleAnalysisCluster";
+
+    public static final QName AUTZ_UI_ROLE_ANALYSIS_SESSION_QNAME = new QName(NS_AUTHORIZATION_UI, "roleAnalysisSession");
+    public static final String AUTZ_UI_ROLE_ANALYSIS_SESSION_URL = NS_AUTHORIZATION_UI + "#roleAnalysisSession";
+
     public static final QName AUTZ_UI_USERS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "usersView");
     public static final String AUTZ_UI_USERS_VIEW_URL = NS_AUTHORIZATION_UI + "#usersView";
 

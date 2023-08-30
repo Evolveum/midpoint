@@ -65,18 +65,12 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/mainMining", matchUrlForSecurity = "/admin/mainMining")
+                @Url(mountUrl = "/admin/roleAnalysis", matchUrlForSecurity = "/admin/roleAnalysis")
         },
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
-                        label = "PageAdminUsers.auth.usersAll.label",
-                        description = "PageAdminUsers.auth.usersAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_URL,
-                        label = "PageUsers.auth.users.label",
-                        description = "PageUsers.auth.users.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL,
-                        label = "PageUsers.auth.users.view.label",
-                        description = "PageUsers.auth.users.view.description")
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_ANALYSIS_ALL_URL,
+                        label = "PageRoleAnalysis.auth.roleAnalysisAll.label",
+                        description = "PageRoleAnalysis.auth.roleAnalysisAll.description")
         })
 
 public class PageRoleAnalysis extends PageAdmin {

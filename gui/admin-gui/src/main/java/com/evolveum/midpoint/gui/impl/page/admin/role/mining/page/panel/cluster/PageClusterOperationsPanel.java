@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -52,14 +53,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(
         identifier = "clusterDetails",
         applicableForType = RoleAnalysisClusterType.class,
+        defaultPanel = true,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.operationsPanel",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 1
+                order = 20
         )
 )
 public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
+    private static final String ID_MAIN_PANEL = "main";
     private static final String ID_DATATABLE = "datatable_extra";
     private static final String ID_DATATABLE_INTERSECTIONS = "table_intersection";
 
@@ -116,11 +119,17 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
         List<DetectedPattern> detectedPatternList = transformDefaultPattern(cluster);
         loadMiningTableData();
-        loadMiningTable();
+
+        WebMarkupContainer webMarkupContainer = new WebMarkupContainer(ID_MAIN_PANEL);
+        webMarkupContainer.setOutputMarkupId(true);
+
+        loadMiningTable(webMarkupContainer);
 
         Component component = generateTableIntersection(ID_DATATABLE_INTERSECTIONS, detectedPatternList);
         component.setOutputMarkupId(true);
-        add(component);
+        webMarkupContainer.add(component);
+        add(webMarkupContainer);
+
     }
 
     private void loadMiningTableData() {
@@ -140,21 +149,21 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
 
     }
 
-    private void loadMiningTable() {
+    private void loadMiningTable(WebMarkupContainer webMarkupContainer) {
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             MiningRoleBasedTable boxedTablePanel = generateMiningRoleBasedTable(
                     detectionOption.getMinFrequencyThreshold(),
                     null,
                     detectionOption.getMaxFrequencyThreshold());
             boxedTablePanel.setOutputMarkupId(true);
-            add(boxedTablePanel);
+            webMarkupContainer.add(boxedTablePanel);
         } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
             MiningUserBasedTable boxedTablePanel = generateMiningUserBasedTable(
                     detectionOption.getMinFrequencyThreshold(),
                     null,
                     detectionOption.getMaxFrequencyThreshold());
             boxedTablePanel.setOutputMarkupId(true);
-            add(boxedTablePanel);
+            webMarkupContainer.add(boxedTablePanel);
         }
 
     }
@@ -267,15 +276,15 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
     }
 
     protected Component getIntersectionTable() {
-        return get(((PageBase) getPage()).createComponentPath(ID_DATATABLE_INTERSECTIONS));
+        return get(((PageBase) getPage()).createComponentPath(ID_MAIN_PANEL, ID_DATATABLE_INTERSECTIONS));
     }
 
     protected MiningRoleBasedTable getMiningRoleBasedTable() {
-        return (MiningRoleBasedTable) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE));
+        return (MiningRoleBasedTable) get(((PageBase) getPage()).createComponentPath(ID_MAIN_PANEL, ID_DATATABLE));
     }
 
     protected MiningUserBasedTable getMiningUserBasedTable() {
-        return (MiningUserBasedTable) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE));
+        return (MiningUserBasedTable) get(((PageBase) getPage()).createComponentPath(ID_MAIN_PANEL, ID_DATATABLE));
     }
 
     public PageBase getPageBase() {

@@ -12,6 +12,12 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -478,15 +484,18 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
             Form<?> form = new MidpointForm<>(ID_FORM);
             footerContainer.add(form);
 
-
             Form<?> formBsProcess = new MidpointForm<>("form_bs_process");
             footerContainer.add(formBsProcess);
-            OperationResult operationResult = new OperationResult("ProcessPattern");
-            AjaxButton processButton = new AjaxButton("process_selections_id",
-                    createStringResource("RoleMining.button.title.process")) {
-                @Override
-                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
+            CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
+                    LayeredIconCssStyle.IN_ROW_STYLE);
+            AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton("process_selections_id",
+                    iconBuilder.build(),
+                    createStringResource("RoleMining.button.title.process")) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onSubmit(AjaxRequestTarget target) {
                     BusinessRoleApplicationDto operationData = getOperationData();
                     if (operationData == null) {
                         return;
@@ -495,11 +504,17 @@ public class SpecialBoxedTablePanel<T> extends BasePanel<T> implements Table {
                     PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
                     setResponsePage(pageRole);
                 }
-            };
 
-            processButton.setOutputMarkupId(true);
-            processButton.setOutputMarkupPlaceholderTag(true);
-            formBsProcess.add(processButton);
+                @Override
+                protected void onError(AjaxRequestTarget target) {
+                    target.add(((PageBase) getPage()).getFeedbackPanel());
+                }
+            };
+            migrationButton.titleAsLabel(true);
+            migrationButton.setOutputMarkupId(true);
+            migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+
+            formBsProcess.add(migrationButton);
 
             Form<?> formSortMode = new MidpointForm<>("form_sort_model");
             footerContainer.add(formSortMode);

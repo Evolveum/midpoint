@@ -10,27 +10,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -47,6 +45,11 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
 
         add(createChoiceFragment(new ProcessModeChoiceStepPanel(getIdOfChoicePanel(), getHelper().getDetailsModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+            }
+
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(),
@@ -68,7 +71,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionWizardPanel.this.onExitPerformed(target);
+                RoleAnalysisSessionWizardPanel.this.onExitPerformed();
             }
 
         });
@@ -86,7 +89,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionWizardPanel.this.onExitPerformed(target);
+                RoleAnalysisSessionWizardPanel.this.onExitPerformed();
             }
         });
 
@@ -102,8 +105,12 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             }
 
             @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+            }
 
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
                 OperationResult result = new OperationResult("ImportSessionObject");
                 Task task = getPageBase().createSimpleTask("Import Session object");
 
@@ -127,10 +134,6 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                 target.add(getFeedbackPanel());
             }
 
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionWizardPanel.this.onExitPerformed(target);
-            }
         });
 
         return steps;
@@ -142,6 +145,10 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 //            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
             exitToPreview(target);
         }
+    }
+
+    private void onExitPerformed() {
+        setResponsePage(PageRoleAnalysis.class);
     }
 
     private void executeClusteringTask(OperationResult result, Task task, String sessionOid) {
