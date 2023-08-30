@@ -15,7 +15,7 @@
         <q:all/>
     </filter>
     <getOptions>
-        <option>
+        <option id="1">
             <selector>
                 <path>case</path>
             </selector>

@@ -18,7 +18,7 @@
             </translation>
         </label>
     </display>
-    <widget>
+    <widget id="1">
         <identifier>resources-up</identifier>
         <description>Widget that shows all the resources that are up. Based on "Resources Up" object collection.</description>
         <display>
@@ -40,15 +40,15 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="5">
                 <fieldType>value</fieldType>
                 <expression>
-                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
+                    <proportional>
                         <style>value-slash-domain</style>
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="6">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
@@ -59,7 +59,7 @@
                     </script>
                 </expression>
             </dataField>
-            <variation>
+            <variation id="7">
                 <condition>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
@@ -73,7 +73,7 @@
             </variation>
         </presentation>
     </widget>
-    <widget>
+    <widget id="2">
         <identifier>audit-recent-errors</identifier>
         <description>Widget that shows recent errors. Data are taken from audit log.</description>
         <display>
@@ -95,7 +95,7 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="8">
                 <fieldType>value</fieldType>
                 <expression>
                     <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
@@ -103,7 +103,7 @@
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="9">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
@@ -114,7 +114,7 @@
                     </script>
                 </expression>
             </dataField>
-            <variation>
+            <variation id="10">
                 <condition>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>proportional.getPercentage() &gt; 5</code>
@@ -126,7 +126,7 @@
             </variation>
         </presentation>
     </widget>
-    <widget>
+    <widget id="3">
         <identifier>audit-recent-modifications</identifier>
         <description>Widget that shows recent modifications. Data are taken from audit log.</description>
         <display>
@@ -148,7 +148,7 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="11">
                 <fieldType>value</fieldType>
                 <expression>
                     <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
@@ -156,7 +156,7 @@
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="12">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
@@ -169,7 +169,7 @@
             </dataField>
         </presentation>
     </widget>
-    <widget>
+    <widget id="4">
         <identifier>active-task</identifier>
         <display>
             <label>
@@ -190,7 +190,7 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="13">
                 <fieldType>value</fieldType>
                 <expression>
                     <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
@@ -198,7 +198,7 @@
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="14">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
@@ -209,7 +209,7 @@
                     </script>
                 </expression>
             </dataField>
-            <variation>
+            <variation id="15">
                 <condition>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>

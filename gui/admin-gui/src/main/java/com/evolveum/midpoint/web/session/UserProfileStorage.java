@@ -32,10 +32,12 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
      *   Enum containing IDs of all tables. where paging size can be adjusted
      * */
     public enum TableId {
+        TABLE_CLUSTER,
         PAGE_USER_SELECTION,
         TABLE_ROLES,
         TABLE_CASES,
         TABLE_USERS,
+        TABLE_PARENT_CLUSTER,
         TABLE_ORGS,
         TABLE_SERVICES,
         TABLE_ARCHETYPES,

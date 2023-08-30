@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="headerPanel" class="d-flex flex-wrap gap-2 w-100">
+        <div class="image col-md-2 mt-3">
+            <img wicket:id="photo" class="user-image img-circle elevation-2"/>
+        </div>
+        <div class="info col-md-8">
+            <div class="text-lg" wicket:id="displayName"/>
+            <div class="text-md" wicket:id="archetypeLabel"/>
+        </div>
+        <a class="pull-right col-md-1 mt-3" wicket:id="expandButton">
+            <i wicket:id="arrowIcon"></i>
+        </a>
+    </div>
+    <wicket:enclosure child="itemsPanel">
+        <div class="border-top w-100">
+            <div wicket:id="itemsPanel" class="d-flex flex-wrap gap-2 mt-2">
+                <label class="col-md-5" wicket:id="itemName"></label>
+                <div wicket:id="itemValue"/>
+            </div>
+        </div>
+    </wicket:enclosure>
+</wicket:panel>
+</html>

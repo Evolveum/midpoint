@@ -12,7 +12,7 @@
         oid="00000000-0000-0000-0000-286d76cea7c5">
     <name>Simulation report: Objects</name>
     <description>Objects processed by a given simulation.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
@@ -30,7 +30,7 @@
             </filter>
         </collection>
         <view>
-            <column>
+            <column id="2">
                 <name>id</name>
                 <display>
                     <label>
@@ -48,7 +48,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="3">
                 <name>oid</name>
                 <path>oid</path>
                 <display>
@@ -61,42 +61,42 @@
                 </display>
                 <previousColumn>id</previousColumn>
             </column>
-            <column>
+            <column id="4">
                 <name>name</name>
                 <path>name</path>
                 <previousColumn>oid</previousColumn>
             </column>
-            <column>
+            <column id="5">
                 <name>type</name>
                 <path>type</path>
                 <previousColumn>name</previousColumn>
             </column>
-            <column>
+            <column id="6">
                 <name>archetype</name>
                 <path>structuralArchetypeRef</path>
                 <previousColumn>type</previousColumn>
             </column>
-            <column>
+            <column id="7">
                 <name>resourceRef</name>
                 <path>resourceObjectCoordinates/resourceRef</path>
                 <previousColumn>archetype</previousColumn>
             </column>
-            <column>
+            <column id="8">
                 <name>kind</name>
                 <path>resourceObjectCoordinates/kind</path>
                 <previousColumn>resourceRef</previousColumn>
             </column>
-            <column>
+            <column id="9">
                 <name>intent</name>
                 <path>resourceObjectCoordinates/intent</path>
                 <previousColumn>kind</previousColumn>
             </column>
-            <column>
+            <column id="10">
                 <name>tag</name>
                 <path>resourceObjectCoordinates/tag</path>
                 <previousColumn>intent</previousColumn>
             </column>
-            <column>
+            <column id="11">
                 <name>objectMark</name>
                 <display>
                     <label>
@@ -115,22 +115,22 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="12">
                 <name>state</name>
                 <path>state</path>
                 <previousColumn>objectMark</previousColumn>
             </column>
-            <column>
+            <column id="13">
                 <name>resultStatus</name>
                 <path>resultStatus</path>
                 <previousColumn>state</previousColumn>
             </column>
-            <column>
+            <column id="14">
                 <name>eventMarkRef</name>
                 <path>eventMarkRef</path>
                 <previousColumn>resultStatus</previousColumn>
             </column>
-            <column>
+            <column id="15">
                 <name>message</name>
                 <display>
                     <label>
@@ -151,7 +151,7 @@
             </column>
             <type>c:SimulationResultProcessedObjectType</type>
         </view>
-        <parameter>
+        <parameter id="16">
             <name>simulationResultRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
@@ -164,7 +164,7 @@
                 </label>
             </display>
         </parameter>
-        <subreport>
+        <subreport id="17">
             <name>objectMarks</name>
             <type>c:ObjectReferenceType</type>
             <expression>

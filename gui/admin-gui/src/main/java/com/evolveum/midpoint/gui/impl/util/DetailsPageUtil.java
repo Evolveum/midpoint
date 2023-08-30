@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -91,6 +94,10 @@ public final class DetailsPageUtil {
 
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(SimulationResultType.class, PageSimulationResult.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(MarkType.class, PageMark.class);
+
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisSessionType.class, PageRoleAnalysisSession.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisClusterType.class, PageRoleAnalysisCluster.class);
+
     }
 
     static {
@@ -110,7 +117,6 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PageOrg.class, PageOrgHistory.class);
         DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PageUser.class, PageUserHistory.class);
     }
-
 
     public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
         PrismContext prismContext = pageBase.getPrismContext();

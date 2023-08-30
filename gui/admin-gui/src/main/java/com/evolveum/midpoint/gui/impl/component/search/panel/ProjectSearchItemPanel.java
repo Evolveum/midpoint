@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ProjectSearchItemWrapper;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -25,12 +28,11 @@ public class ProjectSearchItemPanel extends SingleSearchItemPanel<ProjectSearchI
 
     @Override
     protected Component initSearchItemField(String id) {
-//        PrismReferenceDefinition projectRefDef = getModelObject().getProjectRefDef();
         ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id,
                 new PropertyModel<>(getModel(), ProjectSearchItemWrapper.F_VALUE),
-                null) {
+                getProjectDefinition()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<QName> getAllowedRelations() {
@@ -39,6 +41,10 @@ public class ProjectSearchItemPanel extends SingleSearchItemPanel<ProjectSearchI
         };
         searchItemField.setOutputMarkupId(true);
         return searchItemField;
+    }
+
+    private PrismReferenceDefinition getProjectDefinition() {
+        return getModelObject().getProjectRefDef();
     }
 
 

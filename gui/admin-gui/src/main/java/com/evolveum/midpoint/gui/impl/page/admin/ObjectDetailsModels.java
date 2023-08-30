@@ -18,7 +18,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -53,8 +52,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     private LoadableModel<GuiObjectDetailsPageType> detailsPageConfigurationModel;
 
     private LoadableDetachableModel<O> summaryModel;
-
     private List<ObjectDelta<? extends ObjectType>> savedDeltas = new ArrayList<>();
+
 
     public ObjectDetailsModels(LoadableDetachableModel<PrismObject<O>> prismObjectModel, ModelServiceLocator serviceLocator) {
         this.prismObjectModel = prismObjectModel;
@@ -469,4 +468,5 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         }
         retDeltas.addAll(actualDeltas);
     }
+
 }

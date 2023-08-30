@@ -12,15 +12,15 @@
     <documentation>
         This is an operation that changed the name (naming attribute) of a projection.
     </documentation>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>320</displayOrder>
     <!-- TODO @Vilo please add "display" here (and to other tags) -->
-    <policyRule>
+    <policyRule id="2">
         <name>projection-renamed</name>
         <policyConstraints>
-            <modification>
+            <modification id="3">
                 <name>$projection-renamed</name>
                 <operation>modify</operation>
                 <specialItem>resourceObjectNamingAttribute</specialItem>

@@ -25,26 +25,26 @@
         </display>
         <adminGuiConfiguration>
             <objectDetails>
-                <panel>
+                <panel id="3">
                     <identifier>projections</identifier>
                     <panelType>projections</panelType>
                     <display>
                         <label>Application.panel.projections</label>
                     </display>
                 </panel>
-                <panel>
+                <panel id="4">
                     <identifier>assignments</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel>
+                <panel id="5">
                     <identifier>password</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel>
+                <panel id="6">
                     <identifier>applicablePolicies</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel>
+                <panel id="7">
                     <identifier>serviceMembers</identifier>
                     <listView>
                         <searchBoxConfiguration>
@@ -59,11 +59,11 @@
                         </searchBoxConfiguration>
                     </listView>
                 </panel>
-                <panel>
+                <panel id="8">
                     <identifier>serviceGovernance</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel>
+                <panel id="9">
                     <identifier>governance</identifier>
                     <display>
                         <label>GovernanceCardsPanel.label</label>
@@ -74,11 +74,11 @@
                     <displayOrder>91</displayOrder>
                     <panelType>governanceCards</panelType>
                 </panel>
-                <panel>
+                <panel id="10">
                     <identifier>inducements</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel>
+                <panel id="11">
                     <identifier>resourceEntitlementsTopLevel</identifier>
                     <panelType>constructionInducements</panelType>
                     <display>
@@ -86,7 +86,7 @@
                     </display>
                     <displayOrder>115</displayOrder>
                 </panel>
-                <panel>
+                <panel id="12">
                     <identifier>inducedEntitlementsTopLevel</identifier>
                     <panelType>inducedEntitlements</panelType>
                     <display>
@@ -94,7 +94,7 @@
                     </display>
                     <displayOrder>116</displayOrder>
                 </panel>
-                <panel>
+                <panel id="13">
                     <identifier>applicationRoles</identifier>
                     <panelType>inducedBy</panelType>
                     <display>
@@ -116,7 +116,7 @@
                     </listView>
                     <displayOrder>117</displayOrder>
                 </panel>
-                <panel>
+                <panel id="14">
                     <identifier>inducedBy</identifier>
                     <panelType>inducedBy</panelType>
                     <displayOrder>118</displayOrder>
@@ -124,8 +124,8 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="1">
+        <assignmentRelation id="2">
             <holderType>ServiceType</holderType>
         </assignmentRelation>
     </assignment>

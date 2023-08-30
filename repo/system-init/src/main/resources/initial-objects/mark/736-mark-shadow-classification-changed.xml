@@ -9,7 +9,7 @@
     oid="00000000-0000-0000-0000-000000000736">
     <name>Shadow classification changed</name>
     <description>Classification of a shadow was changed</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>500</displayOrder>

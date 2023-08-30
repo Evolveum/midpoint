@@ -151,12 +151,14 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     private boolean matches(AssignmentType existingAssignment, UnassignParameters parameters, ObjectFilter resolvedFilter)
             throws SchemaException {
         ObjectReferenceType targetRef = existingAssignment.getTargetRef();
-        if (targetRef != null && matchesOid(targetRef.getOid(), parameters.dynamicRoleRefs)
+        if (targetRef != null
+                && matchesOid(targetRef.getOid(), parameters.dynamicRoleRefs)
                 && matchesRelation(targetRef.getRelation(), parameters.dynamicRelations)) {
             return true;
         }
         ConstructionType construction = existingAssignment.getConstruction();
-        if (construction != null && construction.getResourceRef() != null
+        if (construction != null
+                && construction.getResourceRef() != null
                 && matchesOid(construction.getResourceRef().getOid(), parameters.dynamicResourceRefs)) {
             return true;
         }

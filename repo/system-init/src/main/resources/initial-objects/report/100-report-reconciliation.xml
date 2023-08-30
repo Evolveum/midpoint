@@ -12,7 +12,7 @@
         oid="00000000-0000-0000-0000-000000000100">
     <name>Reconciliation report</name>
     <description>Reconciliation report for selected resource.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
@@ -66,7 +66,7 @@
                 </q:and>
             </filter>
         </collection>
-        <parameter>
+        <parameter id="2">
             <name>intent</name>
             <type>string</type>
             <display>
@@ -78,7 +78,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="3">
             <name>objectClass</name>
             <type>string</type>
             <display>
@@ -90,7 +90,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="4">
             <name>kind</name>
             <type>ShadowKindType</type>
             <display>
@@ -102,7 +102,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="5">
             <name>situation</name>
             <type>SynchronizationSituationType</type>
             <display>
@@ -114,7 +114,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="6">
             <name>resourceRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:ResourceType</targetType>
@@ -129,21 +129,21 @@
         </parameter>
         <view>
             <type>ShadowType</type>
-            <column>
+            <column id="7">
                 <name>nameColumn</name>
                 <path>name</path>
             </column>
-            <column>
+            <column id="8">
                 <name>resourceColumn</name>
                 <path>resourceRef</path>
                 <previousColumn>nameColumn</previousColumn>
             </column>
-            <column>
+            <column id="9">
                 <name>situationColumn</name>
                 <path>synchronizationSituation</path>
                 <previousColumn>resourceColumn</previousColumn>
             </column>
-            <column>
+            <column id="10">
                 <name>ownerColumn</name>
                 <display>
                     <label>Owner</label>
@@ -169,7 +169,7 @@
                 </export>
                 <previousColumn>situationColumn</previousColumn>
             </column>
-            <column>
+            <column id="11">
                 <name>synchTimestampColumn</name>
                 <path>synchronizationTimestamp</path>
                 <previousColumn>ownerColumn</previousColumn>

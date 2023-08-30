@@ -13,14 +13,14 @@
         This is an operation that brought the projection into existence and being effectively enabled.
         (So, previously it was either non-existent or effectively disabled.)
     </documentation>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>300</displayOrder>
-    <policyRule>
+    <policyRule id="2">
         <name>projection-activated</name>
         <policyConstraints>
-            <custom>
+            <custom id="3">
                 <name>$projection-activated</name>
                 <expression>
                     <script>

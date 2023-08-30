@@ -10,14 +10,14 @@
     <name>Focus role membership changed</name>
     <description>Operation that changed the focus role membership</description>
     <documentation>This mark deals with `roleMembershipRef` value.</documentation>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>160</displayOrder>
-    <policyRule>
+    <policyRule id="2">
         <name>focus-role-membership-changed</name>
         <policyConstraints>
-            <modification>
+            <modification id="3">
                 <name>$focus-role-membership-changed</name>
                 <operation>modify</operation>
                 <item>roleMembershipRef</item>

@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="a3429097-52c4-4474-80b7-fc1667584831">
+    <name>role-analysis-pattern-detection-basic</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <roleAnalysisPatternDetection>
+                <clusterRef oid="16a8b95a-8a37-4f91-b835-bb77670c2899"/> <!-- random OID for now -->
+            </roleAnalysisPatternDetection>
+        </work>
+    </activity>
+</task>

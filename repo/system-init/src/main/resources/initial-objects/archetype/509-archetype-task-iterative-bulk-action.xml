@@ -24,76 +24,76 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>extension/mext:objectType</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>extension/mext:objectQuery</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="4">
             <path>extension/mext:searchOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="5">
             <path>extension/mext:useRepositoryDirectly</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="6">
             <path>extension/scext:executeScript</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="7">
             <path>extension/mext:workerThreads</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
-                <panel>
+                <panel id="8">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="10">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="11">
                             <identifier>work-iterative-scripting</identifier>
                             <path>activity/work/iterativeScripting</path>
                         </container>
                     </panel>
                 </panel>
-                <panel>
+                <panel id="9">
                     <identifier>taskBasic</identifier>
-                    <container>
+                    <container id="12">
                         <identifier>objects-to-process</identifier>
                         <display>
                             <label>IterativeBulkActionTask.objectsToProcess</label>
                         </display>
-                        <item>
+                        <item id="14">
                             <c:path>extension/mext:objectType</c:path>
                         </item>
-                        <item>
+                        <item id="15">
                             <c:path>extension/mext:objectQuery</c:path>
                         </item>
-                        <item>
+                        <item id="16">
                             <c:path>extension/mext:searchOptions</c:path>
                         </item>
-                        <item>
+                        <item id="17">
                             <c:path>extension/mext:useRepositoryDirectly</c:path>
                         </item>
                     </container>
-                    <container>
+                    <container id="13">
                         <identifier>bulk-action</identifier>
                         <display>
                             <label>IterativeBulkActionTask.bulkAction</label>
                         </display>
-                        <item>
+                        <item id="18">
                             <c:path>extension/scext:executeScript</c:path>
                         </item>
-                        <item>
+                        <item id="19">
                             <c:path>extension/mext:workerThreads</c:path>
                         </item>
                     </container>
@@ -101,14 +101,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="20">
+        <assignmentRelation id="21">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="22">
         <focusMappings>
-            <mapping>
+            <mapping id="23">
                 <strength>weak</strength>
                 <expression>
                     <script>

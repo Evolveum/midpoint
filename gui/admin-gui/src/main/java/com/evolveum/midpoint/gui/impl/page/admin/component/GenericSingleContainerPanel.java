@@ -203,6 +203,70 @@ import java.util.List;
         type = "EventMarkInformationType",
         expanded = true
 )
+@PanelInstance(
+        identifier = "clusterStatistic",
+        applicableForType = RoleAnalysisClusterType.class,
+        display = @PanelDisplay(
+                label = "AnalysisClusterStatisticType.clusterStatistic",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 20
+        ),
+        containerPath = "clusterStatistics",
+        type = "AnalysisClusterStatisticType",
+        expanded = true
+)
+
+@PanelInstance(
+        identifier = "detectionOption",
+        applicableForType = RoleAnalysisClusterType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisClusterType.detectionOption",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "detectionOption",
+        type = "RoleAnalysisDetectionOptionType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "sessionStatistics",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.sessionStatistic",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 20
+        ),
+        containerPath = "sessionStatistic",
+        type = "RoleAnalysisSessionStatisticType",
+        expanded = true
+)
+
+@PanelInstance(
+        identifier = "sessionOptions",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.sessionOptions",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "roleModeOptions",
+        type = "RoleAnalysisSessionOptionType",
+        expanded = true
+)
+
+@PanelInstance(
+        identifier = "sessionOptions",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.sessionOptions",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "userModeOptions",
+        type = "UserAnalysisSessionOptionType",
+        expanded = true
+)
+
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
@@ -261,6 +325,18 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
             @Override
             protected ItemEditabilityHandler getEditabilityHandler() {
                 ContainerPanelConfigurationType config = getPanelConfiguration();
+
+                for (VirtualContainersSpecificationType container : config.getContainer()) {
+                    if (container.getPath() != null
+                            && (container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_SESSION_STATISTIC))
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION)
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS)
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisSessionType.F_USER_MODE_OPTIONS)
+                            || container.getPath().getItemPath().equivalent(RoleAnalysisClusterType.F_CLUSTER_STATISTICS)) {
+                        return wrapper -> false;
+                    }
+                }
+
                 if (!(config instanceof PreviewContainerPanelConfigurationType)) {
                     return super.getEditabilityHandler();
                 }

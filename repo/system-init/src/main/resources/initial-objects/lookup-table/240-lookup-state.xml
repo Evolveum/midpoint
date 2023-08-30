@@ -7,29 +7,26 @@
   -->
 
 <lookupTable oid="00000000-0000-0000-0000-000000000240"
-             xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-
+             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>States</name>
-
-    <row>
+    <row id="1">
         <key>created</key>
         <label>Created</label>
     </row>
-    <row>
+    <row id="2">
         <key>open</key>
         <label>Open</label>
     </row>
-    <row>
+    <row id="3">
         <key>closing</key>
         <label>Closing</label>
     </row>
-    <row>
+    <row id="4">
         <key>executing</key>
         <label>Executing</label>
     </row>
-    <row>
+    <row id="5">
         <key>closed</key>
         <label>Closed</label>
     </row>
-
 </lookupTable>

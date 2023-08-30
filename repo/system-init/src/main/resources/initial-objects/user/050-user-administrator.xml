@@ -14,10 +14,10 @@
     <fullName>midPoint Administrator</fullName>
     <givenName>midPoint</givenName>
     <familyName>Administrator</familyName>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/> <!-- Superuser -->
     </assignment>
-    <assignment>
+    <assignment id="2">
         <targetRef oid="00000000-0000-0000-0000-000000000300" type="ArchetypeType"/> <!-- System user -->
     </assignment>
     <activation>

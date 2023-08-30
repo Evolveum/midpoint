@@ -9,14 +9,14 @@
     oid="00000000-0000-0000-0000-000000000713">
     <name>Focus assignments changed</name>
     <description>Operation that changed the focus assignment(s)</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>130</displayOrder>
-    <policyRule>
+    <policyRule id="2">
         <name>focus-assignment-changed</name>
         <policyConstraints>
-            <modification>
+            <modification id="3">
                 <name>$focus-assignment-changed</name>
                 <operation>modify</operation>
                 <item>assignment</item>

@@ -140,6 +140,13 @@ call apply_audit_change(6, $aa$
      ADD COLUMN shadowIntent TEXT;
 $aa$);
 
+-- Role Mining
+
+call apply_audit_change(7, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_CLUSTER' AFTER 'ROLE';
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_SESSION' AFTER 'ROLE_ANALYSIS_CLUSTER';
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
 -- to match the number used in the last change here!

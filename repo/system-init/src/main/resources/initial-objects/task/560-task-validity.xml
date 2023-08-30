@@ -10,10 +10,10 @@
 
     <name>Validity Scanner</name>
     <description>A system task that maintains effective status of objects, based on their validity time constraints.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000529" type="ArchetypeType" />
     </assignment>
-    <assignment>
+    <assignment id="2">
         <targetRef oid="00000000-0000-0000-0000-000000000530" type="ArchetypeType" />
     </assignment>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>

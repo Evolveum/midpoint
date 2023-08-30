@@ -42,7 +42,7 @@ oid="00000000-0000-0000-0000-000000000380">
             </script>
         </tokenExpression>
     </iterationSpecification>
-    <mapping>
+    <mapping id="1">
         <name>Generate unique name for users using jsmith and iterator suitable for sAMAccountName (8 + up to 2 characters)</name>
         <description>Generate login name - only once. Does not change the login name when user is renamed. Example: John Smith-Baker, jsmithba or jsmithba2</description>
         <documentation>
@@ -80,7 +80,7 @@ oid="00000000-0000-0000-0000-000000000380">
             <path>name</path>
         </target>
     </mapping>
-    <mapping>
+    <mapping id="2">
         <name>Generate fullName</name>
         <description>Generate fullName (enforcing on renames because of strong mapping)</description>
         <strength>strong</strength>

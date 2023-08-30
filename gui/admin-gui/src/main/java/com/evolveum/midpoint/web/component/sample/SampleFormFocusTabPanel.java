@@ -11,7 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
