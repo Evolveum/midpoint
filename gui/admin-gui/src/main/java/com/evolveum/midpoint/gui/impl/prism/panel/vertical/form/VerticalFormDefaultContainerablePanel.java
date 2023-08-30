@@ -193,6 +193,11 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 }
                 return "fa fa-circle";
             }
+
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+                return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
+            }
         };
         panel.setOutputMarkupId(true);
         container.add(new VisibleEnableBehaviour() {
