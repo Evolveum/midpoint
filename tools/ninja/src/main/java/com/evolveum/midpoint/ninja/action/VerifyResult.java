@@ -9,6 +9,8 @@ public class VerifyResult {
 
     private Map<UpgradePriority, Long> priorities = new HashMap<>();
 
+    private Long unknown = 0L;
+
     public boolean hasCriticalItems() {
         return hasPriorityItem(UpgradePriority.CRITICAL);
     }
@@ -31,6 +33,10 @@ public class VerifyResult {
 
     public void incrementOptionalCount() {
         incrementPriorityItemCount(UpgradePriority.OPTIONAL);
+    }
+
+    public synchronized void incrementUnknownCount() {
+        unknown++;
     }
 
     public synchronized boolean hasPriorityItem(UpgradePriority priority) {
@@ -58,5 +64,9 @@ public class VerifyResult {
 
     public long getOptionalCount() {
         return getItemPriorityCount(UpgradePriority.OPTIONAL);
+    }
+
+    public long getUnknownCount() {
+        return unknown;
     }
 }

@@ -50,7 +50,7 @@ public abstract class Action<O, R> {
         return LogTarget.SYSTEM_OUT;
     }
 
-    protected void handleResultOnFinish(OperationStatus operation, String finishMessage) {
+    protected void handleResultOnFinish(R consumerResult, OperationStatus operation, String finishMessage) {
         OperationResult result = operation.getResult();
         result.recomputeStatus();
 

@@ -66,7 +66,7 @@ public class ImportAuditRepositoryAction extends RepositoryAction<ImportAuditOpt
             log.error("Executor did not finish before timeout");
         }
 
-        handleResultOnFinish(progress, "Audit import finished");
+        handleResultOnFinish(null, progress, "Audit import finished");
 
         return null;
     }

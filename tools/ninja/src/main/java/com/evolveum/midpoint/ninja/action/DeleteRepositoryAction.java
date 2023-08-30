@@ -96,7 +96,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions, Void
         }
 
         operation.finish();
-        handleResultOnFinish(operation, "Delete finished");
+        handleResultOnFinish(null, operation, "Delete finished");
     }
 
     private void deleteByFilter(ObjectTypes type, ObjectQuery query, OperationStatus operation, OperationResult result)

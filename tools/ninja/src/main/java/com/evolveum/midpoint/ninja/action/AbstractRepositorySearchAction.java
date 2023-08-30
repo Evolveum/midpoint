@@ -76,7 +76,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
         executor.execute(new ProgressReporterWorker<>(context, options, queue, operation));
 
         Callable<R> consumer = createConsumer(queue, operation);
-        Future<R> consumerResult = executor.submit(consumer);
+        Future<R> consumerFuture = executor.submit(consumer);
 
         // execute rest of the producers
         for (int i = options.getMultiThread(); i < producers.size(); i++) {
@@ -89,9 +89,11 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
             log.error("Executor did not finish before timeout");
         }
 
-        handleResultOnFinish(operation, "Finished " + getOperationName());
+        R consumerResult = consumerFuture.get();
 
-        return consumerResult.get();
+        handleResultOnFinish(consumerResult, operation, "Finished " + getOperationName());
+
+        return consumerResult;
     }
 
     @Override

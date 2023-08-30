@@ -26,6 +26,8 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 
     private final Log log;
 
+    private UpgradeObjectsItemsSummary itemsSummary = new UpgradeObjectsItemsSummary();
+
     public UpgradeObjectsConsumerWorker(
             Map<UUID, Set<SkipUpgradeItem>> skipUpgradeForOids, NinjaContext context, UpgradeObjectsOptions options,
             BlockingQueue<T> queue, OperationStatus operation) {
@@ -34,6 +36,10 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
 
         this.skipUpgradeForOids = skipUpgradeForOids;
         this.log = context.getLog();
+    }
+
+    public UpgradeObjectsItemsSummary getItemsSummary() {
+        return itemsSummary;
     }
 
     @Override
@@ -72,7 +78,7 @@ public class UpgradeObjectsConsumerWorker<T extends ObjectType> extends BaseWork
         PrismObject prismObject = object.asPrismObject();
 
         PrismObject cloned = prismObject.clone();
-        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeForOids);
+        UpgradeObjectHandler executor = new UpgradeObjectHandler(options, context, skipUpgradeForOids, itemsSummary);
         UpgradeObjectResult result = executor.execute(cloned);
         switch (result) {
             case SKIPPED:
