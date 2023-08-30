@@ -1,14 +1,14 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
-import java.io.File;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
-import com.evolveum.midpoint.ninja.action.*;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import java.io.File;
+import java.util.stream.Collectors;
 
 public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, ActionResult<Void>> {
 
@@ -21,7 +21,6 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
     public ActionResult<Void> execute() throws Exception {
         File tempDirectory = options.getTempDirectory() != null ?
                 options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
-
 
         FileUtils.forceMkdir(tempDirectory);
         // FIXME: Should we log pre-upgrade checks
@@ -104,7 +103,9 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
     }
 
     private <O, T> T executeAction(Action<O, T> action) throws Exception {
+        log.info("");
         log.info(ConsoleFormat.formatActionStartMessage(action));
+        log.info("");
 
         return action.execute();
     }

@@ -72,7 +72,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions, Void
             log.error("Executor did not finish before timeout");
         }
 
-        handleResultOnFinish(progress, "Import finished");
+        handleResultOnFinish(null, progress, "Import finished");
 
         return null;
     }

@@ -190,6 +190,7 @@ public class VerificationReporter {
 
         for (UpgradeValidationItem item : result.getItems()) {
             if (item.getPriority() == null) {
+                this.result.incrementUnknownCount();
                 continue;
             }
 

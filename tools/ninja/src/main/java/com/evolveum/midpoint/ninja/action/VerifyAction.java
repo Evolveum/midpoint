@@ -64,7 +64,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         if (options.getOutput() != null) {
             log.info("Verification report will be saved to '{}'", options.getOutput().getPath());
         } else if (context.isUserMode()) {
-            log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradability status of deprecated items.");
+            log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradeability status of deprecated items.");
             log.warn("It is recommended to review this report and actions for proper upgrade procedure.");
         }
         if (!options.getFiles().isEmpty()) {
@@ -74,12 +74,14 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         }
 
         log.info(
-                "Verification finished. {}, {} and {} optional issues found",
+                "Verification finished. {}, {}, {} and {} unknown issues found.",
                 ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
                 ConsoleFormat.formatMessageWithWarningParameters("{} necessary", result.getNecessaryCount()),
-                result.getOptionalCount());
+                ConsoleFormat.formatMessageWithInfoParameters("{} optional", result.getOptionalCount()),
+                result.getUnknownCount());
 
         if (options.getOutput() != null) {
+            log.info("");
             log.info("Verification report saved to '{}'", options.getOutput().getPath());
 
 
