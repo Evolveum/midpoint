@@ -13,15 +13,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -41,6 +38,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
@@ -204,10 +203,28 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             }
 
             @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                addAdditionalButtons(repeatingView);
+            }
+
+            @Override
+            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
+                super.deleteConfirmPerformed(target);
+                PageAssignmentHolderDetails.this.afterDeletePerformed(target);
+            }
+
+            @Override
             protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
                 return PageAssignmentHolderDetails.this.hasUnsavedChanges(target);
             }
         };
+    }
+
+    protected void afterDeletePerformed(AjaxRequestTarget target) {
+
+    }
+
+    protected void addAdditionalButtons(RepeatingView repeatingView) {
     }
 
     protected AHDM createObjectDetailsModels(PrismObject<AH> object) {

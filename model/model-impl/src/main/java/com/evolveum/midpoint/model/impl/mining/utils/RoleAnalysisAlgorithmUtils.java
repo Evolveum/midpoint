@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.mining.utils;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.createObjectReferences;
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getSessionTypeObjectCount;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +37,8 @@ public class RoleAnalysisAlgorithmUtils {
             List<DataPoint> dataPoints, List<Cluster<DataPoint>> clusters,
             @NotNull RoleAnalysisSessionType session, Handler handler) {
 
+        Integer sessionTypeObjectCount = getSessionTypeObjectCount(modelService, result, task);
+
         QName complexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
                 : UserType.COMPLEX_TYPE;
@@ -48,7 +51,7 @@ public class RoleAnalysisAlgorithmUtils {
                     handler.iterateActualStatus();
 
                     return prepareClusters(modelService, task, result, clusters.get(i).getPoints(), String.valueOf(i),
-                            dataPoints, session, complexType);
+                            dataPoints, session, complexType, sessionTypeObjectCount);
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -56,7 +59,7 @@ public class RoleAnalysisAlgorithmUtils {
         handler.setSubTitle("Prepare Outliers");
         handler.setOperationCountToProcess(dataPoints.size());
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result,
-                dataPoints, complexType, session.getProcessMode(), handler);
+                dataPoints, complexType, session.getProcessMode(), handler, sessionTypeObjectCount);
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         return clusterTypeObjectWithStatistic;
     }
@@ -65,6 +68,8 @@ public class RoleAnalysisAlgorithmUtils {
     public List<PrismObject<RoleAnalysisClusterType>> processExactMatch(ModelService modelService, Task task, OperationResult result,
             List<DataPoint> dataPoints,
             @NotNull RoleAnalysisSessionType session, Handler handler) {
+
+        Integer sessionTypeObjectCount = getSessionTypeObjectCount(modelService, result, task);
 
         QName processedObjectComplexType = session.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
                 ? RoleType.COMPLEX_TYPE
@@ -84,7 +89,7 @@ public class RoleAnalysisAlgorithmUtils {
                     handler.iterateActualStatus();
 
                     return exactPrepareDataPoints(modelService, task, result, dataPoints.get(i), String.valueOf(i),
-                            session, dataPointsOutliers, processedObjectComplexType, propertiesComplexType);
+                            session, dataPointsOutliers, processedObjectComplexType, propertiesComplexType, sessionTypeObjectCount);
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -92,15 +97,15 @@ public class RoleAnalysisAlgorithmUtils {
         handler.setSubTitle("Prepare Outliers");
         handler.setOperationCountToProcess(dataPoints.size());
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result, dataPoints,
-                processedObjectComplexType, session.getProcessMode(), handler);
+                processedObjectComplexType, session.getProcessMode(), handler, sessionTypeObjectCount);
         clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
         return clusterTypeObjectWithStatistic;
     }
 
     private ClusterStatistic statisticLoad(List<DataPoint> clusterDataPoints, List<DataPoint> allDataPoints,
-            String clusterIndex, QName complexType, ModelService modelService, Task task, OperationResult result) {
+            String clusterIndex, QName complexType, ModelService modelService, Task task, OperationResult result, Integer sessionTypeObjectCount) {
 
-        PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
+        PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + "_cluster_" + clusterIndex);
 
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;
@@ -148,7 +153,7 @@ public class RoleAnalysisAlgorithmUtils {
 
     private ClusterStatistic exactStatisticLoad(DataPoint clusterDataPoints,
             String clusterIndex, int threshold, List<DataPoint> dataPointsOutliers, QName processedObjectComplexType,
-            QName propertiesComplexType, ModelService modelService, Task task, OperationResult result) {
+            QName propertiesComplexType, ModelService modelService, Task task, OperationResult result, Integer sessionTypeObjectCount) {
 
         Set<String> elementsOids = new HashSet<>(clusterDataPoints.getMembers());
         Set<String> occupiedPoints = new HashSet<>(clusterDataPoints.getProperties());
@@ -158,7 +163,7 @@ public class RoleAnalysisAlgorithmUtils {
             return null;
         }
 
-        PolyStringType name = PolyStringType.fromOrig("cluster_" + clusterIndex);
+        PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + "_cluster_" + clusterIndex);
 
         Set<ObjectReferenceType> membersObjectsRef = createObjectReferences(elementsOids, processedObjectComplexType,
                 modelService, task, result);
@@ -182,12 +187,12 @@ public class RoleAnalysisAlgorithmUtils {
     private PrismObject<RoleAnalysisClusterType> exactPrepareDataPoints(ModelService modelService, Task task, OperationResult result,
             DataPoint dataPointCluster, String clusterIndex,
             @NotNull RoleAnalysisSessionType session, List<DataPoint> dataPointsOutliers,
-            QName processedObjectComplexType, QName propertiesComplexType) {
+            QName processedObjectComplexType, QName propertiesComplexType, Integer sessionTypeObjectCount) {
 
         AbstractAnalysisSessionOptionType sessionOptionType = getSessionOptionType(session);
         int minMembersCount = sessionOptionType.getMinMembersCount();
         ClusterStatistic clusterStatistic = exactStatisticLoad(dataPointCluster, clusterIndex, minMembersCount,
-                dataPointsOutliers, processedObjectComplexType, propertiesComplexType, modelService, task, result);
+                dataPointsOutliers, processedObjectComplexType, propertiesComplexType, modelService, task, result, sessionTypeObjectCount);
 
         if (clusterStatistic != null) {
             AnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic,
@@ -200,7 +205,7 @@ public class RoleAnalysisAlgorithmUtils {
 
     private PrismObject<RoleAnalysisClusterType> prepareClusters(ModelService modelService, Task task, OperationResult result,
             List<DataPoint> dataPointCluster, String clusterIndex, List<DataPoint> dataPoints,
-            @NotNull RoleAnalysisSessionType session, QName complexType) {
+            @NotNull RoleAnalysisSessionType session, QName complexType, Integer sessionTypeObjectCount) {
 
         Set<String> elementsOids = new HashSet<>();
         for (DataPoint clusterDataPoint : dataPointCluster) {
@@ -215,7 +220,7 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         ClusterStatistic clusterStatistic = statisticLoad(dataPointCluster, dataPoints, clusterIndex,
-                complexType, modelService, task, result);
+                complexType, modelService, task, result, sessionTypeObjectCount);
 
         assert clusterStatistic != null;
         AnalysisClusterStatisticType roleAnalysisClusterStatisticType = createClusterStatisticType(clusterStatistic,
@@ -241,7 +246,7 @@ public class RoleAnalysisAlgorithmUtils {
 
     private PrismObject<RoleAnalysisClusterType> prepareOutlierClusters(ModelService modelService, Task task,
             OperationResult result, List<DataPoint> dataPoints, QName complexType,
-            RoleAnalysisProcessModeType processMode, Handler handler) {
+            RoleAnalysisProcessModeType processMode, Handler handler, Integer sessionTypeObjectCount) {
 
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;
@@ -270,7 +275,7 @@ public class RoleAnalysisAlgorithmUtils {
         int elementSize = elementsOid.size();
         double density = (sumPoints / (double) (elementSize * pointsSize)) * 100;
 
-        PolyStringType name = PolyStringType.fromOrig("outliers");
+        PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + "_outliers");
 
         Set<ObjectReferenceType> processedObjectsRef = new HashSet<>();
         ObjectReferenceType objectReferenceType;
