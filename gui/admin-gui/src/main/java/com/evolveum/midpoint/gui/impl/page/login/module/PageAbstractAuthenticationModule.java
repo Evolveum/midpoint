@@ -125,13 +125,15 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         add(form);
 
         WebMarkupContainer flowLinkContainer = new WebMarkupContainer(ID_FLOW_LINK_CONTAINER);
-
+        flowLinkContainer.setOutputMarkupId(true);
         add(flowLinkContainer);
 
         SecurityPolicyType securityPolicy = loadSecurityPolicyType();
         addIdentityRecoveryLink(flowLinkContainer, securityPolicy);
         addForgotPasswordLink(flowLinkContainer, securityPolicy);
         addRegistrationLink(flowLinkContainer, securityPolicy);
+
+        flowLinkContainer.add(new VisibleBehaviour(() -> !flowLinkContainer.streamChildren().findAny().isEmpty()));
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
