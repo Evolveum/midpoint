@@ -95,6 +95,8 @@ public class VerificationReporter {
     }
 
     public void init() {
+        result.setVerificationFile(options.getOutput());
+
         if (createDeltaFile) {
             initDeltaXmlFile();
         }

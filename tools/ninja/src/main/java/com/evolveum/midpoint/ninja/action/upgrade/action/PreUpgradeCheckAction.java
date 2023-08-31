@@ -27,6 +27,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, ActionResult<Boolean>> {
 
+    public PreUpgradeCheckAction() {
+    }
+
+    public PreUpgradeCheckAction(boolean partial) {
+        super(partial);
+    }
+
     @Override
     public String getOperationName() {
         return "pre-upgrade checks";

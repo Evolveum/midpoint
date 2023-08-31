@@ -28,6 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class UpgradeObjectsAction extends AbstractRepositorySearchAction<UpgradeObjectsOptions, ActionResult<UpgradeObjectsItemsSummary>> {
 
+    public UpgradeObjectsAction() {
+    }
+
+    public UpgradeObjectsAction(boolean partial) {
+        super(partial);
+    }
+
     private Map<UUID, Set<SkipUpgradeItem>> skipUpgradeItems;
 
     @Override
@@ -144,7 +151,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         if (verification == null || !verification.exists() || !verification.isFile()) {
             // FIXME: Add log explanation, what is happening
             if (context.isUserMode()) {
-                log.warn("Upgrade objects started without verification report, all neccessary non-manual changes will be accepted.");
+                log.warn("Upgrade objects started without verification report, all necessary non-manual changes will be accepted.");
             }
             return Collections.emptyMap();
         }
@@ -214,7 +221,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         logSummary(consumerResult.result(), UpgradeObjectsItemsSummary.ItemStatus.SKIPPED);
 
         OperationResult result = operation.getResult();
-        if (result.isAcceptable() && context.isUserMode()) {
+        if (result.isAcceptable() && context.isUserMode() && !partial) {
             log.info("");
             log.info("If you want to continue to continue with upgrade, please run: ninja.sh upgrade-distribution.");
         }

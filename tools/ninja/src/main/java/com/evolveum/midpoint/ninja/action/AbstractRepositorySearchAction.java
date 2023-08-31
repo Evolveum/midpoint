@@ -50,6 +50,13 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
+    public AbstractRepositorySearchAction() {
+    }
+
+    public AbstractRepositorySearchAction(boolean partial) {
+        super(partial);
+    }
+
     protected abstract Callable<R> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation);
 
     @Override
