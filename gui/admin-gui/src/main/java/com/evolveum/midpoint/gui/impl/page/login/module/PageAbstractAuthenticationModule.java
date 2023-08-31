@@ -133,7 +133,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         addForgotPasswordLink(flowLinkContainer, securityPolicy);
         addRegistrationLink(flowLinkContainer, securityPolicy);
 
-        flowLinkContainer.add(new VisibleBehaviour(() -> !flowLinkContainer.streamChildren().findAny().isEmpty()));
+        flowLinkContainer.add(new VisibleBehaviour(() -> isFlowLinkContainerVisible(flowLinkContainer)));
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
@@ -223,6 +223,17 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
                 StringUtils.isEmpty(label) ? "PageLogin.registerNewAccount" : label);
     }
 
+    private boolean isFlowLinkContainerVisible(WebMarkupContainer flowLinkContainer) {
+        return flowLinkContainer
+                .streamChildren()
+                .anyMatch(c -> c instanceof ExternalLink externalLink && isLinkVisible(externalLink));
+    }
+
+    private boolean isLinkVisible(ExternalLink externalLink) {
+        return externalLink.getBehaviors()
+                .stream()
+                .anyMatch(b -> b instanceof VisibleBehaviour vb && vb.isVisible());
+    }
 
     private SecurityPolicyType loadSecurityPolicyType() {
         return securityPolicyModel.getObject();
