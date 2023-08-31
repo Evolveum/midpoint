@@ -43,7 +43,7 @@ public abstract class UpgradeTest extends BaseUpgradeTest {
 
         // we can't use setCreate(true) to autocomplete scripts, since real ninja is packaged differently
         // later on and scripts files are not yet available in default location
-        upgradeDatabaseOptions.setScripts(getUpgradeScripts(new File("../../config/sql/native-new")));
+        upgradeDatabaseOptions.setScripts(getUpgradeScripts(new File("../../config/sql/native")));
 
         List<Object> options = List.of(baseOptions, connectionOptions, upgradeDatabaseOptions);
 

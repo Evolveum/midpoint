@@ -15,8 +15,8 @@
 
             <!--
             Use this Vagrantbox to run this:
-            https://github.com/virgo47/midpoint-vagrantboxes/tree/master/vagrant-midpoint-db-pg-new-repo
-            Then connect to it with the info below and execute postgres-new.sql and postgres-new-audit.sql
+            https://github.com/virgo47/midpoint-vagrantboxes/tree/master/vagrant-midpoint-db-pg-repo
+            Then connect to it with the info below and execute postgres.sql and postgres-audit.sql
             files to initialize the DB.
             -->
             <database>postgresql</database>
