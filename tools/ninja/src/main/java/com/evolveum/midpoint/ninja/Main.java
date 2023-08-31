@@ -39,6 +39,10 @@ public class Main {
 
         int exitCode = result.exitCode();
         if (exitCode != 0) {
+            String exitMessage = result.exitMessage();
+            if (exitMessage != null) {
+                System.err.println(exitMessage);
+            }
             System.exit(exitCode);
         }
     }
@@ -131,7 +135,7 @@ public class Main {
                 Object result = action.execute();
                 if (result instanceof ActionResult) {
                     ActionResult<?> actionResult = (ActionResult<?>) result;
-                    return new MainResult<>(actionResult.result(), actionResult.exitCode());
+                    return new MainResult<>(actionResult.result(), actionResult.exitCode(), actionResult.exitMessage());
                 }
 
                 return new MainResult<>(result);
