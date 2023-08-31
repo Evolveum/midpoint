@@ -33,13 +33,12 @@
                         <a wicket:id="switchToDefaultSequence" class="text-center"/>
                     </div>
                 </wicket:enclosure>
-            </div>
-
-            <div class="d-flex flex-wrap gap-2 justify-content-between mb-2 login-panel-control">
-                <a class="text-center login-panel-control mt-2" style="display: inline-block;"  wicket:id="back">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    <wicket:message key="PageEmailNonce.backButtonLabel"/>
-                </a>
+                <div class="d-flex flex-wrap gap-2 justify-content-between login-panel-control">
+                    <a class="btn text-center text-primary login-panel-control mt-2" style="display: inline-block;"  wicket:id="back">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        <wicket:message key="PageEmailNonce.backButtonLabel"/>
+                    </a>
+                </div>
             </div>
             <div class="card-footer login-footer" wicket:id="footerContainer">
                 <span class="pull-right hidden-xs" wicket:id="version">
