@@ -305,6 +305,11 @@
             </xsd:element>
             <xsd:element name="delta" type="c:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Delta or objects affected by this audit operation.
+                        NOTE: In future this could be renamed to affectedObjects or similar to better
+                        signify that delta may be empty, but object was affected in some way by audit operation.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AuditEventRecordType.delta</a:displayName>
                         <!-- delta is property in complex value, so explicit mark as searchable is required by filter parser
@@ -646,6 +651,14 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DISCOVER_OBJECT"/>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="informationDisclosure">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INFORMATION_DISCLOSURE"/>
                         <a:since>4.8</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
