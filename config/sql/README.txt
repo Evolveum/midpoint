@@ -1,11 +1,11 @@
 Subdirectories contain SQL schema scripts for two repository implementations:
 
-* generic-old: This was the only available implementation before midPoint 4.4.
-It supports various SQL databases, currently PostgreSQL, Oracle and MicrosoftS
+* generic: This was the only available implementation before midPoint 4.4.
+It supports various SQL databases, currently Oracle and Microsoft
 SQL Server is supported. Repository implementation uses Hibernate ORM system.
 This repository is planned for removal after 4.4 LTS cycle.
 
-* native-new: This is newer repository implementation that is available since
+* native: This is newer repository implementation that is available since
 midPoint 4.4. Only PostgreSQL from version 12 higher is supported.
 This is the repository we plan to support and improve in the future.
 
@@ -21,10 +21,10 @@ NATIVE (NEW) REPOSITORY
 
 SQL schema for Native repository is split into the following files:
 
-* postgres-new.sql - main part of the repository; this is always needed.
-* postgres-new-audit.sql - audit tables; this can be applied on top of the main
+* postgres.sql - main part of the repository; this is always needed.
+* postgres-audit.sql - audit tables; this can be applied on top of the main
 repository or in a new database if separate audit database is desired.
-* postgres-new-quartz.sql - tables for Quartz scheduler, can be applied safely.
+* postgres-quartz.sql - tables for Quartz scheduler, can be applied safely.
 
 Unless you plan to use separate database for audit, just apply all these schema
 files in the order named above. Even if tables are not needed, no harm is done.

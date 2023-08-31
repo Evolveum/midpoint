@@ -21,5 +21,5 @@ public class UpgradeConstants {
     /**
      * Directory within distribution where SQL scripts for native PostgreSQL repository are located.
      */
-    public static final File SCRIPTS_DIRECTORY = new File("./doc/config/sql/native-new");
+    public static final File SCRIPTS_DIRECTORY = new File("./doc/config/sql/native");
 }
