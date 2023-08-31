@@ -276,7 +276,8 @@ public class NinjaUtils {
         return Arrays.stream(names).anyMatch(s -> s.matches(filenameRegex));
     }
 
-    public static String readInput(Log log, Function<String, Boolean> inputValidation) throws IOException {
+    public static String readInput(Log log, Function<String, Boolean> inputValidation) {
+        log.logRaw(ConsoleFormat.formatInputPrompt());
         boolean first = true;
 
         String line = null;
@@ -288,6 +289,7 @@ public class NinjaUtils {
             while (!accepted) {
                 if (!first) {
                     log.error("Invalid input, please try again");
+                    log.logRaw(ConsoleFormat.formatInputPrompt());
                 }
                 first = false;
 

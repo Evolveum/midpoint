@@ -89,6 +89,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
                 log.info("XML dump with delta for each item saved to '{}'", options.getOutput().getPath() + VerificationReporter.DELTA_FILE_NAME_SUFFIX);
             }
 
+            // todo this should not show when action is a part of complex action and next step is prepared automatically
             // FIXME: ADD links (do not display in batch mode)
             // FIXME: Could We could try to infer script name?
             if (context.isUserMode()) {
