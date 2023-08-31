@@ -121,9 +121,9 @@ public class Main {
             try {
                 action.init(context, options);
 
-                context.getLog().info("");
                 String startMessage = ConsoleFormat.formatActionStartMessage(action);
                 if (startMessage != null) {
+                    context.getLog().info("");
                     context.getLog().info(startMessage);
                     context.getLog().info("");
                 }
