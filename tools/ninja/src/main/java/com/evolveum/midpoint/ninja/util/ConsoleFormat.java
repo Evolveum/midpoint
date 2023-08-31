@@ -97,4 +97,11 @@ public final class ConsoleFormat {
                 .cursorUpLine().eraseLine(Ansi.Erase.ALL)
                 .a(newLine).toString();
     }
+
+    public static String formatInputPrompt() {
+        return Ansi.ansi()
+                .reset()
+                .a("[").fgBright(Ansi.Color.MAGENTA).a("INPUT").reset().a("] > ")
+                .toString();
+    }
 }
