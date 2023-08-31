@@ -3,13 +3,11 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 import java.io.File;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.*;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 
-public class UpgradeDistributionAction extends ComplexAction<UpgradeDistributionOptions, ActionResult<Void>> {
+public class UpgradeDistributionAction extends UpgradeBaseAction<UpgradeDistributionOptions, ActionResult<Void>> {
 
     @Override
     public String getOperationName() {
@@ -18,10 +16,7 @@ public class UpgradeDistributionAction extends ComplexAction<UpgradeDistribution
 
     @Override
     public ActionResult<Void> execute() throws Exception {
-        File tempDirectory = options.getTempDirectory() != null ?
-                options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
-
-        FileUtils.forceMkdir(tempDirectory);
+        File tempDirectory = createTmpDirectory(options.getTempDirectory());
         // FIXME: Should we log pre-upgrade checks
 
         // pre-upgrade checks
