@@ -12,6 +12,7 @@ import java.io.File;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeObjectsItemsSummary;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.ThrowableSupplier;
 
@@ -46,89 +47,87 @@ public class UpgradeAction extends UpgradeBaseAction<UpgradeOptions, ActionResul
     public ActionResult<Void> execute() throws Exception {
         File tempDirectory = createTmpDirectory(null);
 
-        // objects verification
-        log.info("Do you want to run objects verification before upgrade? yes/skip/cancel (y/s/C) [y] ");
-        String verifyResp = checkInputOrDefault(
-                () -> NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.matches("[ysC]")),
-                "y"
-        );
+        // verify
+        final PartialActionResult<VerifyResult> partialVerifyResult = startAction(
+                "Do you want to run verification before upgrade?",
+                "Skipping objects verification",
+                () -> {
+                    File verificationFile = new File(tempDirectory, VERIFY_OUTPUT_FILE);
 
-        if ("C".equals(verifyResp)) {
+                    VerifyOptions verifyOptions = new VerifyOptions();
+                    verifyOptions.setOutput(verificationFile);
+                    verifyOptions.setOverwrite(true);
+                    verifyOptions.setReportStyle(VerifyOptions.ReportStyle.CSV);
+
+                    return executeAction(new VerifyAction(true), verifyOptions);
+                });
+
+        if (partialVerifyResult.canceled) {
             return createCanceledResult();
         }
 
-        File verificationFile = null;
-
-        if (StringUtils.isEmpty(verifyResp) || "y".equalsIgnoreCase(verifyResp)) {
-            verificationFile = new File(tempDirectory, VERIFY_OUTPUT_FILE);
-
-            VerifyOptions verifyOptions = new VerifyOptions();
-            verifyOptions.setOutput(verificationFile);
-            verifyOptions.setOverwrite(true);
-            verifyOptions.setReportStyle(VerifyOptions.ReportStyle.CSV);
-
-            executeAction(new VerifyAction(), verifyOptions);
-        }
+        final File verificationFile = partialVerifyResult.result != null ? partialVerifyResult.result.getVerificationFile() : null;
 
         // objects upgrade
-        if ("s".equalsIgnoreCase(verifyResp)) {
-            log.warn("Skipping objects verification");
-        }
+        final PartialActionResult<ActionResult<UpgradeObjectsItemsSummary>> partialUpgradeObjectsResult = startAction(
+                "Do you want to update objects before upgrade?",
+                "Skipping objects upgrade",
+                () -> {
+                    File finalVerifiactionFile = verificationFile;
 
-        log.info("");
-        log.info("Do you want to update objects before upgrade? yes/skip/cancel (y/s/C) [y] ");
-        String upgradeObjectsResp = checkInputOrDefault(
-                () -> NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.matches("[ysC]")),
-                "y"
-        );
+                    if (finalVerifiactionFile == null) {
+                        log.info("Do you want to provide a file with verification issues? yes/no (y/n) [n] ");
+                        String verifyFileResp = checkInputOrDefault(
+                                () -> NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.matches("[yn]")),
+                                "n"
+                        );
 
-        if ("C".equals(upgradeObjectsResp)) {
+                        if ("y".equals(verifyFileResp)) {
+                            // todo maybe more interactive validation? check file existence etc...
+                            String filePath = NinjaUtils.readInput(log, input -> StringUtils.isNotEmpty(input));
+                            finalVerifiactionFile = new File(filePath);
+                        }
+                    } else {
+                        checkVerificationReviewed();
+                    }
+
+                    if (finalVerifiactionFile == null) {
+                        // todo how to report them?
+                        // * we should report separately if there are CRITICAL issues with phase=AFTER - cause they would be updated
+                        // after installation is upgraded before midpoint is started (via ninja)
+                        // * we should report separately if there are CRITICAL issues with type=MANUAL - cause they would not be updated by ninja
+                        // * we should report separately if there are CRITICAL issues with type=PREVIEW - cause they probably should not be
+                        log.info(
+                                "Verification file was not created, nor provided. "
+                                        + "Ninja will try to update all objects that contain verification issues."
+                                        + "Verification issues that were skipped will be reported");
+                    }
+
+                    UpgradeObjectsOptions upgradeObjectsOptions = new UpgradeObjectsOptions();
+                    upgradeObjectsOptions.setVerification(finalVerifiactionFile);
+
+                    return executeAction(new UpgradeObjectsAction(true), upgradeObjectsOptions);
+                });
+
+        if (partialUpgradeObjectsResult.canceled) {
             return createCanceledResult();
         }
 
-        if ("s".equals(upgradeObjectsResp)) {
-            log.warn("Skipping objects upgrade");
+        // pre-upgrade checks
+        PartialActionResult<ActionResult<Boolean>> preUpgradeResult = startAction(
+                "Do you want to run pre-upgrade checks?",
+                "Skipping pre-upgrade checks",
+                () -> {
+
+                    PreUpgradeCheckOptions preUpgradeCheckOptions = new PreUpgradeCheckOptions();
+                    // todo options
+                    return executeAction(new PreUpgradeCheckAction(true), preUpgradeCheckOptions);
+                });
+
+        if (preUpgradeResult.canceled) {
+            return createCanceledResult();
         }
 
-        if (StringUtils.isEmpty(upgradeObjectsResp) || "y".equals(upgradeObjectsResp)) {
-            if (verificationFile == null) {
-                log.info("Do you want to provide a file with verification issues? yes/no (y/n) [n] ");
-                String verifyFileResp = checkInputOrDefault(
-                        () -> NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.matches("[yn]")),
-                        "n"
-                );
-
-                if ("y".equals(verifyFileResp)) {
-                    // todo maybe more interactive validation? check file existence etc...
-                    String filePath = NinjaUtils.readInput(log, input -> StringUtils.isNotEmpty(input));
-                    verificationFile = new File(filePath);
-                }
-            } else {
-                checkVerificationReviewed();
-            }
-
-            if (verificationFile == null) {
-                // todo how to report them?
-                // * we should report separately if there are CRITICAL issues with phase=AFTER - cause they would be updated
-                // after installation is upgraded before midpoint is started (via ninja)
-                // * we should report separately if there are CRITICAL issues with type=MANUAL - cause they would not be updated by ninja
-                // * we should report separately if there are CRITICAL issues with type=PREVIEW - cause they probably should not be
-                log.info(
-                        "Verification file was not created, nor provided. "
-                                + "Ninja will try to update all objects that contain verification issues."
-                                + "Verification issues that were skipped will be reported");
-            }
-
-            UpgradeObjectsOptions upgradeObjectsOptions = new UpgradeObjectsOptions();
-            upgradeObjectsOptions.setVerification(verificationFile);
-
-//            executeAction(new UpgradeObjectsAction(), upgradeObjectsOptions);
-        }
-
-//        PreUpgradeCheckOptions preUpgradeCheckOptions = new PreUpgradeCheckOptions();
-//        // todo options
-//        executeAction(new PreUpgradeCheckAction(), preUpgradeCheckOptions);
-//
 //        DownloadDistributionOptions downloadDistributionOptions = new DownloadDistributionOptions();
 //        // todo options
 //        executeAction(new DownloadDistributionAction(), downloadDistributionOptions);
@@ -139,6 +138,26 @@ public class UpgradeAction extends UpgradeBaseAction<UpgradeOptions, ActionResul
 //        executeAction(new UpgradeInstallationAction(), upgradeInstallationOptions);
 
         return null;
+    }
+
+    private <T> PartialActionResult<T> startAction(String confirmMessage, String skipMessage, ThrowableSupplier<T> supplier) throws Exception {
+        log.info("");
+        log.info(confirmMessage + " yes/skip/cancel (y/s/C) [y] ");
+        String response = checkInputOrDefault(
+                () -> NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.matches("[ysC]")),
+                "y"
+        );
+
+        if ("C".equals(response)) {
+            return new PartialActionResult(true, response);
+        }
+
+        if ("s".equals(response)) {
+            log.warn(skipMessage);
+            return new PartialActionResult<>(false, response);
+        }
+
+        return new PartialActionResult<>(false, response, supplier.get());
     }
 
     private boolean checkVerificationReviewed() throws Exception {
@@ -153,5 +172,24 @@ public class UpgradeAction extends UpgradeBaseAction<UpgradeOptions, ActionResul
         }
 
         return true;
+    }
+
+    private static final class PartialActionResult<T> {
+
+        final boolean canceled;
+
+        final String confirmationChoice;
+
+        final T result;
+
+        PartialActionResult(boolean canceled, String confirmationChoice) {
+            this(canceled, confirmationChoice, null);
+        }
+
+        PartialActionResult(boolean canceled, String confirmationChoice, T result) {
+            this.canceled = canceled;
+            this.confirmationChoice = confirmationChoice;
+            this.result = result;
+        }
     }
 }

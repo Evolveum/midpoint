@@ -40,7 +40,7 @@ public class UpgradeDistributionAction extends UpgradeBaseAction<UpgradeDistribu
             verifyOptions.setMultiThread(options.getVerificationThreads());
             verifyOptions.setStopOnCriticalError(options.isStopOnCriticalError());
 
-            VerifyResult verifyResult = executeAction(new VerifyAction(), verifyOptions);
+            VerifyResult verifyResult = executeAction(new VerifyAction(true), verifyOptions);
             if (!verifyResult.hasCriticalItems()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade verification succeeded.").reset().toString());
             } else {

@@ -1,11 +1,14 @@
 package com.evolveum.midpoint.ninja.action;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 
 public class VerifyResult {
+
+    private File verificationFile;
 
     private Map<UpgradePriority, Long> priorities = new HashMap<>();
 
@@ -68,5 +71,13 @@ public class VerifyResult {
 
     public long getUnknownCount() {
         return unknown;
+    }
+
+    public File getVerificationFile() {
+        return verificationFile;
+    }
+
+    public void setVerificationFile(File verificationFile) {
+        this.verificationFile = verificationFile;
     }
 }
