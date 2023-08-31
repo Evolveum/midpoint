@@ -1,5 +1,6 @@
 = Role Mining
 :page-toc: top
+:page-nav-title: Role Mining
 :page-since: "4.8"
 :page-upkeep-status: red
 
