@@ -33,6 +33,13 @@ import java.util.concurrent.Callable;
  */
 public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, VerifyResult> {
 
+    public VerifyAction() {
+    }
+
+    public VerifyAction(boolean partial) {
+        super(partial);
+    }
+
     @Override
     public String getOperationName() {
         return "verify";
@@ -92,7 +99,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
             // todo this should not show when action is a part of complex action and next step is prepared automatically
             // FIXME: ADD links (do not display in batch mode)
             // FIXME: Could We could try to infer script name?
-            if (context.isUserMode()) {
+            if (context.isUserMode() && !partial) {
                 log.info("Please see documentation for use of verification report in upgrade process and modify it accordingly.");
                 log.info("After you reviewed verification report and marked changes to skip you can continue upgrade process "
                         + "with running 'ninja.sh upgrade-objects --verification-file \"{}\"'", options.getOutput().getPath());
