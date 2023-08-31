@@ -11,4 +11,5 @@ import com.beust.jcommander.Parameters;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "upgrade")
 public class UpgradeOptions {
+
 }
