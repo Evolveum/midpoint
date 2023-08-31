@@ -993,6 +993,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private static final ItemPath OID_PATH = PrismConstants.T_ID;
 
+
     private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterative(
             Class<T> type,
             ObjectQuery originalQuery,
@@ -1493,6 +1494,116 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull OperationResult parentResult) throws SchemaException {
 
         return null;
+    }
+
+    private <T extends Containerable> SearchResultMetadata executeSearchContainersIterative(
+            Class<T> type,
+            ObjectQuery originalQuery,
+            ObjectHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult) throws SchemaException, RepositoryException {
+
+        try {
+            ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
+            // this is total requested size of the search
+            Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
+            Integer offset = originalPaging != null ? originalPaging.getOffset() : null;
+
+            List<? extends ObjectOrdering> providedOrdering = originalPaging != null
+                    ? originalPaging.getOrderingInstructions()
+                    : null;
+            if (providedOrdering != null && providedOrdering.size() > 1) {
+                throw new RepositoryException("searchObjectsIterative() does not support ordering"
+                        + " by multiple paths (yet): " + providedOrdering);
+            }
+
+            ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
+            ObjectPaging paging = prismContext().queryFactory().createPaging();
+            if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
+                originalPaging.getOrderingInstructions().forEach(o ->
+                        paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
+            }
+
+            /*
+             So continuation filter should be like:
+                (orderingValue > $last/orderingValue)
+                or (
+                        (orderingValue = $lastOrderingValue)
+                        and (
+                            (ownerOid > $last/ownerOid) or (ownerOid = $last/ownerOid and id > $last/id)
+                        )
+                )
+
+                If we are ordering by value, we need to search larger values, but they may be others with same
+            */
+
+            // Ordering instruction should be like
+
+            // We want to order OID in the same direction as the provided ordering.
+            // This is also reflected by GT/LT conditions in lastOidCondition() method.
+            paging.addOrderingInstruction(OID_PATH,
+                    providedOrdering != null && providedOrdering.size() == 1
+                            && providedOrdering.get(0).getDirection() == OrderDirection.DESCENDING
+                            ? OrderDirection.DESCENDING : OrderDirection.ASCENDING);
+            pagedQuery.setPaging(paging);
+
+            int pageSize = Math.min(
+                    repositoryConfiguration().getIterativeSearchByPagingBatchSize(),
+                    defaultIfNull(maxSize, Integer.MAX_VALUE));
+            pagedQuery.getPaging().setMaxSize(pageSize);
+            pagedQuery.getPaging().setOffset(offset);
+
+            T lastProcessedObject = null;
+            int handledObjectsTotal = 0;
+
+            while (true) {
+                if (maxSize != null && maxSize - handledObjectsTotal < pageSize) {
+                    // relevant only for the last page
+                    pagedQuery.getPaging().setMaxSize(maxSize - handledObjectsTotal);
+                }
+
+                // null safe, even for both nulls - don't use filterAnd which mutates original AND filter
+                pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
+                        originalQuery != null ? originalQuery.getFilter() : null,
+                        lastOidCondition(lastProcessedObject, providedOrdering)));
+
+                // we don't call public searchObject to avoid subresults and query simplification
+                logSearchInputParameters(type, pagedQuery, "Search object iterative page");
+                List<PrismObject<T>> objects = executeSearchObjects(
+                        type, pagedQuery, options, OP_SEARCH_CONTAINERS_ITERATIVE);
+
+                // process page results
+                for (PrismObject<T> object : objects) {
+                    lastProcessedObject = object;
+                    if (!handler.handle(object, operationResult)) {
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal + 1)
+                                .pagingCookie(lastProcessedObject.getOid())
+                                .partialResults(true);
+                    }
+                    handledObjectsTotal += 1;
+
+                    if (maxSize != null && handledObjectsTotal >= maxSize) {
+                        return new SearchResultMetadata()
+                                .approxNumberOfAllResults(handledObjectsTotal)
+                                .pagingCookie(lastProcessedObject.getOid());
+                    }
+                }
+
+                if (objects.isEmpty() || objects.size() < pageSize) {
+                    return new SearchResultMetadata()
+                            .approxNumberOfAllResults(handledObjectsTotal)
+                            .pagingCookie(lastProcessedObject != null
+                                    ? lastProcessedObject.getOid() : null);
+                }
+                pagedQuery.getPaging().setOffset(null);
+            }
+        } finally {
+            // This just counts the operation and adds zero/minimal time not to confuse user
+            // with what could be possibly very long duration.
+            long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS_ITERATIVE, type);
+            registerOperationFinish(opHandle);
+        }
     }
 
     // endregion
