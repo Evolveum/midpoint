@@ -132,7 +132,10 @@ public class TestMain {
 
 //        cmd = "-h run-sql";
 //        execute(cmd);
-        testJANSI();
+//        testJANSI();
+
+        cmd = "upgrade";
+        execute(cmd);
     }
 
     private static void execute(String args) {

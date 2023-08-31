@@ -18,6 +18,8 @@ public final class MainResult<T> {
 
     private final int exitCode;
 
+    private final String exitMessage;
+
     public static final MainResult<?> EMPTY_ERROR = new MainResult<>(null, 1);
 
     public static final MainResult<?> EMPTY_SUCCESS = new MainResult<>(null, 0);
@@ -27,8 +29,13 @@ public final class MainResult<T> {
     }
 
     public MainResult(T result, int exitCode) {
+        this(result, exitCode, null);
+    }
+
+    public MainResult(T result, int exitCode, String exitMessage) {
         this.result = result;
         this.exitCode = exitCode;
+        this.exitMessage = exitMessage;
     }
 
     public T result() {
@@ -37,5 +44,9 @@ public final class MainResult<T> {
 
     public int exitCode() {
         return exitCode;
+    }
+
+    public String exitMessage() {
+        return exitMessage;
     }
 }

@@ -59,6 +59,8 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
     }
 
     private boolean checkDatabaseSchemaVersion(RepositoryService repository) {
+        log.info("Checking database schema version");
+
         RepositoryDiag repositoryInfo = repository.getRepositoryDiag();
 
         boolean result = validateChangeNumber(
@@ -106,6 +108,8 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
     }
 
     private boolean checkNodesVersion(RepositoryService repository) throws SchemaException {
+        log.info("Checking node versions in midPoint cluster");
+
         OperationResult result = new OperationResult("Search nodes");
 
         SearchResultList<PrismObject<NodeType>> nodes = repository.searchObjects(NodeType.class, null, null, result);
