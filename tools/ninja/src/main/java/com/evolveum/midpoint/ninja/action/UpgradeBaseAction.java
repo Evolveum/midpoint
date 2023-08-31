@@ -7,9 +7,24 @@
 
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 
-public abstract class ComplexAction<O, R> extends Action<O, R> {
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+
+public abstract class UpgradeBaseAction<O, R> extends Action<O, R> {
+
+    protected File createTmpDirectory(File optsTempDirectory) throws IOException {
+        File tempDirectory = optsTempDirectory != null ?
+                optsTempDirectory : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
+
+        FileUtils.forceMkdir(tempDirectory);
+
+        return tempDirectory;
+    }
 
     protected <O, T> T executeAction(Action<O, T> action, O options) throws Exception {
         action.init(context, options);
