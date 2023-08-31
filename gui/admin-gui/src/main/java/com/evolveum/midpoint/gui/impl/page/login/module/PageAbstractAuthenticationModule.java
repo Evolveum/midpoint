@@ -69,6 +69,7 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
+    private static final String ID_FLOW_LINK_CONTAINER = "flowLinkContainer";
     private static final String ID_IDENTITY_RECOVERY = "identityRecovery";
     private static final String ID_IDENTITY_RECOVERY_LABEL = "identityRecoveryLabel";
     private static final String ID_RESET_PASSWORD = "resetPassword";
@@ -123,10 +124,16 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
         add(form);
 
+        WebMarkupContainer flowLinkContainer = new WebMarkupContainer(ID_FLOW_LINK_CONTAINER);
+        flowLinkContainer.setOutputMarkupId(true);
+        add(flowLinkContainer);
+
         SecurityPolicyType securityPolicy = loadSecurityPolicyType();
-        addIdentityRecoveryLink(securityPolicy);
-        addForgotPasswordLink(securityPolicy);
-        addRegistrationLink(securityPolicy);
+        addIdentityRecoveryLink(flowLinkContainer, securityPolicy);
+        addForgotPasswordLink(flowLinkContainer, securityPolicy);
+        addRegistrationLink(flowLinkContainer, securityPolicy);
+
+        flowLinkContainer.add(new VisibleBehaviour(() -> isFlowLinkContainerVisible(flowLinkContainer)));
 
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
@@ -168,17 +175,17 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         }
     }
 
-    private void addIdentityRecoveryLink(SecurityPolicyType securityPolicy) {
+    private void addIdentityRecoveryLink(WebMarkupContainer flowLinkContainer, SecurityPolicyType securityPolicy) {
         String identityRecoveryUrl = SecurityUtils.getIdentityRecoveryUrl(securityPolicy);
         var label = SecurityUtils.getIdentityRecoveryLabel(securityPolicy);
-        addExternalLink(ID_IDENTITY_RECOVERY, identityRecoveryUrl, ID_IDENTITY_RECOVERY_LABEL,
+        addExternalLink(flowLinkContainer, ID_IDENTITY_RECOVERY, identityRecoveryUrl, ID_IDENTITY_RECOVERY_LABEL,
                 StringUtils.isEmpty(label) ? "PageLogin.loginRecovery" : label);
     }
 
-    private void addExternalLink(String componentId, String linkUrl, String labelComponentId, String labelKeyOrValue) {
+    private void addExternalLink(WebMarkupContainer flowLinkContainer, String componentId, String linkUrl, String labelComponentId, String labelKeyOrValue) {
         ExternalLink link = new ExternalLink(componentId, linkUrl);
         link.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(linkUrl) && isLoginAndFirstModule()));
-        add(link);
+        flowLinkContainer.add(link);
 
         Label linkLabel = new Label(labelComponentId, createStringResource(labelKeyOrValue));
         link.add(linkLabel);
@@ -202,18 +209,30 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     }
 
-    private void addForgotPasswordLink(SecurityPolicyType securityPolicy) {
+    private void addForgotPasswordLink(WebMarkupContainer flowLinkContainer, SecurityPolicyType securityPolicy) {
         String urlResetPass = SecurityUtils.getPasswordResetUrl(securityPolicy);
         var label = SecurityUtils.getPasswordResetLabel(securityPolicy);
-        addExternalLink(ID_RESET_PASSWORD, urlResetPass, ID_RESET_PASSWORD_LABEL,
+        addExternalLink(flowLinkContainer, ID_RESET_PASSWORD, urlResetPass, ID_RESET_PASSWORD_LABEL,
                 StringUtils.isEmpty(label) ? "PageLogin.resetPassword" : label);
     }
 
-    private void addRegistrationLink(SecurityPolicyType securityPolicyType) {
+    private void addRegistrationLink(WebMarkupContainer flowLinkContainer, SecurityPolicyType securityPolicyType) {
         String urlRegistration = SecurityUtils.getRegistrationUrl(securityPolicyType);
         var label = SecurityUtils.getRegistrationLabel(securityPolicyType);
-        addExternalLink(ID_SELF_REGISTRATION, urlRegistration, ID_SELF_REGISTRATION_LABEL,
+        addExternalLink(flowLinkContainer, ID_SELF_REGISTRATION, urlRegistration, ID_SELF_REGISTRATION_LABEL,
                 StringUtils.isEmpty(label) ? "PageLogin.registerNewAccount" : label);
+    }
+
+    private boolean isFlowLinkContainerVisible(WebMarkupContainer flowLinkContainer) {
+        return flowLinkContainer
+                .streamChildren()
+                .anyMatch(c -> c instanceof ExternalLink externalLink && isLinkVisible(externalLink));
+    }
+
+    private boolean isLinkVisible(ExternalLink externalLink) {
+        return externalLink.getBehaviors()
+                .stream()
+                .anyMatch(b -> b instanceof VisibleBehaviour vb && vb.isVisible());
     }
 
     private SecurityPolicyType loadSecurityPolicyType() {
