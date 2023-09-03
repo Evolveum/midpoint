@@ -95,6 +95,8 @@ public class VerificationReporter {
     }
 
     public void init() {
+        result.setVerificationFile(options.getOutput());
+
         if (createDeltaFile) {
             initDeltaXmlFile();
         }
@@ -193,6 +195,7 @@ public class VerificationReporter {
 
         for (UpgradeValidationItem item : result.getItems()) {
             if (item.getPriority() == null) {
+                this.result.incrementUnknownCount();
                 continue;
             }
 

@@ -162,7 +162,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     private void createSaveButton(RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
-                getSaveButtonTitle()) {
+                getPageBase().createStringResource("PageBase.button.save")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -189,9 +189,6 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         }
     }
 
-    public StringResourceModel getSaveButtonTitle(){
-        return getPageBase().createStringResource("PageBase.button.save");
-    }
     protected void savePerformed(AjaxRequestTarget target) {
 
     }

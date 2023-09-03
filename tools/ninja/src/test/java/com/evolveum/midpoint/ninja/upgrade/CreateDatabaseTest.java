@@ -91,9 +91,9 @@ public class CreateDatabaseTest extends BaseUpgradeTest {
         runSqlOptions.setJdbcUsername(CREATE_MIDPOINT_SCHEMA_TEST);
         runSqlOptions.setJdbcPassword(CREATE_MIDPOINT_SCHEMA_TEST);
         runSqlOptions.setScripts(List.of(
-                new File("../../config/sql/native-new/postgres-new.sql"),
-                new File("../../config/sql/native-new/postgres-new-quartz.sql"),
-                new File("../../config/sql/native-new/postgres-new-audit.sql")));
+                new File("../../config/sql/native/postgres.sql"),
+                new File("../../config/sql/native/postgres-quartz.sql"),
+                new File("../../config/sql/native/postgres-audit.sql")));
 
         List<Object> options = List.of(baseOptions, connectionOptions, runSqlOptions);
 

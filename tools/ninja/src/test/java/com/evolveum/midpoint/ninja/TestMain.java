@@ -42,7 +42,7 @@ public class TestMain {
 
 //        input = "-h setup-database".split(" ");
 //
-//        input = "-v --offline -m ../../_mess/create0 setup-database --scripts-directory ../../config/sql/native-new".split(" ");
+//        input = "-v --offline -m ../../_mess/create0 setup-database --scripts-directory ../../config/sql/native".split(" ");
 
 //        input = "-v --offline -m ../../_mess/create0 download-distribution".split(" ");
 
@@ -57,7 +57,7 @@ public class TestMain {
 
 //        input = "-v -m ../../_mess/upgrade/midpoint-48/var verify --report ../../_mess/upgrade/midpoint-48/verify-report.csv".split(" ");
 
-//        input = "-v -m ./target/midpoint-home-upgrade setup-database --scripts-directory ../../config/sql/native-new --audit-only --no-audit".split(" ");
+//        input = "-v -m ./target/midpoint-home-upgrade setup-database --scripts-directory ../../config/sql/native --audit-only --no-audit".split(" ");
 
 //        input = "-v run-sql --jdbc-url jdbc:postgresql://localhost:5432/mid8842_48 --jdbc-username postgres --jdbc-password postgres".split(" ");
 //        input = "-v -m ./target/midpoint-home-upgrade run-sql".split(" ");
@@ -85,7 +85,7 @@ public class TestMain {
 //                + "--jdbc-url jdbc:postgresql://localhost:5432/<NOVA_DB> "
 //                + "--jdbc-username <NOVY_PAJAC> "
 //                + "--jdbc-password <PAJACOVE_HESLO> "
-//                + "--scripts-directory <CESTA_DO_docs/config/sql/native-new> "
+//                + "--scripts-directory <CESTA_DO_docs/config/sql/native> "
 //                + "--create"
 //        ).split(" ");
 //
@@ -117,9 +117,9 @@ public class TestMain {
 //                + "--jdbc-username asdf1 "
 //                + "--jdbc-password asdf1 "
 //                + "--scripts "
-//                + "../../config/sql/native-new/postgres-new.sql "
-//                + "../../config/sql/native-new/postgres-new-quartz.sql "
-//                + "../../config/sql/native-new/postgres-new-audit.sql ";
+//                + "../../config/sql/native/postgres.sql "
+//                + "../../config/sql/native/postgres-quartz.sql "
+//                + "../../config/sql/native/postgres-audit.sql ";
 ////                + "--create"; // can't use, we're not in default ninja folder
 //        execute(cmd);
 
@@ -132,7 +132,10 @@ public class TestMain {
 
 //        cmd = "-h run-sql";
 //        execute(cmd);
-        testJANSI();
+//        testJANSI();
+
+        cmd = "upgrade";
+        execute(cmd);
     }
 
     private static void execute(String args) {

@@ -33,6 +33,13 @@ import java.util.concurrent.Callable;
  */
 public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, VerifyResult> {
 
+    public VerifyAction() {
+    }
+
+    public VerifyAction(boolean partial) {
+        super(partial);
+    }
+
     @Override
     public String getOperationName() {
         return "verify";
@@ -64,7 +71,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         if (options.getOutput() != null) {
             log.info("Verification report will be saved to '{}'", options.getOutput().getPath());
         } else if (context.isUserMode()) {
-            log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradability status of deprecated items.");
+            log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradeability status of deprecated items.");
             log.warn("It is recommended to review this report and actions for proper upgrade procedure.");
         }
         if (!options.getFiles().isEmpty()) {
@@ -75,21 +82,24 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
 
         log.info("");
         log.info(
-                "Verification finished. {}, {} and {} optional issues found",
+                "Verification finished. {}, {}, {} and {} unknown issues found.",
                 ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
                 ConsoleFormat.formatMessageWithWarningParameters("{} necessary", result.getNecessaryCount()),
-                result.getOptionalCount());
+                ConsoleFormat.formatMessageWithInfoParameters("{} optional", result.getOptionalCount()),
+                result.getUnknownCount());
 
         if (options.getOutput() != null) {
+            log.info("");
             log.info("Verification report saved to '{}'", options.getOutput().getPath());
 
             if (Objects.equals(VerifyOptions.ReportStyle.CSV, options.getReportStyle())) {
                 log.info("XML dump with delta for each item saved to '{}'", options.getOutput().getPath() + VerificationReporter.DELTA_FILE_NAME_SUFFIX);
             }
 
+            // todo this should not show when action is a part of complex action and next step is prepared automatically
             // FIXME: ADD links (do not display in batch mode)
             // FIXME: Could We could try to infer script name?
-            if (context.isUserMode()) {
+            if (context.isUserMode() && !partial) {
                 log.info("");
                 log.info("Please see documentation for use of verification report in upgrade process and modify it accordingly.");
                 log.info("After you've reviewed verification report and marked changes to skip you can continue upgrade process "

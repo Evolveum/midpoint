@@ -12,9 +12,11 @@ import java.io.Serial;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -32,18 +34,41 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 public class PageLogin extends PageAbstractAuthenticationModule<ModuleAuthentication> {
     @Serial private static final long serialVersionUID = 1L;
     private static final String ID_USERNAME = "username";
+    private PageParameters parameters;
 
     public PageLogin() {
         super(null);
     }
 
+    public PageLogin(PageParameters parameters) {
+        super(parameters);
+        this.parameters = parameters;
+    }
+
     @Override
     protected void initModuleLayout(MidpointForm form) {
+        var loginName = getUserNameValue();
         TextField<String> username = new TextField<>(ID_USERNAME);
-        username.add(AttributeAppender.append("value", WebComponentUtil.getName(searchUser())));
+        username.add(AttributeAppender.append("value", loginName));
         username.add(new EnableBehaviour(() -> searchUser() == null));
         form.add(username);
 
+    }
+
+    private String getUserNameValue() {
+        String name = getNameFromParameters();
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+        return WebComponentUtil.getName(searchUser());
+    }
+
+    private String getNameFromParameters() {
+        if (parameters == null) {
+            return null;
+        }
+        var nameValue = parameters.get("name");
+        return nameValue == null || nameValue.isEmpty() ? null : nameValue.toString();
     }
 
     protected String getUrlProcessingLogin() {

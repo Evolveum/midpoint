@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.ninja.action;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,7 +8,11 @@ import com.evolveum.midpoint.schema.validator.UpgradePriority;
 
 public class VerifyResult {
 
+    private File verificationFile;
+
     private Map<UpgradePriority, Long> priorities = new HashMap<>();
+
+    private Long unknown = 0L;
 
     public boolean hasCriticalItems() {
         return hasPriorityItem(UpgradePriority.CRITICAL);
@@ -31,6 +36,10 @@ public class VerifyResult {
 
     public void incrementOptionalCount() {
         incrementPriorityItemCount(UpgradePriority.OPTIONAL);
+    }
+
+    public synchronized void incrementUnknownCount() {
+        unknown++;
     }
 
     public synchronized boolean hasPriorityItem(UpgradePriority priority) {
@@ -58,5 +67,17 @@ public class VerifyResult {
 
     public long getOptionalCount() {
         return getItemPriorityCount(UpgradePriority.OPTIONAL);
+    }
+
+    public long getUnknownCount() {
+        return unknown;
+    }
+
+    public File getVerificationFile() {
+        return verificationFile;
+    }
+
+    public void setVerificationFile(File verificationFile) {
+        this.verificationFile = verificationFile;
     }
 }

@@ -13,25 +13,36 @@
 <wicket:extend>
 
     <wicket:child/>
-    <wicket:enclosure child="identityRecovery">
-        <div class="d-flex justify-content-end mt-2">
-            <a wicket:id="identityRecovery" class="text-center login-panel-control">
-                <div wicket:id="identityRecoveryLabel"/>
-            </a>
+
+    <wicket:enclosure child="flowLinkContainer">
+        <div class="d-flex align-items-center my-2">
+            <hr class="w-100" style="border-color: #818d98;">
+            <span class="mx-3 text-secondary">OR</span>
+            <hr class="w-100" style="border-color: #818d98;">
         </div>
-    </wicket:enclosure>
-    <wicket:enclosure child="resetPassword">
-        <div class="d-flex justify-content-end mt-2">
-            <a wicket:id="resetPassword" class="text-center login-panel-control">
-                <div wicket:id="resetPasswordLabel"/>
-            </a>
-        </div>
-    </wicket:enclosure>
-    <wicket:enclosure child="selfRegistration">
-        <div class="d-flex justify-content-end mt-2">
-            <a wicket:id="selfRegistration" class="text-center login-panel-control">
-                <div wicket:id="selfRegistrationLabel"/>
-            </a>
+
+        <div wicket:id="flowLinkContainer">
+            <wicket:enclosure child="identityRecovery">
+                <div class="d-flex justify-content-end mt-2">
+                    <a wicket:id="identityRecovery" class="btn btn-default text-center login-panel-control">
+                        <div wicket:id="identityRecoveryLabel"/>
+                    </a>
+                </div>
+            </wicket:enclosure>
+            <wicket:enclosure child="resetPassword">
+                <div class="d-flex justify-content-end mt-2">
+                    <a wicket:id="resetPassword" class="btn btn-default text-center login-panel-control">
+                        <div wicket:id="resetPasswordLabel"/>
+                    </a>
+                </div>
+            </wicket:enclosure>
+            <wicket:enclosure child="selfRegistration">
+                <div class="d-flex justify-content-end mt-2">
+                    <a wicket:id="selfRegistration" class="btn btn-default text-center login-panel-control">
+                        <div wicket:id="selfRegistrationLabel"/>
+                    </a>
+                </div>
+            </wicket:enclosure>
         </div>
     </wicket:enclosure>
 

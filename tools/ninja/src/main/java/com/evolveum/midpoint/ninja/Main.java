@@ -39,6 +39,10 @@ public class Main {
 
         int exitCode = result.exitCode();
         if (exitCode != 0) {
+            String exitMessage = result.exitMessage();
+            if (exitMessage != null) {
+                System.err.println(exitMessage);
+            }
             System.exit(exitCode);
         }
     }
@@ -123,13 +127,15 @@ public class Main {
 
                 String startMessage = ConsoleFormat.formatActionStartMessage(action);
                 if (startMessage != null) {
+                    context.getLog().info("");
                     context.getLog().info(startMessage);
+                    context.getLog().info("");
                 }
 
                 Object result = action.execute();
                 if (result instanceof ActionResult) {
                     ActionResult<?> actionResult = (ActionResult<?>) result;
-                    return new MainResult<>(actionResult.result(), actionResult.exitCode());
+                    return new MainResult<>(actionResult.result(), actionResult.exitCode(), actionResult.exitMessage());
                 }
 
                 return new MainResult<>(result);

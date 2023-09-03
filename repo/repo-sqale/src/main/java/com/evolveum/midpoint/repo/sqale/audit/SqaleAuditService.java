@@ -178,6 +178,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         try {
             MAuditDelta deltaRow = new MAuditDelta();
             ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
+            deltaRow.deltaOid = SqaleUtils.oidToUuid(deltaOperation.getObjectOid());
             if (delta != null) {
                 DeltaConversionOptions options =
                         DeltaConversionOptions.createSerializeReferenceNames();
@@ -188,7 +189,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
                 // serializedDelta is transient, needed for changed items later
                 deltaRow.serializedDelta = serializedDelta;
                 deltaRow.delta = serializedDelta.getBytes(StandardCharsets.UTF_8);
+
                 deltaRow.deltaOid = SqaleUtils.oidToUuid(delta.getOid());
+
                 deltaRow.deltaType = ChangeType.toChangeTypeType(delta.getChangeType());
             }
 
