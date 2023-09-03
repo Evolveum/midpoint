@@ -64,10 +64,11 @@ podTemplate(
                         """
                     } else {
                         // In the future, when the path changes, this may require either some logic, or make it part of the parameter.
+                        // This expects upgrade from 4.4.4 github repository
                         sh """#!/bin/bash -ex
                             psql --version
-                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native/postgres.sql
-                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native/postgres-audit.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native/postgres-new.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native/postgres-new-audit.sql
                             psql -v ON_ERROR_STOP=1 -q -U midtest -f postgres.sql \
                                 -f postgres-audit.sql -f config/sql/native/postgres-quartz.sql
 
@@ -107,10 +108,9 @@ podTemplate(
                         then
                             df -h
                         fi
-
                         mvn -B -ntp -Dmaven.test.failure.ignore -P sqale,extratest,-dist verify -rf testing \
                             -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest \
-                            -Dtest.config.file=test-config-repo.xml \
+                            -Dtest.config.file=test-config-new-repo.xml \
                             -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
                         if [ "${verbose}" -ge 1 ]
