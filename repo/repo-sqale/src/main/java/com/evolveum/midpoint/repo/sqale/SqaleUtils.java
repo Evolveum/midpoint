@@ -42,6 +42,13 @@ public class SqaleUtils {
 
     public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 8;
 
+    /** User Data Key used to attach owner Oid to prism container values in order to propagate OID even if parent
+     * full object is not present.
+     *
+     * THe owner oid knowledge is required for correctly computing filters in case of iterative search of containers
+     */
+    public static final String OWNER_OID = "ownerOid";
+
     /**
      * Returns version from midPoint object as a number.
      *

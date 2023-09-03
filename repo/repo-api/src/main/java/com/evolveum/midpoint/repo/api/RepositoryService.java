@@ -137,6 +137,9 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
     String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
     String OP_SEARCH_CONTAINERS = "searchContainers";
+
+    String OP_SEARCH_CONTAINERS_ITERATIVE = "searchContainersIterative";
+    String OP_SEARCH_CONTAINERS_ITERATIVE_PAGE = "searchContainersIterativePage";
     String OP_COUNT_CONTAINERS = "countContainers";
     String OP_SEARCH_REFERENCES = "searchReferences";
 

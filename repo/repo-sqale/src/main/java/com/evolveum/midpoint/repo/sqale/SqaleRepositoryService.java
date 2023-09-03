@@ -992,6 +992,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     private static final ItemPath OID_PATH = PrismConstants.T_ID;
+    private static final ItemPath CONTAINER_ID_PATH = PrismConstants.T_ID;
+
+    private static final ItemPath OWNER_OID_PATH = ItemPath.create(PrismConstants.T_PARENT, PrismConstants.T_ID);
+
 
 
     private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterative(
@@ -1287,7 +1291,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 return new SearchResultList<>();
             }
 
-            return executeSearchContainers(type, query, options);
+            return executeSearchContainers(type, query, options, OP_SEARCH_CONTAINERS);
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -1299,10 +1303,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     private @NotNull <T extends Containerable> SearchResultList<T> executeSearchContainers(
-            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
+            Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, String opName)
             throws RepositoryException, SchemaException {
 
-        long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS, type);
+        long opHandle = registerOperationStart(opName, type);
         try {
             SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
                     SqaleQueryContext.from(type, sqlRepoContext, this::readByOid);
@@ -1493,7 +1497,36 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
 
-        return null;
+        Validate.notNull(type, "Object type must not be null.");
+        Validate.notNull(handler, "Result handler must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+        if (AccessCertificationWorkItemType.class.equals(type)) {
+            throw new UnsupportedOperationException("Iterative search not supported for AccessCertificationWorkItemType");
+        }
+
+        OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_SEARCH_CONTAINERS_ITERATIVE)
+                .addQualifier(type.getSimpleName())
+                .addParam(OperationResult.PARAM_TYPE, type.getName())
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .build();
+
+        try {
+            logSearchInputParameters(type, query, "Iterative search objects");
+
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return new SearchResultMetadata().approxNumberOfAllResults(0);
+            }
+
+            return executeSearchContainersIterative(type, query, handler, options, operationResult);
+        } catch (RepositoryException | RuntimeException e) {
+            throw handledGeneralException(e, operationResult);
+        } catch (Throwable t) {
+            recordFatalError(operationResult, t);
+            throw t;
+        } finally {
+            operationResult.close();
+        }
     }
 
     private <T extends Containerable> SearchResultMetadata executeSearchContainersIterative(
@@ -1509,13 +1542,16 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Integer maxSize = originalPaging != null ? originalPaging.getMaxSize() : null;
             Integer offset = originalPaging != null ? originalPaging.getOffset() : null;
 
-            List<? extends ObjectOrdering> providedOrdering = originalPaging != null
+            List<? extends ObjectOrdering> originalOrdering = originalPaging != null
                     ? originalPaging.getOrderingInstructions()
                     : null;
-            if (providedOrdering != null && providedOrdering.size() > 1) {
+            if (originalOrdering != null && originalOrdering.size() > 1) {
                 throw new RepositoryException("searchObjectsIterative() does not support ordering"
-                        + " by multiple paths (yet): " + providedOrdering);
+                        + " by multiple paths (yet): " + originalOrdering);
             }
+
+            // Single value tested previously
+            var providedOrdering = (originalOrdering == null || originalOrdering.isEmpty()) ? null : originalOrdering.get(0);
 
             ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
             ObjectPaging paging = prismContext().queryFactory().createPaging();
@@ -1524,27 +1560,14 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                         paging.addOrderingInstruction(o.getOrderBy(), o.getDirection()));
             }
 
-            /*
-             So continuation filter should be like:
-                (orderingValue > $last/orderingValue)
-                or (
-                        (orderingValue = $lastOrderingValue)
-                        and (
-                            (ownerOid > $last/ownerOid) or (ownerOid = $last/ownerOid and id > $last/id)
-                        )
-                )
 
-                If we are ordering by value, we need to search larger values, but they may be others with same
-            */
 
-            // Ordering instruction should be like
+            var direction = (providedOrdering != null && providedOrdering.getDirection() == OrderDirection.DESCENDING) ? OrderDirection.DESCENDING : OrderDirection.ASCENDING;
 
-            // We want to order OID in the same direction as the provided ordering.
-            // This is also reflected by GT/LT conditions in lastOidCondition() method.
-            paging.addOrderingInstruction(OID_PATH,
-                    providedOrdering != null && providedOrdering.size() == 1
-                            && providedOrdering.get(0).getDirection() == OrderDirection.DESCENDING
-                            ? OrderDirection.DESCENDING : OrderDirection.ASCENDING);
+            // Ordering first by owner oid, then by container oid in ordering direction based on only orderBy statemetn
+            paging.addOrderingInstruction(OWNER_OID_PATH, direction);
+            paging.addOrderingInstruction(CONTAINER_ID_PATH, direction);
+
             pagedQuery.setPaging(paging);
 
             int pageSize = Math.min(
@@ -1565,20 +1588,21 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 // null safe, even for both nulls - don't use filterAnd which mutates original AND filter
                 pagedQuery.setFilter(ObjectQueryUtil.filterAndImmutable(
                         originalQuery != null ? originalQuery.getFilter() : null,
-                        lastOidCondition(lastProcessedObject, providedOrdering)));
+                        lastContainerCondition(lastProcessedObject, providedOrdering, direction)));
+
 
                 // we don't call public searchObject to avoid subresults and query simplification
                 logSearchInputParameters(type, pagedQuery, "Search object iterative page");
-                List<PrismObject<T>> objects = executeSearchObjects(
-                        type, pagedQuery, options, OP_SEARCH_CONTAINERS_ITERATIVE);
+                List<T> objects = executeSearchContainers(
+                        type, pagedQuery, options, OP_SEARCH_CONTAINERS_ITERATIVE_PAGE);
 
                 // process page results
-                for (PrismObject<T> object : objects) {
+                for (T object : objects) {
                     lastProcessedObject = object;
                     if (!handler.handle(object, operationResult)) {
                         return new SearchResultMetadata()
                                 .approxNumberOfAllResults(handledObjectsTotal + 1)
-                                .pagingCookie(lastProcessedObject.getOid())
+                                .pagingCookie(pagingCookie(lastProcessedObject))
                                 .partialResults(true);
                     }
                     handledObjectsTotal += 1;
@@ -1586,7 +1610,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     if (maxSize != null && handledObjectsTotal >= maxSize) {
                         return new SearchResultMetadata()
                                 .approxNumberOfAllResults(handledObjectsTotal)
-                                .pagingCookie(lastProcessedObject.getOid());
+                                .pagingCookie(pagingCookie(lastProcessedObject));
                     }
                 }
 
@@ -1594,7 +1618,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     return new SearchResultMetadata()
                             .approxNumberOfAllResults(handledObjectsTotal)
                             .pagingCookie(lastProcessedObject != null
-                                    ? lastProcessedObject.getOid() : null);
+                                    ? pagingCookie(lastProcessedObject) : null);
                 }
                 pagedQuery.getPaging().setOffset(null);
             }
@@ -1604,6 +1628,142 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             long opHandle = registerOperationStart(OP_SEARCH_CONTAINERS_ITERATIVE, type);
             registerOperationFinish(opHandle);
         }
+    }
+
+    private <T extends Containerable> ObjectFilter lastContainerCondition(T lastProcessedObject, ObjectOrdering providedOrdering, OrderDirection direction) {
+        // Larger than last value
+        /*
+             So continuation filter should be like:
+                (orderingValue > $last/orderingValue)
+                or (
+                        (orderingValue = $lastOrderingValue)
+                        and (
+                            (ownerOid > $last/ownerOid) or (ownerOid = $last/ownerOid and id > $last/id)
+                        )
+                )
+                If we are ordering by value, we need to search larger values, but they may be others with same
+            */
+
+        // queryFor
+        ObjectFilter afterLastSeenContainer = null;
+        if (lastProcessedObject != null) {
+            var lastOid = ownerOid(lastProcessedObject);
+            var lastContainerId = lastProcessedObject.asPrismContainerValue().getId();
+
+            // This filter should match containers, which are ordered after last seen container
+            // We need to match any objects which follow last seen object and any containers in last seen objects
+            // which follows last seen container
+
+            if (direction == OrderDirection.ASCENDING) {
+                afterLastSeenContainer = prismContext().queryFor(lastProcessedObject.getClass())
+                        .item(OWNER_OID_PATH).gt(lastOid)
+                        .or()
+                        .block()
+                        .item(OWNER_OID_PATH).eq(lastOid)
+                        .and()
+                        .item(CONTAINER_ID_PATH).gt(lastContainerId)
+                        .endBlock()
+                        .buildFilter();
+            } else {
+                afterLastSeenContainer = prismContext().queryFor(lastProcessedObject.getClass())
+                        .item(OWNER_OID_PATH).lt(lastOid)
+                        .or()
+                        .block()
+                        .item(OWNER_OID_PATH).eq(lastOid)
+                        .and()
+                        .item(CONTAINER_ID_PATH).lt(lastContainerId)
+                        .endBlock()
+                        .buildFilter();
+            }
+        }
+        if (providedOrdering != null && lastProcessedObject != null)  {
+            // TODO: we should get last value of ordering (and this could be funky if ordering is based on dereferencing)
+            // at least internally we should return not just found object, but all the values, which were used for ordering
+            // so we can reuse them in follow-up filters.
+            //
+            // Dereferencing allows for these values to be outside of searched object.
+            // So currently we support only nested ordering path
+            ObjectOrdering objectOrdering = providedOrdering;
+            ItemPath orderByPath = objectOrdering.getOrderBy();
+            boolean asc = objectOrdering.getDirection() != OrderDirection.DESCENDING; // null => asc
+            S_ConditionEntry filter = prismContext()
+                    .queryFor(lastProcessedObject.getClass())
+                    .item(orderByPath);
+            //noinspection rawtypes
+            Item<PrismValue, ItemDefinition<Item>> item = lastProcessedObject.asPrismContainerValue().findItem(orderByPath);
+            // Unify somehow with
+            if (item.size() > 1) {
+                throw new IllegalArgumentException(
+                        "Multi-value property for ordering is forbidden - item: " + item);
+            } else if (item.isEmpty()) {
+                // TODO what if it's nullable? is it null-first or last?
+                // See: https://www.postgresql.org/docs/13/queries-order.html
+                // "By default, null values sort as if larger than any non-null value; that is,
+                // NULLS FIRST is the default for DESC order, and NULLS LAST otherwise."
+            } else {
+                /*
+                IMPL NOTE: Compare this code with SqaleAuditService.iterativeSearchCondition, there is a couple of differences.
+                This one seems bloated, but each branch is simple; on the other hand it's not obvious what is different in each.
+                Also, audit version does not require polystring treatment.
+                Finally, this works for a single provided ordering, but not for multiple (unsupported commented code lower).
+                 */
+                boolean isPolyString = QNameUtil.match(
+                        PolyStringType.COMPLEX_TYPE, item.getDefinition().getTypeName());
+                Object realValue = item.getRealValue();
+                if (isPolyString) {
+                    // We need to use matchingOrig for polystring, see MID-7860
+                    if (asc) {
+                        return filter.gt(realValue).matchingOrig().or()
+                                .block()
+                                .item(orderByPath).eq(realValue).matchingOrig()
+                                .and()
+                                .filter(afterLastSeenContainer)
+                                .endBlock()
+                                .buildFilter();
+                    } else {
+                        return filter.lt(realValue).matchingOrig().or()
+                                .block()
+                                .item(orderByPath).eq(realValue).matchingOrig()
+                                .and()
+                                .filter(afterLastSeenContainer)
+                                .endBlock()
+                                .buildFilter();
+                    }
+                } else {
+                    if (asc) {
+                        return filter.gt(realValue).or()
+                                .block()
+                                .item(orderByPath).eq(realValue)
+                                .and()
+                                .filter(afterLastSeenContainer)
+                                .endBlock()
+                                .buildFilter();
+                    } else {
+                        return filter.lt(realValue).or()
+                                .block()
+                                .item(orderByPath).eq(realValue)
+                                .and()
+                                .filter(afterLastSeenContainer)
+                                .endBlock()
+                                .buildFilter();
+                    }
+                }
+            }
+            throw new IllegalStateException("Unsupported combination of ordering");
+        }
+
+
+
+        return afterLastSeenContainer;
+    }
+
+
+    private <T extends Containerable> String ownerOid(T lastProcessedObject) {
+        return (String) lastProcessedObject.asPrismContainerValue().getUserData(SqaleUtils.OWNER_OID);
+    }
+
+    private String pagingCookie(Containerable t) {
+        return ownerOid(t) + "." + t.asPrismContainerValue().getId();
     }
 
     // endregion
