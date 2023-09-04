@@ -41,7 +41,12 @@ The {release-version} release brings streamlined upgrade process, security stabi
 ** Hibernate 6
 ** Wicket 10
 
-* xref:/midpoint/reference/roles-policies/mining/[Role Mining].
+* xref:/midpoint/reference/roles-policies/mining/[Role Mining]. Introduction of role mining
+functionality. Role Mining is a tool to simplify access management that uses artificial
+intelligence (AI) algorithms and analytical techniques to sift through the complex network of user and
+access mappings and group them into cohesive business roles based on access patterns.
+
+* xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/[Anonymous Data Export].
 Introduction of anonymous role mining data export. This feature allows users to export relationships between roles, users, and
 organizations while ensuring the privacy and security of exported data.
 The following options are available for exporting anonymized role mining data:
@@ -50,7 +55,7 @@ xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja docume
 ** Repository object (GUI): For detailed information, see the
 xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data documentation].
 
-** Shadow metadata - `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
+* Shadow metadata - `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
 This changes behaviour for resources which have non-zero deadShadowRetentionPeriod in consistency defined.
 Previously shadows without such timestamps were removed right away if there were no pending operations, since midPoint couldn't compute _last activity timestmap_.
 Last shadow activity taken into account:
