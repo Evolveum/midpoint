@@ -52,6 +52,8 @@ public enum AuditEventType {
 
     DISCOVER_OBJECT;
 
+
+
     public static AuditEventType fromSchemaValue(AuditEventTypeType event) {
         if (event == null) {
             return null;
