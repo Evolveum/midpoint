@@ -42,7 +42,7 @@ The {release-version} release brings streamlined upgrade process, security stabi
 ** Wicket 10
 
 * xref:/midpoint/reference/roles-policies/mining/[Role Mining]. Introduction of role mining
-functionality. Role Mining is a tool to simplify access management that uses artificial
+functionality. A tool to simplify access management that uses artificial
 intelligence (AI) algorithms and analytical techniques to sift through the complex network of user and
 access mappings and group them into cohesive business roles based on access patterns.
 
