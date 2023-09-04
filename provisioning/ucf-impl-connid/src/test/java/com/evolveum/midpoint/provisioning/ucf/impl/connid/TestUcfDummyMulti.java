@@ -58,7 +58,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
     private static final File CONNECTOR_FAKE = new File("src/test/resources/dummy-connector-fake-4.2.jar");
     private static final File MIDPOINT_HOME = new File("target/midpoint-home");
-    private static final File MIDPOINT_HOME_ICF = new File(MIDPOINT_HOME, "icf-connectors");
+    private static final File MIDPOINT_HOME_ICF = new File(MIDPOINT_HOME, "connid-connectors");
 
     @Test
     public void test000PrismContextSanity() {
