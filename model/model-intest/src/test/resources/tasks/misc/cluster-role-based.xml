@@ -4,11 +4,6 @@
         oid="16a8b95a-8a37-4f91-b835-bb77670c2899">
     <name>cluster_0</name>
     <!--TODO members-->
-    <roleAnalysisSessionRef oid="c0d74ad2-f92a-40f0-b661-3c0a6a5dc225"
-            relation="org:default"
-            type="c:RoleAnalysisSessionType">
-        <!-- role_based_analysis_session -->
-    </roleAnalysisSessionRef>
     <detectionOption>
         <minRolesOccupancy>10</minRolesOccupancy>
         <minUserOccupancy>10</minUserOccupancy>

@@ -58,9 +58,7 @@ podTemplate(
                 }
             }
             stage("publish") {
-                steps {
-                    dependencyCheckPublisher pattern: 'dependency-check-report.xml'
-                }
+                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
             }
 
             currentBuild.result = 'SUCCESS'
