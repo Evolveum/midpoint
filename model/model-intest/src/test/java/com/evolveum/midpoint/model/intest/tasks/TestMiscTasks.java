@@ -85,7 +85,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 ROLE_APPLICATION_1, ROLE_APPLICATION_2, ROLE_BUSINESS_1,
                 USER_1, USER_2);
 
-        if(isNativeRepository()){
+        if (isNativeRepository()) {
             initTestObjects(initTask, initResult, SESSION_ROLE_BASED, CLUSTER_ROLE_BASED);
         }
     }
@@ -648,11 +648,13 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test410RoleAnalysisPatternDetectionBasic() throws CommonException {
+    public void test410RoleAnalysisPatternDetectionBasic() throws Exception {
         skipIfNotNativeRepository();
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        initTestObjects(task, result, CLUSTER_ROLE_BASED);
 
         when("task is run");
         TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.init(this, task, result);

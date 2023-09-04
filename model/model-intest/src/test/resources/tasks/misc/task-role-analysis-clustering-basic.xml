@@ -13,7 +13,7 @@
     <activity>
         <work>
             <roleAnalysisClustering>
-                <sessionRef oid="c0d74ad2-f92a-40f0-b661-3c0a6a5dc225"/> <!-- random OID for now -->
+                <sessionRef oid="c0d74ad2-f92a-40f0-b661-3c0a6a5dc225"/>
             </roleAnalysisClustering>
         </work>
     </activity>
