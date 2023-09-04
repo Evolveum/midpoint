@@ -35,7 +35,7 @@ public class JaccardSorter {
     public static List<MiningUserTypeChunk> jaccardUserBasedSorter(List<MiningUserTypeChunk> dataPoints) {
 
         Handler handler = new Handler("Jaccard Sort", 1);
-        handler.setSubTitle("Sorting");
+        handler.enterNewStep("Sorting");
         handler.setActive(true);
 
         List<MiningUserTypeChunk> sorted = new ArrayList<>();
@@ -97,7 +97,7 @@ public class JaccardSorter {
     public static List<MiningRoleTypeChunk> jaccardRoleBasedSorter(List<MiningRoleTypeChunk> dataPoints) {
 
         Handler handler = new Handler("Jaccard Sort", 1);
-        handler.setSubTitle("Sorting");
+        handler.enterNewStep("Sorting");
         handler.setActive(true);
 
         List<MiningRoleTypeChunk> sorted = new ArrayList<>();

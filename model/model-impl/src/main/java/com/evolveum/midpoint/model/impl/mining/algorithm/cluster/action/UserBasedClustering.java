@@ -41,14 +41,14 @@ public class UserBasedClustering implements Clusterable {
         int minRolesOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
         int maxRolesOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
 
-        handler.setSubTitle("Load Data");
+        handler.enterNewStep("Load Data");
         handler.setOperationCountToProcess(1);
         //roles //users
         ListMultimap<List<String>, String> chunkMap = loadData(result, modelService,
                 minRolesOccupancy, maxRolesOccupancy, sessionOptionType.getQuery(), task);
         handler.iterateActualStatus();
 
-        handler.setSubTitle("Prepare Data");
+        handler.enterNewStep("Prepare Data");
         handler.setOperationCountToProcess(1);
         List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
         handler.iterateActualStatus();
