@@ -58,7 +58,9 @@ public enum Command {
 
     HELP("help", HelpOptions.class, HelpAction.class),
 
-    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class);
+    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
+
+    INITIAL_OBJECTS("initial-objects", InitialObjectsOptions.class, InitialObjects.class);
 
     private final String commandName;
 
