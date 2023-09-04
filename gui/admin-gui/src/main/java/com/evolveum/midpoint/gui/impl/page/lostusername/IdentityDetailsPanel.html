@@ -8,27 +8,29 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="headerPanel" class="d-flex flex-wrap gap-2 w-100">
-        <div class="image col-md-2 mt-3">
-            <img wicket:id="photo" class="user-image img-circle elevation-2"/>
+    <div wicket:id="headerPanel" class="d-flex flex-wrap gap-1 w-100 align-items-center px-1">
+        <div class="image col-auto pl-2">
+            <img wicket:id="photo" class="user-image img-circle"/>
         </div>
-        <div class="info col-md-8">
-            <div class="text-lg" wicket:id="displayName"/>
-            <div class="text-md" wicket:id="archetypeLabel"/>
+        <div class="info col py-0">
+            <div class="text-md" wicket:id="displayName"/>
+            <div class="text-sm text-secondary" wicket:id="archetypeLabel"/>
         </div>
-        <a class="pull-right col-md-1 mt-3" wicket:id="expandButton">
+        <div class="col-auto">
+        <a class="btn btn-tool pull-right m-0" wicket:id="expandButton">
             <i wicket:id="arrowIcon"></i>
         </a>
+        </div>
     </div>
     <wicket:enclosure child="itemsPanel">
-        <div class="border-top w-100">
-            <div wicket:id="itemsPanel" class="d-flex flex-wrap gap-2 mt-2">
-                <label class="col-md-5" wicket:id="itemName"></label>
+        <div class="border-top d-flex flex-column pt-3 gap-2 w-100">
+            <div wicket:id="itemsPanel" class="d-flex flex-wrap gap-2">
+                <label class="col-md-4 m-0" wicket:id="itemName"></label>
                 <div wicket:id="itemValue"/>
             </div>
         </div>
-        <a wicket:id="confirmIdentity" class="d-flex btn btn-primary justify-content-center w-100 mt-2">
-            <i class="mt-1 mr-2 fa-fw fa fa-check" />
+        <a wicket:id="confirmIdentity" class="d-flex btn btn-primary align-items-center justify-content-center w-100 mt-2">
+            <i class="mr-2 fa fa-check" />
             <wicket:message key="PageIdentityRecovery.confirmIdentity"/>
         </a>
     </wicket:enclosure>

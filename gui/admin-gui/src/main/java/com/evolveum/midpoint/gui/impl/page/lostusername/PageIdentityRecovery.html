@@ -11,16 +11,19 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div wicket:id="recoveredIdentities" class="user-panel info-box my-3 pb-2 ">
-        <div wicket:id="detailsPanel" class="d-flex flex-wrap gap-2 w-100" />
+    <div class="d-flex flex-column gap-2">
+        <div wicket:id="recoveredIdentities" class="user-panel info-box mb-1">
+            <div wicket:id="detailsPanel" class="d-flex flex-wrap gap-2 w-100" />
+        </div>
     </div>
-    <div wicket:id="paging" class="d-flex gap-2 w-100 justify-content-center" />
+    <div wicket:id="paging" class="d-flex gap-2 w-100 justify-content-center mt-3 mb-1" />
     <div>
-        <a wicket:id="restartFlow" class="d-flex btn btn-default justify-content-center w-100 mt-4">
-            <i class="mt-1 mr-2 fa fa-sync-alt" />
+        <a wicket:id="restartFlow" class="d-flex btn btn-default justify-content-center w-100 mt-4 align-items-center">
+            <i class="mr-2 fa fa-sync-alt" />
             <wicket:message key="PageIdentityRecovery.restartFlow"/>
         </a>
-        <a wicket:id="registrationLink" class="d-flex justify-content-center w-100 mt-4">
+        <a wicket:id="registrationLink" class="d-flex btn btn-default justify-content-center w-100 mt-2 align-items-center">
+            <i class="mr-2 fa fa-solid fa-user-plus" />
             <wicket:message key="PageLogin.registerNewAccount"/>
         </a>
     </div>
