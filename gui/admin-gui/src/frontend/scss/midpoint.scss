@@ -1745,8 +1745,20 @@ span.yui-skin-sam {
   width: 600px !important;
 }
 
-.login-box {
+@mixin login-box {
   width: 400px !important;
+
+  & .login-card-body .spacer hr {
+    border-color:#dfdfdf;
+  }
+
+  & .login-card-body .spacer span {
+    color:#dfdfdf;
+  }
+
+  & .login-card-body .user-panel.info-box .image img {
+    width:2.4rem;
+  }
 }
 
 .info-box.activity-item-processing > .info-box-content > .progress-description {
