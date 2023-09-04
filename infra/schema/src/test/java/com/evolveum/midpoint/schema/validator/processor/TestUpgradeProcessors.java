@@ -198,7 +198,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     public void test60TaskLivesync() throws Exception {
         testUpgradeValidator("task-livesync.xml", result -> {
             Assertions.assertThat(result.getItems())
-                    .hasSize(3);
+                    .hasSize(4);
 
             Assertions.assertThat(result.hasChanges()).isTrue();
         });
