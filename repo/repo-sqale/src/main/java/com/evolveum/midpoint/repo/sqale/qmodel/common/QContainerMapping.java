@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * Mapping between {@link QContainer} and {@link Containerable}.
@@ -82,7 +83,10 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
      */
     protected void attachOwnerOid(S ret, Tuple tuple, Q entityPath) {
         var row = tuple.get(entityPath);
-        var ownerOid = row.ownerOid;
+        UUID ownerOid = null;
+        if (row != null) {
+            ownerOid = row.ownerOid;
+        }
         if (ownerOid == null) {
            ownerOid = tuple.get(entityPath.ownerOid);
         }
