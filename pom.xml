@@ -2019,6 +2019,17 @@
                     <artifactId>git-commit-id-plugin</artifactId>
                     <version>4.9.10</version>
                 </plugin>
+                
+                <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>8.2.1</version>
+                    <configuration>
+                      <suppressionFile>config/false-positives.xml</suppressionFile>
+                      <formats>HTML,JENKINS,XML,JSON</formats>
+                      <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
