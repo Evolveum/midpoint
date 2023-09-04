@@ -63,6 +63,7 @@ Last shadow activity taken into account:
 For more info see: xref:/midpoint/reference/security/audit/index.adoc[Auditing]
 
 * Creating new wizard flow for configuration of resource activation and configuration of resource credentials.
+** Adding new configuration for predefined activation cases. Now we don't need complex configuration of existence and other kind of activation mappings for cases: disable instead of delete, delayed delete and pre provision. For more info see: xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation.adoc#predefined_activation_mapping[Predefined activation mapping].
 ** Wizard step panels, that displaying inbound and outbound mapping attributes, was divided to two panels with main and optional configuration. Showed attributes are hardcoded, so we can use configuration only for hide showed items.
 ** Also we split wizard step panel of construction outbound mapping for role assignment.
 *** Main configuration contains attributes name, source, target, ref (resource attribute), strength, expression and condition.
