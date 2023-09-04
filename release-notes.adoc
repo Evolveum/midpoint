@@ -406,6 +406,8 @@ More details are provided along with individual changes below.
 * References to removed `category` property of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b600[1fe4b600].
 
+* `610-service-identity-recovery.xml`: Identity recovery service is added. This service plays a role of the midpoint principal during Identity recovery flow.
+
 // * `000-system-configuration.xml`:
 // ** Minor changes in home page widgets in `adminGuiConfiguration/homePage/widget` container values related to the fix for bug:MID-8294[].
 // +
@@ -466,6 +468,11 @@ On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{rele
 // * Several authentication modules were added in order to be used for user identification or user authentication. For now the modules are used within password reset process. Following attributes are added to AuthenticationModulesType type: `attributeVerification` (used to verify user's attributes values), `focusIdentification` (used to identify the user comparing their identifier(s) value), `hint` (used to give the user a possibility to remember their password). The related to flexible authentication functionality types were also extended to make the new modules work properly. So, CredentialsPolicyType type was extended with attributeVerification elements, each of them services the corresponding module.
 // * Necessity of the authentication modules was extended with more values, therefore `required`, `requisite` and `optional` values can be used for AuthenticationSequenceModuleNecessityType type.
 // * AuthenticationSequenceModuleType type was extended with `acceptEmpty` element, so that module can be skipped in case of empty credentials with acceptEmpty=true.
+
+* New _identityRecovery_ element appears in security policy object, intended for identity recovery flow configuration. Please, see _IdentityRecoveryPolicyType_ for more details.
+* New _archetypeSelection_ authentication module type appears in the _authentication_ part of the security policy object. Please, see _ArchetypeSelectionModuleType_ for more details.
+* New _correlation_ authentication module type appears in the _authentication_ part of the security policy object. Please, see _CorrelationAuthenticationModuleType_ for more details.
+* _CredentialsResetPolicyType_ and _AbstractRegistrationPolicyType_ extend now _UserInterfaceFeatureType_ so that _display_ attribute can be used within self registration and password reset flows.
 
 _Actions required:_
 
