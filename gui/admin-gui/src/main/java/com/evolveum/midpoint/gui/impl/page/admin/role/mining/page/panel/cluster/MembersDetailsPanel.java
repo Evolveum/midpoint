@@ -122,12 +122,12 @@ public class MembersDetailsPanel extends BasePanel<String> implements Popupable 
 
     @Override
     public int getWidth() {
-        return 70;
+        return 60;
     }
 
     @Override
     public int getHeight() {
-        return 70;
+        return 50;
     }
 
     @Override
@@ -147,9 +147,10 @@ public class MembersDetailsPanel extends BasePanel<String> implements Popupable 
 
     @Override
     public StringResourceModel getTitle() {
-        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return new StringResourceModel("RoleMining.members.details.panel.title.roles");
-        }
-        return new StringResourceModel("RoleMining.members.details.panel.title.users");
+//        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
+//            return new StringResourceModel("RoleMining.members.details.panel.title.roles");
+//        }
+//        return new StringResourceModel("RoleMining.members.details.panel.title.users");
+        return null;
     }
 }

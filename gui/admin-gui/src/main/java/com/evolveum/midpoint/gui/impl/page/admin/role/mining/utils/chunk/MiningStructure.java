@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -20,12 +20,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 
 public interface MiningStructure {
     MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler handler, Task task);
+            OperationResult result, RoleAnalysisProgressIncrement handler, Task task);
     MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler handler, Task task);
+            OperationResult result, RoleAnalysisProgressIncrement handler, Task task);
     MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler state, Task task);
+            OperationResult result, RoleAnalysisProgressIncrement state, Task task);
     MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler handler, Task task);
+            OperationResult result, RoleAnalysisProgressIncrement handler, Task task);
 
 }

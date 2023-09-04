@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.model.common.expression.functions.BasicExpre
 import static com.evolveum.midpoint.model.impl.mining.algorithm.detection.DefaultPatternResolver.loadTopPatterns;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.*;
 
-import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
@@ -19,7 +18,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -39,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 public class DetectionActionExecutorNew extends BaseAction {
 
     private final DetectionOperation detectionType;
-    private final Handler handler = new Handler("Pattern Detection", 6, this::incrementProgress);
+    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Pattern Detection", 6, this::incrementProgress);
     private final String clusterOid;
     private final ModelService modelService;
 
@@ -116,7 +115,7 @@ public class DetectionActionExecutorNew extends BaseAction {
         return null;
     }
 
-    public Handler getHandler() {
+    public RoleAnalysisProgressIncrement getHandler() {
         return handler;
     }
 

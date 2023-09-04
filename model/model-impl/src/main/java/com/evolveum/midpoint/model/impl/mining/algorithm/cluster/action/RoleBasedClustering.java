@@ -15,7 +15,7 @@ import java.util.Set;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
@@ -31,7 +31,7 @@ public class RoleBasedClustering implements Clusterable {
 
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, ModelService modelService, Handler handler, Task task) {
+            OperationResult result, ModelService modelService, RoleAnalysisProgressIncrement handler, Task task) {
 
         RoleAnalysisSessionOptionType sessionOptionType = session.getRoleModeOptions();
 
@@ -43,6 +43,10 @@ public class RoleBasedClustering implements Clusterable {
         ListMultimap<List<String>, String> chunkMap = loadData(result, modelService,
                 minUserOccupancy, maxUserOccupancy, sessionOptionType.getQuery(), task);
         handler.iterateActualStatus();
+
+        if (chunkMap.isEmpty()) {
+            return null;
+        }
 
         handler.enterNewStep("Prepare Data");
         handler.setOperationCountToProcess(1);
@@ -61,7 +65,7 @@ public class RoleBasedClustering implements Clusterable {
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minUsersOverlap);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
-                similarityDifference, minRolesCount, distanceMeasure);
+                similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap);
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 

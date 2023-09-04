@@ -11,7 +11,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 
 import java.io.Serializable;
 import java.util.*;
@@ -22,7 +22,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
 
     @Override
     public List<DetectedPattern> performUserBasedDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            DetectionOption detectionOption, Handler handler) {
+            DetectionOption detectionOption, RoleAnalysisProgressIncrement handler) {
 
         handler.enterNewStep("Data Preparation");
         handler.setActive(true);
@@ -148,7 +148,7 @@ public class PatternResolver implements DetectionOperation, Serializable {
 
     @Override
     public List<DetectedPattern> performRoleBasedDetection(List<MiningUserTypeChunk> miningUserTypeChunks,
-            DetectionOption roleAnalysisSessionDetectionOptionType, Handler handler) {
+            DetectionOption roleAnalysisSessionDetectionOptionType, RoleAnalysisProgressIncrement handler) {
 
         handler.enterNewStep("Data Preparation");
         handler.setActive(true);

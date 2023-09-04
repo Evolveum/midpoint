@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
@@ -34,7 +34,7 @@ public class UserBasedClustering implements Clusterable {
     //TODO add progress handler
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, ModelService modelService, Handler handler, Task task) {
+            OperationResult result, ModelService modelService, RoleAnalysisProgressIncrement handler, Task task) {
 
         UserAnalysisSessionOptionType sessionOptionType = session.getUserModeOptions();
 
@@ -47,6 +47,10 @@ public class UserBasedClustering implements Clusterable {
         ListMultimap<List<String>, String> chunkMap = loadData(result, modelService,
                 minRolesOccupancy, maxRolesOccupancy, sessionOptionType.getQuery(), task);
         handler.iterateActualStatus();
+
+        if (chunkMap.isEmpty()) {
+            return null;
+        }
 
         handler.enterNewStep("Prepare Data");
         handler.setOperationCountToProcess(1);
@@ -65,7 +69,7 @@ public class UserBasedClustering implements Clusterable {
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(similarityDifference,
-                minUsersCount, distanceMeasure);
+                minUsersCount, distanceMeasure, minRolesOverlap);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(modelService, task, result, dataPoints, clusters, session, handler);

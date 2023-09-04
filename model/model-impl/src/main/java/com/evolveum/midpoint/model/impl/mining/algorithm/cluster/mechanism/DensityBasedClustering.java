@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 
 import java.util.*;
 
@@ -9,8 +9,9 @@ import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
 public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> {
     private double eps;
     private int minPts;
+    int minPropertiesOverlap;
 
-    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure) {
+    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure, int minRolesOverlap) {
         super(measure);
 
         if (eps < 0.0) {
@@ -25,9 +26,12 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             LOGGER.info("Updated parameters: eps={} and minPts={}. New values: eps={} and minPts={}.",
                     eps, minPts, this.eps, this.minPts);
         }
+
+        this.minPropertiesOverlap = minRolesOverlap;
+
     }
 
-    public List<Cluster<T>> cluster(Collection<T> points, Handler handler) {
+    public List<Cluster<T>> cluster(Collection<T> points, RoleAnalysisProgressIncrement handler) {
         List<Cluster<T>> clusters = new ArrayList<>();
         Map<Clusterable, PointStatus> visited = new HashMap<>();
 
@@ -40,7 +44,8 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             if (visited.get(point) == null) {
                 List<T> neighbors = this.getNeighbors(point, points);
                 int neighborsSize = getNeightborsSize(neighbors);
-                if (neighborsSize >= this.minPts || point.getMembersCount() >= this.minPts) {
+
+                if (neighborsSize >= this.minPts || (point.getMembersCount() >= this.minPts && point.getPoint().size() >= minPropertiesOverlap)) {
                     Cluster<T> cluster = new Cluster<>();
                     clusters.add(this.expandCluster(cluster, point, neighbors, points, visited));
                 } else {

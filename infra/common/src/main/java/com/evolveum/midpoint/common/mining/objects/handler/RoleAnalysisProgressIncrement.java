@@ -17,12 +17,10 @@ import java.time.Duration;
 
 /**
  * Keeps the state of the role-mining activity (clustering, pattern detection, etc).
- *
- * TODO rename
  */
-public class Handler implements Serializable {
+public class RoleAnalysisProgressIncrement implements Serializable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(Handler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisProgressIncrement.class);
 
     private String title;
     private String subTitle;
@@ -58,11 +56,11 @@ public class Handler implements Serializable {
                 .toLowerCase();
     }
 
-    public Handler(String title, int stepsCount) {
+    public RoleAnalysisProgressIncrement(String title, int stepsCount) {
         this(title, stepsCount, null);
     }
 
-    public Handler(String title, int stepsCount, @Nullable Runnable progressIncrementer) {
+    public RoleAnalysisProgressIncrement(String title, int stepsCount, @Nullable Runnable progressIncrementer) {
         this.startTime = System.currentTimeMillis();
         this.endTime = System.currentTimeMillis();
         this.title = title;

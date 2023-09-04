@@ -11,7 +11,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 
 import java.util.List;
 
@@ -20,9 +20,9 @@ import java.util.List;
 public interface DetectionOperation {
 
     List<DetectedPattern> performUserBasedDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            DetectionOption roleAnalysisDetectionOptionType, Handler handler);
+            DetectionOption roleAnalysisDetectionOptionType, RoleAnalysisProgressIncrement handler);
 
     List<DetectedPattern> performRoleBasedDetection(List<MiningUserTypeChunk> miningRoleTypeChunks,
-            DetectionOption roleAnalysisDetectionOptionType, Handler handler);
+            DetectionOption roleAnalysisDetectionOptionType, RoleAnalysisProgressIncrement handler);
 
 }

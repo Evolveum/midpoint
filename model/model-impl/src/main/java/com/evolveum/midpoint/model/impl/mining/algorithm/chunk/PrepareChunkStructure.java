@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class PrepareChunkStructure implements MiningStructure, Serializable {
 
-    Handler handler = new Handler("Data Preparation", 4);
+    RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Data Preparation", 4);
 
     public MiningOperationChunk executeOperation(@NotNull RoleAnalysisClusterType cluster, boolean fullProcess,
             RoleAnalysisProcessModeType mode, ModelService modelService, OperationResult result, Task task) {
@@ -71,7 +71,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler handler, Task task) {
+            OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
 
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 
@@ -172,7 +172,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler handler, Task task) {
+            OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -276,7 +276,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster,
-            ModelService modelService, OperationResult result, Handler handler, Task task) {
+            ModelService modelService, OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -350,7 +350,7 @@ public class PrepareChunkStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster,
-            ModelService modelService, OperationResult result, Handler handler, Task task) {
+            ModelService modelService, OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 

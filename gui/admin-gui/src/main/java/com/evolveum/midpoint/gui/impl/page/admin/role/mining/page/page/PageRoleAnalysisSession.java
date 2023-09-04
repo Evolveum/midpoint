@@ -45,6 +45,8 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.util.string.StringValue;
+
 //TODO correct authorizations
 @PageDescriptor(
         urls = {
@@ -57,17 +59,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_ANALYSIS_SESSION_URL,
                 label = "PageRoleAnalysis.auth.roleAnalysisSession.label",
                 description = "PageRoleAnalysis.auth.roleAnalysisSession.description")
-        })
+})
 
 public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
-    boolean isEditPanel = false;
+    boolean isWizardPanel = false;
+
+    public static final String PARAM_IS_WIZARD = "isWizard";
+
+    public boolean isWizardPanel() {
+        StringValue stringValue = getPageParameters().get(PARAM_IS_WIZARD);
+        if (stringValue != null) {
+            if ("true".equalsIgnoreCase(stringValue.toString())
+                    || "false".equalsIgnoreCase(stringValue.toString())) {
+                this.isWizardPanel = getPageParameters().get(PARAM_IS_WIZARD).toBoolean();
+            } else {
+                getPageParameters().remove(PARAM_IS_WIZARD);
+            }
+        }
+        return isWizardPanel;
+    }
 
     public PageRoleAnalysisSession() {
         super();
-    }
-
-    public PageRoleAnalysisSession(boolean isEditPanel) {
-        this.isEditPanel = true;
     }
 
     @Override
@@ -192,7 +205,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     private boolean canShowWizard() {
-        return isEditPanel;
+        return isWizardPanel();
     }
 
     protected DetailsFragment createDetailsFragment() {
@@ -216,6 +229,10 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
         IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
         RoleAnalysisProcessModeType processMode = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable().getProcessMode();
+
+        if (processMode == null) {
+            return super.getPanelConfigurations();
+        }
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {

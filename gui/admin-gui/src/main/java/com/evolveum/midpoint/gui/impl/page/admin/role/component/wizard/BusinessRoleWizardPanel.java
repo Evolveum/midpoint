@@ -14,7 +14,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
+
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,6 +44,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author lskublik
@@ -230,6 +236,13 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
     private void exitToPreview(AjaxRequestTarget target) {
         if (isRoleMigration) {
             setResponsePage(PageRoleAnalysis.class);
+            PageParameters parameters = new PageParameters();
+            String clusterOid = getHelper().getDetailsModel().getPatternDeltas().getCluster().getOid();
+            parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+            parameters.add("panelId", "clusterDetails");
+            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                    .getObjectDetailsPage(RoleAnalysisClusterType.class);
+            getPageBase().navigateToNext(detailsPageClass, parameters);
         } else {
             showChoiceFragment(
                     target,
