@@ -7,14 +7,27 @@
 
 package com.evolveum.midpoint.gui.impl.page.lostusername;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.login.PageSelfRegistration;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -22,6 +35,7 @@ import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -66,6 +80,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     private static final String DOT_CLASS = PageIdentityRecovery.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(PageIdentityRecovery.class);
     private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
+    private static final String OPERATION_AUDIT_FOUND_IDENTITIES = DOT_CLASS + "auditFoundIdentities";
 
     private static final String ID_RECOVERED_IDENTITIES = "recoveredIdentities";
     private static final String ID_DETAILS_PANEL = "detailsPanel";
@@ -75,6 +90,7 @@ public class PageIdentityRecovery extends AbstractPageLogin {
 
     private LoadableModel<List<UserType>> recoveredIdentitiesModel;
     private LoadableModel<SecurityPolicyType> securityPolicyModel;
+    private boolean isAudited;
 
     private static final int IDENTITY_PER_PAGE = 3;
 
@@ -93,6 +109,15 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         PageableListView<UserType> recoveredIdentitiesPanel = new PageableListView<>(ID_RECOVERED_IDENTITIES,
                 recoveredIdentitiesModel, IDENTITY_PER_PAGE) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onAfterRender() {
+                super.onAfterRender();
+                if (!isAudited) {
+                    auditInformationDisclosure();
+                    isAudited = true;
+                }
+            }
 
             @Override
             protected void populateItem(ListItem<UserType> item) {
@@ -237,4 +262,61 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         int userCount = userList != null ? userList.size() : 0;
         return userCount <= IDENTITY_PER_PAGE;
     }
+
+    private void auditInformationDisclosure() {
+        OperationResult result = new OperationResult(OPERATION_AUDIT_FOUND_IDENTITIES);
+        Task task = createAnonymousTask(OPERATION_AUDIT_FOUND_IDENTITIES);
+        var principal = getMidpointAuthentication().getPrincipal();
+        if (!(principal instanceof MidPointPrincipal mpPrincipal)) {
+            LOGGER.error(getString("No midPoint principal is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        try {
+            PrismObject<UserType> administrator = getAdministratorPrivileged(result);
+            runAsChecked(
+                    (lResult) -> {
+                        AuditEventRecord record = createAuditRecord(mpPrincipal.getFocusPrismObject());
+                        getModelAuditService().audit(record, task, result);
+                        return null;
+                    },
+                    administrator, result);
+        } catch (Exception e) {
+            LOGGER.error(getString("Unable to audit found identities, ", e));
+        }
+    }
+
+    private AuditEventRecord createAuditRecord(PrismObject<? extends FocusType> principal) {
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.INFORMATION_DISCLOSURE);
+        record.setInitiatorAndLoginParameter(principal);
+        record.setTimestamp(System.currentTimeMillis());
+        record.setOutcome(OperationResultStatus.SUCCESS);
+
+        record.setChannel(SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI);
+        record.setSessionIdentifier(getSession().getId());
+        HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
+        if (connInfo != null) {
+            record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
+            record.setHostIdentifier(connInfo.getLocalHostName());
+        }
+        record.addDeltas(createFoundIdentitiesDeltas());
+        return record;
+    }
+
+    private List<ObjectDeltaOperation<UserType>> createFoundIdentitiesDeltas() {
+        return recoveredIdentitiesModel.getObject()
+                .stream()
+                .map(this::createUserDeltaOperation)
+                .collect(Collectors.toList());
+    }
+
+    private ObjectDeltaOperation<UserType> createUserDeltaOperation(UserType user) {
+        ObjectDeltaOperation<UserType> deltaOperation = new ObjectDeltaOperation<>();
+        deltaOperation.setObjectName(user.getName().toPolyString());
+        ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.MODIFY);
+        delta.setOid(user.getOid());
+        deltaOperation.setObjectDelta(delta);
+        deltaOperation.setObjectOid(user.getOid());
+        return deltaOperation;
+    }
+
 }
