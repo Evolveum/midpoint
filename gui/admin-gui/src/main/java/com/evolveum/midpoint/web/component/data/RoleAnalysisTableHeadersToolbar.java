@@ -21,9 +21,9 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.util.string.Strings;
 
-public class RoleMiningTableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
+public class RoleAnalysisTableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
-    public RoleMiningTableHeadersToolbar(DataTable<T, String> table, ISortStateLocator stateLocator) {
+    public RoleAnalysisTableHeadersToolbar(DataTable<T, String> table, ISortStateLocator stateLocator) {
         super(table, stateLocator);
     }
 

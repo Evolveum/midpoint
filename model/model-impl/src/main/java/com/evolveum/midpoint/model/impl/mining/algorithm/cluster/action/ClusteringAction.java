@@ -9,30 +9,40 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.mining.algorithm.BaseAction;
+
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ClusteringAction {
+/**
+ * TODO
+ */
+public class ClusteringAction extends BaseAction {
 
     private Clusterable clusterable;
 
-    Handler handler = new Handler("Density Clustering", 7);
+    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering", 7, this::incrementProgress);
 
-    public ClusteringAction() {
+    public ClusteringAction(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+        super(activityRun);
     }
 
-    public void execute(@NotNull ModelService modelService, String sessionOid,
-            @NotNull OperationResult result, Task task) {
+    public void execute(String sessionOid, @NotNull OperationResult result) {
+
+        var task = activityRun.getRunningTask();
+        ModelService modelService = ModelBeans.get().modelService;
 
         PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(modelService, result, sessionOid, task);
         if (prismSession != null) {
@@ -47,10 +57,12 @@ public class ClusteringAction {
             }
 
             RoleAnalysisSessionType session = prismSession.asObjectable();
-            List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(session,
-                    result, modelService, handler, task);
+            List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
+                    clusterable.executeClustering(session, result, modelService, handler, task);
 
-            importObjects(clusterObjects, session, modelService, result, handler, task);
+            if (clusterObjects != null && !clusterObjects.isEmpty()) {
+                importObjects(clusterObjects, session, modelService, task, result);
+            }
 
         }
     }
@@ -59,9 +71,7 @@ public class ClusteringAction {
             List<PrismObject<RoleAnalysisClusterType>> clusters,
             @NotNull RoleAnalysisSessionType session,
             ModelService modelService,
-            OperationResult result,
-            Handler handler, Task task) {
-        List<ObjectReferenceType> roleAnalysisClusterRef = new ArrayList<>();
+            Task task, OperationResult result) {
         String sessionOid = session.getOid();
 
         ObjectReferenceType sessionRef = new ObjectReferenceType();
@@ -76,7 +86,7 @@ public class ClusteringAction {
 
         double meanDensity = 0;
 
-        handler.setSubTitle("Importing Clusters");
+        handler.enterNewStep("Importing Clusters");
         handler.setOperationCountToProcess(clusters.size());
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
             handler.iterateActualStatus();
@@ -94,7 +104,6 @@ public class ClusteringAction {
             ObjectReferenceType objectReferenceType = new ObjectReferenceType();
             objectReferenceType.setOid(clusterTypePrismObject.getOid());
             objectReferenceType.setType(complexType);
-            roleAnalysisClusterRef.add(objectReferenceType);
 
             importRoleAnalysisClusterObject(result, task, modelService,
                     clusterTypePrismObject,
@@ -111,7 +120,7 @@ public class ClusteringAction {
         sessionStatistic.setMeanDensity(meanDensity);
         sessionStatistic.setClusterCount(clusters.size());
 
-        handler.setSubTitle("Update Session");
+        handler.enterNewStep("Update Session");
         handler.setOperationCountToProcess(clusters.size());
         modifySessionAfterClustering(sessionRef,
                 sessionStatistic,

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,8 +34,8 @@ public class JaccardSorter {
 
     public static List<MiningUserTypeChunk> jaccardUserBasedSorter(List<MiningUserTypeChunk> dataPoints) {
 
-        Handler handler = new Handler("Jaccard Sort", 1);
-        handler.setSubTitle("Sorting");
+        RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Jaccard Sort", 1);
+        handler.enterNewStep("Sorting");
         handler.setActive(true);
 
         List<MiningUserTypeChunk> sorted = new ArrayList<>();
@@ -96,8 +96,8 @@ public class JaccardSorter {
 
     public static List<MiningRoleTypeChunk> jaccardRoleBasedSorter(List<MiningRoleTypeChunk> dataPoints) {
 
-        Handler handler = new Handler("Jaccard Sort", 1);
-        handler.setSubTitle("Sorting");
+        RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Jaccard Sort", 1);
+        handler.enterNewStep("Sorting");
         handler.setActive(true);
 
         List<MiningRoleTypeChunk> sorted = new ArrayList<>();

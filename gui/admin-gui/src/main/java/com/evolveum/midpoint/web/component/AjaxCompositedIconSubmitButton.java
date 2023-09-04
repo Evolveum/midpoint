@@ -68,7 +68,7 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
         StringBuilder sb = new StringBuilder();
 
-        CompositedIcon icon = this.icon;
+        CompositedIcon icon = getIcon();
         if (icon.hasBasicIcon()) {
             String margin = titleAsLabel ? "mr-1" : "";
             sb.append("<i class=\"" + margin + " ").append(icon.getBasicIcon() != null ? icon.getBasicIcon().trim() : "").append("\"");
@@ -112,5 +112,10 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
     public AjaxCompositedIconSubmitButton titleAsLabel(boolean titleAsLabel) {
         this.titleAsLabel = titleAsLabel;
         return this;
+    }
+
+    public CompositedIcon getIcon() {
+        return this.icon;
+
     }
 }

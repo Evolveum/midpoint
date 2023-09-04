@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getSessionOptionType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.PARAM_IS_WIZARD;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.densityBasedColor;
 
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 
@@ -419,16 +421,12 @@ public class PageRoleAnalysis extends PageAdmin {
             protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation,
                     CompiledObjectCollectionView collectionView) {
 
-                setResponsePage(new PageRoleAnalysisSession(true));
+                PageParameters parameters = new PageParameters();
+                parameters.add(PARAM_IS_WIZARD, true);
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
+                getPageBase().navigateToNext(detailsPageClass, parameters);
 
-//                ExecuteClusteringPanel detailsPanel = new ExecuteClusteringPanel(((PageBase) getPage()).getMainPopupBodyId(),
-//                        Model.of("New cluster")) {
-//                    @Override
-//                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-//                        super.onClose(ajaxRequestTarget);
-//                    }
-//                };
-//                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
             }
 
             @Override

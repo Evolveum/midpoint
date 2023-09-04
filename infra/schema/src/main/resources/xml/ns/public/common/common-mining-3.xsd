@@ -280,9 +280,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Number of members in the cluster.
-                            In the case of USER MODE, it is the count of users. (members = users)
-                            In the case of ROLE MODE, it is the count of roles. (members = roles)
+                            Number of users in the cluster.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -292,10 +290,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Number of the properties (objects) according to which the "members" were included
-                            in the given group.
-                            In the case of USER MODE, it is the count of roles. (roles = properties, members = users)
-                            In the case of ROLE MODE, it is the count of users. (users = properties, members = roles)
+                            Number of roles in the cluster.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -345,7 +340,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-
+                            Number of relationships value when applying the largest pattern found.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>

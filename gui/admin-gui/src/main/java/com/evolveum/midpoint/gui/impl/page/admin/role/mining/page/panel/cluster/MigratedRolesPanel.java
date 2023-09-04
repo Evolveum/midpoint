@@ -15,7 +15,11 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -59,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_CONTAINER = "container";
-    private static final String ID_PANEL = "panel";
+    private static final String ID_PANEL = "panelId";
 
     private final OperationResult operationResult = new OperationResult("LoadMigratedRoles");
 
@@ -107,7 +111,23 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
     private BoxedTablePanel<RoleType> generateTable(RoleMiningProvider<RoleType> provider) {
 
         BoxedTablePanel<RoleType> table = new BoxedTablePanel<>(
-                ID_PANEL, provider, initColumns());
+                ID_PANEL, provider, initColumns()) {
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                        createStringResource("MainObjectListPanel.refresh")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onRefresh();
+                    }
+                };
+                refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                return refreshIcon;
+            }
+        };
         table.setOutputMarkupId(true);
         return table;
     }
@@ -253,6 +273,15 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         });
 
         return columns;
+    }
+
+    private void onRefresh() {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
+        parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisClusterType.class);
+        getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
     public PageBase getPageBase() {

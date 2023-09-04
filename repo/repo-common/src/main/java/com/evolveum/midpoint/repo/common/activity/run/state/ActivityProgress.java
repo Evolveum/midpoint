@@ -63,7 +63,7 @@ public class ActivityProgress extends Initializable {
     public synchronized void increment(QualifiedItemProcessingOutcomeType outcome, @NotNull Counters counters) {
         assertInitialized();
         List<OutcomeKeyedCounterType> counter = counters == Counters.COMMITTED ? value.getCommitted() : value.getUncommitted();
-        int newCount = OutcomeKeyedCounterTypeUtil.incrementCounter(counter, outcome, getBeans().prismContext);
+        int newCount = OutcomeKeyedCounterTypeUtil.incrementCounter(counter, outcome);
         LOGGER.trace("Incremented progress (counters: {}) to {} for {} in activity run {}",
                 counters, newCount, outcome, getActivityRun());
     }

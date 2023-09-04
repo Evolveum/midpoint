@@ -15,7 +15,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class PrepareExpandStructure implements MiningStructure, Serializable {
 
-    Handler handler = new Handler("Data Preparation", 3);
+    RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Data Preparation", 3);
 
     public MiningOperationChunk executeOperation(@NotNull RoleAnalysisClusterType cluster, boolean fullProcess,
             RoleAnalysisProcessModeType mode, ModelService modelService, OperationResult result, Task task) {
@@ -73,7 +73,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler handler, Task task) {
+            OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -87,7 +87,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int rolesCount = rolesElements.size();
         handler.setActive(true);
-        handler.setSubTitle("Prepare Role Structure");
+        handler.enterNewStep("Prepare Role Structure");
         handler.setOperationCountToProcess(rolesCount);
         for (ObjectReferenceType rolesElement : rolesElements) {
             handler.iterateActualStatus();
@@ -115,7 +115,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int userChunkSize = userChunk.size();
 
-        handler.setSubTitle("Map Users");
+        handler.enterNewStep("Map Users");
         handler.setOperationCountToProcess(miningRoleTypeChunks.size());
         for (MiningRoleTypeChunk chunk : miningRoleTypeChunks) {
             handler.iterateActualStatus();
@@ -125,7 +125,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare User Structure");
+        handler.enterNewStep("Prepare User Structure");
         handler.setOperationCountToProcess(userChunk.size());
         for (String key : userChunk.keySet()) {
             handler.iterateActualStatus();
@@ -149,7 +149,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, Handler handler, Task task) {
+            OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -164,7 +164,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         int usersCount = members.size();
 
         handler.setActive(true);
-        handler.setSubTitle("Prepare User Structure");
+        handler.enterNewStep("Prepare User Structure");
         handler.setOperationCountToProcess(usersCount);
         for (int i = 0; i < usersCount; i++) {
             handler.iterateActualStatus();
@@ -196,7 +196,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int roleChunkSize = roleChunk.size();
 
-        handler.setSubTitle("Map Roles");
+        handler.enterNewStep("Map Roles");
         handler.setOperationCountToProcess(usersCount);
         for (MiningUserTypeChunk chunk : miningUserTypeChunks) {
             handler.iterateActualStatus();
@@ -206,7 +206,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare Role Structure");
+        handler.enterNewStep("Prepare Role Structure");
         handler.setOperationCountToProcess(usersCount);
         for (String key : roleChunk.keySet()) {
             handler.iterateActualStatus();
@@ -230,7 +230,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster,
-            ModelService modelService, OperationResult result, Handler handler, Task task) {
+            ModelService modelService, OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
@@ -244,7 +244,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         Set<String> membersOidSet = new HashSet<>();
 
         handler.setActive(true);
-        handler.setSubTitle("Map Roles");
+        handler.enterNewStep("Map Roles");
         handler.setOperationCountToProcess(rolesElements.size());
         for (ObjectReferenceType objectReferenceType : rolesElements) {
             handler.iterateActualStatus();
@@ -267,7 +267,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
-        handler.setSubTitle("Map Users");
+        handler.enterNewStep("Map Users");
         handler.setOperationCountToProcess(roleMap.size());
         for (String key : roleMap.keySet()) {
             handler.iterateActualStatus();
@@ -278,7 +278,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare User Structure");
+        handler.enterNewStep("Prepare User Structure");
         handler.setOperationCountToProcess(roleChunk.size());
         for (List<String> key : roleChunk.keySet()) {
             handler.iterateActualStatus();
@@ -303,7 +303,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
     @Override
     public MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster,
-            ModelService modelService, OperationResult result, Handler handler, Task task) {
+            ModelService modelService, OperationResult result, RoleAnalysisProgressIncrement handler, Task task) {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 
@@ -317,7 +317,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         List<ObjectReferenceType> members = cluster.getMember();
 
         handler.setActive(true);
-        handler.setSubTitle("Map Users");
+        handler.enterNewStep("Map Users");
         handler.setOperationCountToProcess(members.size());
         for (ObjectReferenceType objectReferenceType : members) {
             handler.iterateActualStatus();
@@ -346,7 +346,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
 
-        handler.setSubTitle("Map Roles");
+        handler.enterNewStep("Map Roles");
         handler.setOperationCountToProcess(roleMap.size());
         for (String key : roleMap.keySet()) {
             handler.iterateActualStatus();
@@ -357,7 +357,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare Role Structure");
+        handler.enterNewStep("Prepare Role Structure");
         handler.setOperationCountToProcess(roleChunk.size());
         for (List<String> key : roleChunk.keySet()) {
             handler.iterateActualStatus();

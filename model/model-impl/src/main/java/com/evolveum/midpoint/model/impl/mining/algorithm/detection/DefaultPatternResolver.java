@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class DefaultPatternResolver {
 
-    private static final int MAX_PATTERN_INIT = 10;
+    private static final int MAX_PATTERN_INIT = 30;
     private final RoleAnalysisProcessModeType roleAnalysisProcessModeType;
 
     public DefaultPatternResolver(@NotNull RoleAnalysisProcessModeType roleAnalysisProcessModeType) {

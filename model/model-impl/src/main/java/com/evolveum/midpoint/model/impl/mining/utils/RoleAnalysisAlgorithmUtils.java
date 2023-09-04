@@ -18,7 +18,7 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.handler.Handler;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.common.mining.objects.statistic.ClusterStatistic;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.Cluster;
@@ -35,7 +35,7 @@ public class RoleAnalysisAlgorithmUtils {
     @NotNull
     public List<PrismObject<RoleAnalysisClusterType>> processClusters(ModelService modelService, Task task, OperationResult result,
             List<DataPoint> dataPoints, List<Cluster<DataPoint>> clusters,
-            @NotNull RoleAnalysisSessionType session, Handler handler) {
+            @NotNull RoleAnalysisSessionType session, RoleAnalysisProgressIncrement handler) {
 
         Integer sessionTypeObjectCount = getSessionTypeObjectCount(modelService, result, task);
 
@@ -44,7 +44,7 @@ public class RoleAnalysisAlgorithmUtils {
                 : UserType.COMPLEX_TYPE;
 
         int size = clusters.size();
-        handler.setSubTitle("Generate Cluster Statistics model");
+        handler.enterNewStep("Generate Cluster Statistics model");
         handler.setOperationCountToProcess(size);
         List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
                 .mapToObj(i -> {
@@ -56,18 +56,21 @@ public class RoleAnalysisAlgorithmUtils {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        handler.setSubTitle("Prepare Outliers");
-        handler.setOperationCountToProcess(dataPoints.size());
-        PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result,
-                dataPoints, complexType, session.getProcessMode(), handler, sessionTypeObjectCount);
-        clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
+         if (!dataPoints.isEmpty()) {
+             handler.enterNewStep("Prepare Outliers");
+             handler.setOperationCountToProcess(dataPoints.size());
+             PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result,
+                     dataPoints, complexType, session.getProcessMode(), handler, sessionTypeObjectCount);
+             clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
+
+         }
         return clusterTypeObjectWithStatistic;
     }
 
     @NotNull
     public List<PrismObject<RoleAnalysisClusterType>> processExactMatch(ModelService modelService, Task task, OperationResult result,
             List<DataPoint> dataPoints,
-            @NotNull RoleAnalysisSessionType session, Handler handler) {
+            @NotNull RoleAnalysisSessionType session, RoleAnalysisProgressIncrement handler) {
 
         Integer sessionTypeObjectCount = getSessionTypeObjectCount(modelService, result, task);
 
@@ -82,7 +85,7 @@ public class RoleAnalysisAlgorithmUtils {
         List<DataPoint> dataPointsOutliers = new ArrayList<>();
         int size = dataPoints.size();
 
-        handler.setSubTitle("Generate Cluster Statistics model");
+        handler.enterNewStep("Generate Cluster Statistics model");
         handler.setOperationCountToProcess(size);
         List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
                 .mapToObj(i -> {
@@ -94,11 +97,13 @@ public class RoleAnalysisAlgorithmUtils {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        handler.setSubTitle("Prepare Outliers");
-        handler.setOperationCountToProcess(dataPoints.size());
-        PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result, dataPoints,
-                processedObjectComplexType, session.getProcessMode(), handler, sessionTypeObjectCount);
-        clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
+        if (!dataPoints.isEmpty()) {
+            handler.enterNewStep("Prepare Outliers");
+            handler.setOperationCountToProcess(dataPoints.size());
+            PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result, dataPoints,
+                    processedObjectComplexType, session.getProcessMode(), handler, sessionTypeObjectCount);
+            clusterTypeObjectWithStatistic.add(clusterTypePrismObject);
+        }
         return clusterTypeObjectWithStatistic;
     }
 
@@ -246,7 +251,7 @@ public class RoleAnalysisAlgorithmUtils {
 
     private PrismObject<RoleAnalysisClusterType> prepareOutlierClusters(ModelService modelService, Task task,
             OperationResult result, List<DataPoint> dataPoints, QName complexType,
-            RoleAnalysisProcessModeType processMode, Handler handler, Integer sessionTypeObjectCount) {
+            RoleAnalysisProcessModeType processMode, RoleAnalysisProgressIncrement handler, Integer sessionTypeObjectCount) {
 
         int minVectorPoint = Integer.MAX_VALUE;
         int maxVectorPoint = -1;

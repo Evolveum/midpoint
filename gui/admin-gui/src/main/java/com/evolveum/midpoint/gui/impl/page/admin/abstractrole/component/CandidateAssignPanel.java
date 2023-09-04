@@ -7,24 +7,30 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
+import java.io.Serial;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -66,7 +72,8 @@ public class CandidateAssignPanel extends BasePanel<String> implements Popupable
             protected List<IColumn<SelectableBean<UserType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<UserType>, String>> defaultColumns = super.createDefaultColumns();
 
-                defaultColumns.add(new AbstractColumn<>(createStringResource("Add as candidate")) {
+                defaultColumns.add(new AbstractColumn<>(
+                        createStringResource("RoleMining.cluster.table.column.header.display")) {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> item, String s,
                             IModel<SelectableBean<UserType>> iModel) {
@@ -74,31 +81,50 @@ public class CandidateAssignPanel extends BasePanel<String> implements Popupable
                         String oid = iModel.getObject().getValue().getOid();
 
                         enable = !existMembersOid.contains(oid);
+                        CompositedIcon icon = resolveIcon(enable);
 
-                        AjaxIconButton ajaxButton = new AjaxIconButton(s, new LoadableDetachableModel<>() {
+                        AjaxCompositedIconSubmitButton addCandidateButton = new AjaxCompositedIconSubmitButton(s,
+                                icon,
+                                createStringResource("RoleMining.button.title.add")) {
+                            @Serial private static final long serialVersionUID = 1L;
+
                             @Override
-                            protected String load() {
-                                if (enable) {
-                                    return " fa fa-plus";
-                                } else {
-                                    return " fa fa-ban";
-                                }
+                            public CompositedIcon getIcon() {
+
+                                return resolveIcon(enable);
                             }
-                        },
-                                createStringResource("idk")) {
 
                             @Override
-                            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            protected void onSubmit(AjaxRequestTarget target) {
                                 this.setEnabled(false);
                                 enable = false;
-                                ajaxRequestTarget.add(this);
-                                performAddOperation(ajaxRequestTarget, iModel);
+                                target.add(this);
+                                performAddOperation(target, iModel);
+                            }
+
+                            @Override
+                            protected void onError(AjaxRequestTarget target) {
+                                target.add(((PageBase) getPage()).getFeedbackPanel());
                             }
                         };
-                        ajaxButton.setOutputMarkupId(true);
-                        ajaxButton.setEnabled(enable);
-                        item.add(ajaxButton);
+                        addCandidateButton.titleAsLabel(true);
+                        addCandidateButton.setOutputMarkupId(true);
+                        addCandidateButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                        addCandidateButton.setEnabled(enable);
+                        item.add(addCandidateButton);
 
+                    }
+
+                    private CompositedIcon resolveIcon(boolean enable) {
+                        CompositedIconBuilder iconBuilder;
+                        if (CandidateAssignPanel.this.enable) {
+                            iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
+                                    LayeredIconCssStyle.IN_ROW_STYLE);
+                        } else {
+                            iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_BAN,
+                                    LayeredIconCssStyle.IN_ROW_STYLE);
+                        }
+                        return iconBuilder.build();
                     }
                 });
                 return defaultColumns;

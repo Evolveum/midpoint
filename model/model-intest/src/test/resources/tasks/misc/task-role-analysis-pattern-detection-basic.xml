@@ -13,7 +13,7 @@
     <activity>
         <work>
             <roleAnalysisPatternDetection>
-                <clusterRef oid="16a8b95a-8a37-4f91-b835-bb77670c2899"/> <!-- random OID for now -->
+                <clusterRef oid="16a8b95a-8a37-4f91-b835-bb77670c2899"/>
             </roleAnalysisPatternDetection>
         </work>
     </activity>

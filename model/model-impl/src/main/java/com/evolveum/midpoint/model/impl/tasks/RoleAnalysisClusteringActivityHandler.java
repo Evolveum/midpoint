@@ -8,28 +8,23 @@ package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
+import com.evolveum.midpoint.repo.common.activity.run.*;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringAction;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
-import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -77,7 +72,7 @@ public class RoleAnalysisClusteringActivityHandler
         return new MyActivityRun(context);
     }
 
-    class MyActivityRun
+    static class MyActivityRun
             extends LocalActivityRun<MyWorkDefinition, RoleAnalysisClusteringActivityHandler, AbstractActivityWorkStateType> {
 
         MyActivityRun(
@@ -87,26 +82,26 @@ public class RoleAnalysisClusteringActivityHandler
         }
 
         @Override
-        protected @NotNull ActivityRunResult runLocally(OperationResult parentResult) {
+        protected @NotNull ActivityRunResult runLocally(OperationResult parentResult)
+                throws ActivityRunException, CommonException {
             RunningTask runningTask = getRunningTask();
             runningTask.setExecutionSupport(this);
+
+            // There are 7 steps; currently, we simply increase the progress value by 1 on each step.
+            // Later, we will provide more elaborate progress reporting.
+            activityState.getLiveProgress().setExpectedTotal(7);
+            activityState.updateProgressNoCommit();
+            activityState.flushPendingTaskModifications(parentResult);
 
             // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
             OperationResult result = parentResult.createSubresult(OP_EXECUTE);
 
             try {
-                LOGGER.info(
-                        "Running role analysis clustering activity - FIXME add the implementation; session OID = {}",
-                        getWorkDefinition().sessionOid);
+                String sessionOid = getWorkDefinition().sessionOid;
+                LOGGER.debug("Running role analysis clustering activity; session OID = {}", sessionOid);
 
-                // FIXME add the implementation
-
-                TaskManager taskManager = getModelBeans().taskManager;
-                ModelService modelService = getModelBeans().modelService;
-                Task task = taskManager.createTaskInstance("ClusteringActionActivity");
-
-                ClusteringAction clusteringAction = new ClusteringAction();
-                clusteringAction.execute(modelService, getWorkDefinition().sessionOid, result, task);
+                ClusteringAction clusteringAction = new ClusteringAction(this);
+                clusteringAction.execute(sessionOid, result);
 
             } catch (Throwable t) {
                 result.recordException(t);
@@ -116,13 +111,7 @@ public class RoleAnalysisClusteringActivityHandler
                 result.close();
             }
 
-            OperationResultStatus status = result.getStatus();
-
-            // We increase the progress only from 0 to 1.
-            incrementProgress(new QualifiedItemProcessingOutcomeType()
-                    .outcome(status.isError() ? ItemProcessingOutcomeType.FAILURE : ItemProcessingOutcomeType.SUCCESS));
-
-            return standardRunResult(status);
+            return standardRunResult(result.getStatus());
         }
     }
 

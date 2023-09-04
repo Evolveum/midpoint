@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;
@@ -86,6 +87,8 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.PARAM_IS_WIZARD;
 
 public class LeftMenuPanel extends BasePanel<Void> {
 
@@ -396,9 +399,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED
         );
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
-//        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMiningSimple.class));
-//        roleMenu.addMenuItem(new MenuItem("RBAM", PageRoleMiningRBAM.class));
-        roleMenu.addMenuItem(new MenuItem("Mining", PageRoleAnalysis.class));
+
+        roleMenu.addMenuItemAtIndex(new MenuItem("PageRoleAnalysis.menu.title",
+                GuiStyleConstants.EVO_CASE_OBJECT_ICON,
+                PageRoleAnalysis.class), 1);
+        roleMenu.addMenuItem(new MenuItem("PageRoleAnalysisSession.menu.title",
+                GuiStyleConstants.CLASS_PLUS_CIRCLE,
+                PageRoleAnalysisSession.class,
+                new PageParameters().add(PARAM_IS_WIZARD, true)));
 
         return roleMenu;
     }

@@ -68,10 +68,7 @@ public class ExtractPatternUtils {
 
         if (defaultDetection.size() == 1) {
             RoleAnalysisDetectionPatternType detectionPatternType = defaultDetection.get(0);
-            if (detectionPatternType == null || detectionPatternType.getClusterMetric() == null) {
-                return true;
-            }
-            return true;
+            return detectionPatternType == null || detectionPatternType.getClusterMetric() == null;
         } else {
             return false;
         }

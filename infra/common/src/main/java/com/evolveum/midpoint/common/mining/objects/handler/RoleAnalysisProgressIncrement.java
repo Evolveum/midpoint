@@ -7,24 +7,38 @@
 
 package com.evolveum.midpoint.common.mining.objects.handler;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.time.Duration;
 
-import static com.evolveum.midpoint.util.ClassPathUtil.LOGGER;
+/**
+ * Keeps the state of the role-mining activity (clustering, pattern detection, etc).
+ */
+public class RoleAnalysisProgressIncrement implements Serializable {
 
-//TODO
-public class Handler implements Serializable {
+    private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisProgressIncrement.class);
 
     private String title;
     private String subTitle;
     private int operationCountToProcess;
     private boolean isActive;
     private int actualStatus;
-    private int stepsCount;
+    private final int stepsCount;
     private int currentStep;
     private String objectId;
     private final long startTime;
     private long endTime;
+
+    /**
+     * Called when an external progress value (currently, for tasks) has to be incremented.
+     *
+     * TODO what about serializability? Currently we assume we'll never use deserialized version of this class isntance
+     */
+    @Nullable private transient final Runnable progressIncrementer;
 
     public int getPercentage() {
         return percentage;
@@ -42,7 +56,11 @@ public class Handler implements Serializable {
                 .toLowerCase();
     }
 
-    public Handler(String title, int stepsCount) {
+    public RoleAnalysisProgressIncrement(String title, int stepsCount) {
+        this(title, stepsCount, null);
+    }
+
+    public RoleAnalysisProgressIncrement(String title, int stepsCount, @Nullable Runnable progressIncrementer) {
         this.startTime = System.currentTimeMillis();
         this.endTime = System.currentTimeMillis();
         this.title = title;
@@ -50,22 +68,26 @@ public class Handler implements Serializable {
         this.isActive = true;
         this.actualStatus = 0;
         this.currentStep = 0;
+        this.progressIncrementer = progressIncrementer;
     }
 
     public void iterateActualStatus() {
         this.actualStatus++;
         this.endTime = System.currentTimeMillis();
         this.percentage = (int) ((actualStatus / (double) operationCountToProcess) * 100);
-        print();
+        log();
     }
 
-    public void setSubTitle(String subTitle) {
+    public void enterNewStep(String subTitle) {
+        if (progressIncrementer != null) {
+            progressIncrementer.run();
+        }
         this.currentStep++;
         this.operationCountToProcess = 0;
         this.actualStatus = 0;
         this.subTitle = subTitle;
         this.percentage = 0;
-        print();
+        log();
     }
 
     @Override
@@ -76,12 +98,12 @@ public class Handler implements Serializable {
                 isActive, actualStatus, getObjectId(), getDuration());
     }
 
-    public void print() {
-        String handler = String.format("Step{%d/%d} - Status{%s, subOperation='%s', percentage=%d processedCount=%d, "
-                        + "isActive=%b, actualStatus=%d} Object Id{%s} Duration{%s}",
+    public void log() {
+        LOGGER.debug(
+                "Step {}/{} - Status=[{}, subOperation='{}', percentage={} processedCount={}, "
+                        + "isActive={}, actualStatus={}] Object Id={} Duration={}",
                 currentStep, stepsCount, title, subTitle, percentage, operationCountToProcess, isActive,
                 actualStatus, getObjectId(), getDuration());
-        LOGGER.info(handler);
     }
 
     public void setOperationCountToProcess(int operationCountToProcess) {
@@ -126,9 +148,5 @@ public class Handler implements Serializable {
 
     public void setObjectId(String objectId) {
         this.objectId = objectId;
-    }
-
-    public void setStepsCount(int stepsCount) {
-        this.stepsCount = stepsCount;
     }
 }

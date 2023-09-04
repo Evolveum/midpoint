@@ -34,10 +34,12 @@ import java.util.List;
 @PanelType(name = "miningBasic", defaultContainerPath = "empty")
 @PanelInstance(identifier = "sessionBasic",
         applicableForType = RoleAnalysisSessionType.class,
+        defaultPanel = true,
         display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
 
 @PanelInstance(identifier = "clusterBasic",
         applicableForType = RoleAnalysisClusterType.class,
+        defaultPanel = true,
         display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
 public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 

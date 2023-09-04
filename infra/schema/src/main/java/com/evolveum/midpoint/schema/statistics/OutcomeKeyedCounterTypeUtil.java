@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
@@ -27,8 +26,7 @@ public class OutcomeKeyedCounterTypeUtil {
     /** Adds two lists of counters: finds matching pairs and adds them. */
     public static void addCounters(List<OutcomeKeyedCounterType> sumCounters, List<OutcomeKeyedCounterType> deltaCounters) {
         for (OutcomeKeyedCounterType deltaCounter : deltaCounters) {
-            OutcomeKeyedCounterType matchingCounter =
-                    findOrCreateCounter(sumCounters, deltaCounter.getOutcome(), null);
+            OutcomeKeyedCounterType matchingCounter = findOrCreateCounter(sumCounters, deltaCounter.getOutcome());
             addMatchingCounters(matchingCounter, deltaCounter);
         }
     }
@@ -39,25 +37,24 @@ public class OutcomeKeyedCounterTypeUtil {
     }
 
     /** Finds a counter, creating _and adding to the list_ if necessary. */
-    static OutcomeKeyedCounterType findOrCreateCounter(List<OutcomeKeyedCounterType> counters,
-            QualifiedItemProcessingOutcomeType outcome, PrismContext prismContext) {
+    private static OutcomeKeyedCounterType findOrCreateCounter(
+            List<OutcomeKeyedCounterType> counters, QualifiedItemProcessingOutcomeType outcome) {
         return counters.stream()
                 .filter(counter -> Objects.equals(counter.getOutcome(), outcome))
                 .findFirst()
                 .orElseGet(
-                        () -> add(counters, new OutcomeKeyedCounterType(prismContext).outcome(outcome.clone())));
+                        () -> add(counters, new OutcomeKeyedCounterType().outcome(outcome.clone())));
     }
 
     /** Like {@link List#add(Object)} but returns the value. */
-    static <T> T add(List<T> list, T value) {
+    private static <T> T add(List<T> list, T value) {
         list.add(value);
         return value;
     }
 
     /** Increments counter corresponding to given outcome. */
-    public static int incrementCounter(List<OutcomeKeyedCounterType> counters, QualifiedItemProcessingOutcomeType outcome,
-            PrismContext prismContext) {
-        OutcomeKeyedCounterType counter = findOrCreateCounter(counters, outcome, prismContext);
+    public static int incrementCounter(List<OutcomeKeyedCounterType> counters, QualifiedItemProcessingOutcomeType outcome) {
+        OutcomeKeyedCounterType counter = findOrCreateCounter(counters, outcome);
         counter.setCount(or0(counter.getCount()) + 1);
         return counter.getCount();
     }
@@ -101,7 +98,7 @@ public class OutcomeKeyedCounterTypeUtil {
         }
     }
 
-    public static String getOutcomeQualifierUri(OutcomeKeyedCounterType counter) {
+    static String getOutcomeQualifierUri(OutcomeKeyedCounterType counter) {
         if (counter != null && counter.getOutcome() != null) {
             return counter.getOutcome().getQualifierUri();
         } else {
@@ -118,15 +115,10 @@ public class OutcomeKeyedCounterTypeUtil {
     }
 
     public static Predicate<OutcomeKeyedCounterType> getCounterFilter(ItemProcessingOutcomeType outcome) {
-        switch (outcome) {
-            case SUCCESS:
-                return OutcomeKeyedCounterTypeUtil::isSuccess;
-            case FAILURE:
-                return OutcomeKeyedCounterTypeUtil::isFailure;
-            case SKIP:
-                return OutcomeKeyedCounterTypeUtil::isSkip;
-            default:
-                throw new AssertionError(outcome);
-        }
+        return switch (outcome) {
+            case SUCCESS -> OutcomeKeyedCounterTypeUtil::isSuccess;
+            case FAILURE -> OutcomeKeyedCounterTypeUtil::isFailure;
+            case SKIP -> OutcomeKeyedCounterTypeUtil::isSkip;
+        };
     }
 }
