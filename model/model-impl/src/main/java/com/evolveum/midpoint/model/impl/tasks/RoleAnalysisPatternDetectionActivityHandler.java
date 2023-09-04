@@ -13,27 +13,24 @@ import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.mining.algorithm.detection.DetectionActionExecutorNew;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
-import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisPatternDetectionWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * TODO
@@ -94,13 +91,16 @@ public class RoleAnalysisPatternDetectionActivityHandler
         }
 
         @Override
-        protected @NotNull ActivityRunResult runLocally(OperationResult parentResult) {
+        protected @NotNull ActivityRunResult runLocally(OperationResult parentResult)
+                throws ActivityRunException, CommonException {
             RunningTask runningTask = getRunningTask();
             runningTask.setExecutionSupport(this);
 
             // There are 6 steps; currently, we simply increase the progress value by 1 on each step.
             // See the analogous situation in RoleAnalysisClusteringActivityHandler.
             activityState.getLiveProgress().setExpectedTotal(6);
+            activityState.updateProgressNoCommit();
+            activityState.flushPendingTaskModifications(parentResult);
 
             // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
             OperationResult result = parentResult.createSubresult(OP_EXECUTE);

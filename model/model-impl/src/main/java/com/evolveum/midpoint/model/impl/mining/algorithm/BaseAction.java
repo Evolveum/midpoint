@@ -32,5 +32,7 @@ public abstract class BaseAction {
         activityRun.incrementProgress(
                 new QualifiedItemProcessingOutcomeType()
                         .outcome(ItemProcessingOutcomeType.SUCCESS));
+        // This is brutal hack as it generates its own operation result. TODO rework
+        activityRun.getActivityState().getLiveItemProcessingStatistics().updateStatisticsForSimpleClients(true);
     }
 }
