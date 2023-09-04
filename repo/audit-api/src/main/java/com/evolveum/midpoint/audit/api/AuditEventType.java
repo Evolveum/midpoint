@@ -50,7 +50,8 @@ public enum AuditEventType {
 
     RUN_TASK_IMMEDIATELY(new DisplayType().icon(new IconType().cssClass("fa fa-play").color("green")).color("green")),
 
-    DISCOVER_OBJECT;
+    DISCOVER_OBJECT,
+    INFORMATION_DISCLOSURE;
 
     public static AuditEventType fromSchemaValue(AuditEventTypeType event) {
         if (event == null) {
@@ -87,6 +88,8 @@ public enum AuditEventType {
                 return AuditEventType.RUN_TASK_IMMEDIATELY;
             case DISCOVER_OBJECT:
                 return AuditEventType.DISCOVER_OBJECT;
+            case INFORMATION_DISCLOSURE:
+                return AuditEventType.INFORMATION_DISCLOSURE;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }
@@ -141,6 +144,8 @@ public enum AuditEventType {
                 return AuditEventTypeType.RUN_TASK_IMMEDIATELY;
             case DISCOVER_OBJECT:
                 return AuditEventTypeType.DISCOVER_OBJECT;
+            case INFORMATION_DISCLOSURE:
+                return AuditEventTypeType.INFORMATION_DISCLOSURE;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }
