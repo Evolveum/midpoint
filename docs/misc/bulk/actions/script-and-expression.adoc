@@ -116,7 +116,7 @@ Experimental.
 Variables available in the script or expression are:
 
 . `input` - the item being processed (or the whole pipeline; this is experimental, though);
-. other standard variables like `actor`, `prismContext`, and supporting objects (`midpoint`, `basic`, log`, ...).
+. other standard variables like `actor`, `prismContext`, and supporting objects (`midpoint`, `basic`, `log`, ...).
 
 == Limitations
 

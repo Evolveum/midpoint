@@ -81,6 +81,22 @@ For more info see: xref:/midpoint/reference/security/audit/index.adoc[Auditing]
 
 * xref:/midpoint/reference/concepts/object-lifecycle/[Lifecycle state] `suspended` was introduced to represent temporarily-disabled objects.
 
+* The performance of security-related post-processing of objects retrieved xref:/midpoint/devel/design/apply-schemas-and-security-4.8/summary.adoc[was improved].
+See also bug:MID-8479[] and bug:MID-8370[].
+
+* Faster and more flexible xref:/midpoint/reference/security/privilege-elevation/[privilege elevation feature] was provided.
+
+* The xref:/midpoint/reference/expressions/expressions/profiles/configuration.adoc[expression profiles] feature was improved in 4.8.
+In particular, xref:/midpoint/reference/security/trusted-actions/[trusted bulk actions] can now be run by unprivileged users.
+Assigning expression profiles to arbitrary expressions is a limited, experimental feature.
+See xref:/midpoint/reference/expressions/expressions/profiles/coverage/[].
+
+* Library functions (and other kinds of expressions) can now be called directly from the bulk actions, using the new `expressionEvaluation` action.
+See xref:/midpoint/reference/misc/bulk/actions/script-and-expression/[].
+
+* Selected items smaller than object (e.g. case work items, certification cases, certification cases work items, operation execution records, partially also assignments and simulation-related processed objects records) can be authorized regarding getting, searching, and completion (for work items).
+See also xref:/midpoint/reference/security/authorization/configuration/selectors/type-and-parent/[].
+
 === Miscellaneous Improvements
 
 * TODO
@@ -505,47 +521,12 @@ See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c
 Instead, a new `model-3#use` authorization was created to cover this use case.
 See also commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
 
-* The new `bulk-3#` authorizations replace (now deprecated and long-time confusing) `#executeScript` one.
+* The new `bulk-3#` xref:/midpoint/reference/security/authorization/bulk-actions/[authorizations] replace (now deprecated and long-time confusing) `#executeScript` one.
 See also commits https://github.com/Evolveum/midpoint/commit/291313570a62cea67addc43d3dc310c142810581[291313] and https://github.com/Evolveum/midpoint/commit/3c50c95c2f351bed92165dc4b9bed8140fd06839[3c50c9].
 
-// * The behavior of synchronization reaction to `deleted` situation was changed.
-// Now it checks the existence of (other) accounts of given type, and invokes the actions only if there is none.
-// See commit link:https://github.com/Evolveum/midpoint/commit/89e139da[89e139da].
-//
-// * The behavior of "Shadows cleanup" activity was changed.
-// Now it checks for real existence of abandoned shadows, assuming that the resource in question has the `read` capability.
-// See also bug:MID-8350[] and commit link:https://github.com/Evolveum/midpoint/commit/9402fd3b[9402fd3b].
-//
-// * Safe operations during preview changes
-// ** Create on demand feature used in assignment target search now doesn't create objects in internal midpoint repository nor on resources.
-// Operations rather fails if necessary.
-// ** Sequence numbers aren't used during preview. Sequence number doesn't advance, nor is returned to list of returned values.
-//
-// * Create on demand is now safe to use in multithreaded tasks.
-//
-// * Users that run distributed report exports now need also the `#modify` authorization for `ReportDataType` objects instead of simple `#add`.
-// It is because of the fix in the process of aggregation of these reports.
-// See also commit link:https://github.com/Evolveum/midpoint/commit/60f52da3[60f52da3].
-//
-// * User authentication while password reset procedure was improved with new authentication modules. For more information, please see xref:/midpoint/reference/security/credentials/password-reset/index.adoc[Password Reset Configuration] page for details.
-//
-// * Selection of resource objects for Live synchronization tasks was implemented (see bug:MID-8537[] and commit https://github.com/Evolveum/midpoint/commit/d929179c[d929179c]).
-// Some configuration that are not 100% correct and rely e.g. on setting `kind` to `account` in a live sync task that returns unqualified objects (i.e. objects without `kind` and `intent`), would break down.
-// Please check your settings.
-// If your task expects that some objects may not be qualified, do not use `kind` and `intent` for specification of synchronized resource objects set.
-//
-// * Legalization of projections now creates constructions with specific object kind and intent.
-// As an additional safety check, for _unclassified_ projections (i.e. those with unknown kind or intent), we _do not_ create legalization assignments.
-// See bug:MID-8562[] and commit https://github.com/Evolveum/midpoint/commit/e57142b9[e57142b9].
-//
-// * When an assignment target (pointed to by `targetRef`) cannot be found during assignment deletion, the error is no longer logged.
-// (Only at DEBUG level.)
-// See bug:MID-8366[] and commit https://github.com/Evolveum/midpoint/commit/75c10795[75c10795].
-//
-// * The handling of authorizations of so-called elaborate items (e.g. task `activity` and `activityState`) was fixed.
-// These are no longer ignored during authorization processing.
-// If your authorizations relied on the original (faulty) behavior, please adapt them.
-// See bug:MID-8635[] and commit https://github.com/Evolveum/midpoint/commit/131cb46d[131cb46d].
+* Some authorizations were deprecated and removed, please see xref:/midpoint/devel/design/schema-cleanup-4.8/authorizations/[here].
+
+* The `assignee` authorization clause now covers all assignees, not only assignees of open work items (commit https://github.com/Evolveum/midpoint/commit/c97e31dc[c97e31dc]).
 
 === Java and REST API Changes Since 4.7
 
@@ -572,11 +553,6 @@ These changes will influence midPoint forks and deployments that are heavily cus
 This may affect those deployments that provide their own activity handlers.
 See https://github.com/Evolveum/midpoint/commit/12f6f66d[12f6f66d].
 
-
-// * Some now-obsolete methods in `OperationResult` were removed (see commit link:https://github.com/Evolveum/midpoint/commit/c90e5ee1[c90e5ee1]).
-// * Code in the `provisioning-impl` module was streamlined, so check any potential dependencies on it.
-// * So-called _proposed shadows_ are no longer marked using `lifecycleState` property.
-// See bug:MID-4833[], commit link:https://github.com/Evolveum/midpoint/commit/b7d9c550[b7d9c550], and the xref:/midpoint/reference/resources/shadow/dead/[docs].
 
 ++++
 {% include release-issues.html %}

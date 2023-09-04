@@ -188,13 +188,6 @@ Currently, the mappings can be used in the following places #TODO fill the table
 | role condition
 |
 
-| `[EP:M:RC]`
-| role condition
-| The role conditions are evaluated as mappings.
-| OK
-|
-|
-
 .2+| `[EP:M:PRC]`
 .2+| policy rule condition
 .2+| The policy rule conditions are evaluated as mappings.
