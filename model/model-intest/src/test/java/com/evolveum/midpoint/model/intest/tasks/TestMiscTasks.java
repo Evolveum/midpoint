@@ -642,6 +642,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         TASK_ROLE_ANALYSIS_CLUSTERING_BASIC.rerun(result); // asserts success
 
         then("task is OK");
+        //Temporarily set to 1 due to incomplete object.
         TASK_ROLE_ANALYSIS_CLUSTERING_BASIC.assertAfter()
                 .display()
                 .assertProgress(1);
@@ -663,6 +664,6 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         then("task is OK");
         TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.assertAfter()
                 .display()
-                .assertProgress(1);
+                .assertProgress(6);
     }
 }
