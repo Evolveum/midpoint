@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
 public class DetectionActionExecutor implements Serializable {
     private final DetectionOperation detectionType;
 
-    Handler handler = new Handler("Pattern Detection", 6);
+    private final Handler handler = new Handler("Pattern Detection", 6);
 
     private final DetectionOption detectionOption;
 

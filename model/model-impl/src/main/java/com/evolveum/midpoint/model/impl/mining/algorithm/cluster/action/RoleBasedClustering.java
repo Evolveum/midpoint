@@ -38,13 +38,13 @@ public class RoleBasedClustering implements Clusterable {
         int minUserOccupancy = sessionOptionType.getPropertiesRange().getMin().intValue();
         int maxUserOccupancy = sessionOptionType.getPropertiesRange().getMax().intValue();
 
-        handler.setSubTitle("Load Data");
+        handler.enterNewStep("Load Data");
         handler.setOperationCountToProcess(1);
         ListMultimap<List<String>, String> chunkMap = loadData(result, modelService,
                 minUserOccupancy, maxUserOccupancy, sessionOptionType.getQuery(), task);
         handler.iterateActualStatus();
 
-        handler.setSubTitle("Prepare Data");
+        handler.enterNewStep("Prepare Data");
         handler.setOperationCountToProcess(1);
         List<DataPoint> dataPoints = prepareDataPoints(chunkMap);
         handler.iterateActualStatus();

@@ -22,8 +22,11 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.Handler;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.mining.algorithm.BaseAction;
 import com.evolveum.midpoint.model.impl.mining.algorithm.chunk.PrepareChunkStructure;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -31,25 +34,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-public class DetectionActionExecutorNew implements Serializable {
+import org.jetbrains.annotations.NotNull;
+
+public class DetectionActionExecutorNew extends BaseAction {
+
     private final DetectionOperation detectionType;
-    Handler handler;
+    private final Handler handler = new Handler("Pattern Detection", 6, this::incrementProgress);
     private final String clusterOid;
     private final ModelService modelService;
+
+    /** BEWARE! Do not create subresults from this value. Just to avoid confusion. */
     private final OperationResult result;
+
     private final Task task;
 
-    public DetectionActionExecutorNew(String clusterOid, ModelService modelService, OperationResult result, Task task) {
+    public DetectionActionExecutorNew(
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun,
+            String clusterOid,
+            OperationResult result) {
+        super(activityRun);
         this.detectionType = new PatternResolver();
         this.clusterOid = clusterOid;
-        this.modelService = modelService;
+        this.modelService = ModelBeans.get().modelService;
         this.result = result;
-        this.handler = new Handler("Pattern Detection", 6);
-        this.task = task;
+        this.task = activityRun.getRunningTask();
     }
 
     public void executeDetectionProcess() {
-        handler.setSubTitle("Load Data");
+        handler.enterNewStep("Load Data");
         handler.setActive(true);
         handler.setOperationCountToProcess(1);
         PrismObject<RoleAnalysisClusterType> clusterPrismObject = getClusterTypeObject(modelService, clusterOid, result, task);

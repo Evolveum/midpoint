@@ -87,7 +87,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int rolesCount = rolesElements.size();
         handler.setActive(true);
-        handler.setSubTitle("Prepare Role Structure");
+        handler.enterNewStep("Prepare Role Structure");
         handler.setOperationCountToProcess(rolesCount);
         for (ObjectReferenceType rolesElement : rolesElements) {
             handler.iterateActualStatus();
@@ -115,7 +115,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int userChunkSize = userChunk.size();
 
-        handler.setSubTitle("Map Users");
+        handler.enterNewStep("Map Users");
         handler.setOperationCountToProcess(miningRoleTypeChunks.size());
         for (MiningRoleTypeChunk chunk : miningRoleTypeChunks) {
             handler.iterateActualStatus();
@@ -125,7 +125,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare User Structure");
+        handler.enterNewStep("Prepare User Structure");
         handler.setOperationCountToProcess(userChunk.size());
         for (String key : userChunk.keySet()) {
             handler.iterateActualStatus();
@@ -164,7 +164,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         int usersCount = members.size();
 
         handler.setActive(true);
-        handler.setSubTitle("Prepare User Structure");
+        handler.enterNewStep("Prepare User Structure");
         handler.setOperationCountToProcess(usersCount);
         for (int i = 0; i < usersCount; i++) {
             handler.iterateActualStatus();
@@ -196,7 +196,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int roleChunkSize = roleChunk.size();
 
-        handler.setSubTitle("Map Roles");
+        handler.enterNewStep("Map Roles");
         handler.setOperationCountToProcess(usersCount);
         for (MiningUserTypeChunk chunk : miningUserTypeChunks) {
             handler.iterateActualStatus();
@@ -206,7 +206,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare Role Structure");
+        handler.enterNewStep("Prepare Role Structure");
         handler.setOperationCountToProcess(usersCount);
         for (String key : roleChunk.keySet()) {
             handler.iterateActualStatus();
@@ -244,7 +244,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         Set<String> membersOidSet = new HashSet<>();
 
         handler.setActive(true);
-        handler.setSubTitle("Map Roles");
+        handler.enterNewStep("Map Roles");
         handler.setOperationCountToProcess(rolesElements.size());
         for (ObjectReferenceType objectReferenceType : rolesElements) {
             handler.iterateActualStatus();
@@ -267,7 +267,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
-        handler.setSubTitle("Map Users");
+        handler.enterNewStep("Map Users");
         handler.setOperationCountToProcess(roleMap.size());
         for (String key : roleMap.keySet()) {
             handler.iterateActualStatus();
@@ -278,7 +278,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare User Structure");
+        handler.enterNewStep("Prepare User Structure");
         handler.setOperationCountToProcess(roleChunk.size());
         for (List<String> key : roleChunk.keySet()) {
             handler.iterateActualStatus();
@@ -317,7 +317,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         List<ObjectReferenceType> members = cluster.getMember();
 
         handler.setActive(true);
-        handler.setSubTitle("Map Users");
+        handler.enterNewStep("Map Users");
         handler.setOperationCountToProcess(members.size());
         for (ObjectReferenceType objectReferenceType : members) {
             handler.iterateActualStatus();
@@ -346,7 +346,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
         //user //role
         ListMultimap<List<String>, String> roleChunk = ArrayListMultimap.create();
 
-        handler.setSubTitle("Map Roles");
+        handler.enterNewStep("Map Roles");
         handler.setOperationCountToProcess(roleMap.size());
         for (String key : roleMap.keySet()) {
             handler.iterateActualStatus();
@@ -357,7 +357,7 @@ public class PrepareExpandStructure implements MiningStructure, Serializable {
 
         int memberCount = membersOidSet.size();
 
-        handler.setSubTitle("Prepare Role Structure");
+        handler.enterNewStep("Prepare Role Structure");
         handler.setOperationCountToProcess(roleChunk.size());
         for (List<String> key : roleChunk.keySet()) {
             handler.iterateActualStatus();

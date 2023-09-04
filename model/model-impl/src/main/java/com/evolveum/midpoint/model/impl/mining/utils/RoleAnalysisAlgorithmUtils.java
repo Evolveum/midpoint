@@ -44,7 +44,7 @@ public class RoleAnalysisAlgorithmUtils {
                 : UserType.COMPLEX_TYPE;
 
         int size = clusters.size();
-        handler.setSubTitle("Generate Cluster Statistics model");
+        handler.enterNewStep("Generate Cluster Statistics model");
         handler.setOperationCountToProcess(size);
         List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
                 .mapToObj(i -> {
@@ -56,7 +56,7 @@ public class RoleAnalysisAlgorithmUtils {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        handler.setSubTitle("Prepare Outliers");
+        handler.enterNewStep("Prepare Outliers");
         handler.setOperationCountToProcess(dataPoints.size());
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result,
                 dataPoints, complexType, session.getProcessMode(), handler, sessionTypeObjectCount);
@@ -82,7 +82,7 @@ public class RoleAnalysisAlgorithmUtils {
         List<DataPoint> dataPointsOutliers = new ArrayList<>();
         int size = dataPoints.size();
 
-        handler.setSubTitle("Generate Cluster Statistics model");
+        handler.enterNewStep("Generate Cluster Statistics model");
         handler.setOperationCountToProcess(size);
         List<PrismObject<RoleAnalysisClusterType>> clusterTypeObjectWithStatistic = IntStream.range(0, size)
                 .mapToObj(i -> {
@@ -94,7 +94,7 @@ public class RoleAnalysisAlgorithmUtils {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        handler.setSubTitle("Prepare Outliers");
+        handler.enterNewStep("Prepare Outliers");
         handler.setOperationCountToProcess(dataPoints.size());
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = prepareOutlierClusters(modelService, task, result, dataPoints,
                 processedObjectComplexType, session.getProcessMode(), handler, sessionTypeObjectCount);

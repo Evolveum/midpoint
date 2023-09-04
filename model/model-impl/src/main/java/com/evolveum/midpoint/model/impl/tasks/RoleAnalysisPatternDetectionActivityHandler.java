@@ -98,20 +98,17 @@ public class RoleAnalysisPatternDetectionActivityHandler
             RunningTask runningTask = getRunningTask();
             runningTask.setExecutionSupport(this);
 
+            // There are 6 steps; currently, we simply increase the progress value by 1 on each step.
+            // See the analogous situation in RoleAnalysisClusteringActivityHandler.
+            activityState.getLiveProgress().setExpectedTotal(6);
+
             // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
             OperationResult result = parentResult.createSubresult(OP_EXECUTE);
             try {
-                LOGGER.info(
-                        "Running role analysis pattern detection activity - FIXME add the implementation; cluster OID: {}",
-                        getWorkDefinition().clusterOid);
+                String clusterOid = getWorkDefinition().clusterOid;
+                LOGGER.debug("Running role analysis pattern detection activity; cluster OID: {}", clusterOid);
 
-                // FIXME add the implementation here
-                TaskManager taskManager = getModelBeans().taskManager;
-                ModelService modelService = getModelBeans().modelService;
-                Task task = taskManager.createTaskInstance("DetectionActionActivity");
-
-//                RepositoryService repositoryService = getBeans().repositoryService;
-                new DetectionActionExecutorNew(getWorkDefinition().clusterOid, modelService, result, task)
+                new DetectionActionExecutorNew(this, clusterOid, result)
                         .executeDetectionProcess();
 
             } catch (Throwable t) {
@@ -122,13 +119,7 @@ public class RoleAnalysisPatternDetectionActivityHandler
                 result.close();
             }
 
-            OperationResultStatus status = result.getStatus();
-
-            // We increase the progress only from 0 to 1.
-            incrementProgress(new QualifiedItemProcessingOutcomeType()
-                    .outcome(status.isError() ? ItemProcessingOutcomeType.FAILURE : ItemProcessingOutcomeType.SUCCESS));
-
-            return standardRunResult(status);
+            return standardRunResult(result.getStatus());
         }
     }
 

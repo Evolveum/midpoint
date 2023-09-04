@@ -32,7 +32,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         Map<Clusterable, PointStatus> visited = new HashMap<>();
 
         handler.setActive(true);
-        handler.setSubTitle("Clustering");
+        handler.enterNewStep("Clustering");
         handler.setOperationCountToProcess(points.size());
         for (T point : points) {
             handler.iterateActualStatus();
