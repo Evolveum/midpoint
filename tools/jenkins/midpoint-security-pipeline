@@ -55,10 +55,8 @@ podTemplate(
 
                         mvn org.owasp:dependency-check-maven:aggregate
                     """
+                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
                 }
-            }
-            stage("publish") {
-                dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
             }
 
             currentBuild.result = 'SUCCESS'
