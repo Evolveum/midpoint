@@ -335,4 +335,12 @@ public class NinjaUtils {
 
         return sb.toString();
     }
+
+    public static String printObjectNameOidAndType(PrismObject<?> object) {
+        if (object == null) {
+            return null;
+        }
+
+        return printFormatted("{} ({}, {})", object.getName(), object.getOid(), object.toDebugType());
+    }
 }

@@ -51,6 +51,10 @@ public final class ConsoleFormat {
         return formatMessageWithParameters(message, parameters, Color.ERROR);
     }
 
+    public static String formatMessageWithSuccessParameters(String message, Object... parameters) {
+        return formatMessageWithParameters(message, parameters, Color.SUCCESS);
+    }
+
     public static String formatMessageWithWarningParameters(String message, Object... parameters) {
         return formatMessageWithParameters(message, parameters, Color.WARN);
     }
