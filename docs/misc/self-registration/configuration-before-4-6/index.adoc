@@ -137,6 +137,7 @@ Confirmation of registration is configurable using additionalAuthenticationName 
 After user successfully confirms the registration, default roles are assigned to him/her - default roles are configured using defaultRole attribute.
 
 As an example let's see on the use case when the user is created by the administrator and the invitation link is sent to the user.
+
 1. Administrator creates new user. Lifecycle state is set to Draft (notification configuration example sends invitation link just in case when the lifecycle is draft).
 
 2. Simple user notifier is triggered. Invitation link is created (please, see notification configuration part) and sent to the user. While this action producing the nonce is created and saved to the new user. This nonce is used to authenticate the user while invitation link opening.

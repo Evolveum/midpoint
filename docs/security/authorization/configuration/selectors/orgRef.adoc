@@ -1,0 +1,24 @@
+= Org Reference Clause
+
+Selects objects that are members of a specific xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org].
+In the following case it only applies to members of Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`.
+
+.Listing 1. Authorization applicable to objects in Org identified by OID `1f82e908-0072-11e4-9532-001e8c717e5b`
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <orgRef oid="1f82e908-0072-11e4-9532-001e8c717e5b"/>
+    </object>
+</authorization>
+----
+
+This is good for delegated administration to fixed organizational subtrees.
+
+NOTE: The organization object itself (`1f82e908-0072-11e4-9532-001e8c717e5b` in the above example) is _not_ covered by the authorization.
+In fact, it is not a member of itself.
+
+NOTE: The membership is understood transitively, i.e., the objects selected are all objects that are in the subtree rooted at given Org, not just the direct children.
+Also, only _effective_ membership is taken into account: disabled or invalid assignments are ignored.
+(Technically speaking, `parentOrgRef` is what counts.)

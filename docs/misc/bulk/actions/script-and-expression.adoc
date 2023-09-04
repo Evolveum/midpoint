@@ -1,0 +1,125 @@
+= execute-script, evaluate-expression
+
+== Description
+
+Executes a script (since midPoint 3.4.1) or evaluates arbitrary expression (since midPoint 4.8) over input items.
+
+== Static Representation
+
+`<execute>` for scripts, `<evaluateExpression>` for expressions
+
+== Input
+
+Any value.
+
+== Output
+
+Value returned from the script or expression.
+
+== Parameters
+
+[%autowidth]
+|===
+| Parameter name | Kind | Meaning
+
+| `script`
+|
+| A value of type `ScriptExpressionEvaluatorType` representing a script to be executed.
+(Applicable only to `execute-script` action.)
+
+| `expression`
+|
+| A value of type `ExpressionType` representing an expression to be evaluated.
+(Applicable only to `evaluate-expression` action.)
+
+| `outputItem`
+| dynamic
+| If the script provides any output that is to be processed further, the item definition has to be given here.
+It is in the form of URI, pointing to item name (e.g. user) or item type (e.g. UserType).
+"Unqualified" URIs like the two examples here are allowed.
+But note that outputting data from scripts is currently only experimental.
+
+| `outputItemName`
+| static
+| If the script produces any output, this is a specification of an item (property, reference, container, or object) that provides a definition for the output.
+Experimental.
+
+| `outputTypeName`
+| static
+| If the script produces any output, this is a specification of a simple or complex type that provides a definition for the output.
+Experimental.
+
+| `forWholeInput`
+|
+| The script/expression would get the whole pipeline as input (since 3.7, experimental).
+
+| `quiet`
+|
+| If `true`, console output is suppressed.
+(Default is `false`.)
+
+|===
+
+== Examples
+
+.A sample `execute-script` use.
+[source,xml]
+----
+<s:execute>
+    <s:script>
+        <code>
+            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+            log.info('Modifying user {}', input)
+            def deltas = midpoint.deltaFor(UserType.class)
+                .item(UserType.F_DESCRIPTION)
+                .replace(userDescription)
+                .asObjectDeltas(input.oid)
+            log.info('Change:\n{}', deltas.iterator().next().debugDump())
+            midpoint.executeChanges(deltas, null)
+        </code>
+    </s:script>
+</s:execute>
+----
+
+.A sample `evaluate-expression` use that calls a library function named `modify-user-description`
+[source,xml]
+----
+<s:evaluateExpression>
+    <s:expression>
+        <function>
+            <libraryRef oid="724f2cce-c2d0-4a95-a67e-c922f9b806ab"/>
+            <name>modify-user-description</name>
+            <parameter>
+                <name>userOid</name>
+                <expression>
+                    <script>
+                        <code>input.oid</code>
+                    </script>
+                </expression>
+            </parameter>
+            <parameter>
+                <name>description</name>
+                <expression>
+                    <script>
+                        <code>"new description of ${input.name.orig}"</code>
+                    </script>
+                </expression>
+            </parameter>
+        </function>
+    </s:expression>
+</s:evaluateExpression>
+----
+
+== Further Information
+
+Variables available in the script or expression are:
+
+. `input` - the item being processed (or the whole pipeline; this is experimental, though);
+. other standard variables like `actor`, `prismContext`, and supporting objects (`midpoint`, `basic`, log`, ...).
+
+== Limitations
+
+. The script or expression can return only a single value.
+. Before midPoint 4.8, execution of `execute-script` action requires `#all` privileges.
+Starting with 4.8, it is driven by xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].

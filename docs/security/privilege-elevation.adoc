@@ -1,0 +1,87 @@
+= Privilege Elevation (runAsRef, runPrivileged)
+:page-since: 4.8
+:page-toc: top
+
+== Introduction
+Sometimes we need a given expression (e.g., in mappings) to run under elevated privileges and/or a specific principal.
+
+== Implementation
+
+.Listing 1: Example use
+[source,xml]
+----
+<expression>
+    <privileges>
+        <runAsRef oid="..." type="UserType"/> <!--1-->
+        <runPrivileged>true</runPrivileged> <!--2-->
+    </privileges>
+    <script>
+        <code>
+            // here we could execute actions that require elevated privileges
+            ... midpoint.getObject(...) ...
+            ... midpoint.searchObjects(...) ...
+        </code>
+    </script>
+</expression>
+----
+<1> Switches the identity of the principal
+<2> Keeps the identity, elevates only the privileges
+
+The `<runAsRef>` directive has been present since 3.6.
+It works well but takes some time as it requires the login of the specified principal.
+The new `<runPrivileged>` property is much faster: it simply adds `#all` authorization to the current principal.
+
+Usually, either one of these should be used.
+However, it is possible to use both: first, a specified principal is logged in, and then their privileges are elevated.
+
+== Auditing
+
+The audit event record was enhanced by the following information:
+
+.New items in the audit event record
+[%autowidth]
+|===
+| Item | Meaning
+
+| `effectivePrincipalRef`
+| The effective principal that was used to execute the action.
+This is the subject whose authorizations were evaluated to determine whether the action is allowed or not.
+Usually, it is the same as the initiator.
+But, e.g., when `runAsRef` is used, the effective principal is the one specified by that directive.
+| `effectivePrivilegesModification`
+| Present if the effective privileges used to execute the operation differ or may differ from the regular (declared) privileges of the `effectivePrincipalRef`.
+This is usually the case, e.g., when "runPrivileged" mechanism is used for expression evaluation.
+|===
+
+.Values for `effectivePrivilegesModification` property
+[%autowidth]
+|===
+| Value | Meaning
+
+| `elevation`
+| Privileges were elevated to some degree.
+It may or may not be the maximum degree (full authorization).
+Only if we are really sure, the "fullElevation" value is set.
+
+| `fullElevation`
+| Privileges were elevated to the maximum degree, i.e. to full authorization.
+
+| `reduction`
+| Privileges were reduced to some degree.
+
+| `other`
+| Privileges were changed in a different way (maybe some reduced, others elevated).
+|===
+
+== Limitations
+
+. The improved auditing works only with the native repository implementation.
+. If the `effectivePrivilegesModification` property is present, it does _not_ mean that the effective privileges certainly differ from the declared ones.
+It just means that the elevation/reduction took place; and, as a result, there may be a difference.
+For example, it a user already has privileges equivalent to full privileges, and "run privileged" expression is evaluated, the result still may be marked with `fullElevation` value.
+What _is_ guaranteed, however, is that if this value is not present, then the action was executed with regular (declared) privileges of the principal.
+
+== See Also
+
+- xref:/midpoint/reference/expressions/expressions/index.adoc#_privilege_elevation[]
+- commits https://github.com/Evolveum/midpoint/commit/aab21f14d2da4798d21ec5af5f82e992aaafac2f[aab21f], https://github.com/Evolveum/midpoint/commit/ce357da80a1765eb64b23479470045dad53d0bef[ce357d], and https://github.com/Evolveum/midpoint/commit/a512e69f48467c389766c0f30ec06e790b787cbc[a512e6]

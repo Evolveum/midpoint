@@ -15,7 +15,7 @@ Recomputes (immediately or in scheduled way) input object(s).
 
 == Input
 
-Any object.
+Any object of `AssignmentHolderType`.
 
 
 == Output
