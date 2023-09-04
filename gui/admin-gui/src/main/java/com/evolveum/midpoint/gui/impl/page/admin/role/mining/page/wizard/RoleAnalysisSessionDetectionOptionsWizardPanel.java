@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
@@ -104,5 +105,15 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
     @Override
     public String getStepId() {
         return WORK_PANEL_TYPE;
+    }
+
+    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+        ItemName itemName = itemWrapper.getItemName();
+        if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
+                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)
+                || itemName.equivalent(RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE)) {
+            return true;
+        }
+        return itemWrapper.isMandatory();
     }
 }

@@ -6,14 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.clusterMigrationRecompute;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.model.api.ModelService;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -25,7 +20,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,12 +31,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -50,7 +41,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -244,34 +234,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             }
 
             @Override
-            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
-                super.deleteConfirmPerformed(target);
-                AbstractPageObjectDetails.this.afterDeletePerformed(target);
-            }
-
-            @Override
             protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
                 return AbstractPageObjectDetails.this.hasUnsavedChanges(target);
             }
 
             @Override
-            public StringResourceModel getSaveButtonTitle() {
-                return setSaveButtonTitle();
-            }
-
-            @Override
             protected boolean isSaveButtonVisible() {
-                return super.isSaveButtonVisible() && !isHideSaveButton();
+                return super.isSaveButtonVisible();
             }
         };
-    }
-
-    protected boolean isHideSaveButton() {
-        return false;
-    }
-
-    protected StringResourceModel setSaveButtonTitle() {
-        return ((PageBase) getPage()).createStringResource("PageBase.button.save");
     }
 
     public boolean hasUnsavedChanges(AjaxRequestTarget target) {
@@ -289,10 +260,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
             return true;
         }
-    }
-
-    public void afterDeletePerformed(AjaxRequestTarget target) {
-
     }
 
     public void savePerformed(AjaxRequestTarget target) {
@@ -332,33 +299,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         LOGGER.trace("returning from saveOrPreviewPerformed");
 
-
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas;
-        //TODO this isn't good place? It's not safe to just cast to any model, there might be others, like UserDetailsModel etc.
-        //if it's only related to roles, think about moving it to the role details page or so.
-        BusinessRoleApplicationDto patternDeltas = null;
-        if (getObjectDetailsModels() instanceof AbstractRoleDetailsModel abstractRoleDetailsModel) {
-            patternDeltas = abstractRoleDetailsModel.getPatternDeltas();
-        }
-
-        if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
-            ModelService modelService = ((PageBase) getPage()).getModelService();
-            executedDeltas = new ObjectChangesExecutorImpl()
-                    .executeChanges(deltas, previewOnly, task, result, target);
-
-            String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
-            clusterMigrationRecompute(result, patternDeltas.getCluster().getOid(), roleOid, ((PageBase) getPage()), task);
-
-            PrismObject<RoleType> roleObject = getRoleTypeObject(modelService, roleOid, result, task);
-
-            if (roleObject != null) {
-                executeMigrationTask(result, task, patternDeltas.getBusinessRoleDtos(), roleObject);
-            }
-
-        } else {
-            executedDeltas = executeChanges(deltas, previewOnly, options,
-                    task, result, target);
-        }
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly,
+                options, task, result, target);
 
         if (!isShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
@@ -367,52 +309,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         return executedDeltas;
-    }
-
-    private void executeMigrationTask(OperationResult result, Task task, List<BusinessRoleDto> patternDeltas, PrismObject<RoleType> roleObject) {
-        try {
-            ActivityDefinitionType activity = createActivity(patternDeltas, roleObject.getOid());
-
-            getModelInteractionService().submit(
-                    activity,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(new TaskType()
-                                    .name("Migration role (" + roleObject.getName().toString() + ")"))
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-
-        } catch (CommonException e) {
-            LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
-        }
-    }
-
-    private ActivityDefinitionType createActivity(List<BusinessRoleDto> patternDeltas, String roleOid) throws SchemaException {
-
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setType(RoleType.COMPLEX_TYPE);
-        objectReferenceType.setOid(roleOid);
-
-        RoleMembershipManagementWorkDefinitionType roleMembershipManagementWorkDefinitionType = new RoleMembershipManagementWorkDefinitionType();
-        roleMembershipManagementWorkDefinitionType.setRoleRef(objectReferenceType);
-
-        ObjectSetType members = new ObjectSetType();
-        for (BusinessRoleDto patternDelta : patternDeltas) {
-            if (!patternDelta.isInclude()) {
-                continue;
-            }
-
-            PrismObject<UserType> prismObjectUser = patternDelta.getPrismObjectUser();
-            ObjectReferenceType objectReferenceType1 = new ObjectReferenceType();
-            objectReferenceType1.setOid(prismObjectUser.getOid());
-            objectReferenceType1.setType(UserType.COMPLEX_TYPE);
-            members.getObjectRef().add(objectReferenceType1);
-        }
-        roleMembershipManagementWorkDefinitionType.setMembers(members);
-
-        return new ActivityDefinitionType()
-                .work(new WorkDefinitionsType()
-                        .roleMembershipManagement(roleMembershipManagementWorkDefinitionType));
     }
 
     private void reloadObject(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {

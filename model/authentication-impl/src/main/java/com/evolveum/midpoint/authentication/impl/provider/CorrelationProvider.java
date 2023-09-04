@@ -75,6 +75,8 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
 
             correlationModuleAuthentication.addAttributes(correlationVerificationToken.getDetails());
 
+            correlationModuleAuthentication.setPreFocus(correlationVerificationToken.getPreFocus(focusType,
+                    correlationModuleAuthentication.getProcessedAttributes()));
             if (owner != null) {
                 correlationModuleAuthentication.addOwner(owner);
                 return authentication;
@@ -84,9 +86,6 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                 }
 
                 isOwnersNumberUnderRestriction(correlationModuleAuthentication);
-
-                correlationModuleAuthentication.setPreFocus(correlationVerificationToken.getPreFocus(focusType,
-                                    correlationModuleAuthentication.getProcessedAttributes()));
 
                 return authentication;
             }

@@ -50,7 +50,7 @@ public class QAuditDeltaMapping
     private QAuditDeltaMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ObjectDeltaOperationType.class, QAuditDelta.class, repositoryContext);
-
+        addItemMapping(F_OBJECT_OID, uuidMapper(r -> r.deltaOid));
         addItemMapping(F_OBJECT_NAME, polyStringMapper(r -> r.objectNameOrig, r-> r.objectNameNorm));
         addItemMapping(F_RESOURCE_NAME, polyStringMapper(r -> r.resourceNameOrig, r -> r.resourceNameNorm));
         addItemMapping(F_RESOURCE_OID, uuidMapper(r -> r.resourceOid));

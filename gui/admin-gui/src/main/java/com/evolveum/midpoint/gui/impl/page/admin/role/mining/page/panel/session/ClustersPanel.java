@@ -60,10 +60,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(
         identifier = "clusters",
         applicableForType = RoleAnalysisSessionType.class,
+        defaultPanel = true,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.roleAnalysisClusterRef",
                 icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 10
+                order = 20
         )
 )
 public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {

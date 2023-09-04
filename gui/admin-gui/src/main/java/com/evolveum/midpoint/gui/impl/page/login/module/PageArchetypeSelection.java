@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ChooseRelationPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -26,7 +25,6 @@ import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -55,8 +53,6 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
     private static final String DOT_CLASS = PageArchetypeSelection.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(PageArchetypeSelection.class);
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECTS = DOT_CLASS + "loadArchetypeObjects";
-    public static final String UNDEFINED_OID = null;
-
     private static final String ID_ARCHETYPE_SELECTION_PANEL = "archetypeSelectionPanel";
     private static final String ID_ARCHETYPES_PANEL = "archetypes";
     private static final String ID_ARCHETYPE_PANEL = "archetype";
@@ -88,7 +84,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
             }
         };
 
-        tilesModel = new LoadableModel<List<Tile<ArchetypeType>>>(false) {
+        tilesModel = new LoadableModel<>(false) {
             @Override
             protected List<Tile<ArchetypeType>> load() {
                 return loadTilesList();

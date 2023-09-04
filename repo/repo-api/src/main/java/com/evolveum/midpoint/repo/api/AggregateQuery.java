@@ -10,6 +10,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 
+import com.evolveum.midpoint.schema.query.TypedQuery;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -95,8 +99,21 @@ public class AggregateQuery<T extends Containerable> {
 
     }
 
+    public AggregateQuery<T> filter(ObjectFilter filter) {
+        this.filter = filter;
+        return this;
+    }
+
+    public AggregateQuery<T> filter(String query) throws SchemaException {
+        return filter(TypedQuery.parse(root, query).toObjectQuery().getFilter());
+    }
+
     public List<ObjectOrdering> getOrdering() {
         return orderBy;
+    }
+
+    public ObjectFilter getFilter() {
+        return filter;
     }
 
     public abstract static class ResultItem {

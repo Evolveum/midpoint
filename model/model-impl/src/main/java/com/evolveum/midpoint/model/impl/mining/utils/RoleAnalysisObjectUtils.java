@@ -102,6 +102,20 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
+
+    public static Integer getSessionTypeObjectCount(@NotNull ModelService modelService,
+            OperationResult result, Task task) {
+
+        try {
+            return modelService.countObjects(RoleAnalysisSessionType.class, null, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't count RoleAnalysisSessionType object, Probably not set yet", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        return 0;
+    }
+
     public static List<PrismObject<UserType>> extractRoleMembers(ObjectFilter userFilter, OperationResult result,
             ModelService modelService, String objectId, Task task) {
 

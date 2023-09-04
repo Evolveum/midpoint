@@ -17920,6 +17920,14 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="objectOid" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        OID of object that was target of this operation. If objectDelta is present it must not have value or
+                        value must be same as objectDelta/oid.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0"/>
             <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0"/>
             <xsd:element name="objectName" type="t:PolyStringType" minOccurs="0">

@@ -94,7 +94,7 @@ EOF
                         # -I enables QUOTED_IDENTIFIER, see https://stackoverflow.com/a/51201270/658826
                         # Without it the script fails on CREATE INDEX (probably iPrimaryIdentifierValueWithOC, if the line is right).
                         /opt/mssql-tools/bin/sqlcmd -b -I -S localhost -U midtest -P password -d midtest \
-                            -i config/sql/generic-old/sqlserver-*-all.sql -i repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
+                            -i config/sql/generic/sqlserver-*-all.sql -i repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
                     """
                 }
             }

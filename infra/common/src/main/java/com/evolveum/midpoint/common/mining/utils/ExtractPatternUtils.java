@@ -30,6 +30,10 @@ public class ExtractPatternUtils {
         List<RoleAnalysisDetectionPatternType> defaultDetection = clusterType.getDetectedPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
 
+        if (isEmptyDetectionPattern(defaultDetection)) {
+            return new ArrayList<>();
+        }
+
         for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
 
             List<ObjectReferenceType> rolesRef = roleAnalysisClusterDetectionType.getRolesOccupancy();
@@ -55,4 +59,22 @@ public class ExtractPatternUtils {
 
         return mergedIntersection;
     }
+
+    private static boolean isEmptyDetectionPattern(List<RoleAnalysisDetectionPatternType> defaultDetection) {
+
+        if (defaultDetection == null) {
+            return true;
+        }
+
+        if (defaultDetection.size() == 1) {
+            RoleAnalysisDetectionPatternType detectionPatternType = defaultDetection.get(0);
+            if (detectionPatternType == null || detectionPatternType.getClusterMetric() == null) {
+                return true;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }

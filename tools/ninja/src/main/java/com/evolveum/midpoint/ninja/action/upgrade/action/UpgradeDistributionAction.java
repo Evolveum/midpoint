@@ -3,14 +3,11 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 import java.io.File;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.*;
-import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 
-public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions, ActionResult<Void>> {
+public class UpgradeDistributionAction extends UpgradeBaseAction<UpgradeDistributionOptions, ActionResult<Void>> {
 
     @Override
     public String getOperationName() {
@@ -19,20 +16,14 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
 
     @Override
     public ActionResult<Void> execute() throws Exception {
-        File tempDirectory = options.getTempDirectory() != null ?
-                options.getTempDirectory() : new File(FileUtils.getTempDirectory(), UpgradeConstants.UPGRADE_TEMP_DIRECTORY);
-
-
-        FileUtils.forceMkdir(tempDirectory);
-        // FIXME: Should we log pre-upgrade checks
+        File tempDirectory = createTmpDirectory(options.getTempDirectory());
+        // todo: Should we log pre-upgrade checks
 
         // pre-upgrade checks
         if (!options.isSkipPreCheck()) {
             PreUpgradeCheckOptions preUpgradeCheckOptions = new PreUpgradeCheckOptions();
 
-            PreUpgradeCheckAction preUpgradeCheckAction = new PreUpgradeCheckAction();
-            preUpgradeCheckAction.init(context, preUpgradeCheckOptions);
-            ActionResult<Boolean> shouldContinue = executeAction(preUpgradeCheckAction);
+            ActionResult<Boolean> shouldContinue = executeAction(new PreUpgradeCheckAction(), preUpgradeCheckOptions);
             if (shouldContinue.result()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade check succeeded.").reset().toString());
             } else {
@@ -49,9 +40,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
             verifyOptions.setMultiThread(options.getVerificationThreads());
             verifyOptions.setStopOnCriticalError(options.isStopOnCriticalError());
 
-            VerifyAction verifyAction = new VerifyAction();
-            verifyAction.init(context, verifyOptions);
-            VerifyResult verifyResult = executeAction(verifyAction);
+            VerifyResult verifyResult = executeAction(new VerifyAction(true), verifyOptions);
             if (!verifyResult.hasCriticalItems()) {
                 log.info(Ansi.ansi().fgGreen().a("Pre-upgrade verification succeeded.").reset().toString());
             } else {
@@ -75,10 +64,7 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         downloadOpts.setDistributionArchive(options.getDistributionArchive());
         downloadOpts.setDistributionVersion(options.getDistributionVersion());
 
-        DownloadDistributionAction downloadAction = new DownloadDistributionAction();
-        downloadAction.init(context, downloadOpts);
-
-        DownloadDistributionResult downloadResult = executeAction(downloadAction);
+        DownloadDistributionResult downloadResult = executeAction(new DownloadDistributionAction(), downloadOpts);
 
         File distributionDirectory = downloadResult.getDistributionDirectory();
 
@@ -96,17 +82,9 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
         installationOpts.setBackup(options.isBackupMidpointDirectory());
         installationOpts.setInstallationDirectory(options.getInstallationDirectory());
 
-        UpgradeInstallationAction installationAction = new UpgradeInstallationAction();
-        installationAction.init(context, installationOpts);
-        executeAction(installationAction);
+        executeAction(new UpgradeInstallationAction(), installationOpts);
 
         return null;
-    }
-
-    private <O, T> T executeAction(Action<O, T> action) throws Exception {
-        log.info(ConsoleFormat.formatActionStartMessage(action));
-
-        return action.execute();
     }
 
     private void runUpgradeSql(RunSqlOptions.Mode mode, File distributionDirectory) throws Exception {
@@ -117,9 +95,6 @@ public class UpgradeDistributionAction extends Action<UpgradeDistributionOptions
                 .map(f -> new File(distributionDirectory, f.getPath()))
                 .collect(Collectors.toList()));
 
-        RunSqlAction action = new RunSqlAction();
-        action.init(context, runSqlOptions);
-
-        executeAction(action);
+        executeAction(new RunSqlAction(), runSqlOptions);
     }
 }

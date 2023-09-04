@@ -33,10 +33,13 @@ public class RangeSimplePanel extends InputPanel {
 
     double max;
 
-    public RangeSimplePanel(String id, IModel<PrismPropertyValueWrapper<RangeType>> model, double max) {
+    boolean doubleType = false;
+
+    public RangeSimplePanel(String id, IModel<PrismPropertyValueWrapper<RangeType>> model, double max, boolean doubleType) {
         super(id);
         this.model = model;
         this.max = max;
+        this.doubleType = doubleType;
     }
 
     @Override
@@ -51,7 +54,13 @@ public class RangeSimplePanel extends InputPanel {
         minField.setEnabled(isEnabled());
         minField.add(new ValidatorAdapter<>((var) -> {
             Double value = var.getValue();
-            if (value > maximumValue()) {
+            if (value == null) {
+                var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.min.exception"));
+            } else if (doubleType && !isDouble(String.valueOf(value))) {
+                var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.double.exception"));
+            } else if (!doubleType && !isInteger(String.valueOf(value))) {
+                var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.int.exception"));
+            } else if (value > maximumValue()) {
                 var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.positive.exception"));
             } else if (value < minimumValue()) {
                 var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.negative.exception"));
@@ -68,7 +77,14 @@ public class RangeSimplePanel extends InputPanel {
 
         maxField.add(new ValidatorAdapter<>((var) -> {
             Double value = var.getValue();
-            if (value > maximumValue()) {
+
+            if (value == null) {
+                var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.max.exception"));
+            } else if (doubleType && !isDouble(String.valueOf(value))) {
+                var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.double.exception"));
+            } else if (!doubleType && !isInteger(String.valueOf(value))) {
+                var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.int.exception"));
+            } else if (value > maximumValue()) {
                 var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.positive.exception"));
             } else if (value < minimumValue()) {
                 var.error((IValidationError) iErrorMessageSource -> getString("RangeSimplePanel.negative.exception"));
@@ -81,7 +97,6 @@ public class RangeSimplePanel extends InputPanel {
         add(container);
 
     }
-
 
     @Override
     public boolean isEnabled() {
@@ -117,6 +132,24 @@ public class RangeSimplePanel extends InputPanel {
     public List<FormComponent> getFormComponents() {
         return List.of(getMinField(),
                 getMaxField());
+    }
+
+    public boolean isDouble(String value) {
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public boolean isInteger(String value) {
+        try {
+            double parsedValue = Double.parseDouble(value);
+            return !(parsedValue % 1 > 0.0);
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
 }

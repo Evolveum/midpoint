@@ -19,17 +19,12 @@ import java.util.zip.ZipOutputStream;
 
 import com.beust.jcommander.IUsageFormatter;
 import com.beust.jcommander.JCommander;
-
-import com.evolveum.midpoint.ninja.impl.NinjaUsageFormatter;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
-import com.evolveum.midpoint.ninja.impl.Command;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.impl.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -281,15 +276,29 @@ public class NinjaUtils {
         return Arrays.stream(names).anyMatch(s -> s.matches(filenameRegex));
     }
 
-    public static String readInput(Function<String, Boolean> inputValidation) throws IOException {
+    public static String readInput(Log log, Function<String, Boolean> inputValidation) {
+        log.logRaw(ConsoleFormat.formatInputPrompt());
+        boolean first = true;
+
         String line = null;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+        // we don't want to close this input stream (stdin), we didn't open it.
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
             boolean accepted = false;
             while (!accepted) {
+                if (!first) {
+                    log.error("Invalid input, please try again");
+                    log.logRaw(ConsoleFormat.formatInputPrompt());
+                }
+                first = false;
+
                 line = br.readLine();
 
                 accepted = inputValidation.apply(line);
             }
+        } catch (IOException ex) {
+            log.error("Error occurred while reading input from stdin", ex);
         }
 
         return line;
