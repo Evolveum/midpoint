@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
 import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
 import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
@@ -15,18 +27,6 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.validator.UpgradeValidationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -80,6 +80,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
             result = super.execute();
         }
 
+        log.info("");
         log.info(
                 "Verification finished. {}, {}, {} and {} unknown issues found.",
                 ConsoleFormat.formatMessageWithErrorParameters("{} critical", result.getCriticalCount()),
@@ -91,17 +92,20 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
             log.info("");
             log.info("Verification report saved to '{}'", options.getOutput().getPath());
 
-
             if (Objects.equals(VerifyOptions.ReportStyle.CSV, options.getReportStyle())) {
                 log.info("XML dump with delta for each item saved to '{}'", options.getOutput().getPath() + VerificationReporter.DELTA_FILE_NAME_SUFFIX);
             }
 
-            // todo this should not show when action is a part of complex action and next step is prepared automatically
             // FIXME: ADD links (do not display in batch mode)
             // FIXME: Could We could try to infer script name?
             if (context.isUserMode() && !partial) {
+                if (result.getCriticalCount() > 0) {
+                    log.info("");
+                    log.info("Critical issues should be fixed before upgrade as they could cause major problems after upgrade (e.g. prevent midpoint start).");
+                }
+                log.info("");
                 log.info("Please see documentation for use of verification report in upgrade process and modify it accordingly.");
-                log.info("After you reviewed verification report and marked changes to skip you can continue upgrade process "
+                log.info("After you've reviewed verification report and marked changes to skip you can continue upgrade process "
                         + "with running 'ninja.sh upgrade-objects --verification-file \"{}\"'", options.getOutput().getPath());
             }
         }
