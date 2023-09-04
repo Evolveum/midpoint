@@ -13,10 +13,12 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -308,10 +310,13 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     private ObjectDeltaOperation<UserType> createUserDeltaOperation(UserType user) {
-        ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
-        delta.setObjectDelta(getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.MODIFY));
-        delta.setObjectOid(user.getOid());
-        return delta;
+        ObjectDeltaOperation<UserType> deltaOperation = new ObjectDeltaOperation<>();
+        deltaOperation.setObjectName(user.getName().toPolyString());
+        ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.MODIFY);
+        delta.setOid(user.getOid());
+        deltaOperation.setObjectDelta(delta);
+        deltaOperation.setObjectOid(user.getOid());
+        return deltaOperation;
     }
 
 }
