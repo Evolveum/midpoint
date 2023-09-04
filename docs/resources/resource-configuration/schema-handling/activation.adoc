@@ -255,8 +255,7 @@ If an account is unassigned and there is no other existing assignment for an acc
 Now we can use three predefined configurations.
 
 === Disable instead of delete
-
- This configuration change default behavior and account will be disabled instead of delete.
+This configuration change default behavior and account will be disabled instead of delete.
 
 [source,xml]
 ----
@@ -274,7 +273,6 @@ Now we can use three predefined configurations.
 ----
 
 === Delayed delete
-
 This configuration change default behavior and account will delete with delay and meanwhile account will be disabled.
 
 We use activation/disableTimestamp from shadow object as reference attribute for time when was account disabled. As disable reason we use de-provision or mapped.
@@ -295,11 +293,9 @@ We use activation/disableTimestamp from shadow object as reference attribute for
 	</schemaHandling>
 </resource>
 ----
-
 We need set only one attribute _deleteAfter_, that define time after which the account will be deleted.
 
 === Pre provision
-
 This configuration will pre-provision a disabled account defined by time before focus’s activation/validFrom date.
 
 [source,xml]
