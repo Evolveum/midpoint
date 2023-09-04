@@ -1325,6 +1325,52 @@ This module is marked as not sufficient to live on its own.
 </attributeVerification>
 ----
 
+[#_duo_]
+==== Module duo
+
+Module is used for 2FA authentication. Module use duo server for authentication via hardware key of mobile, tablet and so on. We can't use it as only one authentication module. We need some primary authentication module for example saml, loginForm, etc.
+
+*Configuration of duo module contains next configuration properties, that you can read from duo server.*
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `clientId`
+| This value is the client id provided by Duo in the admin panel.
+| true
+| _string_
+
+| `clientSecret`
+| This value is the client secret provided by Duo in the admin panel.
+| true
+| _ProtectedStringType_
+
+| `apiHostname`
+| This value is the api host provided by Duo in the admin panel.
+| true
+| _string_
+
+| `CACerts`
+| List of CA Certificates to use. You need add your cert when it misses in default certs.
+| false
+| _string_
+
+|===
+
+.Example of duo module
+[source,xml]
+----
+<duo>
+    <identifier>duo2FA</identifier>
+    <clientId>your_client_ID</clientId>
+    <clientSecret>
+        <clearValue>your_client_secret</clearValue>
+    </clientSecret>
+    <apiHostname>your_client_hostname</apiHostname>
+</duo>
+----
+
 === Sequence Configuration
 
 Sequence contains following attributes:
