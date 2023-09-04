@@ -211,7 +211,6 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
                 compress = !compress;
                 loadMiningTableData();
                 updateMiningTable(ajaxRequestTarget, false);
-                ajaxRequestTarget.add(this);
             }
 
             @Override

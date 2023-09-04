@@ -406,7 +406,6 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     @Override
                     protected void onSubmit(AjaxRequestTarget target) {
                         onPerform(target);
-                        target.add(this);
                     }
 
                     @Override

@@ -81,8 +81,8 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
 
 
     public enum ProcessMode implements TileEnum {
-        ROLE(CLASS_OBJECT_ROLE_ICON),
-        USER(CLASS_OBJECT_USER_ICON);
+        USER(CLASS_OBJECT_USER_ICON),
+        ROLE(CLASS_OBJECT_ROLE_ICON);
 
         private final String icon;
 
