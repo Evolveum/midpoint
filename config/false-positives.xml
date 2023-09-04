@@ -2,6 +2,13 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
   <!-- IMPORTANT: It may be bit weird, having first reason for suppresion, then the issue suppresed, but dependency-chek uses strict schema and they decided on that order of elements. When any of suppresion has notes and cve reordered, it will not load suppression file
   -->
+
+  <suppress>
+    <notes>
+      False Positive. midPoint uses Spring Security, but does not use Spring WebFlux, so it is unaffected.
+    </notes>
+    <cve>CVE-2023-34034</cve>
+  </suppress>
   <suppress>
     <notes>
       False Positive. H2 is not recommended for production use, only for demo testing use-cases.
