@@ -41,7 +41,12 @@ The {release-version} release brings streamlined upgrade process, security stabi
 ** Hibernate 6
 ** Wicket 10
 
-* xref:/midpoint/reference/roles-policies/mining/[Role Mining].
+* xref:/midpoint/reference/roles-policies/mining/[Role Mining]. Introduction of role mining
+functionality. A tool to simplify access management that uses artificial
+intelligence (AI) algorithms and analytical techniques to sift through the complex network of user and
+access mappings and group them into cohesive business roles based on access patterns.
+
+* xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/[Anonymous Data Export].
 Introduction of anonymous role mining data export. This feature allows users to export relationships between roles, users, and
 organizations while ensuring the privacy and security of exported data.
 The following options are available for exporting anonymized role mining data:
@@ -50,7 +55,7 @@ xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja docume
 ** Repository object (GUI): For detailed information, see the
 xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data documentation].
 
-** Shadow metadata - `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
+* Shadow metadata - `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
 This changes behaviour for resources which have non-zero deadShadowRetentionPeriod in consistency defined.
 Previously shadows without such timestamps were removed right away if there were no pending operations, since midPoint couldn't compute _last activity timestmap_.
 Last shadow activity taken into account:
@@ -71,6 +76,10 @@ For more info see: xref:/midpoint/reference/security/audit/index.adoc[Auditing]
 ** Identifiers _arw-construction-mapping_,_rw-attribute-inbound_ and _rw-attribute-outbound_ of old wizard panels is ignored, so we can remove it from configuration.
 
 * New duo authentication module used for 2FA authentication. For more info see: xref:/midpoint/reference/security/authentication/flexible-authentication/configuration.adoc#module-duo[Module duo].
+
+* xref:/midpoint/reference/security/credentials/identity-recovery/[Identity Recovery] feature brings a possibility to recover user's data.
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[Lifecycle state] `suspended` was introduced to represent temporarily-disabled objects.
 
 === Miscellaneous Improvements
 
@@ -339,6 +348,13 @@ Please xref:/midpoint/release/4.6/#upgrade[upgrade to midPoint 4.6.x] first.
 NOTE: This section is relevant to the majority of midPoint deployments.
 It refers to the most significant functionality removals and changes in this version.
 
+MailNonce module re-worked. Since 4.8, we won't support sequence with only mailNonce module defined.
+This module has to be used together with focusIdentification module.
+So, once the mailNonce module is executed, we already have information about the user who's trying to perform action (either password reset or login or anything else using flexible authentication sequence).
+MailNonce module cannot be first in the sequence and cannot be alone.
+Also added support to automatically remove nonce after successful authentication.
+
+
 // * ConnId result handlers are disabled by default.
 // Result handlers were enabled by default in previous midPoint versions as this was default set by ConnId framework.
 // However, most connectors do not need result handlers, and the result handlers may even be harmful when used with some connector, the default setting was changed in midPoint 4.7.
@@ -393,6 +409,8 @@ More details are provided along with individual changes below.
 
 * References to removed `category` property of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b600[1fe4b600].
+
+* `610-service-identity-recovery.xml`: Identity recovery service is added. This service plays a role of the midpoint principal during Identity recovery flow.
 
 // * `000-system-configuration.xml`:
 // ** Minor changes in home page widgets in `adminGuiConfiguration/homePage/widget` container values related to the fix for bug:MID-8294[].
@@ -455,6 +473,11 @@ On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{rele
 // * Necessity of the authentication modules was extended with more values, therefore `required`, `requisite` and `optional` values can be used for AuthenticationSequenceModuleNecessityType type.
 // * AuthenticationSequenceModuleType type was extended with `acceptEmpty` element, so that module can be skipped in case of empty credentials with acceptEmpty=true.
 
+* New _identityRecovery_ element appears in security policy object, intended for identity recovery flow configuration. Please, see _IdentityRecoveryPolicyType_ for more details.
+* New _archetypeSelection_ authentication module type appears in the _authentication_ part of the security policy object. Please, see _ArchetypeSelectionModuleType_ for more details.
+* New _correlation_ authentication module type appears in the _authentication_ part of the security policy object. Please, see _CorrelationAuthenticationModuleType_ for more details.
+* _CredentialsResetPolicyType_ and _AbstractRegistrationPolicyType_ extend now _UserInterfaceFeatureType_ so that _display_ attribute can be used within self registration and password reset flows.
+
 _Actions required:_
 
 * Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
@@ -472,6 +495,18 @@ Only things that cannot be described as simple "fixing" something are described 
 The changes since 4.7 are of interest probably for "advanced" midPoint deployments only.
 You should at least scan through them, though.
 ====
+
+* The resolution of a function library object in <function> expression is now handled by a lower-level component (`FunctionLibraryManager`) without checking for authorizations.
+If needed, the access to the functionality provided by these libraries should be restricted by expression profiles instead.
+(Note that the calls to functions from withing scripts ignored authorizations from the beginning.)
+See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c980015fed12c26e[c9b1ce].
+
+* Using of task template (e.g. to implement custom GUI actions) no longer requires `#read` authorization for the task template object.
+Instead, a new `model-3#use` authorization was created to cover this use case.
+See also commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
+
+* The new `bulk-3#` authorizations replace (now deprecated and long-time confusing) `#executeScript` one.
+See also commits https://github.com/Evolveum/midpoint/commit/291313570a62cea67addc43d3dc310c142810581[291313] and https://github.com/Evolveum/midpoint/commit/3c50c95c2f351bed92165dc4b9bed8140fd06839[3c50c9].
 
 // * The behavior of synchronization reaction to `deleted` situation was changed.
 // Now it checks the existence of (other) accounts of given type, and invokes the actions only if there is none.

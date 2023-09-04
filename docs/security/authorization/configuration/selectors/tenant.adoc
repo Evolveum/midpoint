@@ -1,0 +1,26 @@
+= Tenant
+:page-since: 3.9
+
+It selects objects that have the same tenant as the subject.
+
+.Listing 1. Authorization selecting objects from the same tenant as the subject
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <tenant>
+            <sameAsSubject>true</sameAsSubject>
+            <includeTenantOrg>false</includeTenantOrg>
+        </tenant>
+    </object>
+</authorization>
+----
+
+This authorization can be used to limit users to access objects only inside their own tenant.
+The `includeTenantOrg` element can be used to include or exclude the tenant (tenant org) itself.
+E.g. it can be used to prohibit modification of the tenant itself, but allow modification of any other object in its "tenancy".
+
+This authorization works only if both subject and object are multi-tenant.
+I.e. it will not work if subject does not have tenant (no `tenantRef`) or in case that the object does not have tenant.
+Ordinary (non-tenant) authorizations should be used for those cases.

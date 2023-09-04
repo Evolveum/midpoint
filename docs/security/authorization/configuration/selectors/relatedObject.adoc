@@ -1,0 +1,38 @@
+= Related Object Clause
+
+It selects objects (cases, work items) that have a related object which is specified by inner object selector.
+
+An example:
+
+.Listing 1. An authorization allowing reading any case regarding the subject as its object
+[source,xml]
+----
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <object>
+        <type>CaseType</type>
+        <relatedObject>
+            <special>self</special>
+        </relatedObject>
+    </object>
+</authorization>
+----
+
+The following behavior applies to midPoint 4.8.
+
+.Supported object types
+[%autowidth]
+|===
+| Object type | What are the assignees?
+
+| `CaseType`
+| The `objectRef` value, i.e. the object that the case is concerned with.
+
+| `TaskType`
+| The `objectRef` value, i.e. the object that the task acts upon.
+(Not supported thoroughly, though.)
+
+|===
+
+== Limitations
+. When searching, only `self` selector is supported.

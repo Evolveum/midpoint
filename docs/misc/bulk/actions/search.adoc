@@ -10,7 +10,7 @@
 
 == Description
 
-The `search` scripting expression retrieves a set of objects via `searchObjects` or `searchObjectsIterative` model call.
+The `search` action retrieves a set of objects via `searchObjects` or `searchObjectsIterative` model call.
 
 
 == Input
@@ -220,3 +220,18 @@ The difference is mainly in the memory requirements for executing the script on 
 However, if there would be any need to work with all objects at once (e.g. to select a user with maximum number of accounts), the second option is preferable.
 
 In usual conditions, i.e. no special requirements, and reasonably-sized data, you can use any of the options.
+
+== Limitations
+
+This action cannot be invoked in the form of
+
+[source,xml]
+----
+<action>
+    <type>search</type>
+</action>
+----
+
+(Because of the conflict in `type` parameter.)
+
+However, the "static" form, i.e. using `<search>` element, is more readable and useful.

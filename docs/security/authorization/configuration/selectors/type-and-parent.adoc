@@ -1,0 +1,85 @@
+= Type and Parent Clauses
+
+== Type Clause
+
+Selects objects of the specified type.
+In the following case all shadows are selected.
+
+.Listing 1. Selector matching all shadows
+[source,xml]
+----
+<type>ShadowType</type>
+----
+
+.Listing 2. Authorization matching all shadows
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <type>ShadowType</type>
+    </object>
+</authorization>
+----
+
+== Parent Clause
+++++
+{% include since.html since="4.8" %}
+++++
+
+For values that are smaller than an object (sometimes called sub-object values) we need to specify their exact position in the midPoint data model.
+The position is specified by an object type, and a path.
+
+For example, this selects all case work items:
+
+.Listing 3. Selector matching all case work items
+[source,xml]
+----
+<parent>
+    <type>CaseType</type>
+    <path>workItem</path>
+</parent>
+----
+
+Note that `type` is optional here: it can be determined from the parent type and the path.
+
+Optionally, a selector may be provided to limit the parent values as well.
+This selects work items from the correlation cases:
+
+.Listing 4. Selector matching all correlation cases work items
+[source,xml]
+----
+<parent>
+    <type>CaseType</type>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000345"/> <!-- correlation case archetype -->
+    <path>workItem</path>
+</parent>
+----
+
+Although the parent is usually an object type, it can be also a sub-object type.
+For example, certification work item is part of a certification case, which is a part of certification campaign:
+
+.Listing 5. Nested `<parent>` selectors
+[source,xml]
+----
+<parent>
+    <parent>
+        <type>AccessCertificationCampaignType</type>
+        <!-- some conditions on campaigns here -->
+        <path>case</path>
+    </parent>
+    <!-- some conditions on certification cases here -->
+    <path>workItem</path>
+</parent>
+<!-- ... some conditions on certification work items here -->
+----
+
+== Default
+
+If neither `type` nor `parent` clause is specified, a type of `ObjectType` is assumed.
+
+== Open Questions
+
+#How should we call this selector?#
+In the query language we use `ownedBy` for this concept.
+However, in selectors we already have `owner` selector.
