@@ -760,6 +760,104 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
+
+    public <T extends Containerable> SearchResultMetadata searchContainersIterative(Class<T> type, ObjectQuery origQuery,
+            ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+
+        Validate.notNull(type, "Container type must not be null.");
+        Validate.notNull(parentResult, "Result type must not be null.");
+        ObjectQuery query = origQuery != null ? origQuery.clone() : null;
+        if (query != null) {
+            ModelImplUtils.validatePaging(query.getPaging());
+        }
+
+        OP_LOGGER.trace("MODEL OP enter searchContainersIterative({},{},{})", type.getSimpleName(), query, rawOptions);
+
+        OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS)
+                .addParam(OperationResult.PARAM_QUERY, query);
+
+        try {
+            var rawOptionsReadWrite = GetOperationOptions.updateToReadWriteSafe(rawOptions);
+            var parsedOptions = preProcessOptionsSecurity(rawOptionsReadWrite, task, result);
+            var options = parsedOptions.getCollection();
+
+            var ctx = new ContainerSearchLikeOpContext<>(type, origQuery, parsedOptions, task, result);
+
+            GetOperationOptions rootOptions = parsedOptions.getRootOptions();
+
+            ObjectQuery processedQuery = ctx.securityRestrictedQuery;
+
+
+            if (isFilterNone(processedQuery, result)) {
+                LOGGER.trace("Skipping search because filter is NONE");
+                return null;
+            }
+
+            ObjectHandler<T> internalHandler = (object, lResult) -> {
+                var prismContainer = object.asPrismContainerValue().cloneIfImmutable();
+                object = prismContainer.getRealValue();
+                try {
+                    if (ctx.skipSecurityPostProcessing) {
+                        LOGGER.debug("Objects of type '{}' do not have security constraints applied yet", type.getSimpleName());
+                    } else {
+
+                        SearchResultList<Containerable> list = new SearchResultList<>();
+                        list.add(object);
+                        schemaTransformer.applySchemasAndSecurityToContainerValues(list, parsedOptions, task, result);
+                    }
+                } catch (CommonException ex) {
+                    lResult.recordException(ex); // We should create a subresult for this
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+
+                OP_LOGGER.debug("MODEL OP handle searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, object);
+                if (OP_LOGGER.isTraceEnabled()) {
+                    OP_LOGGER.trace("MODEL OP handle searchObjects({},{},{}):\n{}", type.getSimpleName(), query, rawOptions, object.debugDump(1));
+                }
+
+                return handler.handle(prismContainer.getRealValue(), lResult);
+            };
+
+            SearchResultMetadata metadata;
+            try {
+                enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
+                logQuery(processedQuery);
+
+                if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
+                    QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
+                }
+                //noinspection SwitchStatementWithTooFewBranches
+                switch (ctx.manager) {
+                    case REPOSITORY:
+                        metadata = cacheRepositoryService.searchContainersIterative(type, processedQuery, internalHandler, options, result);
+                        break;
+                    default:
+                        throw new IllegalStateException();
+                }
+            } catch (Exception e) {
+                result.recordException(e);
+                throw e;
+            } finally {
+                exitModelMethodNoRepoCache();
+            }
+
+            // TODO: log errors
+
+            if (OP_LOGGER.isDebugEnabled()) {
+                OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, metadata);
+            }
+
+            return metadata;
+        } finally {
+            result.close();
+            result.cleanup();
+        }
+    }
+
+
     @Override
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)

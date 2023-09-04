@@ -438,6 +438,12 @@ public interface ModelService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    <T extends Containerable> SearchResultMetadata searchContainersIterative(Class<T> type, ObjectQuery query,
+            ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
+            OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
+
     /**
      * Count objects.
      *
