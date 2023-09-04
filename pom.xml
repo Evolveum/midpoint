@@ -957,7 +957,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
-                <version>1.5.1.0-SNAPSHOT</version>
+                <version>1.5.1.0-M1</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
