@@ -185,18 +185,7 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
         columns.add(nameColumn);
 
         SelectableListDataProvider<SelectableBean<Integer>, Integer> provider =
-                new SelectableListDataProvider<SelectableBean<Integer>, Integer>(getPageBase(), Model.ofList(exportableColumnIndex)) {
-
-                    @Override
-                    public Iterator<SelectableBean<Integer>> internalIterator(long first, long count) {
-
-                        if (getAvailableData().isEmpty()) {
-                            return super.internalIterator(first, count);
-                        } else {
-                            return getAvailableData().iterator();
-                        }
-                    }
-                };
+                new SelectableListDataProvider<SelectableBean<Integer>, Integer>(getPageBase(), Model.ofList(exportableColumnIndex));
 
         BoxedTablePanel<SelectableBean<Integer>> table =
                 new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns) {
