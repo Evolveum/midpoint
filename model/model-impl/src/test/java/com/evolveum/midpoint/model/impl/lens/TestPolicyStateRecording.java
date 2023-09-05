@@ -320,8 +320,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong # of assignments", 2, chuck.getAssignment().size());
 
         displayDumpable("Audit", dummyAuditService);
-        // 2 because sourceRef.oid is null on the first iteration (object OID is unknown before actual creation in repo)
-        dummyAuditService.assertExecutionRecords(2);
+        dummyAuditService.assertExecutionRecords(1);
 
         for (AssignmentType assignment : chuck.getAssignment()) {
             assertExclusionViolationState(assignment, 1);

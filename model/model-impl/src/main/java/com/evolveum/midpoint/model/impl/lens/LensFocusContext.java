@@ -356,7 +356,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         sb.append("\n");
 
         DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "Policy rules context", policyRulesContext, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Policy rules context", policyRulesContext, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Assignment ID store",
+                assignmentIdStore != null ? assignmentIdStore.shortDump() : null, indent + 1);
         return sb.toString();
     }
 

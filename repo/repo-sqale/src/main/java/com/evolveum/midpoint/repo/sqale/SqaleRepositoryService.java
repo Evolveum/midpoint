@@ -1952,7 +1952,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException {
         UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
 
-        logger.debug("Advancing sequence {}", oid);
+        logger.debug("Allocating container identifiers {}", oid);
 
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_ALLOCATE_CONTAINER_IDENTIFIERS)
                 .addParam(OperationResult.PARAM_TYPE, type.getName())
