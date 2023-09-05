@@ -1356,6 +1356,11 @@ Module is used for 2FA authentication. Module use duo server for authentication 
 | false
 | _string_
 
+| `pathForDuoUsername`
+| The path to the user attribute which should be sent to duo server as username of authenticated user. Default path is for name attribute.
+| false
+| _ItemPathType_
+
 |===
 
 .Example of duo module
