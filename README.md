@@ -1,4 +1,4 @@
-MidPoint 4.8 Development Branch
+MidPoint 4.8 "Curie" Milestone 3
 -------------------------------
 
 General information:
