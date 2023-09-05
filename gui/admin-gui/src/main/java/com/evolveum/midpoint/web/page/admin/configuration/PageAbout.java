@@ -658,6 +658,7 @@ public class PageAbout extends PageAdminConfiguration {
                     ActivitySubmissionOptions.create()
                             .withTaskTemplate(new TaskType()
                                     .name("Delete all objects")
+                                    .indestructible(true)
                                     .cleanupAfterCompletion(XmlTypeConverter.createDuration("P1D")))
                             .withArchetypes(
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
