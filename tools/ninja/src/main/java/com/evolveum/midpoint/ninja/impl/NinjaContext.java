@@ -124,7 +124,11 @@ public class NinjaContext implements Closeable {
         this.log = log;
     }
 
-    private void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+    private synchronized void setupRepositoryViaMidPointHome(ConnectionOptions options) {
+        if (applicationContext != null) {
+            // Guard if method is entered multiple times during multi-threaded invocation
+            return;
+        }
         if (applicationContextLevel == NinjaApplicationContextLevel.NONE) {
             throw new IllegalStateException("Application context shouldn't be initialized");
         }
@@ -154,7 +158,11 @@ public class NinjaContext implements Closeable {
         String oldValue = System.getProperty(key);
         systemPropertiesBackup.put(key, oldValue);
 
-        System.setProperty(key, value);
+        if (value != null) {
+            System.setProperty(key, value);
+        } else {
+            System.clearProperty(key);
+        }
     }
 
     private void overrideRepoConfiguration(ConnectionOptions options) {
