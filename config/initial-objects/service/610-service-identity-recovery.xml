@@ -9,7 +9,7 @@
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Identity recovery</name>
     <description>Service intended for identity recovery flow. The necessary for this flow authorizations are granted within this service.</description>
-    <authorization>
+    <authorization id="1">
         <name>gui-identity-recovery-access</name>
         <description>
             Allow access to identity recovery results page.

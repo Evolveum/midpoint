@@ -24,50 +24,50 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>extension/mext:objectType</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>extension/mext:objectQuery</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="4">
             <path>extension/mext:searchOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="5">
             <path>extension/mext:iterationMethod</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="6">
             <path>extension/mext:useRepositoryDirectly</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="7">
             <path>extension/mext:failedObjectsSelector</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="8">
             <path>extension/mext:workerThreads</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="9">
             <path>extension/mext:lastScanTimestamp</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="10">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="11">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="12">
                             <identifier>work-focusValidityScan</identifier>
                             <path>activity/work/focusValidityScan</path>
                         </container>
@@ -76,14 +76,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="13">
+        <assignmentRelation id="14">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="15">
         <focusMappings>
-            <mapping>
+            <mapping id="16">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -95,38 +95,6 @@
                 <target>
                     <path>name</path>
                 </target>
-            </mapping>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>System</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <source>
-                    <path>activity</path>
-                </source>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/focus-validity-scanner/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-                <condition>
-                    <script>
-                        <code>
-                            activity == null
-                        </code>
-                    </script>
-                </condition>
             </mapping>
         </focusMappings>
     </inducement>

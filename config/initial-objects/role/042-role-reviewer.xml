@@ -10,10 +10,10 @@
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Reviewer</name>
     <description>Role authorizing users to make decisions on certification cases.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000320" type="ArchetypeType"/> <!-- System role -->
     </assignment>
-    <authorization>
+    <authorization id="2">
         <name>gui-reviewer-access</name>
         <description>
             Allow access to list of certification cases in GUI. Allow access to pages that show object details,
@@ -25,18 +25,18 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
     </authorization>
-    <authorization>
+    <authorization id="3">
         <name>read-and-make-decisions</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
     </authorization>
-    <authorization>
+    <authorization id="4">
         <name>users-read</name>
         <description>
             Allow to read basic user properties.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="8">
             <type>UserType</type>
         </object>
         <item>name</item>
@@ -46,13 +46,13 @@
         <item>employeeType</item>
         <item>employeeNumber</item>
     </authorization>
-    <authorization>
+    <authorization id="5">
         <name>roles-read</name>
         <description>
             Allow to read basic role properties.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="9">
             <type>RoleType</type>
         </object>
         <item>name</item>
@@ -62,13 +62,13 @@
         <item>riskLevel</item>
         <item>roleType</item>
     </authorization>
-    <authorization>
+    <authorization id="6">
         <name>orgs-read</name>
         <description>
             Allow to read basic org properties.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="10">
             <type>OrgType</type>
         </object>
         <item>name</item>
@@ -78,13 +78,13 @@
         <item>riskLevel</item>
         <item>orgType</item>
     </authorization>
-    <authorization>
+    <authorization id="7">
         <name>services-read</name>
         <description>
             Allow to read basic service properties.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="11">
             <type>ServiceType</type>
         </object>
         <item>name</item>

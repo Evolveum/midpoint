@@ -11,7 +11,7 @@
         oid="00000000-0000-0000-0000-b8249b79d2b5">
     <name>Indirect assignment report</name>
     <description>Shows information stored in roleMembershipRef value metadata.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
@@ -42,17 +42,17 @@
                 </q:and>
             </filter>
         </collection>
-        <parameter>
+        <parameter id="2">
             <name>userName</name>
             <type>string</type>
         </parameter>
-        <parameter>
+        <parameter id="3">
             <name>roleRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>c:AbstractRoleType</targetType>
         </parameter>
 
-        <subreport>
+        <subreport id="4">
             <!--
             This subreport generates additional lines per each metadata value,
             in case there are multiple distinct assignment paths.
@@ -78,7 +78,7 @@
             IMPORTANT:
             All the scripts must use objectVariableMode=prismReference for the case the target does not exist.
             -->
-            <column>
+            <column id="5">
                 <name>user</name>
                 <display>
                     <label>User</label>
@@ -92,7 +92,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="6">
                 <name>nameColumn</name>
                 <display>
                     <label>Name</label>
@@ -107,7 +107,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="7">
                 <name>archetypeName</name>
                 <display>
                     <label>Type</label>
@@ -122,7 +122,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="8">
                 <name>relation</name>
                 <display>
                     <label>Relation</label>
@@ -137,7 +137,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="9">
                 <name>allPath</name>
                 <display>
                     <label>Path</label>
@@ -154,7 +154,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="10">
                 <!-- This is probably not important column, everything is in the path column anyway. -->
                 <name>parent</name>
                 <display>
@@ -181,7 +181,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="11">
                 <!-- We don't store refs/metadata for disabled assignments, so this is always Enabled. -->
                 <name>activation</name>
                 <display>
@@ -197,7 +197,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="12">
                 <name>validTo</name>
                 <display>
                     <label>Valid to</label>
@@ -212,7 +212,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="13">
                 <name>since</name>
                 <display>
                     <label>Since</label>
@@ -227,7 +227,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="14">
                 <name>createChannel</name>
                 <display>
                     <label>Source</label>

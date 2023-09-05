@@ -10,14 +10,14 @@
     <name>Focus parent organization reference changed</name>
     <description>Operation that changed the focus parent organization reference</description>
     <documentation>This mark deals with `parentOrgRef` value.</documentation>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>150</displayOrder>
-    <policyRule>
+    <policyRule id="2">
         <name>focus-parent-org-ref-changed</name>
         <policyConstraints>
-            <modification>
+            <modification id="3">
                 <name>$focus-parent-org-ref-changed</name>
                 <operation>modify</operation>
                 <item>parentOrgRef</item>

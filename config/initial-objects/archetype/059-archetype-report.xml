@@ -20,35 +20,35 @@
                 <color>#001F3F</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>jasper</path>
             <visibility>hidden</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>diagnosticInformation</path>
             <visibility>hidden</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>defaultScriptConfiguration</path>
             <visibility>hidden</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="4">
             <path>postReportScript</path>
             <visibility>hidden</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="5">
             <path>lifecycleState</path>
             <visibility>hidden</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>ReportType</type>
-                <panel>
+                <panel id="6">
                     <identifier>assignments</identifier>
                     <visibility>hidden</visibility>
                     <panelType>assignments</panelType>
                 </panel>
-                <panel>
+                <panel id="7">
                     <identifier>fileFormat</identifier>
                     <displayOrder>20</displayOrder>
                     <display>
@@ -58,7 +58,7 @@
                             <cssClass>fas fa-file-alt</cssClass>
                         </icon>
                     </display>
-                    <container>
+                    <container id="8">
                         <path>fileFormat</path>
                     </container>
                     <panelType>formPanel</panelType>
@@ -68,8 +68,8 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="9">
+        <assignmentRelation id="10">
             <holderType>ReportType</holderType>
         </assignmentRelation>
     </assignment>

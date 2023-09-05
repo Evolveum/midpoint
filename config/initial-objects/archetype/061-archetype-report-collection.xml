@@ -23,14 +23,14 @@
                 <color>#001F3F</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>dashboard</path>
             <visibility>hidden</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>ReportType</type>
-                <panel>
+                <panel id="2">
                     <identifier>engine</identifier>
                     <displayOrder>11</displayOrder>
                     <display>
@@ -40,15 +40,15 @@
                             <cssClass>fa fa-microchip</cssClass>
                         </icon>
                     </display>
-                    <container>
+                    <container id="7">
                         <identifier>engineContainer</identifier>
                         <display>
                             <label>Engine</label>
                         </display>
-                        <item>
+                        <item id="8">
                             <path>objectCollection/condition</path>
                         </item>
-                        <item>
+                        <item id="9">
                             <path>objectCollection/useOnlyReportView</path>
                         </item>
                     </container>
@@ -56,7 +56,7 @@
                     <path>c:objectCollection</path>
                     <type>c:ObjectCollectionReportEngineConfigurationType</type>
                 </panel>
-                <panel>
+                <panel id="3">
                     <identifier>collection</identifier>
                     <displayOrder>12</displayOrder>
                     <display>
@@ -66,14 +66,14 @@
                             <cssClass>fa fa-filter</cssClass>
                         </icon>
                     </display>
-                    <container>
+                    <container id="10">
                         <path>objectCollection/collection</path>
                     </container>
                     <panelType>formPanel</panelType>
                     <path>c:objectCollection/collection</path>
                     <type>c:CollectionRefSpecificationType</type>
                 </panel>
-                <panel>
+                <panel id="4">
                     <identifier>view</identifier>
                     <display>
                         <label>View</label>
@@ -84,7 +84,7 @@
                     </display>
                     <panelType>reportCollectionView</panelType>
                 </panel>
-                <panel>
+                <panel id="5">
                     <identifier>parameters</identifier>
                     <display>
                         <label>Parameter</label>
@@ -95,7 +95,7 @@
                     </display>
                     <panelType>reportCollectionParameter</panelType>
                 </panel>
-                <panel>
+                <panel id="6">
                     <identifier>subreport</identifier>
                     <display>
                         <label>Subreport</label>
@@ -109,8 +109,8 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="11">
+        <assignmentRelation id="12">
             <holderType>ReportType</holderType>
         </assignmentRelation>
     </assignment>

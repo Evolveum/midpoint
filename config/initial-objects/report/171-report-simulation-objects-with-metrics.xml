@@ -13,7 +13,7 @@
         oid="00000000-0000-0000-0000-616a5c5dbca8">
     <name>Simulation report: Objects with metrics</name>
     <description>Objects processed by a given simulation, along with values of individual metrics.</description>
-    <assignment>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
@@ -31,7 +31,7 @@
             </filter>
         </collection>
         <view>
-            <column>
+            <column id="2">
                 <name>id</name>
                 <display>
                     <label>
@@ -49,7 +49,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="3">
                 <name>oid</name>
                 <path>oid</path>
                 <display>
@@ -62,42 +62,42 @@
                 </display>
                 <previousColumn>id</previousColumn>
             </column>
-            <column>
+            <column id="4">
                 <name>name</name>
                 <path>name</path>
                 <previousColumn>oid</previousColumn>
             </column>
-            <column>
+            <column id="5">
                 <name>type</name>
                 <path>type</path>
                 <previousColumn>name</previousColumn>
             </column>
-            <column>
+            <column id="6">
                 <name>archetype</name>
                 <path>structuralArchetypeRef</path>
                 <previousColumn>type</previousColumn>
             </column>
-            <column>
+            <column id="7">
                 <name>resourceRef</name>
                 <path>resourceObjectCoordinates/resourceRef</path>
                 <previousColumn>archetype</previousColumn>
             </column>
-            <column>
+            <column id="8">
                 <name>kind</name>
                 <path>resourceObjectCoordinates/kind</path>
                 <previousColumn>resourceRef</previousColumn>
             </column>
-            <column>
+            <column id="9">
                 <name>intent</name>
                 <path>resourceObjectCoordinates/intent</path>
                 <previousColumn>kind</previousColumn>
             </column>
-            <column>
+            <column id="10">
                 <name>tag</name>
                 <path>resourceObjectCoordinates/tag</path>
                 <previousColumn>intent</previousColumn>
             </column>
-            <column>
+            <column id="11">
                 <name>objectMark</name>
                 <display>
                     <label>
@@ -116,18 +116,18 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="12">
                 <name>state</name>
                 <path>state</path>
                 <previousColumn>objectMark</previousColumn>
             </column>
-            <column>
+            <column id="13">
                 <name>resultStatus</name>
                 <path>resultStatus</path>
                 <previousColumn>state</previousColumn>
             </column>
             <!-- for each metric -->
-            <column>
+            <column id="14">
                 <name>eventMark</name>
                 <display>
                     <label>
@@ -150,7 +150,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="15">
                 <name>explicitMetric</name>
                 <display>
                     <label>
@@ -173,7 +173,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="16">
                 <name>selected</name>
                 <display>
                     <label>
@@ -196,7 +196,7 @@
                     </expression>
                 </export>
             </column>
-            <column>
+            <column id="17">
                 <name>value</name>
                 <display>
                     <label>
@@ -221,7 +221,7 @@
             </column>
             <type>c:SimulationResultProcessedObjectType</type>
         </view>
-        <parameter>
+        <parameter id="18">
             <name>simulationResultRef</name>
             <type>c:ObjectReferenceType</type>
             <targetType>SimulationResultType</targetType>
@@ -234,7 +234,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="19">
             <name>showEventMarks</name>
             <type>xsd:boolean</type>
             <display>
@@ -246,7 +246,7 @@
                 </label>
             </display>
         </parameter>
-        <parameter>
+        <parameter id="20">
             <name>showExplicitMetrics</name>
             <type>xsd:boolean</type>
             <display>
@@ -258,7 +258,7 @@
                 </label>
             </display>
         </parameter>
-        <subreport>
+        <subreport id="21">
             <name>objectMarks</name>
             <type>c:ObjectReferenceType</type>
             <expression>
@@ -272,7 +272,7 @@
             </expression>
             <order>5</order>
         </subreport>
-        <subreport>
+        <subreport id="22">
             <name>metric</name>
             <!-- Non-prism type of ProcessedObject.Metric -->
             <expression>

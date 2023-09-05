@@ -26,11 +26,11 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="1">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="2">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="3">
                             <identifier>work-propagation</identifier>
                             <path>activity/work/propagation</path>
                         </container>
@@ -39,14 +39,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="4">
+        <assignmentRelation id="5">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="6">
         <focusMappings>
-            <mapping>
+            <mapping id="7">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -58,38 +58,6 @@
                 <target>
                     <path>name</path>
                 </target>
-            </mapping>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>System</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <source>
-                    <path>activity</path>
-                </source>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-                <condition>
-                    <script>
-                        <code>
-                            activity == null
-                        </code>
-                    </script>
-                </condition>
             </mapping>
         </focusMappings>
     </inducement>

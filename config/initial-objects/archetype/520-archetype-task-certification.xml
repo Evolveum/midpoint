@@ -26,25 +26,25 @@
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="1">
                     <identifier>activity</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel>
+                <panel id="2">
                     <identifier>taskBasic</identifier>
                     <default>true</default>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="3">
+        <assignmentRelation id="4">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="5">
         <focusMappings>
-            <mapping>
+            <mapping id="6">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -55,15 +55,6 @@
                 </expression>
                 <target>
                     <path>name</path>
-                </target>
-            </mapping>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>AccessCertification</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
                 </target>
             </mapping>
         </focusMappings>

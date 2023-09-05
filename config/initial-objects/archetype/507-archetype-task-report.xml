@@ -24,32 +24,32 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>extension/rext:reportParam</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>extension/rext:reportDataParam</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="4">
                     <identifier>taskBasic</identifier>
-                    <container>
+                    <container id="5">
                         <identifier>report-options</identifier>
                         <display>
                             <label>ReportTask.reportOptions</label>
                         </display>
-                        <item>
+                        <item id="6">
                             <c:path>extension/rext:reportParam</c:path>
                         </item>
-                        <item>
+                        <item id="7">
                             <c:path>extension/rext:reportDataParam</c:path>
                         </item>
                     </container>
@@ -57,8 +57,8 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="8">
+        <assignmentRelation id="9">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>

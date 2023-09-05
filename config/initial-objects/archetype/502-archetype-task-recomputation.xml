@@ -23,76 +23,76 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>extension/mext:objectType</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>extension/mext:objectQuery</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="4">
             <path>extension/mext:searchOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="5">
             <path>extension/mext:useRepositoryDirectly</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="6">
             <path>extension/mext:workerThreads</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="7">
             <path>extension/mext:modelExecuteOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>c:TaskType</type>
-                <panel>
+                <panel id="8">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="10">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="11">
                             <identifier>work-recomputation</identifier>
                             <path>activity/work/recomputation</path>
                         </container>
                     </panel>
                 </panel>
-                <panel>
+                <panel id="9">
                     <identifier>taskBasic</identifier>
-                    <container>
+                    <container id="12">
                         <identifier>objects-to-recompute</identifier>
                         <display>
                             <label>RecomputationTask.objectsToRecompute</label>
                         </display>
-                        <item>
+                        <item id="14">
                             <c:path>extension/mext:objectType</c:path>
                         </item>
-                        <item>
+                        <item id="15">
                             <c:path>extension/mext:objectQuery</c:path>
                         </item>
-                        <item>
+                        <item id="16">
                             <c:path>extension/mext:searchOptions</c:path>
                         </item>
-                        <item>
+                        <item id="17">
                             <c:path>extension/mext:useRepositoryDirectly</c:path>
                         </item>
                     </container>
-                    <container>
+                    <container id="13">
                         <identifier>recompute-options</identifier>
                         <display>
                             <label>RecomputationTask.recomputationOptions</label>
                         </display>
-                        <item>
+                        <item id="18">
                             <c:path>extension/mext:workerThreads</c:path>
                         </item>
-                        <item>
+                        <item id="19">
                             <c:path>extension/mext:modelExecuteOptions</c:path>
                         </item>
                     </container>
@@ -100,14 +100,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="20">
+        <assignmentRelation id="21">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="22">
         <focusMappings>
-            <mapping>
+            <mapping id="23">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -119,38 +119,6 @@
                 <target>
                     <path>name</path>
                 </target>
-            </mapping>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>Recomputation</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <source>
-                    <path>activity</path>
-                </source>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-                <condition>
-                    <script>
-                        <code>
-                            activity == null
-                        </code>
-                    </script>
-                </condition>
             </mapping>
         </focusMappings>
     </inducement>

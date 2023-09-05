@@ -23,79 +23,79 @@
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint>
+        <itemConstraint id="1">
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="2">
             <path>extension/mext:objectclass</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="3">
             <path>extension/mext:kind</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="4">
             <path>extension/mext:intent</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="5">
             <path>extension/mext:objectQuery</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="6">
             <path>extension/mext:workerThreads</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint>
+        <itemConstraint id="7">
             <path>extension/mext:dryRun</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel>
+                <panel id="8">
                     <identifier>activity</identifier>
-                    <panel>
+                    <panel id="10">
                         <identifier>work</identifier>
-                        <container>
+                        <container id="11">
                             <identifier>work-import</identifier>
                             <path>activity/work/import</path>
                         </container>
                     </panel>
                 </panel>
-                <panel>
+                <panel id="9">
                     <identifier>taskBasic</identifier>
-                    <container>
+                    <container id="12">
                         <identifier>objects-to-import</identifier>
                         <display>
                             <label>ImportTask.objectsToImport</label>
                         </display>
-                        <item>
+                        <item id="14">
                             <c:path>objectRef</c:path>
                         </item>
-                        <item>
+                        <item id="15">
                             <c:path>extension/mext:objectclass</c:path>
                         </item>
-                        <item>
+                        <item id="16">
                             <c:path>extension/mext:kind</c:path>
                         </item>
-                        <item>
+                        <item id="17">
                             <c:path>extension/mext:intent</c:path>
                         </item>
-                        <item>
+                        <item id="18">
                             <c:path>extension/mext:objectQuery</c:path>
                         </item>
                     </container>
-                    <container>
+                    <container id="13">
                         <identifier>import-options</identifier>
                         <display>
                             <label>ImportTask.importOptions</label>
                         </display>
-                        <item>
+                        <item id="19">
                             <c:path>extension/mext:workerThreads</c:path>
                         </item>
-                        <item>
+                        <item id="20">
                             <c:path>extension/mext:dryRun</c:path>
                         </item>
                     </container>
@@ -103,14 +103,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment>
-        <assignmentRelation>
+    <assignment id="21">
+        <assignmentRelation id="22">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement>
+    <inducement id="23">
         <focusMappings>
-            <mapping>
+            <mapping id="24">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -134,38 +134,6 @@
                 <target>
                     <path>name</path>
                 </target>
-            </mapping>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>ImportingAccounts</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement>
-        <focusMappings>
-            <mapping>
-                <strength>weak</strength>
-                <source>
-                    <path>activity</path>
-                </source>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-                <condition>
-                    <script>
-                        <code>
-                            activity == null
-                        </code>
-                    </script>
-                </condition>
             </mapping>
         </focusMappings>
     </inducement>

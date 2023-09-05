@@ -7,41 +7,41 @@
         <q:all/>
     </filter>
     <defaultView>
-        <column>
+        <column id="1">
             <name>timestampColumn</name>
             <path>timestamp</path>
         </column>
-        <column>
+        <column id="2">
             <name>initiatorColumn</name>
             <path>initiatorRef</path>
             <previousColumn>timestampColumn</previousColumn>
         </column>
-        <column>
+        <column id="3">
             <name>eventTypeColumn</name>
             <path>eventType</path>
             <previousColumn>initiatorColumn</previousColumn>
         </column>
-        <column>
+        <column id="4">
             <name>eventStageColumn</name>
             <path>eventStage</path>
             <previousColumn>eventTypeColumn</previousColumn>
         </column>
-        <column>
+        <column id="5">
             <name>targetColumn</name>
             <path>targetRef</path>
             <previousColumn>eventStageColumn</previousColumn>
         </column>
-        <column>
+        <column id="6">
             <name>outcomeColumn</name>
             <path>outcome</path>
             <previousColumn>targetColumn</previousColumn>
         </column>
-        <column>
+        <column id="7">
             <name>messageColumn</name>
             <path>message</path>
             <previousColumn>outcomeColumn</previousColumn>
         </column>
-        <column>
+        <column id="8">
             <name>deltaColumn</name>
             <path>delta</path>
             <previousColumn>messageColumn</previousColumn>
