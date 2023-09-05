@@ -518,7 +518,10 @@ public class PageCertDecisions extends PageAdminCertification {
             showResult(result);
         }
 //        resetCertWorkItemCountModel();
-        target.add(this);
+
+        if (response != null) {
+            target.add(this);
+        }
     }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
