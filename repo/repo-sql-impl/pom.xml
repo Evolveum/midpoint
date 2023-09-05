@@ -172,7 +172,7 @@
                             <outputDirectory>${project.build.directory}/classes/sql</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../../config/sql/generic-old</directory>
+                                    <directory>${project.basedir}/../../config/sql/generic</directory>
                                     <includes>
                                         <include>*.sql</include>
                                     </includes>
