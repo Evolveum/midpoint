@@ -14,8 +14,9 @@ If enhanced, add the features into 200-report-indirect-assignments.xml as well.
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="7f1695f2-d826-4d78-a046-b8249b79d2b5">
-    <name>Indirect assignment report</name>
-    <description>Shows information stored in roleMembershipRef value metadata.</description>
+    <name>IGA: Who has access to what and why</name>
+    <description>Displays IGA representation of user access - all roles, ORGs and services (applications) assigned to users directly or indirectly.
+Formerly known as Indirect assignment report.</description>
     <objectCollection>
         <collection>
             <!-- Type is declared in the view element. -->
