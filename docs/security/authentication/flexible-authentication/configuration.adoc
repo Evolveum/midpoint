@@ -1372,7 +1372,7 @@ Module is used for 2FA authentication. Module use duo server for authentication 
     <clientSecret>
         <clearValue>your_client_secret</clearValue>
     </clientSecret>
-    <apiHostname>your_client_hostname</apiHostname>
+    <apiHostname>your_api_hostname</apiHostname>
 </duo>
 ----
 
