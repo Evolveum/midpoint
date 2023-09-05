@@ -97,9 +97,16 @@ See xref:/midpoint/reference/misc/bulk/actions/script-and-expression/[].
 * Selected items smaller than object (e.g. case work items, certification cases, certification cases work items, operation execution records, partially also assignments and simulation-related processed objects records) can be authorized regarding getting, searching, and completion (for work items).
 See also xref:/midpoint/reference/security/authorization/configuration/selectors/type-and-parent/[].
 
+* Support for loading connectors from `connid-connectors` directory. `icf-connectors` directory is deprecated.
+
+* Helper functions xref:/midpoint/reference/concepts/query/query-language-in-expressions/[`midpoint.queryFor()` for Groovy] to use Query language directly.
+
+
 === Miscellaneous Improvements
 
-* TODO
+* Native Repository: Additional search indexes in tasks and audit.
+** Audit records are searchable by attached delta properties: `delta/objectOid`, `delta/objectName``, `delta/resourceRef`, `delta/shadowKind`, `delta/shadowIntent`
+** Tasks are searchable by computed specification of affected objects and execution mode: `affectedObject/activity` 
 
 === Releases Of Other Components
 
