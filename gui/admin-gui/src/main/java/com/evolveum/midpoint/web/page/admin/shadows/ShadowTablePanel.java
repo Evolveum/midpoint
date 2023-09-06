@@ -398,7 +398,9 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
     @Override
     protected IColumn<SelectableBean<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new ContainerableNameColumn<>(displayModel, ObjectType.F_NAME.getLocalPart(), customColumn, expression, getPageBase()) {
+        return new ContainerableNameColumn<>(displayModel == null
+                ? createStringResource("ObjectType.name")
+                : displayModel, ObjectType.F_NAME.getLocalPart(), customColumn, expression, getPageBase()) {
 
             @Override
             protected IModel<String> getContainerName(SelectableBean<ShadowType> rowModel) {
