@@ -74,8 +74,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
 
     @Override
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
-        body.add(AttributeModifier.replace("class", "login-page"));
-        body.add(AttributeModifier.replace("style", "")); //TODO hack :) because PageBase has min-height defined.
+        body.add(AttributeModifier.replace("class", "login-page py-3 fp-center"));
+        body.add(AttributeModifier.remove("style")); //TODO hack :) because PageBase has min-height defined.
     }
 
     @Override

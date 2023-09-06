@@ -15,10 +15,12 @@
     <wicket:child/>
 
     <wicket:enclosure child="flowLinkContainer">
-        <div class="d-flex align-items-center my-2 py-1 spacer">
-            <hr class="w-100" style="border-color: #818d98;">
-            <span class="mx-3">OR</span>
-            <hr class="w-100" style="border-color: #818d98;">
+        <div class="d-flex align-items-center my-2 spacer">
+            <hr class="w-100">
+                <span class="mx-3 text-sm">
+                    <wicket:message key="PageLogin.separator"/>
+                </span>
+            <hr class="w-100">
         </div>
 
         <div wicket:id="flowLinkContainer">
