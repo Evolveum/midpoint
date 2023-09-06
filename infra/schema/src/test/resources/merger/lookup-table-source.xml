@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum, AMI Praha and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<lookupTable oid="00000000-0000-0000-0000-000000000240"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>States</name>
+    <row id="1">
+        <key>created</key>
+        <label>Created</label>
+    </row>
+    <row id="2">
+        <key>open</key>
+        <label>Open</label>
+    </row>
+    <row id="3">
+        <key>closing</key>
+        <label>Closing</label>
+    </row>
+    <row id="4">
+        <key>executing</key>
+        <label>Executing</label>
+    </row>
+    <row id="5">
+        <key>closed</key>
+        <label>Closed</label>
+    </row>
+</lookupTable>

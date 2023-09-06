@@ -16,6 +16,7 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.evolveum.icf.dummy.resource.*;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -75,7 +77,15 @@ public class TestDummyNegative extends AbstractDummyTest {
             TestDummyNegative::addFragileAttributes
     );
 
-    private static void addFragileAttributes(DummyResourceContoller controller) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    private static final TestResource RESOURCE_WITH_BROKEN_CONNECTOR_REF = TestResource.file(
+            TEST_DIR, "resource-with-broken-connector-ref.xml", "fe1de27d-684c-44c8-9cf6-a691fdf392fd");
+    private static final TestResource RESOURCE_TEMPLATE_WITH_BROKEN_CONNECTOR_REF = TestResource.file(
+            TEST_DIR, "resource-template-with-broken-connector-ref.xml", "c41900ce-6b86-476a-a7c9-6eb797f7d405");
+    private static final TestResource RESOURCE_INSTANCE_WITH_BROKEN_CONNECTOR_REF = TestResource.file(
+            TEST_DIR, "resource-instance-with-broken-connector-ref.xml", "201e83f6-184e-46b0-92ec-16d1b639f6cb");
+
+    private static void addFragileAttributes(DummyResourceContoller controller)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         // This gives us a potential to induce exceptions during ConnId->object conversion.
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 ENABLE_DATE_NAME, Long.class, false, false);
@@ -90,7 +100,8 @@ public class TestDummyNegative extends AbstractDummyTest {
     private static final String GOOD_ACCOUNT = "good";
     private static final String INCONVERTIBLE_ACCOUNT = "inconvertible";
     private static final String UNSTORABLE_ACCOUNT = "unstorable";
-    private static final String TOTALLY_UNSTORABLE_ACCOUNT = "totally-unstorable" + StringUtils.repeat("-123456789", 30); // too large to be stored in DB
+    private static final String TOTALLY_UNSTORABLE_ACCOUNT =
+            "totally-unstorable" + StringUtils.repeat("-123456789", 30); // too large to be stored in DB
 
     private static final String EXTERNAL_UID_PREFIX = "uid:";
     private static final String GOOD_ACCOUNT_UID = EXTERNAL_UID_PREFIX + GOOD_ACCOUNT;
@@ -106,7 +117,80 @@ public class TestDummyNegative extends AbstractDummyTest {
 
         initDummyResource(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, initResult);
         testResourceAssertSuccess(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, initTask, initResult);
+
+        RESOURCE_WITH_BROKEN_CONNECTOR_REF.initRaw(this, initResult);
+        RESOURCE_TEMPLATE_WITH_BROKEN_CONNECTOR_REF.initRaw(this, initResult);
+        RESOURCE_INSTANCE_WITH_BROKEN_CONNECTOR_REF.initRaw(this, initResult);
     }
+
+    //region Broken connectorRef
+
+    /** MID-8619: resource with broken `connectorRef` must be gettable. */
+    @Test
+    public void test100GetResourceWithBrokenConnectorRef() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("resource with broken connectorRef is retrieved");
+        var resource = provisioningService
+                .getObject(ResourceType.class, RESOURCE_WITH_BROKEN_CONNECTOR_REF.oid, null, task, result)
+                .asObjectable();
+
+        Consumer<OperationResult> asserter =
+                r -> assertThatOperationResult(r)
+                        .isPartialError()
+                        .hasMessageContaining("An error occurred while applying connector schema")
+                        .hasMessageContaining("Object of type 'ConnectorType' with OID 'cb4bcb48-4325-405d-a4a4-260de5640232' was not found.");
+
+        then("the result is partial error");
+        asserter.accept(result);
+
+        and("fetchResult is the same");
+        asserter.accept(OperationResult.createOperationResult(resource.getFetchResult()));
+    }
+
+    /** MID-8619: resource template with broken `connectorRef` must be gettable. */
+    @Test
+    public void test103GetResourceTemplateWithBrokenConnectorRef() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("resource template with broken connectorRef is retrieved");
+        var resource = provisioningService
+                .getObject(ResourceType.class, RESOURCE_TEMPLATE_WITH_BROKEN_CONNECTOR_REF.oid, null, task, result)
+                .asObjectable();
+
+        then("the result is success (there's no reason to get the connector)");
+        assertSuccess(result);
+
+        and("it returns without fetchResult");
+        assertThat(resource.getFetchResult()).as("fetch result").isNull();
+    }
+
+    /** MID-8619: resource instance pointing to a template with broken `connectorRef` must be gettable. */
+    @Test
+    public void test106GetResourceInstanceWithBrokenConnectorRef() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("instance of resource template with broken connectorRef is retrieved");
+        var resource = provisioningService
+                .getObject(ResourceType.class, RESOURCE_INSTANCE_WITH_BROKEN_CONNECTOR_REF.oid, null, task, result)
+                .asObjectable();
+
+        Consumer<OperationResult> asserter =
+                r -> assertThatOperationResult(r)
+                        .isPartialError()
+                        .hasMessageContaining("An error occurred while expanding super-resource references")
+                        .hasMessageContaining("Object of type 'ConnectorType' with OID 'cb4bcb48-4325-405d-a4a4-260de5640232' was not found.");
+
+        then("the result is partial error");
+        asserter.accept(result);
+
+        and("fetchResult is the same");
+        asserter.accept(OperationResult.createOperationResult(resource.getFetchResult()));
+    }
+    //endregion
 
     //region Tests for broken schema (in various ways)
     @Test
@@ -135,7 +219,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         OperationResult result = createOperationResult();
 
         // precondition
-        PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+        PrismObject<ResourceType> repoResource =
+                repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
         display("Repo resource (before)", repoResource);
         PrismContainer<Containerable> schema = repoResource.findContainer(ResourceType.F_SCHEMA);
         assertTrue("Schema found in resource before the test (precondition)", schema == null || schema.isEmpty());
@@ -144,7 +229,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         try {
 
             when();
-            PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+            PrismObject<ResourceType> resource =
+                    provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
             then();
             display("Resource with broken schema", resource);
@@ -176,7 +262,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         syncServiceMock.reset();
 
         when();
-        PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        PrismObject<ResourceType> resource =
+                provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         then();
         assertSuccess(result);
