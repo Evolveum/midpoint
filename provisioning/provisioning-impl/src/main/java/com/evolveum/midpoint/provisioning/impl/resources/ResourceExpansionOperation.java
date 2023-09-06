@@ -90,6 +90,9 @@ class ResourceExpansionOperation {
         this.beans = beans;
     }
 
+    /**
+     * Executes the expansion operation. Fails hard if e.g. `connectorRef` cannot be resolved.
+     */
     public void execute(OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
         OperationResult result = parentResult.createMinorSubresult(OP_EXPAND);
         try {
