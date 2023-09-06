@@ -1,0 +1,19 @@
+= MidPoint Security Configuration
+:page-nav-title: Security
+:page-wiki-name: Security
+:page-wiki-id: 30245224
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-03-21T07:52:42.041+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-03-21T07:52:54.075+01:00
+:page-display-order: 700
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe mechanism that deal with security, auditing, authentication, authorization and related topics.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

@@ -1,0 +1,96 @@
+= Recompute Task
+:page-wiki-name: Recompute Task
+:page-wiki-id: 24085435
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-03T14:58:32.782+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-11-23T22:06:56.489+01:00
+:page-upkeep-status: yellow
+
+The responsibility of the recompute task is to process the focal objects (e.g. users), recompute their state with respect to all applicable policies and update any data that need to be updated.
+
+By default the recompute task will recompute everything that is can, including projections.
+This means that all accounts will be retrieved, reconciled and updated as needed.
+Since midPoint 3.6 a lighter recompute flavors may be set up using the model execution options (see below).
+
+
+== Example
+
+.Recompute Users Task
+[source,xml]
+----
+<task>
+    <name>User Recompute</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+</task>
+----
+
+== Recompute vs Reconciliation
+
+At the first sight recompute does almost the same job as xref:/midpoint/reference/tasks/synchronization-tasks/[reconciliation].
+But there are important differences:
+
+* Recompute tasks are iterating over focal objects (users, roles, ...). Reconciliation tasks are iterating over resource objects (accounts, groups).
+Recompute has very little chance to find new resource objects.
+In fact that can only happen by the slim chance if recompute triggers creation of a new resource object and that object already exists.
+
+* Reconciliation is a multi-stage operation: it is trying to finish unfinished operations, then list all the resource objects and recompute them and then remove all shadows that do not have corresponding resource object.
+On the other hand recompute is a single-stage task that only iterates over the objects once.
+
+* The goal of a reconciliation is to make sure that data stored in a particular resource are consistence with midPoint.
+The primary purpose of reconciliation is to "fix" particular resource.
+The purpose of recompute is to make sure that internal midPoint data are consistent.
+Recompute may change the resources (and it really does that in default setting).
+But that is not the primary purpose.
+It is rather a side-effect of updating and re-evaluating focal objects.
+
+== Recompute Options
+
+MidPoint 3.6 (and later) has an ability to fine-tune the recompute process by specifying the model execution options.
+This can be used to control whether the recompute process triggers reconciliation, what particular parts of the xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[clockwork and projector computation] will take place and so on.
+
+[NOTE]
+.Handle with care!
+====
+The use of model execution options gives very good control over the recompute process.
+However, not all combinations of the settings are meaningful.
+Some of the combinations may lead to errors and few combinations may even be dangerous and they may destroy data.
+When using this approach please make sure you know what you are doing.
+Test the configuration well in the development environment before using on any valuable data.
+There is a real danger of data loss and damages.
+Use with utmost care.
+====
+
+The following example shows configuration for _light recompute_ - recompute process that only updates the internal integrity of the focal object and does not touch the projections:
+
+.Recompute Users Task
+[source,xml]
+----
+<task>
+    <name>User Light Recompute</name>
+    <extension>
+        <modelExecuteOptions>
+            <reconcileFocus>true</reconcileFocus>
+            <partialProcessing>
+                <inbound>skip</inbound>
+                <objectTemplateBeforeAssignments>skip</objectTemplateBeforeAssignments>
+                <objectTemplateAfterAssignments>skip</objectTemplateAfterAssignments>
+                <projection>skip</projection>
+                <approvals>skip</approvals>
+            </partialProcessing>
+        </modelExecuteOptions>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+    <recurrence>single</recurrence>
+</task>
+----
+
+== See Also
+
+* xref:/midpoint/reference/tasks/synchronization-tasks/[Synchronization Tasks]
+
+* xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

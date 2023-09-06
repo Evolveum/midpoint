@@ -1,0 +1,15 @@
+= MidPoint Authentication Configuration
+:page-nav-title: Authentication
+:page-wiki-name: Security And Authentication Configuration
+:page-wiki-id: 15859793
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T12:21:03.358+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-01-31T11:03:30.916+01:00
+:page-upkeep-status: yellow
+
+// TODO: introduction
+
+++++
+{% children %}
+++++

@@ -1,0 +1,24 @@
+= Bulk Actions Authorizations
+:page-since: 4.8
+
+Bulk actions are generally considered "safe", as their execution involves checking appropriate authorizations.
+For example, if one executes `add` action, the `#add` authorization relevant to object(s) being added is required.
+
+However, to add another layer of security - for example, to prevent denial of service attacks - the mere execution of a bulk action requires a special authorization.
+
+Before midPoint 4.8, it was named `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript`.
+Unfortunately, the name was confusing.
+It sounds like the authorization would allow to run Groovy (or Velocity, Python, JavaScript, and similar) scripts, which is not true.
+(Because of their power, to run these scripts from bulk actions before 4.8, the `#all` authorization was required.)
+
+Since 4.8, the `#executeScript` authorization is replaced by `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#all`.
+Furthermore, it is now possible to allow or deny execution of _individual actions_ using authorizations.
+
+For example, if only `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#assign` is granted, then only `assign` bulk action can be invoked.
+
+See xref:/midpoint/reference/misc/bulk/index.adoc#_actions[Actions].
+The primary names of actions should be used: e.g., `generate-value` (not `generateValue`).
+
+== See Also
+
+* xref:../[Authorization]

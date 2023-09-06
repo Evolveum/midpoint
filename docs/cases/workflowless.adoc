@@ -1,0 +1,93 @@
+= Workflowless
+:page-wiki-name: Workflowless
+:page-wiki-id: 39583860
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-10-08T14:50:40.938+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-10-08T15:34:15.645+02:00
+:page-since: "4.0"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+MidPoint 3.x and earlier were shipped with xref:workflow-3/[integrated Activiti workflow engine]. That is no longer the case.
+MidPoint is one of the few IDM systems that have deliberately removed an integrated workflow engine and became _workflowless_.
+
+Workflow engines are designed to govern flow of work among humans.
+It made a lot of sense to integrate workflow engine in IDM solutions in early 2000s.
+Lot of IDM tasks were manual at that time.
+And customers usually did not have a company-wide workflow system where IDM could simply be integrated.
+And even if they did, the infighting of software vendors made integration with workflow engines a complete nightmare.
+Therefore any practical IDM solution was supposed to bring its own workflow engine.
+Otherwise it could not be deployed in a reasonable time.
+Fortunately, those times are over.
+
+Character of IDM deployments was changing during 2000s and early 2010s.
+There was more automation and less manual work.
+And even if there was a manual work it was largely limited to two areas: approvals and manual provisioning.
+Workflow engines were still in use as those were often the only places where behavior of an IDM system could be customized.
+However, the job of the workflow engine was no longer focused on interaction with humans.
+Workflow engines were (ab)used to run quite complex provisioning algorithms, evaluate policies and so on.
+But workflow engines were never designed to do that.
+It was a major pain to set up those processes.
+And it was even harder to maintain them.
+
+MidPoint was born in 2011.
+It was designed by engineers that went through the first age of IDM deployments in 2000s.
+Therefore workflow engine had to be part of midPoint.
+Other products had it.
+Analysts wanted it.
+Therefore we integrated workflow into midPoint without a huge amount of thinking.
+But we have realized quite soon that the workflow engine was reduced to do just a single job: approvals.
+The engine was not even processing the request and selecting the approvers.
+MidPoint did all of that.
+The engine just executed the approvals.
+That was a pretty boring job for one big engine.
+It was an overkill.
+Therefore we have jettisoned the workflow engine in midPoint 4.0.
+
+
+== Policy-based approvals
+
+Midpoint is using xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] to drive approvals.
+Approval process is computed for each request and dynamically evaluated.
+The approvers, approval stages and policies are computed by midPoint.
+Approval xref:/midpoint/features/planned/case-management/[cases] are created for each approval decision.
+This is what we call xref:/midpoint/reference/cases/approval/policy-based-approvals/[policy-based approvals].
+
+Now, approvals and manual provisioning are not the only things in IDM that require manual interaction.
+Of course, there is a lot of things that cannot be automatized.
+However, many of those things are not really _processes_. They cannot be described by an algorithm, they do not have a prescribed flow of actors, forks and joins.
+Those things tend to be "cases".
+Something that needs to be solved, but for which an algorithmic solution is not available.
+It still needs human interaction, but that interaction is not constrained by a process.
+It is more like an improvised dance.
+Like a semi-structured teamwork.
+Workflow engine is not going to help with that.
+
+
+== Process is still needed
+
+Even though we have xref:/midpoint/reference/cases/approval/policy-based-approvals/[policy-based approvals], there is still a need for a _processes._ Maybe there is an enrollment process for a new employee.
+Maybe that employee needs to get company badge, get keys to the office, attend health&safety training and so on.
+We may need an algorithmic process which is full of human interaction.
+That is still a very valid requirement.
+Process is needed.
+The point is that it does not make any sense to drive that process in the workflow engine which is integrated into an IDM system.
+There is usually a company-wide workflow system those days.
+Company physical security staff will not enjoy logging into the IDM system to work with employee enrollment process and then log into another workflow system to request a time off and do all the other stuff.
+It does not make sense.
+Workflow engine embedded into an IDM system is a bad idea.
+
+What makes sense is the ability for an IDM system to xref:/midpoint/features/planned/external-workflow-integration/[integrate with existing company-wide workflow engine]. IDM system should be able to forward a process to a workflow system and continue the process when workflow engine is finished.
+IDM should not _include_ its own workflow engine.
+IDM should _cooperate_ with an existing engine.
+
+See xref:/midpoint/features/planned/external-workflow-integration/[Workflow Integration] page for more details.
+
+
+== See Also
+
+* xref:/midpoint/reference/cases/approval/policy-based-approvals/[Policy-based approvals]
+
+* xref:/midpoint/features/planned/external-workflow-integration/[Workflow Integration]

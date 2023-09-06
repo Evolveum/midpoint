@@ -1,0 +1,82 @@
+= Synchronization Flavors
+:page-nav-title: Flavors
+:page-wiki-name: Synchronization Flavors
+:page-wiki-id: 3866664
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-02-02T14:45:46.241+01:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2019-12-06T10:15:49.946+01:00
+:page-upkeep-status: red
+
+Synchronization routine is executed any time that midPoint has a chance to do it.
+This happens on numerous places in the system.
+
+There are many different types of synchronization in midPoint.
+_Live synchronization_ is supposed to provide quick response to changes and good chance that the data in IDM is up-to-date.
+The synchronization works with description of relative changes to the data.
+However, the synchronization cannot be made 100% reliable.
+Some changes may be missed, changes may arrive out of order, and therefore delayed changes may became inapplicable and so on.
+This may be caused by a resource or IDM being down or it may be an inherent property of the communication protocol that we use to connect to the resource.
+Therefore a functionality similar to synchronization is needed that will provide better reliability: _reconciliation_. The reconciliation compares absolute states of a resource and IDM, resolving the discovered inconsistencies.
+However, reconciliation is quite a demanding and long task, therefore it cannot be executed frequently.
+Change can also be detected by executing an unrelated operation, e.g. it may be discovered during account creation that an account already exists.
+The reaction to this situation is called _discovery_.
+
+In practice, usually at least both _live synchronization_ and _reconciliation_ is needed.
+The approach of midPoint is to unify all the synchronization mechanisms.
+midPoint is using the same interfaces and business logic to handle the changes, no matter what mechanism discovered the change.
+
+
+== Provisioning Synchronization
+
+The most common place that data is synchronized is provisioning operation.
+When the user data is changed, the _outbound_ expressions are executed and the change is reflected to accounts.
+Roles and assignments are also recomputed, which may result in creation, deletion or modification of an account.
+
+TODO: more
+
+
+== Live Synchronization
+
+Live synchronization is almost-realtime reaction to changes of the resource accounts.
+MidPoint polls for changes in the systems that can provide information about recent changes (_changelogs_). The polling is usually executed in rapid cycles every few seconds.
+Any detected changes are processed by the synchronization routines.
+The _inbound_ expressions are executed, reflecting the account changes to the user then the changes from user are reflected to other accounts (_outbound_). Therefore the change from the resource is propagated to midPoint and other system shortly after it was detected.
+
+TODO: figure
+
+
+== Reconciliation
+
+Reconciliation is comparing the real attributes of the accounts (what _is_) with the user properties and assignments in midPoint (what _should be_). Reconciliation is iterating over all the accounts to find accounts that should not be on the resource, accounts that are not yet in midPoint and should be linked to their owners, etc.
+It is a kind of "safety net" mechanism as it can reliably detect all the changes.
+However, it is also the least efficient of all the synchronization mechanisms.
+Reconciliation is usually executed as a scheduled task.
+
+
+== Discovery
+
+Discovery is an opportunistic reaction to a change.
+If a change is detected during "normal" operation of provisioning, discovery will handle that change.
+For example if an attempt to create an account fails because a different account exists, midPoint will try to handle the discovered account.
+It will execute the synchronization routines, try to find and owner for the account, etc.
+
+Note: discovery is not yet fully implemented.
+
+
+== Other
+
+The synchronization may be also used by other parts of the system.
+For example _import from resource_ also uses synchronization routines.
+The import is pretending that all accounts on the resource were just created and executes synchronization routines.
+This assures that the new users are created for each new accounts and existing user records are properly matched (given appropriate setup of synchronization policies).
+More mechanisms may be be added in the future (such as password synchronization).
+
+
+== See Also
+
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
+
+* xref:/midpoint/reference/synchronization/examples/[Synchronization Examples]
+
+* xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

@@ -1,0 +1,61 @@
+= Lookup Tables
+:page-wiki-name: Lookup Tables
+:page-wiki-id: 22741619
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-06-23T17:12:09.952+02:00
+:page-wiki-metadata-modify-user: chris83527
+:page-wiki-metadata-modify-date: 2019-07-03T15:56:56.460+02:00
+:page-since: "3.1.1"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: green
+
+Lookup tables are a mechanism how to manage selection and mapping of pre-defined value sets.
+E.g. employee types, locales, time zones, cost center codes and similar properties can be managed as lookup tables.
+The lookup tables can be defined in midPoint repository and bound to a particular property.
+The property will then be regarded as an _enumeration_ by midPoint.
+E.g. the user interface will display a selection instead of an ordinary test input field.
+
+
+== Lookup Table Definition
+
+There is a special object type for lookup tables (`LookupTableType`). The entire table can be represented as midPoint object and imported into the midPoint repository:
+
+.Lookup Table
+[source,xml]
+----
+<lookupTable oid="d74d9990-3953-11e6-ab88-7fda62960e0f">
+  <name>Country Codes</name>
+  <row>
+      <key>sk</key>
+      <label>Slovenská republika</label>
+  </row>
+  <row>
+      <key>tr</key>
+      <label>Türkiye Cumhuriyeti</label>
+  </row>
+</lookupTable>
+----
+
+The `key` specifies the value of the property that is bound to lookup table (see below).
+The label specifies the text that will be displayed to the user by midPoint user interface.
+
+
+== Binding Lookup Table to a Property
+
+Lookup table can be bound to any property of any (xref:/midpoint/reference/schema/focus-and-projections/[focal]) object type by using xref:/midpoint/reference/expressions/object-template/[object template]:
+
+.Object Template
+[source,xml]
+----
+<objectTemplate oid="6fd041a4-3954-11e6-b2db-63400448082e">
+    <item>
+        <ref>preferredLanguage</ref>
+        <displayName>Language</displayName>
+        <valueEnumerationRef oid="d74d9990-3953-11e6-ab88-7fda62960e0f"/>
+    </item>
+</objectTemplate>
+----
+
+This definition binds the (user) property `preferredLanguage` to the lookup table defined above.
+When that object template is made active then the midPoint user interface will display a selection with the labels specified in the lookup table.

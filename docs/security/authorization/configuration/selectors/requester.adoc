@@ -1,0 +1,23 @@
+= Requester Clause
+
+The object matches this selector clause if it has a requester specified by inner object selector.
+
+An example:
+
+.Listing 1. Authorization that allows to read approval status of cases requested by the subject
+[source,xml]
+----
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <object>
+        <type>CaseType</type>
+        <requester>
+            <special>self</special>
+        </requester>
+    </object>
+</authorization>
+----
+
+== Limitations
+
+. Applicable only to `CaseType` objects, where it looks for the `requestorRef` value.

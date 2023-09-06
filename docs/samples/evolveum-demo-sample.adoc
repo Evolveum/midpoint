@@ -1,0 +1,158 @@
+= Evolveum Demo Sample
+:page-wiki-name: Evolveum Demo Sample
+:page-wiki-id: 24085493
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-13T11:19:14.855+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-06-05T15:29:06.534+02:00
+:page-toc: top
+:page-upkeep-status: orange
+
+This is a description of the samples in:
+
+link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/evolveum[https://github.com/Evolveum/midpoint-samples/tree/master/samples/evolveum]
+
+
+== Basic Idea
+
+The demo shows a small organization using Evolveum team members as examples.
+The goal is to show midPoint features such as:
+
+* User management
+
+* Organziational structure
+
+* Role catalog
+
+* ...
+
+
+== Setup
+
+Import all the XML files from the sample directory.
+
+midPoint setup up:
+
+* Setup up user template in the system configuration
+
+* Setup up org template in the system configuration
+
+* Set up role catalog in system configuration (<roleManagement><roleCatalogRef oid="00000000-ee88-6666-0000-c00000000000"/></roleManagement>)
+
+
+== Resources
+
+
+=== HR
+
+CSV resource that contains simple employee data.
+
+
+==== CSV file setup
+
+Copy hr.csv file from `samples/evolveum` to `_midpoint.home_/resources/`
+
+
+=== OpenLDAP
+
+Target resource.
+
+DN suffix: dc=evolveum,dc=net
+
+
+==== OpenLDAP Setup
+
+[source]
+----
+mkdir /var/lib/ldap/evolveum-net
+chown openldap:openldap /var/lib/ldap/evolveum-net
+slapdconf create-suffix dc=evolveum,dc=net --dbDir=/var/lib/ldap/evolveum-net --rootPassword secret
+slapdconf add-schema -f samples/evolveum/midpoint.schema
+ldapadd -H ldapi:/// -D "cn=admin,dc=evolveum,dc=net" -w secret -f samples/evolveum/evolveum-net.ldif
+slapdconf set-suffix-acis dc=evolveum,dc=net < samples/evolveum/evolveum-net.aci
+----
+
+
+
+
+== Users
+
+[%autowidth]
+|===
+| username | password | description
+
+| administrator
+| 5ecr3t
+| superuser
+
+
+| semancik
+| qwe123
+| manager of serveral orgs +
+role approver
+
+
+|
+|
+|
+
+
+|
+|
+|
+
+
+|===
+
+
+
+
+== Job Roles
+
+There are several job roles that are automatically assigned: CEO, Software Developer, IDM Engineers, etc.
+These roles are automatically assigned in the user template based on the value of `title` property.
+This property is inbound mapped from the HR `job` attribute.
+
+
+== Organizational Structure
+
+There is a functional organizational structure with divisions and departments.
+Some organizational units have managers (semancik, ifarinic; they have `Manager` role).
+The managers are delegated administrators and approvers.
+They can see people in their parts of organizational structure.
+
+Functional organizational structure membership is automatically assigned in user template based on the value of `organizationalUnit` property.
+This is inbound mapped from HR `orgId` attribute.
+
+There is also project organizational structure.
+But this not really used now.
+
+
+== Role Catalog
+
+There is a simple role catalog with couple of applications.
+The roles in "Jira" application also have corresponding LDAP groups.
+The devel, admin ans write roles are subject to approval.
+The reader roles do not have approval.
+The aditor roles are not requestable at all.
+
+[%autowidth]
+|===
+| role | approver |
+
+| Jira Administrator
+| semancik
+|
+
+
+|
+|
+|
+
+
+|
+|
+|
+
+
+|===

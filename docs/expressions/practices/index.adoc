@@ -1,0 +1,10 @@
+= Common Mapping and Expression Practices
+:page-nav-title: Practices
+:page-display-order: 700
+:page-upkeep-status: green
+
+Following pages describe methods and practical approaches to various aspects related to mapping and expressions.
+
+++++
+{% children %}
+++++

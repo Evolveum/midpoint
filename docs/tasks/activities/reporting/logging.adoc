@@ -1,0 +1,33 @@
+= Logging
+
+This document defines how should the activity progress be logged.
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+| `itemCompletion`
+| How should item completion be logged?
+| `none`
+| `bucketCompletion`
+| How should bucket completion be logged?
+| `brief` footnote:[Except for scanner tasks, to avoid logging noise.]
+|===
+
+[%header]
+[%autowidth]
+|===
+| Value | Meaning
+| `none`
+| Event should not be logged.
+| `brief`
+| Event should be logged briefly, typically by writing a single log line.
+| `full`
+| Event should be logged fully. A couple of lines containing e.g. statistical information can be written.
+|===
+
+#TODO some examples#
+
+We are also thinking about the possibility of overriding specific logging levels for given activity,
+just like it is possible even today during tracing (e.g. log all model-impl issues at DEBUG level).
+Maybe such custom logs could be also forwarded to a separate report, to be directly downloadable?

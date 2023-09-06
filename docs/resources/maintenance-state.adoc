@@ -1,0 +1,49 @@
+= Resource Maintenance State
+:page-wiki-name: Resource Maintenance State
+:page-wiki-id: 52003100
+:page-wiki-metadata-create-user: martin.lizner
+:page-wiki-metadata-create-date: 2020-08-27T12:33:49.574+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2020-09-02T18:02:15.307+02:00
+:page-since: "4.2"
+:page-experimental-since: "4.2"
+:page-experimental: true
+:page-experimental-description: This feature was contributed by the community. It was not thoroughly tested yet. Hence the experimental status.
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+MidPoint provides feature that puts Resource into maintenance mode by administrative decission.
+It is also known as administrative operational state of the resource. This setting is useful when target system is e.g. undergoing planned maintenance to save computing time of the midPoint and to limit error messages that would normally appear from communication exceptions and so. Administrative operational state signalizes whether resource is up and operational to receive provisioning requests or is down in maintenance and midPoint should not contact it during the provisioning.
+
+When under maintenance, operations are cached to the repository shadow and processed later when resource is back in operational mode. This is possible due to synergy with midPoint's .
+
+Administrative operational state is set manually by midPoint power user (e.g. administrator) in the ResourceType object - see example below.
+This is in contrast with OperationalStateType setting of the Resource, which is set automatically by the midPoint after each provisioning operation.
+
+.Resource administrativeOperationalState
+[source,xml]
+----
+<resource ...>
+    <name>Resource1</name>
+
+    <administrativeOperationalState>
+        <administrativeAvailabilityStatus>maintenance</administrativeAvailabilityStatus> <!-- values: maintenance/operational -->
+    </administrativeOperationalState>
+...
+</resource>
+----
+
+Operations executed on the resource which is under maintenance do not throw common provisioning errors.
+When change is requested, it's result is IN_PROGRESS to indicate that pending operation has been saved to the ShadowType.
+When no change is requested or pending delta is propagated to operational resource, SUCCESS result is returned.
+
+
+== Limitations
+
+* Feature was designed for "outbound" resources.
+It was not tested for authoritative sources with inbound mappings (e.g. HR resource), but theoretically it may work.
+
+* Background tasks that were fitted for the administrative operational state of the resource are Reconciliation and LiveSync tasks. The rest of the task handlers may or may not work well when resource is in the maintenance state. The recompute task is compatible with resourceadministrative operational state by default since it launches individual user reconciles, which are supported.
+
+* Some midPoint screens do not make use of administrative operational state, this is e.g. case of Resource detail - Accounts tab - Search In: Resource. These screens invoke resource connector operations regardless of the maintenance setting.

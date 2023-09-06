@@ -1,0 +1,137 @@
+= MariaDB
+:page-wiki-name: MariaDB
+:page-wiki-id: 24084607
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2016-11-29T16:52:54.805+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-07-05T08:24:36.198+02:00
+:page-deprecated-since: "4.4"
+:page-upkeep-status: orange
+
+// TODO: disclaimer that MariaDB is deprecated
+
+The setup for MariaDB is similar to MySQL in most aspects.
+
+[NOTE]
+====
+Tested with link:https://downloads.mariadb.org/mariadb/10.0.28/[MariaDB 10.0.28]. +
+link:https://mariadb.com/kb/en/mariadb-10028-release-notes/[Release notes for MariaDB 10.0.28] +
+link:https://mariadb.com/kb/en/mariadb-connector-j-155-release-notes/[Release notes for MariaDB ConnectorJ 1.5 Series]
+
+*DO NOT FORGET TO RESTART TOMCAT AFTER CONFIGURATION CHANGE!!!*
+
+====
+
+
+== ${midpoint-home}/config.xml repository configuration change
+
+[source,xml]
+----
+<configuration>
+  <midpoint>
+    <repository>
+      <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+      <database>mariadb</database>
+      <jdbcUsername>midpoint</jdbcUsername>
+      <jdbcPassword>password</jdbcPassword>
+      <jdbcUrl>jdbc:mariadb://localhost:3306/midpoint?characterEncoding=utf8</jdbcUrl><!-- it seems that jdbc://mysql works as well -->
+    </repository>
+  </midpoint>
+</configuration>
+
+----
+
+Please check  also `++*/apache-tomcat/bin/catalina.bat++` to point to correct midpoint home location *(please set your own path):*
+
+----
+set JAVA_OPTS=%JAVA_OPTS% -Dmidpoint.home=c:/midpoint_3_Node2 -XX:MaxPermSize=1024m
+----
+
+
+== Driver
+
+Driver is bundled in MidPoint.
+
+
+== Database create
+
+[source,sql]
+----
+CREATE DATABASE midpoint CHARACTER SET utf8 DEFAULT CHARACTER SET utf8 COLLATE utf8_bin DEFAULT COLLATE utf8_bin;
+CREATE USER 'midpoint'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL on midpoint.* TO 'midpoint'@'localhost';
+use midpoint;
+----
+
+Use proper sql script based on the distribution you are using either stable or snapshot: +
+    For stable release check: +
+    - the latest midpoint link:http://www.evolveum.com/downloads/midpoint/3.4/[http://www.evolveum.com/downloads/midpoint/3.4/] +
+    - and download midpoint-3.4-dist.zip +
+    - Execute MySQL database script located in: `*\midpoint-3.4-dist.zip\config\sql_all\mysql-3.4-all.sql` +
+    For snapshot check: +
+    - the latest commit number on link:https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful[https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful] +
+    - and download it via link:http://athena.evolveum.com/builds/master/[http://athena.evolveum.com/builds/master/] where .zip file should be selected (midpoint-3.5-SNAPSHOT-dist.zip). +
+    - Execute MySQL database script located in: `*\midpoint-3.5-SNAPSHOT-dist.zip\config\sql_all\mysql-3.4-all.sql` (or mysql-3.5-all, whatever will be present)
+
+After starting tomcat in Windows via apache-tomcat\bin\startup.bat or Linux via apache-tomcat\bin\startup.sh open midpoint in browser link:http://localhost:8080/midpoint/admin/[http://localhost:8080/midpoint/admin/] Login:administrator Pass:5ecr3t and create new user.
+Check in MySQL table m_user where new user should be created: `select * from m_user`
+
+
+== Common issues
+
+
+=== VARCHAR columns length (This section is copied from MySQL section)
+
+As we're using VARCHAR(255) for string columns there are situations when your object properties can exceed this limit.
+For example shadow name exceeds 255 characters (it's possible for long DNs in LDAP or Active Directory).
+If you try to save such object you'll get an error "Data truncation: Data too long for column 'name_orig' at row 1" and object is not saved to database.
+
+If you try just to alter column to bigger size, you'll end up with "`#1071 - Specified key was too long; max key length is 767 bytes`" error (if there is an index or unique constraint on that column).
+Reason for that is that by default VARCHAR(255) is maximum size for an indexes (also unique constraints) using utf8 and InnoDB storage.
+
+There are two solutions for this situation:
+
+. Update column definition and index definitions[WARNING]
+.Notice
+====
+This way you can store names with length up to 300 characters (in this sample code), but only first 255 chars from each value will be indexed.
+In case unique constraint index was used, uniqueness will be checked only against first 255 chars.
+
+====
+
+.SQL
+[source,sql]
+----
+ALTER TABLE `m_shadow`
+CHANGE COLUMN `name_norm` `name_norm` VARCHAR(300) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL,
+CHANGE COLUMN `name_orig` `name_orig` VARCHAR(300) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL,
+
+DROP INDEX `iShadowNameOrig`,
+ADD INDEX `iShadowNameOrig` (`name_orig`(255) ASC),
+DROP INDEX `iShadowNameNorm`,
+ADD INDEX `iShadowNameNorm` (`name_norm`(255) ASC);
+----
+
+
+
+. Updating only column definitions and turning on innodb_large_prefix feature (Not tested with MidPoint) +
+link:https://mariadb.com/kb/en/mariadb/xtradbinnodb-server-system-variables/#innodb_large_prefix[https://mariadb.com/kb/en/mariadb/xtradbinnodb-server-system-variables/#innodb_large_prefix]
+
+Note that innodb_large_prefix is "ON" by default since MariaDB 10.2.2 (and is deprecated as well), so this problem should not appear with the default settings of MariaDB 10.2.2 and later.
+
+
+=== Packet for query is too large
+
+When we're using new xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector], usually generated resource schema in XML representation is bigger then default max_allowed_packet size in MariaDB. To increase this value, see documentation for your MariaDB version. In some cases this error is indicated as consequence for "No schema for resource" exception.
+
+.Sample my.cnf configuration file
+[source,bash]
+----
+[mysqld]
+. . .
+max_allowed_packet = 256M
+. . .
+----
+
+You need to restart MariaDB after changing this configuration.
+Reload will not work.

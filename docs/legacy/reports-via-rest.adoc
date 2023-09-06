@@ -1,0 +1,365 @@
+= Reports via REST
+:page-wiki-name: Reports via REST HOWTO
+:page-wiki-id: 26870192
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2018-10-26T02:20:53.266+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-10-26T02:21:17.884+02:00
+:page-obsolete: true
+
+[WARNING]
+====
+This is more a workaround than a serious solution.
+Please consider sponsoring one by buying a subscription.
+====
+
+How to create a report? There are currently two options:
+
+. Directly creating a task that will create the report.
+
+. Using the Report API via Groovy script embedded in a bulk action.
+
+
+== Option 1: Creating the task that will create the report
+
+We have chosen audit log report with two parameters filled in (`from`, `to`).
+
+.create-task-with-report.bat
+[source]
+----
+curl.exe -v --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST "http://localhost:8080/midpoint/ws/rest/tasks" -d @task-with-report.xml
+----
+
+.task-with-report.xml
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Run audit log report</name>
+    <extension xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ExtensionType">
+        <rext:reportParam xsi:type="c:ReportParameterType">
+            <rext:from xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:dateTime">2018-10-25T00:00:00.000+02:00</rext:from>
+            <rext:to xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:dateTime">2018-10-27T00:00:00.000+02:00</rext:to>
+        </rext:reportParam>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <executionStatus>runnable</executionStatus>
+    <category>Report</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/report/create/handler-3</handlerUri>
+    <objectRef oid="00000000-0000-0000-0000-000000000009" relation="org:default" type="c:ReportType">
+        <!-- Audit logs report -->
+    </objectRef>
+    <recurrence>single</recurrence>
+    <binding>tight</binding>
+    <threadStopAction>close</threadStopAction>
+</task>
+----
+
+The result from the execution of the above command is:
+
+[source]
+----
+HTTP/1.1 202
+Location: http://localhost:8080/midpoint/ws/rest/tasks/cfd4220d-ee94-4430-9943-bc658abc9774
+Date: Fri, 26 Oct 2018 00:03:59 GMT
+Content-Length: 0
+----
+
+From the `Location` header we can determine the OID of the created task - i.e. `cfd4220d-ee94-4430-9943-bc658abc9774` in this case.
+
+
+== Option 2: Using Report API from bulk action
+
+For completeness, here we show how to invoke a report via REST service.
+We have again chosen audit log report with two parameters filled in (`from`, `to`).
+
+.run-report.bat
+[source]
+----
+curl.exe --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST "http://localhost:8080/midpoint/ws/rest/rpc/executeScript" -d @run-report.xml
+----
+
+.run-report.xml
+[source,xml]
+----
+<?xml version="1.0"?>
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:pipeline>
+        <s:search>
+            <s:type>ReportType</s:type>
+            <s:query>
+                <q:filter>
+                    <q:equal>
+                        <!-- or use any other appropriate filter here, e.g. by OID -->
+                        <q:path>name</q:path>
+                        <q:value>Audit logs report</q:value>
+                    </q:equal>
+                </q:filter>
+            </s:query>
+        </s:search>
+        <s:action>
+            <s:type>execute-script</s:type>
+            <s:parameter>
+                <s:name>script</s:name>
+                <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                    <c:code>
+                    import com.evolveum.midpoint.wf.impl.processes.common.*;
+                    import com.evolveum.midpoint.report.api.*;
+                    import com.evolveum.midpoint.task.api.*;
+                    import com.evolveum.midpoint.schema.result.*;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                    import com.evolveum.midpoint.prism.*;
+                    import javax.xml.namespace.*;
+                    import com.evolveum.midpoint.util.*;
+                    import com.evolveum.midpoint.prism.xml.*;
+
+                    reportManager = SpringApplicationContextHolder.getBean(ReportManager.class);
+                    taskManager = SpringApplicationContextHolder.getBean(TaskManager.class);
+                    result = new OperationResult('runReport');
+                    task = taskManager.createTaskInstance('runReport');
+                    task.setOwner(actor.asPrismObject());
+
+                    paramContainerDef = midpoint.prismContext.schemaRegistry.findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+                    paramContainer = paramContainerDef.instantiate();
+                    paramContainerValue = new ReportParameterType(midpoint.prismContext).asPrismContainerValue();
+                    paramContainer.add(paramContainerValue);
+
+                    PARAM1_NAME = 'from';
+                    PARAM1_TYPE = DOMUtil.XSD_DATETIME;         /* or e.g. XSD_STRING */
+                    PARAM1_VALUE = XmlTypeConverter.createXMLGregorianCalendar('2018-10-25T00:00:00.000+02:00');
+
+                    PARAM2_NAME = 'to';
+                    PARAM2_TYPE = DOMUtil.XSD_DATETIME;
+                    PARAM2_VALUE = XmlTypeConverter.createXMLGregorianCalendar('2018-10-27T00:00:00.000+02:00');
+
+                    reportParam1 = new ReportParameterType(midpoint.prismContext);
+                    paramDef1 = new PrismPropertyDefinitionImpl(new QName(ReportConstants.NS_EXTENSION, PARAM1_NAME), PARAM1_TYPE, midpoint.prismContext);
+                    paramDef1.setDynamic(true);
+                    paramDef1.setRuntimeSchema(true);
+                    paramDef1.setMaxOccurs(1);
+                    param1 = paramDef1.instantiate();
+                    param1.addRealValue(PARAM1_VALUE);
+                    paramContainerValue.add(param1);
+
+                    reportParam2 = new ReportParameterType(midpoint.prismContext);
+                    paramDef2 = new PrismPropertyDefinitionImpl(new QName(ReportConstants.NS_EXTENSION, PARAM2_NAME), PARAM2_TYPE, midpoint.prismContext);
+                    paramDef2.setDynamic(true);
+                    paramDef2.setRuntimeSchema(true);
+                    paramDef2.setMaxOccurs(1);
+                    param2 = paramDef2.instantiate();
+                    param2.addRealValue(PARAM2_VALUE);
+                    paramContainerValue.add(param2);
+
+                    reportManager.runReport(input.asPrismObject(), paramContainer, task, result);
+                    return task.taskPrismObject.asObjectable();
+                    </c:code>
+                </c:value>
+            </s:parameter>
+            <s:parameter>
+                <s:name>outputItem</s:name>
+                <c:value>TaskType</c:value>
+            </s:parameter>
+        </s:action>
+    </s:pipeline>
+</s:executeScript>
+----
+
+The above bulk action (needs to be run under administrator privileges) creates a task that creates the report.
+It returns the task, as can be seen from the invocation:
+
+[source,xml]
+----
+<t:object xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="apti:ExecuteScriptResponseType">
+    <apti:output xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+        <s:dataOutput>
+            <s:item>
+                <s:value oid="845278af-3225-45da-9834-b2153630b4b8" version="0" xsi:type="c:TaskType">
+                    <name>Task 1540511302475-0-1</name>
+                    <extension xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3" xsi:type="c:ExtensionType">
+                        <rext:reportParam xsi:type="c:ReportParameterType">
+                            <rext:from xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:dateTime">2018-10-25T00:00:00.000+02:00</rext:from>
+                            <rext:to xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:dateTime">2018-10-27T00:00:00.000+02:00</rext:to>
+                        </rext:reportParam>
+                    </extension>
+                    <taskIdentifier>1540511302475-0-1</taskIdentifier>
+                    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                        <targetName>administrator</targetName>
+                    </ownerRef>
+                    <executionStatus>runnable</executionStatus>
+                    <category>Report</category>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/report/create/handler-3</handlerUri>
+                    <result>
+                        <operation>runReport</operation>
+                        <status>in_progress</status>
+                        <token>1000000000000010751</token>
+                    </result>
+                    <resultStatus>in_progress</resultStatus>
+                    <objectRef oid="00000000-0000-0000-0000-000000000009" relation="org:default" type="c:ReportType"/>
+                    <progress>0</progress>
+                    <recurrence>single</recurrence>
+                    <binding>tight</binding>
+                    <schedule/>
+                    <threadStopAction>close</threadStopAction>
+                </s:value>
+                <s:result>
+                    <operation>com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator.process</operation>
+                    <status>success</status>
+                    <token>1000000000000010762</token>
+                    <partialResults>
+                        <operation>com.evolveum.midpoint.model.impl.scripting.actions.ScriptExecutor.execute</operation>
+                        <status>success</status>
+                        <params>
+                            <entry key="value">
+                                <paramValue>POV:report:00000000-0000-0000-0000-000000000009(Audit logs report)</paramValue>
+                            </entry>
+                        </params>
+                        <token>1000000000000010763</token>
+                    </partialResults>
+                </s:result>
+            </s:item>
+        </s:dataOutput>
+        <s:consoleOutput>Executed script on report:00000000-0000-0000-0000-000000000009(Audit logs report)</s:consoleOutput>
+    </apti:output>
+    <apti:result>
+        <operation>com.evolveum.midpoint.model.impl.ModelRestService.executeScript</operation>
+        <status>success</status>
+        <token>1000000000000010750</token>
+        ...
+    </apti:result>
+</t:object>
+
+----
+
+We can learn the OID of the created task `(845278af-3225-45da-9834-b2153630b4b8`) from the returned XML structure; namely from `t:object/apti:output/s:dataOutput/s:item/s:value/@oid`.
+
+
+== How to retrieve the report output
+
+We can periodically check for the task completion, e.g. like this
+
+[source]
+----
+curl.exe --user administrator:5ecr3t -H "Content-Type: application/xml" -X GET "http://localhost:8080/midpoint/ws/rest/tasks/cfd4220d-ee94-4430-9943-bc658abc9774"
+----
+
+Note that we have to supply correct task OID here.
+
+The result is like this:
+
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="cfd4220d-ee94-4430-9943-bc658abc9774" version="6">
+    <name>Run audit log report</name>
+    <extension xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ExtensionType">
+        <rext:reportParam xsi:type="c:ReportParameterType">
+            <rext:from xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:dateTime">2018-10-25T00:00:00.000+02:00</rext:from>
+            <rext:to xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:dateTime">2018-10-27T00:00:00.000+02:00</rext:to>
+        </rext:reportParam>
+        <rext:reportOutputOid>5cf5b277-f867-45e3-a9e0-4f8eccdaa55c</rext:reportOutputOid>
+    </extension>
+    <metadata>
+        <requestTimestamp>2018-10-26T02:03:59.351+02:00</requestTimestamp>
+        <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+        <createTimestamp>2018-10-26T02:03:59.356+02:00</createTimestamp>
+        <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest</createChannel>
+    </metadata>
+    <operationExecution id="1">
+        <timestamp>2018-10-26T02:03:59.369+02:00</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>add</t:changeType>
+                <t:objectType>c:TaskType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <token>1000000000000011091</token>
+            </executionResult>
+            <objectName>Run audit log report</objectName>
+        </operation>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest</channel>
+    </operationExecution>
+    <taskIdentifier>1540512239357-0-1</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <targetName>administrator</targetName>
+    </ownerRef>
+    <executionStatus>closed</executionStatus>
+    <category>Report</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/report/create/handler-3</handlerUri>
+    <resultStatus>success</resultStatus>
+    <objectRef oid="00000000-0000-0000-0000-000000000009" relation="org:default" type="c:ReportType"/>
+    <lastRunStartTimestamp>2018-10-26T02:03:59.367+02:00</lastRunStartTimestamp>
+    <lastRunFinishTimestamp>2018-10-26T02:04:03.777+02:00</lastRunFinishTimestamp>
+    <completionTimestamp>2018-10-26T02:04:03.790+02:00</completionTimestamp>
+    <progress>0</progress>
+    <operationStats>
+        <environmentalPerformanceInformation>
+            <provisioningStatistics/>
+            <mappingsStatistics/>
+            <notificationsStatistics/>
+        </environmentalPerformanceInformation>
+        <timestamp>2018-10-26T02:04:03.777+02:00</timestamp>
+        <liveInformation>false</liveInformation>
+    </operationStats>
+    <recurrence>single</recurrence>
+    <binding>tight</binding>
+    <threadStopAction>close</threadStopAction>
+</task>
+----
+
+The `<rext:reportOutputOid>5cf5b277-f867-45e3-a9e0-4f8eccdaa55c</rext:reportOutputOid>` element tells us about the resulting report output.
+
+We can retrieve it like this:
+
+[source]
+----
+curl.exe --user administrator:5ecr3t -H "Content-Type: application/xml" -X GET "http://localhost:8080/midpoint/ws/rest/reportOutputs/5cf5b277-f867-45e3-a9e0-4f8eccdaa55c"
+----
+
+(again, please supply correct report output OID there)
+
+The result is like this:
+
+[source,xml]
+----
+<reportOutput xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="5cf5b277-f867-45e3-a9e0-4f8eccdaa55c" version="1">
+    <name>Audit logs report 26-10-2018 02-04-03 - html</name>
+    <description>Report made from audit records. - html</description>
+    <metadata>
+        <requestTimestamp>2018-10-26T02:04:03.691+02:00</requestTimestamp>
+        <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+        <createTimestamp>2018-10-26T02:04:03.696+02:00</createTimestamp>
+        <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+        <createTaskRef oid="cfd4220d-ee94-4430-9943-bc658abc9774" relation="org:default" type="c:TaskType"/>
+    </metadata>
+    <operationExecution id="1">
+        <timestamp>2018-10-26T02:04:03.766+02:00</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>add</t:changeType>
+                <t:objectType>c:ReportOutputType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <token>1000000000000011112</token>
+            </executionResult>
+            <objectName>Audit logs report 26-10-2018 02-04-03 - html</objectName>
+        </operation>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+        <taskRef oid="cfd4220d-ee94-4430-9943-bc658abc9774" relation="org:default" type="c:TaskType"/>
+    </operationExecution>
+    <filePath>C:/midpoint/home/scratch/export/Audit logs report 26-10-2018 02-04-03.html</filePath>
+    <exportType>html</exportType>
+    <reportRef oid="00000000-0000-0000-0000-000000000009" relation="org:default" type="c:ReportType"/>
+    <nodeRef oid="c5d9559c-2f4b-4fab-921c-3067e91a8b4f" relation="org:default" type="c:NodeType"/>
+</reportOutput>
+----
+
+You can now fetch the file (i.e. `C:/midpoint/home/scratch/export/Audit logs report 26-10-2018 02-04-03.html`) via OS-specific means.
+In the future we might add REST method to fetch the file using this mechanism.

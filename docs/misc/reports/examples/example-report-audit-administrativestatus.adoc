@@ -1,0 +1,211 @@
+= Example of Dashboard report: Audit events which change administrativeStatus on resource
+:page-nav-title: Example: Audit, administrativeStatus
+:page-wiki-name: Example of dashboard report: Audit events which change administrativeStatus on resource
+:page-wiki-id: 52002844
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-05-04T13:35:21.566+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-09-04T08:41:08.212+02:00
+
+Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
+
+
+== Usecase
+
+Administrator needs display all audit events which contains delta with changes on administrativeStatus of account on resource R1
+
+== Configuration
+
+As first we need add custom column to m_audit_event table, on it use next sql commands:
+
+.Adding new custom column
+[source,sql]
+----
+ALTER TABLE m_audit_event ADD custSituation VARCHAR(255);
+
+CREATE INDEX iAuditEventCustSituation
+    ON m_audit_event (custSituation);
+----
+
+As next adding we adding next snippet of configuration to config.xml file in Midpoint home directory.
+
+.config.xml confiuration snippet
+[source,xml]
+----
+<configuration>
+    <midpoint>
+        ...
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <customColumn>
+                    <columnName>custSituation</columnName>
+                    <eventRecordPropertyName>situation</eventRecordPropertyName>
+                </customColumn>
+            </auditService>
+        </audit>
+        ...
+    </midpoint>
+</configuration>
+----
+
+After modifying config.xml we have to restart Midpoint. As last part of adding custom column adding next configuration to system configuration.
+
+.Snippet of system configuration
+[source,xml]
+----
+<systemConfiguration>
+	...
+	<audit>
+        <eventRecording>
+            <property>
+                <name>situation</name>
+                <expression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                          import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+                           import com.evolveum.midpoint.prism.delta.ItemDelta;
+                           import com.evolveum.midpoint.prism.path.ItemPath;
+                           import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+                           ret = "";
+                           if (target instanceof UserType) {
+                              for (ObjectDeltaOperation delta : auditRecord.getDeltas()) {
+                                 if ("---RESOURCE_OID---".equals(delta.getResourceOid())) {
+                                    for (ItemDelta itemDelta : delta.getObjectDelta().getModifications()){
+                                       if (itemDelta.getPath().equivalent(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))){
+                                          if (!ret.isEmpty()){
+                                             ret = ret + "|";
+                                          }
+                                          ret = ret + "changeAdminStatR1";
+
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                           return ret
+                       </code>
+                    </script>
+                </expression>
+            </property>
+        </eventRecording>
+    </audit>
+	...
+</systemConfiguration>
+----
+
+Please replace_ '---RESOURCE_OID---_' with oid of your resource. I chose situations are split by '|', but you can use more columns. Now, we need configure object collection for audit records.
+In object collection for audit events we use sql select command.
+
+.Object collection
+[source,xml]
+----
+<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb277">
+    <name>Modification of administrative attribute</name>
+    <auditSearch>
+        <recordQuery>select * from m_audit_event as aer where aer.eventType=2 and aer.eventStage=1 and aer.custSituation LIKE '%changeAdminStatR1%'</recordQuery>
+        <interval>P1D</interval>
+    </auditSearch>
+	<type>AuditEventRecordType</type>
+    <filter>
+        <and>
+            <equal>
+                <path>eventStage</path>
+                <value>execution</value>
+            </equal>
+            <equal>
+                <path>eventType</path>
+                <value>modifyObject</value>
+            </equal>
+            <equal>
+                <path>customColumnProperty</path>
+                <value>
+                    <name>situation</name>
+                    <value>changeAdminStatR1</value>
+                </value>
+            </equal>
+            <greater>
+                <path>timestamp</path>
+                <expression>
+                    <script>
+                        <code>
+                            calendar = basic.addDuration(basic.currentDateTime(), "-P1D");
+                            return calendar;
+                        </code>
+                    </script>
+                </expression>
+            </greater>
+        </and>
+    </filter>
+</objectCollection>
+
+
+----
+
+When we have object collection, then import Dashboard object with widget for our object collection.
+
+.Dashboard
+[source,xml]
+----
+<dashboard oid="72b1f98e-f587-4b9f-b92b-72e251da4567">
+    <name>changes-of-admin-status-r1</name>
+    <display>
+        <label>Changes of administrativeStatus(R1)</label>
+    </display>
+    <widget>
+        <identifier>adminstat</identifier>
+        <display>
+            <label>Changes of administrativeStatus(R1)</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-database</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>auditSearch</sourceType>
+            <collection>
+                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb277" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>changes</value>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+</dashboard>
+----
+
+After successful import of dashboard object and reload of page you can see dashboard in menu *Dashboards* > *Changes of administrativeStatus(R1)*.
+
+We want report with table of audit events, so we import dashboard report.
+
+.Report
+[source,xml]
+----
+<report>
+    <name>Changes of administrativeStatus(R1) dashboard report</name>
+    <reportEngine>dashboard</reportEngine>
+    <dashboard>
+        <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da4567" type="DashboardType"/>
+    </dashboard>
+</report>
+----
+
+Now we can run report in report menu, show task, and download report.
+Every report from dashboard is in HTML format.

@@ -1,0 +1,158 @@
+= Model context serialization
+:page-wiki-name: Model context serialization
+:page-wiki-id: 11075717
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-06-25T17:31:45.004+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2013-06-25T17:35:39.079+02:00
+:page-upkeep-status: yellow
+
+Although in most cases the model context lives in memory only, there are situations where it has to be stored persistently.
+A typical example is an xref:/midpoint/reference/cases/workflow-3/[approval workflow]: a user requests an operation that has to be made, but the operation (or some parts of it) may be subject of an approval.
+Therefore, the whole model operation context has to be stored until the approval is obtained.
+Then it is revived, and the operation is allowed to continue.
+
+Originally the storage of model context was implemented using java serialization.
+From midPoint 2.2 onwards, we have developed an XML serialization format for the context, in order to be able to easily upgrade midPoint even with some of workflows being in-progress.
+
+The serialized context in principle reflects the structure of native Java objects and looks like this:
+
+[source,xml]
+----
+      <m:modelContext xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2">
+         <m:state>primary</m:state>
+         <m:channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</m:channel>
+         <m:focusContext>
+            <m:objectOld xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
+                         version="2"
+                         xsi:type="UserType">
+               <name>
+                  <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</orig>
+                  <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</norm>
+               </name>
+               <activation>
+                  <c:administrativeStatus>enabled</c:administrativeStatus>
+               </activation>
+               <fullName>
+                  <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Security Manager</orig>
+                  <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security manager</norm>
+               </fullName>
+               <credentials>
+                  <password>
+                     <c:value xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                              xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+                              xsi:type="c:ProtectedStringType">
+                        <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                           <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+                           <ds:KeyInfo>
+                              <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+                           </ds:KeyInfo>
+                           <enc:CipherData>
+                              <enc:CipherValue>iimZ2lYWAEatFmD8C3ZLp0Kw+Bp0+de6vQTfNiE5aK6A1CVDx1homddXQzc7edYL</enc:CipherValue>
+                           </enc:CipherData>
+                        </enc:EncryptedData>
+                     </c:value>
+                  </password>
+                  <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+               </credentials>
+            </m:objectOld>
+            <m:objectNew xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
+                         version="2"
+                         xsi:type="UserType">
+               <name>
+                  <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</orig>
+                  <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</norm>
+               </name>
+               <assignment>
+                  <targetRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                             oid="12345678-d34d-b33f-f00d-000187987988"
+                             type="c:RoleType"/>
+               </assignment>
+               <activation>
+                  <c:administrativeStatus>enabled</c:administrativeStatus>
+                  <c:effectiveStatus>enabled</c:effectiveStatus>
+                  <enableTimestamp>2013-06-25T17:32:10.091+02:00</enableTimestamp>
+               </activation>
+               <fullName>
+                  <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Security Manager</orig>
+                  <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security manager</norm>
+               </fullName>
+               <credentials>
+                  <password>
+                     <c:value xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                              xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+                              xsi:type="c:ProtectedStringType">
+                        <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                           <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+                           <ds:KeyInfo>
+                              <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+                           </ds:KeyInfo>
+                           <enc:CipherData>
+                              <enc:CipherValue>iimZ2lYWAEatFmD8C3ZLp0Kw+Bp0+de6vQTfNiE5aK6A1CVDx1homddXQzc7edYL</enc:CipherValue>
+                           </enc:CipherData>
+                        </enc:EncryptedData>
+                     </c:value>
+                  </password>
+                  <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+               </credentials>
+            </m:objectNew>
+            <m:primaryDelta xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+                            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                            xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+                            xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
+                            xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                            xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+               <t:changeType>modify</t:changeType>
+               <t:objectType>c:UserType</t:objectType>
+               <t:oid>c168470c-bfef-414f-88b5-5d144f4f3d6c</t:oid>
+            </m:primaryDelta>
+            <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</m:objectTypeClass>
+            <m:oid>c168470c-bfef-414f-88b5-5d144f4f3d6c</m:oid>
+            <m:secondaryDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                               xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+                               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                               xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                               xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                               xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                               xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+                               xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
+                               xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                               xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+               <m:wave number="0">
+                  <m:delta>
+                     <t:changeType>modify</t:changeType>
+                     <t:objectType>c:UserType</t:objectType>
+                     <t:oid>c168470c-bfef-414f-88b5-5d144f4f3d6c</t:oid>
+                     <t:modification>
+                        <t:modificationType>replace</t:modificationType>
+                        <t:path>c:activation</t:path>
+                        <t:value>
+                           <c:effectiveStatus>enabled</c:effectiveStatus>
+                        </t:value>
+                     </t:modification>
+                     <t:modification>
+                        <t:modificationType>replace</t:modificationType>
+                        <t:path>c:activation</t:path>
+                        <t:value>
+                           <c:enableTimestamp xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                              xsi:type="xsd:dateTime">2013-06-25T17:32:10.091+02:00</c:enableTimestamp>
+                        </t:value>
+                     </t:modification>
+                  </m:delta>
+               </m:wave>
+            </m:secondaryDeltas>
+         </m:focusContext>
+         <m:focusClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</m:focusClass>
+         <m:projectionClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType</m:projectionClass>
+         <m:doReconciliationForAllProjections>false</m:doReconciliationForAllProjections>
+         <m:projectionWave>2</m:projectionWave>
+         <m:executionWave>0</m:executionWave>
+      </m:modelContext>
+----

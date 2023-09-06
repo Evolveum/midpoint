@@ -1,0 +1,13 @@
+= MidPoint Resources and Provisioning
+:page-nav-title: Resources and Provisioning
+:page-display-order: 500
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe mechanism that deal with provisioning, resource configuration, shadow objects, provisioning capabilities and so on.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

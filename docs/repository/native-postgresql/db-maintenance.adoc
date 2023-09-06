@@ -1,0 +1,372 @@
+= DB maintenance
+:page-toc: top
+:page-display-order: 3
+:page-since: "4.4"
+
+[WARNING]
+This page is work-in-progress with stuff useful to a DB admin but also to a programmer or an engineer.
+
+== Index tuning
+
+Anything that is externalized into columns and related tables (like extensions, references, etc.) is effectively searchable using xref:/midpoint/reference/concepts/query/[midPoint Query].
+It is not possible to search for information stored only in the serialized form of the object.
+But _searchable_ and _efficiently searchable_ are two different things.
+
+For some tables (object types) and some columns no indexes are needed, but for others they typically are.
+MidPoint is provided with all essential indexes out of the box.
+Despite that it is possible to come up with real-life queries that will perform badly.
+While it is possible to cover nearly all needs by more and more indexes, it is not necessarily
+a good idea to have them all created by default.
+Indexes also take space and if not necessary only add cost to insert/update operation without really helping.
+
+For any non-trivial installation it is recommended to check the database performance logs/statistics
+regularly to identify sluggish queries (see the link:#db-monitoring[DB monitoring] section).
+When identified, check existing (predefined) indexes whether they should have covered the case and investigate why they didn't.
+If the existing index does not cover the case, don't be afraid to add the index according to your specific needs.
+
+Following notes and tips can be helpful:
+
+* Don't index each column separately if the critical query uses multiple where conditions,
+use https://use-the-index-luke.com/sql/where-clause/the-equals-operator/concatenated-keys[multi-column index] instead.
+Order of columns is important.
+* Searching using `like` (especially with `%` at the start of the value) or case-insensitive
+search often require specific indexes, e.g. https://www.postgresql.org/docs/current/gin-intro.html[GIN index] with https://www.postgresql.org/docs/current/pgtrgm.html[trigram options].
+// TODO reference example lower, when added
+* In general, don't index columns with low-cardinality (e.g. boolean or integer representing enum
+with just a few distinct values) alone.
+Leave the column unindexed and let other indexes do the job first.
+Searching only by such a column is not recommended.
+It is however possible to use low-cardinality column in multi-column index, and it may be beneficial
+when it is the first column (of course, only selects using the column in `WHERE` use such an index).
+* It is possible to use `where` clause in an index when only specific values are selected often, e.g. for value indicating an active user.
+This is called https://use-the-index-luke.com/sql/where-clause/partial-and-filtered-indexes[partial index].
+This is typically used for low variability columns (booleans, enums), using them in where part of the
+index is good, and it also makes the index size smaller.
+If unsure, don't use `WHERE` in the index definition.
+* Be sure to add index on the concrete table like `m_user`, not the inheritance parent like `m_object`.
+Indexes are not inherited.
+
+// TODO extension indexing
+
+Here are some examples of indexes or queries for indexes:
+[source,sql]
+----
+-- indexes for a table
+select * from pg_indexes where tablename = 'm_user';
+----
+
+== DB monitoring
+
+=== Configuration for query statistics and logging
+
+Add to the end of `postgresql.conf` for better statistics and logging:
+----
+# this is necessary for pg_stat_statements extension
+shared_preload_libraries = 'pg_stat_statements'
+
+# this is to log all the queries, just be aware of the free disk space
+logging_collector = on
+log_directory = 'pg_log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_statement = 'all'
+log_line_prefix = '%m [%p] %h %a: '
+#log_connections = on
+#log_disconnections = on
+----
+
+PG server must be restarted after the change of `postgresql.conf` file.
+
+Extension https://www.postgresql.org/docs/current/pgstatstatements.html[pg_stat_statements]
+is generally recommended https://dba.stackexchange.com/a/303555/157622[even for production].
+
+https://www.postgresql.org/docs/current/runtime-config-logging.html[Logging], on the other hand,
+can bring more overhead, and can also quickly fill the disks.
+Options mentioned above should not have high overhead, but it's always better to check the difference on some other environment first.
+It is OK for non-prod environments, but there is no PG automation for the log rotation,
+so some manual (or otherwise scripted) support may be needed to prevent full disk.
+
+=== Configuration related queries
+
+[source,sql]
+----
+-- Display settings different from defaults
+SELECT name, source, setting FROM pg_settings
+WHERE source <> 'default' AND source <> 'override';
+
+-- Display all settings (equivalent to show all with more info)
+SELECT * FROM pg_settings;
+----
+
+=== Monitoring queries
+
+The following queries use `pg_stat_statements` extension for query performance monitoring:
+
+[source,sql]
+----
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements; -- needed before the first usage only
+
+-- list of selects using the most time, change order to get other avg/max/calls to top
+-- NOTE: postgresql.conf must have (+restart): shared_preload_libraries = 'pg_stat_statements'
+-- To reset collected statistics: select pg_stat_statements_reset();
+select
+    (total_exec_time / 1000 / 60)::numeric(20,4) as total_min, -- min as minutes here
+    mean_exec_time::numeric(20,2) as avg_ms,
+    max_exec_time::numeric(20,2) as max_ms,
+    calls,
+    (rows / calls)::numeric(20) as avg_rows,
+    (100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0))::numeric(20,2) AS hit_percent,
+    query
+from pg_stat_statements
+-- optional where to limit it to one database, if needed (e.g. shared/test DB)
+-- where dbid = (select oid from pg_database where datname = 'midpoint')
+order by 1 desc -- change order as necessary
+limit 50;
+----
+
+Other monitoring queries without `pg_stat_statements` (locks, activity...):
+
+[source,sql]
+----
+-- show locks and related activities
+select l.locktype, l.mode, d.datname, c.relname,
+       l.pid, a.application_name, a.client_addr
+from pg_locks l
+join pg_stat_activity a on l.pid = a.pid
+join pg_database d on d.oid = l.database
+join pg_class c on c.oid = l.relation
+;
+
+-- shows activities waiting for locks, see https://wiki.postgresql.org/wiki/Lock_Monitoring for more
+select blocked_locks.pid as blocked_pid,
+    blocked_activity.usename as blocked_user,
+    blocking_locks.pid as blocking_pid,
+    blocking_activity.usename as blocking_user,
+    blocked_activity.query as blocked_statement,
+    blocking_activity.query as current_statement_in_blocking_process,
+    blocked_activity.application_name as blocked_application,
+    blocking_activity.application_name as blocking_application
+from pg_catalog.pg_locks blocked_locks
+join pg_catalog.pg_stat_activity blocked_activity on blocked_activity.pid = blocked_locks.pid
+join pg_catalog.pg_locks blocking_locks on blocking_locks.locktype = blocked_locks.locktype
+    and blocking_locks.database is not distinct from blocked_locks.database
+    and blocking_locks.relation is not distinct from blocked_locks.relation
+    and blocking_locks.page is not distinct from blocked_locks.page
+    and blocking_locks.tuple is not distinct from blocked_locks.tuple
+    and blocking_locks.virtualxid is not distinct from blocked_locks.virtualxid
+    and blocking_locks.transactionid is not distinct from blocked_locks.transactionid
+    and blocking_locks.classid is not distinct from blocked_locks.classid
+    and blocking_locks.objid is not distinct from blocked_locks.objid
+    and blocking_locks.objsubid is not distinct from blocked_locks.objsubid
+    and blocking_locks.pid != blocked_locks.pid
+join pg_catalog.pg_stat_activity blocking_activity on blocking_activity.pid = blocking_locks.pid
+where not blocked_locks.granted
+;
+
+-- list of client connections
+select pid, datname, usename, application_name, client_addr, backend_start, state
+from pg_stat_activity
+where client_addr is not null
+order by datname, usename, backend_start;
+
+-- list of connections aggregated
+select datname, usename, application_name, state, count(*)
+from pg_stat_activity
+where client_addr is not null
+group by datname, usename, application_name, state
+order by datname, usename, application_name, state;
+----
+
+Table sizes, vacuum, etc.:
+
+[source,sql]
+----
+-- Find all tables and when they were last vacuumed/analyzed, either manually or automatically
+select relname, last_vacuum, last_autovacuum, last_analyze, last_autoanalyze
+from pg_stat_all_tables
+where schemaname = 'public'
+order by last_vacuum desc, last_autovacuum desc;
+
+-- Find any running processes that are doing autovacuum and which tables they're working on
+select pid,
+    age(query_start, clock_timestamp()),
+    usename,
+    query
+from pg_stat_activity
+where query != '<IDLE>' and query ilike '%vacuum%'
+order by query_start asc;
+
+-- show database size
+SELECT pg_size_pretty(pg_database_size('midpoint'));
+
+-- List largest objects separately (TOAST, table, index)
+SELECT
+    t.oid,
+    CASE
+        WHEN tft.relname IS NOT NULL
+        THEN tft.relname || ' (TOAST)'
+        ELSE t.relname
+    END AS object,
+    pg_size_pretty(pg_relation_size(t.oid)) AS size,
+    t.relkind,
+    t.reltuples::bigint as row_estimate,
+    t.relname as object_name
+FROM pg_class t
+    INNER JOIN pg_namespace ns ON ns.oid = t.relnamespace
+    -- table for toast
+    LEFT JOIN pg_class tft ON tft.reltoastrelid = t.oid
+    LEFT JOIN pg_namespace tftns ON tftns.oid = tft.relnamespace
+WHERE 'public' IN (ns.nspname, tftns.nspname)
+ORDER BY pg_relation_size(t.oid) DESC
+LIMIT 50;
+
+-- Find table/index sizes for all tables in a schema
+SELECT
+    oid, table_schema, table_name, row_estimate,
+    pg_size_pretty(total_bytes) AS total,
+    pg_size_pretty(table_bytes) AS table,
+    pg_size_pretty(toast_bytes) AS toast,
+    pg_size_pretty(index_bytes) AS index
+FROM (
+    SELECT *, total_bytes - index_bytes - COALESCE(toast_bytes, 0) AS table_bytes
+    FROM (
+        SELECT c.oid,
+            nspname AS table_schema,
+            relname AS table_name,
+            c.reltuples::bigint AS row_estimate,
+            pg_total_relation_size(c.oid) AS total_bytes,
+            pg_indexes_size(c.oid) AS index_bytes,
+            pg_total_relation_size(reltoastrelid) AS toast_bytes
+        FROM pg_class c
+        LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE relkind = 'r') a
+    ) a
+WHERE table_schema = 'public'
+ORDER BY total_bytes DESC;
+
+-- Sizes of audit tables (partitions summed up)
+select inhparent::regclass,
+    pg_size_pretty(sum(pg_total_relation_size(inhrelid))) as total,
+    pg_size_pretty(sum(pg_relation_size(inhrelid))) as internal,
+    pg_size_pretty(sum(pg_table_size(inhrelid) - pg_relation_size(inhrelid))) as toast,
+    pg_size_pretty(sum(pg_indexes_size(inhrelid))) as indexes
+from pg_inherits i
+where exists (select from pg_class c where c.oid = i.inhparent
+    and c.relname like 'ma_audit_%'
+    and c.relkind = 'p')
+group by inhparent
+order by sum(pg_total_relation_size(inhrelid)) desc;
+----
+
+==== Hard-core section
+
+Memory buffers usage monitoring query, requires `pg_buffercache` extension.
+This may indicate what tables are in active memory leading to faster access:
+
+[source,sql]
+----
+CREATE EXTENSION pg_buffercache; -- required before the first use to enable pg_buffercache
+
+-- What tables use memory buffers, pg_relation_size counts only table proper ("fork" they call it)
+-- while pg_table_size would count TOAST and few more structures too, which we don't care so much.
+-- Indexes are counted separately.
+-- See the docs for more: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-DBSIZE
+WITH settings (shared_buffers) AS (SELECT setting FROM pg_settings WHERE name='shared_buffers')
+SELECT
+    c.relname,
+    pg_size_pretty(count(*) * 8192) as buffered,
+    100, count(*), (SELECT shared_buffers FROM settings)::integer,
+    round(100.0 * count(*) / (SELECT shared_buffers FROM settings)::integer, 2) AS buffers_percent,
+    least(round(100.0 * count(*) * 8192 / pg_relation_size(c.oid),1), 100) AS percent_of_table
+FROM pg_class c
+INNER JOIN pg_buffercache b ON b.relfilenode = c.relfilenode
+INNER JOIN pg_database d ON (b.reldatabase = d.oid AND d.datname = current_database())
+GROUP BY c.oid, c.relname
+ORDER BY count(*) DESC
+LIMIT 10;
+----
+
+== System troubleshooting commands and queries
+
+When troubleshooting Postgres performance we need to check output of the following commands.
+First in bash or other shell:
+
+[source,bash]
+----
+df -h # disk sizes
+free # memory statistics, often useless on containers
+ps xau | grep -i postgres # what postgres process are running
+----
+
+== Collation (ordering)
+
+Depending on the chosen https://www.postgresql.org/docs/current/collation.html[collation] ordering
+of text fields can be case-insensitive or not.
+To see it quickly, one can use select like this:
+
+[source,sql]
+----
+select * from (values ('a'), ('B'), ('Z'), ('x'), ('Č'),
+    ('@'), ('_'), ('%'), ('^'), ('5'), ('47'), ('持')) as t(text)
+  order by text -- collation "C"
+----
+
+With additional `collation "x"` one can see various results for other collations.
+If `en_US.UTF-8` is used during database creation (recommended by midPoint docs) the ordering
+of the select above should be case-insensitive.
+Collation used by default for each database can be determined like so:
+
+[source,sql]
+----
+select datname, datcollate from pg_database;
+-- returns among others: midpoint,en_US.UTF-8
+----
+
+Funny enough, this default collation name may not be a valid name for `COLLATION "collation-name"`
+clause but for `en_US.UTF-8` it seems to act the same as `collate "en_US.utf8"` (or `en_US`).
+The list of valid collation names can be obtained from `pg_collation` table:
+
+[source,sql]
+----
+select * from pg_collation;
+----
+
+As explained in the https://www.postgresql.org/docs/current/collation.html[collation documentation],
+there is a default collation (`collprovider = 'd'`), libc based collations (`d`) and ICU collations
+(`i`) if compiled with it (PG 13 on Ubuntu contains these too).
+
+[NOTE]
+ICU collations https://stackoverflow.com/q/61048789/658826[can't be used as database defaults].
+
+It is possible to create tables or single columns with non-default collation.
+To list columns with different collation one can use this select (with or without `table_schema`
+filter, select based on https://dba.stackexchange.com/a/29947/157622[this answer]):
+
+[source,sql]
+----
+select table_schema, table_name, column_name, collation_name
+  from information_schema.columns
+  where collation_name is not null and table_schema = 'public'
+order by table_schema, table_name, ordinal_position;
+----
+
+[NOTE]
+If query is used with custom `COLLATE` regularly the table should be indexed accordingly.
+
+[WARNING]
+====
+If case-sensitive locale is used when case-insensitive behavior is expected it may result in
+unexpected results.
+The old repository uses `VARCHAR` type for OIDs and bucket defining queries for extreme boundaries
+accidentally caught more than was intended.
+E.g. `oid > 'FF'` can also include all the OIDs starting with lower-case A through F, if interpreted
+case-sensitively - which it is with `collate "C"` for example (but not with `en_US` at least not
+for PG 12 or 13).
+See bug:MID-6468[] for possible problem manifestation.
+====
+
+=== Creating DB with other collation
+
+As described in the notes for https://www.postgresql.org/docs/current/sql-createdatabase.html[CREATE DATABASE]
+one may need to specify `template0` as a template for database creation with different collation.
+Adding collation support for other languages to the operating system and then adding it to PG
+is beyond this page, but is described in the https://www.postgresql.org/docs/current/collation.html[docs].

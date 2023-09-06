@@ -1,0 +1,22 @@
+= SchemaDoc
+:page-wiki-name: SchemaDoc
+:page-wiki-id: 13598788
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-01-09T11:59:22.051+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2021-01-28T18:07:48.011+01:00
+:page-upkeep-status: yellow
+
+SchemaDoc is a custom system to generate data model documentation directly from the schema definition files.
+The SchemaDoc system creates a nice human-readable documentation of the data model.
+
+++++
+{% versionlinks
+since: "3.0"
+development: true
+columns:
+  - heading: Schemadoc
+    linkUrlPattern: "https://www.evolveum.com/downloads/midpoint/${download-tag}/midpoint-${maven-version}-schemadoc/"
+    linkText: "SchemaDoc"
+%}
+++++

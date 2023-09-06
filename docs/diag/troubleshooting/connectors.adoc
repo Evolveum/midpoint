@@ -1,0 +1,345 @@
+= Troubleshooting Connectors
+:page-nav-title: Connectors
+:page-wiki-name: Troubleshooting Connectors
+:page-wiki-id: 24085196
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-02-01T11:20:46.313+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-08-16T17:08:27.891+02:00
+:page-alias: { "parent" : "/connectors/connid/", "title" : "Troubleshooting", "display-order" : 800 }
+:page-keywords: [ 'connid', 'connector', 'troubleshooting' ]
+:page-tag: guide
+:page-toc: top
+:page-upkeep-status: green
+
+== Introduction
+
+This page describes the way how to diagnose connector-related problems.
+
+MidPoint is using the xref:/midpoint/reference/resources/connid/[ConnId] connector framework.
+Every connector is running in this framework.
+It means that midPoint calls the ConnId framework and the framework calls the connector.
+Therefore when it comes to troubleshooting connector problems there are several places where a problem can occur and also several places where you can get diagnostic data:
+
+. *MidPoint*: the midpoint may invoke wrong operation at the first place.
+This may be caused by a misconfiguration or a bug.
+See xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings] page for a guide how to diagnose these problems.
+
+. *ConnId*: the framework may misinterpret the operation.
+The framework also simulates some operations and it may post-process the results.
+
+. *Connector*: this is the tricky part of the story.
+Each connector is different.
+Very different.
+But there are ways.
+See below.
+
+. *Resource*: it is possible that the problem is caused by resource misconfiguration.
+E.g. the connector is not allowed to see all data, there are some limits, etc.
+We will not go into details here.
+See the documentation that goes with the resource for troubleshooting details.
+
+
+== ConnId Framework
+
+The ConnId connector framework stand between midPoint and the connectors.
+It knows about every operation that midPoint invokes on every connector and it knows about all the return values.
+Some time ago we have added ability to log all the operations that are passing through the connector framework.
+This can be easily enabled by using the following log configuration:
+
+
+....
+org.identityconnectors.framework: TRACE
+....
+
+Or more specifically (with less logging noise - applicable only in midPoint 3.9 and later):
+
+
+....
+org.identityconnectors.framework.api.operations: TRACE +
+org.identityconnectors.framework.spi.operations: TRACE +
+org.identityconnectors.framework.common.objects.ResultsHandler: TRACE
+....
+
+The ConnId operation traces look like this:
+
+[source]
+----
+TRACE (org.identityconnectors.framework.api.operations.SearchApiOp): method: search msg:Enter: search(ObjectClass: inetOrgPerson, null, com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl$2@643dc940, OperationOptions: {ALLOW_PARTIAL_ATTRIBUTE_VALUES:true,PAGED_RESULTS_OFFSET:1,PAGE_SIZE:20})
+....
+TRACE (org.identityconnectors.framework.api.operations.SearchApiOp): method: search msg:Return: org.identityconnectors.framework.common.objects.SearchResult@a90221a
+----
+
+This is a very useful mechanism.
+It will log every operation of every connector.
+If you suspect that the connector is not executing the right operation this is the right place to check it.
+You can see what is the operation that the midPoint is passing to the connector.
+If that operation looks good then the problem is most likely in the connector (see below).
+If the operation does not make sense then the problem is usually in the provisioning (see above).
+
+However, the operation is logged by the ConnId framework on relatively high level and the operation is still quite abstract.
+If you need more details about what really gets executed you have to rely on the connector logging.
+
+Please note that the ConnId framework has two "faces": API and SPI.
+The API is facing midPoint.
+MidPoint invokes ConnId API operations.
+The SPI is facing the connector.
+Connector implements SPI operations and ConnId framework is invoking them.
+You can see the distinction in the class names that are written in the logfiles, e.g. `SearchApiOp` vs `SearchOp` (if there is no `Api` or `Spi` in the operation name then it is assumed to be SPI).
+There is also similar distinction in the package name of the logger.
+Most API and SPI operations are direct equivalents.
+But there may be subtle differences.
+E.g. The `get` API operation is executed as `search` (`executeQuery`) SPI operation.
+
+
+=== Interpreting Request-Response Operation Logs
+
+Most connector operations are "pure" request-response operations: there is one request and one response.
+These are operations such as create, modify, delete.
+In this case you will see one request in the log files and one response.
+And thats the whole operation.
+Like this:
+
+[source]
+----
+2017-02-01 10:44:16,622 [main] TRACE (o.i.framework.api.operations.CreateApiOp): method: create msg:Enter: create(ObjectClass: inetOrgPerson, [Attribute: {Name=uid, Value=[will]}, Attribute: {Name=__NAME__, Value=[uid=will,ou=People,dc=example,dc=com]}, Attribute: {Name=cn, Value=[Will Turner]}, Attribute: {Name=sn, Value=[Turner]}, Attribute: {Name=givenName, Value=[Will]}], OperationOptions: {})
+2017-02-01 10:44:16,623 [main] TRACE (o.i.framework.spi.operations.CreateOp): method: create msg:Enter: create(ObjectClass: inetOrgPerson, [Attribute: {Name=uid, Value=[will]}, Attribute: {Name=__NAME__, Value=[uid=will,ou=People,dc=example,dc=com]}, Attribute: {Name=cn, Value=[Will Turner]}, Attribute: {Name=sn, Value=[Turner]}, Attribute: {Name=givenName, Value=[Will]}], OperationOptions: {})
+...
+2017-02-01 10:44:16,641 [main] TRACE (o.i.framework.spi.operations.CreateOp): method: create msg:Return: Attribute: {Name=__UID__, Value=[675f7e48-c0ee-4eaf-9273-39e67df4cd2c]}
+2017-02-01 10:44:16,641 [main] TRACE (o.i.framework.api.operations.CreateApiOp): method: create msg:Return: Attribute: {Name=__UID__, Value=[675f7e48-c0ee-4eaf-9273-39e67df4cd2c]}
+----
+
+The above example illustrates a very common `create` operation.
+It should be interpreted like this:
+
+. `...api.operations.CreateApiOp` Enter: MidPoint invokes ConnId API.
+The object to create is logged as an operation parameter.
+This is what midPoint sends.
+
+. `...spi.operations.CreateOp` Enter: ConnId invokes the connector.
+This is what the connector receives.
+
+. Connector executes the operation.
+Logs from the connector will be here (if connector logging is enabled)
+
+. `...spi.operations.CreateOp Return`: Connector operation is finished.
+The connector returns the result to ConnId.
+
+. `...api.operations.CreateApiOp` Return: Operation is finished and post-processed by the framework.
+Framework returns the result to midPoint.
+
+This is quite straightforward and it applies to vast majority of connector operations.
+However, there are some peculiarities.
+
+There are four modify operations:
+
+* update(...) in UpdateOp: This replaces attribute values.
+It is (roughly) an equivalent to midPoint _modify/replace_ deltas.
+
+* addAttributeValues(...) and removeAttributeValues(...) in UpdateAttributeValuesOp.
+This adds or deletes attribute values.
+It is (roughly) an equivalent to midPoint _modify/add_ and _modify/delete_ deltas.
+
+* updateDelta(...) in UpdateDeltaOp: This operation allows complex combinations of add,delete and replace values.
+This is a new operation designed to replace older operations above.
+
+New connectors implement updateDelta(...) operation only.
+Other update operations are considered to be obsolete.
+However, they are still used by many connectors.
+
+
+=== Interpreting Search Operations
+
+The connector search operations are quite different from other operations.
+These operations are not one request and one response.
+These are one request and any number of responses (including zero responses).
+The search operations are using the callback mechanisms to pass results to midPoint.
+The log of the search operations looks like this:
+
+[source]
+----
+2017-02-01 10:44:17,918 [main] TRACE (o.i.framework.api.operations.SearchApiOp): method: search msg:Enter: search(ObjectClass: inetOrgPerson, null, com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl$2@d015dba, OperationOptions: {RETURN_DEFAULT_ATTRIBUTES:true,ALLOW_PARTIAL_ATTRIBUTE_VALUES:true,ATTRS_TO_GET:[__PASSWORD__,isMemberOf,secretary]})
+2017-02-01 10:44:17,919 [Thread-13] TRACE (o.i.framework.spi.operations.SearchOp): method: executeQuery msg:Enter: executeQuery(ObjectClass: inetOrgPerson, null, org.identityconnectors.framework.impl.api.local.operations.SearchImpl$
+1@78b1ab22, OperationOptions: {RETURN_DEFAULT_ATTRIBUTES:true,ALLOW_PARTIAL_ATTRIBUTE_VALUES:true,ATTRS_TO_GET:[__PASSWORD__,isMemberOf,secretary]})
+...
+2017-02-01 10:44:17,921 [Thread-13] TRACE (o.i.framework.common.objects.ResultsHandler): method: handle msg:Enter: {Uid=Attribute: {Name=__UID__, Value=[0cb932b1-f467-3b5e-ba7b-bb13d0d52b3f]}, ObjectClass=ObjectClass: inetOrgPerson, Attributes=[Attribute: {Name=__PASSWORD__, Value=[org.identityconnectors.common.security.GuardedString@da30d578]}, Attribute: {Name=facsimileTelephoneNumber, Value=[+1 408 555 4321]}, Attribute: {Name=isMemberOf, Value=[cn=Pirates,ou=groups,dc=example,dc=com]}, Attribute: {Name=cn, Value=[Joshamee Gibbs]}, Attribute: {Name=__UID__, Value=[0cb932b1-f467-3b5e-ba7b-bb13d0d52b3f]}, Attribute: {Name=l, Value=[Caribbean]}, Attribute: {Name=telephoneNumber, Value=[+1 408 555 1234]}, Attribute: {Name=uid, Value=[jgibbs]}, Attribute: {Name=mail, Value=[jgibbs@blackpearl.com]}, Attribute: {Name=__NAME__, Value=[uid=jgibbs,ou=People,dc=example,dc=com]}, Attribute: {Name=sn, Value=[Gibbs]}, Attribute: {Name=givenName, Value=[Joshamee]}], Name=Attribute: {Name=__NAME__, Value=[uid=jgibbs,ou=People,dc=example,dc=com]}}
+....
+2017-02-01 10:44:17,921 [Thread-13] TRACE (o.i.framework.common.objects.ResultsHandler): method: handle msg:Return: true
+...
+(repeated hander calls)
+...
+2017-02-01 10:44:17,946 [Thread-14] TRACE (o.i.framework.spi.operations.SearchOp): method: executeQuery msg:Return
+2017-02-01 10:44:17,947 [main] TRACE (o.i.framework.api.operations.SearchApiOp): method: search msg:Return: org.identityconnectors.framework.common.objects.SearchResult@242dc268
+----
+
+It should be interpreted like this:
+
+. `...api.operations.SearchApiOp` Enter: MidPoint invokes ConnId search operation.
+The parameters are recorded in the log.
+
+. `...spi.operations.SearchOp executeQuery` Enter: ConnId framework executes the connector `executeQuery` operation.
+
+. Connector starts the search (sends search request to the resource).
+Resource will start sending back the search results.
+
+. `...common.objects.ResultsHandler` Enter: The connector has received a search result.
+The connector is invoking _result hander_ to process it.
+The _result handler_ is a midPoitn code that is processing the result.
+This is a method how the connector passes the search result to midPoint.
+
+. MidPoint will process this search result.
+
+. `...common.objects.ResultsHandler` Return: MidPoint is done with processing of the search result.
+It returns control to the connector to get more search results (if there are any).
+The result value (true/false) indicates whether the search should continue or the operation should be stopped.
+
+. The steps 4, 5 and 6 are repeated for every search result.
+
+. `...spi.operations.SearchOp executeQuery` Return: Search operation is done.
+There will be no more results.
+Connector returns control to the ConnId.
+
+. `...api.operations.SearchApiOp` Return: Search is done.
+ConnId returns control to midPoint.
+
+Please note that `get` operations are also interpreted as `search` operations.
+The ConnId framework transforms them internally.
+
+Also please note that there may be search operations inside a search.
+E.g. when midPoint processes the search result it may need to execute another search inside that processing.
+E.g. when listing all accounts, we may need to search for group membership for each account.
+This gives us search withing search.
+In that case you have to carefully watch for a start of new search operations inside the ResultsHandler, i.e. between the ResultsHandler Enter and ResultsHandler Return log messages.
+
+
+== Connectors
+
+Each connector is slightly different.
+The connectors have to adapt to the resource communication protocol and therefore they are expected to use variety of client and protocol libraries.
+Each library may have its own method of troubleshooting.
+Therefore there is no universal way troubleshoot a connector.
+However, there is (almost) always some way.
+Please refer to the connector documentation for the details.
+
+Even though there is no universal way how to troubleshoot a connector there are some general guidelines.
+Most connectors log at least some information about the operations.
+You just need to enable the correct logger.
+The logger name is usually the same as the package name of the connector classes.
+Look in the documentation or directly inside the connector JAR file to find out the package name.
+You may also need to enable logging of the libraries that come with the connector.
+You can examine these if you look in the `lib` directory inside the connector JAR file.
+
+Some connectors have really good logging, such as the LDAP connector (and its subclasses).
+The LDAP connector will log all the LDAP operations if you set the `com.evolveum.polygon.connector.ldap.OperationLog` logger to `DEBUG` level (also see xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/troubleshooting/[LDAP Connector Troubleshooting]):
+
+[source]
+----
+2016-08-30 17:14:20,043 [main] DEBUG [](c.evolveum.polygon.connector.ldap.OperationLog): method: null msg:ldap://localhost:10389/ Add REQ Entry:
+Entry
+    dn: uid=jack,ou=People,dc=example,dc=com
+    objectClass: inetOrgPerson
+    uid: jack
+    userPassword: deadmentellnotales
+    sn: Sparrow
+    cn: Jack Sparrow
+    description: Created by IDM
+    givenName: Jack
+    l: Black Pearl
+    displayName: Jack Sparrow
+
+2016-08-30 17:14:20,091 [main] DEBUG [](c.evolveum.polygon.connector.ldap.OperationLog): method: null msg:ldap://localhost:10389/ Add RES uid=jack,ou=People,dc=example,dc=com:         Ldap Result
+            Result code : (SUCCESS) success
+            Matched Dn : ''
+            Diagnostic message : ''
+----
+
+Some connectors will barely log anything.
+This is all connector-dependent.
+If the connector author did a good job you will get what you are looking for.
+If the author did a poor job you are mostly out of luck.
+But one way or another this is the best chance to learn what the connector is doing.
+If that fails you have to resort to packet sniffer and similar tools.
+
+Each connector has its own logger names.
+The most reliable way to find out what it is to look at the connector documentation or connector source code.
+But as rule of thumb the connectors usually use logger names matching their Java package.
+This is supposed to be the same as the package prefix used in the `connectorType` property (see xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]), e.g. `com.evolveum.polygon.connector.ldap`.
+
+
+== I Suspect a Connector Bug
+
+So, you think you have found a connector bug.
+That may happen.
+No practical software is completely bug-free and the connectors are no exception.
+But before going to xref:/midpoint/reference/diag/creating-a-bug-report/[report a bug] please spend some time diagnosing the issue.
+Firstly, what looks like a connector bug may in fact be a misconfiguration.
+Secondly, if your bug report states justs "the connector is broken" then such a bug is very unlikely to ever get fixed.
+We need more data about the issue to fix it.
+Therefore this is the recommended procedure:
+
+. Enable ConnId framework logging.
+
+. Make sure that the operations that midPoint sends to the connector are correct.
+Make sure that the request makes sense.
+If the ConnId request is wrong then this is *not* a connector bug.
+It is most likely a midPoint bug.
+
+. Look for error messages from the resource.
+Maybe the resource refused the operation due to insufficient access rights.
+Maybe you are trying to add many values to a single-valued attribute.
+Maybe you try to create an object that already exists.
+In that case this is most likely a midPoint misconfiguration.
+Not a connector bug.
+
+. Look for objects that are returned from the search (`ResultsHandler`). Do these look OK? Is there correct number of objects? Is something missing? Are there all required attributes? May this be caused by the resource confifguration.
+E.g. does the resource allow to read all of these data?
+
+. It is time to go deeper.
+Enable logging of connector operations.
+E.g. for LDAP connector set `com.evolveum.polygon.connector.ldap.OperationLog` logger to TRACE level.
+
+. Check the requests that connector sends to the resource.
+If the ConnId operation looks OK but the request to the resource is not OK then this is very likely a connector bug.
+
+. Check the response from the resource.
+Are there any errors? Do the data seems OK? If the resource returns the data correctly but the connector's response to ConnId is wrong then it is very likely a connector bug.
+
+. If you still do not know what is going on it is time for heavy artillery.
+Enable full connector logging.
+And maybe logging of the underlying libraries.
+Try to figure out what is going on.
+
+. If everything fails then you can xref:/midpoint/reference/diag/creating-a-bug-report/[report the issue]. However at this point it is almost sure that the issue will be very tricky.
+It is unlikely that the midPoint team will have time to address that issue unless you have an active xref:/support/subscription-sponsoring/[subscription].
+
+== Connector Exception Stack Trace
+
+Stack traces from connector exceptions are often needed to diagnose connector bugs and complicated issues.
+However, due to design issues in Java platform that date back more than 20 years, combined with the classloading approach of ConnId framework introduces some difficulties.
+As a consequence, midPoint has to strip all connector stack traces from the exceptions that are passed to upper layers.
+It means that stack traces referencing to connector code are effectively lost.
+
+However, midPoint contains a code that can record connector stack traces before they are lost.
+The logger is not enabled by default, as many system administrators complained about excessive logging of stack traces.
+Logging of connector exception stack traces can be enabled by setting following logger:
+
+[source]
+----
+com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil: DEBUG
+----
+
+== Extra Tips
+
+* Enable xref:/midpoint/reference/security/audit/[Auditing] to a log file, including the auditing details.
+This will log all the deltas that are requested to execute from the user interface and other interfaces.
+Sometimes the problem is in the request delta.
+The audit is the easiest way to check that.
+
+
+== See Also
+
+* xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings]
+
+* xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
+
+* xref:/midpoint/devel/bugfixing/[Bugfixing and Support]

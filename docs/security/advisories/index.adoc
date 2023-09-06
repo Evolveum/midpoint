@@ -1,0 +1,134 @@
+= Security Advisories
+:page-wiki-name: Security Advisories
+:page-wiki-id: 30245229
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-03-21T07:55:32.840+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-03-02T13:16:55.003+01:00
+:page-upkeep-status: green
+
+[%autowidth]
+|===
+| # | Title | Date | Severity | Description
+
+| 1
+| xref:/midpoint/reference/security/advisories/001-midpoint-user-interface-clickjacking/[MidPoint user interface clickjacking]
+| 21 Mar 2019
+| Medium
+| MidPoint user interface vulnerable to clickjacking due to missing X-Frame-Options header.
+
+
+| 2
+| xref:/midpoint/reference/security/advisories/002-abuse-of-expressions-in-midpoint-reports/[Abuse of expressions in midPoint reports]
+| 8 Apr 2019
+| Medium
+| MidPoint expressions embedded in midPoint reports can be used to gain unauthorized access to the system.
+
+
+| 3
+| xref:/midpoint/reference/security/advisories/003-xxe-vulnerabilities/[XXE Vulnerabilities]
+| 17 Apr 2019
+| Medium
+| The way how MidPoint handles XML documents is vulnerable to attacks based on XML External Entities (XXE)
+
+
+| 4
+| xref:/midpoint/reference/security/advisories/004-ad-and-ldap-connectors-do-not-check-certificate-validity/[AD and LDAP connectors do not check certificate validity]
+| 17 Apr 2019
+| High
+| LDAP and Active Directory connectors are not properly checking TLS/SSL certificate validity.
+
+
+| 5
+| xref:/midpoint/reference/security/advisories/005-workitem-identifier-weakness/[Workitem identifier weakness]
+| 18 Apr 2019
+| Medium
+| Any approver can display any workitem by guessing its short identifier.
+
+
+| 6
+| xref:/midpoint/reference/security/advisories/006-plain-text-password-in-temporary-files/[Plain text password in temporary files]
+| 13 May 2019
+| Low
+| Plaintext password is sometimes left stored in temporary files on a file system.
+
+
+| 7
+| xref:/midpoint/reference/security/advisories/007-plain-text-password-in-task-objects-in-repository/[Plain text password in task objects in repository]
+| 23 May 2019
+| Low
+| Plaintext passwords are sometimes stored in task objects in the repository (database).
+
+
+| 8
+| xref:/midpoint/reference/security/advisories/008-xss-vulnerability-in-displayname/[XSS Vulnerability In displayName]
+| 14 Jun 2019
+| Low
+| Cross-site scripting (XSS) vulnerability exists in some parts of midPoint user interface, namely in organization displayName.
+
+
+| 9
+| xref:/midpoint/reference/security/advisories/009-soap-web-service-vulnerable-to-brute-force-attack/[SOAP Web Service Vulnerable To Brute Force Attack]
+| 9 Jul 2019
+| Medium
+| SOAP-based web service interface of midPoint does not limit authentication attempts.
+
+
+| 10
+| xref:/midpoint/reference/security/advisories/010-authorizations-not-applied-properly-to-preview-changes/[Authorizations not applied properly to preview changes]
+| 30 Jul 2019
+| Medium
+| Authorizations not applied properly to the results of "preview changes" functionality.
+
+
+| 11
+| xref:/midpoint/reference/security/advisories/011-stored-xss-vulnerability-via-name-property/[Stored XSS vulnerability via 'name' property]
+| 30 Aug 2019
+| Medium
+| Stored cross-site scripting (XSS) vulnerability exists in midPoint user interface that can be exploited by manipulation of object 'name' property.
+
+
+| 12
+| xref:/midpoint/reference/security/advisories/012-user-changes-and-user-session-updates/[User changes and user session updates]
+| 9 Sep 2019
+| Low
+| Sessions of users logged-in to midPoint user interface are unaffected by the change of user profiles - until users log in again.
+
+
+| 13
+| xref:/midpoint/reference/security/advisories/013-http-error-codes-used-for-secq-rest-authentication-reveal-user-existence/[HTTP error codes used for SecQ REST authentication reveal user existence]
+| 11 Oct 2019
+| Low
+| HTTP error codes used for REST authentication based on security questions (a.k.a. SecQ) reveal user existence.
+
+
+| 14
+| xref:/midpoint/reference/security/advisories/014-ghostcat-vulnerability-of-apache-tomcat/[Ghostcat Vulnerability of Apache Tomcat]
+| 2 Mar 2020
+| Informational
+| Apache JServ Protocol (AJP) of Apache Tomcat may be vulnerable to several types of attack.
+
+
+| 15
+| xref:/midpoint/reference/security/advisories/015-disabled-users-able-to-log-in-with-ldap/[Disabled Users able to log-in when LDAP authentication is enabled]
+| 5 June 2023
+| Medium
+| MidPoint allows log-in for disabled users if LDAP authorization is used.
+
+
+| 16
+| xref:/midpoint/reference/security/advisories/016-unauth-user-is-able-to-reset-password/[Unauthorized user is able to reset password if focusIdentification is enabled]
+| 5 June 2023
+| High
+| MidPoint 4.7 may be vulnerable to password reset attack if new password reset `focusIdentification` is configured.
+
+
+| 17
+| xref:/midpoint/reference/security/advisories/017-self-registration-allows-to-change-password/[Self Registration feature allows to change password of other users]
+| 5 June 2023
+| High
+| MidPoint may be vulnerable to password change attack if self registration or post registration is configured.
+
+
+
+|===

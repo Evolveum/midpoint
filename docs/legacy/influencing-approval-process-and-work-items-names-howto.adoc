@@ -1,0 +1,81 @@
+= Influencing approval process and work items names HOWTO
+:page-wiki-name: Influencing approval process and work items names HOWTO
+:page-wiki-id: 24675668
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-10-18T17:16:40.454+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-10-18T17:16:40.454+02:00
+:page-since: "3.7"
+:page-obsolete: true
+
+
+Sometimes it is necessary to provide users with more specific approval process and work item names than generic ones like "Adding user jack", "Assigning role captain to user jack".
+Such cases are, for example, when role activation is requested: it is better to tell "Activation of role captain" than "Modification of role captain".
+Here we show how to do that.
+
+Each constraint can have presentation element.
+It contains the following:
+
+[%autowidth]
+|===
+| Item | Meaning | Example
+
+| message
+| Template of a message that describes the situation: to be shown e.g. in "reasons for approval" (on work item and process details), in enforcement exception or on preview changes page.
+| Role activation was requested.
+
+| shortMessage
+| Template of a short message that is to be used for the name of approval process or work item or during certification campaigns (in the future).
+| Activation of role <xyz>.
+
+| displayOrder
+| Order (priority) of this message.
+It is used to sort messages or short messages.
+Specifically, name of the approval process or work item is chosen as the short message that is the first in the list of short messages - has the lowest displayOrder.
+|
+
+| hidden
+| Constraints marked as hidden are not shown.
+By default, this is true for "and", "or", "transition" and "situation" constraints.
+Presentation of hidden constraint is suppresed and presentations of embedded (child) constraints - if any - are pushed to the same level as the parent one.
+|
+
+| final
+| Presentations of embedded (child) constraints are ignored.
+|
+
+|===
+
+This is an example:
+
+[source,xml]
+----
+<globalPolicyRule>
+   <name>modification-of-risk-level</name>
+   <policyConstraints>
+      <modification>
+         <presentation>
+            <shortMessage>
+               <fallbackMessage>Setting riskLevel</fallbackMessage> <!-- TODO provide also role name here -->
+            </shortMessage>
+         </presentation>
+         <item>riskLevel</item>
+      </modification>
+   </policyConstraints>
+   <policyActions>
+      <approval>
+         <processSpecification>
+            <deltaFrom>
+               <item>riskLevel</item>
+            </deltaFrom>
+         </processSpecification>
+         <approverRef oid="..." type="UserType"/>
+      </approval>
+   </policyActions>
+   <focusSelector>
+      <type>RoleType</type>
+   </focusSelector>
+</globalPolicyRule>
+----
+
+TODO we need to add role name to the message, in order to provide meaningful information in the work item or process list.

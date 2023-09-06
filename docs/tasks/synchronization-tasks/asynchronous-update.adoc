@@ -1,0 +1,49 @@
+= Asynchronous Update
+:toc:
+:page-experimental: true
+
+The asynchronous update activity/task processes a stream of so-called _change events_ coming from a resource.
+These events represent changes related to _resource objects_: their creation, modification, or deletion.
+The task ensures that these events are processed, so that changes on the resource objects are reflected
+on midPoint objects (and propagated to other resources, if needed).
+
+Unlike xref:../live-synchronization/[live synchronization], these change events are sent to midPoint asynchronously,
+i.e. the transfer is driven by the resource, not by midPoint.
+
+== Basic Configuration
+
+The heart of the configuration is the specification of what xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[resource objects]
+we want to process updates for. The `resourceRef` is obligatory, all the other properties are ignored (for now).
+
+=== An example
+
+.Asynchronous update task
+[source,xml]
+----
+<task>
+    <name>Asynchronous update: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <asynchronousUpdate>
+                <updatedResourceObjects>
+                    <resourceRef oid="54102823-84c3-49f0-a350-3b5514c9b7b9"/>
+                </updatedResourceObjects>
+            </asynchronousUpdate>
+        </work>
+    </activity>
+</task>
+----
+
+== Advanced Configuration
+
+== Error Handling
+
+The default behavior of Asynchronous update activity is to _stop_ when an error is encountered.
+This is to ensure that no information is lost in such cases. This behavior can be changed via
+custom xref:/midpoint/reference/tasks/task-error-handling/[error handling specification].
+
+== See Also
+
+* #TODO# link to information about asynchronous resources

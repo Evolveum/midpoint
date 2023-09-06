@@ -1,0 +1,79 @@
+= Channel
+:page-wiki-name: Channels
+:page-wiki-id: 7667739
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-19T13:58:25.530+01:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2019-04-11T08:18:54.229+02:00
+:page-upkeep-status: orange
+
+Concept of a _channel_ defines a way or purpose of information passing in midPoint.
+Every time midPoint distributes information from users to account (or vice versa) it does it within a _channel_. Channels are usually something like _synchronization_, _discovery_, _import_, _user request_, etc.
+They denote *why* is the change being executed and *how* was the change detected in the first place.
+
+Channels can be used to fine-tune midPoint functionality.
+E.g. channels can be used to limit execution of certain xref:/midpoint/reference/expressions/mappings/[mappings] to specific situations.
+The typical case is to limit application of xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] only to import.
+This is done by limiting the mapping to an _import channel_ and therefore it will be executed only when the accounts are imported and will not be executed for common synchronization.
+
+Channels are identified in midPoint by URL.
+There are some pre-defined URLs used internally by midPoint for common tasks such as synchronization or import.
+But the deployer may choose his own URLs for other situations which are frequently used in integration scenarios.
+The pre-defined channel URLs are defined in the following table.
+
+[%autowidth]
+|===
+| Channel name | Description | URL
+
+| Synchronization: liveSync
+| Channel used for changes detected by Live Synchronization, the almost-realtime synchronization mechanism.
+See xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors].
+| link:http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#liveSync[http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync]
+
+
+| Synchronization: reconciliation
+| Channel used for changes detected by Reconciliation, i.e. comparing of midPoint state with resource state.
+See xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors].
+| link:http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#reconciliation[http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation]
+
+
+| Synchronization: discovery
+| Channel used for changes detected by Discovery, i.e. almost-unintentional detection of changes as a side effect of other operations.
+See xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors].
+| link:http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery[http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery]
+
+
+| Synchronization: import
+| Used when importing accounts from a resource with the intent to create midPoint users.
+| link:http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import[http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import] +
+link:http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport[http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport]
+
+
+| Recompute
+| Used to recompute object without any explicit change.
+Will apply policies, object template and outbound mappings for user's accounts.
+| link:http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery[http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#recompute]
+
+
+| GUI: user action
+| Actions of the user in the admin GUI.
+| link:http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user[http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user] +
+link:http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init[http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init] +
+link:http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user[http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user] +
+link:http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#selfRegistration[http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#selfRegistration] +
+link:http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#resetPassword[http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#resetPassword]
+
+
+| Web Service
+| Actions initiated by invocation of the web service.
+| link:http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService[http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService] +
+link:http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest[http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest]
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/synchronization/flavors/[Synchronization Flavors]
+
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]

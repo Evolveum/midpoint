@@ -1,0 +1,159 @@
+= Request access
+:page-toc: top
+:page-since: "4.6"
+
+Request access functionality is a complete rewrite and redesign of midPoint xref:../role-request/index.adoc[role requesting UI].
+
+New UI takes form of proper wizard with up to four steps:
+
+* Person of interest
+* Relation
+* Role catalog
+* Shopping cart (checkout)
+
+First two steps may be hidden, or skipped based on configuration or authorizations of user that is currently logged in.
+
+Configuration and some examples can be found xref:configuration.adoc[here].
+
+== Person of interest
+
+.Person of interest
+image::step-1-poi.png[Person of interest,100%]
+
+First step of request access wizard allows user to choose one or more users for whom new roles will be requested.
+There are two type of tiles:
+
+* Myself - to select user currently logged in
+* Group - defined by collection or query filter. Group allow to select one or more users via autocomplete text field or by clicking *Select manually* button.
+
+Autocomplete search withing group is done using `user/name` property with `norm` poly-string matcher by default.
+
+Concrete search behaviour can be customized using `group/searchFilterTemplate` where filter with expression can be used.
+Search result labels can be also configured using expression defined in `group/userDisplayName`.
+Minimum number of characters needed to start autocomplete can be configured using `group/autocompleteMinChars`.
+
+In following example filter template will create substring search `givenName like '%King *<VALUE>*%'`.
+Results will be displayed in format `<USER_NAME> (<USER_OID>)`
+
+[source, xml]
+----
+<group>
+    <searchFilterTemplate>
+        <q:substring>
+            <q:path>givenName</q:path>
+            <expression>
+                <script>
+                    <code>
+                        return "King " + input
+                    </code>
+                </script>
+            </expression>
+        </q:substring>
+    </searchFilterTemplate>
+    <userDisplayName>
+        <script>
+            <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
+        </script>
+    </userDisplayName>
+    <autocompleteMinChars>2</autocompleteMinChars>
+</group>
+----
+
+.Selection from group of users
+image::step-1-poi-group.png[Selection from group of users,100%]
+
+.Manual selection from group of users
+image::step-1-group-manual-selection.png[Manual selection from group of users,100%]
+
+.User selected
+image::step-1-group-user-selected.png[User selected,100%]
+
+If user can request only for himself then this step is not visible (and skipped).
+
+== Relation
+
+.Person of interest
+image::step-2-relation.png[Relation,100%]
+
+Second step of wizard requires user to choose relation which will be used for new roles.
+List of relations is based on static relations and relations defined in system configuration.
+Default set of relations is:
+
+* Default
+* Manager
+* Approver
+* Owner
+
+Set of relations, their label and icon can be configured, see xref:../../concepts/relation/index.adoc[Relations] and xref:./configuration.adoc[Configuration].
+
+If there's only one relation to be selected, then this step is not visible (and skipped).
+
+[NOTE]
+====
+If relations are handled only implicitly via authorizations, then relation step will be visible at least when wizard is initialized.
+Reason for this is that until user selects at least one user (person of interest), midpoint is not able to compute available relation list and therefore can't decide whether relation step can be hidden.
+
+In case relation step should be hidden at all times, please configure `defaultRelation` and `allowOtherRelations=false` in request access configuration.
+====
+
+== Role catalog
+
+.Role catalog
+image::step-3-catalog-tiles.png[Role catalog,100%]
+
+Role catalog displays roles (also organizations and services) that can be assigned to list of users defined earlier.
+Catalog can be currently displayed in two ways:
+
+* Tiles (picture above)
+* Table (see picture below)
+
+.Role catalog in table
+image::step-3-catalog-table.png[Role catalog in table,100%]
+
+Both types of view can be enabled or disabled via configuration.
+Menu in role catalog consists of 3 types of items also defined in configuration:
+
+* Role catalog defined via org. structure
+* Collections of objects
+* Roles of teammate
+
+=== Role catalog
+
+Role catalog is defined via reference to organization tree.
+Org. tree is then used to load hierarchical menu (up to 3 levels), all roles on deeper levels are shown in that 3rd level menu.
+Assignable roles have to be part of this org. tree.
+
+=== Collection of objects
+
+Collection of objects can be used to create custom menu item representing specific set of object via reference to object collection or using query filter.
+
+=== Roles of teammate
+
+This is custom menu item that uses search for another user and list his assignments.
+Roles of teammate option can be disabled via configuration.
+
+Search for teammate will create filter using `user/name` property with `norm` poly-string matcher by default.
+
+.Roles of teammate
+image::step-3-roles-of-teammate.png[Roles of teammate,100%]
+
+== Shopping cart (checkout)
+
+.Shopping cart (checkout)
+image::step-4-checkout.png[Shopping cart (checkout),100%]
+
+Last step in request access wizard is checkout.
+In this step user can finalize whole request, review and solve conflicts if necessary.
+If configuration allows comment for this request can be added also with custom validity period for requested items.
+This can be done either globally for whole cart or for each item separately.
+
+=== Conflict solver
+
+.List of conflicts
+image::step-4-conflict-list.png[List of conflicts,100%]
+
+.Solved conflicts
+image::step-4-conflicts-solved.png[Solved conflicts,100%]
+
+.Edit shopping cart item
+image::step-4-checkout-item-edit.png[Edit shopping cart item,100%]

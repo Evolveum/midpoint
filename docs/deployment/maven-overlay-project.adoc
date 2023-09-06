@@ -1,0 +1,100 @@
+= MidPoint Customization With Maven Overlay Project
+:page-nav-title: Overlay Project
+:page-wiki-name: Customization With Overlay Project
+:page-wiki-id: 22282282
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-01-15T20:40:02.928+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-19T16:46:49.426+02:00
+:page-toc: top
+
+== Introduction
+
+There are many ways how to customize midPoint behavior.
+MidPoint is designed with practicality in mind and therefore the most frequent customizations can be done by configuration.
+But it is not possible to make everything configurable.
+Some customizations require extension or even modification of midPoint code.
+
+This page describes how to set up and maintain an _overlay project_ that contains midPoint customizations.
+
+== How Overlay Works?
+
+[IMPORTANT]
+====
+MidPoint packaging was migrated from WAR to JAR in 4.6.
+
+Previously it was based on link:https://maven.apache.org/plugins/maven-war-plugin/overlays.html[Maven WAR Overlay]
+mechanism combined with link:https://docs.spring.io/spring-boot/docs/current/maven-plugin/repackage-mojo.html[Spring Boot repackaging].
+Overlay project took the `admin-gui` "Spring-bootified" WAR module (renamed as `midpoint.war`),
+opened it, placed some stuff over it, packaged it as WAR and repackaged it with Spring Boot again.
+
+With JAR packaging, only the Spring Boot repackaging is used.
+
+The following text only covers the JAR overlay mechanism now.
+====
+
+Overlay projects creates a new midPoint binary distribution (`midpoint.jar`) with your customizations added to it.
+The customizations may be configuration files, web resources (HTML, CSS, images) and even Java code.
+The overlay can also override stock midPoint files and classes and replace them with custom versions.
+
+The overlay project contains only the customized files.
+There is no need to copy stock midPoint sources and even binaries.
+The Maven will download everything that it needs directly from Evolveum repositories.
+As the overlay project only contains customizations it can easily be maintained in a version control system.
+
+The overlay project effectively does the same stuff the internal https://github.com/Evolveum/midpoint/tree/master/gui/midpoint-jar[midpoint-jar] module does.
+It takes `admin-gui` and all the other midpoint modules and packages them as Spring Boot JAR.
+The new JAR "overlay" contains only your stuff directly in the JAR (inside its `BOOT-INF/classes` directory).
+Everything else is under `WEB-INF/lib` only as JAR dependencies.
+
+[NOTE]
+====
+There is *one* thing you have to take care of that the `midpoint-jar` module does - it provides `banner.txt`.
+This is the ASCII art at the start of the log.
+If you don't need it, it's OK, you don't have to do anything.
+If you want it, either copy it from https://github.com/Evolveum/midpoint/tree/master/gui/midpoint-jar/src/main/resources[here]
+or create your own.
+Name it `banner.txt` and place it under `src/main/resources` of your overlay project.
+
+There you go, banner resurrected!
+====
+
+== Example Overlay Projects
+
+Following overlay examples are maintained by midPoint team for demonstration and documentation purposes:
+
+* Basic link:https://github.com/Evolveum/midpoint-overlay-example[Evolveum/midpoint-overlay-example] - this one serves two purposes:
+
+** It provides simple GUI customization example, see link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/README.adoc[README] for its description.
+
+** It documents link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc[midPoint overlay development] in general, including points like schema extension and custom initial objects.
+
+
+
+* link:https://github.com/Evolveum/midpoint-custom-soap-service-wsdl[Evolveum/midpoint-custom-soap-service-wsdl] with CXF-based SOAP web-service.
+This demonstrates overlay as a part of Maven multi-module project.
+link:https://github.com/Evolveum/midpoint-custom-service/blob/master/README.adoc[README] provides quick hints about using CXF for SOAP web-services on topics like WSDL vs code-first, WS-Security and how to use midPoint authorizations.
+
+* link:https://github.com/Evolveum/midpoint-custom-soap-service[Evolveum/midpoint-custom-soap-service] is simplified SOAP web-service using code-first approach using basic authentication from midPoint.
+
+* Finally, there is link:https://github.com/Evolveum/midpoint-custom-rest-service[Evolveum/midpoint-custom-rest-service] showing REST service also implemented with CXF, but from version 4.2 also experimental (but much simpler) Spring MVC endpoint.
+
+== Overlay development
+
+Development document is now part of the link:https://github.com/Evolveum/midpoint-overlay-example[basic overlay example] - see link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc[midPoint overlay development]. It describes how to build and run the project (including IDE), how to develop against fresh snapshots, how the xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory] customizations and initial-objects customizations work.
+
+The document also includes link:https://github.com/Evolveum/midpoint-overlay-example/blob/master/doc/overlay-development.adoc#overlay-upgrade-notes[overlay upgrade notes] (starting with upgrade to midPoint 4.1).
+
+////
+== TODO Describe
+
+* bundling connectors
+////
+
+== See Also
+
+* xref:/midpoint/devel/gui/gui-development-guide/[GUI Development Guide]
+
+* xref:/midpoint/reference/admin-gui/look-feel-customization/[Look & Feel Customization HOWTO]
+
+* https://github.com/Evolveum/midpoint-overlay-example[Evolveum/midpoint-overlay-example]

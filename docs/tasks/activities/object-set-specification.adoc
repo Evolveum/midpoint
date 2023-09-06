@@ -1,0 +1,18 @@
+= Object Set Specification
+
+Here we describe how sets of repository objects are specified in xref:../[activities].
+(Represented by `ObjectSetType` type.)
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+| `type` | Type of objects to be processed. | Depends on the specific activity. Usually `ObjectType`.
+| `query` | Query to use. | Depends on the specific activity. Usually none, i.e. all objects of given type are processed.
+| `searchOptions` | Search options to use. | No options.
+| `useRepositoryDirectly` | Whether to go directly to repository (bypassing e.g. authorizations). | Depends on the specific activity.
+| `failedObjectsSelector` | Used for activities intended to re-process objects that failed to be processed by a "regular" activity
+that was run before. | No failed objects selection. (Processing all objects.)
+|===
+
+For more information about handling failed objects, please see xref:error-handling.adoc[] page.

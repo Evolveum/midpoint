@@ -1,0 +1,232 @@
+= Synchronization Tasks
+:page-wiki-name: Synchronization Tasks
+:page-wiki-id: 21200899
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-09-02T11:48:29.791+02:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2019-12-06T10:14:33.583+01:00
+:page-upkeep-status: orange
+
+Synchronization tasks are midPoint xref:/midpoint/architecture/concepts/task/[server tasks] that handle bulk
+xref:/midpoint/reference/synchronization/introduction/[synchronization] of midPoint objects.
+Synchronization tasks typically take care of scheduled user reconciliation or continuous live synchronization.
+But the tasks can be used in an ad-hoc manner to handle migration tasks such as initial user import
+or cleanup and administration tasks such as ad-hoc user recompute.
+
+[TIP]
+====
+All the synchronization tasks are using the same xref:/midpoint/reference/synchronization/introduction/[synchronization mechanism].
+See the xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for an introduction.
+
+For all the synchronization tasks to work correctly the xref:/midpoint/reference/resources/resource-configuration/synchronization/[synchronization section]
+of xref:/midpoint/reference/resources/resource-configuration/[resource configuration] must be set up properly.
+See xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration] page for more details.
+====
+
+== Synchronization Tasks
+
+Main synchronization tasks are:
+
+* xref:import-and-reconciliation.adoc[import and reconciliation],
+* xref:live-synchronization.adoc[live synchronization],
+* xref:asynchronous-update.adoc[asynchronous update] (experimental).
+
+== Target Specification
+
+The synchronization task needs to know _what_ it has to process:
+
+* What _resource_ to synchronize.
+* What _objects_ on the resource to synchronize.
+These objects are specified using their
+xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['object class, kind, and intent']
+using xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[these settings].
+
+=== MidPoint 4.4 and After
+
+The resource objects are specified using xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[`resourceObjects`]
+part of the respective work definition.
+The following properties can be defined:
+
+* `resourceRef`,
+* `kind`,
+* `intent`,
+* `objectclass`.
+
+In some cases, explicit `query` can be provided as well.
+
+=== Before MidPoint 4.4
+
+The resource is specified by using the `objectRef` property of the task.
+The objects are specified using the properties `objectclass`, `kind` and `intent` of the task extension.
+Sometimes, `objectQuery` extension property can be provided as well.
+
+== Import
+
+Import is usually one-time activity that imports accounts (or other kind of resource objects) into midPoint.
+Please see xref:import-and-reconciliation.adoc[].
+
+=== An Example
+
+The following task will import all objects of `inetOrgPerson` object class from resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`. The task will run only once.
+
+We show both new syntax - available since midPoint 4.4 - and legacy one - available in midPoint 4.3.x and before.
+(Note that even in 4.4 you can use the legacy syntax as well, however, with some limitations.)
+
+.Import Accounts task (since 4.4)
+[source,xml]
+----
+<task>
+    <name>Import: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+    </activity>
+</task>
+----
+
+.Import Accounts task (before 4.4)
+[source,xml]
+----
+<task xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Import: Example Resource</name>
+    <extension>
+        <mext:objectclass>ri:inetOrgPerson</mext:objectclass>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionStatus>runnable</executionStatus>
+    <category>ImportingAccounts</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+    <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+    <recurrence>single</recurrence>
+</task>
+----
+
+== Reconciliation
+
+Reconciliation is one-time or recurring activity that reconciles the state on a resource (either source or target one)
+with midPoint. It is basically an import plus a couple of other activities. Please see xref:import-and-reconciliation.adoc[].
+
+=== An Example
+
+The following task will run reconciliation on resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`.
+It will reconcile objects of `inetOrgPerson` object class.
+The reconciliation will be running every hour (3600 seconds).
+
+.Reconciliation task (since 4.4)
+[source,xml]
+----
+<task>
+    <name>Reconciliation: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <schedule>
+        <interval>3600</interval>
+    </schedule>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+    </activity>
+</task>
+----
+
+.Reconciliation task (before 4.4)
+[source,xml]
+----
+<task xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Reconciliation: Example Resource</name>
+    <extension>
+        <mext:objectclass>ri:inetOrgPerson</mext:objectclass>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionStatus>runnable</executionStatus>
+    <category>Reconciliation</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+    <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+    <recurrence>recurring</recurrence>
+    <schedule>
+        <interval>3600</interval>
+    </schedule>
+</task>
+----
+
+== Live Synchronization
+
+Live synchronization processes changes from a resource in a real-time or near real-time.
+Please see xref:live-synchronization.adoc[].
+
+=== An Example
+
+The following task will run live synchronization on resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`.
+It will synchronize objects of `inetOrgPerson` object class.
+The synchronization will be running every 10 seconds.
+
+.Live synchronization task (since 4.4)
+[source,xml]
+----
+<task>
+    <name>Live synchronization: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <schedule>
+        <interval>10</interval>
+    </schedule>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
+</task>
+----
+
+.Live synchronization task (before 4.4)
+[source,xml]
+----
+<task xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Live synchronization: Example Resource</name>
+    <extension>
+        <mext:objectclass>ri:inetOrgPerson</mext:objectclass>
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionStatus>runnable</executionStatus>
+    <category>LiveSynchronization</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+    <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
+    <recurrence>recurring</recurrence>
+    <schedule>
+        <interval>10</interval>
+    </schedule>
+</task>
+----
+
+== See Also
+
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
+
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
+
+* xref:/midpoint/architecture/concepts/task/[Task]
+
+* xref:/midpoint/reference/tasks/activities/[Activities]
+
+* xref:/midpoint/reference/tasks/recompute-task/[Recompute Task]
+
+* xref:/connectors/connid/1.x/connector-development-guide/[Connector Development Guide - DiscoverySupport]

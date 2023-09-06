@@ -1,0 +1,87 @@
+= Example of Collection report: Users without account
+:page-nav-title: Users without account
+:page-wiki-name: Example of new report: Users without account
+:page-wiki-id: 52003073
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2020-08-18T13:56:23.128+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-08-20T08:16:17.750+02:00
+:page-upkeep-status: yellow
+
+Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
+
+
+== Usecase
+
+We need report of users which have assignment of role, but don’t have account on our resource, and they should have.
+
+
+=== Configuration
+
+We need only report configuration with condition.
+
+.Report XML
+[source,xml]
+----
+<report>
+    <name>Users without account</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+            <!-- Collection report -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
+        <!-- Collection report -->
+    </roleMembershipRef>
+    <objectCollection>
+        <collection>
+            <filter>
+                <ref>
+                    <path>roleMembershipRef</path>
+                    <value oid="----OID_OF_YOUR_ROLE----"/>
+                </ref>
+            </filter>
+        </collection>
+        <condition>
+            <script>
+                <code>
+                  	linkRefs = object.getLinkRef();
+                   	containsAccount = false;
+                    for (linkRef in linkRefs) {
+                       try {
+                          shadow = midpoint.resolveReference(linkRef)
+                          if (shadow != null && shadow.getResourceRef() != null && "10000000-9999-9999-0000-a000ff000004".equals(shadow.getResourceRef().getOid())) {
+                             containsAccount = true;
+                          }
+                       } catch (Exception e) {
+                       }
+                    }
+                    return !containsAccount;
+              </code>
+            </script>
+        </condition>
+		<view>
+            <identifier>UserType</identifier>
+            <column>
+                <name>nameColumn</name>
+                <path>name</path>
+                <display>
+                    <label>Name</label>
+                </display>
+            </column>
+            <type>UserType</type>
+        </view>
+        <useOnlyReportView>true</useOnlyReportView>
+    </objectCollection>
+    <fileFormat>
+        <type>csv</type>
+    </fileFormat>
+</report>
+
+
+----
+
+Please replace_ '----OID_OF_YOUR_ROLE----'_ with oid of your role and '----OID_OF_YOUR_RESOURCE----' with oid of your resource.

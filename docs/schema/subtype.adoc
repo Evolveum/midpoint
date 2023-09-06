@@ -1,0 +1,68 @@
+= Subtype
+:page-wiki-name: Subtype
+:page-wiki-id: 26411218
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-07-30T09:42:41.847+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-24T15:44:49.268+02:00
+:page-deprecated: true
+:page-replaced-by: /midpoint/reference/schema/archetypes/
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+[NOTE]
+.deprecation notice
+====
+The Subtype is currently deprecated since 4.2 for ObjectType (UserType, ServiceType, etc).
+The deprecation is not relevant for AssignmentType.
+
+This docs page is focused to deprecated usage of subtype - usage for ObjectType.
+====
+
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
+Those object types may look innocent at the first sight.
+They look like ordinary concepts that almost any other IDM system has.
+But there is much more under the surface.
+Roles, orgs, and services can act as a smart replacement for xref:/midpoint/reference/schema/generic-objects/[generic objects].
+Roles, orgs, and services can be used to model a broad variety of object types: job categories, titles, projects, teams, responsibilities, locations, policy categories, devices, ...
+
+Subtype is a schema property that can be used to distinguish those data types.
+It is simple, multi-valued property.
+Currently, there is just a very little logic associated with subtype.
+E.g. xref:/midpoint/reference/expressions/object-template/[object template] can be applied on per-subtype-basis.
+However, as many midPoint mechanisms use search filters, subtype can be very useful.
+E.g. subtype can be easily used in authorizations, global policy rules and so on.
+
+[TIP]
+.Subtypes are replaced by Archetypes
+====
+MidPoint 3.x used mechanism of subtype to implement parts of the functionality provided by archetypes.
+In MidPoint 4.0, xref:/midpoint/reference/schema/archetypes/[Archetypes] should provide complete replacement for subtype functionality.
+Subtype will still work in midPoint 4.x, but it is no longer a recommended mechanism - except for assignment subtype, which is still useful.
+Subtypes will be most likely deprecated sometime during midPoint 4.x lifetime and the plan is to remove it completely in midPoint 5.0.
+
+Historical note: the original idea was to implement archetypes as an extension of the subtype functionality.
+But it was discovered during the detailed design of archetype functionality that we can do it much better.
+Current form of archetype functionality xref:/midpoint/features/synergy/[fits perfectly] with existing midPoint features and it is much more powerful than originally planned.
+Therefore the idea of subtype-based archetypes was dropped.
+====
+
+== Subtypes and Metaroles
+
+Subtype is a simple schema property.
+The purpose of subtype is to be able to quickly look for objects of a particular type.
+Therefore it has to be simple to be efficiently indexed and processed even in big midPoint deployments.
+
+This also means that subtype alone cannot define all the complexities of behavior set for individual object types.
+Therefore subtype is often combined with xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. Metaroles are a very efficient mechanism to specify common behavior and policies for groups of objects.
+
+== See Also
+
+* xref:/midpoint/reference/schema/generic-objects/[Generic Objects]
+
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
+
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]

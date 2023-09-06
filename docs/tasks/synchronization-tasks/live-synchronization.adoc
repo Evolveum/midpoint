@@ -1,0 +1,91 @@
+= Live Synchronization
+:toc:
+
+The live synchronization task (or activity) processes a stream of so-called _change events_ coming from a resource.
+These events represent changes related to _resource objects_: their creation, modification, or deletion.
+The task ensures that these events are processed, so that changes on the resource objects are reflected
+on midPoint objects (and propagated to other resources, if needed).
+
+The event stream is requested by midPoint: after a live synchronization activity starts, it asks the resource
+for recent changes. Please see a discussion on change token below.
+
+== Basic Configuration
+
+The heart of the configuration is the specification of what xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[resource objects]
+we want to synchronize. The `resourceRef` is obligatory, all the other properties are optional. However, usually
+the object class is specified as well - either directly, or indirectly via the kind-intent pair. The `query` property
+of the object set specification is not applicable for Live synchronization tasks.
+
+=== An example
+
+.Live synchronization task
+[source,xml]
+----
+<task>
+    <name>Live synchronization: Example Resource</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <schedule>
+        <interval>10</interval>
+    </schedule>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
+</task>
+----
+
+== Advanced Configuration
+
+Before describing the details, we need to understand what a _change token_ is.
+
+Each change has a token that identifies its position in the stream of events. The token of the last processed event is then
+stored in the live synchronization task. It is used when the task is run, in order to obtain a continuation of the change
+event stream starting after the last processed event.
+
+Not all resources are capable of providing unique tokens to individual change events. Some of them can e.g. provide common
+token value to all changes returned from given `sync()` call. This limits the ability to continue at exactly the position
+(in the change event stream) where the processing stopped in case of an error or a task suspension. The ability or inability
+of a resource to provide precise token values is described by the `preciseTokenValue` property of the `liveSync` capability.
+(See xref:/midpoint/reference/resources/resource-configuration/capabilities/[]).
+
+Currently, e.g. LDAP connector does not generally support precise token values (it does so only in specific cases).
+DB Table or SQL Scripting connectors may be able to do that. That way or another, it is the responsibility of the connector
+user (i.e. the engineer that configures the resource) to know the behavior of the connector, and to correctly specify this
+capability in the resource definition.
+
+=== Token Handling in Dry Run Mode
+
+If the Live synchronization task is run in a dry run mode, the token is not updated by default. This means that after the
+task is run again (either in dry run or in full processing mode), the stream of change events is re-processed. This is
+the expected behavior: we usually use the dry run mode to check that everything works well, and only after we start
+the task in "full" mode.
+
+There may be situations, however, where we need the task to mark events processed in dry run mode as "done"
+(by setting the token value appropriately). And this is configured by setting `updateLiveSyncTokenInDryRun` to `true`.
+
+=== Batch Size
+
+The `batchSize` configuration parameter tells midPoint to process only a limited amount of change events in a single
+synchronization task run. It can be used e.g. if we want to check the processing of a few events just to see
+if everything is OK; or if there is a lot of events waiting, and we want to process them in defined chunks.
+
+So, if a positive value of `N` is specified here, live synchronization fetches at most `N` records during each
+runfootnote:[Technically speaking, during a single `provisioning.synchronize()` method execution.].
+The unprocessed changes are left for the next task run. (This may change in the future.)
+
+*USE WITH CARE.* This feature assumes that the connector provides LiveSync capability
+with `preciseTokenValue` = `true`, i.e. that it assigns sync tokens to individual changes
+"incrementally", so it can resume live sync operation on each individual change.
+
+== Error Handling
+
+The default behavior of Live synchronization activity is to _stop_ when an error is encountered.
+This is to ensure that no information is lost in such cases. This behavior can be changed via
+custom xref:/midpoint/reference/tasks/task-error-handling/[error handling specification].

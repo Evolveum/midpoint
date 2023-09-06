@@ -1,0 +1,182 @@
+= Role Mining
+:page-toc: top
+:page-nav-title: Role Mining
+:page-since: "4.8"
+:page-upkeep-status: red
+
+Role mining is an essential process in the realm of identity and access management (IAM).
+At its core, it involves analyzing user-to-role mapping data to determine the set of roles that would simplify the assignment of access rights to users.
+It aims to improve security, simplify management, and achieve compliance in Role-Based Access Control (RBAC) systems.
+
+== Purpose
+
+The primary motivation behind role mining is the simplification of access management.
+In many organizations, as employees move through roles or undertake new projects, they accumulate permissions.
+Over time, this can lead to a complex network between users and access mappings that are difficult to manage, control, and secure.
+This complexity not only increases the risk of security breaches due to excessive or inappropriate permissions but also makes the process of managing access rights cumbersome.
+
+Role mining uses algorithms and analysis Artificial Intelligence (AI) techniques to sift through this maze of permissions, grouping them into cohesive business roles based on patterns of access.
+
+By conducting role mining, organizations can move from a chaotic, role permission model to a more organized, business role-based model.
+This transition not only enhances security by reducing the risk of access escalation but also makes the entire IAM process more understandable and manageable.
+
+== Benefits
+
+1. *Simplified Access Management:*
+Managing user permissions becomes easier when they're grouped into clear, well-defined business roles.
+Assigning or revoking access for new or departing employees becomes a matter of allocating or removing a single business role, rather than multiple individual roles (permissions).
+
+2. *Reduced Administrative Overhead:*
+Fewer individual permissions to manage means less time spent on administration and fewer errors.
+Automation and structured roles reduce the need for manual interventions in access management.
+Instead of managing individual role (permissions) for each user, administrators can manage business roles, considerably reducing the number of entities they need to handle.
+With well-defined business roles in place, when a user requests access related to a specific job function or project, administrators can simply assign a role rather than piecing together multiple role permissions.
+This speeds up the provisioning process.
+
+3. *Transparent Access:*
+Clearly defined business roles make it easier to understand who has access to what, simplifying compliance reporting.
+In environments where users can request access, a business roles simplifies the user experience.
+Users can request access based on business roles they understand, rather than having to navigate an intricate network of individual roles.
+
+4. *Efficient Audit Trails:*
+With business roles, it becomes simpler to track changes in roles permissions, ensuring an effective and quick audit process.
+In traditional systems without role mining, audit logs might be flooded with granular access changes.
+With business roles as aggregate units of permissions, logs can capture more significant, meaningful changes, reducing the noise and making anomalies more evident.
+
+5. *Enhanced Business Agility:*
+As businesses evolve, role mining can help restructure access rights to match changing business needs (adaptable role structures), ensuring that employees always have the tools and information they need.
+New projects or business units can be quickly equipped with the necessary access by leveraging existing business roles.
+
+== Process
+
+In the complex labyrinth of access rights and organizational structures, role mining serves as a critical mechanism for understanding and streamlining roles permissions.
+This process in MidPoint primarily hinges on two foundational objects:
+
+1. *Session (Role Analysis Session)*
+* *Data Storage:* clusters are curated and stored, organizing different data subsets methodically.
+* *Configuration:* settings for clustering and default detection analysis are defined, ensuring the process aligns seamlessly with the organization's goals and requirements.
+* *Statistical data:* statistical data regarding clustering results.
+
+2. *Cluster (Role Analysis Cluster)*
+* *Data Storage:* similar objects, based on the session's clustering options,list of created business roles and detected patterns with their statistical description.
+The Cluster ensures that these objects are stored and managed efficiently.
+* *Configuration:* settings for cluster detection analysis.
+* *Statistical Data:* statistical data regarding cluster.
+
+When diving into role mining, it's paramount to understand its various phases, ensuring a comprehensive approach to managing and understanding access rights.
+
+=== Data Collection
+
+Before starting role mining, it is important to collect all relevant data.
+This basic step sets the stage for the entire process.
+Extract the current access rights detailing which users have permissions and access to which.
+Collect information that can provide overview of access needs and patterns.
+
+1. *Selection of Session process mode*
+* `ROLE_MODE` (Role Based Analysis) - the main session object becomes the (`RoleType`) role object.
+The analysis will take place due to the similarity of the (`UserType`) user members of the given roles.
+User objects in this case fall under the properties of the given role.
+* `USER_MODE` (User Based Analysis) - the main session object becomes the (`UserType`) user object.
+The analysis will take place in view of the similarity of (`RoleType`) role assignments of the given user.
+Role objects in this case fall under the properties of the given user.
+
+
+2. *Session clustering procedure options*
+* `Query filter` - defines the condition of objects for data collection.
+Designed to filter users according to the established rules.
+The role-mining administrator can thus specify, for example, the condition of a relationship with a certain organizational unit, which increases the security and accuracy of the analysis.
+* `Properties range` - it specifies the condition of the range of properties to the main session object, given the selected analysis type.
+For example, in the case of Role Based Analysis, only those roles that have the required number of user members specified in this setting are collected.
+This step will make managing the mining role more consistent and convenient.
+
+=== Data Clustering
+
+Once data is collected, it needs to be analyzed to identify patterns and inform the creation of potential business roles.
+Identify recurring access patterns across different users.
+Use algorithms to group users with similar access patterns.
+These clusters hint at potential roles.
+Detect any unusual or outlier access patterns that might signify misconfigurations or excessive permissions.
+
+We use a density cluster approach that helps group users or roles that act similarly.
+Density-based clustering is a category of clustering algorithms that partition data points into clusters based on the density of data points in the feature space.
+The core idea behind these algorithms is that a cluster in the data is a dense region of points that is separated from other dense regions by areas with low density of points.
+
+In our case, we cluster the data with respect to the chosen mode of analysis:
+
+* Role Based Analysis - cluster roles according to the similarity of their user members.
+* User Based Analysis - cluster users according to the similarity of their role access assignment.
+
+To start the clustering process, we need to define additional rules.
+These rules are part of Session clustering procedure options:
+
+* `Similarity` (Jaccard Similarity) - the minimum value of similarity between two objects that must be met for inclusion in the cluster group.
+* `Required overlap`
+** Required Roles overlap (User Based Analysis) - minimum overlap size of role users members between two roles.
+** Required Users overlap (Role Based Analysis) - minimum overlap size of user roles assignment between two users.
+* `Required object count`
+** Roles count (Role Based Analysis) - the minimum necessary number of roles to create a cluster that meets the condition of overlap and similarity.
+** Users count (User Based Analysis) - the minimum necessary number of users to create a cluster that meets the condition of overlap and similarity.
+
+=== Pattern Detection
+
+After successful clustering, we created groups of similar objects, or clusters.
+These objects are ready for further analysis from the point of view of finding patterns (groups of objects with exact overlap).
+To maintain the hierarchy and security of access rights, we focus on the exact overlap match.
+With such an approach, we avoid noise or similar inconsistencies when designing a pattern, and we will ensure that no new unwanted rights are added.
+
+Pattern detection options:
+
+* `Min Roles Occupancy` - defined the minimum required count of roles occupancy for detected pattern.
+* `Min Users Occupancy` - defined the minimum required count of users occupancy for detected pattern.
+* `Frequency Range` - minimum and maximum required frequency that expresses the percentage value of occupancy.
+It refers to the number of occurrences of properties over cluster members.
+If the condition is not met, the objects are not included in the detection.
+** Role Based Analysis - occupation frequency of the user (properties) in the given cluster.
+** User Based Analysis - occupation frequency of the role (properties) in the given cluster.
+
+* `Process Mode` (experimental) - defines the detection trigger rule.
+** FULL (default) - detection will take place over all clusters (except outliers).
+** PARTIAL - detection will not run on clusters that consist of too much data.
+** SKIP - skip detection
+
+Pattern detection takes place automatically after the clustering procedure, except for the Process Mode (SKIP) setting in experimental.
+
+=== Statistic Load
+
+After data clustering and pattern detection steps, we have almost everything generated, except for the missing statistical data.
+They are important in facilitating the management role of the mining process.
+They play an important role in the selection of suitable clusters on which to search or build a business role.
+We process the following statistical data:
+
+1. *Session (Role Analysis Session) Statistic*
+* `Processed objects count` - object count that has been processed regarding configuration selected mode of analysis * Clusters count - clusters count in session.
+* `Mean density` - represents the average of clusters membership density.
+
+2. *Cluster (Role Analysis Cluster) Statistic*
+* `User objects count` - number of users of which the cluster consists.
+* `Roles objects count` - number of roles of which the cluster consists
+* `Membership density` - represents the properties overlap percentage value between cluster objects.
+* `Membership mean` - average number:
+** Role Based Analysis - of user members
+** User Based Analysis - of role assignment
+* `Membership range` - minimum and maximum number of:
+** Role Based Analysis - users members located in cluster objects
+** User Based Analysis - roles assignment located in cluster objects
+* `Reduction metric` - number of relationships value when applying the largest pattern found.
+
+=== Business role mining
+
+After these steps we have a complete session.
+Based on the analysis, begin to define potential business roles that represent a common approach patterns.
+We simply go through the list of found patterns and select the most suitable one.
+If necessary, fine-tune the structure of the proposed pattern by assigning additional rights and users falling under a specific cluster.
+
+In case of not finding or finding inappropriate patterns, the detection can be started again directly above the cluster with new customized detection options.
+
+After roles are defined and refined, it's time to integrate them into the business role access management structure.
+The last step of role mining is migration to a business role.
+In this step, we can set business role additional parameters belonging to the role category, such as adding access rights and candidates who should have the newly created business role and run a task that applies (migrates) the new business role to the selected candidates.
+
+
+
+

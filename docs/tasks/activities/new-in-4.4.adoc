@@ -1,0 +1,66 @@
+= What's New For Tasks in 4.4
+
+== Activities
+
+Activities are a new way of structuring the work executed within tasks. Please see
+xref:/midpoint/reference/tasks/activities/[here] for in-depth description.
+
+== Cluster Auto-Scaling Capability
+
+Distributed - a.k.a. multi-node - activities can be scaled up or down by starting or stopping worker tasks.
+This scaling is appropriate when the distribution definition changes, e.g. number of worker tasks is increased
+or decreased. It should be done also when the cluster configuration changes, e.g. nodes are added or deleted.
+
+This up/down-scaling was present in midPoint since 3.8 (as an experimental feature) in the form of _workers
+reconciliation_ process. In 4.4 the following changes were done:
+
+1. New xref:/midpoint/reference/tasks/auto-scaling/[auto-scaling activity] was created.
+It periodically scans for tasks that are autoscaling-enabled
+and invokes workers reconciliation process on them, if the cluster state has changed in the meanwhile.
+(Note that we currently do not support auto-scaling triggered by changes in activity distribution
+definition. The user is responsible for reconciling the workers manually in that cases.)
+
+2. The workers reconciliation process itself was improved and fixed:
+- It no longer closes superfluous workers - it suspends them instead, allowing resuming them when needed.
+- When suspending the workers, any unprocessed buckets are returned to the coordinator to process them
+immediately by other workers. The same is true when the task stops for any other reason.
+This eliminates lengthy "scavenging" process at the end of the processing.
+- When in scavenging phase, non-scavenger workers are not created. Only the scavengers are.
+- The whole reconciliation is now driven by `node.operationalState` (i.e. from repo) instead of
+`node.executionState` (determined dynamically). So in case of unstable clusters or transition situations
+the results should be more predictable.
+
+== Cluster-wide Thresholds
+
+The xref:/midpoint/reference/tasks/thresholds/[threshold mechanism] before 4.4 was limited to a single node.
+Moreover, the related policy rules counters were transient, so they did not survive midPoint node restarts.
+There were other limitations as well.
+
+Starting with 4.4, counters for policy rules are stored persistently in the respective task objects,
+providing support for cluster-wide watching of policy rules thresholds, across task and node restarts.
+
+== Progress and Statistics Reporting Improvements
+
+Progress reporting was rewritten from scratch, so it is much more reliable now. It correctly
+deals with tasks being structured into activities, their suspension and resuming,
+buckets processing, error handling, and so on.
+
+_Activity tree overview_ structure was introduced in the root tasks, providing key information
+about the execution (e.g. progress, error counts, number of running tasks on individual cluster
+nodes, and so on), without the need to fetch the whole task tree.
+
+In addition to that, flexible xref:reporting/execution-reports/[activity reports] were introduced:
+
+- buckets processed,
+- items processed,
+- ConnId operations executed,
+- internal operations executed.
+
+Also, bucket size analysis mode is now available. It allows determining size of buckets before
+real processing starts: either all buckets, or a (random or regular) sample of specified size.
+
+The following information is now collected per individual activities (not per tasks):
+
+- synchronization statistics,
+- actions executed,
+- work bucket management statistics.

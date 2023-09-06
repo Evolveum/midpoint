@@ -1,0 +1,137 @@
+= Axiom Query
+:toc:
+
+== Introduction
+
+Midpoint 4.3 Faraday introduced experimental support for new Axiom Query language,
+which is less verbose than XML Queries.
+
+
+== Setup & Quick Demo
+
+The demo will be performed on Hogwarts Midpoint sample.
+
+=== Enabling Axiom Query Language
+
+In order to enable Query Language in GUI, you must enable Admin GUI experimental
+features.
+
+1. In Admin GUI navigate to `Configuration -> System -> Admin GUI`
+2. Click `Show Empty fields` in `Admin GUI Configuration` section
+3. Select `True` in `Enable experimental features`
+4. Save configuration changes, logout and login in order to changes to be applied.
+
+
+=== Using Axiom Query in GUI
+
+By default Axiom Query is not default search filter type. You can switch to Axiom Query
+ by clicking down arrow `▼` in search button and select `Axiom Query`.
+
+Lets start with simple examples:
+
+1. Go to Users -> All Users
+2. Change to `Axiom Query`
+3. Search for all Weasleys using `familyName = 'Weasley'` or `name endsWith "weasley"`
+
+
+
+== Concepts
+
+* Axiom Query is simplified syntax for standard Midpoint filters (XML)
+* It does not introduce new types of filters, just nicer names
+* It is based on existing filters, so it shares same limitations
+
+== Filters
+
+=== Filter specification
+
+Most Filters are in form of **item** **operator** **value**
+
+item::
+  Item Path - specifies on which item filter matching should be applied
+operator::
+  Name of filter to be used
+value::
+  Value literal or Item Path which should be matched according filter specification.
+  String needs to be enclosed in quotes (`'`) or double-qoutes (`"`)
+
+=== Comparison Filters
+
+
+* Comparison filters have common short form aliases for convenience
+
+[cols=[,a,a]]
+|===
+| Filter Name | Alias | Example
+| equal | `=` | `familyName = "Weasley"`
+| not equal | `!=` | `familyName != "Weasley"`
+| less | `<` | `activation/validTo < "2022-01-01"`
+| lessOrEqual | `<=` |
+| greater | `>` |
+| greaterOrEqual | `>=` |
+|===
+
+
+
+* Equals
+    * `familyName = "Weasley"`
+    * `familyName equal "Weasley"`
+    * `familyName endsWith[polyStringNorm] "weasley"`
+
+
+=== Text Filters
+
+startsWith::
+  Searching for organization units starting with `quiddich`: `name startsWith "quiddich"`
+contains::
+  Matches string property if it contains specified substring.
+
+  `name contains "mc"` - All names which contains "mc"
+endsWith::
+  `name endswith 'weasley'`
+fullText::
+  `. fullText "Minerva"`
+
+=== Logical Filters
+
+* `givenName = "Fred" and familyName = "Weasley"`
+* `givenName = "George" or givenName = "Fred"`
+* `givenName = "Anthony" and familyName not startsWith "G"`
+
+
+=== Nested Filters
+
+
+=== Reference Filters
+
+inOrg::
+
+. inOrg "00000000-team-0org-0000-111111111111"
+
+
+assignment/targetRef/@/name = "quiddich-griffindor"
+
+
+
+
+assignment/targetRef/@ matches (name startsWith "quiddich" and name endsWith "griffindor")
+
+
+==== Nested Filters
+
+`assignment/targetRef matches (relation = manager)`
+
+==== Advanced Examples & Use
+
+=== 'Joins' / referenced values search
+
+Midpoint supports filtering also on properties of referenced objects
+(for repository based searchs) and it is possible to use this feature from Axiom Query.
+
+
+.Search for all Weasleys, who are in Griffindor Quiddich Team
+----
+familyName = "Weasley" and assignment/targetRef/@/name = "quiddich-griffindor"
+----
+
+=== Use in XML / Other object definitions

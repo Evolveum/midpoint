@@ -1,0 +1,195 @@
+= Function Libraries Configuration
+:page-nav-title: Configuration
+:page-wiki-name: Function Libraries Configuration
+:page-wiki-id: 24675699
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-10-23T11:46:48.979+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-03-07T10:00:33.886+01:00
+:page-since: "3.7"
+
+
+== Introduction
+
+Function libraries are dedicated midPoint objects that contain set of reusable functions.
+The functions can be used in other xref:/midpoint/reference/expressions/[mappings and expressions] in midPoint.
+Function libraries can be used to group frequently-used parts of the code, therefore simplifying midPoint configuration and maintenance.
+
+TIP: Not to be confused with xref:../expressions/script/functions/[built-in scripting functions].
+
+== Function Library
+
+Function library object contains definition for reusable functions across all mappings in midPoint.
+The purpose of this object is to let the user defines the functions once and then use it as many time as he needs.
+The *important* thing *is the name of the function library* object.
+This name must be unique and should not be the same as one of the midpoint variable.
+*This name is used as a script variable name so the function library is available in the scripts under this name*.
+The example of such function library object is shown below.
+
+.Example of reusable functions - FunctionLibraryType
+[source,xml]
+----
+<functionLibrary oid="c0c010c0-d34d-b33f-f00d-999999999999"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+    <name>myLib</name>
+    <description>Custom functions</description>
+    <function>
+        <name>getName</name>
+        <parameter>
+            <name>name</name>
+            <type>xsd:string</type>
+        </parameter>
+        <script>
+                <code>
+                    return name.toUpperCase();
+                </code>
+           </script>
+        <returnType>t:PolyStringType</returnType>
+    </function>
+    <function>
+        <name>getLocality</name>
+        <parameter>
+            <name>location</name>
+            <type>xsd:string</type>
+        </parameter>
+        <asIs/>
+        <returnType>t:PolyStringType</returnType>
+    </function>
+    <function>
+        <name>addCountry</name>
+        <parameter>
+            <name>country</name>
+            <type>xsd:string</type>
+        </parameter>
+        <script>
+            <code>
+                return 'rum from ' + country;
+            </code>
+        </script>
+    </function>
+</functionLibrary>
+
+
+
+----
+
+As you can see in the example above, the function library object defines the name of the library with the element <name> and list of function defined in the library (elements <function>). Each function must have its name.
+The name of the function needs to be a unique unless there is a difference in the input parameters for the functions.
+Input parameters are defined using element <parameter>.
+Each parameter definition must contains name and it's also good to define the type of the parameter.
+The name of the parameter is simple string and it will be used for calling the function.
+The type of the parameter should be provided in the form of QName.
+The element <returnType> describes the return type of the method and it should be provided in the form of QName.
+
+For multi-value return type, add <returnMultiplicity>multi</returnMultiplicity> inside function tag.
+
+
+== Using Functions
+
+There are two ways how to use functions.
+You can decide between:
+
+* function evaluator
+
+* invoking function from a script
+
+
+=== Function evaluator
+
+Function evaluator belongs to the family of evaluators.
+It is a special evaluator intended for calling reusable functions defined in the function library object.
+The example of the function evaluator is shown in the example below.
+
+.Example: Using function evaluator
+[source,xml]
+----
+<attribute>
+    <ref>ri:location</ref>
+    <displayName>Location</displayName>
+    <tolerant>false</tolerant>
+    <outbound>
+        <strength>strong</strength>
+        <source>
+            <path>locality</path>
+        </source>
+        <expression>
+            <function>
+                <libraryRef oid="c0c010c0-d34d-b33f-f00d-999999999999" type="FunctionLibraryType"/>
+                <name>getLocality</name>
+                <parameter>
+                    <name>location</name>
+                    <expression>
+                        <path>locality</path>
+                    </expression>
+                </parameter>
+            </function>
+        </expression>
+    </outbound>
+</attribute>
+----
+
+The example above shows the usage of the function evaluator.
+Name of the evaluator is defined using element <function>.
+To call concrete function you need to define function library in which the function is defined and then name of the function and the input parameters.
+Definition of function library to use is done using element <libraryRef ..>. The element <name> defines the name of the function to use from the function library.
+Input parameters are defined using element <parameter>.
+It consists of the name and the value.
+Name of the parameter must be the same as it is defined for the function in the function library object.
+When you look on the example above showing the usage of the function evaluator and the example of the function library object, you can see that the parameter name _location_ coincide with the name of the parameter _location_ in the function _getLocality_. The value used for the parameter itself is xref:/midpoint/reference/expressions/expressions/[expression]. So you can use each expression evaluator here to get a value for the parameter.
+E.g. in the example above the path expression evaluator is used to get the value from user's locality attribute.
+So at the end you can interpret the example above like calling the function _getLocality_ from the function _library_ identified by the _oid=c0c010c0-d34d-b33f-f00d-999999999999_ and passing the value of user's locality attribute as a parameter to this function.
+
+
+=== Invoking function from a script
+
+Functions defined in the function library can be invoked also directly in the script.
+The example of usage is shown in the example below.
+
+.Example: Calling function from script
+[source,xml]
+----
+<attribute>
+    <ref>ri:drink</ref>
+    <outbound>
+        <strength>strong</strength>
+        <source>
+            <path>locality</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    log.info("locality: "+locality)
+                    fixedDrink ="";
+                    if (locality != null) {
+                        map = new HashMap()
+                        map.put("country", locality)
+                        fixedDrink = myLib.execute("addCountry", map)
+                    }
+                    log.info("drink: "+fixedDrink)
+                    return fixedDrink
+                </code>
+            </script>
+        </expression>
+    </outbound>
+</attribute>
+----
+
+In the example above the line fixedDrink = myLib.execute("addCountry", map) demonstrates invoking the function directly from another script expression.
+Each time you want to call function defined in your function library, you must do it with calling _execute_ method available automatically for each function library (e.g in the example above myLib.execute(...)). The parameters for the execute method are
+
+* name of the function
+
+* map of the parameters - parameter map must contain couples parameter name as it is specified in the function and parameter value which should be used for execution.
+
+
+== See Also
+
+* xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
+
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
+
+* xref:/midpoint/reference/expressions/expressions/[Expression]

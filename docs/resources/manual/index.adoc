@@ -1,0 +1,171 @@
+= Manual Resource and ITSM Integration
+:page-wiki-name: Manual Resource and ITSM Integration
+:page-wiki-id: 24085888
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-04-24T11:59:19.577+02:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2018-01-29T14:07:01.936+01:00
+:page-since: "3.6"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+== Manual Resource
+
+Manual resources, also known as off-line resources, are those resources that are not connected to midPoint by using xref:/connectors/connectors/[identity connector]. MidPoint cannot change such resources automatically.
+Provisioning to these resources rely on a manual work, typically executed by a system administrator.
+It works like this:
+
+. Role is assigned to a user in midPoint.
+
+. MidPoint runs through all the configuration and processes to determine which account with what attributes have to be provisioned.
+
+. MidPoint creates a _case_ or a _ticket_ for a system administrator to create a new account.
+
+. System administrator creates new account according to information specified in the ticket.
+The ticket is closed.
+
+. MidPoint detects that the ticket was closed and updates its data about the account.
+
+The basic principle of manual connectors is the storage of operation xref:/midpoint/devel/prism/concepts/deltas/[deltas] in midPoint repository while the manual operation is in progress.
+MidPoint also remembers the state of the operation and the reference to a case/ticket that is used to track operation progress.
+This reference is used to update operation status.
+
+MidPoint usually keeps cached version of the account in midPoint xref:/midpoint/architecture/archive/subsystems/repo/[repository]. In fact the same mechanism that is used for xref:/midpoint/reference/resources/attribute-caching/[attribute caching] is used here.
+MidPoint keeps the cached data mostly for presentation purposes - we would like to show how we think that the account looks like.
+
+Pure manual resources are disconnected from the target system.
+Except for indirect feedback taken from closed tickets there is no information that midPoint can get about the state of the target system.
+Even the cache account data in midPoint are just midPoint's estimate how the account should look like.
+If there is any change on the target resource that is not driven through midPoint then midPoint has no way how to know about it.
+Pure manual resource are always in a risk of divergence: the data on the resource and the data in midPoint could gradually diverge over time.
+
+
+== Semi-Manual Resources
+
+Inherent limitation of manual resources is addressed by semi-manual resources.
+In this case two connectors are combined for the same resource:
+
+* Manual connector is used for provisioning operations (create, update, delete).
+These operations are executed manually by system administrator.
+
+* Ordinary (on-line) connector is used for reading the data.
+This is typically xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector] that contains the data exported from the target system.
+This is usually scheduled export script.
+
+Provisioning operations on a semi-manual resources are executed in exactly the same way as in pure-manual resources.
+The difference is in the feedback.
+MidPoint is combining the manual operation data with the on-line data from the resource.
+The operation xref:/midpoint/devel/prism/concepts/deltas/[deltas] are merged with the last known state of the account on the resource.
+This means that midPoint has much more reliable information about the state of the account on the target system.
+Therefore midPoint can detect whether accounts has been illegally changed on the target system, whether the system administrator executed the operation correctly and so on.
+MidPoint can also automatically create new tickets for system administrators to fix inconsistencies between the policy and real state of the account in the target system.
+
+In theory any kind of ordinary xref:/connectors/connectors/[identity connector] can be combined with the manual connector to create a semi-manual resource.
+This is allowed by midPoint's unique xref:/midpoint/reference/resources/multi-connector-resource/[multi-connector feature].
+
+
+== Internal Provisioning Cases
+
+MidPoint has internal mechanism to maintain information about _cases_. A _case_ is similar to a trouble ticket or issue that is managed by ITSM systems.
+However the _case_ is managed internally by midPoint and therefore it can have tighter integration with other identity data in midPoint.
+For example the cases could be used for identity governance and compliance.
+The cases could track the progress of policy violation resolutions.
+And so on.
+
+The cases are also used for manual provisioning.
+If no ITSM integration is present then the cases are used in place of the ITSM tickets.
+
+
+== ITSM Integration
+
+System administrator in most environments are used to work with existing IT Service Management (ITSM) system, such as Atlassian Jira, HP Service Manager or Remedy ARS.
+MidPoint has an option to include a custom plug-in for integration with these systems.
+In that case the manual provisioning cases are created as tickets in the ITSM systems.
+The system administrators interact only with the ITSM system and they do not need to interact with midPoint at all.
+
+
+== Implementation Progress
+
+These features are only partially implemented.
+The original plan was to support complete functionality in midPoint 3.6. However existing midPoint subscribers have prioritized other features for midPoint 3.6. Therefore the manual resources were only implemented to the extent that was covered by existing subscription agreements.
+Following table shows implementation progress.
+
+[%autowidth,cols="h,1,1"]
+|===
+| Supported in version | 3.6, 3.6.1, 3.7 | 3.7.1
+
+| Manual resources core
+| YES
+| YES
+
+
+| Manual resources GUI
+| NO
+| NO
+
+
+| Provisioning cases
+| NO
+| NO
+
+
+| Semi-manual resources
+| YES +
+(with ITSM plugin only)
+| YES(with ITSM plugin only)
+
+
+| ITSM plugins
+| YES +
+(requires custom development)
+| YES(requires custom development)
+
+
+| Provisioning propagation
+| NO
+| YES
+
+
+|===
+
+As of midPoint 3.6 midPoint does not contain any GUI support for any of these features.
+The core (back-end) functionality is mostly in place (except for _cases_), therefore it is partially usable.
+The goal was to enable functionality with custom ITSM integration plugin.
+However, that requires custom development.
+In practice this means that as of midPoint 3.6 these features are likely to work well only if Evolveum professional services are involved.
+If you are interesting in helping to finish those resources please consider a xref:/support/subscription-sponsoring/[subscription]. These features could be fully productized in midPoint 3.7 given sufficient funding.
+
+
+== Provisioning Propagation
+
+
+++++
+{% include since.html since="3.7.1" %}
+++++
+
+MidPoint usually executes all resource operations as soon as possible.
+But this may be quite troublesome for manual resources where resource operations are usually costly.
+Therefore there is a way to change that behavior by using provisioning propagation task.
+In such case midPoint will not execute operations immediately.
+Requested changes will get queued for (reasonably short) time.
+Then midPoint will execute all the changes at once in a single operation.
+
+See xref:/midpoint/reference/resources/propagation/[Provisioning Propagation] page for more details.
+
+
+== Configuration
+
+See xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration] page for configuration details.
+
+
+== Sample
+
+Contributed ITSM sample plugin can be found in our link:https://github.com/Evolveum/connector-manual-sample[github]. This plugin calls custom developed WS interface with BMC Remedy as an backened service. Supported operations are creating new ticket and reading status of existing ticket.
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
+
+* xref:/midpoint/reference/resources/multi-connector-resource/[Multi-Connector Resource]

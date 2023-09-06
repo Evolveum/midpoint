@@ -1,0 +1,46 @@
+= Python Expressions
+:page-nav-title: Python
+:page-toc: top
+
+Python is a supported expression language in midPoint.
+Its language URL is:
+
+ http://midpoint.evolveum.com/xml/ns/public/expression/language#python
+
+[NOTE]
+Python scripting is enabled by https://www.jython.org/[Jython] that currently only supports Python 2.7.
+No support for Python 3.x is available now.
+
+== Activation for version 4.4 and later
+
+Up to version 4.3, Python support was packaged inside midPoint.
+Starting with version 4.4, Python is not built-in and to activate it the following steps are necessary:
+
+* Download the standalone version as JAR from https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar[this URL].
+MidPoint 4.4 was tested with Jython 2.7.2 but likely any latest stable version of `jython-standalone` should work.
+
+* Place the downloaded JAR (e.g. `jython-standalone-2.7.2.jar`) into the `$MIDPOINT_HOME/lib` directory.
+This is the same directory where non-distributable JDBC drivers go, etc.
+Note, that this is not the same as `lib` directory in midPoint distribution ZIP.
+
+To be sure that Python scripting is enabled you can check the `midpoint.log` during the startup for a line like this:
+----
+2021-09-24 11:27:55,996 [] [main] INFO (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator): Script engine for 'python' initialized in 3481 ms.
+----
+
+If the engine is not initialized, following warning is emitted - this does not prevent midPoint from starting:
+----
+2021-09-24 21:51:56,150 [] [main] WARN (com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator): The JSR-223 scripting engine for 'python' was not found
+----
+
+=== Reasons for making Python optional
+
+There are a few reasons why Python was made optional:
+
+* Based on our survey it is hardly used at all.
+* MidPoint WAR/JAR can be lighter by 41 MB, which is significant volume of its size for unused feature.
+* If not present, startup time is faster by 3 or more seconds.
+
+The decision was actually driven by technical issues that appeared after the last upgrade of the Jython library,
+which somehow didn't want to initialize from inside our Spring Boot WAR packaging.
+However, we believe that making Python optional (and still easy to enable) is actually better.

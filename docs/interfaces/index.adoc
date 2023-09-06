@@ -1,0 +1,18 @@
+= MidPoint Interfaces and Integration
+:page-nav-title: Interfaces and Integration
+:page-wiki-name: Interfaces
+:page-wiki-id: 13074724
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-11-29T13:53:33.178+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-14T19:51:17.295+02:00
+:page-display-order: 320
+:page-upkeep-status: green
+
+Following pages describe mechanisms that can be used to interface with midPoint and integrate custom code with midPoint.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

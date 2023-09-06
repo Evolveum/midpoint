@@ -1,0 +1,325 @@
+= MidPoint Upgrade Guide
+:page-nav-title: Upgrade Guide
+:page-wiki-name: Upgrade HOWTO
+:page-wiki-id: 7307832
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-14T14:54:20.631+01:00
+:page-wiki-metadata-modify-user: oscar
+:page-wiki-metadata-modify-date: 2016-12-22T06:53:59.773+01:00
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-upkeep-status: green
+:page-toc: top
+
+This document describes the necessary steps to upgrade xref:/midpoint/install/distribution/[MidPoint installation].
+It describes the usual steps, risks and consideration for upgrade, therefore it is quite comprehensive.
+
+The document describes upgrade of _production_ environment.
+Upgrades of _evaluation_, _demo_, _development_ and similar environments can usually be simplified to just a handful of simple commands.
+
+WARNING: Please read the *entire* guide *before* starting the upgrade.
+MidPoint is a flexible platform, often deployed in unusual situations.
+There may be variations and extra steps.
+Make sure that you understand the entire process and all the steps that you need to do in your particular environment.
+Otherwise you may end up with an unusable and inconsistent system.
+
+== Procedure Overview
+
+The upgrade usually contains following steps:
+
+. Back up the data: make sure you have a solid checkpoint to go back to, in case that upgrade fails.
+
+. Pre-upgrade checks: make sure your deployment can survive the upgrade
+
+. Prepare for upgrade: Adjust the configuration, avoiding use of deprecated functionality that is going to be removed.
+
+. Shut down the system
+
+. Upgrade binaries
+
+. Upgrade database
+
+. Start system for testing
+
+. Test configuration, make necessary adjustments
+
+. Open system to production use
+
+. Follow-up tasks, such as cleaning up old configuration.
+
+Individual steps are described in detail in the following sections.
+
+== Pre-Upgrade Steps And Adjustments
+
+The very first step is to make sure you have a *fresh backup* that can be restored.
+Regular backup (and restore procedure testing) should be part of your usual operational procedures.
+However, upgrade process may pose of risk of mistakes, that may ruin your data.
+Therefore it is worth double-checking that there is a fresh backup and that it is ready to be used if necessary.
+Especially *backup of the database content* is important.
+Binaries can be downloaded from older midPoint distribution, configuration files can be re-written.
+However, there is no easy way to re-create data in the database in case that they are lost.
+
+Read through the xref:/midpoint/release/[release notes] very carefully.
+You should read release notes of the version that you are upgrading to.
+Pay a special attention to "Changes" and "Upgrade" sections.
+All the important details are described there.
+
+Make sure you upgrade path is supported.
+For example, midPoint 4.1 can be upgrade to 4.2, but not to 4.3.
+To get from 4.1 to 4.3, you will need to upgrade to 4.2 first.
+The xref:/support/long-term-support/[] page provides general principles of midPoint upgradeability, release notes provide specific details for each particular release.
+
+[IMPORTANT]
+Upgrade to the latest maintenance version available for your release first!
+This is especially important for LTS to LTS upgrade (e.g. 4.0.x to 4.4.x) because pre-upgrade checks (like schema
+deprecation warnings) are likely not available in the maintenance versions before the new LTS (4.4) is released.
+For example, first upgrade your 4.0 LTS to 4.0.4 which was released shortly after 4.4 LTS release.
+
+Use the xref:/midpoint/reference/deployment/ninja/[`ninja`] tool to check for deprecated and removed functionality:
+
+[source,bash]
+----
+ninja.sh verify
+----
+
+There is a `-w` switch that can be used to select specific warnings to display.
+Valid values are `deprecated` and `plannedRemoval`.
+Following command will show warnings about planned removal of items used by all objects in the repository:
+
+[source,bash]
+----
+ninja.sh verify -w plannedRemoval
+----
+
+The best practice is to avoid use of any deprecated functionality as soon as possible.
+Therefore we strongly recommend to re-configure the system not to use any deprecated functionality before the upgrade.
+
+Upgrades of system that are using functionality that is _planned for removal_ is not supported at all.
+Attempt to upgrade such system may result in incorrect data processing, data corruption or loss.
+
+The purpose of `ninja` tool is to warn system administrator about obvious risks for upgrade.
+However, `ninja` may not indicate all the risks.
+There are some changes that `ninja` cannot detect.
+The `ninja` tool is just a tool designed to aid during the upgrades.
+It is *not* a replacement of release notes and considerations of an experienced system administrator.
+Human mind cannot be fully replaced by a machine.
+
+In case that deprecated functionality or functionality planned for removal is used, the system configuration should be adjusted *before the upgrade* as much as it is possible and practical.
+Some adjustments are easier to do after the upgrade.
+In rare cases, some adjustments will not even be possible before the upgrade, especially when _experimental_ functionality is used.
+However, this approach is recommended only to expert users that exactly know what they are doing.
+As a rule of the thumb, all configuration adjustments that are known before the upgrade should be done before the upgrade.
+
+Prepare testing scenarios and test cases for post-upgrade testing.
+Running prepared test scenarios rather than improvising is likely to be much faster, which reduces the upgrade downtime.
+Test cases from pre-production or acceptance testing may be very handy at this point, at least as an inspiration.
+
+Your _production_ environment should be accompanied by _testing_ and optionally also _development_ environments.
+It perhaps goes without saying that the upgrade should first be tested in _development_ and _testing_ environments, before attempting an upgrade of _production_ environment.
+
+== Stop The System
+
+MidPoint upgrades require downtime.
+Plan for that.
+The downtime can be as short as few minutes, but it can also take several hours.
+Running the "technical" upgrade steps usually takes just a couple of minutes.
+However, post-upgrade checks, and especially the testing is likely to take a considerable amount of time.
+Upgrade of _test_ environment should provide sufficient information on estimated duration of the downtime.
+
+Once the pre-upgrade checks and adjustments are done, and the operational procedures satisfied, it is time to shut down the system.
+
+Before shutting down the server, you should consider disabling all the scheduled and automatic reconciliation and synchronization tasks - especially in complex deployments or deployments with high requirements for data consistency.
+This is just recommended practice, which may not strictly necessary for experienced system administrators.
+However, there are several good reasons for this recommendation.
+Firstly, almost all midPoint releases bring new versions of bundled connectors.
+If such connectors are used, this is likely to result in errors immediately after post-upgrade system start, as the automatic tasks will try to use old versions of connectors that are no longer there.
+Such errors are likely to be harmless, either ignored by the tasks or causing the tasks to be suspended.
+However, the error may trigger false alarms in monitoring system until the connector configuration is adjusted.
+Secondly, in case of post-upgrade configuration problems, it is much easier to diagnose the system without a lot of automatic tasks running in the background.
+System logs will be easier to use without the noise from the scheduled tasks.
+Thirdly, in rare and extreme cases, the tasks may pose some risks to data.
+Especially in cases when the tasks relied on very old configuration or functionality that was removed during upgrade, in case that the tasks were using experimental features that were changed and so on.
+This should be usually avoided by running pre-release checks, carefully reading release notes and doing the necessary changes before upgrade.
+However, administrators are people too and there may be some details that might have been overlooked.
+
+In case that there is a network load balancer or reverse proxy in front of midPoint, it may be a good idea to disable user access on the load balancer or proxy.
+This isolates the users from the system during upgrades, avoid any unnecessary user confusion.
+It also eliminates user interference with upgrade process.
+However, make sure that the administrator can still access the system during upgrade by a direct route, avoiding the load balancer.
+
+Now it is time to shut down midPoint server processes.
+In clustered environments, all the midPoint nodes need to be shut down.
+The database server should be running, but there should be no access to the database.
+All the midPoint server processes should be down.
+
+== Upgrading Binaries
+
+The usual location of midPoint installation is `/opt/midpoint` directory.
+Replace midPoint binaries in this directory with new binaries from the distribution package.
+This applies to the content of `bin` and `lib` directories at the very minimum.
+However, it is also recommended to update documentation, samples, `README` files and all the other files that are installed.
+Replace them with new versions from the distribution package.
+
+The only directory that should remain untouched during this step is `var` directory.
+This directory is your xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+It contains startup configuration, logfiles, schema extensions, non-bundled connectors and other files that *should not be replaced* during upgrade.
+
+== Upgrading Database
+
+Each midPoint release usually extends database schema with new tables, columns, indexes and similar database configuration.
+
+MidPoint is distributed with a convenient SQL script that alters the database schema as necessary.
+The scripts are located in the `doc/config/sql/` subdirectory of the distribution package.
+Since version 4.4, separate versions for the xref:/midpoint/reference/repository/native-postgresql/[Native repository]
+and the xref:/midpoint/reference/repository/generic/[Generic repository] are provided.
+
+Database upgrade is thoroughly described in xref:/midpoint/reference/upgrade/database-schema-upgrade[this document].
+There are also deployment specific details to consider, e.g. is the audit in the same database?
+
+For example, using the recommended xref:/midpoint/reference/repository/native-postgresql/[Native repository]
+based on PostgreSQL, one can upgrade the database using the `psql` tool
+(considering the audit and the main repository are in a single database):
+
+[source,bash]
+----
+psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint \
+  -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
+----
+
+[IMPORTANT]
+====
+If you created the schema objects as non-superuser as described xref:/midpoint/reference/repository/native-postgresql/usage/#installing-as-non-superuser[here],
+be sure to run all the missing `CREATE EXTENSION` commands as a superuser first!
+This is also a good reason to use `-v ON_ERROR_STOP=1` flag with the `psql` - as shown above.
+This stops the upgrade when the first such problem occurs, but works fine if the extension already exists.
+====
+
+The upgrade script is non-destructive.
+It changes database schema, but it does not affect the data.
+Database schema changes between midPoint versions are usually backwards-compatible.
+Therefore, in a usual case, update of the database schema is all that is needed.
+
+However, there may be rare cases when the model has changed in a non-compatible way.
+This is likely to happen for major midPoint releases (e.g. MidPoint 5.0).
+In such cases, additional steps may be necessary.
+In rare cases when the schema changes in a radical way, complete export and re-import of data may be needed.
+In such cases the release notes will provide specific guidance.
+
+== Post-Upgrade Steps
+
+At this point, the system should be ready for a careful start-up.
+Start midPoint server process.
+The users should be ideally still kept out, e.g. keeping the path through load balancer or reverse proxy disabled.
+
+It is recommended to watch system log (`/opt/midpoint/var/log/midpoint.log`) as the system starts.
+In case of any issues, such as schema incompatibilities, there will be diagnostic messages in the log.
+Unless there is an unusually serious issue during a start-up, midPoint server process should start, and the administrator should be able to log into midPoint administration user interface.
+
+Most midPoint releases bring new versions of bundled connectors.
+This means that new connector version appears in midPoint after the first post-upgrade system start, and the old connector versions will not work any longer.
+Connector references (`connectorRef`) in affected resources need to be updated to point to the new versions of the connectors.
+
+Many midPoint releases bring new and updated xref:/midpoint/reference/deployment/initial-objects/[initial objects].
+New initial objects will be automatically imported to midPoint repository during first post-upgrade start.
+However, updated initial objects will not overwrite existing objects in the repository.
+Initial objects are just _initial_ configuration of midPoint, many of the initial objects are meant to be customized.
+Therefore midPoint cannot blindly overwrite them.
+Release notes for each midPoitn release lists initial objects that were added or updated.
+It is strongly recommended to go through that list and consider manually updating the objects after upgrade.
+The objects that are brought in by a new release can be found in `doc/config/initial-objects/` subdirectory of midPoint distribution package.
+
+When the necessary configuration adjustments are done, it is time to bring the system to full operation.
+If scheduled midPoint server tasks were disabled before the upgrade, now it is the right time to re-enable them.
+It is recommended to proceed in steps, enabling the tasks one-by-one, watching for issues.
+It may be a good idea to try manually recompute or reconcile selected users before the tasks are re-enabled.
+Issues as easier to diagnose problems on one user, instead of getting thousands of errors during task execution.
+
+Before getting to the testing, it may be a good idea to restart the system at this point.
+This can be used as a check that the system starts up cleanly, without any errors or warning.
+Being in a planned downtime provides a rare opportunity for this test.
+
+Now the system is ready for post-upgrade testing.
+Test the functionality of your system using your usual routines and tools.
+Execute the prepared test scenarios.
+Critical issues may need immediate fixing, even causing a roll-back of the upgrade.
+However, in the usual case, most issues can be recorded and addressed after the upgrade.
+
+Now the system is ready for full production use.
+Re-enable the load balancer or reverse proxy, open the system to the users.
+No testing is perfect, therefore it is still a good idea to watch system logs for problems.
+New midPoint version is running.
+Log messages may be slightly different in this version, which means that old patterns for alerts may not work.
+Human eye and brain is likely to be needed for some time after the upgrade to smooth out all the issues.
+
+== Follow-Up
+
+Now that that release was successful, we know that we will not need to roll-back the release.
+There is a couple of recommended steps to clean-up the installation.
+These steps do not need to happen immediately after upgrade.
+However, do not procrastinate for too long, as these minor issues may turn into big problems in a long run.
+
+An easy task is to delete old _connector objects_ in midPoint repository.
+Objects that represent old connector versions will just get into your way, causing import errors as connector version is no longer unambiguous.
+Simply delete the objects using menu:Repository objects[] page.
+
+Now it is the time to fix non-critical issues that were discovered during post-upgrade testing.
+MidPoint is running, there is no downtime, this is much less stressful than trying to fix them during upgrade.
+
+Finally, use `ninja` and read through release note again to find out which functionality was deprecated in midPoint version that you are running.
+Make a plan to stop using that functionality and migrate to newer mechanisms.
+Doing that now rather than waiting for the next upgrade will open up new opportunities and configuration options.
+It will save a lot of time and head-scratching before your next midPoint upgrade.
+
+// TODO: == Incompatible Schema Changes
+
+// TODO: in case of massive change, export+import
+
+== Notes
+
+This guide applies to default package-based midPoint deployment (a.k.a "standalone deployment").
+The steps for (now deprecated) WAR-based deployment will be different.
+Also, the steps to upgrade a docker-based deployment are different.
+In such cases the steps needs to be adapted to specific environment.
+
+If there is a maintenance version available for your release, upgrade to the latest maintenance version first.
+For example, if you are running on midPoint 4.0, upgrade to midPoint 4.0.4 first, before upgrading to midPoint 4.4.
+Maintenance releases usually do not change the database schema at all, therefore the upgrades are very easy to do.
+Also, if a database schema was not changed in midPoint 4.0.1 and 4.0.2, it should be possible to upgrade to midPoint 4.0.4 directly from midPoint 4.0.
+Upgrading to the lastest maintenance version will make sure that your pre-upgrade checks give the best possible results.
+For example, `ninja` in midPoint 4.0 may not know about all the deprecated functionality, especially given a long lifetime of LTS releases such as midPoint 4.0.
+The `ninja` in midPoint 4.0.4 is much more likely to be aware of any upgrade pitfalls.
+
+Always make sure that you are upgrading to a *supported* version of midPoint, ideally to a version that has sufficient support lifetime left.
+Do not upgrade to a midPoint version that is in end-of-life (EOL) state already, except when you are using this version as an intermediary in an upgrade path to a supported version.
+Also, do not upgrade to a version which will be EOL-ed next month.
+Do not stop there and upgrade for one more version to get to the fresh and fully supported midPoint version.
+The most difficult and time-consuming parts of upgrade are configuration adjustments and especially testing.
+Upgrading the binaries and the database schema is usually quick and easy.
+It is usually possible to upgrade through several midPoint versions one by one, and make the configuration adjustments and testing just once.
+
+It is possible to "group" upgrades of several midPoint versions in one single process.
+For example, to upgrade from midPoint 4.1 to 4.4 you have to follow the 4.1 -> 4.2 -> 4.3 -> 4.4 upgrade path.
+That would mean three separate upgrades.
+You can make the upgrade in a single "step", provided that you are careful and have enough experience.
+You can do this by upgrading midPoint 4.1 binaries directly to midPoint 4.4.
+Then apply all the database migration SQL scripts from all the releases in correct order.
+Which means `postgresql-upgrade-4.1-4.2.sql` first, then `postgresql-upgrade-4.2-4.3.sql`, followed by `postgresql-upgrade-4.3-4.4.sql`.
+The important thing is to *read all the release notes for all the versions, including intermediary versions*.
+You have to adjust the configuration in the same way as you would do in case of tree separate upgrades.
+Reading through all the release notes very carefully is much more important than in case of separate upgrades.
+There are no pre-upgrade checks (e.g. running `ninja`) for intermediary versions, therefore the possible issues are not detected automatically.
+It is all up to the engineer to identify possible issues and act accordingly.
+This process is much faster than doing three separate upgrades, as the testing is step is done just once.
+It is the testing step that usually takes most of the time during upgrades, therefore time-saving can be considerable.
+However, grouping upgrades is also more risky than doing three separate upgrades.
+The issues are harder to diagnose, as the cause of an issue may be in any of the three versions, or it may be a combination of many factors.
+Experienced midPoint engineers have good success rate with this process.
+However, it is likely to cause problems for engineers that do not have sufficient expertise and experience.
+The recommendation for inexperienced engineers is to use long-term support (LTS) versions of midPoint, reducing the number of necessary upgrades.
+
+// TODO: Changing database
+
+== See Also
+
+* xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database Schema Upgrade]
+
+* xref:/midpoint/reference/upgrade/upgradeability/[Upgradeability]

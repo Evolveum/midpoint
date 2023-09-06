@@ -1,0 +1,753 @@
+= REST API
+:page-wiki-name: REST API
+:page-wiki-id: 13074536
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2013-10-24T17:29:05.212+02:00
+:page-wiki-metadata-modify-user: slavek
+:page-wiki-metadata-modify-date: 2021-02-16T10:07:40.669+01:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: orange
+:page-toc: top
+
+*Version:* 4.4 +
+*Status:* Public +
+*Stability:* [.green]#STABLE#, only backward-compatible changes expected +
+*Platform:* RESTful interface +
+*Dependencies:* xref:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
+*Responsible person:* Katarina Bolemant
+
+== Description
+
+=== Approach
+
+MidPoint "REST API" is an HTTP-based application programming interface.
+This interface is a set of web resources that provide access to internal midPoint functionality.
+
+[TIP]
+.Terminology note
+====
+We call this interface "REST API" even though it is in fact not entirely RESTful.
+This API is not hypertext-based.
+Hypertext is not intended paradigm for this interface.
+Also, we are not strictly restful in some details.
+E.g. there are combined web resources that perhaps should be modeled as many smaller web resources if we would follow a strict RESTful approach.
+However that would be painfully inefficient to use.
+There are also some parts that are obviously RPC-based.
+We are doing this to make the API practical as practicality is our highest priority.
+Yes, we should not call this interface "REST".
+But almost everyone else does call things like this "REST", and almost everyone expects to see a "REST" interface, so please excuse us.
+====
+
+==== Use of HTTP Verbs
+
+MidPoint REST API tries to adhere to the usual HTTP verbs and tries to maintain their original meaning:
+
+[%autowidth]
+|===
+| Verb | Meaning and usage
+
+| GET
+| Information retrieval.
+Returns the state of the web resource.
+Also used to execute searches.
+
+| PUT
+| Create new web resource.
+This usually means creation of a new object.
+However, the client has to provide a complete object, including the identifier (URI).
+Which is not entirely practical, as this means that the client needs to know how to properly construct the URI.
+Therefore this operation is seldom used.
+
+| POST
+a| POST is used for several purposes:
+
+* Create new web resources without the need to know the URI.
+POST to a collection web resource will result that a new sub-resource is created.
+
+* As an equivalent for PATCH operation (see below).
+Some HTTP clients have problems when using non-standard verbs.
+Therefore we provide POST as an alternative way to modify objects.
+
+* To pass data to an RPC-like operation.
+
+| PATCH
+| Modification of existing web resource.
+Usually modification of existing midPoint object.
+This is non-standard HTTP verb.
+The usage of PATCH is preferred because its meaning is much more clear than the desperately overloaded meaning of POST.
+However, POST is provided as an equivalent to PATCH for HTTP clients that have problems with non-standard verbs.
+
+| DELETE
+| Delete existing resource.
+This is used mostly to delete objects.
+
+|===
+
+===== Safe GET
+
+HTTP GET  is a _safe_ operation.
+The use of GET does not change the state of a web resource.
+GET will never cause a (direct) modification.
+This is given by the REST architectural style.
+We consider this to be a very good idea and this approach is adopted by midPoint REST API.
+
+However, object retrieval in midPoint can have side effects.
+Maybe midPoint will find out that an account that HTTP GET is trying to retrieve does not exist.
+In that case midPoint xref:/midpoint/reference/synchronization/consistency/[consistency mechanism] may be triggered and it can modify the state of the midPoint objects.
+Therefore there may be indirect changes in the objects even if GET is used.
+However, those changes are not direct consequence of the GET operation.
+Those are consequence of changed environment, and they are only discovered when GET operation is in progress.
+Those changes would happen anyway, whether GET is used or not.
+It just may take a bit longer for midPoint to discover that.
+Therefore we still consider GET to be a safe operation.
+
+==== Web Resource Types
+
+MidPoint REST API is not entirely RESTful.
+There are operations that would be very difficult and very inefficient if modeled as pure RESTful web resource - just because the very nature of those operations is to invoke an operation.
+Therefore the API web resources are divided into two broad categories:
+
+* *Create-Read-Update-Delete (CRUD) web resources*: Those resources try to adhere to the RESTful approach as close as possible (a.k.a. "almost real REST web resources"). Those resources support the full range of HTTP verbs and they almost behave in a way that can be expected from a RESTful API.
+Those resources can be subdivided into two groups: +
+
+** *Individual web resources* usually represent a single midPoint object.
+They are used to retrieve a specific object, modify it, delete it - and in the very impractical case of PUT also create it.
+Typical example is a web resource that represents a single user (e.g. URI `.../ws/rest/users/ca8fb11c-72ae-11e7-a09e-9f03da78ca34`).
+
+** *Collection web resources* represents collection of objects such as "all users" or "all roles".
+Those resources can be used to list and search for objects of a particular type (GET operation).
+Collection resources may also be used to create new objects of a particular type (POST operation).
+Typical example is a web resource that represents all users (e.g. URI `.../ws/rest/users`).
+
+* *Remote Procedure Call (RPC) web resources*: Those are simply endpoints for RPC-like operations.
+They typically support only POST operation.
+There are also two sub-groups:
+
+** *Object-related RPC operations*: Operations that deal with a specific midPoint object.
+They are hierarchically located in the namespace of that object.
+Typical examples are operations to suspend and resume tasks (e.g. URI `.../ws/rest/tasks/e630b1fe-72af-11e7-8500-771f92d1099a/suspend`). Even though they are located in the namespace of (REST-like) object web resource, those are in fact almost pure RPC operations.
+Speaking strict REST those operations might in fact be modeled as state changes in the object (web resource) that they "belong" to.
+But we have decided to model those operations as RPC-like for several reasons.
+Those are non-trivial operations that may have complex consequences, the operations may fail in a non-trivial way, we may need to execute them in an asynchronous mode in the future and so on.
+Modeling those as state changes would pollute both the server and the client code with a lot of special-case-handling code and it would make everything more complex and fragile.
+Therefore we have decided not to follow strict REST guidelines here and to model those operations as RPC.
+
+** *Global RPC operations:* Operations that do not deal with any specific object, operations that deal with broad selection of objects or simply operations that cannot be classified to any of the above categories.
+Typical example is an execution of a xref:/midpoint/reference/misc/bulk/[bulk action].
+
+==== Creation of New Resources
+
+According to REST architectural style the web resources should be created by PUT operation.
+However, this assumes that the client knows the URI and therefore it is not very practical.
+E.g. URI of most midPoint objects contains xref:/midpoint/devel/prism/concepts/object-identifier/[Object ID], which may or may not be provided by the client.
+In case that the OID is server-generated the PUT operation is out of question.
+But even if the OID is client-generated this would expect that the client knows how to construct a URI, which is not very RESTful.
+Therefore the PUT operation is not very practical.
+
+The usual way how to create a new object in midPoint REST API is to use POST operation to a collection resource.
+E.g. new user is created by posting the user object to "users" collection (`.../ws/rest/users`).
+MidPoint will react by creating a new user object and publishing that as a new web resource (with new URI).
+MidPoint REST API will respond with and redirection HTTP status (3xx) pointing client to the new URI.
+
+==== Return Values
+
+GET operations are supposed to return data.
+GET invoked on REST-like resources returns what anyone would probably expect: either individual midPoint object or a collection of midPoint objects.
+All such resources are supposed to behave in the same way, regardless of their type.
+PUT/POST/PATCH/DELETE for those resources also works in the same way.
+It returns HTTP status code or indicates an error or asynchronous operation (see below).
+
+However, the situation is very different for the RPC-like resources.
+The indication of error and asynchronous processing is the same here.
+But all the rest is different.
+Those operations usually take data using the body of a POST request.
+And the data format may be completely different for each operation.
+The output also differs a lot.
+Success/failure is always indicated by the HTTP error code.
+But the data returned on success vary according to the definition of the specific web resource that is used.
+This is quite expected as those are essentially procedure calls.
+
+Operation success and errors are always indicated by the HTTP error code.
+MidPoint REST API maintains the original HTTP meaning of the error code classes:
+
+[%autowidth]
+|===
+| Error code | Meaning
+
+| 1xx
+| Information.
+Stay tuned, operation is in progress.
+
+| 2xx
+a| Success.
+Operation finished successfully.
+There are two custom codes:
+
+* 250 for partial error which means that during processing some error occurred but some changes was executed.
+
+* 240 for handled error which means that there was originally error, but midPoint was able to fix this using its xref:/midpoint/reference/synchronization/consistency/[consistency mechanism.]
+
+In this two cases, midPoint returns the xref:/midpoint/architecture/concepts/operation-result/[OperationResult] where there details of executed operations can be found.
+
+| 3xx
+a| Redirection or "in progress".
+This is returned mostly to indicate two cases:
+
+* Operation has finished, but the results are not in this resource.
+Redirection is issues to point the client to the results.
+Typical example is creation of an object with POST to a collection web resource.
+In this case a new object is created, new URI is assigned and the client is redirected to this URI.
+Retrieving that URI provides created object and 200 status code, indicating that the operation is finished.
+
+* Operation is in progress (asynchronous operation).
+In this case midPoint API redirects the client to a task object that can be used to track progress of the operation.
+
+| 4xx
+| Client errors.
+The client has sent request that cannot be processed.
+This indicates usual situation that are well handled by the midPoint code.
+Maybe the client request to create conflicting object, delete non-existent object, modification that violates the schema and so on.
+The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure is usually provided in the response to provide more details about the situation.
+
+
+| 5xx
+| Server errors.
+Situations that the server cannot handle and where the cause is unknown.
+This usually means bugs in the code, insufficient resources such as RAM or disk space, unforeseen failures in the infrastructure and so on.
+The xref:/midpoint/architecture/concepts/operation-result/[OperationResult] structure might or might not be provided in this case.
+Some errors are so severe that the structured error information might not be available.
+
+
+|===
+
+Status codes and the indication of errors and asynchronous processing applies uniformly to all midPoint web resources (both RESTful and RPC).
+
+==== Synchronous and Asynchronous Operations
+
+Most midPoint operations are currently implemented in a synchronous fashion.
+When talking about REST API this means that they will not return HTTP response until they are finished.
+When the operation is finished, midPoint will respond with success (2xx) or error (4xx, 5xx).
+If new resource is created, redirect status (3xx) is indicated.
+Retrieving that resource should result in success (2xx).
+
+There are also some operations that are executed asynchronously.
+In that case midPoint returns HTTP response as soon as the operation is initiated.
+The status in the response will indicate redirection (3xx).
+The redirection target is a xref:/midpoint/architecture/concepts/task/[task] that can be used to track operation progress.
+
+=== Authentication
+
+Use basic authentication.
+Username and password should correspond to the username and password of appropriately privileged midPoint user.
+For example, the default ones are:
+
+Username: *administrator*
+
+Password: *5ecr3t*
+
+=== Supported media types
+
+The following formats and related media types are supported:
+
+[%autowidth]
+|===
+| Format | Media type
+
+| XML
+| `application/xml`, `++application/*+xml++`, `text/xml`
+
+
+| JSON
+| `application/json`
+
+
+| YAML
+| `application/yaml`, `application/yml`, `++application/*+yaml++`, `++application/*+yml++`,
+`text/yaml`, `text/yml`, `++text/*+yaml++`, `++text/*+yml++` +
+Note: There is no official registered media type.
+
+
+|===
+
+Some operations return plain text only (`text/plain`).
+
+=== Supported object types
+
+Currently supported object types are listed in the following table.
+
+[%autowidth]
+|===
+| class | REST type
+
+| ConnectorType
+| connectors
+
+
+| ConnectorHostType
+| connectorHosts
+
+
+| GenericObjectType
+| genericObjects
+
+
+| ResourceType
+| resources
+
+
+| UserType
+| users
+
+
+| ObjectTemplateType
+| objectTemplates
+
+
+| SystemConfigurationType
+| systemConfigurations
+
+
+| TaskType
+| tasks
+
+
+| ShadowType
+| shadows
+
+
+| RoleType
+| roles
+
+
+| ValuePolicyType
+| valuePolicies
+
+
+| NodeType
+| nodes
+
+
+| FormType
+| forms
+
+
+| OrgType
+| orgs
+
+
+| ReportType
+| reports
+
+
+| ReportDataType
+| reportData
+
+
+| SecurityPolicyType
+| securityPolicies
+
+
+| LookupTableType
+| lookupTables
+
+
+| AccessCertificationDefinitionType
+| accessCertificationDefinitions
+
+
+| AccessCertificationCampaignType
+| accessCertificationCampaigns
+
+
+| SequenceType
+| sequences
+
+
+| ServiceType
+| services
+
+
+| CaseType
+| cases
+
+
+| FunctionLibraryType
+| functionLibraries
+
+
+| ObjectCollectionType
+| objectCollections
+
+
+| ArchetypeType
+| archetypes
+
+
+| DashboardType
+| dashboards
+
+
+|===
+
+Table 1. Supported types.
+
+=== Supported operations
+
+The base URL of REST API is link:http://localhost:8080/midpoint/ws/rest[http://localhost:8080/midpoint/ws/rest] (alternatively to */ws/rest* paths */api/model* and */rest/model* are also supported).
+
+* Use the base URL + path from the table below to request concrete operation.
+
+
+* Supply the \{type} with the specific type of object you want to add (or modify, delete, search, etc).
+Supported types are listed in Table 1 above.
+
+* Supply the \{oid} with the specific oid of your object.
+
+* Some operations support specifying options influencing the operation execution, e.g. if the execution is made in raw mode, or the shadows are not fetched from the resource, etc.
+*Supported options* column shows supported options for different operations.
+To specify option, use query parameters, e.g. http://localhots:8080/midpoint/api/model/users*?options=raw*
+
+[%autowidth]
+|===
+| Operation name | Operation type | Path | Supported options | Data | Response
+
+| Create new object
+| POST
+| /\{type}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| Object to create in the XML form
+a| * 201 Created, Location set to point to the newly created object
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Create or update object
+| PUT
+| /\{type}/\{oid}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| Object to create in the XML form
+a| * 201 Created, Location set to point to the newly created object
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Get object
+| GET
+| /\{type}/\{oid}
+| link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+| -
+a| * 200 OK, current object in the response body
+
+
+| Modify object
+| PATCH, POST
+| /\{type}/\{oid}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| Modifications in XML format
+a| * 204 No Content
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Delete object
+| DELETE
+| /\{type}/\{oid}
+| link:https://evolveum.com/downloads/midpoint/latest/midpoint-latest-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/ModelExecuteOptionsType.html[ModelExecuteOptionsType]
+| -
+a| * 204 No Content
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Test (configured) Resource
+| POST
+| /resources/\{oid}/test
+| No
+| -
+a| * 200 OK, result of the test operation in the body
+
+
+| Import from Resource
+| POST
+| /resources/\{oid}/import/\{objectClass}
+| No
+| -
+a| * 303 See Other, Location set to point to the concrete "import" task
+
+
+| Find owner of shadow
+| GET
+| /shadows/\{oid}/owner
+| No
+| -
+a| * 200 OK, owner of the shadow returned in the response body
+
+
+| Import shadow
+| POST
+| /shadows/\{oid}/import
+| No
+| -
+a| * 200 OK, result of the import operation in the body
+
+
+| Search
+| POST
+| /\{type}/search
+| link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+| xref:/midpoint/reference/concepts/query/[Query] in XML format
+a| * 200 OK, list of found objects in the body
+
+
+| Suspend tasks
+| POST
+| /tasks/\{oid}/suspend
+| No
+| -
+a| * 204 No Content
+
+
+| Resume tasks
+| POST
+| /tasks/\{oid}/resume
+| No
+| -
+a| * 202 Accepted
+
+
+| Schedule task now
+| POST
+| /tasks/\{oid}/run
+| No
+| -
+a| * 202 Accepted
+
+
+| Notify change
+| POST
+| /notifyChange
+| No
+| Resource object shadow change description
+a| * 200 OK
+
+
+| Generate value for concrete object
+| POST
+| /\{type}/\{oid}/generate
+| No
+| Policy for items describing how to generate the value (PolicyItemsDefinitionType)
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Generate value
+| POST
+| /rpc/generate
+| No
+| PolicyItemsDefinitionType
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Validate value for concrete object
+| POST
+| /\{type}/\{oid}/validate
+| No
+| PolicyItemsDefinitionType
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Validate value
+| POST
+| /rpc/validate
+| No
+| PolicyItemsDefinitionType
+a| * 200 OK
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+| Get user's value policy
+| GET
+| /users/\{oid}/policy
+| No
+|
+a| * 200 OK, value policy for user in the response body
+
+
+| Get 'self'
+| GET
+| /self
+| No
+|
+a| * 200 OK, current object in the response body
+
+
+| Search objects by type
+| GET
+| /\{type}
+| link:https://github.com/Evolveum/midpoint/blob/731e408905650d81ecab410f1f1c4f07a0d8795c/infra/schema/src/main/java/com/evolveum/midpoint/schema/GetOperationOptions.java[GetOperationOptionsType]
+|
+a| * 200 OK, list of object of specified type in the response body
+
+
+| Reset credentials
+| POST
+| /users/\{oid}/credential
+| No
+| ExecuteCredentialResetRequestType - specify reset method and new password
+a| * 200 OK, ExecuteCredentialResetResponseType returned in the body.
+
+
+
+| Execute script
+| POST
+| /rpc/executeScript
+| No
+| ExecuteScriptType
+a| * 200 OK, ExecuteScriptResponseType returned in the body
+* 201 Created, Location set to point to the newly created Task object. Only applicable is asynchronous=true parameter is used.
+* 240 Handled error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+* 250 Partial error, xref:/midpoint/architecture/concepts/operation-result/[OperationResult] is returned in the body
+
+
+|===
+
+== Usage samples
+
+[TIP]
+====
+If you are using file as a source for the data in the REST call with *curl*, please, don't forget to use '*@*' before the path to your file.
+
+Sometimes the newlines are not correctly handled during the transfer.
+(See bug:MID-5229[].) If that occurs, please use `--data-binary`  instead of `-d`.
+====
+
+The source files used here for the samples can be found at our git link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/rest[repository].
+
+=== Create new Resource (OpenDJ)
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
+----
+
+=== Create or Update object
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X PUT http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2 -d @pathToMidpointGit\samples\rest\opendj-resource-sync.xml -v
+
+----
+
+=== Get object
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+----
+
+.Get Object in JSON format
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Accept: application/json" -X GET https://demo.evolveum.com:443/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+----
+
+=== Test Resource (OpenDJ)
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2/test
+----
+
+=== Import accounts from resource (Account object class from OpenDJ)
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/resources/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2/import/AccountObjectClass
+----
+
+=== Find owner of shadow
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/ws/rest/shadows/d0133de0-0d7b-4a36-9d9d-98640216804a/owner
+
+----
+
+(Note: d0133de0-0d7b-4a36-9d9d-98640216804a is expected to be the OID of a shadow.
+If you would like to really execute this command, replace it by a concrete OID from your repository.)
+
+=== Modify object (assign account)
+
+Modifies the user "administrator":
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X PATCH http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002 -d @pathToMidpointGit\samples\rest\modification-assign-account.xml
+
+----
+
+=== Searching
+
+Search all accounts:
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/shadows/search -d @pathToMidpointGit\samples\rest\query-all-accounts.xml
+----
+
+Search all users:
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/users/search -d @pathToMidpointGit\samples\rest\query-all-users.xml
+----
+
+=== Notify change
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST http://localhost:8080/midpoint/ws/rest/notifyChange -d @pathToMidpointGit\samples\rest\notify-change-modify-password.xml -v
+----
+
+== History
+
+[%autowidth]
+|===
+| Version | Date | Description | Change Author
+
+| 3.3
+| December 2015
+| Declared as stable version
+| Radovan Semancik
+
+
+|
+| 2013-2015
+| untracked improvements
+| Katarina Valalikova
+
+
+|
+| April 2013
+| Initial version
+| Katarina Valalikova
+
+
+|===
+
+== See Also
+
+* xref:/midpoint/reference/interfaces/[Interfaces]
+
+* What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
+
+* link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint
+
+* xref:/midpoint/reference/concepts/query/[midPoint Query]

@@ -1,0 +1,186 @@
+= Provisioning Propagation Configuration
+:page-nav-title: Configuration
+:page-wiki-name: Provisioning Propagation Configuration
+:page-wiki-id: 24676288
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-01-05T15:45:48.812+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-02-15T10:04:38.437+01:00
+:page-since: "3.7.1"
+:page-upkeep-status: green
+:page-toc: top
+
+
+== Introduction
+
+MidPoint usually executes all resource operations as soon as possible.
+But this may be quite troublesome for xref:/midpoint/reference/resources/manual/[manual resources] and slow resources where the operations are costly.
+Therefore there is a way to change that behavior by using provisioning propagation task.
+In such case midPoint will not execute operations immediately.
+Requested changes will get queued for (reasonably short) time.
+Then midPoint will execute all the changes at once in a single operation.
+
+See xref:/midpoint/reference/resources/propagation/[Provisioning Propagation] page for full introduction to this topic.
+
+== Configuration
+
+Provisioning propagation configuration has two parts.
+Firstly the resource has to be configured to postpone (queue) the operations.
+Secondly there needs to be a propagation task that executes the operations.
+
+=== Resource Configuration
+
+Resource configuration is a simple matter of enabling operation grouping feature by setting a grouping interval:
+
+[source,xml]
+----
+<resource oid="f34328fa-f229-11e7-8cc9-e3f77b478e97">
+    ...
+    <consistency>
+        <operationGroupingInterval>PT10M</operationGroupingInterval>
+        <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+    </consistency>
+    ...
+</resource>
+----
+
+When the grouping interval is configured then midPoint will automatically enable operation queuing for that resource.
+The operations will not get executed immediately.
+All the operations will be queued in xref:/midpoint/reference/resources/shadow/[shadow objects] in a form of pending deltas.
+The example above specifies grouping interval of 10 minutes.
+Therefore the operation will be queued for a maximum period of 10 minutes.
+When that period is over then the operation will get executed.
+And the execution will include all the other pending changes queued in the shadow.
+
+=== Propagation Task
+
+Second part of the configuration is the propagation task.
+This is recurring task that scans for pending operations to be executed.
+The task looks for any xref:/midpoint/reference/resources/shadow/[shadow] with a pending operation that is older than the grouping interval specifies.
+If such shadow is found then all the pending changes (xref:/midpoint/devel/prism/concepts/deltas/[deltas]) are executed.
+If there are several pending deltas then they are all merged together and executed in a single operation.
+
+The propagation task definition is very simple.
+All that is needed is to specify correct handler and to point to the resource:
+
+.Notation before 4.4
+[source,xml]
+----
+<task>
+    ...
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/handler-3</handlerUri>
+    <objectRef oid="f34328fa-f229-11e7-8cc9-e3f77b478e97" type="ResourceType"/>
+    ...
+</task>
+----
+
+.Notation in 4.4 and after
+[source,xml]
+----
+<task>
+    ...
+    <activity>
+        <work>
+            <propagation>
+                <resourceRef oid="f34328fa-f229-11e7-8cc9-e3f77b478e97"/>
+            </propagation>
+        </work>
+    </activity>
+</task>
+----
+
+The propagation task is quite efficient and it can run frequently (every few minutes) - as long as there is a reasonable amount of pending operations in the shadow objects.
+
+It is also a good idea to specify a grace period for pending operations so the executed pending operations will get cleaned up when they are not needed.
+This is illustrated in the resource configuration example above.
+Too many pending operations stored in the shadows may affect system performance.
+The data structure that represents pending operations is quite complex and it is not easily indexed.
+Therefore the propagation task needs to examine all the shadows that have at least one pending operation.
+This is more than acceptable approach in case that the pending operations are regularly purged and do not accumulate in the shadows forever.
+And that is one of the reasons for specifying the grace period.
+
+
+==== Multi-resource Propagation Tasks
+
+++++
+{% include experimental.html %}
+++++
+
+The usual set-up is to have one propagation task for each resource.
+But it is quite likely that there may be many manual resources which leads to many propagation tasks to maintain.
+Therefore there is an experimental support for multi-resource propagation task:
+
+.Notation before 4.4
+[source,xml]
+----
+<task>
+    ...
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/multi-handler-3</handlerUri>
+    <objectRef type="ResourceType">
+        <filter>
+            <q:equal>
+                <q:path>extension/provisioning</q:path>
+                <q:value>propagated</q:value>
+            </q:equal>
+        </filter>
+        <resolutionTime>run</resolutionTime>
+    </objectRef>
+    ...
+</task>
+----
+
+Please note the difference in task handler URI (`handler-3` versus `multi-handler-3`).
+
+.Notation in 4.4 and after
+[source,xml]
+----
+<task>
+    ...
+    <activity>
+        <work>
+            <multiPropagation>
+                <resources>
+                    <query>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>extension/provisioning</q:path>
+                                <q:value>propagated</q:value>
+                            </q:equal>
+                        </q:filter>
+                    </query>
+                </resources>
+            </multiPropagation>
+        </work>
+    </activity>
+</task>
+----
+
+== Limitations
+
+Current implementation of provisioning propagation was designed specifically to work with simple xref:/midpoint/reference/resources/manual/[manual resources]. Therefore there are some limitations:
+
+* Provisioning scripts are currently not supported.
+The propagation task will ignore all provisioning scripts.
+
+* Support for xref:/midpoint/reference/resources/entitlements/[entitlement associations] is limited.
+Subject-to-object associations are very likely to work properly, although this was not explicitly tested.
+Object-to-subject associations are currently not supported.
+
+* xref:/midpoint/reference/synchronization/consistency/[Consistency mechanism] support for propagated resources is currently limited.
+We do not guarantee that consistency mechanisms will work for all the circumstances.
+
+* Application of this mechanism to anything other than manual and semi-manual resources is questionable.
+It might or might not work.
+All the testing of this feature was done with manual resources only.
+
+++++
+{% include missing-incomplete.html %}
+++++
+
+== See Also
+
+* xref:/midpoint/reference/resources/propagation/[Provisioning Propagation]
+
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
+
+* xref:/midpoint/architecture/concepts/task/[Task]

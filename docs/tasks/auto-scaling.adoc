@@ -1,0 +1,92 @@
+= Auto-Scaling
+:page-since: "4.4"
+:page-midpoint-feature: true
+
+Distributed - a.k.a. multi-node or clustered - activities can be scaled up or down by starting or stopping worker tasks.
+This scaling is appropriate when the distribution definition changes, e.g. number of worker tasks is increased
+or decreased. It should be done also when the cluster configuration changes, e.g. nodes are added or deleted.
+
+The auto-scaling activity periodically scans for eligible tasks and - if needed - scales them up or down,
+according to the current cluster state.
+
+== Eligible Tasks
+
+When selecting candidates for auto-scaling, the following conditions must be met:
+
+- task is multi-node, i.e. it runs an activity that has worker tasks defined,
+- task is running and waiting for its child tasks, i.e. the root of the task tree is in
+the `waiting` scheduling state, and `running` execution state (this is the usual state
+for running multi-node tasks),
+- auto-scaling for the activity must not be disabled.
+
+This is how you disable the auto-scaling. (Note it is enabled by default.)
+
+.A task with disabled auto-scaling
+[source,xml]
+----
+<task>
+    <activity>
+        <work>
+            ...
+        </work>
+        <distribution>
+            ...
+            <autoScaling>
+                <enabled>false</enabled>
+            </autoScaling>
+        </distribution>
+    </activity>
+</task>
+----
+
+== Configuration Parameters
+
+[%autowidth]
+|===
+| Parameter | Description | Default
+| `tasks`
+| xref:/midpoint/reference/tasks/activities/object-set-specification/[Tasks] that should be considered for auto-scaling.
+| All eligible tasks.
+| `minReconciliationInterval`
+| Minimal interval between reconciliations, i.e. it will not reconcile workers if this time has not elapsed since the last one.
+| 0
+| `maxReconciliationInterval`
+| Maximal interval between reconciliations, i.e. it will _always_ reconcile workers after this time has elapsed since the last one.
+| infinity
+| `skipInitialReconciliation`
+| Whether to skip initial reconciliation of the workers on the activity start.
+| `false`
+|===
+
+You may set `minReconciliationInterval` to avoid frequent changes in worker tasks in the case of unstable cluster.
+
+On the other hand, you can set `maxReconciliationInterval` to make sure that tasks are reconciled even in the case there
+is no cluster change detected.
+
+== Example
+
+The following tasks examines the cluster state (each minute) and adapts all eligible tasks that are currently running.
+
+.Auto-scaling task
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Auto-scaling</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <schedule>
+        <interval>60</interval>
+    </schedule>
+    <activity>
+        <work>
+            <activityAutoScaling/>
+        </work>
+    </activity>
+</task>
+----
+
+== Limitations
+
+We currently do not support auto-scaling triggered by changes in activity distribution definition.
+The user is responsible for reconciling the workers manually in that cases. Or `maxReconciliationInterval`
+can be used.

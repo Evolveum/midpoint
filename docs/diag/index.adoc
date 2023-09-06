@@ -1,0 +1,12 @@
+= MidPoint Diagnostics and Troubleshooting
+:page-nav-title: Diagnostics and Troubleshooting
+:page-display-order: 800
+:page-upkeep-status: green
+
+Following pages provide information on diagnostics, troubleshooting and general visibility concepts.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

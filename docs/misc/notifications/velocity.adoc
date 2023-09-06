@@ -1,0 +1,125 @@
+= Using Velocity Templates for Notifications
+:page-nav-title: Velocity Templates
+:page-upkeep-status: yellow
+:page-display-order: 900
+:page-toc: top
+
+Starting with midPoint 3.4.1 it is possible to use Apache Velocity templates for writing notifications
+or xref:/midpoint/reference/misc/notifications/message-templates/[message templates].
+
+== Using Velocity
+
+Technically, it is possible to use Velocity templates anywhere expression is expected, e.g. in mappings,
+but the velocity template returns textual (string) value.
+Because of this, it is best fitted to string-based template creation.
+
+Using Velocity templates is very simple for simple cases:
+
+* To show variable value in the text just insert `$variable` in the template, e.g. `$requestee`.
+* You can go deeper into structured objects, e.g. `$event.resourceOid`.
+* If the variable could be confused with the immediate template content, just use this style:
+`pass:[${requestee}]` or `pass:[${event.resourceOid}]`
+
+There are more complicated macros for iterating over collections, branching, adding comments and much more.
+Be sure to check the https://velocity.apache.org/engine/devel/user-guide.html[Velocity User Guide].
+
+Velocity 2.x is used in supported versions of midPoint - this may be an important detail when searching for solutions on the Internet.
+
+== Example
+
+Following example shows Velocity templates in notification configuration:
+
+[source,xml]
+----
+        <handler>
+            <accountPasswordNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Password for account $event.shadowName on $event.resourceName is: $event.plaintextPassword</code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </accountPasswordNotifier>
+        </handler>
+        <handler>
+            <operation>add</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Notification about account-related operation
+
+#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
+
+Resource: $!event.resourceName (oid $event.resourceOid)
+
+An account has been successfully created on the resource with attributes:
+$event.contentAsFormattedList
+Channel: $!event.channel</code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <operation>delete</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Notification about account-related operation
+
+#if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
+
+Resource: $event.resourceName (oid $event.resourceOid)
+Account: $!event.shadowName
+
+The account has been successfully removed from the resource.
+
+Channel: $!event.channel</code>
+                    </script>
+                </bodyExpression>
+
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <simpleUserNotifier>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Notification about ${event.focusTypeName.toLowerCase()}-related operation (status: $event.statusAsText)
+
+$event.focusTypeName: $event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)
+
+#if ($event.add)The ${event.focusTypeName.toLowerCase()} record was created with the following data:
+$event.contentAsFormattedList
+#elseif ($event.modify)The ${event.focusTypeName.toLowerCase()} record was modified. Modified attributes are:
+$event.contentAsFormattedList
+#elseif ($event.delete)The ${event.focusTypeName.toLowerCase()} record was deleted.
+#end
+Channel: $!event.channel</code>
+                    </script>
+                </bodyExpression>
+                <transport>mail</transport>
+            </simpleUserNotifier>
+        </handler>
+----
+
+Note that since midPoint 4.5 you can use xref:/midpoint/reference/misc/notifications/message-templates/[message templates]
+and just reference those from your configured notifiers.
+
+// TODO more detailed explanation
+
+// TODO currently there is no simple way how to escape the values provided by Velocity, e.g. in HTML code
+// For instance, object delta debug output contains <...Type> that would mess with HTML.
+// There is the Velocity escaping tool, but currently we don't provide it for our expressions.
+// https://velocity.apache.org/tools/2.0/apidocs/org/apache/velocity/tools/generic/EscapeTool.html
+
+
+== External links
+
+* https://velocity.apache.org/engine/devel/user-guide.html[Velocity User Guide]

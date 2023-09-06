@@ -1,0 +1,53 @@
+= Eclipse Plugin Release Notes
+:page-wiki-name: Eclipse plugin release notes
+:page-wiki-id: 30245535
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2019-05-03T08:01:28.943+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-09-25T14:29:07.339+02:00
+:page-obsolete: true
+:page-replaced-by: /midpoint/tools/studio/
+
+
+[WARNING]
+.ABANDONED
+====
+MidPoint plugin for Eclipse for *abandoned*  in favor of xref:/midpoint/tools/studio/[MidPoint Studio], which is based on open source link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform].
+
+Although the Eclipse plugin was an efficient tool used broadly by the community, maintaining the plugin in Eclipse environment proved to be a challenge.
+Most of the midPoint developers migrated to link:https://www.jetbrains.com/opensource/idea/[IntelliJ platform], and the popularity of the platform was also indicated by our xref:/community/surveys/midpoint-2019-survey/[survey]. Therefore we have decided to abandon the old and de facto derelict Eclipse plugin.
+There no plans to maintain the Eclipse plugin any further.
+You can go ahead and use it if it works for you, but there will be no further improvements, bug fixes or even security fixes.
+====
+
+
+== Version: 0.10.8 (May 3rd, 2019)
+
+Source code: link:https://github.com/Evolveum/midpoint-ide-plugins/tree/9390b678dcf701db1f6f9d3026a66fc9fd179e0d[https://github.com/Evolveum/midpoint-ide-plugins/tree/9390b678dcf701db1f6f9d3026a66fc9fd179e0d]
+
+Changes:
+
+[%autowidth]
+|===
+| Issue | Description | Notes
+
+| bug:MID-5177[]
+| Added support for 4.0 object types: `objectCollection` , `archetype` , `dashboard`, `assignmentHolder` . Also added support for `case`  object type (introduced into midPoint earlier).
+| Support for `assignmentHolder`  is very limited.
+The plugin does not recognize its place in the object hierarchy; it might lead to some inconveniences.
+Dashboard support requires `v4.0devel-1060-gfa96a3d`  or later because of a midPoint bug.
+
+
+| bug:MID-4665[]
+| Added support for subtypes and archetypes.
+| When browsing objects, the "subtype" column now contains concatenation of object subtype information: archetype names, subtype values, employeeType/roleType/orgType/serviceType values, resourceRef+kind+intent information (for shadows), category (for tasks).
+Archetype names require `v4.0devel-1060-gfa96a3d`  or later.
+
+
+| -
+| Changed double-click behavior on servers list from "edit server" to "select server", as the latter is much more natural and more frequently used.
+|
+
+
+
+|===

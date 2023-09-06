@@ -1,0 +1,99 @@
+= MidPoint Home Directory
+:page-wiki-name: MidPoint Home Directory
+:page-wiki-id: 2654341
+:page-wiki-metadata-create-user: mamut
+:page-wiki-metadata-create-date: 2011-07-22T08:27:58.545+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2018-10-18T08:59:01.798+02:00
+:page-toc: top
+
+MidPoint Home Directory is a filesystem directory that provides a _home_ to midPoint installation.
+It is a directory that midPoint uses to store initial configuration, cryptographic keys, log files and similar "variable" content.
+
+Those are data that are not well suited for identity repository (database).
+Initial configuration, log files, connector JAR files, schema customizations and other such low-level entities can be found in the `midpoint.home` directory.
+
+== Setting Location of MidPoint Home Directory
+
+Easiest way to set the location of midpoint home directory is to set `MIDPOINT_HOME` environment variable before midPoint start script is executed (applies to xref:/midpoint/reference/deployment/stand-alone-deployment/[stand-alone deployment] on UNIX systems).
+
+In other cases the `midpoint.home` directory can be specified by setting the `midpoint.home` JVM property (hence the name).
+Setting the property depends on the application server or web container that is used to run midPoint but it is usually a variation of the following JVM command-line option:
+
+[source]
+----
+-Dmidpoint.home=/var/opt/midpoint/
+----
+
+== Default Setting
+
+The default setting on midPoint home depends on a way how midPoint was deployed.
+
+For xref:/midpoint/reference/deployment/stand-alone-deployment/[stand-alone deployment] (which is the default) midPoint home directory is located in `var` sub-directory of midPoint installation.
+E.g. if midPoint was installed in `/opt/midpoint` then midPoint home directory will be located in `/opt/midpoint/var`. This location is determined by startup shell scripts and explicitly passed to midPoint by using `midpoint.home` JVM option.
+For UNIX system the location of midPoint home directory can be easily changed by setting `MIDPOINT_HOME` environment variable.
+
+For Tomcat deployment the default setting of `midpoint.home` is a `midpoint` subdirectory of the home directory of the user that runs the application server (web container).
+Therefore it is usually `/home/username/midpoint` on UNIX systems or `\Documents and Settings\username` on Windows systems.
+This is also the case if stand-alone startup scripts were modified and the `midpoint.home` option is not provided at startup,
+or if you run the `midpoint.war` directly using `java` command, e.g. `java -jar midpoint.war`.
+
+MidPoint will try to create the `midpoint.home` directory if it does not already exist and midPoint has the rights to do so.
+
+== Directory Structure
+
+[%autowidth]
+|===
+| Directory / File | Description | Notes
+
+| icf-connectors/
+| location for all link:http://wikis.sun.com/display/IdentityConnectors/Identity+Connectors+Framework[ICF] based connectors
+| Some connectors are bundled with Midpoint or can be found in xref:/connectors/connectors/[Identity Connectors] section.
+
+
+| idm-legacy/
+| location for all Sun IDM API adapters
+| This adapters are licensed separately by their owners.
+
+| lib/
+| location for custom JDBC drivers or other custom libraries
+| Tested with xref:/midpoint/reference/deployment/stand-alone-deployment/[stand-alone deployment]
+
+| log/
+| logging directory
+|
+
+| schema/
+| location for all extension schemas
+|
+
+| localization/
+| location for all localization files
+|
+
+| `logback.xml`
+| startup logging configuration
+| See xref:/midpoint/reference/diag/initial-logging/[Initial Logging Setup HOWTO]
+
+
+| `config.xml`
+| initial midPoint configuration file
+| See the next section.
+
+|===
+
+== Configuration file
+
+File `config.xml` located in `midpoint.home` directory is the initial midPoint configuration file.
+
+This is not to be confused with
+xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
+which is already a midPoint object stored repository.
+
+See xref:overriding-config-xml-parameters.adoc[] page for ways how to override values
+in `config.xml` from the command line.
+
+== See Also
+
+* xref:/midpoint/reference/deployment/stand-alone-deployment/[Stand-Alone Deployment]
+* xref:/midpoint/reference/repository/configuration/[Repository Configuration]

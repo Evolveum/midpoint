@@ -1,0 +1,18 @@
+= MidPoint Repository
+:page-nav-title: Repository
+:page-display-order: 850
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe midPoint repository (database) configuration.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]
+
+== See Also
+
+* For conceptual and design overview see xref:/midpoint/architecture/archive/subsystems/repo/[Repository Subsystem].
+* For information how to query objects in the repository see xref:/midpoint/reference/concepts/query/[midPoint Query].

@@ -1,0 +1,22 @@
+= Localization Troubleshooting Tips
+:page-wiki-name: Localization Troubleshooting Tips
+:page-wiki-id: 24085338
+:page-wiki-metadata-create-user: petr.gasparik
+:page-wiki-metadata-create-date: 2017-02-28T13:45:02.740+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-24T08:36:32.522+02:00
+:page-upkeep-status: orange
+
+If you have troubles with incorrectly displayed characters, like in bug:MID-3772[], try add this parameters in `JAVA_OPTS` variable:
+
+----
+-Duser.country=US -Duser.language=en
+----
+
+For Tomcat, this is commonly saved in Tomcat's home directory in bin/setenv.sh or bin/catalina.sh, on Windows in bin\setenv.bat or bin\catalina.bat.
+
+To check current values of these JVM options, run this command:
+
+----
+jinfo -sysprops <PID>
+----

@@ -1,0 +1,214 @@
+= Connector Setup
+:page-wiki-name: Connector Setup
+:page-wiki-id: 21889086
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-01-06T11:47:45.224+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-01-06T13:10:02.242+01:00
+:page-upkeep-status: green
+:page-toc: top
+
+
+There are three things that need to be correctly set up for the connector to work:
+
+. *Connector code* (the JAR file)
+
+. *Connector definition* (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) as an object in midPoint repository.
+This is usually created automatically by midPoint.
+
+. *Reference to connector in resource definition* (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) in a form of `connectorRef` element.
+
+
+== Connector Code
+
+Connector code is usually packaged in a JAR file that contains the connector classes.
+The file has to be downloaded and "deployed" to midPoint.
+Some connectors are already bundled with midPoint and their code is a part of midPoint.
+
+The connector can be "deployed" to midPoint by placing the JAR file in directory `icf-connectors` in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory] and restarting midPoint.
+
+If you are developing or planning to develop a ConnId connector, you may want to read:
+
+* xref:/connectors/connid/1.x/connector-development-guide/[] will guide you through connector development process.
+
+* xref:/midpoint/reference/resources/connid/[] will provide guidance how to use your new ConnId connector to midPoint.
+
+=== Bundled Connectors
+
+Some connectors are already packaged (bundled) with midPoint:
+
+* xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector]
+
+* xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]
+
+* xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector]
+
+* xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector]
+
+The JAR file for these connectors is part of midPoint distribution.
+Therefore these connectors are available automatically in any midPoint instance.
+No extra installation is necessary.
+
+[TIP]
+.Bundled connector versions
+====
+The bundled connectors are provided in the latest stable version available at the time of each particular midPoint release.
+This means that the at least some connector versions are likely to change when midPoint is upgraded.
+Therefore a connector upgrade procedure is usually needed after midPoint is upgraded.
+See xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade].
+====
+
+
+=== Non-bundled Connectors
+
+There are xref:/connectors/connectors/[many connectors] that can be used with midPoint.
+Many of the connectors were developed by Evolveum.
+Some of these come from other projects (such as ConnId connectors created for Apache Syncope or legacy OpenICF connectors).
+There are also independent connectors provided by the community.
+Therefore, it is not practical to bundle all the connectors with midPoint.
+Despite that, using any compatible connector is easy:
+
+. *Download the connector code* (the JAR file).
+E.g. the connectors that we usually work with are listed in the xref:/connectors/connectors/[Identity Connectors] page.
+
+. *Deploy the connector*. Just place the JAR file in the xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory] in the `icf-connectors` subdirectory.
+
+. *Restart midPoint*.
+
+
+=== Connector Versions
+
+The ConnId framework supports deployment of multiple versions of the same connector at the same time.
+This is a very useful feature, especially when:
+
+* Testing and staging new connector version.
+The new version can be deployed together with an old version.
+Majority of the resources can use the old version while the new version is tested on one or two selected resources.
+
+* Overriding the version of bundled connector.
+Just deploy a specific version of the bundled connector in the same way as you would deploy an unbundled connector.
+Then this specific version will always be available regardless of how midPoint is upgraded.
+
+
+== Connector Definition
+
+*Connector definition* (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) is an object in midPoint repository.
+These objects are normally created automatically by midPoint as part of the _connector discovery_ process.
+Discovery of local connectors happens automatically when midPoint is started.
+If there are any new connectors in the xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory], midPoint will create corresponding connector definitions for them.
+The discovery of remote connectors needs to be triggered explicitly (see below).
+
+The typical connector object looks like this:
+
+.LDAP Connector Definition
+[source,xml]
+----
+<connector oid="38d81d33-ddde-46a1-ada6-b905778377a5">
+    <name>ICF com.evolveum.polygon.connector.ldap.LdapConnector v1.4.2.0</name>
+    <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
+    <connectorType>com.evolveum.polygon.connector.ldap.LdapConnector</connectorType>
+    <connectorVersion>1.4.2.0</connectorVersion>
+    <connectorBundle>com.evolveum.polygon.connector-ldap</connectorBundle>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector</namespace>
+    <schema>
+        <definition>
+            <xsd:schema>
+                .... connector configuration schema in XSD format is here ...
+            </xsd:schema>
+        </definition>
+    </schema>
+</connector>
+----
+
+Even though connector definitions are created automatically, they are first-class objects in midPoint repository.
+Therefore, they need to be managed.
+E.g. connector definitions are created automatically, but they are not deleted automatically.
+The objects are not deleted to automatically to avoid serious operational problems.
+E.g. suppose that connector JAR file is accidentally deleted during midPoint upgrade.
+If the connector definition is deleted and automatically re-created then the OID of the connector definition will change.
+That will break all the connector references.
+Therefore, we have decided not to delete the connector objects automatically and leave that task to an explicit action of system administrator.
+
+Also, the situation is complicated by remote connectors.
+These may not be available during midPoint start-up.
+And for remote connectors there is also explicit relation to the connector host (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectorhosttype/[ConnectorHostType]) that the connector definition must maintain.
+
+
+== Connector Reference
+
+Each resource definition (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType]) must point to a connector that it is supposed to use.
+This is a simple case of a `connectorRef` reference:
+
+.Connector reference (fixed OID)
+[source,xml]
+----
+<resource oid="ab6b433a-b46b-11e5-9428-e76a2b1ec1a0">
+   <name>Dummy Resource</name>
+   <connectorRef oid="2dee34c1-5a1b-4c53-bbb2-7dd5d8f45533" type="c:ConnectorType"/>
+   ...
+</resource>
+----
+
+This reference simply points to a connector definition (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType]) that has an OID `2dee34c1-5a1b-4c53-bbb2-7dd5d8f45533`.
+This reference must point to an existing and valid connector definition.
+This is the place that needs to be changed during xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade].
+
+As connector objects are created automatically, it is not possible to predict the OIDs of the connector definitions.
+Therefore, if you are maintaining the resource definition files outside midPoint (e.g. in a version control system), then the best way is to use search filter instead of a fixed OID.
+Like this:
+
+.Connector reference (fixed OID)
+[source,xml]
+----
+<resource oid="ab6b433a-b46b-11e5-9428-e76a2b1ec1a0">
+   <name>Dummy Resource</name>
+   <connectorRef>
+       <filter>
+           <q:equal>
+               <q:path>connectorType</q:path>
+               <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+           </q:equal>
+       </filter>
+   <connectorRef>
+</resource>
+----
+
+The search filter will be executed when this resource definition is imported, and it will be replaced by a fixed OID.
+
+[TIP]
+.Reference search filter execution
+====
+The search filter in the reference is executed only once: when the object is imported.
+Then a fixed OID is placed in the reference and such OID is used instead of the filter.
+This happens because of the performance but also as a consequence of midPoint architecture.
+All links between midPoint objects are based on OIDs, so they will remain valid if the objects are renamed or modified.
+This is usually what you want for most objects.
+But for the connectors there is an important consequence: if a connector is upgraded, new connector definition is created for the new connector version.
+This definition will have new OID.
+As the search filter in the reference is not executed for objects that are already stored in the repository the the `connectorRef` references in resource definitions need to be manually updated after connector upgrade.
+====
+
+
+== Remote Connectors
+
+Some connectors are not deployed directly in midPoint instance.
+Such connectors are running in a dedicated xref:/connectors/connid/1.x/connector-server/[connector server], making them _remote_ connectors.
+
+Please see xref:/connectors/connid/1.x/connector-server/[Connector Server] page for the details.
+
+
+== Upgrade Procedure
+
+Please see xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade] page.
+
+== See Also
+
+* xref:/midpoint/reference/resources/connid/[ConnId]
+
+* xref:/midpoint/reference/upgrade/connectors/[Connector Upgrade]
+
+* xref:/connectors/connid/1.x/connector-server/[Connector Server]
+
+* xref:/connectors/connid/1.x/connector-development-guide/[]
+
+* xref:/midpoint/reference/resources/connid/[]

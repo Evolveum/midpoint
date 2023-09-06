@@ -1,0 +1,73 @@
+= recompute
+:page-wiki-name: recompute
+:page-wiki-id: 52002890
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-05-25T17:28:08.717+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-05-25T17:36:24.989+02:00
+:page-upkeep-status: yellow
+
+
+== Description
+
+Recomputes (immediately or in scheduled way) input object(s).
+
+
+== Input
+
+Any object of `AssignmentHolderType`.
+
+
+== Output
+
+The same object (original version, not the recomputed one).
+
+
+== Parameters
+
+[%autowidth]
+|===
+| Parameter name | Meaning
+
+| `triggered`
+| Delays recomputation to later date using a trigger.
+
+
+|===
+
+The `triggered` parameter is of `TriggerCreationType` and can have two properties:
+
+[%autowidth]
+|===
+| Property | Meaning | Example | Default
+
+| `fireAfter`
+| How long after current time the trigger should be fired.
+When not specified, trigger is created unconditionally, with the fire time being equal to the current time.
+If specified, the trigger is created with the fire time in the future; skipping the creation if compatible trigger was created and still has not been fired.
+This "redundant trigger elimination" is currently implemented per node, i.e. in a cluster with multiple nodes it is possible that some redundant triggers will be created (at most 1 per node).
+| PT1M
+| no value, meaning that trigger is created unconditionally
+
+
+| `safetyMargin`
+| What is the safety margin, i.e. how many long before the trigger fire time we need to create a new trigger.
+This is to avoid (rare but in theory possible) race conditions where we skip creation of a trigger but it fires in the meanwhile.
+| PT10S
+| -
+
+
+|===
+
+
+== Examples
+
+[source,xml]
+----
+<s:recompute xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:triggered>
+        <c:fireAfter>PT1M</c:fireAfter>
+    </s:triggered>
+</s:recompute>
+----

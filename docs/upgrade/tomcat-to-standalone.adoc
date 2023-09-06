@@ -1,0 +1,132 @@
+= Migrating from Tomcat to Standalone midPoint Deployment
+:page-nav-title: Tomcat to Standalone Deployment
+:page-wiki-name: Migrating from Tomcat to Standalone midPoint Deployment
+:page-wiki-id: 24676130
+:page-wiki-metadata-create-user: vix
+:page-wiki-metadata-create-date: 2017-12-11T15:21:04.550+01:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2018-08-21T15:19:14.874+02:00
+:page-upkeep-status: yellow
+
+== Introduction
+
+Previously you have used a Tomcat and deployed `midpoint.war` inside it.
+Now it's possible to use embedded Tomcat within midPoint.
+
+
+== Migration with example
+
+The original state is a clustered midpoint, node 1. The setup is as follows:
+
+[%autowidth]
+|===
+| Parameter | Value
+
+| midpoint.home
+| /opt/tomcat/midpoint.home
+
+| Tomcat directory
+| /opt/tomcat
+
+| Start script
+| /opt/tomcat/start.sh
+
+| Start script JVM settings
+| CATALINA_OPTS="-Xms256m -Xmx2g-Dmidpoint.home=/opt/tomcat/midpoint.home-Dmidpoint.nodeId=Tomcat_Node1 -Dcom.sun.management.jmxremote=true-Dcom.sun.management.jmxremote.port=20001-Dcom.sun.management.jmxremote.ssl=false-Dcom.sun.management.jmxremote.password.file=/opt/tomcat/midpoint.home/jmxremote.password-Dcom.sun.management.jmxremote.access.file=/opt/tomcat/midpoint.home/jmxremote.access"
+
+| Stop script
+| /opt/tomcat/shutdown.sh
+
+| Shutdown script JVM settings
+| CATALINA_OPTS="-Xms256m -Xmx2g-Dmidpoint.home=/opt/tomcat/midpoint.home-Dmidpoint.nodeId=Tomcat_Node1 -Dcom.sun.management.jmxremote=true-Dcom.sun.management.jmxremote.port=20001-Dcom.sun.management.jmxremote.ssl=false-Dcom.sun.management.jmxremote.password.file=/opt/tomcat/midpoint.home/jmxremote.password-Dcom.sun.management.jmxremote.access.file=/opt/tomcat/midpoint.home/jmxremote.access"
+
+|===
+
+We start the migration with a xref:/midpoint/reference/deployment/stand-alone-deployment/[new installation] and leave the original midpoint.home directory untouched:
+
+* shutdown your existing midPoint (Tomcat) node 1
+
+* xref:/midpoint/reference/deployment/stand-alone-deployment/[install] midPoint to a new directory, e.g. "`/opt`" by uncompressing "`midpoint-3.7-dist.tar.gz`" there (the version must be the same as your previously used version!). The resulting directory will be `/opt/midpoint-3.7`
+
+* run the newly installed midPoint by executing "`/opt/midpoint-3.7/bin/start.sh`" script
+
+This ends with a new midPoint installation using embedded H2 repository, i.e. not using your repository.
+But now we have the "`/opt/midpoint-3.7`" directory populated with required subdirectories.
+
+Now shutdown the new midPoint with embedded H2 repository by executing "`/opt/midpoint-3.7/bin/stop.sh`" script.
+
+Now copy the configuration from the original midPoint to the new standalone deployment:
+
+[%autowidth]
+|===
+| From | To | Notes
+
+| `/opt/tomcat/midpoint.home/config.xml`
+| `/opt/midpoint-3.7/var`
+| Main midPoint configuration file
+
+| `/opt/tomcat/midpoint.home/keystore.jceks`
+| `/opt/midpoint-3.7/var`
+| midPoint keystore
+
+| `/opt/tomcat/midpoint.home/export/ (also files inside)`
+| `/opt/midpoint-3.7/var`
+| Exported files (if any)
+
+| `/opt/tomcat/midpoint.home/schema/ (also files inside)`
+| `/opt/midpoint-3.7/var`
+| Schema extension
+
+| `/opt/tomcat/midpoint.home/jmxremote.access`, `/opt/tomcat/midpoint.home/jmxremote.password`
+| `/opt/midpoint-3.7/var`
+| JMX configuration for authentication (only when using cluster)
+
+|===
+
+Modify "`/opt/midpoint-3.7/bin/midpoint.sh`" script and update `JAVA_OPTS` to contain the settings used previously:
+
+.midpoint.sh
+[source,bash]
+----
+JAVA_OPTS="$JAVA_OPTS -Xms1500M -Xmx1500M
+-Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks -Djavax.net.ssl.trustStoreType=jceks
+-Dmidpoint.home=$MIDPOINT_HOME -Dmidpoint.nodeId=Tomcat_Node1
+-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=20001
+-Dcom.sun.management.jmxremote.ssl=false
+-Dcom.sun.management.jmxremote.password.file=$MIDPOINT_HOME/jmxremote.password
+-Dcom.sun.management.jmxremote.access.file=$MIDPOINT_HOME/jmxremote.access"
+----
+
+Now start your new midPoint again by executing "`/opt/midpoint-3.7/bin/start.sh`". It should connect to your original repository.
+
+If everything works, use the same steps for migrating your node 2.
+
+[TIP]
+====
+The `midpoint.sh` file may be updated with the newer midPoint release.
+As it also contains your own customizations (e.g. JAVA_OPTS), be sure to backup the `midpoint.sh` before uncompressing midPoint upgrade to the same directory, and then merge your changes back.
+In the future there should be another script for such customizations that would not be overwritten by midPoint upgrade, but rather included when starting and stopping midPoint.
+
+Since midPoint 3.9 it is possible to place your customizations to "bin/setenv.sh" (or "bin/setenv.bat") script to avoid modification of `midpoint.sh`. For example:
+
+[source,bash]
+----
+#!/bin/sh
+export JAVA_OPTS="$JAVA_OPTS  -Xms1500M -Xmx1500M
+-Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks -Djavax.net.ssl.trustStoreType=jceks
+-Dmidpoint.home=$MIDPOINT_HOME -Dmidpoint.nodeId=Tomcat_Node1
+-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=20001
+-Dcom.sun.management.jmxremote.ssl=false
+-Dcom.sun.management.jmxremote.password.file=$MIDPOINT_HOME/jmxremote.password
+-Dcom.sun.management.jmxremote.access.file=$MIDPOINT_HOME/jmxremote.access"
+----
+
+====
+
+
+[NOTE]
+====
+Don't forget that the URL for midPoint is now link:http://localhost:8080[http://localhost:8080] (without "`/midpoint/`"!).
+
+And also that the log is now created in `/opt/midpoint-3.7/var/log/midpoint.log`
+====

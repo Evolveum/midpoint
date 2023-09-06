@@ -1,0 +1,113 @@
+= Post-Report Script
+:page-wiki-name: Post report script HOWTO
+:page-wiki-id: 24675862
+:page-wiki-metadata-create-user: mmacik
+:page-wiki-metadata-create-date: 2017-11-09T13:21:37.350+01:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2018-01-30T18:24:13.288+01:00
+:page-upkeep-status: yellow
+
+== Introduction
+
+The following page contains some examples on how to configure the post report script feature in other words how to configure the execution of a specified command-line script after a report is generated.
+
+=== Parameters
+
+The scripts can be parameterized using inputs from the report itself. The script is executed like this:
+
+. The expressions defined for parameters defined in the command-line scrips are evaluated. MidPoint 3.7 support only macro parameters.
+
+. The macros denoted as %name% in the script command-line are expanded using the expressions results.
+
+. Command is executed.
+
+The expressions take following variables as input:
+
+[%autowidth]
+|===
+| Name | Description
+
+| object
+| Entire report object (ReportType)
+
+
+| task
+| Task that have executed the report. +
+Note: report parameters are stored in the task, as is the user that started the report.
+
+
+| file
+| Filename where the generated report is stored
+
+
+|===
+
+
+=== Execution Mode
+
+There are two execution modes:
+
+* exec: This mode will execute the command-line using native operating system service. On UNIX systems this is the exec() operation. The command-line string needs to be divided to the command and the parameters, which may not work well in all cases.
+
+* shell: The command will be executed by using the shell. The shell is executed first and the command is passed to the shell (e.g. bash -c command). This works only on UNIX systems and it currently defaults to bash shell.
+
+
+=== Examples
+
+Following script copies the report to the /tmp directory:
+
+[source,xml]
+----
+<report>
+    ...
+    <postReportScript>
+        <macro>
+            <name>file</name>
+            <asIs/>
+        </macro>
+        <macro>
+            <name>name</name>
+            <script>
+                <code>
+                    object.getName().getOrig()
+                </code>
+            </script>
+        </macro>
+        <executionMethod>shell</executionMethod>
+        <code>cp %file% /tmp/%name%.pdf</code>
+    </postReportScript>
+</report>
+----
+
+There are two macros defined.
+The first one is the file macro.
+It will contain the value of expression variable `file`. When this macro is applied to a command-line then the `%file%` string will be replaced by the name of the file that contains report output.
+Second macro is a bit more complex.
+This is the `name` macro.
+It takes name of the report from the report object (ReportType).
+The string `%name%` in the command-line will be replaced by the result of the macro expression, which is a name of the report.
+=== Error reporting
+
+The information about errors which could occur during script execution will be present in the result section of the task created for generating the script.
+If any such message is returned by the process error stream than it will be recorded in this section.
+The amount of information on a particular error can differ with the used environment.
+For additional debugging the following logger can be used.
+
+[%autowidth]
+|===
+| Logger name | Log level
+
+| com.evolveum.midpoint.repo.common.commandline
+| TRACE
+
+|===
+
+[TIP]
+====
+The report will be generated even if there is an error during the execution of the post report script.
+====
+
+
+== See Also
+
+** xref:/midpoint/reference/misc/reports/configuration/[Report configuration]

@@ -1,0 +1,112 @@
+= Create Custom Task (Java)
+:page-wiki-name: Create Custom Task
+:page-wiki-id: 17760676
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-01-08T11:26:34.864+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-12-21T11:19:23.799+01:00
+:page-upkeep-status: yellow
+
+MidPoint xref:/midpoint/reference/tasks/task-manager/[Task Manager] is designed for extensibility.
+It can manage any kind of task.
+Each task has two parts: The definition (TaskType object) and the code.
+
+
+== Custom Task Definition
+
+Simply import the XML object definition similar to the following:
+
+[source,xml]
+----
+<task
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <name>My Custom Task</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <handlerUri>http://example.com/task/whatever/handler</handlerUri>
+    <recurrence>single</recurrence>
+</task>
+----
+
+The important part is the handler URI.
+The handler URI associates the task definition with the code.
+
+
+== Custom Task Code
+
+The task code must be part of midPoint code.
+Currently perhaps the only feasible way is to recompile midPoint with your custom code in it (see xref:/midpoint/devel/source/customization/[Source Code Customization]). The code itself is simply one class that implements the task handler:
+
+[source,java]
+----
+@Component
+public class MyTaskHandler implements TaskHandler {
+
+    public static final String HANDLER_URI = "http://example.com/task/whatever/handler";
+
+    @Autowired(required=true)
+    private TaskManager taskManager;
+
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
+
+    public TaskRunResult run(Task task) {
+
+        long progress = task.getProgress();
+        OperationResult opResult = new OperationResult("com.example.mytask.handler");
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
+
+		// TODO: custom code comes here
+
+		progress++;
+
+        opResult.computeStatus();
+        // This "run" is finished.
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        runResult.setProgress(progress);
+        return runResult;
+    }
+
+    @Override
+    public Long heartbeat(Task task) {
+        // Heartbeat is not supported for this task
+        return null;
+    }
+
+    @Override
+    public void refreshStatus(Task task) {
+        // Do nothing, no need to explicitly refresh task status
+    }
+
+    @Override
+    public String getCategoryName(Task task) {
+         return TaskCategory.CUSTOM;
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        // just a single category, specified above
+        return null;
+    }
+}
+----
+
+The code is using Spring annotations to manage the class lifecycle.
+The class registers itself in the task manager in the post-construct method.
+The same handler instance will be invoked for all task instances.
+The task instance is passed as a parameter.
+
+
+== See Also
+
+* xref:/midpoint/reference/tasks/task-manager/[Task Manager]
+
+* xref:/midpoint/architecture/archive/subsystems/repo/task-manager/task-manager-interface/[Task Manager Interface]
+
+* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

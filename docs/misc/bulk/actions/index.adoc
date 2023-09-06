@@ -1,0 +1,82 @@
+= Actions
+:page-wiki-name: Actions (4.2+)
+:page-wiki-id: 52002856
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-05-06T13:39:56.263+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-05-25T17:36:56.352+02:00
+:page-since: "4.2"
+:page-experimental: true
+:page-upkeep-status: orange
+
+== Introduction
+
+MidPoint Scripting Language (a.k.a "bulk actions") traditionally have two kinds of components: "actions" and "others".
+The former ones have been devised to _do_ something on input objects: modify them, enable/disable them, assign roles or resources to them, and so on.
+The latter components have been created to do everything other: to search repository for objects (to be applied actions to), to structure the flow to pipelines or sequences, or to manipulate the objects being passed between components somehow, typically by filtering the content by removing (or keeping) specified items.
+
+The original specification of actions and their parameters was quite powerful - parameters could be computed dynamically using other bulk actions - but also awkward to use.
+
+So we decided to add an option of simple specification of action parameters.
+So, for example, instead of writing:
+
+[source,xml]
+----
+<s:pipeline>
+    <s:search>
+        <s:type>UserType</s:type>
+    </s:search>
+    <s:action>
+        <s:type>execute-script</s:type>
+        <s:parameter>
+            <s:name>script</s:name>
+            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                <code>
+                    ...
+                </code>
+            </c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>forWholeInput</s:name>
+            <c:value>false</c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>quiet</s:name>
+            <c:value>true</c:value>
+        </s:parameter>
+    </s:action>
+</s:pipeline>
+----
+
+one can simply write
+
+[source,xml]
+----
+<s:pipeline>
+    <s:search>
+        <s:type>UserType</s:type>
+    </s:search>
+    <s:execute>
+        <s:script>
+            <code>
+                ...
+            </code>
+        </s:script>
+        <s:forWholeInput>false</s:forWholeInput>
+        <s:quiet>true</s:quiet>
+    </s:execute>
+</s:pipeline>
+----
+
+Moreover, we can rely on all the auto-completion and schema-checking features of modern IDEs, because the definition of `s:execute` element and its parameters is fully described in relevant XML schema document.
+
+== Actions
+
+For the list of actions, please see xref:../index.adoc#_actions[Actions].
+The element names are listed under "Modern name" column.
+If the column has no value for particular action, then the new version does not exist yet.
+
+Comparing to versions of midPoint before 4.2, the actions themselves are basically the same as they were.
+In some cases, the action names were clarified.
+In other ones, parameters were reorganized into more logical way.
+But the backward compatibility is fully ensured: the old way of specifying actions is still possible; although it will be probably deprecated (and removed) in the future.

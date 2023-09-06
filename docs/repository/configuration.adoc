@@ -1,0 +1,303 @@
+= Repository Configuration
+:page-nav-title: Configuration
+:page-display-order: 10
+:page-toc: top
+
+[IMPORTANT]
+This page documents only the new Native repository introduced in midPoint 4.4.
+For old Generic repository configuration see xref:../generic/configuration/[this page].
+
+== Configuration overview
+
+By default, the repository configuration is stored in `config.xml` inside
+xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
+also known as `midpoint.home`.
+
+This directory will be created upon the very first start of midPoint.
+For historical and convenience reasons the default generated `config.xml` is preconfigured for
+the Generic repository using embedded H2 database.
+
+To enable new Native repository, the following steps are necessary:
+
+. Prepare PostgreSQL database as described in xref:../native-postgresql/usage/[Using Native PostgreSQL Repository].
+. Change the `config.xml` to use the Native repository.
+
+And that's it - now you can run midPoint with the Native repository!
+
+[TIP]
+See the file `doc/config/config-native.xml` provided in the distribution archive for an example of simple Native repository configuration.
+You can also see it online https://github.com/Evolveum/midpoint/blob/master/config/config-native.xml[here].
+If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
+
+But let's elaborate a bit about the `config.xml` changes:
+
+* You can start with the generated `config.xml`.
+Open it, remove the configuration for H2 and uncomment the `repository` and `audit` configuration
+prepared in the comments.
+
+* Don't forget to change the audit factory class, again, the proper value is provided in the comments.
+See xref:native-audit.adoc[]
+
+* Customize connection to the database using `jdbcUrl` and other basic configuration options show below.
+
+Configuring large-scale setup with multiple midPoint nodes requires more effort:
+
+* Check the xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
+documentation for how to set up multiple midPoint nodes.
+
+* Tips about configuring the database server can be found xref:../native-postgresql/postgresql-configuration/[here].
+
+* See also advanced repository options described in the tables below.
+
+== Configuration options
+
+=== Basic connection options
+
+The following table lists the basic configuration options for the `repository` element:
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `jdbcUrl`
+| URL for JDBC connection.
+This must be used and can optionally conatain username and password.
+See https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to the Database] from PostgreSQL JDBC Driver documentation for more.
+| `jdbc:postgresql://localhost:5432/midpoint`
+
+| `jdbcUsername`
+| Username for JDBC connection.
+Can be empty, if username is not needed or provided in JDBC URL or otherwise.
+
+Example: `midpoint`
+|
+
+| `jdbcPassword`
+| Password for JDBC connection.
+Can be empty, if password is not needed or provided in JDBC URL or otherwise.
+
+Example: `password`
+|
+
+| `database`
+| Ignored by the Native repository and cannot be changed - do not use it.
+| `postgresql`
+
+| `driverClassName`
+| Ignored by the Native repository and cannot be changed - do not use it.
+| `org.postgresql.Driver`
+
+// TODO remove when 4.4 support ends
+| `dataSource`
+| Uses JNDI DataSource loading, when this option is defined in configuration.
+This is only relevant for WAR deployment which is not recommended anyway.
+`jdbcUrl`, `jdbcUsername`, `jdbcPassword`, and `driverClassName` is ignored and should not be used.
+Example: `<dataSource>java:comp/env/jdbc/midpoint</dataSource>`
+
+*WARNING:
+This is obsolete functionality that is no longer supported or maintained.*
+It is relevant only for WAR deployments on Tomcat and even there we recommend using explicit configuration using options above.
+|
+|===
+
+==== Using empty username and password
+
+It is possible to connect to the database without specifying password or username or both.
+Examples are:
+
+* Providing the username and password in JDBC URL.
+
+* Using PostgreSQL trust authentication - though this is definitely not recommended for serious deployments.
+
+Simply skip configuration elements *jdbcUsername* and *jdbcPassword*.
+If everything is configured as expected, connection will be successful, otherwise JDBC driver will throw an exception and midPoint will not start.
+
+=== Other connection pool options
+
+All these options are optional, but can be used to fine-tune the repository setup.
+
+MidPoint uses https://github.com/brettwooldridge/HikariCP[HikariCP] as a connection pool (version 4.x).
+Detailed descriptions of connection pool related options can be found in
+https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby[Hikari configuration documentation].
+Names used below are the same as names used in HikariCP unless stated otherwise in the description.
+
+All time values are in milliseconds (ms).
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `minPoolSize`
+| Minimal # of connections in connection pool, if connection pool is not provided through dataSource.
+
+This option is called `minimumIdle` in HikariCP.
+It is always set by midPoint, so HikariCP default is never used.
+
+The value cannot be lower than 2 for midPoint, and - if set so, minimum value 2 will be used.
+| `8` or `maxPoolSize` if lower
+
+| `maxPoolSize`
+| Maximum # of connections in connection pool, if connection pool is not provided through dataSource.
+Please, be aware that for the multi-node setup the total number of connections *must not* go above
+the `max_connections` in the Postgres configuration, so this is a good default only up to 2 nodes.
+See xref:/midpoint/reference/repository/native-postgresql/postgresql-configuration/#connections[PostgreSQL Configuration] for more tips.
+
+When midPoint needs another connection from the pool it will wait for it.
+The time is determined by the default value for HikariCP `connectionTimeout` option, which is 30s.
+Currently, this cannot be changed in midPoint config, but it is a reasonable time.
+But if the pool is oversized and HikariCP asks for the connection from the DB, and there is no free
+connection available, the request fails immediately.
+
+It may be better to lower the pool size on the nodes in that case.
+Don't raise the `max_connections` in PostgreSQL without https://www.enterprisedb.com/postgres-tutorials/why-you-should-use-connection-pooling-when-setting-maxconnections-postgres[testing it first].
+It has far-reaching consequences and can actually hurt performance.
+
+This option is called `maximumPoolSize` in HikariCP.
+It is always set by midPoint, so HikariCP default is never used.
+
+This value cannot be lower than `minPoolSize` - if set so, effective `minPoolSize` value is used.
+
+In addition to these connections, there may be another connection pool for the
+xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager] and
+xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[dedicated SQL Audit DB].
+By default, the main DB pool described on this page is used by the Task Manager,
+unless configured otherwise.
+The same goes for SQL Audit - unless configured otherwise, it uses the main DB pool.
+| `40`
+
+| `maxLifetime`
+| Time after which the connection is retired from the pool.
+This should be lower than any connection time limit used by the DB or the network infrasctructure.
+
+The minimum allowed value is 30000ms (30 seconds).
+| none, HikariCP sets 1800000 (30 minutes) by default
+
+| `idleTimeout`
+| Time after which an idle connection may be retired if current number of connections is higher than `minPoolSize`.
+
+The minimum allowed value is 10000ms (10 seconds).
+| none, HikariCP sets 600000 (10 minutes) by default
+
+| `keepaliveTime`
+| Controls the frequency for keepalive check on idle connections.
+Keepalive ping contacts the DB backend, so it can prevent connection failures if some network infrastructure drops idle connections.
+
+The minimum allowed value is 30000ms (30 seconds), 0 disables this feature.
+| none, HikariCP sets 0 (disabled)
+
+| `leakDetectionThreshold`
+| If the connection is out of the pool (used by the application) for longer than the threshold, the message is logged
+to indicate possible connection leak, including the stacktrace where the connection was obtained.
+
+The minimum allowed value is 2000 (2 seconds), 0 disables this feature.
+| none, HikariCP sets 0 (disabled)
+
+| `initializationFailTimeout`
+| Hikari pool initialization failure timeout, in milliseconds.
+It is there to allow midPoint to wait until the repository is up and running and therefore to avoid failing prematurely.
+| `1`
+
+|===
+
+=== Other repository configuration options
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `fullObjectFormat`
+| Property specifies format (language) used to store serialized object representation into
+`m_object.fullObject` and other columns storing serialized object or container representation.
+Supported values are `json` and `xml`.
+This is safe to change any time, objects are read properly regardless of the format they are stored in.
+| `json`
+
+| `iterativeSearchByPagingBatchSize`
+| The size of the "page" for iterative search, that is the maximum number of results returned by a single iteration.
+This is a rather internal setting and the default value is reasonable balance between query overhead and
+time to process the results.
+
+It can be raised if the iterative search overhead (executing the select)
+is too high compared to the time used for processing the page results.
+| `100`
+
+| `sqlDurationWarningMs`
+| Duration in millis after which the query is logged by `com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger`
+on the `WARN` level, including the provided parameters.
+| `0` (disabled)
+
+|===
+
+There are no options for compression as this is left to PostgreSQL.
+This also makes the inspection of the values in the columns easier.
+
+== Example config.xml
+
+One example is the configuration file `config-native.xml` which is included in the distribution under `doc/config`.
+You can also see it online https://github.com/Evolveum/midpoint/blob/master/config/config-native.xml[here].
+If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
+
+Another example is https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-pg-new-repo/config.xml[here].
+
+.Example config.xml for Native repository
+----
+<?xml version="1.0"?>
+<configuration>
+    <midpoint>
+        <webApplication>
+            <importFolder>${midpoint.home}/import</importFolder>
+        </webApplication>
+        <repository>
+            <type>native</type> <1>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+        </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService> <2>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+        </keystore>
+    </midpoint>
+</configuration>
+----
+
+1. The main difference when comparing it to the old repository is using the `type` element instead of `repositoryServiceFactoryClass` which does not work for new repository anymore.
+Set the value of `type` element to `native` (values `sqale` or `scale` are also supported).
+*Do not* use `sql` which indicates old repo!
+
+2. Native repository comes with native SQL audit, so we need to change the audit factory class in
+`auditServiceFactoryClass` element from old repository value containing
+`...SqlAuditServiceFactory` to `com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory`.
+
+With this `config.xml` you can start midPoint as usual.
+
+[TIP]
+====
+The setup for the new repo is also available in the `config.xml` automatically generated
+when the midPoint starts for the first time - it's just commented out.
+Stop the midPoint, remove the created H2 database files, adjust the config file and start the midPoint again.
+However, using the provided `config-native.xml` from `doc/config` is probably easier, just rename it properly.
+
+Of course, you still need the installed and prepared PostgreSQL database!
+====
+
+== See Also
+
+* xref:../native-postgresql/[Native PostgreSQL Repository]
+* xref:../generic/[Old Generic Repository]
+* xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
+* xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
+* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

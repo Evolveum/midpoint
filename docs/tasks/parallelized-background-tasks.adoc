@@ -1,0 +1,46 @@
+= Parallelized background tasks
+:page-wiki-name: Parallelized background tasks
+:page-wiki-id: 17760488
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-11-12T19:24:59.012+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-03-05T17:01:30.834+01:00
+:page-upkeep-status: yellow
+
+Some background tasks, namely initial import and reconciliation could take a considerable time.
+If you have a multicore machine, it is reasonable to try to use its processing power to make these tasks proceed faster.
+
+MidPoint has a simple feature to allow this: parallelized background tasks.
+It is applicable to the following tasks:
+
+* import,
+
+* reconciliation,
+
+* recomputation,
+
+* iterative bulk actions (see xref:/midpoint/reference/misc/bulk/scripting-tasks/[Scripting tasks]),
+
+* reindex.
+
+All you have to do is to set *workerThreads* extension property, like this:
+
+[source,xml]
+----
+<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <mext:workerThreads>8</mext:workerThreads>
+</extension>
+----
+
+(or edit the task in midPoint GUI)
+
+When such a task is started, it is run in 9 threads: one is so called *coordinator thread* that fetches data from the resource or from the repository and feeds remaining 8 *worker threads*. Each worker thread processes item by item (e.g. shadow by shadow) until all items are processed.
+At that point the processing ends and all threads are destroyed.
+
+If `workerThreads` property is not set or set to 0, the whole processing takes place in a single thread: no dedicated worker threads are created.
+If the value is 1, one coordinator and one worker is created (so this setting is not useful).
+
+Technically, the feature is implemented in link:https://github.com/Evolveum/midpoint/blob/master/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/util/AbstractSearchIterativeResultHandler.java[AbstractSearchIterativeResultHandler] that takes care of processing results from iterative searches conducted by these tasks.
+Worker threads can be seen when you open particular task in Task List menu.
+They exist only during the run of a particular task, and are visible only when logged in to the node on which they run.
+xref:/midpoint/devel/design/lightweight-asynchronous-tasks/[Lightweight asynchronous tasks] were created just for this purpose.

@@ -1,0 +1,9 @@
+= Asynchronous Resources
+:page-upkeep-status: yellow
+
+There are situations where a target resource is not accessible in a direct, synchronous, CRUD-like way. Such a resource can receive commands to add, modify, or delete accounts and other objects, but processes them asynchronously - in an unspecified time.
+
+++++
+{% children %}
+++++
+

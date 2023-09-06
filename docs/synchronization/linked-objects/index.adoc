@@ -1,0 +1,709 @@
+= Linked Objects
+:page-wiki-name: Linked objects
+:page-wiki-id: 48824585
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-04-23T15:14:47.128+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-10-26T18:10:54.988+01:00
+:page-since: "4.2"
+:page-toc: top
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+== Introduction
+
+MidPoint objects do not live in isolation.
+Often they need to take data from related objects.
+And so if an object changes, the change needs to be cascaded to related objects.
+
+In midPoint 3.3 (2015) we have implemented "recompute affected" model execution option.
+Its purpose was to trigger recomputation of members of a role that was modified by the operation.
+Today we need to reimplement this mechanism in more generic and powerful way.
+Here it is.
+
+
+== TL;DR
+
+For those that want to learn by reading code samples, please see
+
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-1-hardware-tokens/[Linked objects scenario 1: Hardware tokens]
+
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-2-devices-owned-by-users/[Linked objects scenario 2: Devices owned by users]
+
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-3-projects/[Linked objects scenario 3: Projects]
+
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-4-clubs/[Linked objects scenario 4: Clubs]
+
+* xref:/midpoint/reference/synchronization/linked-objects/scenario-5-deletion-safe-organizations/[Linked objects scenario 5: Deletion-safe organizations]
+
+
+== Links between objects
+
+In midPoint there are many kinds of links among objects.
+They are differentiated by _relation_ attribute of the particular object reference.
+Relations can be standard or custom.
+(More information on this topic can be found e.g. on xref:/midpoint/reference/concepts/relation/[Relation] and xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration] pages.)
+
+These are typical situations when two objects are linked:
+
+[%autowidth]
+|===
+| Situation | Link source | Link target | Relation | Note
+
+| User A has a role R.
+| User A
+| Role R
+| org:default
+|
+
+| User A is a member of org O.
+| User A
+| Org O
+| org:default
+|
+
+| User A is a manager of org O.
+| User A
+| Org O
+| org:manager
+|
+
+| User A is an owner of token T.
+| User A
+| Service T (archetyped as token)
+| org:default
+| (Or org:owner.)
+
+| User A is a child of user B.
+| User A
+| User B
+| custom:child
+| This is not supported now.
+The only user-user assignments we support are link:https://github.com/Evolveum/midpoint/blob/c4ec19e5b24cdc2420069a7dee3ce9ef592abfdf/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/lens/AssignmentEvaluator.java#L1216[delegation ones].
+
+| Role R has a metarole M.
+| Role R
+| Role M
+| org:default
+| (Or org:meta.)
+
+
+| User A is an approver for role R.
+| User A
+| Role R
+| org:approver
+|
+
+
+|===
+
+
+== Assignments vs. links
+
+A link between two objects can be:
+
+[%autowidth]
+|===
+| Kind of link | Where stored | Note
+
+| prescribed
+| `assignment`
+|
+
+
+| actual
+| `roleMembershipRef`
+| We should perhaps rename this item eventually.
+
+|===
+
+So the link between two objects (A → B) is in one of 4 states:
+
+[%autowidth]
+|===
+| Prescribed | Actual | Description
+
+| Yes
+| Yes
+| The usual case.
+There is an assignment from A to B. The assignment is valid and effective, so the information is in `roleMembershipRef` as well.
+
+| Yes
+| No
+| There is an assignment from A to B. But it is either invalid (from the activation point of view) or not effective (from the conditions point of view), so there's no record in `roleMembershipRef`.
+
+| No
+| Yes
+| There is no direct assignment from A to B, but the link was created indirectly, e.g. via some inducement, for example from A to B, where B induces C. So A → C is not prescribed but actual.
+
+| No
+| No
+| A and B have no link altogether, or there is an indirect assignment that is not valid or not effective.
+
+|===
+
+
+== Navigating links
+
+Each link has two participants:
+
+[%autowidth]
+|===
+| Participant | Meaning
+
+| Link source
+| Object that has something linked.
+Usually it is the holder (owner) of the respective assignment.
+
+| Link target
+| Something that is linked to the object.
+
+|===
+
+In mappings we can use the following methods to find the other side of our links:
+
+[%autowidth]
+|===
+| Method | To be invoked on | Meaning | Search criteria | Version returning single object
+
+| `midpoint.findLinkedTargets`
+| link source
+| Returns all linked objects matching specified criteria.
+| object type, archetype (experimental: link type name)
+| `findLinkedTarget`
+
+| `midpoint.findLinkedSources`
+| link target
+| Returns all objects that have the current one as link target.
+| object type (experimental: link type name)
+| `findLinkedSource`
+
+|===
+
+Note that `findLinkedTargets` should be used [.underline]#only after assignments are processed#, as it needs fresh information from assignment evaluation.
+Therefore:
+
+. You cannot use it in inbound mappings.
+
+. If you use it in object templates, you need to specify `evaluationPhase` of `afterAssignments`.
+
+. The use in assigned/induced focus mappings or resource outbound mappings is OK.
+
+On the other hand, `findLinkedSources` has no such limitation.
+
+For some examples please see individual scenarios for linked objects.
+
+[NOTE]
+====
+`midpoint.findLinkedTargets`  method has _relativistic behavior_: it returns data derived from the new state of focal object if evaluating new state and the data derived from _old_ `roleMembershipRef` values if evaluating the old state.
+
+On the other hand, `midpoint.findLinkedSources` returns the same data in both old and new state, because the links from sources to the focal object are not changed in the course of focal object processing.
+====
+
+
+== Cascading the changes
+
+We often need to recompute one side of the link when relevant parts of an object on the other side (or the link itself) change.
+We usually use policy rule with `scriptExecution` policy action for this.
+
+
+=== Selecting objects to be recomputed
+
+The `scriptExecution` policy action has an option to specify object(s) on which given midPoint script (bulk action) should be applied.
+This option is called `object` and has the following values:
+
+[%autowidth]
+|===
+| Option | Cardinality | Bulk action will be run on | Option value type | Note
+
+| `currentObject`
+| single
+| The current focus object.
+This is the default if nothing is specified.
+| `ObjectSelectorType`
+|
+
+
+| `linkTarget`
+| multiple
+| Objects that are targets of links coming from this object (i.e. results of assignments of this objects) are recomputed.
+| `LinkTargetObjectSelectorType`
+|
+
+| `linkSource`
+| multiple
+| Objects that are sources of links coming to this objects (i.e. objects that have assignments to this object) are recomputed.
+| `LinkSourceObjectSelectorType`
+|
+
+| `namedLinkTarget`
+| multiple
+| A shortcut for `linkTarget` with specified `linkType`.
+| `string`
+| Experimental.
+May be removed.
+
+| `namedLinkSource`
+| multiple
+| A shortcut for `linkSource` with specified `linkType`.
+| `string`
+| Experimental.
+May be removed.
+
+|===
+
+Object sets coming from individual options and also from individual values of these options are added together.
+
+The values of the above options are used to select what specific link targets or sources to use; and under what conditions the current object is to be selected.
+You can use these filters (and-ed together when present in a single value):
+
+[%autowidth]
+|===
+| Filter | Meaning | ObjectSelectorType | LinkTargetObjectSelectorType | LinkSourceObjectSelectorType
+
+| `type`
+| Type of the object.
+| yes
+| yes
+| yes
+
+| `subtype`
+| Subtype of the object.
+| yes
+| yes
+| yes
+
+| `archetypeRef`
+| Archetype of the object.
+| yes
+| yes
+| yes
+
+| `orgRef`
+| Top node of an organizational hierarchy.
+This node and all of its subnodes (transitively, unlimited depth) are considered matching.
+| yes
+| yes
+| yes
+
+| `filter`
+| Filter that an object must match to be considered selected.
+This filter MUST NOT contain organization unit clauses.
+It may only contain property clauses, logical operations and so on.
+| yes
+| yes
+| yes
+
+| `relation`
+| Link matches if it has any of the relation specified.
+(If no relation is specified, all relations match.)
+|
+| yes
+| yes
+
+
+| `linkType`
+| Name of the declared link type.
+(Experimental.)
+|
+| yes
+| yes
+
+| `changeSituation`
+| In what situations (change-related) does the link match? (always, added, removed, inNew, inOld, changed, unchanged)
+|
+| yes
+|
+
+| `matchesRuleAssignment`
+| The link target is related to the assignment that brought this policy rule to the focus object.
+This setting can eliminate the need to specify linked targets e.g. via archetype, if the archetype itself brings this policy rule to the object.This filter is approximate only! First, it ignores relations.
+Second, it ignores whether the assignment that brought this policy rule was really the one that become listed in (old/new) roleMembershipRef.
+So please do not use it if you need absolute precision.
+|
+| yes
+|
+
+
+| `matchesConstraint`
+| The link target was matched by some policy constraint in this rule (e.g. assignment modification constraint has a target object equal to assignment target).
+This setting can eliminate the need to specify linked targets e.g. using archetype.Highly experimental, probably will be removed.
+|
+| yes
+|
+
+|===
+
+Possible values of `changeSituation` filter are:
+
+[%autowidth]
+|===
+| Value | Meaning | Old existence | New existence
+
+| `always`
+| Link always matches (even if it existed but does not any more).
+This is the default.
+| any (X)
+| any (Y)
+
+| `added`
+| Link matches only if it was just added.
+| false
+| true
+
+| `removed`
+| Link matches only if it was just removed.
+| true
+| false
+
+| `inNew`
+| Link matches if it exists in the new state.
+| any (X)
+| true
+
+| `inOld`
+| Link matches if it exists in the old state.
+| true
+| any (X)
+
+| `changed`
+| Link matches if its existence was changed.
+| any (X)
+| not X
+
+| `unchanged`
+| Link matches if its existence was unchanged.
+| any (X)
+| X
+
+|===
+
+An example:
+
+.Recomputing devices when user name changes
+[source,xml]
+----
+<policyRule>
+    <policyConstraints>
+        <or>
+            <modification>
+                <item>name</item>
+            </modification>
+            <modification>
+                <item>fullName</item>
+            </modification>
+        </or>
+    </policyConstraints>
+    <policyActions>
+        <scriptExecution>
+            <object>
+               <linkTarget>
+                   <archetypeRef oid="........"/>
+               </linkTarget>
+            </object>
+            <executeScript>
+                <s:recompute/>
+            </executeScript>
+        </scriptExecution>
+    </policyActions>
+</policyRule>
+----
+
+This rule causes recomputing all linked objects with specified archetype when `name` or `fullName` of the current object is modified.
+See also xref:/midpoint/reference/misc/bulk/actions/recompute/[recompute] for more information on object recomputation.
+
+
+=== Asynchronous execution
+
+In situations where there are many objects to be recomputed you can specify _asynchronous execution_ i.e. execution of the recomputation in the context of a background task.
+
+This is done using `asynchronousExecution` item containing the following options:
+
+[%autowidth]
+|===
+| Option | Meaning | Example
+
+| `executionMode`
+| Mode of asynchronous script execution.
+| `iterative` (the default)
+
+| `taskTemplateRef`
+| Reference to task template i.e. task that is used as a template (prototype) of the actual task being created.
+|
+
+
+| `taskCustomizer`
+| An expression that takes a task and customizes its content.[.underline]#Input variable:#`preparedTask`  (of `TaskType`). +
+[.underline]#Output:# object of `TaskType` type that should be used.The script can simply modify `preparedTask` and return it, see the example below.Note that this is the final step in task preparation.
+So the task is executed in the form that is prepared by this expression.
+|
+
+|===
+
+
+==== Asynchronous execution modes
+
+The following modes are available:
+
+[%autowidth]
+|===
+| Execution mode | Meaning | Comment
+
+| `iterative`
+| Uses iterative scripting handler, i.e. object query with a script that processes every object found.
+| This is the default and recommended option.
+
+| `singleRun`
+| Uses single-run scripting action.
+Input for this action contains references to objects that should serve as bulk action inputs.
+.2+| To be used in special cases only.
+
+| `singleRunNoInput`
+| Uses single-run scripting action without any explicit input.
+
+|===
+
+
+==== Task templates
+
+The task template can contain any options you want to be present in the final task.
+Its state should be `waiting` or `closed` to avoid being run independently.
+The following items are set for the final task (so overwriting ones present in the template):
+
+[%autowidth]
+|===
+| Item | Meaning | Value set
+
+| `name`
+| Task name
+| Name of the task template (or Execute script if no template is specified) plus a random number suffix.
+
+
+| `ownerRef`
+| Task owner
+| Currently logged-in user, or user specified in `runAsRef` for script execution policy action.
+
+
+| `executionStatus`
+| Task execution status
+| `RUNNABLE` (This is quite obvious: task should be run.)
+
+
+| archetype assignment
+| Task archetype
+| `00000000-0000-0000-0000-000000000509` (Iterative bulk action task) for iterative execution mode and `00000000-0000-0000-0000-000000000508` (Single bulk action task) for other execution modes.
+
+
+|===
+
+Note that the `taskTemplateRef`  can contain object filter, even with expressions.
+Those expression can refer to `focus`, `policyAction`, `policyRule` and `configuration`. variables.
+An example:
+
+[source,xml]
+----
+<asynchronousExecution>
+    <executionMode>iterative</executionMode>
+    <taskTemplateRef>
+        <filter>
+            <q:inOid>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+                            focus instanceof OrgType ? '9c50ac7e-73c0-45cf-85e7-9a94959242f9' : '9107b8a4-0a0a-4e82-a4c6-9d84034f9d6e'
+                        </code>
+                    </script>
+                </expression>
+            </q:inOid>
+        </filter>
+    </taskTemplateRef>
+    ...
+</asynchronousExecution>
+----
+
+
+==== Task customizer
+
+You can specify any other task properties (or delete any pre-set ones) using a special expression that expects `preparedTask` as its input and should return modified task object.
+Returned object can be one that was received as input (with necessary modifications).
+An example:
+
+[source,xml]
+----
+<asynchronousExecution>
+    <taskCustomizer>
+        <script>
+            <!-- This script assumes the existence of 'memberRecomputationWorkerThreads' integer property in ModelExecutionOptionsType extension.
+                 It uses the value of this option to set worker threads (mext:workerThreads task property) for given task. -->
+            <code>
+                log.info('Task being prepared = {}', preparedTask.asPrismObject().debugDump())
+                preparedTask.description = 'Hello there'
+                workerThreads = midpoint.getExtensionOptionRealValue('memberRecomputationWorkerThreads')
+                basic.setTaskWorkerThreads(preparedTask, workerThreads)
+                preparedTask
+            </code>
+        </script>
+    </taskCustomizer>
+</asynchronousExecution>
+----
+
+
+=== Delaying recomputation using triggers
+
+There are situations when you want to delay the recomputation.
+A typical case is when you want to recompute members of abstract roles that are (potentially) changed on larger scale.
+For example when they are synchronized from a resource.
+Or if they are modified using a bulk action.
+Or if it is simply expected that users are going to edit more roles via GUI in short period of time (relative to the time needed to recompute members of these roles).
+
+In such cases you can simply set a recompute trigger on relevant objects instead of recomputing them immediately.
+The trigger can be set either unconditionally, or for a given time in the future.
+The latter option optimizes even the creation of the triggers by skipping triggers that are known to be redundant.
+See xref:/midpoint/reference/misc/bulk/actions/recompute/[recompute] for more details.
+
+(Note also that triggers can be set synchronously or asynchronously.
+The latter option is suitable for roles with lots of members.)
+
+
+=== Enabling/disabling the change propagation
+
+The original recompute affected option has an advantage that it can be turned on or off directly when submitting the operation e.g. via GUI.
+In order to implement a similar mechanism we devised a concept of `ModelExecuteOptions` _extension items_. You can define these using standard extension mechanism, e.g.
+
+[source,xml]
+----
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/samples/linked"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/samples/linked"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:complexType name="ModelExecutionOptionsTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:ModelExecuteOptionsType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:recomputeMembers" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="recomputeMembers" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enables or disables recomputation of members - for abstract roles or their archetypes
+                that look at this extension property.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+</xsd:schema>
+----
+
+And then you could check for this option in conditions related to the particular policy rules, e.g.
+
+[source,xml]
+----
+<inducement>
+    <policyRule>
+        <documentation>
+            When department cost center changes, members must be recomputed
+            (unless explicitly disabled in execution options).
+        </documentation>
+        <policyConstraints>
+            <modification>
+                <item>costCenter</item>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <linkSource/>
+                </object>
+                <executeScript>
+                    <s:recompute/>
+                </executeScript>
+                <asynchronousExecution/>
+            </scriptExecution>
+        </policyActions>
+    </policyRule>
+    <condition>
+        <expression>
+            <script>
+                <code>midpoint.extensionOptionIsNotFalse('recomputeMembers')</code>
+            </script>
+        </expression>
+    </condition>
+</inducement>
+----
+
+The specific options cannot be (now) set via GUI.
+However, they can be specified in bulk actions, synchronization reactions, or anywhere where model API is called from Java or groovy code.
+In the near future we implement support also for REST calls.
+
+[TIP]
+.TODO
+====
+Authorizations should be checked somehow when processing execution options.
+Currently they are not.
+
+====
+
+An example of setting the options within synchronization reaction:
+
+[source,xml]
+----
+<reaction>
+    <situation>linked</situation>
+    <synchronize>true</synchronize>
+    <executeOptions>
+        <extension>
+            <linked:recomputeMembers>false</linked:recomputeMembers>
+        </extension>
+    </executeOptions>
+</reaction>
+----
+
+
+== Security aspects
+
+. The `midpoint.findLinkedSources` and `findLinkedTargets` methods use model API to retrieve objects, so they are executed under privileges of currently logged-in user.
+You can use `runAsRef` mechanism in expressions to use a different user, if needed.
+
+. Scripts (bulk actions) in scripting policy rules also execute under privileges of currently logged-in user.
+You can use `scriptExecution.runAsRef` to use a different user.
+There is one exception, though: the search for relevant objects (linked sources or targets) is currently done directly via repository because of the performance.
+So the security is not being applied there.
+This might change in the future.
+
+
+== Performance considerations
+
+There are many things related to performance to consider.
+Let's mention some of them:
+
+. Foreground or background processing of change propagation? This is quite obvious: if the objects linked are only a few and if their recomputation is fast, it can be done on the foreground.
+If we only want to trigger the recomputation via triggers, it can be also done on the foreground (even for a slightly larger sets of linked objects).
+But for all other cases, background processing is preferred.
+And, if processing more focus objects with potentially overlapping sets of linked ones, using triggers is strongly advised to avoid repeated recomputation.
+
+. Where to attach change propagation policy rules? For example, in user  device scenario (xref:/midpoint/reference/synchronization/linked-objects/scenario-2-devices-owned-by-users/[Linked objects scenario 2: Devices owned by users]) policy rule that causes recomputation of linked devices can be put either into user archetype (with order 1 inducement) or device archetype (with order 2 inducement).
+The advantage of the latter case is that it is applied to the user only if the user has at least one device (so sparing some processing time.) The disadvantage is that if a user has multiple devices, the policy rule is present multiple times: once for each device.
+And here comes the distinction: if the rule recomputes _all devices_, this would lead to repeated recomputation of them.
+So, if you have a rule that recomputes all linked objects of a kind, then it should be induced only once, i.e. assigned to the user from user archetype.
+If the rule recomputes only relevant devices (using `matchesRuleAssignment` or `matchesConstraint` clause) or it is expected that there is at most one matching linked object, it can be attached to target's archetype.
+
+. Looking for sources and targets in `midpoint.findLinkedSource` and `midpoint.findLinkedSource` methods: The former uses a traditional repository query, as it has no hints of who could be the sources.
+It can be fast or slow, depending on the complexity of the query and the number of objects returned.
+Fortunately, the result should be cached (locally or globally), so the repo cost will be incurred only once.
+When looking for targets, candidate set of objects is taken from assignments and preliminarily filtered on object type.
+However, further filtering requires fetching these objects.
+(By OID.) In extreme cases that might present hundreds of objects.
+The repo calls should be cached.
+But - in both cases - the objects pass model getObject/searchObjects methods, so all the model processing (security, template, post read hooks) is applied.
+And it is not treated by cache, so it is applied each time these methods are used.
+If this is an issue, you'd need to write your own (optimized) versions of these methods or, providing that platform subscription is in place, request such changes from Evolveum.

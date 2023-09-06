@@ -1,0 +1,45 @@
+= CSRF Protection
+:page-wiki-name: CSRF Protection
+:page-wiki-id: 24677064
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2018-05-24T20:15:41.575+02:00
+:page-wiki-metadata-modify-user: lazyman
+:page-wiki-metadata-modify-date: 2018-06-06T10:12:10.565+02:00
+:page-upkeep-status: green
+
+According to OWASP Cross-Site Request Forgery (CSRF) is an attack that forces an end user to execute unwanted actions on a web application in which they're currently authenticated.
+CSRF attacks specifically target state-changing requests, not theft of data, since the attacker has no way to see the response to the forged request.
+With a little help of social engineering (such as sending a link via email or chat), an attacker may trick the users of a web application into executing actions of the attacker's choosing.
+If the victim is a normal user, a successful CSRF attack can force the user to perform state changing requests like transferring funds, changing their email address, and so forth.
+If the victim is an administrative account, CSRF can compromise the entire web application.
+
+== Implementation
+
+CSRF protection is enabled in midPoint web application by default.
+Implementation is handled by Spring Security integrated with Apache Wicket Framework.
+
+* Main configuration is located in `WebSecurityConfig.java`.
+
+* Custom extended `Form.java` is used to add hidden field with CSRF token.
+
+
+* Ajax client configuration is done in `MidPointApplication.java` where we inject CSRF token for all POST AJAX requests.
+
+* Custom `MidPointAccessDeniedHandler.java` is used for simple redirect to login page when session is invalid or doesn't contain correct CSRF token.
+
+Web services are not protected by CSRF.
+Configuration is located in `WebSecurityConfig.java`, in fact spring security ignores web services URL's.
+Security for services is handled manually via CXF interceptors.
+
+
+== Configuration
+
+To disable CSRF protection one has to create `application.yml` inside `midpoint.home` folder.
+Add following key to this configuration file.
+
+.CSRF configuration
+[source,yaml]
+----
+security:
+   enable-csrf: false
+----

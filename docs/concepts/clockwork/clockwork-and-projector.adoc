@@ -1,0 +1,91 @@
+= Clockwork and Projector
+:page-wiki-name: Clockwork and Projector
+:page-wiki-id: 13074825
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-06T14:47:36.766+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-05-29T10:11:16.019+02:00
+:page-upkeep-status: orange
+
+Clockwork and Projector are two sophisticated component that work together to compute the changes to objects that midPoint manages and to control the execution of these changes.
+These two components form a "brain" of the midPoint.
+
+TODO: picture
+
+
+== Projector
+
+Projector is responsible for computing the changes.
+It is triggered by user changes in GUI, received by service or detected by xref:/midpoint/reference/synchronization/introduction/[synchronization]. Projector recomputes all the xref:/midpoint/reference/synchronization/policies/[synchronization policies], applies all xref:/midpoint/reference/expressions/[mappings and expressions], processes xref:/midpoint/reference/roles-policies/rbac/[RBAC] role assignments and so on.
+However, projector is just computing the values.
+It is not yet executing them.
+The result of projector computations are stored in xref:/midpoint/reference/concepts/clockwork/model-context/[model context].
+
+Projector distinguished objects into two categories: xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
+
+* *Focus* which is typically xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user]. Focus is the object which is central to the recomputation.
+The object that links to all the projections.
+
+* *Projection* which is typically an account (represented by xref:/midpoint/reference/resources/shadow/[shadow]).
+
+Projector reflects data from the focus to projections (using xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]) and also from the projections to the focus (using xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings]). This happens as many times as necessary to get a complete computation result.
+
+
+== Clockwork
+
+Clockwork is a controller.
+Clockwork invokes projector to recompute everything that needs to be recomputed.
+Clockwork invokes xref:/midpoint/reference/concepts/clockwork/hooks/[hooks] to further process the request (e.g. to route it through a xref:/midpoint/reference/cases/workflow-3/[workflow]). This happens several times.
+Clockwork then proceeds to execute the changes.
+This may also happen several times if xref:/midpoint/reference/resources/provisioning-dependencies/[dependencies] are used.
+Clockwork handles execution errors.
+And at the end of execution it once again invokes hooks (e.g. to handle xref:/midpoint/reference/misc/notifications/[notifications]).
+
+
+== Clockwork States
+
+The clockwork process goes through several stages:
+
+* *INITIAL* state.
+Nothing has been done yet.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] is filled with a request.
+But no recomputation has yet taken place.
+The hooks can use this state to inspect or change the request even before any serious action takes place.
+
+* *PRIMARY* state.
+Request is recomputed.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] was recomputed and contains the preview of changes.
+The hooks can use this state to change the original request.
+Nothing has been executed yet.
+This is often used to influence assignments by routing the request through approval workflow.
+E.g. the workflow can remove unapproved role assignments from the request.
+
+* *SECONDARY* state.
+Request is recomputed once again.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] is recomputed to reflect the changes from the primary state.
+The changes are executed after this state is completed.
+The hooks can use this state to inspect the values of projections.
+E.g. it is sometimes used to let system administrators approve the actual changes of account attributes before they are executed.
+The hooks can be invoked several times as this state may be processed several times when xref:/midpoint/reference/resources/provisioning-dependencies/[provisioning dependencies] are used.
+
+* *FINAL* state.
+All the changes are executed.
+The xref:/midpoint/reference/concepts/clockwork/model-context/[model context] reflects the state after the execution.
+This state can be used by the hooks to inspect the results.
+E.g. this is often used to send out the notifications about the completed operations.
+
+
+== TODO
+
+TODO: more details
+
+
+== See Also
+
+* xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context]
+
+* xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections]
+
+* xref:/midpoint/reference/concepts/clockwork/hooks/[Hooks]
+
+* xref:/midpoint/devel/design/projector-and-clockwork-internals/[Projector and clockwork internals] (only some sketches there - yet)

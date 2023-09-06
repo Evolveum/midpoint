@@ -1,0 +1,264 @@
+= Legacy (pre-3.5) workflow configuration
+:page-nav-title: Pre-3.5
+:page-wiki-name: Legacy (pre-3.5) workflow configuration
+:page-wiki-id: 11370566
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-07-03T08:18:10.099+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-12-14T18:07:21.403+01:00
+:page-obsolete: true
+:page-toc: top
+
+As of midPoint 3.4.x, configuration of workflows is done at various places:
+
+. "Static configuration", e.g. Activiti database URL, is stored in midPoint config file (config.xml).
+
+. Other parts of configuration are stored in xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration] repository object.
+
+. Finally, some information about required approvals is attached to individual objects (e.g. roles being assigned).
+
+
+== MidPoint configuration file
+
+You can specify some configuration properties in the static midPoint configuration file.
+An example:
+
+[source,xml]
+----
+<workflow>
+    <enabled>true</enabled>    <!-- optional (if omitted, default is true) -->
+
+    <!-- optional (if omitted, default is either the same database as for repository, or
+         - in case of embedded H2 - separate file in the same directory) -->
+    <jdbcUrl>jdbc:h2:mem:activiti;DB_CLOSE_DELAY=1000</jdbcUrl>
+    <jdbcDriver>org.h2.Driver</jdbcDriver>
+    <jdbcUsername>sa</jdbcUsername>
+    <jdbcPassword/>
+</workflow>
+
+----
+
+Items that can be configured are:
+
+[%autowidth]
+|===
+| Item | Description
+
+| jdbcUrl, jdbcDriver, jdbcUsername, jdbcPassword
+| Parameters for connecting to workflow (i.e. Activiti) database.
+By default, workflows use the same database connection parameters as midPoint repository.
+However, it is possible to specify different db connection properties for them, if necessary.
+
+
+| activitiSchemaUpdate
+| Whether to perform automatic update of Activiti database schema, e.g. when upgrading midPoint.
+Default: the same as for repository configuration (it is true if hibernateHbm2ddl is set to "update").
+
+
+| autoDeploymentFrom
+a| MidPoint automatically deploys new versions of BPMN processes at startup.
+Here you can specify the location from which the deploy is done.
+Default: `classpath*:processes/*.bpmn20.xml`.
+
+
+|===
+
+To disable workflow altogether, specify the following in config.xml:
+
+[source,xml]
+----
+<workflow>
+  <enabled>false</enabled>
+</workflow>
+----
+
+== System configuration object
+
+The configuration object primarily lists change processors that are to be used and their configuration.
+A change processor is a module that intercepts a change event coming from midPoint core (model) and determines whether workflows have to deal with such an event.
+
+Currently, there are two change processors available:
+
+. *primaryChangeProcessor*: it is used to approve a request (or requests) before execution.
+Its configuration consists of a list of change aspects, that process approvals for individual elementary modifications, like "assign a role R to a user U".
+So, by listing change aspects in the configuration, you specify what kinds of changes are to be approved by workflows.
+(The whole processor can be also temporarily disabled by setting its <enabled> property to false.)
+
+. *generalChangeProcessor* (as of 3.0): provides the greatest flexibility for midPoint engineer, however, at the cost of more complex configuring (one could say "programming") and testing.
+It allows calling arbitrary BPMN process in any phase of model operation execution.
+Please note that this change processor is still quite experimental.
+
+More information on change processors and aspects is in the xref:/midpoint/architecture/archive/subsystems/model/workflow-3/[architectural description of workflow module].
+
+The configuration looks like this:
+
+[source,xml]
+----
+  <workflowConfiguration>
+    <modelHookEnabled>true</modelHookEnabled>		<!-- this is the default -->
+    <processCheckInterval>10</processCheckInterval> <!-- this is the default -->
+    <allowCompleteOthersItems>true</allowCompleteOthersItems> <!-- this is the default -->
+    <primaryChangeProcessor>
+      <enabled>true</enabled>						<!-- this is the default -->
+      <addUserAbstractRoleAssignmentAspect>
+        <enabled>true</enabled>						<!-- this is the default -->
+      </addUserAbstractRoleAssignmentAspect>
+      <addUserAspect>
+        <approverRef oid="12345678-1234-1234-4321-123456781234" type="UserType"/>
+      </addUserAspect>
+      <otherAspect>
+        <name>myExtraSpecialCustomWorkflowAspect</name>
+        <approverRef oid="32143214-adce-9910-8898-439183748100" type="UserType"/>
+        <approverRef oid="90101010-8818-0102-3111-849328493218" type="UserType"/>
+      </otherAspect>
+    </primaryChangeProcessor>
+  </workflowConfiguration>
+----
+
+*modelHookEnabled* property tells whether workflow model hook is active (the default) or not.
+If the hook is not active, all requests simply bypass workflow processing, so they are executed without any approvals.
+(This can be obviously dangerous from the security perspective, so be careful.)
+
+*processCheckInterval* property is applicable to "dumb" wf processes, which require active shadowing tasks that repeatedly query their state.
+It sets the process instance check interval (in seconds).
+
+*allowCompleteOthersItems* tells midPoint whether appropriately privileged users (usually the administrator) can approve/reject work items assigned to other users.
+
+
+=== Primary change processor configuration
+
+*primaryChangeProcessor* is where all settings related to this processor are placed.
+Settings available are:
+
+[%autowidth]
+|===
+| Name | Meaning
+
+| enabled
+| Whether this change processor is enabled or not.
+If it's disabled, all requests coming from the model bypass this processor.
+Default is "true" (i.e. enabled).
+
+
+| _aspect name_
+| Configuration related to this particular aspect - available for standard aspects (listed in the table below).
+For example, such aspects can be enabled (by simply providing any configuration related to them) or disabled (by explicitly setting their enabled property to false).
+Note that some aspects are enabled by default - they work even if not mentioned in the configuration.Some aspects can derive approval information (e.g. approverRef, approverExpression, approvalSchema, automaticallyApproved) from objects that they deal with.
+For example, add/modify role/resource assignment aspects pull these information from the respective Role, Org, or Resource object.
+However, other aspects (like addUserAspect) have no such data available.
+These require that this information is provided within the aspect configuration.
+Note that you can specify approverRef, approverExpression, approvalSchema, or automaticallyApproved attributes even for the aspects that take this information from role, org or resource.
+In this case, the information provided within the aspect configuration override the information contained in role/org/resource.
+
+*Beware, currently it is not possible to provide _<aspectName>_ configuration with no parameters.*
+This is due a to a problem in prism parsing.
+Use at least the following content: <enabled>true</enabled>.
+
+
+| otherAspect
+| Configuration related to any aspect, denoted by the *name* property.
+(In the example above, myExtraSpecialCustomWorkflowAspect is configured in this way.)
+
+
+|===
+
+====  Aspects
+
+[%autowidth]
+|===
+| Aspect name | Description | Remark
+
+| addUserAbstractRoleAssignmentAspect
+| Manages creation of role/org assignment to a user.
+| Enabled by default.
+
+
+| modifyUserAbstractRoleAssignmentAspect
+| Manages modification of role/org assignment to a user.
+| Enabled by default.
+
+
+| addUserResourceAssignmentAspect
+| Manages creation of resource assignment to a user.
+| Enabled by default.
+
+
+| modifyUserResourceAssignmentAspect
+| Manages modification of resource assignment to a user.
+| Enabled by default.
+
+
+| addAbstractRoleAbstractRoleAssignmentAspect
+| Manages creation of role/org assignment to a role/org.
+| (*2)
+
+
+| modifyAbstractRoleAbstractRoleAssignmentAspect
+| Manages modification of role/org assignment to a role/org.
+| (*2)
+
+
+| addAbstractRoleResourceAssignmentAspect
+| Manages creation of resource assignment to a role/org.
+| (*2)
+
+
+| modifyAbstractRoleResourceAssignmentAspect
+| Manages modification of resource assignment to a role/org.
+| (*2)
+
+
+| addAbstractRoleAspect
+| Manages creation of a new role/org.
+|
+
+
+| addUserAspect
+| Manages creation of a new user.
+|
+
+
+| addResourceAspect
+| Manages creation of a new resource.
+| (*3)
+
+
+| modifyAbstractRoleAspect
+| Manages modification of a role/org.
+| Not implemented yet.
+
+
+| modifyUserAspect
+| Manages modification of a user.
+| Not implemented yet.
+
+
+| modifyResourceAspect
+| Manages modification of a resource.
+| Not implemented yet.
+
+
+|===
+
+Some notes:
+
+. Deletion of assignments is not yet supported.
+
+. Creation/modification/deletion of role/org inducements is not yet supported - only assignments are processed by now.
+
+. Currently the Resource Wizard (as well as midPoint import mechanism) create resources in so called raw mode, which is not compatible with workflow module. So, although addResourceAspect is available, it is in fact doing nothing in current situation.
+
+. Deletion of objects (role/org, user, resource) is not yet supported.
+
+The missing functionality mentioned above can be quite easily implemented on demand by Evolveum staff, or created directly by a customer or partner. The problem #3 is quite deeper, but solvable.
+
+Concluding notes (important):
+
+. If you fail to correctly list the right set of change processors and aspects in the configuration, the workflows will not work - changes will be executed WITHOUT requiring the approvals, that might present a major security problem.
+
+. Some primary change processor aspects can interfere - e.g. when creating a user with a sensitive role assigned, both "addUserAspect" and "addUserAbstractRoleAssignmentAspect" come into play. Currently, the result is quite unpredictable. For example, a user add approval might be invoked, whereas assignment approval might be not. So, take care that each situation is covered by only one aspect. This restriction is planned to be lifted in future midPoint versions.
+
+== Individual objects
+
+Fine-grained configuration of approvals is done at the level of individual objects, e.g. roles.
+For more information, see xref:/midpoint/reference/cases/workflow-3/legacy-approvals-examples/[these examples].

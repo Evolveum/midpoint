@@ -1,0 +1,94 @@
+= H2
+:page-wiki-name: H2
+:page-wiki-id: 15859787
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:11:04.715+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-01T15:19:23.231+02:00
+:page-toc: top
+:page-upkeep-status: orange
+:page-deprecated-since: "4.4"
+
+== Usage
+
+// TODO: disclaimer that H2 is not for production
+
+=== Database creation
+
+MidPoint will create the database *midpoint.mv.db* automatically inside *${midpoint.home}*. Optionally, *fileName* configuration option can be used to customize the base part of the file name (without *.mv.db* suffix).
+There is no necessity to precreate the database from h2 console.
+The database is accessible with username *sa* with no password.
+
+
+=== Configuration sample
+
+The minimal default configuration with the embedded H2 repository (this is the default configuration, nothing needs to be changed):
+
+[source,xml]
+----
+<configuration>
+  <midpoint>
+  <repository>
+     <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+     <baseDir>${midpoint.home}</baseDir>
+  </repository>
+  </midpoint>
+</configuration>
+
+----
+
+
+=== Driver
+
+Driver for this database is bundled as a part of MidPoint application.
+
+
+== Version notes
+
+[WARNING]
+====
+This are semi-internal notes that can be ignored if you just want to run with H2.
+
+Remember that *H2 is not supported as a production database* - it is only used for testing or proof-of-concept experiments.
+====
+
+Since December 2016 we use H2 1.4.193 (released in October 2016).
+There are some issues with H2, especially when running multi-threaded transactions, but in general the version works fine.
+
+Current link:https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html[Spring Boot BOM] offers H2 in version 1.4.200.
+During experimental upgrades to this fresh version we discovered couple of issues.
+
+Firstly, the following must be changed in the code to go above version 1.4.197, which was rather a disruptive version change:
+
+* *MVCC* option in JDBC URL is obsolete and its usage must be removed.
+Threading model of H2 was reworked in 1.4.198 - which seems to be version with multiple breaking changes.
+See also: link:http://www.h2database.com/html/changelog.html[http://www.h2database.com/html/changelog.html]
+
+** This affects *jdbcUrl* if *sqlConfig.isEmbedded()* in *TaskManagerConfiguration#setJdbcJobStoreInformation*,
+
+** and *getDefaultEmbeddedJdbcUrl()* in *SqlRepositoryConfiguration*.
+
+
+
+* Some SQLs in *OrgClosureManager*, mainly strange usage of parenthesis around two columns in selects used in *IN* clause.
+All these *isH2()* branches can be unified with *isPostgreSQL()* branches safely.
+
+* In *SqlRepositoryFactory.createArguments()* versions 1.4.198 and higher require additional argument *args.add("-ifNotExists")*, because remote database is not created by default.
+In lower versions this can't be used.
+
+These changes are not an issue and can be done quickly.
+The real problem are other issues that seriously affect the midPoint experience:
+
+* MidPoint with H2 always suffered with multi-threading issues, but with versions >=1.4.198 we regularly hit link:https://github.com/h2database/h2database/issues/1808[https://github.com/h2database/h2database/issues/1808] (NPE in *LobStorageMap.copyLob*) during *TestDummyParallelism*, but also during normal user interaction (e.g. adding a working thread to an existing task).
+
+* With 1.4.200 *TestObjectLifecycleApprovalGlobal* failed consistently with some timeouts, 100% reproducible.
+This was OK with 1.4.199.
+No investigation was done to find out whether this requires a change or is a bug in H2 - mainly because of the show stopper above.
+
+There was also an experimental upgrade to 1.4.197, which is the last version before the disruptive changes and could be done without code changes.
+However, we experienced self-corrupting behavior as described in bug:MID-6510[]. This was a critical failure and we couldn't continue using 1.4.197.
+
+There was no will left to test other versions between 193 and 197, and there is also no reason.
+We're standing by for some fresh development with versions above 1.4.200.
+SQL unification with PostgreSQL in *OrgClosureManager* would be actually nice and other changes are not a problem.
+But there must be some reliability, at least for a few weeks worth of tests.

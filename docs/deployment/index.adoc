@@ -1,0 +1,19 @@
+= MidPoint Deployment and Maintenance
+:page-nav-title: Deployment and Maintenance
+:page-wiki-name: Deployment and Operation Concepts
+:page-wiki-id: 27361677
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-01-31T11:06:32.437+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-01-31T11:06:32.437+01:00
+:page-display-order: 900
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe midPoint deployment and maintenance concepts.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

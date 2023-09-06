@@ -1,0 +1,266 @@
+= Troubleshooting Authorizations
+:page-nav-title: Authorizations
+:page-wiki-name: Troubleshooting Authorizations
+:page-wiki-id: 24085092
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-01-23T14:37:47.131+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-08-19T17:12:59.127+02:00
+:page-alias: { "parent" : "/midpoint/reference/security/authorization/", "title" : "Troubleshooting", "display-order" : 800 }
+:page-tag: guide
+:page-toc: top
+:page-upkeep-status: green
+
+MidPoint xref:/midpoint/reference/security/authorization/[authorizations] provide a very powerful mechanism for a fine-grained access control.
+This mechanism is quite simple in principle.
+But the configuration can get very complex especially if a sophisticated xref:/midpoint/reference/roles-policies/rbac/[RBAC] structure is in place.
+Setting the authorization up is not entirely easy task.
+It is often quite difficult to tell why the user is not authorized for a specific action or why the user can access more than he is supposed to.
+Therefore this page describes basic mechanisms how to troubleshoot authorizations.
+
+The basic troubleshooting steps are simple in theory:
+
+. Enable logging of authorization processing
+
+. Repeat the operation
+
+. Figure out which authorization is wrong
+
+. Fix it
+
+. Rinse and repeat
+
+Yet, the practice is much more complex.
+As always.
+
+
+== Authorization Logging
+
+The authorizations are processed in midPoint security component.
+The processing of every authorization is logged.
+Therefore to see the authorization processing trace simply enable the logging of security component:
+
+[source]
+----
+com.evolveum.midpoint.security: TRACE
+----
+
+However, please keep in mind that this is quite intense logging.
+It can easily impact the system performance and flood the logs on a busy system with a lot of authorization.
+It is better to troubleshoot the configuration in a development or testing environment.
+
+When the security logging is enabled then you can see following messages in the logs:
+
+[source]
+----
+2017-01-23 14:32:37,824 [main] TRACE (c.e.m.security.impl.SecurityEnforcerImpl): AUTZ: evaluating security constraints principal=MidPointPrincipal(user:c0c010c0-d34d-b33f-f00d-111111111111(jack), autz=[[http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read])]), object=user:c0c010c0-d34d-b33f-f00d-111111111111(jack)
+2017-01-23 14:32:37,824 [main] TRACE (c.e.m.security.impl.SecurityEnforcerImpl): Evaluating authorization 'read-some-roles' in role:7b4a3880-e167-11e6-b38b-2b6a550a03e7(Read some roles)
+....
+2017-01-23 14:32:37,824 [main] DEBUG (c.evolveum.midpoint.security.api.SecurityUtil): Denied access to user:c0c010c0-d34d-b33f-f00d-111111111111(null) by jack because the subject has not access to any item
+----
+
+There is a set of similar messages for every operation that midPoint attempts.
+First message describes the operations and its "context": who has executed it (principal), what was the object and target of the operation (if applicable).
+The last line usually summarizes the decision: allow or deny.
+The lines between describe the processing of each individual authorization.
+If you examine that part carefully then you can figure out which authorizations were used.
+The result of authorization evaluation can be one of these:
+
+* Authorization *denies* the operation.
+That's a dead end.
+If any authorization denies the operation then the operation is denied.
+No other authorizations need to be evaluated.
+
+* Authorization *allows* the operation.
+That's a green light.
+However, other authorizations are still evaluated to make sure that there is no other authorization that denies the operation.
+
+* Authorization is *not applicable*. The authorization does not match the constraint for object or target.
+Or it is not applicable for other reasons.
+Such authorization is skipped.
+
+If there is a single _deny_ then the evaluation is done.
+The operation is denied.
+Deny is also a default decision.
+I.e. if there is no decision at the end of the evaluation then the operation is denied.
+At least one explicit _allow_ is needed to allow the operation
+
+All of that is recorded in the log.
+You will see processing of every operation, every authorization, evaluation of every authorization clause whether the authorization is applicable or not.
+
+Yes, this is no easy task.
+Troubleshooting is a hard work.
+And this is the best way that we have figured out to troubleshoot the authorizations.
+If you have any better idea we are xref:/community/[more than open to suggestions].
+
+
+== Get Operations
+
+Authorization of operations such as _add_ or _delete_ is quite easy.
+The result is simple: the operation is either allowed or denied.
+But it is a bit different for _get_ operations.
+The entire get operation can still be denied if the user does not have any access to the object that he is trying to retrieve.
+But the common case is that the user has some access to the object, but not all the fields (properties).
+In such a case the operation must be allowed.
+But the retrieved object needs to be post-processed to remove the fields that are not accessible to the user.
+This is done in two steps.
+
+// TODO this was changed in 4.8 - describe
+Firstly the set of _object security constraints_ is compiled from the authorizations.
+The _object security constraints_ is a data structure that describes which properties of an object are accessible to the user.
+There is a map (`itemConstraintMap`) with an entry for every item (property) which is explicitly mentioned in the authorizations.
+This entry contains explicit decisions given by the authorizations for every basic access operation (read, add, modify, delete).
+And then there are default decisions (`actionDecisionMap`). These decisions are applied if there is no explicit entry for the item.
+This _object security constraints_ data structure is usually logged when it is compiled.
+
+Secondly, the _object security constraints_ are applied to the retrieved object.
+The constraints are used to remove the properties that are not accessible to the user.
+This process is not easy to follow in the logs.
+Therefore it is better to inspect the _object security constraints_ structure.
+If it is correct then also the resulting object will be most likely correct.
+
+[TIP]
+.Object security constraints and the user inteface
+====
+The _object security constraints_ has much broader application than just authorization of the read operations.
+This data structure is (indirectly) used by midPoint user interface when displaying edit forms for objects.
+The data from this structure are used to figure out which fields are displayed as read-write, which fields are read only and which fields are not displayed at all.
+The _object security constraints_ structure is always produced by the same algorithm in the security component.
+Therefore the interaction of authorizations and GUI forms can be diagnosed in the same way as the _get_ operations.
+
+====
+
+
+== Search Operations
+
+Search operations are very different than common operations such as _add_ or _delete_ and they are also different than _get_ operations.
+Search operations will *not* result in an access denied error (except for few special cases).
+If the user that is searching has access only to some objects then only those objects will be returned.
+There is no error, because this is a perfectly normal situation.
+The extreme case is that user has access to no object at all.
+But although this situation is not entirely "normal" it is also not in any way special.
+The search will simply return empty result and there is also no error.
+You need to keep this in mind when troubleshooting the _read_ authorizations.
+Attempt to _get_ unaccessible objects will result in a security violation error.
+But _searching_ for them will simply return empty result and there is no error.
+
+The search operations are interesting for another reason.
+Operations such as _get, add_ or _delete_ have precise specification of _object_: the object that is being retrieved, added or modified.
+But it is entirely different for search operations.
+The _object_ is a result of the search operation, not the parameter.
+We cannot examine the _object_ before the search and decide whether we allow or deny the operation.
+There is no _object_ before search operation.
+Also, we cannot simply search all objects and then filter out those that are denied.
+That would be totally inefficient and it will completely ruin paging mechanisms.
+A completely different strategy is needed for search operations.
+
+Search authorizations work the other way around: first the authorizations statements are compiled to a search filter.
+For example if the authorization allows access only to active roles the authorization is compiled to a filter `activation/effectiveStatus=enabled`. Then this filter is appended to the normal search filter and the search operation is performed.
+This approach ensures that the search returns only the objects that the user is authorized to see.
+It also makes the search as efficient as possible and maintains page boundaries.
+But that is not all.
+Another round of post processing is needed to filter out only the items that are not visible to the user.
+This is the same filter as is applied to get operations.
+
+
+== Tips and Notes
+
+There is a couple of things to keep in mind:
+
+* The authorizations are designed to be *additive*. Each role should allow the minimum set of operations needed for the users to complete their job.
+The midPoint will "merge" all the authorizations from all the roles.
+Use allow operations, avoid deny operations if possible.
+It is much better _not to allow_ an operation than to _deny_ it.
+
+* *Deny always wins*. If there is a single _deny_ in any applicable authorization in any roles then the operation is denied.
+It does not matter if there are thousands of allow authorizations, deny always wins.
+What was once denied cannot be allowed again.
+We need this approach because we do not have any way how to order the authorization in many roles.
+Do not use _deny_ unless really needed.
+
+* There are two phases: *request and execution*. The operation needs to be allowed in both phases to proceed.
+Please keep in mind the that object may be changed between request and execution due to mappings, metadata and properties that are maintained by midPoint.
+This is also the reason why we have separate authorizations for request and execution.
+
+* *Name* the authorizations.
+Each authorization statement can have an optional name.
+Specify a reasonably unique name there.
+Then use that name as a string to find the appropriate trace in the log files:
+
+[source,xml]
+----
+<authorization>
+        <name>my supercool autz</name>
+        <action>....
+</authorization>
+----
+
+
+== Common Mistakes
+
+The configuration issues listed in this section are commonly seen in midPoint deployments.
+
+
+=== Request and Execution
+
+There are two phases: request and execution.
+The operation needs to be allowed in *both phases* to proceed.
+Common issue is that the operation is allowed in the request phase, but it is not allowed in execution phase.
+
+Special note about *assign/unassign authorizations*: assign/unassign authorizations make sense only in the request phase.
+The primary goal of these authorizations is to limit the _targets_ of assignment.
+And that is processed only in the request phase.
+All that execution phase can see is just a modification of the `assignment` container.
+Therefore for the assign/unassign authorizations to work correctly, you have to allow _assign_ in the request phase and _modification_ of `assignment` container in the execution phase.
+The default end user role is a good example for this:
+
+[source,xml]
+----
+   <authorization>
+        <name>assign-requestable-roles</name>
+        <description>
+            Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+            The requestable roles will be displayed in the role request dialog by default.
+            Please note that the roles also need an approved definition to go through the approval process.
+            Otherwise they will be assigned automatically wihout any approval.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>requestable</q:path>
+                    <q:value>true</q:value>
+                </q:equal>
+            </filter>
+        </target>
+    </authorization>
+    <authorization>
+        <name>self-execution-modify</name>
+        <description>
+            Authorization that allows to self-modification of some properties, but only in execution phase.
+            The limitation real limitation of these operations is done in the request phase.
+            E.g. the modification of assignments is controlled in the request phase by using the #assign
+            authorization.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <item>credentials</item>
+        <item>assignment</item>
+        <item>parentOrgRef</item>
+        <item>roleMembershipRef</item>
+    </authorization>
+----
+
+== See Also
+
+* xref:/midpoint/reference/security/authorization/[]
+
+* xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]

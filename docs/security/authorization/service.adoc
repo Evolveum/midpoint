@@ -1,0 +1,87 @@
+= Service Authorizations
+:page-wiki-name: Service Authorizations
+:page-wiki-id: 15859829
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T16:22:35.956+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-05-10T17:57:53.249+02:00
+
+== REST Service Authorizations
+
+[%autowidth]
+|===
+| ID | Action | Allowed access to page
+
+| 1
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#all
+| All operations
+
+
+|===
+
+== Web Service (SOAP) Authorizations
+
+[%autowidth]
+|===
+| ID | Action | Allowed access to page
+
+| 1
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#all
+| All operations
+
+
+| 2
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#getObject
+| getObject operation
+
+
+| 3
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#searchObjects
+| searchObjects operation
+
+
+| 4
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#executeChanges
+| executeChanges operation
+
+
+| 5
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#findShadowOwner
+| findShadowOwner operation
+
+
+| 6
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#testResource
+| testResource operation
+
+
+| 7
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#importFromResource
+| importFromResource operation
+
+
+| 8
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#notifyChange
+| notifyChange operation
+
+
+| 9
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ws-3#executeScripts
+| executeScripts operation
+
+|===
+
+
+== Service Authorizations and Object Authorizations
+
+WS or REST authorizations are necessary, but not sufficient condition to allow access to data in midPoint.
+These authorizations are just the "first line" of defense.
+The user needs to have these authorizations to invoke the service operation.
+But this authorization does not give access to any data.
+For practical use-cases the user must also have ordinary (object) authorizations such as _read_, _add_, _modify_ or _delete_ to access any midPoint data.
+Without these authorizations the WS/REST authorizations are almost useless.
+
+
+== See Also
+
+* xref:../[Authorization]

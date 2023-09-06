@@ -1,0 +1,132 @@
+= Item Path
+:page-wiki-name: Item Path
+:page-wiki-id: 6881446
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-12-10T11:07:24.706+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2014-11-06T12:33:52.246+01:00
+:page-toc: top
+
+Item path is a simple syntax for addressing properties, containers, references, attributes and similar items in xref:/midpoint/devel/prism/[prism] data structures used in midPoint.
+I.e. it can address items in users, accounts, roles, assignments and in almost any midPoint data structure.
+The item path syntax is quite similar to XML XPath but it is much simpler.
+It is frequently used in xref:/midpoint/reference/expressions/[mappings and expressions], xref:/midpoint/reference/concepts/query/xml-query-language/[search queries], etc.
+
+The generic syntax of item path is as follows:
+
+[source]
+----
+$variableName/segment[id]/segment[id]/....
+----
+
+The `variableName` and the `[id]` parts are optional.
+If `variableName` is not present then the path is assumed to be _relative_ and its interpretation depends on the context in which it is used.
+If the `id` part is missing then it is assumed that there is only a single segment of such name or that the path addresses all the segments of that name (depends on context).
+Variable names and segment names are assumed to be QNames (see Namespaces section below).
+
+The following table provides example paths and their meaning.
+
+[%autowidth]
+|===
+| Path | Meaning
+
+| `$user/givenName`
+| Property `givenName` in an object stored in variable `user`
+
+
+| `$user/assignment[123]/description`
+| Property `description` stored in the value of container `assignment` identified by id `123` which is in turn part of object stored in variable `user`
+
+
+| `givenName`
+| Property `givenName` stored in whatever object (or container value) assumed to be the current evaluation context
+
+
+| `$user/activation`
+| Container `activation` that belongs to object which is stored in variable `user`. It is assumed that user has only a single value of `activation` container.
+
+
+| `$account/attributes/pir:shipName`
+| Attribute `shipName` in the namespace defined by prefix `pir` which is part of value of container `attributes` that is part of an object stored in the variable `account`.
+
+
+|===
+
+== Variables
+
+Variable definition may be used in the first segment of the item path (and *only* in the first segments).
+Variable name starts with a dollar sign (`$`). Variables are used in some situations, e.g. in xref:/midpoint/reference/expressions/[mapping expressions], xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[correlation and confirmation expressions], etc.
+The variable specification is optional.
+If not specified the path applies to appropriate default object which is usually a user or an account.
+Therefore the paths `$user/fullName` and `fullName` are often equivalent.
+Please see the documentation for a specific mapping or expression type to learn the details.
+
+Variable content may be a primitive value or an object.
+If the content is a primitive value then only a simple path without any segment may be used.
+E.g. in such a case the `$foo` is a legal path but `$foo/bar` is not.
+If a variable contains an object (or a similar hierarchical structure) then also the segments may be used.
+E.g. `$user/activation/administrativeStatus`.
+
+== Namespaces
+
+MidPoint supports full XML QNames (qualified names) in both the segment names and variable names.
+However since midPoint 3.0 the use of namespaces is optional.
+If the namespace part of the path is not present midPoint will try to determine it automatically.
+If the local part of the QName is unique in its respective scope then midPoint will use the path without raising any error or warning.
+This is the usual case.
+However there may be cases when the local part is not unique, e.g. in case that several conflicting midPoint extensions are used.
+Namespacing mechanism is used to resolve such conflicts.
+
+Namespaces can be specified in the item path by using two mechanisms: internal and external.
+Both mechanisms are using namespace prefixes similar to XML and XPath.
+
+Internal namespace definition is a part of path specification itself.
+The namespace declaration is provided before the actual path:
+
+[source]
+----
+declare default namespace 'http://midpoint.evolveum.com/xml/ns/public/common/common-3';
+fullName
+----
+
+This example defines a _default namespace_ for the path.
+This means that every path component which does not have an explicit prefix is considered to be part of the specified namespace.
+In this case the `fullName` component is placed inside the `http://midpoint.evolveum.com/xml/ns/public/common/common-3` namespace.
+
+Internal namespace definition may also contain namespace prefix declaration:
+
+[source]
+----
+declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+declare namespace myext="http://my.com/whatever/";
+$c:user/c:extension/myext:bar
+----
+
+This example defines prefix `c` for namespace `http://midpoint.evolveum.com/xml/ns/public/common/common-3` and prefix `myext` for namespace `http://my.com/whatever/`. Each individual path part is then placed into appropriate namespace depending on which prefix was used.
+
+Similar effect can be achieved by using external namespace declaration.
+In this case the item path retrieves prefix declarations from the enclosing document.
+Therefore the following example is equivalent to the previous example:
+
+[source,html/xml]
+----
+<path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:myext="http://my.com/whatever/">
+  $c:user/c:extension/myext:bar
+</path>
+----
+
+External declaration can be only used in data formats that support QNames - which practically means only XML.
+It cannot be used in simple languages such as JSON.
+
+[TIP]
+.Use of namespaces in the path expressions
+====
+It is reasonably safe *not to use namespaces* in the item paths if you are *deploying a specific solution*. In this case you have the environment under control.
+You know what extensions are applied.
+You can check whether a specific path is unique or not.
+And in case that the path is not unique you can add namespaces on demand.
+
+However, it is strongly recommended to *use namespaces* if you are building general-purpose midPoint extension or integrating a *general-purpose product* to midPoint.
+In such a case you do not have the final environment under control and you cannot predict what extensions will be used in such environment.
+Therefore, it is recommended to use full namespaces in this case to avoid conflicts with other extensions or products.
+====

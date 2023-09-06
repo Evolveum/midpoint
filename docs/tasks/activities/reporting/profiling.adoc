@@ -1,0 +1,16 @@
+= Dynamic Profiling
+:page-experimental: true
+
+Dynamic profiling is a predecessor to xref:../tracing/[tracing]. It logs selected methods' execution directly to the log file.
+Usually, the tracing is more convenient. However, for completeness we keep this (older) method as well.
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+| `beforeItemCondition` (multi)
+| Conditions that must be fulfilled (any of them) before dynamic profiling is started.
+| Start profiling.
+|===
+
+#TODO example#

@@ -1,0 +1,160 @@
+= Synchronization Situations
+:page-nav-title: Situations
+:page-wiki-name: Synchronization Situations
+:page-wiki-id: 655446
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:34:21.434+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-01-07T15:56:54.069+01:00
+:page-toc: top
+
+When midPoint detects a synchronization event it  is categorized into one of the _situations_.
+The _situation_ describes how the change relates to the midPoint state regarding the changed
+resource object (account), user and the midPoint policies.
+
+== Situations
+
+The situations are described in the following table.
+
+[%autowidth]
+|===
+| Situation | Description | Examples | Usualreactions
+
+| `linked`
+| The resource object is linked to an appropriate focal object.
+
+E.g. the account is linked to a user.
+| Change in account attributes only.
+
+Redelivery of a change notification that was already delivered and processed.
+
+Reconciliation found not mismatch for this account.
+|
+
+
+| `collision`
+| The resource object is linked to two or more focal objects.
+
+E.g. The account is linked to two or more IDM users.
+| Error in IDM business logic or inconsistent database.
+Should not happen.
+[.red]#Do we need this situation?#
+|
+
+
+| `deleted`
+| The resource object has been deleted.
+
+E.g. The account existed on the resource, but it has been deleted.
+| A legal account is manually deleted on the Resource.
+| `unlink` +
+`deleteFocus` +
+`inactivateFocus` +
+`addShadow`
+
+
+| `unlinked`
+| A resource object is found on the resource (it exists), midPoint determines exactly one owner
+for that resource object and that owner does not have the resource object linked (yet).
+
+E.g. New account is found on the resource, an owner (midPoint user) is found by using a correlation expression.
+| The account was created on the resource using native administration tools.
+Initial (incremental) import.
+| `link` +
+`deleteShadow` +
+`inactivateShadow`
+
+
+| `unmatched`
+| A resource object is found on the resource (it exists) and midPoint cannot determine any owner for the object.
+
+E.g. New account is found on the resource, it is (obviosly) not linked to any user and correlation expression returns no candidate owners.
+| New account was created on the resource using native administration tools and the account has wrong username.
+
+Initial import.
+
+New account created on an authoritative resource (e.g. HR system)
+| `addFocus` +
+`deleteShadow` +
+`inactivateShadow`
+
+
+| `disputed`
+| Two or more owners are determined for a single resource object.
+
+E.g. new account is found on the resource and two or more users are returned.
+| An ambiguous account is created manually on the resource, e.g. using a username `smith` that matches surname of several users.
+| `deleteShadow` +
+`inactivateShadow`
+
+
+|===
+
+The situations deal only with existence or non-existence of resource object (account) and with ownership of the account.
+In other words it deals only with "links".
+It does *not* deal with the legality of the account (whether the user should have the account).
+See xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking] page for a more detailed explanation.
+The situations also does *not* deal with change in account attributes.
+
+== The Algorithm
+
+MidPoint is using the following algorithm to determine a situation:
+
+. If the resource object is deleted then the situation is *deleted*.
+
+. Resource object owner is looked up.
+The owner is an object that has a xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link] to this resource object.
+If an owner is found then the situation is *linked*.
+
+. xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and confirmation expressions] are used to determine a potential owner for the resource object.
+If any potential owners are found the situation is *unlinked* or *disputed*.
+
+. The situation is *unmatched*.
+
+== Situation Overview
+
+Following table summarizes the differences among situations from the point of view of detected account operation and the number of owners (or potential owners).
+
+[%autowidth,cols="h,1,1,1,1"]
+|===
+h| Detected operation on account
+h| Link exists (user has account)
+3+h| Link does not exist, correlation&confirmation found users
+
+h|
+h|
+h| 0
+h| 1
+h| 2 or more
+
+
+| ADD
+| `linked`
+| `unmatched`
+| `unlinked`
+| `disputed`
+
+
+| MODIFY
+| `linked`
+| `unmatched`
+| `unlinked`
+| `disputed`
+
+
+| DELETE
+| `deleted`
+| `deleted`
+| `deleted`
+| `deleted`
+
+
+|===
+
+== See Also
+
+* xref:/midpoint/reference/synchronization/introduction/[Synchronization]
+
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration]
+
+* xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and Confirmation Expressions]

@@ -1,0 +1,238 @@
+= Fuzzy Searching
+:page-toc: top
+:page-since: "4.6"
+
+== Introduction
+
+IMPORTANT: This feature is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].
+
+For an introduction, please see xref:/midpoint/reference/correlation/#fuzzy-searching[Fuzzy Searching] section in the overview document.
+
+== Fuzzy Search Methods
+
+Currently, there are two methods available:
+
+.Fuzzy string matching methods
+[%header]
+[%autowidth]
+|===
+| Method | Description
+| Levenshtein edit distance
+| Matches according to the minimum number of single-character edits (insertions, deletions or substitutions) required to change one string into the other.
+(From link:https://en.wikipedia.org/wiki/Levenshtein_distance[wikipedia].)
+| Trigram similarity
+| Matches using the ratio of common trigrams to all trigrams in compared strings.
+(See link:https://www.postgresql.org/docs/current/pgtrgm.html[PostgreSQL documentation on `pg_trgm` module].)
+|===
+
+== Using in Correlation
+
+=== Specification of the Filters
+
+The fuzzy searching filters are specified in `search/fuzzy` configuration item.
+Let us have look at an example that searches for users having family name within the Levenshtein distance to the provided one of at most 3.
+
+.Listing 1. Correlation looking for family name "close enough" to the provided one
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <correlation>
+        <correlators>
+            <items>
+                <item>
+                    <ref>familyName</ref>
+                    <search>
+                        <fuzzy>
+                            <levenshtein>
+                                <threshold>3</threshold>
+                            </levenshtein>
+                        </fuzzy>
+                    </search>
+                </item>
+            </items>
+        </correlators>
+    </correlation>
+</objectTemplate>
+----
+
+There are the following options available:
+
+.Configuration properties for Levenshtein edit distance search
+[%header]
+[%autowidth]
+|===
+| Property | Description | Default
+| `threshold` | Upper limit on the edit distance to be matched. | Must be specified.
+| `inclusive` | Is the value of "threshold" meant to be inclusive? | `true`
+|===
+
+.Configuration properties for trigram similarity search
+[%header]
+[%autowidth]
+|===
+| Property | Description | Default
+| `threshold` | Lower limit on the similarity to be matched. | Must be specified.
+| `inclusive` | Is the value of "threshold" meant to be inclusive? | `true`
+|===
+
+=== Confidence Values
+
+When using fuzzy search, not all search results are equally relevant.
+Typically, the higher Levenshtein edit distance, the lower confidence we have in the particular match.
+On the other hand, the higher trigram similarity value, the higher confidence.
+
+Therefore, midPoint allows to specify a transformation from the fuzzy string metric (edit distance or similarity value) to the confidence value of (0, 1].
+
+There are reasonable expressions that are used by default.
+
+For Levenshtein edit distance, it is `1/(d+1)`, where `d` is the value of the distance.
+It works like this:
+
+.Transformation of edit distance to a confidence value by the default expression
+[%header]
+[%autowidth]
+|===
+| Edit distance | Resulting confidence
+| 0 (exact match) | 1.0
+| 1 | 0.5
+| 2 | 0.333
+| 3 | 0.25
+| 4 | 0.2
+| ... | ...
+|===
+
+For trigram similarity, it is simply the value of the similarity itself.
+
+The default formulas may or may not fit your needs.
+You can provide any expression to do the computation.
+For example, the following code will map distances of 0, 1, 2, and 3 to the confidence values of 1.0, 0.9, 0.8, and 0.7, respectively.
+
+.Listing 2. Using a custom formula for confidence value with given Levenshtein edit distance
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <correlation>
+        <correlators>
+            <items>
+                <item>
+                    <ref>familyName</ref>
+                    <search>
+                        <fuzzy>
+                            <levenshtein>
+                                <threshold>3</threshold>
+                            </levenshtein>
+                        </fuzzy>
+                        <confidence>
+                            <expression>
+                                <script>
+                                    <code>[1.0, 0.9, 0.8, 0.7][input]</code>
+                                </script>
+                            </expression>
+                        </confidence>
+                    </search>
+                </item>
+            </items>
+        </correlators>
+    </correlation>
+</objectTemplate>
+----
+
+==== Multiple Correlation Items
+
+If there are multiple correlation items in given correlation rule, their confidences are multiplied. For example:
+
+.Listing 3. Two items to be matched by a fuzzy search
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <correlation>
+        <correlators>
+            <items>
+                <item>
+                    <ref>givenName</ref>
+                    <search>
+                        <fuzzy>
+                            <similarity>
+                                <threshold>0.5</threshold>
+                            </similarity>
+                        </fuzzy>
+                    </search>
+                </item>
+                <item>
+                    <ref>familyName</ref>
+                    <search>
+                        <fuzzy>
+                            <levenshtein>
+                                <threshold>3</threshold>
+                            </levenshtein>
+                        </fuzzy>
+                    </search>
+                </item>
+            </items>
+        </correlators>
+    </correlation>
+</objectTemplate>
+----
+
+(Here we use the default formulas for confidence values.)
+
+Now, let us assume that a correlation candidate has a given name with the similarity of 0.8, and the family name with an edit distance of 1.
+Its overall confidence is then computed as:
+
+.Example of the confidence computation
+[%header]
+[%autowidth]
+|===
+| Property | Fuzzy search metric value | Confidence factor
+| `givenName` | 0.8 | 0.8
+| `familyName` | 1 | 0.5
+2+| *Overall confidence* | *0.4* (= 0.8 x 0.5)
+|===
+
+NOTE: The overall confidence value may be later scaled using a custom _rule weight_ when rules are composed together, as described in xref:/midpoint/reference/correlation/rule-composition/[rule composition] document.
+
+== Using in Filters
+
+[WARNING]
+====
+The use of fuzzy matching outside correlation is highly experimental.
+In particular, matching of `PolyString` values does not work as expected.
+Also, the serialization format may change in the future.
+
+Here we describe it only for educational purposes - to emphasize the fact that correlation is ultimately implemented using regular queries.
+====
+
+A query based on the Levenshtein edit distance:
+
+.Listing 4. Sample Levenshtein distance query in XML
+[source,xml]
+----
+<q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <q:filter>
+        <q:fuzzyStringMatch>
+            <q:path>familyName</q:path>
+            <q:value>gren</q:value>
+            <q:method>
+                <q:levenshtein>
+                    <q:threshold>3</q:threshold>
+                </q:levenshtein>
+            </q:method>
+        </q:fuzzyStringMatch>
+    </q:filter>
+</q:query>
+----
+
+A similarity-based filter:
+
+.Listing 5. Sample trigram similarity filter in Axiom
+[source,axiom]
+----
+familyName similarity ('gren', 0.5, true)
+----
+
+== Limitations
+
+This feature is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].

@@ -1,0 +1,334 @@
+= Multiaccounts
+:page-wiki-name: Multiaccounts HOWTO
+:page-wiki-id: 30245542
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-05-03T15:17:22.252+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-05-20T14:18:40.227+02:00
+:page-since: "4.0"
+:page-toc: top
+
+== Introduction
+
+MidPoint allows to use multiple accounts on a particular resource, provided that they have unique xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind and intent] combination.
+However, there are cases that this is not quite enough.
+There is often a case that a particular resource can have more than one resource with that kind/intent combination.
+An example can be an HR system that keeps a single record for every employment contract for a particular user.
+Therefore there may be multiple contracts during employee lifecycle, some of them valid, other already expired.
+We cannot use _intent_ to distinguish between them because all the intents have to be strictly defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling]. But in this case we do not know how many contracts the user can have, therefore there is no good way to define the intents.
+
+MidPoint 4.0 introduced a new concept of xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[tag] to distinguish such accounts.
+There may be as many accounts as needed as long as they have unique (resource, kind, intent, tag) combination (also known as _discriminator_). Unlike intent, tags are dynamically generated and they do not have to be defined beforehand.
+
+
+== Resource Configuration
+
+The use of "multiaccounts" feature is disabled by default.
+The ability to use allow multiple accounts and use tags needs to be explicitly enabled in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling] by using `multiplicity` element:
+
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            ...
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+            </multiplicity>
+            ...
+        </objectType>
+    <schemaHandling>
+    ...
+</resource>
+----
+
+This setting allows multiple resource objects to exists (and be linked to a focus) for that particular object type.
+Each of the objects needs to be distinguished by a xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[unique tag value].
+
+
+== Generating Tag Values
+
+Value of xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/["tag"] is used to distinguish resource objects that have the same kind/intent combination.
+Similarly to kind and intent, the tag is stored in xref:/midpoint/reference/resources/shadow/[shadow object]. Tags are generated only for those shadows where tag is needed.
+Which means that tags are generated only when the "multiaccounts" configuration is enabled and only for those object types where it is needed.
+The tag values are generated at the same time as kind and intent.
+Which means that the tag is generated in synchronization code for the inbound direction.
+
+The default tag value is OID of the xref:/midpoint/reference/resources/shadow/[shadow]. This is a convenient value to use, as it is permanent and globally unique.
+Therefore it should work well even if account ownership is changed.
+
+
+=== Tag Expression
+
+While shadow OIDs make very good tag values, there are some drawbacks.
+
+Firstly, OIDs are ugly.
+In fact, OIDs are ugly by purpose.
+And that does not cause much trouble for ordinary objects as for them OIDs can be easily translated to user-friendly names.
+But we do not have that option for tags.
+Generating nicer tag values may help a lot with visibility and diagnostics.
+
+Secondly, OIDs are always unique.
+Which may look like a good thing, but there are situation when it is not.
+Even though we allow multiple accounts to be linked the same focus, that does not mean we want unlimited and uncontrolled number of such accounts.
+There may still be duplicates and conflicts.
+We may want to detect duplicates by generating tags based on account properties.
+
+Fortunately, there is an easy way how to generate tag values by using an expression:
+
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            ...
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <expression>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "contractId");</code>
+                        </script>
+                    </expression>
+                </tag>
+            </multiplicity>
+            ...
+        </objectType>
+    <schemaHandling>
+    ...
+</resource>
+----
+
+The expression will get the xref:/midpoint/reference/resources/shadow/[shadow] filled with all the attribute values set in variable `projection`. Responsibility of the expression is to return a tag value.
+The expression is invoked only when tag value is not know.
+Once the tag is set, it is considered to be fixed.
+Therefore choose the expression algorithm wisely.
+Use of account attributes that have unique value and do not change is a good idea.
+Contract identifiers or even permanent account identifiers are a good choice.
+
+[WARNING]
+.Ordinal tags
+====
+Avoid the temptation to use ordinal values as tags (e.g. "#1", "#2" and so on).
+Such tags may look good, but they are very problematic in practice.
+First problem is how to assign them, as they depend on other accounts that are linked to the user.
+Then there is problem of numbering "gaps" when a particular account is deleted.
+But perhaps the worst problem is when account ownership needs to be changed.
+Then the tags need to be recomputed.
+Having tags that change all the time create a fragile configuration and makes it difficult to diagnose the situation.
+It is always better to find some kind of identifier in the account data to be used as a tag.
+
+MidPoint lacks convenient support for tags as ordinary numbers.
+This is somehow done by purpose, to avoid the temptation.
+However, we might be willing to implement it given sufficient xref:/support/subscription-sponsoring/[funding].
+
+====
+
+
+== Inbound Mappings
+
+Since midPoint 4.0, inbound mappings work across all the accounts.
+They merge the output values together.
+This works also with all the "tagged" accounts.
+E.g. the common case is that each of the accounts will produce one assignment representing employment contract.
+This is usually implemented in an xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping]. Therefore there is just one inbound mapping that produces one assignment.
+But there may be several "tagged" accounts for which this mapping is applied.
+All such assignments from all the accounts are merged together and set to the user.
+
+
+=== Mapping Range
+
+One of the difficult parts of setting up inbound mappings is the problem of a range.
+E.g. typical situation is that some assignments are managed automatically by the means of inbound mappings.
+But other assignments are managed manually.
+It is important to distinguish those assignments and properly set range of inbound mappings.
+Otherwise inbound mappings may overwrite assignments that are assigned manually or managed by other means.
+
+See xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping] and xref:/midpoint/reference/expressions/mappings/[Mapping] pages for the details.
+
+
+=== Primary Accounts
+
+There is one common use case for inbound multiaccounts.
+HR systems often have a concept of _primary_ record.
+A person may have several records in the HR system, but one of them is primary.
+In that case we want to synchronize important data from the primary account only and we want to ignore all other accounts.
+This can be achieved by setting mapping conditions to make the mapping active only for the primary account.
+However, as the inbound accounts are synchronized one-by-one, non-primary accounts will result in generating no values, hence removing all values from the user.
+This can be fixed by a clever use of mapping range:
+
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            ...
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                ...
+            </multiplicity>
+            ...
+            <attribute>
+                <ref>ri:lastName</ref>
+                <inbound>
+                    <target>
+                        <path>$focus/familyName</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        if (basic.getAttributeValue(projection, "primary")) {
+                                            // Primary account. We want to remove all values, except those given by this mapping.
+                                            // Which means that we want range to be "all".
+                                            // Therefore we return true for every value of the target set,
+                                            // which means that all values will be part of the range.
+                                            return true
+                                        } else {
+                                            // Non-primary account. We want to keep all existing values of target property (familyName).
+                                            // Which means that we want range to be "none".
+                                            // Therefore we return false for every value, which means no value will be part of the range.
+                                            return false
+                                        }
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                    <condition>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "primary")</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            ...
+        </objectType>
+    <schemaHandling>
+    ...
+</resource>
+----
+
+The example assumes that there is a boolean account attribute `primary` that will be set to `true` for exactly one HR account.
+The `primary` attribute is used in the mapping condition, which makes the mapping to be activated only for primary HR account.
+There is also a definition of mapping range, which is using a dynamic expression to determine the range.
+This effectively applies range of `all` for primary accounts and range of `none` for non-primary accounts.
+
+The effect of this setup is that the value of `familyName` will be taken only from the primary HR account.
+
+
+== Outbound Mappings
+
+++++
+{% include since.html since="4.2" %}
+++++
+
+
+Outbound direction for multiaccounts is slightly different than inbound direction.
+New accounts are created in the outbound case.
+Therefore there is no existing shadow for such accounts, as they do not exist yet.
+Also, using shadow OID as tag does make much sense for outbound multiaccounts.
+In the outbound case, we really need to distinguish the cases when we need to create new account and when we want to reuse existing account.
+For all those reasons, simple tag expressions in resource definition will not work.
+We need a full-blown mapping for the tag value:
+
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            ...
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <outbound>
+                        <source>
+                            <path>$focus/organization</path>
+                        </source>
+                    </outbound>
+                </tag>
+            </multiplicity>
+            ...
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <source>
+                        <path>$projection/tag</path>
+                    </source>
+                    <expression>
+                        <script>
+                                <code>name + '-' + tag</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            ...
+        </objectType>
+    <schemaHandling>
+    ...
+</resource>
+----
+
+Every value of `organization` property of the user will be mapped to a tag value.
+Therefore if `organization` has three values, three tag values will be generated and three accounts will be created.
+The tag value can be used in the ordinary outbound mappings (as shown above) to properly create attribute values for each account.
+
+
+== Tag Expression and Outbound Tag Mapping
+
+There may be some confusion when the tag expression is used and when outbound tag mapping is used:
+
+[%autowidth,cols="h,1,1"]
+|===
+|  | Used when ... | Input
+
+| *Tag expression*
+| Used every time where we already have _existing_ resource object (account) and we need to figure out the tag for it.This usually happens during inbound synchronization.
+However, it may happen in other cases in the future, e.g. in various migration cases.
+| Shadow +
+(for existing resource object)
+
+
+| *Outbound tag mapping*
+| Used when a _new_ resource object is being created.MidPoint needs to figure out whether to create a new resource object or whether to reuse existing resource object.
+| Focal object +
+(e.g. user)
+
+
+|===
+
+
+== Limitations
+
+This "multiaccounts" feature is not implemented completely.
+The implementation is currently limited:
+
+* For midPoint 4.0, multiple resource objects are currently supported *only in inbound direction*. I.e. it works only for authoritative source resources.
+This feature will not work in the outbound direction.
+It may not not work even if inbound and outbound mappings are combined in a single resource.
+Outbound support is implemented in midPoint 4.2.
+
+* GUI support is very limited.
+
+* Migration between single-account and multi-account setups is not supported.
+The shadows must be created in an appropriate setup (e.g. with tag or without tag).
+
+* Tags cannot change.
+Once set, the tag is considered to be fixed.
+It is not updated when resource object is renamed.
+It is not updated when owner is changed.
+
+All those limitations can be removed with appropriate xref:/support/subscription-sponsoring/[platform subscription].
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass']
+
+* xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping]

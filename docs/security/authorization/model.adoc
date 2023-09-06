@@ -1,0 +1,111 @@
+= IDM Model Authorizations
+:page-nav-title: Model Authorizations
+:page-wiki-name: IDM Model Authorizations
+:page-wiki-id: 15859841
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T17:55:50.755+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2014-06-30T18:03:28.784+02:00
+:page-upkeep-status: yellow
+
+[%autowidth]
+|===
+| Action | Object | Target | Meaning | How it translated to
+
+|  http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read
+| Object being read
+| N/A
+| Read objects
+| Allows "read" operations such as `getObject`, `searchObjects`, `countObjects`, ...
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add
+| New object being added
+| N/A
+| Add new object
+| Allows to invoke `executeChanges` operation with add deltas for specified objects
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify
+| Object being modified
+| N/A
+| Modify existing object
+| Allows to invoke `executeChanges` operation with modify deltas for specified objects
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete
+| Object being deleted
+| N/A
+| Delete existing object
+| Allows to invoke `executeChanges` operation with delete deltas for specified objects
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recompute
+| Object being recomputed
+| N/A
+| Recompute existing object without any requested change
+| Allows to invoke `recompute` operation
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#test
+| Resource for which to execute tests
+| N/A
+| Execute resource connection test
+| Allows to invoke `testResource` operation
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#importObjects
+| N/A
+| N/A
+| Import objects from file or stream (bulk).
+This only allows to start the import.
+Each individual object also needs to pass through authorization for `add` action.
+| Allows to invoke `importObjectsFromFile` and `importObjectsFromStream` operations
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#importFromResource
+| Resource to import from
+| N/A
+| Import objects from resource.
+This only allows to start the import.
+Each individual created object also needs to pass through authorization for `add` action.
+| Allows to invoke `importFromResource` operation
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#discoverConnectors
+| Connector host on which to start discovery
+| N/A
+| Discover connectors installed on a specified connector host
+| Allows to invoke `discoverConnectors` operation
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign
+| xref:/midpoint/reference/schema/focus-and-projections/[Focal object] that receives the assignment (e.g. a user)
+| Object which is the target of assignment (e.g. Role or Org)
+| Allows to create a new assignment (see note below)
+| Allows to invoke `executeChanges` operation with modify deltas for specified objects that add assignment to specified targets
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign
+| xref:/midpoint/reference/schema/focus-and-projections/[Focal object] from which the assignment is removed (e.g. a user)
+| Object which is the target of assignment (e.g. Role or Org)
+| Allows to delete existing assignment (see note below)
+| Allows to invoke `executeChanges` operation with modify deltas for specified objects that add assignment to specified targets
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#executeScript
+(deprecated)
+| N/A
+| N/A
+| Allows to execute xref:/midpoint/reference/misc/bulk/[midPoint scripts a.k.a. bulk actions]
+| Authorizes the possibility to execute the bulk actions.
+See xref:bulk-actions.adoc[].
+|===
+
+The `assign` and `unassign` authorizations are designed especially to allow assignment and un-assignment of specific roles and orgs, e.g. in cases of delegated administration, multi-tenancy and similar set-ups.
+These authorizations are a request-phase replacement for much more powerful `modify` authorization.
+E.g. `assign` authorization can be used to allow assignment only selected roles while `modify` authorization can only give blanked permission to modify the `assignment` property.
+The `assign` and `unassign` authorizations work only in the request phase.
+They are not effective in the execution phase.
+Therefore `modify` authorization is still needed in the execution phase.
+However, as the operation needs to pass both phases to be allowed this is a sufficient set-up.

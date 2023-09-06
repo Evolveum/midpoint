@@ -1,0 +1,102 @@
+= Prism Code Generator
+
+
+== Status
+=== Work done
+
+  - Implemented base BindingContext
+  - Implemented base CodeGenerator and basic support for `PlainStructured`, `Containerable` and `Objectable` contracts
+  - Implemented abstract bases for `Contairable` and `Objectable` classes, thus
+    less duplicate code is generated.
+  - Implemented EnumerationTypeDefinition support
+  - Generation of `Enumeration` contract
+  - Maven plugin
+
+
+=== In Progress
+
+- Hashcode, clone and  equals for `PlainStructured`
+
+=== Missing work
+  - Generation of Interface variants of `PlainStructured`, `Containerable` and `Objectable` contracts
+
+== Design Overview
+
+Binding::
+  Mapping between Java interfaces and Prism definitions
+
+Contract::
+  API characteristic and behaviour of generated Prism Object
+
+== Binding
+
+Binding and contracts in general defines how the prism definition or type is mapped to Java code
+such as it's class name, method names for accessing nested data / items, names
+of constants, etc.
+
+This separation is done, so in future BindingContext could be used to simplify class scanning and
+reflection used in BeanMarshaller / Unmarshaller
+
+.Contracts (based on structure of type)
+Simple::
+  Any simple type, which holds one 'unstructured' value eg. number, string, URI.
+Enumeration::
+  A Simple Type which has explicitly enumerated set of possible values, it is
+  possible to represent it as java Enumeration
+Structured::
+  Type, which represents data consisting of multiple named items, in XSD it is
+  represented as `ComplexTypeDefinition`. Structured contract defines how to
+  access and mutate this data, but does not specify their implementation / storage.
+Containerable::
+  An `Structured` contract, which is translation wrapper using `PrismContainerValue`
+  as actual data storage.
+Objectable::
+  An `Containerable` contract, which represents `PrismObject` and is using `PrismContainerValue`
+  as storage.
+PlainStructured::
+  An `Structured` conract which uses java fields to store data. Similar to native
+  JAXB generated objects.
+
+
+
+== Code Generator
+
+Code Generator does not work with Prism schema directly, but rather via `Binding`
+which defines contracts which should be implemented.
+
+Code of Code generator consists of main `CodeGenerator` class which defines basic
+steps in code generation process and contract-specific generators, which
+contains specific code generation code for such contracts.
+
+StructuredGenerator::
+  Generates basic structure of `Structured` type - getters, setters, item name constants
+
+ContainerableGenerator::
+  Generates implementation of type using `AbstractMutableContainerble`,
+  body of getters and setters using  class
+
+ObjectableGenerator::
+  Extends ContainerableGenerator and generates additional methods
+  required by objectable contract.
+
+
+== JAXB Dependencies & removal
+
+* Seems that JAXB dependencies are mostly used only for interfaces and annotations
+* No JAXB runtime in SchemaRegistry - class discovery process is custom
+** Current implementation still requires `javax.xml.bind.annotation` annotations in generated code
+    and `javax.xml.bind.JAXBElement`
+* Generated code and Prism relies on `org.jvnet.jaxb2_commons.lang` for HashCode and Equals strategy
+** Interfaces enforce us to support `ObjectLocator` patterns, but we do not use them.
+   We could simplify code generation of hashCode and equals strategies with our own interfaces for that.
+** BeanMarshaller and BeanUnmarshaller uses reflection and knowledge of JAXB mapping to implement mapping, does not use JAXB directly.
+** XmlTypeConverter uses jaxb DataTypeFactory to create XMLGregorianCalendars and
+
+== Future proposed changes
+
+These changes requires client code changes across whole midPoint
+
+* Change mapping of datetime from GregorianCalendar to java.time
+* Change mapping of duration from xml.Duration to java.time.Duration
+  - First PrismPropertyValues should stop accepting GregorianCalendar, then change generated code
+* Change mapping of PolyStringType to PolyString

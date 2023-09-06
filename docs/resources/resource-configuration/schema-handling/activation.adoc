@@ -1,0 +1,565 @@
+= Resource Schema Handling: Activation
+:page-nav-title: Activation
+:page-wiki-name: Resource Schema Handling: Activation
+:page-wiki-id: 9437190
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-05-13T14:22:40.969+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-04-12T11:43:29.820+02:00
+:page-upkeep-status: orange
+:page-toc: top
+
+== Introduction
+
+Activation part of resource object type definition is located in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] part of resource definition.
+The activation part defines how the resource object is _activated_, i.e. whether it should or should not exist, whether it should be enabled, disabled or archived, etc.
+This part can be used to fine-tune activation and de-activation policies.
+E.g. it can be used to specify whether account should be deleted or disabled when it is unassigned from the user.
+
+The activation part of resource object definition has three parts: existence mapping, administrative status mapping and validity mappings.
+
+
+== Existence Mapping
+
+Existence mapping determines whether the resource object should exist or not.
+If activation mapping returns `true` then the resource object will exist (will be kept as it is or created).
+If it returns `false` the resource object will not exist (will not be created or will be deleted).
+
+The existence mapping usually uses the concept of legality.
+The legality is determined by evaluating xref:/midpoint/reference/roles-policies/assignment/[assignments] and the assignment enforcement mode.
+The result of such evaluation is provided as `input` to the existence mapping.
+Therefore simple `asIs` expression is all that is usually needed:
+
+.asIs existence mapping
+[source,xml]
+----
+<activation>
+   <existence>
+	   <outbound>
+		   <expression>
+			   <asIs/>
+		   </expression>
+	   </outbound>
+   </existence>
+   ...
+</activation>
+----
+
+The mapping above will return `true` if the resource object is legal.
+Therefore such object will exist.
+It returns `false` if the object is not legal (e.g. there is no assignment for in in FULL assignment enforcement mode).
+Therefore such object will be deleted.
+This is also the default mapping that will be assumed in case there is no explicit existence mapping specified.
+
+Note that a similar variable is called `assigned`. It is true if and only if there is a valid assignment for this resource object.
+
+In FULL assignment enforcement mode, `assigned` is alwas the same as `input` (`legal`). In other enforcement modes, they can be different.
+E.g. in RELATIVE mode, a resource object may be legal even if it is not assigned.
+
+[%autowidth]
+|===
+| Variable | Type | Description
+
+| `input`
+| boolean
+| *legality*: set to `true` if the object is legal (based on assignment evaluation and enforcement mode).
+See xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+
+
+| `assigned`
+| boolean
+| True if there is a valid assignment for this object.
+
+
+| `focusExists`
+| boolean
+| Specifies whether the focal object (e.g. user) to which the resource object is linked exists.
+Set to `true` if the resource object is linked to an existing focal object.
+
+
+| `focus`
+| FocusType
+| Contains the complete focal object (e.g. user)
+
+
+| `shadow`
+| `ShadowType`
+| Contains a shadow for which is the existence evaluated (may not be present if not yet created)
+
+
+|===
+
+[NOTE]
+.Weak existence mapping
+====
+As mappings are concerned the concept of _existence_ of an account is a strange one.
+Output (target) of the mapping is not directly bound to any property in the shadow.
+It just reflects the state whether the projection should exist or it should not.
+Therefore the use of _weak_ mappings is somehow different than in other parts of midPoint.
+The target property is virtual and it actually never exists - even if the shadow already exists.
+Therefore weak mappings are applied even if the shadow exists, which may be quite counter-intuitive.
+But there is an advantage.
+Weak mappings will *not* be applied if there is any other non-weak mapping.
+Therefore such weak mapping may be used to define a normal state of the account.
+E.g. the account should normally exists all the times, even if it is not _legal_. And then the other mapping may be used to control other or unusual situations.
+E.g. we in fact want to delete the account if it is left in illegal state for too long.
+Like this:
+
+[source]
+----
+            <activation>
+                <!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.
+                     The accounts are deleted after 1 month -->
+                <existence>
+                    <outbound>
+                        <name>default existence</name>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>delayed delete</name>
+                        <timeFrom>
+                            <referenceTime>
+                                <path>$shadow/activation/disableTimestamp</path>
+                            </referenceTime>
+                            <offset>P1M</offset>
+                        </timeFrom>
+                        <source>
+                            <path>$shadow/activation/administrativeStatus</path>
+                        </source>
+                        <source>
+                            <path>$shadow/activation/disableReason</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.schema.constants.SchemaConstants;
+                                    administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
+                                        // do not delete explicitly disabled accounts
+                                        (disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
+                                         disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+                                </code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+----
+
+In this the "default existence" weak mapping is applied in normal circumstances.
+This means that the account would exist under normal circumstances.
+But if the time constraint and condition in "delayed delete" mapping is evaluated to true value then the "delayed delete" mapping is applied instead and the "default existence" is ignored.
+Which means that the account gets deleted.
+
+====
+
+[TIP]
+====
+Although the existence mapping may technically have `inbound` part as well such part is never used.
+
+====
+
+
+== Administrative Status Mapping
+
+Administrative status mapping maps xref:/midpoint/reference/concepts/activation/[activation administrative status] from the focal object (user) to the administrative status of resource object.
+
+.administrativeStatus mapping
+[source,xml]
+----
+<administrativeStatus>
+	<outbound>
+		<expression>
+			<asIs/>
+		</expression>
+	</outbound>
+</administrativeStatus>
+----
+
+[%autowidth]
+|===
+| Variable | Type | Description
+
+| `input`
+| ActivationStatusType
+| *"Magic" computed status* that is most suitable for the account.
+It is either an `administrativeStatus` if the resource supports validity time constraints (validFrom, validTo) or it is `effectiveStatus` if the resource does not.
+In the later case this effectively simulates the validity time constraints using just the activation status.
+
+
+| `administrativeStatus`
+| ActivationStatusType
+| `$focus/activation/administrativeStatus`This may be used to avoid the "magic" computation in the `input` variable and compute the output in a custom way.
+
+
+| `legal`
+| boolean
+| *legality*: set to `true` if the object is legal (based on assignment evaluation).
+See xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+
+
+| `assigned`
+| boolean
+| True if there is a valid assignment for this object.
+
+
+| `focusExists`
+| boolean
+| Specifies whether the focal object (e.g. user) to which the resource object is linked exists.
+Set to `true` if the resource object is linked to an existing focal object.
+
+
+| `focus`
+| FocusType
+| Contains the complete focal object (e.g. user)
+
+
+|===
+
+
+== Validity Mappings
+
+TODO
+
+== Predefined activation mapping
+
+NOTE: Available from 4.8.
+
+Predefined activation mapping are available from midpoint 4.8. We can use simple configuration for predefined mappings without long and complicated configuration for existence and administrative mappings.
+
+If an account is unassigned and there is no other existing assignment for an account midPoint will de-provisioning that account. Which means that the account will be deleted. This is the default behavior. But it can be changed by predefined mappings configuration.
+
+Now we can use three predefined configurations.
+
+=== Disable instead of delete
+This configuration change default behavior and account will be disabled instead of delete.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <disableInsteadOfDelete/>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+=== Delayed delete
+This configuration change default behavior and account will delete with delay and meanwhile account will be disabled.
+
+We use activation/disableTimestamp from shadow object as reference attribute for time when was account disabled. As disable reason we use de-provision or mapped.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <delayedDelete>
+                    <deleteAfter>P1M</deleteAfter>
+                <delayedDelete/>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+We need set only one attribute _deleteAfter_, that define time after which the account will be deleted.
+
+=== Pre provision
+This configuration will pre-provision a disabled account defined by time before focus’s activation/validFrom date.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <preProvision>
+                    <createBefore>-P5D</createBefore>
+                <preProvision/>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+We need set only one attribute _createBefore_, that define time determines how long before date, from activation/validFrom attribute, disabled account will be created.
+
+
+== Examples
+
+
+=== Delete on Unassign
+
+This is the default configuration.
+It uses only `asIs` mappings.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+				<existence>
+					<outbound>
+						<expression>
+							<asIs/>
+						</expression>
+					</outbound>
+				</existence>
+				<administrativeStatus>
+					<outbound>
+						<expression>
+							<asIs/>
+						</expression>
+					</outbound>
+				</administrativeStatus>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+
+=== Disable on Unassign
+
+This configuration does *not* delete accounts when they are unassigned.
+It disables them instead.
+This is achieved by a combination of existence and administrative status mappings.
+In case of unsassigned account the existence mapping returns `true` which causes that the account is *not* going to be deleted even if it is not legal.
+The administrative status mapping takes care of disabling that account.
+It causes that all _legal_ accounts will have the same activation administrative status as the user that they are linked to.
+On the other hand all the _illegal_ or _unassigned_ accounts will have `DISABLED` status.
+
+The use of `focusExists` variable in the existence mapping causes that the account will be deleted when a linked user is deleted.
+It may be changed to a fixed `true` value if the account should stay there even after the user is deleted.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+				<existence>
+					<outbound>
+						<expression>
+							<path>$focusExists</path>
+						</expression>
+					</outbound>
+				</existence>
+				<administrativeStatus>
+					<outbound>
+						<expression>
+							<script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal &amp;&amp; assigned) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+						</expression>
+					</outbound>
+				</administrativeStatus>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+
+== Mapping Time Constraints
+
+The xref:/midpoint/reference/expressions/mappings/[Mapping] can optionally have a time constraints.
+The time constraints means that the mapping will only be evaluated if certain time constraints are satisfied.
+E.g. a mapping that is only evaluated 30 days after the account is disabled.
+
+The time constraints are very useful especially in the activation part of schemaHandling definition.
+Mapping time constraints can be used to have midpoint do quite a lot of time-related tricks.
+E.g. following set of existence mappings will cause that accounts that are disabled for more than one month will be deleted.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <existence>
+                    <outbound>
+                        <name>Default existence</name>
+						<description>
+							Default existence mapping needs to specified explicitly here.
+							It is also set to be weak therefore the other mapping will take precedence.
+						</description>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>Delayed delete</name>
+						<description>
+							This mapping will be used only one month after the account is disabled.
+							It result is constant "false" which causes the account to stop existing.
+						</description>
+                        <timeFrom>
+                            <referenceTime>
+                                <path>$shadow/activation/disableTimestamp</path>
+                            </referenceTime>
+                            <offset>P1M</offset>
+                        </timeFrom>
+                        <source>
+                            <path>$shadow/activation/administrativeStatus</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    administrativeStatus == ActivationStatusType.DISABLED;
+                                </code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+Similar mapping time constraints can be used with a negative offset to make something happen before a specific date.
+E.g. the following mapping will pre-provision a disabled account 5 days before user's `validFrom` date.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <existence>
+                    <outbound>
+                        <name>Basic existence</name>
+						<description>
+							The default for account existence in this case is the existence of focus object (user).
+							Is user exists, account should exist too. Also note that this mapping is weak which
+							lets the other mapping to take precedence.
+						</description>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>Pre-create</name>
+						<description>
+							The mapping above would cause the account to exist as soon as user appears.
+							But we want to override that and prohibit account existence all the way up to
+							5 days before user's validFrom. This mapping does right that.
+						</description>
+                        <timeTo>
+                            <referenceTime>
+                                <path>$focus/activation/validFrom</path>
+                            </referenceTime>
+                            <offset>-P5D</offset>
+                        </timeTo>
+                        <source>
+                            <path>$focus/activation/validFrom</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+							<description>
+								This condition is not really necessary if all the uses will have a validFrom timestamp.
+								But if there is a user without validFrom then this mapping will be applied
+								indefinitely and the account will never be created. We want to avoid that.
+							</description>
+                            <script>
+                                <code>validFrom != null</code>
+                            </script>
+                        </condition>
+                    </outbound>
+				</existence>
+                <administrativeStatus>
+                    <outbound>
+						<description>
+							This mapping will make sure that if an account is created without a valid assignment
+							(legal=false) then such account will be disabled. We need that because we are pre-provisioning
+							accounts and we want them disabled when they are pre-provisioned.
+						</description>
+                        <strength>strong</strength>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal &amp;&amp; assigned) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+
+
+
+== See Also
+
+* xref:/midpoint/reference/concepts/activation/[Activation]
+
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

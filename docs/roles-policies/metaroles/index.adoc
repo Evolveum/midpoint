@@ -1,0 +1,80 @@
+= Meta-roles
+:page-wiki-name: Metaroles
+:page-wiki-id: 34570284
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-07-09T08:27:27.521+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-07-09T08:34:41.528+02:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
+:page-upkeep-status: yellow
+:page-toc: top
+
+MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applied to users.
+But midPoint roles are universal.
+The roles can be applied to almost any midPoint object.
+Roles can be applied to users, organizations, services and even to roles themselves.
+
+Simply speaking, metaroles are roles applied to other roles.
+Ordinary role applies its characteristics to a user.
+Metarole applies its characteristics to another role.
+This is perfectly possible in midPoint, as role can be applied to almost any midPoint object.
+Then why not apply a role to a another role? This may seem like a pretty useless exercise, but the truth is that metaroles are tremendously useful.
+
+Repetition is a daily bread in almost all IDM deployments.
+E.g. many business roles have something in common.
+For example the business roles have similar approval process.
+There may be role classes that have similar exclusion policies that are part of global segregation of duties (SoD) policy.
+There are roles that are tied to entitlements in a systematic way and so on.
+Roles, organizational units, services and other role-like objects tend to be quite similar.
+Therefore applying metaroles to them can be very useful.
+
+In metaroles, assignment is used instead of inducement:
+
+[source,xml]
+----
+<role oid="6924fb9c-a184-11e9-840e-2feb476335f4">
+    <name>Account Manager</name>
+    <description>
+        This is business role that corresponds to account manager job.
+    </description>
+    <assignment>
+        <!-- Metarole assignment -->
+        <targetRef oid=”a3065910-a183-11e9-835c-0b6edc3d44c3” type=”RoleType”/>
+    </assignment>
+    <inducement>
+        <!--
+             Privileges specific to account manager.
+        -->
+    </inducement>
+</role>
+
+<role oid="a3065910-a183-11e9-835c-0b6edc3d44c3">
+    <name>Business metarole</name>
+    <inducement>
+        <!--
+            Policies and constructions that should be applied to all
+            business roles.
+        -->
+    </inducement>
+</role>
+----
+
+Metaroles may seem similar to a role hierarchy.
+But it is a completely different.
+The crucial difference is that the metarole is applied to the role and not to the user.
+The inducements in the metarole often contain policies such as approval policy.
+Or construction clauses that create groups or organizational units.
+We usually do not want to create a group for each user.
+But we often want to create a group for a role.
+Thats what metarole can do.
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]

@@ -1,0 +1,58 @@
+= Item Counting
+:page-experimental: true
+
+This section describes how should the activity deal with item counting, i.e. determining "expected progress"
+for a bucket or overall. This value is necessary to determine the relative progress, especially if buckets are not used.
+
+Usually there's no need to change the default values.
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+
+| `determineBucketSize`
+| Should the activity execution try to determine the size of individual buckets (usually by counting
+objects before processing)? When execution mode is `bucketAnalysis`, the bucket size is determined
+regardless of this setting.
+| Usually `whenInRepositoryAndNotBucketed`. Sometimes `never`. Depends on the activity type.
+
+| `determineOverallSize`
+| Should the activity execution try to determine expected total progress (usually by counting
+objects before processing)? Currently not supported for worker tasks.
+| Usually `whenInRepository`. Sometimes `never`, sometimes `always`. Depends on the activity type.
+
+| `cacheOverallSize`
+| Should we cache expected total progress between activity executions? (Meaning when suspending
+and resuming an activity.)
+| `false`
+|===
+
+Values for `determineBucketSize`:
+
+[%header]
+[%autowidth]
+|===
+| Value | Meaning
+| `always` | The activity will always execute the items counting.
+| `whenNotBucketed` | The activity counts the items only if it is not bucketed (i.e. does not support bucketing
+at all, or has a single "default" bucket only). The idea is that in this case the items count
+really matters in order to estimate the relative task progress.
+| `whenInRepository` | The activity counts the items only if the item source resides in repository
+(the idea is that repository searches are faster than resource object searches).
+| `whenInRepositoryAndNotBucketed` | The activity counts the items only if the item source resides in repository
+and the activity is not bucketed.
+| `never` | The activity does not count the items.
+|===
+
+Values for `determineOverallSize`:
+
+[%header]
+[%autowidth]
+|===
+| Value | Meaning
+| `always` | The activity will always execute the items counting.
+| `whenInRepository` | The activity counts the items only if the item source resides in repository
+(the idea is that repository searches are faster than resource object searches).
+| `never` | The activity does not count the items.
+|===

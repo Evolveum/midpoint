@@ -1,0 +1,94 @@
+= Expression Profiles
+:page-wiki-name: Expression Profiles
+:page-wiki-id: 30245328
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-08T13:48:53.764+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-08T14:36:26.158+02:00
+:page-since: "4.0"
+:page-midpoint-feature: true
+:page-alias: [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/security/" } ]
+:page-upkeep-status: yellow
+
+[NOTE]
+.Limited feature
+====
+This is a limited midPoint feature.
+This feature currently supports only some specific use-cases.
+We are perfectly capable to finish the feature, just the funding for the work is needed.
+Please consider the possibility for xref:/support/subscription-sponsoring/[supporting] development of this feature by using midPoint Platform subscription.
+If you are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
+====
+
+== Motivation
+
+MidPoint xref:/midpoint/reference/expressions/expressions/[expressions] are a very flexible tool that can be used to customize midPoint behavior almost to the extreme.
+Expressions are used everywhere: xref:/midpoint/reference/expressions/mappings/[mappings], role conditions, reports and all the way up to user interface customization.
+This flexibility is a fundamental part of midPoint design and it work incredibly well.
+
+However, flexibility also has a dark side.
+MidPoint expressions are powerful.
+But for some purposes they may be just too powerful.
+Expressions, and especially xref:/midpoint/reference/expressions/expressions/script/[scripting expressions], can do anything.
+This can be abused by a malevolent attacker to gain unauthorized access to data, disable the system or do almost any kind of damage.
+This is the very nature of customization based on scripting.
+Even though the dangers are quite obvious and self-explanatory, we have xref:/midpoint/reference/security/security-guide/[warned] the users about this all the time.
+The recommendation was not to allow any untrusted user to set up any expression.
+
+However, there is a limit to such an recommendation.
+Expressions are the fuel that drives midPoint flexibility on too many levels.
+It is difficult to image really complex configuration where all the roles are designed by system administrator.
+And it is also difficult to imagine a life with just a static roles.
+That would easily lead to role explosion.
+Thanks to midPoint design, there were ways how to work around this problem:
+
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
+Meta roles can be setup by a trusted administrator.
+Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
+However, even this method is not yet fully supported in midPoint user interface.
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
+This can be used to make sure that expressions used in the roles are safe.
+
+But neither of those mechanism is a complete and definitive solution.
+The real solution is an ability to limit the power of expressions as needed.
+Enter: expression profiles.
+
+
+== Expression Profiles
+
+Expression profiles are definitions, what an expression can and cannot do.
+For example an expression profile may dictate, that particular expression can only use `asIs` and `path` evaluators.
+And in case that `script` evaluator is used, only Groovy can be used as a scripting language, the script should be type-checked and only use of particular safe classes should be allowed.
+
+Expression profiles are defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration.] That part is quite easy.
+But it is much more difficult to specify which expression should be constrained by which profile.
+Profile specification cannot be a part of expression itself.
+In that case anyone that can modify an expression could also change the profile and there would be no security at all.
+Therefore the use of expression profiles is integrated with xref:/midpoint/reference/schema/archetypes/[archetypes]. Object archetype assignment does not usually change - and if it does it is quite an unusual and perhaps very special process.
+Usually only the system administrator has the rights to define archetype definitions.
+And midPoint is designed to process archetypes very efficiently.
+Which is extremely important as expressions are evaluated very often.
+Therefore all of that makes archetypes a very good fit for expression profile specification.
+
+
+== Configuration
+
+See xref:configuration.adoc[] page for the details.
+
+
+== Future of Expression Profiles
+
+The implementation of expression profiles in current midPoint versions is very limited.
+But that can be improved.
+
+Please see xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] page for the details about our plans for the future of expression profiles.
+
+
+== See Also
+
+* xref:configuration.adoc[]
+
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
+
+* xref:/midpoint/reference/security/security-guide/[Security Guide]

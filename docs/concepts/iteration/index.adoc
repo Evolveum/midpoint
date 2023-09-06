@@ -1,0 +1,24 @@
+= Iteration
+:page-wiki-name: Iteration
+:page-wiki-id: 22741768
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-06-28T12:54:10.473+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-06-28T12:54:10.473+02:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: green
+
+Iteration is mechanism how to determine a unique value by several attempts.
+E.g. it can be used to determine a unique username by trying values such as `foobar`, `foobar2`, `foobar3`, ...
+
+Iteration mechanism can be easily enabled and customized in xref:/midpoint/reference/expressions/object-template/[Object Template] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping].
+
+
+== See Also
+
+* xref:/midpoint/reference/concepts/iteration/unique-midpoint-user-name/[Unique midPoint User Name]
+
+* xref:/midpoint/reference/concepts/iteration/unique-account-username/[Unique Account Username HOWTO]
+
+* xref:/midpoint/reference/concepts/iteration/unique-property-value/[Unique property value HOWTO]

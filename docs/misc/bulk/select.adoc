@@ -1,0 +1,47 @@
+= Select
+:page-wiki-name: Select
+:page-wiki-id: 24086045
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T18:46:41.723+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-05-15T14:08:01.987+02:00
+:page-upkeep-status: yellow
+
+== Description
+
+Selects a given item (container, reference, property) from the input data and copies its value(s) into output.
+For example, accepts a list of users and selects only their accounts.
+
+
+== Input
+
+Any value.
+
+
+== Output
+
+Values of selected item(s) in input values.
+
+
+== Properties
+
+[%autowidth]
+|===
+| Property name | Meaning
+
+| path
+| Path to the item to be selected
+
+
+|===
+
+
+== Examples
+
+.Assuming users on input, selects accounts of these users
+[source,xml]
+----
+<select>
+  <path>linkRef</path>
+</select>
+----

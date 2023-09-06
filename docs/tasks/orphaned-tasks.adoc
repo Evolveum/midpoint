@@ -1,0 +1,163 @@
+= Orphaned Tasks
+:page-wiki-name: Orphaned tasks HOWTO
+:page-wiki-id: 52003258
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-10-07T17:45:27.758+02:00
+:page-wiki-metadata-modify-user: honchar
+:page-wiki-metadata-modify-date: 2020-10-08T18:01:13.764+02:00
+:page-since: "4.2"
+:page-upkeep-status: green
+
+++++
+{% include missing-incomplete.html %}
+++++
+
+A task is said to be _orphaned_ if it has a link to a parent (its `parent` property that contains the identifier of the parent is not null) but no task with given identifier value exists.
+
+We want to do various things with orphaned tasks: at least we need to see them and to delete them - in an automated way, if possible.
+
+Unfortunately, current midPoint query API does not allow us to specify a query that would return a list of orphaned tasks.
+Therefore we had to devise an alternate way.
+
+We have chosen to employ `policySituation` property that is generally useful for such cases.
+In this property we store a value of http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#orphaned if and only if the task is orphaned. This is ensured by appropriate policy rule.
+
+Therefore, to mark orphaned tasks as such, one has to provide two things:
+
+. a policy rule that provides the marking,
+
+. a task that would regularly go through all the tasks and update their policy situation.
+
+
+== The Policy Rule
+
+Generally, policy rules can be assigned or global. In this particular case, global policy rule is the easiest to use. The following is to be included in the system configuration object:
+
+.Global policy rule that sets "orphaned" policy situation
+[source,xml]
+----
+<globalPolicyRule>
+    <policyConstraints>
+        <orphaned/>
+    </policyConstraints>
+    <policySituation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#orphaned</policySituation>
+    <policyActions>
+        <record/>
+    </policyActions>
+    <focusSelector>
+        <type>TaskType</type>
+    </focusSelector>
+</globalPolicyRule>
+----
+
+
+== The Task That Updates Policy Situation
+
+The following task will update policy situation for tasks.
+It does a very lightweight "recompute" by skipping everything except for policy rule processing.
+
+.Task that updates policy situation for tasks
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="59cb3937-b923-4903-9afc-ee27e56be262">
+    <name>Mark orphaned tasks</name>
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        <mext:objectType>c:TaskType</mext:objectType>
+        <mext:modelExecuteOptions>
+            <partialProcessing>
+                <inbound>skip</inbound>
+                <focusActivation>skip</focusActivation>
+                <objectTemplateBeforeAssignments>skip</objectTemplateBeforeAssignments>
+                <assignments>skip</assignments>
+                <assignmentsOrg>skip</assignmentsOrg>
+                <assignmentsMembershipAndDelegate>skip</assignmentsMembershipAndDelegate>
+                <assignmentsConflicts>skip</assignmentsConflicts>
+                <focusLifecycle>skip</focusLifecycle>
+                <objectTemplateAfterAssignments>skip</objectTemplateAfterAssignments>
+                <focusCredentials>skip</focusCredentials>
+                <focusPolicyRules>automatic</focusPolicyRules>
+                <projection>skip</projection>
+                <objectTemplateAfterProjections>skip</objectTemplateAfterProjections>
+                <approvals>skip</approvals>
+                <execution>automatic</execution>
+                <notification>automatic</notification>
+            </partialProcessing>
+        </mext:modelExecuteOptions>
+    </extension>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType">
+            <!-- Recomputation task -->
+        </targetRef>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <executionStatus>runnable</executionStatus>
+    <category>Recomputation</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+    <recurrence>single</recurrence>
+    <binding>loose</binding>
+</task>
+----
+
+Of course, the recurrence should be set appropriately, to run e.g. once a day.
+
+
+== GUI Configuration To Display Orphaned Tasks
+
+To display orphaned tasks in GUI, you can configure object collection with the filter for orphaned tasks.
+
+Object collection looks like
+
+.Orphaned tasks object collection
+[source,xml]
+----
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="32456589-1122-1643-2751-469323287545" version="10">
+    <name>Orphaned tasks</name>
+    <type>TaskType</type>
+    <filter>
+        <q:equal>
+            <q:path>policySituation</q:path>
+            <q:value>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#orphaned</q:value>
+        </q:equal>
+    </filter>
+    <domain>
+        <collectionRef oid="00000000-0000-0000-0001-000000000007" relation="org:default" type="c:ObjectCollectionType">
+            <!-- All tasks -->
+        </collectionRef>
+    </domain>
+</objectCollection>
+----
+
+To add menu item for Orphaned tasks collection to the Server tasks section, add the following configuration to  the system configuration.
+
+.Orphaned tasks menu item configuration
+[source,xml]
+----
+<systemConfiguration>
+                .............
+                <adminGuiConfiguration>
+                    <objectCollectionViews>
+                        <objectCollectionView>
+                            <identifier>orphaned-tasks</identifier>
+                            <display>
+                                <label>Orphaned Task</label>
+                                <pluralLabel>Orphaned Tasks</pluralLabel>
+                                <icon>
+                                    <cssClass>fa fa-exclamation</cssClass>
+                                </icon>
+                            </display>
+                            <type>c:TaskType</type>
+                            <collection>
+                                <collectionRef oid="32456589-1122-1643-2751-469323287545" relation="org:default" type="c:ObjectCollectionType">
+                                    <!-- Orphaned tasks -->
+                                </collectionRef>
+                            </collection>
+                        </objectCollectionView>
+                    </objectCollectionViews>
+                </adminGuiConfiguration>
+</systemConfiguration>
+----

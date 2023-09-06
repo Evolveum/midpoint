@@ -1,0 +1,153 @@
+= Consistency Theory
+:page-wiki-name: Consistency Theory
+:page-wiki-id: 6881293
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-11-23T09:52:05.642+01:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2012-11-23T10:16:05.998+01:00
+:page-upkeep-status: yellow
+
+== Introduction
+
+It is important to solve the possible inconsistency problems for many reasons.
+For example, the identity management solution interacts with various systems and information about user identities is stored in more than one database.
+Without any reliable consistency mechanisms the databases may diverge and it may not be clear which data record should be used.
+
+Another reason why it is needed to solve the problem with inconsistencies may be security.
+The identity management solutions are security-sensitive systems because they manage accesses to other systems.
+Consistency of security policy is important to maintain good security level and also to be able to monitor overall security of an organization.
+For instance, potential attacker can intentionally cause inconsistency and escape the "security police".
+
+Many mechanisms for ensuring the consistency were proposed in the literature.
+There are many sources describing various mechanisms that can be used in the database systems.
+For instance, the two-phase commit protocol that uses lock and log mechanism is often used for distributed database systems, Sagas which are based on the sub-transactions with defined compensation mechanism and so on.
+However, these mechanisms are not suitable for identity management solutions.
+
+We proposed and implemented own mechanism to improve the consistency of the data in the midPoint.
+As the traditional mechanisms are not suitable, we tried to find another one which is able to bring some consistency guarantee to the data.
+The mechanism is proposed with respect to known mechanisms and midPoint solution.
+
+Our solution follows the model of the eventual consistency which means that the system does not guarantee that data will be consistent all the time.
+Instead, the temporary inconsistencies are allowed and the attention is made for the mechanism which solves the inconsistencies and eventually brings the data to the consistent state.
+The mechanism is based on the three base concepts:
+
+* Weak consistency as dictated by link:http://en.wikipedia.org/wiki/CAP_Theorem[CAP theorem],
+
+* relative change model,
+
+* compensations for the unsuccessful operations.
+
+link:http://en.wikipedia.org/wiki/CAP_Theorem[CAP theorem] shows that in the distributed system there cannot be guarantee for consistency availability and partition tolerance at once and it must be chosen only two of them.
+In our solution we choose availability and partition tolerance instead of strong consistency.
+This can be also called weak consistency model as we mentioned before.
+
+
+== Weak Consistency
+
+We decided to weaken the consistency instead of availability because for such systems like identity management solutions are, it is required to guarantee high availability and so you can read and write to the system all the time.
+	Every request to the system must have appropriate response even if failures occurs (e.g. one of the node is down).
+It does not matter if the operation was successful, but it must be terminated and the result returned to the user.
+Even, if a message sent from one node to another is lost, the system must continue to operate.
+
+
+== Relative Changes
+
+Another important concept for the proposed mechanism is a xref:/midpoint/reference/concepts/relativity/[relative change model]. Relative change model is used to describe changes made to the objects.
+Instead of sending the whole object even when only one of its attribute was changed, we send only the real change.
+The changes are computed with respect to the old object and the result of computation is the change description.
+
+The advantage of using relative change model instead of absolute model is that the data do not need to be locked while they are used by some process.
+Also, if the object is modified with two different processes at almost the same time, the changes applied by the process which ends first may not be known to the other process and they will be replaced with new changed object.
+On the other side, if we are using relative change model we do not worry about such situation.
+Because not the whole object is replaced, but only the real changes.
+
+
+== Compensations
+
+Last concept that is important for the mechanism is compensations.
+Compensations are reactions for the errors.
+They are used for trying to eliminate the errors or to react to the errors and find appropriate way that will not harm the consistency constraints.
+Each executed operation can end successfully or unsuccessfully.
+If the operation ends with an error, first must be decided if the error is processable or not.
+Processable errors can have defined compensations, but unprocessable errors cannot.
+If the error is processable, then defined compensation mechanism is called to resolve the problem, otherwise the only think we can do is notify user about the error.
+
+The mechanism is proposed to minimize the formation of the inconsistencies and if they ever happened, it should reasonably react and bring the system to the consistent state.
+It consists of two parts.
+The first part tries to handle the unexpected error that occurred and the second part, called reconciliation, is used to compare the state of the object stored in the repository and in the end resource.
+
+It has to be known if the error that occurred is processable or not in the first part.
+If the error is processable, there are specified compensation mechanisms as the reaction to the error.
+Each error has its own compensation mechanism.
+If the error is not processable it means, that we do not know how to implement the compensation to the error.
+Such an error can be also considered as fatal, and then the user help is needed for its reparation.
+
+Compensations can either eliminate error at the moment they originated, or it can postpone the error and try to eliminate it later.
+If the error is eliminated immediately, the result of the compensation should preserve the consistent state of the data.
+But, if the error cannot be eliminated immediately, it can harm the data consistency.
+Since we are not able to react immediately, we must store somewhere the error description.
+
+
+== Reconciliation
+
+Later, according to such stored error description it should be possible to find out what (operation), why (reason) and which data went wrong.
+Since it is not desired (especially in the systems like midPoint is) to have inconsistencies in the data, there must be defined the way how can we return to this error and try to process it later.
+For that reason we proposed to use the reconciliation process.
+
+Reconciliation process can be described as a process by which we can find differences among replicas on various resources.
+These differences are then merged to the one that is applied on other replicas.
+In our solution we propose to use the reconciliation process also to find previous errors and to trigger the operation which can eliminate the error.
+It should be executed in the regular interval but only a limited numbers of times.
+After the set number of attempts is exceeded, the data are returned to the state before that operation.
+
+
+== Processable and unprocessable errors
+
+The mechanism use the concept of processable and uprocessable error.
+To be able to reasonably react to these errors we group the errors of identity connector framework to few well known errors.
+In the midPoint provisioning we have specified these errors:
+
+* Communication problems
+
+* Object not found
+
+* Object already exists
+
+* Schema violation
+
+* Security error
+
+* Generic error
+
+These error we divided to processable and unprocessable errors.
+Processable errors in our solution are Communication problems, Object not found, Object already exists and partially also Generic error.
+Other errors are unprocessable, so we cannot find the automatic way how to eliminate them.
+
+
+== Examples
+
+
+=== Communication problem
+
+For example, the resource on which we try to created account is down.
+We save this object in the local midPoint's repository and try to process it later.
+Later means, by every next request to read this account from the resource (when we are sure the resource is up) or by reconciliation process.
+
+
+=== Object not found
+
+It can occur by get, modify or delete operation.
+In this case, depending on the original operation, we either re-create the object and return/modify it or we delete the object and also the invalid links for this object.
+
+
+=== Object already exists
+
+This operation is more complex than others.
+It depended on configuration in the synchronization part of the resource, how we eliminate this problem.
+We can link the found object to the user or delete the found object and create the original one or create the new one with new identifier.
+
+
+=== Generic error
+
+This error is processable only partially what means we cannot still react to eliminate the error.
+We use this error to indicate that the midPoint work with incomplete shadow (account was not created because of previous resource unavailability) and in this case we try to complete the previously failed operation.

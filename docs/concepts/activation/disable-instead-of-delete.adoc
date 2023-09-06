@@ -1,0 +1,141 @@
+= Disable instead of Delete
+:page-wiki-name: Disable instead of Delete
+:page-wiki-id: 23167026
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-08-10T18:09:09.966+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2018-04-12T13:09:03.875+02:00
+:page-keywords: [ 'activation', 'disable', 'delete' ]
+:page-upkeep-status: yellow
+
+== Description
+
+If an account is unassigned and there is no other existing assignment for an account midPoint will de-provisionig that account.
+Which means that the account will be deleted.
+This is the default behavior.
+But it can be changed.
+Disabling the account instead of deleting is a common requirement.
+And this can be quite easily achieved by adjusting the xref:/midpoint/reference/concepts/activation/[activation] xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+
+
+== How To Do It
+
+This is a two-part solution.
+The first part of the solution is to keep the account from being deleted.
+Whether an account is created or deleted is determined by existence mapping in the activation part of xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] definition.
+If the existence mapping returns true then the account will be kept alive (or created if it does not exist).
+If the existence mapping returns false then the account will be deleted.
+So, the first thing is to make sure that once the account is created it will never be deleted.
+This is quite easy to do:
+
+[source,xml]
+----
+<resource>
+  ...
+  <schemaHandling>
+      ...
+      <objectType>
+            ...
+            <activation>
+                <existence>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+            </activation>
+        ...
+</resource>
+----
+
+The account will be kept alive, but if the usual administrative status mapping is used then the account will maintain the same state as the user.
+Therefore if the user is enabled the account will still be enabled even if it is no longer assigned.
+And here we come to the second part of the solution.
+We need to adjust the mapping for administrative status to disable the account if it is no longer "legal":
+
+[source,xml]
+----
+<resource>
+  ...
+  <schemaHandling>
+      ...
+      <objectType>
+            ...
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+        ...
+</resource>
+----
+
+That's it.
+The variable `legal` is a special-purpose variable that is available in the activation mappings.
+It is set to `true` if the account is legal.
+That means if there is a valid assignment for that account or if the account is allowed by any other policy (such as xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]). The `legal` variable is set to `false` if there is no "habeas corpus" for that account.
+I.e. the account should not be there.
+What this mapping does is that it will simply pass the user's administrative status (which is stored in the `input` variable) in case that the account is legal.
+But it will always set the account status to disabled if the account is not legal.
+
+
+== Even more
+
+Even more complex logic can be used in activation expressions using the "shadow" implicit variable.
+Following code fragment will create account only after focus has been fully enabled in midPoint and never delete the account.
+
+[source,xml]
+----
+<existence>
+    <outbound>
+        <strength>weak</strength>
+        <expression>
+            <variable>
+                <name>effectiveStatus</name>
+                <c:path>$focus/activation/effectiveStatus</c:path>
+            </variable>
+            <c:script>
+                <c:code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+
+                    focusExists && (effectiveStatus == ActivationStatusType.ENABLED || shadow != null)
+                </c:code>
+            </c:script>
+        </expression>
+    </outbound>
+</existence>
+----
+
+
+== Examples
+
+There is a complete example in midPoint xref:/midpoint/devel/testing/integration/[Integration Tests]:
+
+link:https://github.com/Evolveum/midpoint/blob/master/model/model-intest/src/test/resources/common/resource-dummy-red.xml[https://github.com/Evolveum/midpoint/blob/master/model/model-intest/src/test/resources/common/resource-dummy-red.xml]
+
+This example has more than just this "disable instead of delete" feature.
+It also has configuration to eventually delete the account after some time and also configuration to pre-create the account.
+
+
+== See Also
+
+* xref:/midpoint/reference/concepts/activation/[Activation]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
+
+* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]

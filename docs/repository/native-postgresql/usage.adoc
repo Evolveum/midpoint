@@ -1,0 +1,310 @@
+= Using Native PostgreSQL Repository
+:page-toc: top
+:page-display-order: 1
+:page-nav-title: Usage
+:page-since: "4.4"
+
+== Overview
+
+To use midPoint with Native PostgreSQL repository you need to:
+
+. Get the midPoint distribution and install it as described xref:/midpoint/install/distribution/[here];
+you can stop after unpacking the archive and setting up `MIDPOINT_HOME` environment variable.
+. Install and set up the PostgreSQL database - this is the part covered by the bulk of this document.
+. Prepare `config.xml` to configure midPoint for the Native repository.
+Read xref:/midpoint/reference/repository/configuration/[Repository Configuration] for more information,
+including a complete example of `config.xml` for Native repository.
+. Finally, you can run midPoint; this is described in the rest of the xref:/midpoint/install/distribution/[installation document] mentioned in the first step.
+
+== Database setup
+
+PostgreSQL versions 13 and newer are supported.
+We always recommend using the latest stable version, which as of writing this document is 14.x.
+
+=== Installation and configuration
+
+This guide does not cover the installation process as there are many possible combinations.
+To install PG 13 on Ubuntu 20.04 one can use https://gist.github.com/luizomf/1a7994cf4263e10dce416a75b9180f01[these steps] for an inspiration.
+Adjust the setup in `pg_hba.conf` to the real IP address of the server.
+Setup can be different if PG is used only on localhost, but we assume host-to-host communication
+which is typical for production setup.
+
+The short checklist:
+
+* Install PostgreSQL 14 on your OS or server or VM.
+* Setup `listen_addresses = '*'` in `postgresql.conf`.
+* While in `postgresql.conf` it's also good to add statements statistics extension and query logging
+for better visibility (the latter may not be a good option for production and small disks).
+See the snippet lower.
+* Setup `host...md5` line in `pg_hba.conf`, otherwise you (and JDBC driver) will not be able to
+connect to the database remotely.
+* Restart PostgreSQL.
+
+==== postgresql.conf
+
+In short, this can all be added to the end `postgresql.conf`:
+
+----
+listen_addresses = '*'
+
+# this is necessary for pg_stat_statements extension
+shared_preload_libraries = 'pg_stat_statements'
+
+# To log all queries, uncomment the lines below.
+# Monitor the free disk space afterwards, there is no automatic cleanup!
+#log_directory = 'pg_log'
+#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+#log_statement = 'all'
+#logging_collector = on
+----
+
+[NOTE]
+Sizing the database server and adjust PostgreSQL configuration parameters is not part
+of this document at this moment - but we plan to add it.
+In the meantime rely on other online resources.
+Be aware that the default Postgres server sizing is rather small.
+You can use a configuration calculator like https://pgtune.leopard.in.ua/[this] to get reasonable
+defaults if you know the DB hardware (use "Mixed type of application" as DB type).
+
+For more information regarding this configuration file read https://www.postgresql.org/docs/current/config-setting.html[this document] from official PostgreSQL documentation.
+
+==== pg_hba.conf
+
+To make things simple, we will allow all connections to the database; password is still required.
+Add the following lines at the end of the `pg_hba.conf` file:
+
+----
+# Allow connections from outside (with password)
+host    all             all             0.0.0.0/0            md5
+----
+
+For more information regarding this configuration file read the https://www.postgresql.org/docs/current/auth-pg-hba-conf.html[official documentation].
+
+==== Restart the server
+
+Any chanes to `postgresql.conf` or `pg_hba.conf` requires PostgreSQL server restart.
+Do so now to apply the configration changes.
+
+=== Database preparation
+
+[WARNING]
+*Don't use https://www.pgadmin.org/[pgAdmin] for midPoint SQL scripts!*
+Explanation is in one of the important blocks below.
+
+Assuming we start in `bash` as a root or sudo capable user, let's first run `psql` as database admin:
+
+[source,bash]
+----
+sudo -i -u postgres psql
+----
+
+Next we will create a user and a database for midPoint.
+In the following example, we create `midpoint` user as database superuser.
+If you require non-superuser, follow link:#installing-as-non-superuser[this section] instead.
+
+[source,sql]
+----
+CREATE USER midpoint WITH PASSWORD 'password' LOGIN SUPERUSER;
+CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
+----
+
+[NOTE]
+====
+The command above may complain about the collation on some platforms:
+
+----
+[22023] ERROR: new collation (en_US.UTF-8) is incompatible with the collation of the template database (en_US.utf8)
+Hint: Use the same collation as in the template database, or use template0 as template.
+----
+
+You can either add suggested `TEMPLATE template0` to the command, or use `en_US.utf8` locale instead
+of `en_US.UTF-8`.
+====
+
+To initialize the database connect to `midpoint` database as `midpoint` user and execute
+the content of the following schema files provided with the distribution package
+under the `doc/config/sql/native-new` directory:
+
+* `postgres-new.sql` is the content of the main repository schema without audit tables.
+This file also creates `public` schema if missing - dropping the whole `public` schema is often
+the fastest way to replace any previous schema (obviously, not recommended for production).
+* `postgres-new-audit.sql` is the content of audit schema.
+It can be applied on top of the main repository schema or separately to another database.
+If both schemas are to be applied, first apply main repository schema followed by audit schema.
+* `postgres-new-quartz.sql` is the script with tables necessary for midPoint scheduler (using
+http://www.quartz-scheduler.org/[Quartz Schduler]).
+These tables are optional, but it is recommended to create them in case you need them.
+The tables must be created in the main repository schema.
+
+See xref:/midpoint/reference/repository/native-audit[Native PostgreSQL Audit Trail] for details how
+to set it up in a database xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[separate from the main repository].
+Be aware that with new repository *both databases have to be PostgreSQL databases.*
+It is possible to use different versions for each database as long as they are supported (13 or higher).
+
+[IMPORTANT]
+If you want to migrate your old audit records to the new database and keep event record IDs unique,
+set the ID sequence in the new database as described in xref:/midpoint/reference/repository/native-audit/#audit-migration-from-other-database[Audit migration from other database].
+
+We recommend using `psql` for database initialization like this:
+
+----
+export PGPASSWORD=password # password for psql, you can skip it and enter it interactively
+# If you want to replace any previous tables in the schema, uncomment this drop too:
+#psql -h localhost -d midpoint -U midpoint -c "drop schema public cascade"
+psql -h localhost -d midpoint -U midpoint -f postgres-new.sql -f postgres-new-audit.sql -f postgres-new-quartz.sql
+----
+
+If you want to use different schema name than `public` you have to adjust the initialization commands.
+
+.Prefer psql command
+[IMPORTANT]
+====
+You can use other client than `psql`, but the client must send the commands to the server separately.
+E.g. IDEA Ultimate Edition or DataGrip from JetBrains work fine.
+
+Some clients, notably https://www.pgadmin.org/[pgAdmin], send the whole content in a single request.
+This does not go well with midPoint initalization script that calls procedure with `COMMIT` inside.
+You can execute `call` statements separately, but the same problem occurs for upgrade scripts
+where you'd need to execute each `call` separately.
+
+Alternatively, it seems that wrapping the content of the file with an https://www.postgresql.org/docs/current/sql-do.html[anonymous block]
+works, but we still recommend using tools that can execute files properly - that is `psql`.
+====
+
+.Quartz tables
+[NOTE]
+====
+Quartz scheduler in midPoint can be configured to use a database with `taskManager/jdbcJobStore`
+option in `config.xml` set to `true`.
+This is also the default if `clustered` is set to `true`.
+See xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
+for further details.
+
+Even if not required, it is best to create these tables in case the scheduler configuration changes later.
+====
+
+If you plan to use https://www.postgresql.org/docs/current/pgstatstatements.html[statement statistics extension]
+(not discussed here), initialize it like this:
+
+----
+psql -h localhost -d midpoint -U midpoint -c "create extension pg_stat_statements"
+----
+
+=== Installing As Non-Superuser
+
+The instruction above assume that database user `midpoint` is a database superuser.
+This is a very convenient method.
+However, it is likely to be a security concern, especially in case that midPoint is sharing database engine with other applications.
+Following steps describe the process of database initialization without granting superuser privileges to midPoint user.
+
+. Connect to `psql` utility as superuser (`postgres`).
+Execute following commands.
+
+. Create user without superuser privileges:
++
+[source,sql]
+----
+CREATE USER midpoint WITH PASSWORD 'password' LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
+----
++
+Or alternatively use `createuser` utility:
++
+[source,bash]
+----
+sudo -u postgres createuser --pwprompt --no-superuser --no-createdb --no-createrole midpoint
+----
+
+. Create `midpoint` database with `midpoint` user as an owner:
++
+[source,sql]
+----
+CREATE DATABASE midpoint WITH OWNER = midpoint ENCODING = 'UTF8' TABLESPACE = pg_default LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' CONNECTION LIMIT = -1;
+----
+
+. As database superuser (`postgres`) connect to the new database:
++
+[source,sql]
+----
+\c midpoint
+----
+
+. Execute the commands that create database extensions. Such commands require superuser privileges:
++
+[source,sql]
+----
+CREATE EXTENSION IF NOT EXISTS intarray;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+DO $$
+BEGIN
+    PERFORM pg_get_functiondef('gen_random_uuid()'::regprocedure);
+    RAISE NOTICE 'gen_random_uuid already exists, skipping create EXTENSION pgcrypto';
+EXCEPTION WHEN undefined_function THEN
+    CREATE EXTENSION pgcrypto;
+END
+$$;
+----
++
+Check the create script for all occurrenes of `CREATE EXTENSION` and run them manually.
+
+. Run the rest of the SQL script as user `midpoint`:
++
+[source,bash]
+----
+psql -h localhost -d midpoint -U midpoint -f doc/config/sql/native-new/postgres-new.sql
+----
++
+There may be errors indicating problems with creating database extensions, caused by the script attempting to execute a privileged operation.
+You can ignore such errors, as the extensions were created by superuser in previous step.
+
+. Continue installation process normally, which means executing the audit SQL script `postgres-new-audit.sql`
+and script for Quartz tables `postgres-new-quartz.sql`.
+
+[WARNING]
+With this setup you have to be careful with upgrade scripts as well.
+*Always check the upgrade SQL script for new `CREATE EXTENSION` and run those as superuser first!*
+Afterwards, you can run the whole upgrade script as the normal user (`midpoint` in this example).
+
+== midPoint Configuration
+
+At this moment the database is prepared and it's time to configure midPoint appropriately.
+This typically preparing proper repository configuration in `config.xml` file.
+Configuration options related to repository as well as an example of `config.xml` file can be found
+in xref:/midpoint/reference/repository/configuration/[Repository Configuration] article.
+The article references this page, but if you finished the steps above in this document, you can focus just on the config options.
+
+With the database ready and midPoint configuration file referencing the Native repository,
+you can finally run midPoint, e.g. by running `bin/start.sh`.
+More details on running midPoint are mentioned in the xref:/midpoint/install/distribution/[installation document].
+
+== Versioning and upgrading
+
+Long story short, just run the provided `postgres-new-upgrade.sql` anytime, it should be safe.
+It always runs only the missing parts of the upgrade process.
+Be sure you're running the upgrade script provided with the version you're actually using, see
+xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postgresql-repository[database schema upgrade].
+
+You can find further details in the source code documentation for `apply_change` procedure at the end of the `postgres-new.sql` script.
+
+== Troubleshooting
+
+If you find a bug or encounter performance problem with the Native repository,
+it is always important to gather more information before reporting the issue.
+
+* In case of error or exception, always include the relevant portion of the xref:/midpoint/reference/diag/logging/[midpoint.log] in the report.
+* Review xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#index-tuning[Index tuning]
+tips for performance problems, especially for extension items or shadow attributes.
+* If the performance problem is indeed DB related, identify the slow query, preferably using
+`pg_stat_statements` extension as xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#monitoring-queries[described here].
+* To log issued SQL queries in xref:/midpoint/reference/diag/logging/[midpoint.log],
+configure system loggers (*System* in main menu, then *Logging*) so that it contains
+`com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger` with level `DEBUG` (shows SQL)
+or `TRACE` (includes parameter values).
+
+== See also
+
+* xref:/midpoint/reference/repository/repository-database-support/[Repository Database Support]
+discusses old and new repository and our support strategy.
+* xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
+* xref:/midpoint/reference/repository/configuration/[Repository Configuration]
+* xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
+* xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

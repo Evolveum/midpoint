@@ -1,0 +1,252 @@
+= Activation
+:page-wiki-name: Activation
+:page-wiki-id: 9437199
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-05-13T14:49:12.613+02:00
+:page-wiki-metadata-modify-user: honchar
+:page-wiki-metadata-modify-date: 2020-01-16T15:58:48.886+01:00
+:page-liquid:
+
+The term _activation_ is used in midPoint to denote a set of properties that describe whether the user is active.
+This includes properties that describe whether the user is enabled, disabled, archived, since when he should be enabled, to what date he should be active and so on.
+
+[TIP]
+.Activation is a generic and powerful concept
+====
+The _activation_ is a concept that usually applies to users and accounts.
+But in midPoint the term has much wider applications.
+Also roles, organizational units and even individual xref:/midpoint/reference/roles-policies/assignment/[assignments] can have individual activation properties.
+E.g. a role may be valid until the end of year (when next role review is scheduled).
+Or the user may get a role just for two weeks while his colleague is on vacation.
+There are many possibilities how to use this concept to create a very dynamic configuration.
+
+====
+
+The activation in itself is multi-dimensional and quite complex.
+It is composed from several properties that may change in somehow independent and somehow inter-dependent way.
+The best way to explain this is to describe the meaning and behavior of individual properties.
+
+
+== Administrative Status
+
+Administrative status defines the "administrative state" of the object (user).
+I.e. the explicit decision of the administrator.
+
+If administrative status is set, this property overrides any other constraints in the activation type.
+E.g. if this is set to "enabled" and the user is not yet valid (according to _validity_ below), the user should be considered active.
+If set to "disabled" the user is considered inactive regardless of other settings.
+
+Therefore this property does *not* necessarily define an actual state of the object.
+It is a kind of "manual override".
+In fact the most common setting for this property is to leave it unset and let other properties determine the state.
+
+If this property is not present then the other constraints in the activation type should be considered (namely _validity_ properties, see below).
+
+If the administrative status is not present and there are no other constraints in the activation type or if there is no activation type at all then the object is assumed to be "enabled", i.e. that the described concept is active.
+Unless the activation is constrained by the xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle] (see below).
+
+[%autowidth]
+|===
+| Value | Icon example | Description
+
+| _no value_
+|
+
+| No explicit override.
+Other activation properties determine the resulting status.
+
+
+| `enabled`
+| image:enabled_icon.png[]
+
+
+| The entity is active.
+It is enabled and fully operational.
+
+
+| `disabled`
+| image:disabled_icon1.png[]
+
+
+| The entity is inactive.
+It has been disabled by an administrative action. +
+This indicates *temporary* inactivation and there is an intent to enabled the entity later. +
+It is usually used for an employee on parental leave, sabbatical, temporarily disable account for security reasons, etc.
+
+
+| `archived`
+| image:archived_icon1.png[]
+
+
+| The entity is inactive.
+It has been disabled by an administrative action. +
+This indicates *permanent* inactivation and there is no intent to enabled the entity later. +
+This state is used to keep the user record or account around for archival purposes.
+E.g. some systems require that the account exists to maintain referential consistency of historical data, audit records, etc.
+It may also be used to "blocks" the user or account identifier to avoid their reuse. +
+It is usualy used for retired employees and similar cases.
+
+
+|===
+
+
+== Validity
+
+Validity refers to state when the object is considered legal or otherwise usable.
+In midPoint the validity is currently defined by two dates: the date from which the object is valid (`validFrom`) and the date to which an object is valid (`validTo`). When talking about users these dates usually represent the date when the contract with the user started (hiring date) and the date when the contract ends.
+The user is considered _valid_ (active) between these two dates.
+The user is considered inactive before the `validFrom` date or after the `validTo` date.
+
+It is perfectly OK to set just one of the dates or no date at all.
+If any date is not set then it is assumed to extend to infinity.
+E.g. if validFrom date is not set the user is considered active from the beginning of the universe to the moment specified by the `validTo` date.
+
+The validity is overridden by the administrative status.
+Therefore if administrative status is set to any non-empty value then the validity dates are not considered at all.
+
+
+== Object Lifecycle
+
+++++
+{% include since.html since="3.5" %}
+++++
+
+Activation is also influenced by xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle]. The object behaves normally in `active` and `deprecated` lifecycle states.
+In these states the object activation is determined by the administrative status and validity.
+Object is considered to be non-active in any other lifecycle states (`draft`, `proposed`, `archived`, `failed` and any other custom state).
+If the object is in any of these states then the setting of the administrative status and validity does not matter at all.
+The object is always seen as effectively _disabled_ or _archived_.
+
+
+== Effective Status
+
+Effective status defines the "effective state" of the object.
+Simply speaking it is a read-only property that tells whether the user should be considered active or inactive.
+The effective status is the result of combining several activation settings (administrative status, validity dates, etc.).
+
+The effective status holds the result of a computation, therefore it is kind of VIRTUAL property that is recomputed every time the status changes.
+The effective status *should not* be set directly.
+The effective status can be changed only indirectly by changing other activation properties.
+
+The effective status is the property that is used by majority of midPoint code when determining whether a particular object is active or inactive.
+This property should always have a value in a normal case.
+If this property is not present then the computation haven't taken place yet.
+
+[%autowidth]
+|===
+| Value | Description
+
+| _no value_
+| Not yet computed.
+Should not happen under normal circumstances.
+
+
+| `enabled`
+| The entity is active.
+
+
+| `disabled`
+| The entity is inactive (temporary deactivation).
+
+
+| `archived`
+| The entity is inactive (permanent deactivation).
+
+|===
+
+There is also another virtual read-only property called _validity status_. This property is similar to effective status in its behavior, but it is computed only from the validity dates.
+It is used for internal purposed.
+
+
+== Lockout
+
+Lockout status defines the state of user or account lock-out.
+Lock-out means that the account was temporarily disabled due to failed login attempts or a similar abuse attempt.
+This mechanism is usually used to avoid brute-force or dictionary password attacks and the lock will usually expire by itself in a matter of minutes.
+
+This value is usually set by the resource or by midpoint internal authentication code.
+This value is mostly used to read the lockout status of a user or an account.
+This value is semi-writable.
+If the object is locked then it can be used to set it to the unlocked state.
+But not the other way around.
+It cannot be used to lock the account.
+Locking is always done by the authentication code.
+
+[%autowidth]
+|===
+| Value | Description
+
+| _no value_
+| No information (generally means unlocked user or account)
+
+
+| `normal`
+| Unlocked and operational user or account.
+
+
+| `locked`
+| The user or account has been locked.
+Log-in to the account is temporarily disabled.
+
+|===
+
+Please note that even if user of account are in the `normal` (unlocked) state they still be disabled by administrative status or validity which will make them efficiently inactive.
+
+There is also an informational property `lockoutExpirationTimestamp` that provides information about the expiration of the lock.
+However not all resources may be able to provide such information.
+
+
+== Operational Properties
+
+There are several properties in the activation data structure that provide operational data:
+
+[%autowidth]
+|===
+| Property | Type | Description
+
+| `disableReason`
+| URI
+| URL that identifies a reason for disable.
+This may be indication that that identity was disabled explicitly, that the disable status was computed or other source of the disabled event.
+
+
+| `disableTimestamp`
+| dateTime
+| Timestamp of last modification of the activation status to the disabled state. +
+Note: This timestamp is used for recording purposes.
+Changing it will NOT change the activation state.
+Use validity dates for that purpose.
+
+
+| `enableTimestamp`
+| dateTime
+| Timestamp of last modification of the activation status to the enabled state. +
+Note: This timestamp is used for recording purposes.
+Changing it will NOT change the activation state.
+Use validity dates for that purpose.
+
+
+| `archiveTimestamp`
+| dateTime
+| Timestamp of last modification of the activation status to the archived state. +
+Note: This timestamp is used for recording purposes.
+Changing it will NOT change the activation state.
+Use validity dates for that purpose.
+
+
+| `validityChangeTimestamp`
+| dateTime
+| Timestamp of last modification of the effective validity state, i.e. last time the validity state was recomputed with result that was different than the previous recomputation.
+It is used to avoid repreated validity change deltas. +
+Note: This timestamp is used for recording purposes.
+Changing it will NOT change the activation state.
+Use validity dates for that purpose.
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]

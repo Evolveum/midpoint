@@ -1,0 +1,45 @@
+= System Configuration Object
+:page-wiki-name: System Configuration Object
+:page-wiki-id: 13074822
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-06T14:45:13.514+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-12-06T14:45:14.514+01:00
+:page-upkeep-status: orange
+:page-toc: top
+
+System Configuration object is a midPoint object that represents global system configuration applicable for the system itself, logging, profiling, all the resources, tasks, processes and all other aspects of the system.
+There is usually just one system configuration object.
+It has a fixed xref:/midpoint/devel/prism/concepts/object-identifier/[OID] `00000000-0000-0000-0000-000000000001`.
+
+== How to change System Configuration
+
+The System Configuration can be modified in a couple of ways:
+
+* In GUI choose *System* in the main menu and then the relevant section.
+This supports many common configuration changes, but not all.
+
+* In GUI choose *Repository Objects*/*All Objects* in the main menu - *SystemConfiguration* object appears in the list.
+Click on it, edit the XML as needed and then click the *Save* button to apply the changes.
+
+* Use xref:/midpoint/tools/studio/[MidPoint Studio] - download the current system configuration first, then change it and upload it back.
+
+GUI related changes require logout/login of the user.
+
+== Example
+
+[source,xml]
+----
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001">
+    <name>SystemConfiguration</name>
+    <logging>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+        <appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+</systemConfiguration>
+----

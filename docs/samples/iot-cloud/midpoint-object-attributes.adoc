@@ -1,0 +1,272 @@
+= MidPoint Object Attributes
+:page-wiki-name: MidPoint Object Attributes
+:page-wiki-id: 23167079
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-08-16T10:57:52.270+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-08-16T19:19:12.379+02:00
+:page-upkeep-status: orange
+:page-upkeep-note: What to do with this? Palo will probably never finish it.
+
+== Customer-Level Organizations
+
+[%autowidth]
+|===
+| Attribute | Value | Example
+
+| name
+| E-mail address of the customer (i.e. email of person that performs the registration).
+| link:mailto:jack@sparrow.com[jack@sparrow.com]
+
+
+| displayName
+| User-specified one, if present.
+The default is "<user>'s home".
+| Jack Sparrow's home
+
+
+| orgType
+| customer
+|
+
+
+| thingSpeakApiKey (extension)
+| ThingSpeak API key
+| R9TUHWKR8OOQEHWU
+
+
+| registrationKey (extension)
+| Registration key to be entered into devices when configuring them.
+It has 16 characters plus a single hyphen in the middle.
+| HQ481047-1JWORF43
+
+
+| registrationLookupKey (extension)
+| First half of the registration key.
+Used to look up a device and validate its authenticity.
+(Second part of the key is used to encrypt the response.)
+| HQ481047
+
+
+| assignment
+| The "Customers" root node reference.
+So all these organizations are created one level below the root.
+|
+
+
+|===
+
+
+== Customer's Internal Organizations
+
+The customer is free to create arbitrary organizational structure within his organization.
+Names are generated automatically in order to avoid naming collisions.
+
+[%autowidth]
+|===
+| Attribute | Value | Example
+
+| name
+| E-mail address of the customer plus a random number
+| link:mailto:jack@sparrow.com[jack@sparrow.com] 832842948324
+
+
+| displayName
+| A name chosen by the customer
+| Black Pearl
+
+
+|===
+
+
+== Users
+
+[%autowidth]
+|===
+| Attribute | Value | Example
+
+| name
+| User's e-mail address.
+| link:mailto:jack@sparrow.com[jack@sparrow.com]
+
+
+| givenName
+| As specified during registration.
+| Jack
+
+
+| familyName
+| As specified during registration.
+| Sparrow
+
+
+| fullName
+| Derived form given name and family name.
+| Jack Sparrow
+
+
+| emailAddress
+| User's e-mail address.
+| link:mailto:jack@sparrow.com[jack@sparrow.com]
+
+
+| assignment
+| Customer-level organization.
+Assigned as a member as well as a manager of it.
+| Jack's World
+
+
+|===
+
+
+== Resources
+
+Because of ThingSpeak API structure we need to have a "channels" resource for each ThingSpeak account.
+These resources have majority of items the same:
+
+* connectorRef,
+
+* connectorConfiguration (except for password),
+
+* schemaHandling,
+
+* capabilities,
+
+* synchronization.
+
+They are stored in _ThingSpeak (master resource)_ object.
+We would need to use Resource template feature (link:https://jira.evolveum.com/browse/MID-1653[MID-1653]). Until it is ready, however, we do a small workaround by creating resource object by simply copying the "master".
+Properties specific for each resource copy are:
+
+[%autowidth]
+|===
+| Attribute | Value | Example
+
+| name
+| Resource name: ThingSpeak channels of <email>
+| ThingSpeak channels of link:mailto:jack@sparrow.com[jack@sparrow.com]
+
+
+| connectorConfiguration/configurationProperties/password
+| Customer's ThingSpeak account API key
+| R9TUHWKR8OOQEHWU
+
+
+|===
+
+We had to provide a connector implementation for ThingSpeak, described on a xref:/midpoint/reference/samples/iot-cloud/thingspeak-resource/[separate page].
+
+
+== Devices (services)
+
+Each thermometer device is modeled as midPoint service with the following properties:
+
+[%autowidth]
+|===
+| Property | Description | Source | Example
+
+| name
+| Serial number
+| Provided by device on self-registration
+| 74743827342
+
+
+| displayName
+| Name as shown in midPoint
+| Edited by the customer via midPoint GUI
+| Captain's cabin
+
+
+| identifier
+| ThingSpeak channel ID
+| Provided by ThingSpeak on channel creation
+| 144872
+
+
+| extension/readKey
+| ThingSpeak channel read API key
+| Provided by ThingSpeak on channel creation (or when key changes)
+| F8R5M7GTJ1PW8Q44
+
+
+| extension/writeKey
+| ThingSpeak channel write API key
+| Provided by ThingSpeak on channel creation (or when key changes)
+| 4OXD0MK3OT8O974Y
+
+
+|===
+
+
+== Roles
+
+There are only two story-specific roles, serving for authorization control.
+
+[%autowidth]
+|===
+| Role | Description
+
+| Customer admin role
+| Customer administrative user.
+Can see all users, orgs and services (devices) within customer's organization.
+Can modify objects to some extent.
+
+
+| Customer user role
+| Can see selected items in services (devices) in organization(s) whose he is a member of.
+This allows customer administrator to perform quite flexible access control: by placing a user into org1, ..., orgN he allows the user to see all devices in these organizations.
+
+
+|===
+
+
+== Self-Registration Processes
+
+Here we describe processes that run during self-registration of users (customers) and devices.
+
+
+=== Customer Self-Registration
+
+TODO
+
+
+=== Device Self-Registration
+
+A device contacts midPoint using the following URL
+
+_http://<midpoint host and port>/midpoint/ws/iot/devices/<serialNumber>?key=<first-half-of-registration-key>_
+
+The following algorithm is executed (see link:https://github.com/Evolveum/iot-story/blob/master/midpoint-iot-overlay/src/main/java/com/evolveum/smartwidgets/service/IoTRestService.java[IoTRestService class]):
+
+. Find an organization O with a given first half of registration key (stored in extension/registrationLookupKey).
+If not found (or if more than one is found), signal an exception.
+
+. Find a resource R that is a membef of that organization.
+Again, if zero or more than one is found, signal an exception.
+
+. Find a service with a name equals to given serialNumber. +
+
+
+.. If it doesn't exist, create it, with the properties of
+
+... name = serialNumber
+
+... description = "Thermometer <serialNumber>"
+
+... assignment = organization O
+
+... assignment = resource R (with kind = generic, intent = channel) +
+(this causes provisioning of ThingSpeak channel for this device; eventually filling-in API keys for this device)
+
+
+
+
+
+. Send the ThingSpeak channel identifier (identifier property) and write API key (extension/writeKey property), formatted as properties file in a text/plain response.
+Like this:
+
+[source]
+----
+channel=145736
+writeKey=N35UIE4V3O1WMKH6
+----

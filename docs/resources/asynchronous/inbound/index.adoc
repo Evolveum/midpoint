@@ -1,0 +1,15 @@
+= Asynchronous (Messaging) Inbound Resources
+:page-nav-title: Inbound
+:page-wiki-name: Asynchronous (Messaging) Inbound Resources
+:page-wiki-id: 52003376
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-11-27T16:27:10.643+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-11-27T18:50:27.794+01:00
+:page-experimental: true
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/", "title" : "Asynchronous (Messaging) Inbound Resources" }
+:page-upkeep-status: red
+:page-upkeep-note: This page is empty!
+
+TODO

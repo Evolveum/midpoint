@@ -1,0 +1,138 @@
+= Data Representation Formats
+:page-wiki-name: Objects, XML, JSON and others
+:page-wiki-id: 655381
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:53:33.141+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-03-02T16:47:35.263+01:00
+:page-description: Use of XML, JSON, YAML and other formats in midPoint.
+:page-upkeep-status: green
+
+midPoint is using objects composed of properties and containers, known as xref:/midpoint/devel/prism/[Prism Objects].
+MidPoint xref:/midpoint/reference/schema/[Data Model] specifies how the objects look like, what properties and containers they have, what are the types and multiplicities of the data and so on.
+This is an abstract data structure that is used in all parts of midPoint.
+This internal data structure are converted to _data representation formats_ such as JSON, YAML or XML when needed.
+
+The same midPoint objects can be represented in all the supported formats:
+
+[source,xml]
+----
+<user>
+  <name>jdoe</name>
+  <givenName>John</givenName>
+  <familyName>Doe</familyName>
+  <fullName>John Doe</fullName>
+  <activation>
+    <administrativeStatus>enabled</administrativeStatus>
+  </activation>
+</user>
+----
+
+[source,json]
+----
+{
+  "name" : "jdoe",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "fullName" : "John Doe",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  }
+}
+----
+
+[source,yaml]
+----
+name: jdoe
+givenName: John
+familyName: Doe
+fullName: John Doe
+activation:
+  administrativeStatus: enabled
+----
+
+All the supported data representation formats are equivalent.
+MidPoint user may choose any of them.
+
+
+== Objects Are Not Documents
+
+Although the midPoint objects are represented in XML, JSON and YAML, they must not be considered XML or JSON _documents_.
+MidPoint objects are composed of (potentially multi-valued) properties and containers (xref:/midpoint/devel/prism/[Prism Objects]), not XML elements or JSON hashmaps.
+There are also some subtle differences.
+E.g. midPoint does not maintain ordering of values, while XML and JSON do maintain the ordering.
+Ordering of elements is significant in XML, but it is not significant for midPoint.
+
+XML, JSON and YAML are just ways to represent midPoint objects in a readable and "serializable" form.
+All midPoint objects can be represented as XML, JSON and YAML documents.
+However, it does not work the other way around.
+Not every XML or JSON document is a valid midPoint object.
+
+
+== Extensibility
+
+MidPoint data model is designed to be extensible.
+Practically all midPoint objects have an `extension` section that can hold any custom items.
+Therefore, it is easy to extend existing object types such as User or Role.
+The extensions are identified by namespace URI, therefore there is a natural namespace allocation and minimized chance of naming conflicts even if several extensions are used at the same time.
+
+Existing objects types are easy to extends, however new object types are quite difficult to create.
+Luckily, there is usually no need to.
+MidPoint provides very good set of basic data types (User, Role, Org, Service).
+These types can be further specified by using xref:/midpoint/reference/schema/archetypes/[archetypes].
+
+
+== Multiple Formats
+
+Why do we need to support many data presentation formats?
+Why is JSON not enough?
+
+JSON has lots of problems. For example:
+
+* JSON has no namespace support. Without namespacing mechanism it is extremely difficult to have extensibility and interoperability at the same time.
+
+* JSON Schema has most of the problems and limitations of XML Schema Definitions (XSD).
+We had to extend XSD to make it useful for midPoint, we would probably need the same to do with JSON schema.
+In fact, the limitations of both XSD and JSON Schema lead us to xref:/midpoint/devel/axiom[Axiom].
+
+* JSON ecosystem is still not mature enough. It is actually re-inventing XML and repeating some of the most severe XML mistakes.
+
+* JSON positions itself as a "pure data" format.
+E.g. there is no support for comments in JSON, and there is no plan to support that.
+That makes sense for such a "pure" format.
+However, that makes JSON unsuitable for configurations samples and similar data that needs to be human-readable and understandable.
+
+Other representation formats have their own advantages and disadvantages.
+They are also influenced by current technology and fashion trends.
+XML was really popular in 2000s, JSON is the king now, and who knows what will come in next couple of years.
+Making midPoint data model independent of the data representation gives us ability to adapt when we need to.
+
+== Why Is There So Much XML?
+
+The short answer is that XML was mature and popular when midPoint project was started.
+Originally, MidPoint was built on top of XML ecosystem.
+Even though we knew that this was not ideal, it was still the best choice at the time.
+
+MidPoint gained independence from data representation formats since then.
+However, project culture is difficult to chance, as is the volume of configuration samples and documentation.
+Besides, XML is still a very good choice for midPoint configuration.
+Most notably:
+
+* Unlike JSON, XML can include comments in the files.
+This is very useful for development of midPoint configurations in the team.
+
+* XML has native support for namespaces.
+Which may still be quite useful in complex configuration scenarios.
+
+* Albeit we are slowly moving to xref:/midpoint/devel/axiom[Axiom], majority of midPoint schema is still maintained in XSD.
+Therefore common XML tooling can still be used when working with XML, e.g. XML code completion in the development environment (IDE).
+
+However, we are slowly going towards full independence of representation format.
+Not only in code, but also in documentation, samples and tests.
+There will certainly be more JSON and YAML in the documentation, samples and tests.
+
+== See Also
+
+* xref:/midpoint/devel/axiom[Axiom]
+* xref:/midpoint/reference/schema/[Data Model]
+* xref:/midpoint/reference/schema/archetypes/[]

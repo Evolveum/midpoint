@@ -1,0 +1,463 @@
+= Mapping Condition
+:page-upkeep-status: green
+
+Mapping condition is a mechanism for easy implementation of mappings that provide _conditional values_.
+This means a value that is present when certain condition is _true_, while it is not present if the condition is _false_.
+The idea is that mapping _expression_ provides the value, while the _condition_ controls when the value is applied and when it is not.
+
+A very simple mapping condition would control a static value.
+The mapping below sets value `ExAmPLE, Inc.` to the property `organization` in case that `orgCode` attribute has value `001`.
+The mapping will remove the `ExAmPLE, Inc.` value from the `organization` property in any other case.
+
+[source,xml]
+----
+<inbound>
+    <expression>
+        <value>ExAmPLE, Inc.</value>
+    </expression>
+    <target>organization</target>
+    <condition>
+        <script>
+            <code>orgCode == "001"</code>
+        </script>
+    </condition>
+</inbound>
+----
+
+Mapping condition is fully _relative_, which means it takes care of both add and removal of the value produced by the expression.
+In fact, that is the whole purpose of mapping condition.
+The condition is not "turning off" the mapping, it only influences the way expression results are used.
+Mapping range, and most of other aspects of the mapping are applied even if the condition is evaluated to `false`.
+More on that below.
+
+At most one condition can be defined in a mapping.
+
+TIP: A clever reader may wonder why are conditions needed at all.
+Complex expressions may implement all the logic that is usually placed into the condition.
+And clever reader might be right for most of the cases.
+But it is important to keep in mind that mapping is much more than just its expression.
+There are other settings such as mapping _range_.
+A condition that is `false` will inactivate all the aspects of the mapping.
+Whereas mapping expression can only control the value that the mapping produces.
+But it cannot control other processing of that value that takes place in the mapping.
+
+
+== Relativity of Mapping Condition
+
+Mapping conditions are also _relative_.
+This means that the condition is not evaluated for simple `true` or `false` value.
+MidPoint is watching how the condition value _changes_:
+
+[%autowidth]
+|===
+| Old value of condition | New value of condition | Effect | Description
+
+| `true`
+| `true`
+| No change +
+(value present)
+| Mapping is active, and there is no change to this situation.
+The value that the mapping produces is added or removed as expected (based on the source delta).
+No special handling for this situation. +
+This is also the *default* interpretation if no condition is present.
+
+| `true`
+| `false`
+| Value removed
+| Mapping becomes inactive.
+The mapping (most likely) produced some value before this change happened.
+And now it is not producing any such value.
+Therefore, midPoint will try to remove the value that was produced by the mapping. +
+The value is removed even if there is no change in the value produced by mapping expression.
+This is expected, as the entire mapping becomes inactive.
+Any values that were previously produced by the mapping should be removed.
+
+| `false`
+| `true`
+| Value added
+| Mapping becomes active.
+The mapping produced no values before this change happened.
+But now, the mapping is producing some values (most likely).
+Therefore, such values should be added. +
+The value is added even if there is no change in the value produced by mapping expression.
+This is expected, as the entire mapping becomes active.
+Any values of the mapping in its previous inactive state were ignored.
+Therefore, they should be added now when the mapping becomes active.
+
+| `false`
+| `false`
+| No change +
+(value not present)
+| Mapping is inactive and there is no change to this situation.
+Mapping values were ignored before, they are also ignored after.
+Nothing to do.
+
+|===
+
+This is a very intentional behavior.
+It is designed to enable simple mappings that behave in a relativistic way.
+For example:
+
+[source,xml]
+----
+<item>
+    <ref>organization<ref>
+    <mapping>
+        <source>
+            <path>costCenter</path>
+         </source>
+         <expression>
+	         <value>ACME, Inc.</value>
+         </expression>
+         <condition>
+             <script>
+                 <code>costCenter.startsWith('A')</code>
+             </script>
+         </condition>
+    </mapping>
+</item>
+----
+
+This xref:/midpoint/reference/expressions/object-template/[object template] mapping will set the organization property of a user to `ACME, Inc.` in case that the cost center code starts with letter A.
+In this case, the expression is completely static literal value.
+Yet the mapping is behaving in the usual relativistic way, because there is a condition.
+When the condition becomes `true` then `ACME, Inc.` value is added.
+When the condition becomes `false` then `ACME, Inc.` value is removed.
+In this case, the use of condition is simple and intuitive.
+
+What may be very confusing is when (relativistic) conditions are combines with (relativistic) expressions.
+Such a complex approach may be needed to implement some special cases.
+However, it should not be required in the common case.
+The rule of the thumb is to use either complex condition or complex expression, but not both - at least until you know precisely what you are doing.
+
+
+== Condition and Mapping Evaluation
+
+Condition changes the way expression results are used.
+As stated above, expression value is added when condition becomes `true`, and removed when condition becomes `false`.
+Other aspects of the mapping are usually not affected by condition.
+For example, mapping range is applied normally even if condition is evaluated to `false` (see below).
+
+The condition is not used to "turn mapping off".
+Turning mapping "off" would mean that a value is added, but it is never removed.
+Given the emphasis on data consistency that permeates all of midPoint, such approach does not make much sense.
+This is identity management, we want to provision, but we also want to deprovision.
+What is added, needs to be removed eventually.
+Mapping condition is designed to handle both actions, both adding and removal.
+
+If the mapping is meant to provide an initial value, weak mappings should be used.
+If the expression is meant to be active only for some cases, it may be better to put expression is role or org.
+
+Condition does not mean that the expression is skipped.
+Expression may be evaluated even if condition is `false`.
+The expression may still be evaluated, e.g. to get negative values for the delta.
+
+Condition applies entire mapping, it applies to all the values processed by a mapping.
+The condition does not work for individual values.
+
+== Rule of the Thumb
+
+The rule of the thumb is to use either complex condition or complex expression, but not both - at least until you know precisely what you are doing.
+
+If the thing that you are trying to achieve is difficult to achieve by using the condition, then perhaps condition is not the right method to achieve your goal.
+Try to re-think the problem, consider using roles or policy rules.
+Maybe the mapping strength is wrong.
+Maybe the mapping is not in the right place.
+Consider moving the mapping to inbound part of the processing.
+Conditions are meant to support simple cases, they are not built to handle unusual situations.
+
+
+== Condition and Range
+
+Mapping range is still applied, even if condition is evaluated to `false`.
+Condition does not "turn off" the mapping, therefore it does not "turn off" the range either.
+Condition is used to add or remove values.
+Condition that evaluates to `false` is still _active_ in a sense, removing the values.
+Therefore, there is no reasons for a range not to be applied.
+
+Moreover, there may be some values in the target property that have to be removed, even though such values may not be computed by the expression.
+The reason for this may be that the state of mapping target property may be inconsistent.
+We still want to apply the range, even if condition is `false`, to make sure that such values are removed.
+
+This approach may seem strange.
+However, this goes well with midPoint philosophy of keeping the data as consistent as possible.
+Also, evaluating range when condition is `false` gives more flexibility for customization, by manipulating range expression.
+
+The range can always be "turned off" by specifying range expression that returns `false` for every value, thus effectively reducing range to an empty set.
+This gives you choice whether you want to apply the range or not.
+Simply copying the condition into a range expression would usually do the trick.
+However, this approach should be used only as a last resort, as such configuration is usually incorrect.
+
+
+== Good Usage And Bad Usage
+
+Mapping condition is meant to add and remove simple values, mostly static, literal values.
+We have already seen a good example:
+
+.Good example: conditional static value (user template mapping)
+[source,xml]
+----
+<item>
+    <ref>organization<ref>
+    <mapping>
+        <source>
+            <path>costCenter</path>
+        </source>
+        <expression>
+	        <value>ACME, Inc.</value>
+        </expression>
+        <condition>
+            <script>
+                <code>costCenter.startsWith('A')</code>
+            </script>
+        </condition>
+    </mapping>
+</item>
+----
+
+Similarly, mapping conditions are useful when automatically assigning individual roles:
+
+.Good example: auto-assignment of a single org (inbound mapping)
+[source,xml]
+----
+<attribute>
+    <ref>org_code<ref>
+    <inbound>
+        <expression>
+	        <value>
+                <targetRef oid="436f24b0-8816-11ec-b2a5-cf2046309455" type="OrgType"/> <!-- ExAmPLE, Inc. organization -->
+            </value>
+        </expression>
+        <target>
+           <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>org_code == "EXAMPLE"</code>
+            </script>
+        </condition>
+    </inbound>
+</item>
+----
+
+This is an inbound mapping for `org_code` attribute of an HR system.
+This mapping assigns the user to the `ExAmPLE, Inc.` organization, represented as midPoint org with OID `436f24b0-8816-11ec-b2a5-cf2046309455`.
+The mapping is controlled by a condition, which triggers when `org_code` attribute has a value `EXAMPLE`.
+This mapping creates the assignment and removes the assignment as necessary.
+
+However, mapping condition is not very useful when assigning multiple roles or orgs with a single mapping, not directly anyway.
+Use of specialized expressions (e.g. `assignmentTargetSearch`) and a proper application of xref:../range/[range] is the right way to do it.
+However, mapping condition may be useful even in this case, e.g. in case that we want to auto-assign the roles only to active users:
+
+.Good example: conditional auto-assignment of multiple roles (user template mapping)
+[source,xml]
+----
+<item>
+    <ref>assignment</ref>
+    <mapping>
+        <source>
+            ... definition of sources for the assignmentTargetSearch expression ...
+        </source>
+        <source>
+            <path>activation/effectiveStatus</path>
+        </source>
+        <expression>
+	        <assignmentTargetSearch>...</assignmentTargetSearch>
+        </expression>
+        <condition>
+            <script>
+                <code>effectiveStatus == com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED</code>
+            </script>
+        </condition>
+    </mapping>
+</item>
+----
+
+The mapping above makes sure that the roles are automatically assigned only in case that the user is active (i.e. effectively enabled).
+Yet, the mapping will also make sure that the roles assigned to the user will be removed when the user is disabled.
+However, this mapping assumes that the result of `assignmentTargetSearch` expression will be the same every time it is evaluated.
+More specifically, it has to produce the same set of roles when it is evaluated at the times the roles are to be assigned, as at the time when they are unassigned.
+This is fair assumption to make when the system is constantly kept consistent, e.g. the data are periodically reconciled.
+However, if there is any risk of inconsistencies, it is recommended to supplement the expression with appropriate _range_ definition.
+
+Mapping condition might be used to check for sanity of input values.
+For example, mapping condition may guard the inputs of a `fullName` mapping:
+
+.Good and bad example: guarding input values (user template mapping)
+[source,xml]
+----
+<item>
+    <ref>fullName</ref>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>givenName + ' ' + familyName</code>
+            </script>
+        </expression>
+        <condition>
+            <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
+    </mapping>
+</item>
+----
+
+In this case the condition guards against producing an invalid value, such as `John null` or `null Smith`.
+However, there is a catch.
+Such mapping will not produce any value for `fullName` property in case that the inputs are invalid.
+While this may be formally correct, it is not very practical.
+
+There are (at least) two opportunities for improvement.
+We can use the condition to select appropriate mapping from a set of several alternative mappings:
+
+.Somehow good example: condition selects appropriate mapping (user template mapping)
+[source,xml]
+----
+<item>
+    <ref>fullName</ref>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>givenName + ' ' + familyName</code>
+            </script>
+        </expression>
+        <condition>
+            <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>familyName</code>
+            </script>
+        </expression>
+        <condition>
+            <script>
+                <code>givenName == null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>givenName</code>
+            </script>
+        </expression>
+        <condition>
+            <script>
+                <code>givenName != null &amp;&amp; familyName == null</code>
+            </script>
+        </condition>
+    </mapping>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <value>John Doe</value>
+        </expression>
+        <condition>
+            <script>
+                <code>givenName == null &amp;&amp; familyName == null</code>
+            </script>
+        </condition>
+    </mapping>
+</item>
+----
+
+While this approach is formally correct, it is neither very elegant nor entirely maintainable.
+Much more straightforward approach is to handle all the cases inside the expression, without any need for condition:
+
+.Good example: smarter expression, no condition (user template mapping)
+[source,xml]
+----
+<item>
+    <ref>fullName</ref>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    if (givenName == null) {
+                        if (familyName == null) {
+                            return "John Doe"
+                        }
+                        return familyName
+                    }
+                    if (familyName == null) {
+                        return givenName
+                    }
+                    return givenName + ' ' + familyName
+                </code>
+            </script>
+        </expression>
+    </mapping>
+</item>
+----
+
+There are also ways to abuse mapping conditions.
+Perhaps one of the perfectly clear, understandable and wrong way is to use conditions to set initial values of properties.
+This will not really work.
+Weak mappings should be used for that purpose instead.
+
+// TODO: more bad examples?
+
+== Notes
+
+[NOTE]
+.Conditions and ranges in midPoint 4.0 and earlier
+====
+In midPoint 4.0 and earlier, the mapping range was *not* applied consistently when the condition was `false`.
+Some mappings in some cases applied the range, other mappings did not.
+This was incorrect behavior (bug), and it was corrected in midPoint 4.1.
+
+The incorrect behavior was perhaps based on the approach that if the condition evaluates to `false` then the system will "pretend that the mapping does not exist at all".
+This was even documented in this page in earlier versions of midPoint.
+However, this approach was a leftover from the times when midPoint did not have mapping ranges and the documentation was incorrect.
+We understand that some deployments relied on this behavior, and we would like to apologize for any inconvenience.
+However, our policy is not to maintain "compatible bugs", therefore we have corrected the behavior of mappings in all the places to make midPoint behavior consistent.
+
+If you need to "turn off" the mapping completely, the proper way is to set the condition both in the `condition` part of the mapping and in the range specification, i.e. making the mapping non-authoritative (having empty range) when the condition is false.
+====
+
+
+== See Also
+
+* xref:/midpoint/reference/expressions/mappings/[]
+
+* xref:../range/[]

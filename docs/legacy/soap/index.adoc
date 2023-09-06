@@ -1,0 +1,323 @@
+= IDM Model Web Service Interface
+:page-wiki-name: IDM Model Web Service Interface
+:page-wiki-id: 655537
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-05-03T19:32:42.656+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-10-23T14:29:16.478+02:00
+:page-obsolete: true
+:page-obsolete-since: "4.2"
+:page-replaced-by: /midpoint/reference/interfaces/rest/
+:page-upkeep-status: green
+
+*Version:* 3.9 +
+*Status:* Public +
+*Stability:* OBSOLETE +
+*Platform:* WSDL +
+*Dependencies:*xref:/midpoint/reference/schema/[Data Model], Common schema, Query schema +
+*Responsible person:* Radovan Semancik
+
+
+== Description
+
+IDM Model Web interface provides unified access to the identity objects stored in the repository and on the resources.
+It abstracts away the details about where and how are the data stored, it hides all the low-level system components.
+
+Implementation of this interface are enforcing a consistency of access control decisions and model, e.g. to enforcing Role-Based Access Control (RBAC) and other policies, making sure that the mappings are applied properly, etc.
+
+This a web service version of the IDM Model Interface represented in WSDL.
+As such it has some inherent limitations but it is usable for remote access to the Model services.
+It also has some operations that are simplified.
+For a full-featured native java interface please see the xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface].
+
+
+== History
+
+[%autowidth]
+|===
+| Version | Date | Description | Change Author
+
+| -
+| October 2020
+| The interface was removed from midPoint (in midPoint 4.2)
+| Radovan Semancik et al.
+
+
+| 3.9
+| November 2018
+| No changes in operations, only data model extensions.
+| Radovan Semancik et al.
+
+
+| 3.8
+| June 2018
+| No changes in operations, only data model extensions.
+| Radovan Semancik et al.
+
+
+| 3.7
+| December 2017
+| No changes in operations, only data model extensions.
+Default URL changed for stand-alone deployment.
+| Radovan Semancik et al.
+
+
+| 3.6
+| June 2017
+| `SelectorQualifiedGetOptionsType` and related types were moved from `api-types-3` to `common-3` namespace.
+| Pavol Mederly et al.
+
+
+| 3.5
+| December 2016
+| No changes in operations, only data model extensions.
+| Radovan Semancik et al.
+
+
+| 3.4
+| June 2016
+| No changes in operations, only data model extensions.
+| Radovan Semancik et al.
+
+
+| 3.3
+| December 2015
+| Refactored task statistics
+| Pavol Mederly
+
+
+| 3.2
+| August 2015
+| No operation changes.
+Only extensions to the underlying schema.
+| Radovan Semancik
+
+
+| 3.1.1
+| April 2015
+| No operation changes.
+Only extensions to the underlying schema.
+| Radovan Semancik
+
+
+| 3.1
+| February 2015
+| Documentation enhancements, minor backward-compatible improvements.
+| Pavol Mederly, Radovan Semancik
+
+
+| 3.0
+| June 2014
+| Reworked interface operation to fit the midPoint 3.0 spirit.
+| Pavol Mederly
+
+
+| 1.1
+| January 2014
+| Added notifyChange operation
+| Katka Valalikova
+
+
+| 1.0
+| December 2012
+| No technical change.
+Released as "version 1.0".
+| Radovan Semancik
+
+
+| 0.3
+| September 2011
+| Added object types to all relevant methods, aligned with java version
+| Radovan Semancik
+
+
+| 0.2
+| May 2011
+| Removed ESB dependency, now it is also Java interface generated from WSDL
+| Radovan Semancik
+
+
+| 0.1 (OpenIDM)
+| Summer 2010
+| Initial version.
+WSDL-based ESB interface
+| Radovan Semancik
+
+
+|===
+
+
+== Artifacts
+
+[%autowidth]
+|===
+| Artifact | Version | Path | Description
+
+| Interface definition
+| *master*
+| link:https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/master/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.8*
+| link:https://github.com/Evolveum/midpoint/blob/v3.8/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.8/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.7.2*
+| link:https://github.com/Evolveum/midpoint/blob/v3.7.2/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.7.2/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.7.1*
+| link:https://github.com/Evolveum/midpoint/blob/v3.7.1/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.7.1/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.7*
+| link:https://github.com/Evolveum/midpoint/blob/v3.7/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.7/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.6*
+| link:https://github.com/Evolveum/midpoint/blob/v3.6/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.6/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.5*
+| link:https://github.com/Evolveum/midpoint/blob/v3.5/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.5/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.4*
+| link:https://github.com/Evolveum/midpoint/blob/v3.4/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.4/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.3*
+| link:https://github.com/Evolveum/midpoint/blob/v3.3/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.3/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.2*
+| link:https://github.com/Evolveum/midpoint/blob/v3.2/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.2/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.1.1*
+| link:https://github.com/Evolveum/midpoint/blob/v3.1.1/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.1.1/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.1*
+| link:https://github.com/Evolveum/midpoint/blob/v3.1/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.1/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *3.0*
+| link:https://github.com/Evolveum/midpoint/blob/v3.0/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl[https://github.com/Evolveum/midpoint/blob/v3.0/infra/schema/src/main/resources/xml/ns/public/model/model-3.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *1.1*
+| link:http://git.evolveum.com/view/midpoint/v2.2.1/infra/schema/src/main/resources/xml/ns/public/model/model-1.wsdl[http://git.evolveum.com/view/midpoint/v2.2.1/infra/schema/src/main/resources/xml/ns/public/model/model-1.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+| Interface definition
+| *1.0*
+| link:http://git.evolveum.com/view/midpoint/v2.2/infra/schema/src/main/resources/xml/ns/public/model/model-1.wsdl[http://git.evolveum.com/view/midpoint/v2.2/infra/schema/src/main/resources/xml/ns/public/model/model-1.wsdl]
+| Well-commented WSDL specification of this interface.
+
+
+|===
+
+
+== Endpoints
+
+[%autowidth]
+|===
+| Protocol | Version | Security | Address
+
+| SOAP over HTTP/HTTPS
+| master
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.7
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/ws/model-3] (stand-alone deployment) +
+link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]link:http://hostnameport[ (deployed to Tomcat)]
+
+
+| SOAP over HTTP/HTTPS
+| 3.6
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.5
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.4
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.3
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.2
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.1.1
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.1
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/ws/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 3.0
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/model/model-3]
+
+
+| SOAP over HTTP/HTTPS
+| 1.0
+| WS-Security UsernameToken, digest password
+| link:http://hostnameport[http://hostname:port/midpoint/model/model-1]
+
+
+|===
+

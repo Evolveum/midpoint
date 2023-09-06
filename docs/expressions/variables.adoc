@@ -1,0 +1,301 @@
+= Expression and Mapping Variables
+:page-nav-title: Variables
+:page-wiki-name: Expression Variables
+:page-wiki-id: 22741762
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-06-28T11:52:53.815+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2017-11-27T09:47:53.529+01:00
+:page-upkeep-status: green
+:page-toc: top
+
+== Introduction
+
+There are many variables that can be used in midPoint expressions and mappings.
+Some variables are available in all the expressions, some are specific to some places.
+This page provides a summary of expression variables.
+
+Variables are secondary input to a mapping.
+Variables provide additional data to a mapping, such as configuration information and overall context.
+Lot of information that may be useful for mapping expressions is usually provided, such as a complete focus (user), affected resource, assignment and role, system configuration object and so on.
+
+Mapping _sources_ are primary inputs for xref:../mappings/[mapping] evaluation.
+On the other hand, variables play a secondary role, providing additional data.
+Variables provide information about the _surroundings_ of the mapping, about the environment in which the mapping evaluates.
+For example, _inbound_ mapping usually takes information from account attribute on a source system (resource) to produce a value for user property.
+The account attribute is mapping source, and the user property is a target.
+However, mapping may need to consider other data as well, such as a definition of the resource or global system configuration.
+Mapping variables provide such additional information.
+
+Sources and variables behave in a similar way, especially in mappings with scripting expressions.
+Mapping variables are provided as variables or parameters in the script code, in much the same way as sources are provided.
+Variable data may also be relativistic (delta-aware).
+E.g. when mapping is processing old value of the source, variable `$focus` will contain old version of the user.
+Later, when mapping is processing new value of the source, variable `$focus` will contain new version of the user.
+However, there are crucial differences between variables and sources.
+Changes in variable values may not trigger mapping re-evaluation and the deltas of variables are not reflected to mapping output in the same way as source deltas are.
+
+== Use of Variables
+
+The variables are used in a native way that is dictated by the language in which the expression is written.
+Therefore, Groovy scripts will just use simple variable names:
+
+.Variables in Groovy
+[source,groovy]
+----
+givenName + ' ' + familyName
+----
+
+while the path expressions use the dollar sign (`$`) to prefix the variables:
+
+.Variable in path expression
+[source]
+----
+$givenName
+----
+
+
+== Accessing Object Items
+
+Some variables used in the expressions are simple (scalar) values.
+However, MidPoint works mostly with objects, such as users, roles and resources.
+Therefore, many variables contain xref:/midpoint/devel/prism/data-structures/[rich data structures] representing the objects.
+It is important to know how access the items of the objects (properties, containers and references).
+
+In scripting expressions the access to the properties is following the model given by object-oriented programming.
+E.g. in the Groovy and Python the properties are accessed in the same way as Java object properties:
+
+.Accessing property `givenName` in Groovy and Python
+[source,groovy]
+----
+focus.getGivenName()
+----
+
+When going deeper in the item hierarchy take care about the null values.
+E.g. Groovy has a nice safe navigation operator (`?.`) that comes really handy here:
+
+.Safe navigation in Groovy
+[source,groovy]
+----
+focus?.getActivation()?.getAdministrativeStatus()
+----
+
+However, there is a special language that is used to reference items inside prism objects: xref:/midpoint/reference/concepts/item-path/[item path]. This language is designed to process the paths in a very efficient way, and it is used at many places in midPoint.
+The item path has a natural way how to reference the items inside a variable:
+
+.Item path
+[source]
+----
+$focus/activation/administrativeStatus
+----
+
+
+== Mapping Variables vs Sources
+
+The nature of variables is very similar to mapping sources.
+They have names, they are exposed is scripts, variables can even be relativistic.
+However, there are crucial differences:
+
+* Unlike sources, a change in variables will not trigger re-evaluation of the mapping.
+
+* While mapping will usually treat each value of a source separately, (e.g. execute expression for each value individually), there is no such functionality for variables.
+They are provided "as is", as (quasi) static values, usually containing entire object.
+
+* Sources have to be declared explicitly (except for inbound mappings).
+On the other hand, most variables are implicit, they are automatically provided in expressions.
+There is usually no need to explicitly declare a variable in mapping definition.
+
+Sources should be used for:
+
+* Primary input that is likely to change.
+Such as family name, in an mapping that computes user's full name.
+
+* Data for which we need an immediate reaction to the change.
+E.g. work position code from the HR system, which is used to determine automatic role assignments.
+
+Variables should be used for:
+
+* Configuration data that do not change often.
+E.g. LDAP base context or organization name can be store in extension of system configuration object, which is available as a variable in all expressions.
+
+* Diagnotic purposes.
+E.g. use name of the resource instead of OID in log messages
+
+== Context
+
+Many mappings are executed in a _context_.
+E.g. an outbound mapping for an account assumes that mapping sources will be taken from the focus (usually user).
+Therefore we say that the account outbound mappings are executed in the context of the _focus_.
+The context acts as a default "root" for source path specification.
+Therefore, for outbound expressions there is a short-hand way to specify the sources:
+
+[source,xml]
+----
+<outbound>
+    <source>
+        <path>organization</path>
+    </source>
+    ...
+----
+
+This specification means the same as `$focus/organization` because this outbound expression is executed in the context of the _focus_, therefore `$focus` is the default root of all source paths.
+
+== List of Variables
+
+[%autowidth]
+|===
+| Variable name | Type | Used in | Alternative names | Description
+
+| `input`
+| varies
+| almost everywhere
+|
+| Magic variable that contains the default input of the expression.
+In inbound mappings it is the value of the source attribute.
+In other expressions that have a single source this variable has the same value as the source.
+
+
+| `focus`
+| subclasses of `FocusType`
+| inbound, outbound, object template, assignments
+| `user` (deprecated)
+| Represents xref:/midpoint/reference/schema/focus-and-projections/[focal object] which is usually a user.
+
+
+| `projection`
+| `ShadowType`
+| inbound, outbound, assigments (construction)
+| `account`, `shadow` (deprecated)
+| Represents xref:/midpoint/reference/schema/focus-and-projections/[projection] in a form of xref:/midpoint/reference/resources/shadow/[shadow].
+This is usually the account.
+
+
+| `resource`
+| ResourceType
+| inbound, outbound, assignments (construction)
+|
+| Contains resource definition of the resource where the projection belongs.
+
+
+| `operation`
+| `string`
+| in every mapping
+|
+| Contains values `add`, `modify` or `delete` that describe the character of the xref:/midpoint/devel/prism/concepts/deltas/[object delta].
+
+
+| `actor`
+| `UserType`
+| everywhere
+|
+| The user that is executing the operation - directly or indirectly.
+It may be currently logged-in user (for synchronous operations) or owner of the task (for asynchronous operations).
+
+
+| `configuration`
+| `SystemConfigurationType`
+| everywhere
+|
+| Contains system configuration object.
+The xref:/midpoint/reference/schema/custom-schema-extension/[extension] of system configuration may be used to hold system-wide configuration and constants.
+
+
+| `iteration`
+| `integer`
+| object template, outbound
+|
+| Numeric value describing the current xref:/midpoint/reference/concepts/iteration/[iteration].
+It starts with 0 and increments on every iteration.
+
+
+| `iterationToken`
+| `string`
+| object template, outbound
+|
+| String value describing the current xref:/midpoint/reference/concepts/iteration/[iteration].
+It is usually suffix that is appended to the username or a similar "extension" of the value.
+It should have different value for every iteration.
+The actual value is determined by the iteration settings.
+
+
+| `legal`
+| `boolean`
+| activation mappings
+|
+| Set to true if the processed projection is legal, i.e. when it should exist.
+The projection is usually legal if there is an xref:/midpoint/reference/roles-policies/assignment/[assignment] for it.
+But the projection may also be legal without an assignment, e.g. if xref:/midpoint/reference/synchronization/projection-policy/[assignment policy enforcement] is set to NONE.
+
+
+| `assigned`
+| `boolean`
+| activation mappings
+|
+| Set to true if the processed projection is assigned.
+That means explicitly if there is a valid assignment for that projection.
+
+
+| `administrativeStatus`
+| `ActivationStatusType`
+| activation mappings
+|
+| Real `administrativeStatus` of the projection.
+This is used in activation mapping where the automatic input to the expression may contain a computed value compiled from `administrativeStatus` and validity constraint.
+This variable will contain the real administrative status that was not affected by the computation.
+
+
+| `focusExists`
+| `boolean`
+| activation mappings
+|
+| Set to true if the focus (e.g. user) exists.
+This variable behaves as the source, therefore correct vales describing the state before the operation and after the operation will be supplied as necessary.
+This is especially important for add and delete operations.
+
+
+| `associationTargetObjectClassDefinition`
+| RefinedObjectClassDefinition
+| outbound
+|
+| Contains a definition of the association target (xref:/midpoint/reference/resources/entitlements/[entitlement]). Used in expressions that need to do advanced logic on associations and entitlements.
+
+
+| `entitlement`
+| ShadowType
+| inbound
+|
+| ShadowType for the existing group in the resource.
+Used in the inbound script expression when there is a need to manage group membership.
+
+|===
+
+In addition to these variables there are other special purpose variables.
+These are documented on a separate pages that document the mechanism.
+E.g. the variables specific to assignment processing are described in the xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page.
+
+
+== Alternative Variable Names and Missing Variables
+
+Although midPoint has xref:/midpoint/architecture/[solid architectural background] it is not a software where every little detail was defined by a big design upfront.
+MidPoint is continuously evolving.
+And also the expression and mapping code is evolving.
+
+Some variable names have alternatives.
+E.g. the `focus` variable can be often referred to as `user`. This is legacy of the humble beginnings of midPoint when midPoint can only process users and accounts.
+This is a long time ago and midPoint is now very xref:/midpoint/reference/synchronization/generic-synchronization/[generic].
+Therefore, also the variable names refer to generic concepts.
+*Alternative variable names are now considered DEPRECATED*.
+Please, if you can try to avoid the use of the alternative names.
+
+Due to midPoint history all the variables that are supposed to be universally available to all expressions may not be actually available in some cases.
+If you expect a variable to be available, and it is not, then you have probably found a bug.
+Please xref:/midpoint/reference/diag/creating-a-bug-report/[report the bug].
+We will fix that.
+
+== See Also
+
+* xref:/midpoint/reference/expressions/expressions/[Expression]
+
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
+
+* xref:/midpoint/reference/diag/troubleshooting/mappings/[Troubleshooting Mappings]

@@ -1,0 +1,64 @@
+= Oracle 12c
+:page-nav-title: Oracle
+:page-wiki-name: Oracle 12c
+:page-wiki-id: 15859773
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:02:28.121+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-12-03T11:27:46.749+01:00
+:page-toc: top
+:page-upkeep-status: orange
+:page-deprecated-since: "4.4"
+
+== Production with Oracle
+
+=== Database create
+
+[source,sql]
+----
+CREATE USER midpoint IDENTIFIED BY apassword;
+GRANT connect,resource TO midpoint;
+ALTER USER midpoint quota 10G on users;
+----
+
+TODO
+
+=== Configuration sample
+
+[source,xml]
+----
+<configuration>
+  <midpoint>
+    <repository>
+      <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+      <database>oracle</database>
+      <jdbcUsername>midpoint</jdbcUsername>
+      <jdbcPassword>password</jdbcPassword>
+      <jdbcUrl>jdbc:oracle:thin:@localhost:1521/xe</jdbcUrl>
+    </repository>
+  </midpoint>
+</configuration>
+
+----
+
+=== Security
+
+If you operate Oracle DB on different server than midPoint without SSL tunnel or dedicated network, you should think of securing your JDBC connection will SSL/TLS.
+link:http://www.oracle.com/technetwork/topics/wp-oracle-jdbc-thin-ssl-130128.pdf[Oracle manual] may help you with that.
+
+=== Driver
+
+Download Oracle JDBC Driver as link:https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc10/19.7.0.0/ojdbc10-19.7.0.0.jar[JAR for JDK 10+] (or link:https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc8/19.7.0.0/ojdbc8-19.7.0.0.jar[for JDK 8], if you insist) from link:https://mvnrepository.com/artifact/com.oracle.database.jdbc[Maven repository] or directly from Oracle pages e.g. for link:https://www.oracle.com/database/technologies/appdev/jdbc-ucp-19c-downloads.html[Oracle 19c here]. Drivers are generally broadly compatible, but newer is probably better.
+
+== Developer setup with Vagrant for Oracle XE 18c
+
+You need to have link:https://www.vagrantup.com/[Vagrant]+link:https://www.virtualbox.org/[VirtualBox] installed beforehand.
+
+Complete prepared Vagrant box (except for files that need to be downloaded) is available here: link:https://github.com/virgo47/midpoint-vagrantboxes/tree/master/vagrant-midpoint-db-oracle-xe[https://github.com/virgo47/midpoint-vagrantboxes/tree/master/vagrant-midpoint-db-oracle-xe]
+
+Download the directory, make it current (*Vagrantfile* must be in the current directory) and see the provided link:https://github.com/virgo47/midpoint-vagrantboxes/blob/master/vagrant-midpoint-db-oracle-xe/README.adoc[README] for instructions.
+
+When required files are prepared inside *tmp* directory, one *vagrant up* (and waiting) should get you to the point when you can run midPoint against the database.
+
+Configuration sample above can be used, only *jdbcUrl* must be changed.
+Enjoy.

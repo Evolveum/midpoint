@@ -1,0 +1,133 @@
+= Policy-based approvals
+:page-wiki-name: Policy-based approvals
+:page-wiki-id: 36569442
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-09-12T10:07:40.804+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-09-12T11:06:20.322+02:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+MidPoint is identity management and governance system, therefore it is quite natural that it implements an xref:/midpoint/reference/cases/approval/[approval] mechanism.
+
+However, the mechanism that midPoint employs to drive the approvals is quite unique.
+Almost all other IDM systems used workflow engine to drive the approvals.
+And midPoint did the same thing in the past.
+But it was not a good approach.
+It was difficult to set up and and maintain.
+Therefore midPoint slowly drifted away from the use of workflow engine until the workflow engine was completely replaced in midPoint 4.0.
+
+Current mechanism to drive approvals is based on policies rather than processes.
+There are xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] that specify individual aspects of an approvals.
+For example the rules may look like:
+
+* Some roles are assigned automatically based on organizational structure membership.
+Assignment of those roles is not approved.
+
+* Assignment of all ad-hoc roles must be approved by the line manager of the requesting user.
+
+* Assignment of roles for applications X, Y and Z must be approved by business owners of those applications.
+
+* Assignment of sensitive roles must be approved by security office.
+
+* Assignment of controlling roles must comply with xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties] (SoD) policy.
+Exceptions are not possible.
+
+* Some business roles are subject to a different SoD policy.
+But in this case exceptions are possible and can be approved by the security office.
+
+* All approval decisions must be escalated if they are not decided within a week.
+Escalation pattern follows functional organizational structure.
+
+Those are typical enterprise approval rules.
+They are not that complex in themselves.
+However, try to imagine a business process that needs to be in place to drive approvals based on such rules.
+It will be a complete nightmare to design such process.
+The process needs to adapt to set of roles that are requested.
+The process needs to account all the conditional states, all the checks and optional steps, all the combinations and so on.
+And it would be even worse to maintain that process.
+This is one of the aspects that made IDM solutions so expensive to deploy and even more expensive to maintain.
+
+However, midPoint can compute such process in a dynamic way.
+When a set of roles are requested, midPoint will evaluate the policies, divides the roles into groups, computes the approval steps and runs the approval schemas.
+The algorithm is already implemented as core functionality of midPoint.
+You do not need to re-implement it for each and every deployment.
+And what is even better, it can be easily maintained.
+Change the policies and midPoint will automatically adapt.
+No need to re-draw BPMN diagrams.
+MidPoint does all of that under the hood.
+
+
+== History of workflow engine in midPoint
+
+Similarly to almost any other IDM system, midPoint has started with integrated _workflow engine_. When midPoint was young this was quite an obvious thing to do.
+Something needs to drive the approval processes, right? And we want to make those customizable.
+And maybe, the workflow can be used to customize all the processes, eventually.
+And all the major competing products had workflow engine.
+Therefore, we havent really doubted whether workflow is needed or not.
+We just did it.
+
+MidPoint had integrated fully-featured workflow engine almost since the beginning.
+But all that this engine was ever used for was to drive approval processes.
+There is actually no need for the workflow to do anything else.
+In fact, workflow engines in other IDM systems are often (ab)used to implement features that such IDM systems do not have.
+And this is often the only way how to implement something in closed-source systems.
+But midPoint is different.
+The midPoint way is to implement the feature in midPoint core  and then reuse it many times.
+We even have a special xref:/support/subscription-sponsoring/["platform subscription"] model to support this approach from a business side.
+In addition to that midPoint already has plenty of better mechanisms for customization: mappings, expressions, hooks and so on.
+The result is, that no midPoint subscriber had no need to abuse the workflow engine.
+
+Up until midPoint 4.0 the workflow engine was used to drive approvals.
+But in fact it did not do it incredibly well.
+Workflow engine is in fact just a simple automaton.
+It does not know who should approve the request.
+It does not know how to divide the request to atomic parts.
+It does not know how many levels (stages) and approval strategies are needed.
+In fact, it does not know anything about roles.
+It even does not know that the process is an approval process.
+All of that needs to be computed in midPoint.
+All that the workflow engine does is to interact with the user in a series of steps.
+And even that interaction is mediated by midPoint user interface.
+The value that a workflow engine adds to midPoint is very close to zero.
+But as workflow engines are quite a substantial pieces of software, the maintenance overhead related to keeping the workflow engine integrated is quite high.
+
+However, there is one crucial reason why midPoint does not really need workflow engine.
+Many IDM systems are proud to claim that they are _process-oriented_. This makes perfect sense at a first sight.
+Business processes are inherently process-oriented, arent they? Therefore, it would be natural if IDM system also followed the process-oriented approach.
+But this thinking is misleading.
+It is much better to think about business rules instead of processes.
+Processes are often the same in their essence.
+There are just many process variations based on various circumstances.
+And those can be defined by the rules.
+MidPoint can use the rules to dynamically compute specific process for specific circumstances.
+
+Lets use approval process as an example.
+There are roles that do not need any approval.
+There are roles that has to be approved by managers.
+There are roles that need to approved by their owners.
+And sensitive roles may need even more approval levels.
+It is quite difficult to design an approval process that can handle all such situations - and all their combinations.
+User may request a set of roles that has few roles from each category.
+The process need to split that to subprocesses, otherwise the slowest path will slow down the fast paths.
+Each subprocess will need to analyze the roles, handle the stages, approval delegations, escalation and so on.
+And it needs to be done for each and every deployment.
+This is a nightmare.
+But it all gets much simpler when we think in rules instead of processes.
+Lets just set up rules that specify which roles needs pass through which approval stages and who is supposed to be an approver for each stage.
+Then midPoint can compute the sequence of approval steps that need to be taken for each particular request.
+This algorithm needs to be implemented only once.
+And in fact, we have already implemented it and it is part of midPoint core.
+No need to reinvent the wheel for each deployment.
+
+The bottom line is that midPoint does not really need a workflow engine.
+The workflow engine does not add any significant value  and it has become a maintenance burden.
+Therefore we took a bold step and removed the workflow engine in midPoint 4.0. The workflow engine was replaced with native midPoint functionality that was silently brewing inside midPoint for several years.
+Now it is clear that use of integrated workflow engine in IDM systems was a bad idea.
+Removing that engine was a right step to take.
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]

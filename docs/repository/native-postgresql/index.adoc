@@ -1,0 +1,54 @@
+= Native PostgreSQL Repository
+:page-since: "4.4"
+:page-upkeep-status: orange
+:page-keywords: [ 'PostgreSQL', 'repository', 'database' ]
+:page-display-order: 40
+
+MidPoint stores its data in a relational database.
+The database of choice for midPoint is PostgreSQL, leading open source relational database.
+MidPoint contains implementation of data storage mechanisms (a.k.a. "repository") that tuned specifically for PostgreSQL database, taking advantage of PostgreSQL-specific features.
+
+image::repo-native.png[Native PostgreSQL repository implementation]
+
+Please see the following pages for details:
+
+++++
+{% children %}
+++++
+
+See xref:../configuration.adoc[Repository Configuration] page for reference information about the configuration options.
+
+.Sqale
+TIP: Native PostgreSQL repository implementation is nick-named "sqale" (read "scale") in midPoint source code.
+The implementation can be found in `repo-sqale` component.
+It was developed in midPoint 4.3 and 4.4 as a part of xref:/midpoint/projects/midscale/[midScale project].
+
+Besides this documentation, you can also review the https://youtu.be/5ld4U7AqCck[webinar about the Native Repository]
+(which is a bit longer as it goes quite in-depth) or the https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides].
+
+== Compared to the Generic repository
+
+This is just a short list of the main differences.
+Native repository:
+
+* supports only PostgreSQL database, but utilizes its features better;
+* scales better and produces more efficient SQL queries (does not use Hibernate ORM anymore);
+* uses PG inheritance for tables, e.g. `m_user` now contains all the columns, no JOINs needed;
+* separate tables for various reference types (these are often joined, it should help);
+* serialized objects (`fullObject`, `delta`) are stored as JSON by default (saves space)
+and compression options are not available (left for the DB);
+* has some filter interpretation improvements, e.g. support for `NOT EXISTS`, better multi-value support;
+the differences are mentioned in the xref:/midpoint/reference/concepts/query/[midPoint Query] document;
+* uses subqueries (`EXISTS`) instead of `JOIN`, common cases where `DISTINCT` was previously necessary are extremly rare now;
+* uses single iterative search method, is strictly sequential, `iterationMethod` is ignored;
+* extensions are stored in `JSONB` columns inline with the rows;
+* supports xref:/midpoint/reference/repository/native-audit/#partitioning[audit table partitioning];
+* finally, new repository *requires that OIDs are correct UUIDs*!
+
+== See also
+
+* xref:/midpoint/reference/repository/repository-database-support/[Repository Database Support]
+discusses old and new repository and our support strategy.
+
+* https://youtu.be/5ld4U7AqCck[Native Repository webinar]
+and https://docs.evolveum.com/talks/files/2022-01-native-repository.pdf[slides]

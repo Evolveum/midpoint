@@ -1,0 +1,205 @@
+= Example Axiom Queries
+:page-since: "4.5"
+
+== Searching by Archetype Name
+
+Search for reports with archetype specified by its name
+
+.Axiom Query
+----
+archetypeRef/@/name = "Report export task"
+----
+
+.XML Query
+[source, xml]
+----
+<filter>
+  <eq>
+    <path>archetypeRef/@/name</path>
+    <value>Report export Task</value>
+  </eq>
+<filter>
+----
+
+Where:
+
+* `archetypeRef/@` - specifies we are not matching reference value, but it's target. In this case it is archetype.
+
+
+
+== Search by Assigned Role Name
+
+.Axiom Query
+----
+assignment/targetRef/@/name = "Role Name"
+----
+
+Where:
+
+* `assignment/targetRef/@` -specifies that we are not matching reference value, but it's target. In this case it is assigned role.
+
+
+
+== Users with account on specific resource
+NOTE: This filter was tested to be working since midPoint 4.4
+
+Search for users, which have account specified resource, with default intent.
+
+.Axiom Query
+----
+linkRef/@ matches (
+  . type ShadowType
+  and resourceRef matches (oid = "ff735c0a-21e3-11e8-a91a-df0065248d2d")
+  and intent = "default"
+)
+----
+
+Where:
+
+* `linkRef/@`  - we dereference target of `linkRef`, this behaves similar to SQL `JOIN`,
+    allows us to filter on properties of the target
+* `matches` specifies subfilter for dereferenced target, filter which linkRef must match
+** `. type ShadowType`, we are searching for shadows on resource, this is necessary in order to be able to use shadow properties for filter
+** `resourceRef matches (oid = "..." )` - matches specific resource, to which shadow belongs
+** `intent = "default"` - matches shadow with default intent
+
+
+
+.XML equivalent
+[source, xml]
+----
+<query>
+<filter>
+   <exists>
+      <path>linkRef/@</path>
+      <filter>
+         <and>
+            <ref>
+               <path>resourceRef</path>
+               <value oid="ff735c0a-21e3-11e8-a91a-df0065248d2d" />
+            </ref>
+            <equal>
+               <path>intent</path>
+               <value>default</value>
+            </equal>
+         </and>
+      </filter>
+   </exists>
+</filter>
+</query>
+----
+
+.Translated SQL query in native PostgreSQL repository
+[source, sql]
+----
+select u.oid, u.fullObject from m_user u
+where exists (
+   select 1 from m_ref_projection refpj
+   where u.oid = refpj.ownerOid and exists (
+      select 1 from m_shadow sh
+      where refpj.targetOid = sh.oid and (sh.resourceRefTargetOid = ? and sh.resourceRefRelationId = ? and sh.intent = ?)
+   )
+)
+limit ?
+----
+
+
+=== All roles which are assigned to System users
+
+NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+
+// All roles which are assigned to system users
+.Axiom Query using `UserType` as referencedBy
+----
+. referencedBy (
+  @type = UserType
+  and @path = assignment/targetRef
+  and archetypeRef/@/name = "System user"
+)
+----
+
+.Axiom Query using `AssignmentType` for referencedBy
+----
+. referencedBy (
+   @type = AssignmentType
+   and @path = targetRef
+   and . ownedBy (
+      @type = UserType
+      and @path = assignment
+      and archetypeRef/@/name = "System user"
+   )
+)
+----
+
+=== All roles, which are assigned using inducement
+NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
+
+// All roles which are assigned using inducement
+.Axiom Query
+----
+. referencedBy (
+  @type = AbstractRoleType
+  and @path = inducement/targetRef
+)
+----
+
+.XML Query
+[source, xml]
+----
+<filter>
+  <referencedBy>
+    <type>AbstractRoleType</type>
+    <path>inducement/targetRef</path>
+  </referencedBy>
+</filter>
+----
+
+=== All roles, which are assigned to administrator using full text serach
+
+.Axiom Query
+----
+. referencedBy (
+   @type = UserType
+   and @path = roleMembershipRef
+   and . fullText "administrator"
+)
+----
+
+.XML Query
+[source, xml]
+----
+<filter>
+  <referencedBy>
+    <type>UserType</type>
+    <path>roleMembershipRef</path>
+    <filter>
+      <fullText>
+        <value>administrator</value>
+      </fullText>
+    </filter>
+  </referencedBy>
+</filter>
+)
+----
+
+=== Search on assigned role using fullText
+
+.Axiom Query
+----
+assignment/targetRef/@ matches (
+   . fullText "secret"
+)
+----
+
+.XML Query
+[source, xml]
+----
+<filter>
+  <exists>
+    <path>assignment/targetRef/@</path>
+    <fullText>
+      <value>secret</value>
+    </fullText>
+  </exists>
+</filter>
+----

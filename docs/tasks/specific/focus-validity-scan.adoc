@@ -1,0 +1,124 @@
+= Focus Validity Scan
+
+This activity executes validity scan on focal objects.
+
+It looks for objects whose xref:/midpoint/reference/concepts/activation/[validity] is assumed to be changed
+(for example because they crossed their `validTo` timestamp, causing switching the object from _enabled_ to
+_disabled_ effective activation state), and recomputes them. The recomputation applies the changes stemming
+from the new activation state.
+
+The activity works in one of two modes: standard mode and custom validity constraint mode.
+
+== Standard Mode of Operation
+
+Normally, the validity scan activity recomputes all objects that have at least one validity interval value
+(i.e. the value of `validFrom` or `validTo` for object or for any of its assignments) falling into an interval
+of (`lastScanTimestamp`, `thisScanTimestamp`]. footnote:[Note that parentheses mean open interval, i.e. interval
+that does not contain its boundary, whereas square brackets denote closed interval, i.e. one that contains the
+boundary. For example, `(A,B\]` means values greater than `A`, and smaller or equal to `B`.]
+footnote:[For complete understanding see
+link:https://github.com/Evolveum/midpoint/blob/v4.4.1/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/tasks/scanner/FocusValidityScanPartialRun.java#L115-L147[the source code].]
+
+- `lastScanTimestamp` is the timestamp of last executed scan. It is stored in the task object
+in `activityState` container (or in task extension for versions before 4.4).
+- `thisScanTimestamp` is the current system time. It is not stored in the repository, as it
+is determined when the scanning activity run starts.
+
+== Custom Validity Constraint Mode
+
+In this mode the activity looks for objects that have specified property fall
+between (`lastScanTimestamp` - `offset`, `thisScanTimestamp` - `offset`] where `offset` is the value
+given in the explicit validity constraint (the `activateOn` value).
+
+Then it recomputes these objects, with the explicitly added triggered validity policy rule.
+Note that this is an xref:/midpoint/versioning/experimental/[experimental functionality].
+
+== Configuration Parameters
+
+[%header]
+[%autowidth]
+|===
+| Parameter | Description | Default value
+| `objects` | What xref:/midpoint/reference/tasks/activities/object-set-specification/[objects] to scan. Normally, there is no need to specify the query. If it is present, the filter computed
+by the activity (e.g. filtering on `validFrom` and `validTo` properties) is added to it as a conjunction. | All of `FocusType`.
+| `queryStyle` | How to find the objects. See Performance Considerations below. | `singleQuery`
+| `validityConstraint` | Custom validity constraint. | None.
+|===
+
+== Distribution
+
+The activity supports multithreaded and multi-node operation, although the latter is usually not necessary.
+
+== Performance Considerations
+
+For small or medium scale deployments, the default configuration of this activity is adequate. However, for very large ones
+- like millions or tens of millions of objects - the database may have problems evaluating the query covering validity
+of both focal objects and their assignments.
+
+Therefore, there is an option to execute this activity in two sub-activities: the first one looking for objects
+that have their `validFrom` and `validTo` properties falling into specified time interval, and the second one
+looking for objects that have their assignments' `validFrom` and `validTo` values falling there. These sub-activities
+can be run in a single task (the default setup) or in different task, based on the
+xref:/midpoint/reference/tasks/activities/distribution/[`distribution/subtasks`] value.
+
+== Examples
+
+.Validity scanning task with the default configuration
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <name>Validity Scanner</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+
+    <schedule>
+        <interval>900</interval>
+    </schedule>
+
+    <activity>
+        <work>
+            <focusValidityScan/>
+        </work>
+    </activity>
+</task>
+----
+
+.Validity scanning task with separate queries running in separate subtasks
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <name>Validity Scanner</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+
+    <schedule>
+        <interval>900</interval>
+    </schedule>
+
+    <activity>
+        <work>
+            <focusValidityScan>
+                <queryStyle>separateObjectAndAssignmentQueries</queryStyle>
+            </focusValidityScan>
+        </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
+    </activity>
+</task>
+----
+
+[#_limitations]
+== Limitations
+
+The validity scanner uses a simple _recomputation_ to update the object state. In particular, this means that
+there are _no deltas_ as input to the recomputation process. This has some negative consequences, namely that
+if some values (of assignments, associations, or any multi-value items in general) are deleted as a result,
+the deletion is not automatically applied to the respective objects.
+
+A workaround is to set up ranges for any mappings that depend on the validity state of an object.
+
+In the future we may implement the deltas here, so the usual "relative mode" of midPoint working would
+be applied during validation scan as well.

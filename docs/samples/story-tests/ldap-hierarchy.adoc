@@ -1,0 +1,123 @@
+= LDAP Hierarchy Story Tests
+:page-wiki-name: LDAP Hierarchy Story Tests
+:page-wiki-id: 22741224
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-04-25T18:04:54.800+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-04-25T18:04:54.800+02:00
+:page-upkeep-status: yellow
+:page-toc: top
+
+[TIP]
+.Story tests
+====
+MidPoint contains a set of "story tests".
+Such tests implement almost complete midPoint deployment scenarios with all the configuration, resources and policies.
+These tests have a configuration that is almost real-world but the individual resources and data are simplified so we are able to automatically execute them as xref:/midpoint/devel/testing/integration/[integration tests.] This helps to make sure that midPoint works in situations that are very close to reality.
+
+As the story tests contain almost complete sophisticated scenarios they are not only interesting to developers but also to system engineers.
+The configuration used in story tests can be used as an inspiration for midPoint configuration in similar real-world scenarios.
+Therefore pages like this one document the story tests.
+Each page describes the basic idea of the test and the most important part of the configuration that is used in the test.
+====
+
+
+== Basic Idea
+
+LDAP Hierarchy tests are a set of tests that simulate several LDAP hierarchical setups.
+Each test is creating the same organizational structure in midPoint.
+The tests differ how the organizational structure is reflected into LDAP structure:
+
+* *TestLdapFlat*: Flat LDAP structure.
+All accounts in ou=people.
+The organizational structure is reflected to (non-nested) LDAP groups.
+Users are members of the groups to reflect the orgstruct.
+
+* *TestLdapNested*: Semi-flat LDAP structure.
+All accounts in ou=people.
+The organizational structure is reflected to nested LDAP groups.
+Users are members of the groups to reflect their direct membership in orgstruct.
+Group are member of other groups to reflect the org tree.
+Not there is no structure of OUs.
+
+* *TestLdapHierarchical*: Hierarchical LDAP structure.
+All accounts are in ou=people.
+The organizational structure is reflected to hierachical OUs (OUs inside OUs).
+Each OU contains groups.
+Users are members of the groups to reflect their direct membership in orgstruct.
+Groups are members of parent OU groups.
+
+* *TestLdapDeeplyHierarchical*: Deeply hierarchical LDAP structure.
+The accounts are distributed around the tree in OUs.
+The organizational structure is reflected to hierachical OUs (OUs inside OUs).
+Each OU contains groups.
+Users are members of the groups to reflect their direct membership in orgstruct.
+Groups are members of parent OU groups.
+
+All the tests use similar files:
+
+* `resource-opendj.xml`: LDAP resource definition.
+Please note especially the `objectType` definitions in the `schemaHandling` section.
+
+* `org-top.xml`: top-level (root) organization.
+The tests creates sub-organizations below this organization.
+
+* `role-meta-org.xml`: Meta-role for organizational unit.
+Each organizational unit created by the test has this meta-role assigned.
+
+The interesting part is that most of the test code and good part of the configuration is the same.
+Small details (especially in the meta-role) can make a big difference when to comes to "rendering" the midPoint organizational structure into LDAP structure.
+
+
+== Test Files
+
+Following source code directories contains configuration files for the tests:
+
+[%autowidth]
+|===
+| Test | Path | Github link (master)
+
+| *TestLdapFlat*
+| testing/story/src/test/resources/ldap-flat
+| link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-flat[https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-flat]
+
+
+| *TestLdapNested*
+| testing/story/src/test/resources/ldap-nested
+| link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-nested[https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-nested]
+
+
+| *TestLdapHierarchical*
+| testing/story/src/test/resources/ldap-hierarchical
+| link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-hierarchical[https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-hierarchical]
+
+
+| *TestLdapDeeplyHierarchical*
+| testing/story/src/test/resources/ldap-deeply-hierarchical
+| link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-deeply-hierarchical[https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/ldap-deeply-hierarchical]
+
+
+|===
+
+The source code for all tests is located in `testing/story/src/test/java/com/evolveum/midpoint/testing/story`.
+
+
+== Running the Tests
+
+The tests can be executed from the `testing/story` directory using Maven and the test name.
+E.g.
+
+[source,bash]
+----
+cd testing/story
+mvn clean test -Dtest=TestLdapFlat
+----
+
+Test output is recorded in the `testing/story/target/surefire-reports/*-output.txt` files.
+The test output contains dumps of midPoint org tree and LDAP structure created by the test.
+This illustrates how the test works.
+
+
+== See Also
+
+* xref:/midpoint/reference/samples/[Configuration Samples]

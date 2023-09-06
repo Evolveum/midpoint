@@ -1,0 +1,171 @@
+= Generic Objects
+:page-wiki-name: Generic Objects
+:page-wiki-id: 26411222
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-07-30T09:53:48.634+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2020-01-06T10:31:33.277+01:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+:page-toc: top
+
+Most IDM systems are limited to manage just users.
+That was good enough in the early 2000s.
+But current IDM systems have to manage much more than just users.
+There are groups, entitlements, organizational hierarchies, jobs, office locations ... simply speaking there is entire ZOO of IDM-related concepts that the IDM system has to manage.
+Some IDM systems support this by implementing a support for "generic object".
+This is an object type that can describe almost anything.
+And of course, there is a concept of "generic object" in midPoint (see below).
+But we have found that this is not a good way to support IDM-related concepts.
+Therefore midPoint provides a much better mechanism for object type extensibility.
+
+The problem with generic types is that they are just too generic.
+As the type should be able to handle any object type has to be extremely simple.
+Therefore it is not possible to provide almost any built-in functionality to support generic types.
+How should they be displayed in the user interface? Should users be able to assign them?
+What should be the effect it user assigns them? What rules should be applied to govern generic objects?
+What about authorizations, auditing, lifecycle, governance, ...
+
+There is a better solution in midPoint.
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
+Those data types are built to be extensible and in fact, they are quite generic.
+The role does not mean just "role in strict RBAC sense".
+In midPoint, the concept of "role" is much broader.
+MidPoint roles can easily be used to model RBAC roles, but also job categories, job titles/positions, qualifications, competency certifications, achievements - and even xref:/midpoint/features/planned/consent-management/[data protection consents].
+Orgs and services can be used in a similar way:
+
+[%autowidth]
+|===
+| Object Type | Can be used to model
+
+| Role
+| xref:/midpoint/reference/roles-policies/rbac/[RBAC roles] +
+xref:/midpoint/reference/security/authorization/roles/[Authorization roles] +
+job category, job titles/position, qualification, competency certification, achievement xref:/midpoint/features/planned/consent-management/[consent]metarole
+
+
+| Org
+| xref:/midpoint/reference/org/organizational-structure/[Functional organization structure] (company, division, section) +
+project, workgroup, team, ad-hoc group, task force, job responsibility group +
+Tenant (in multi-tenant configurations) +
+Location (office, campus, city, country) +
+xref:/midpoint/reference/roles-policies/applicable-policies/[Policy category] +
+xref:/midpoint/reference/admin-gui/role-catalog/[Role catalog category]
+
+
+| Service
+| Server, virtual machine, network service (e.g. application server), application, cloud service +
+Mobile device, printer, "thing" (IoT)
+
+
+|===
+
+Roles, orgs, and services are what we call _abstract roles_.
+Which means that all of them behave like roles to some extent.
+E.g. all of them can be assigned to users, all of them can be subject to policy rules, membership, authorizations and governance policies are evaluated for all of them in a consistent fashion and so on.
+Therefore there are many benefits:
+
+* Job categories, titles, qualifications and similar objects can directly include entitlements.
+Therefore if a user is assigned to a job, such user automatically gets all the entitlements needed for that job.
+
+* xref:/midpoint/reference/roles-policies/role-autoassignment/[Autoassignment] works as expected.
+As do authorizations.
+xref:/midpoint/reference/cases/approval/[Approval] processes can be applied seamlessly.
+All midPoint concepts applicable to roles can be applied.
+
+* There is also a big benefit from xref:/midpoint/features/planned/lawful-bases-for-data-processing/[data protection perspective].
+As the entitlements are placed directly into job categories and qualifications it is easy to find the reason or "basis" why the user has such an entitlement.
+E.g. midPoint knows that user's personal data are provisioned to system X because the user has a job position Y that needs such an account.
+
+* Membership is managed in the same way as for roles.
+Therefore midPoint can show which users currently hold particular job position or qualification.
+
+* Governance principles can also be applied.
+Job positions may have an owner and they may be subject to xref:/midpoint/reference/roles-policies/certification/[certification].
+
+In addition to that org-based types can form hierarchies:
+
+* There may be task forces with smaller workgroups inside them.
+Policies that apply to a task force should apply to all workgroups.
+
+* Locations often form "geospatial" hierarchies: office is in a building, the building is in a campus/city which in turn is in a specific country.
+This can easily be modeled in midPoint.
+There may be policies that apply to the whole campus or country.
+If they properly configured then they can apply to whole hierarchy or subhierarchy.
+
+And of course, all the object types can be xref:/midpoint/reference/synchronization/generic-synchronization/[synchronized with resource objects].
+
+MidPoint approach to extensibility is not to start from dumb "generic objects".
+MidPoint starts from much smarter object types: roles, orgs, and services.
+Those can be extended to fit almost all the needs of IDM deployments.
+
+
+== Schema, Subtypes, Metaroles, and Archetypes
+
+midPoint is a fully schema-based system.
+This has enormous advantages from the software engineering point of view.
+To cut the long story short it allows us to develop midPoint faster and to efficiently maintain it in a long run.
+However, this also means that object types are set during midPoint design and they cannot be easily changed at run-time.
+Once an object is a role, its type is set to `RoleType` and this cannot be changed.
+But the definition of RoleType can be extended, even at run-time, by using xref:/midpoint/reference/schema/custom-schema-extension/[custom schema extension mechanism].
+
+There is yet another drawback: RBAC roles, authorization roles, job titles - they all have the same object type.
+They are all `RoleType`. How to tell them apart? There is also a mechanism for that: xref:/midpoint/reference/schema/archetypes/[Archetypes]. Archetypes can be used to distinguish objects of the same type, customize its presentation and behavior.
+Archetypes are also xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. Metaroles are roles that are applied to other (abstract) roles.
+Therefore archetypes can be used to assign common behavior for roles, orgs and services.
+And that is especially desirable when defining a new type of an object.
+It is quite a common case that all projects will have the same lifecycle: approval of new project creation, establishing project manager, decommissioning of a project and so on.
+This policy can be defined in "project archetype" that is assigned to all projects.
+Therefore it is defined just once and applied everywhere it is needed.
+
+
+== All Objects Are Extensible
+
+All midPoint objects are extensible.
+Users, roles, orgs, services, resources, tasks - and even xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. System configuration object extension is in fact a very useful mechanism.
+Most xref:/midpoint/reference/expressions/[expressions] have `configuration` variable available during expression evaluation.
+Therefore all the data placed into system configuration extension are available to expressions.
+This is a very elegant way how to set system-wide parameters (constants).
+
+
+== GenericObjectType
+
+So far midPoint deployers were able to reuse existing midPoint concepts: roles, orgs, and services.
+However, for the very rare cases when those concepts do not fit there is a `GenericObjectType`. It looks like this:
+
+[source,xml]
+----
+<genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111"
+       xmlns:my="http://example.com/my">
+    <name>My Sample Generic Object</name>
+    <extension>
+       <my:foo>bar</my:foo>
+    </extension>
+</genericObject>
+----
+
+You will need to define xref:/midpoint/reference/schema/custom-schema-extension/[Custom Schema Extension] for `GenericObjectType` to make it work properly.
+In this case, the customer schema extension will define property `foo` in namespace `http://example.com/my`.
+
+However, as far as we know this type was actually never used in practice.
+All the deployers sooner or later realized the benefits of midPoint approach with smarter basic object types.
+Therefore `GenericObjectType` should work - in theory.
+But as nobody really needed `GenericObjectType` in practice there was very little testing, the user interface support is almost non-existent and all in all the use of `GenericObjectType` somehow discouraged.
+
+Simply speaking, midPoint does not really need the concept of special generic objects, because every object in midPoint is generic to some extent.
+
+
+== See Also
+
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
+
+* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
+
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+
+* xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
+
+* xref:/midpoint/reference/schema/subtype/[Subtype]

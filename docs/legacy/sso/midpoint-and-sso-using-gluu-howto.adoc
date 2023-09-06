@@ -1,0 +1,126 @@
+= Midpoint and SSO using Gluu HOWTO
+:page-wiki-name: Midpoint and SSO using Gluu HOWTO
+:page-wiki-id: 24085947
+:page-wiki-metadata-create-user: mmacik
+:page-wiki-metadata-create-date: 2017-04-27T15:07:39.624+02:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2017-04-28T17:24:07.034+02:00
+:page-obsolete: true
+
+== Introduction
+
+The following is a tutorial on how to configure midPoint with Gluu in order to perform SSO using OpenID Connect.
+
+In this example we are using:
+
+* Ubuntu Xenial
+
+* midPoint 3.5
+
+* Tomcat 8
+
+* Apache 2
+
+* mod_auth_openidc 2.2.x
+
+[TIP]
+.Contribution
+====
+First version of the Howto document contributed by Dario Tongue
+====
+
+== The setup
+
+Firstly please make sure that you have Apache Tomcat and midPoint installed and working properly. Also install Apache with rewrite, proxy and proxy_http modules and configure them to work with Apache Tomcat and midPoint. There steps can be found in this previous how to.
+
+Next configure Apache with SSL.
+And install the mod_auth_openidc module onto Apache and configure it properly so it will work with your OpenID Connect Provider.
+For more details follow the link:https://gluu.org/docs/ce/latest/integration/openidc-rp/[following how to].
+
+The claim user_name of our OpenID Connect Provider (Gluu in our case) matches midPoint user "name".
+This also means that one of the scopes of your client mod_auth_openidc defined on your OpenID Connect Provider contains the claim user_name.
+
+== Apache configuration
+
+*  +
+*
+
+[source]
+----
+#OpenID Connect
+OIDCProviderMetadataURL https://idp.mydomain.com/.well-known/openid-configuration
+
+OIDCClientID (client-id-you-got-back-when-you-added-the-client)
+OIDCClientSecret (your-client-secret)
+OIDCRedirectURI https://mydomain/midpoint/redirect_uri
+OIDCResponseType code
+OIDCScope "openid profile email user_name"
+OIDCSSLValidateServer Off
+OIDCCryptoPassphrase (a-random-seed-value)
+OIDCPassClaimsAs both
+OIDCClaimPrefix USERINFO_
+OIDCPassIDTokenAs payload
+<Location ~ "/midpoint*">
+    Require valid-user
+    AuthType openid-connect
+</Location>
+...
+ProxyRequests           Off
+ProxyPreserveHost       On
+ProxyPass               /midpoint       http://localhost:8080/midpoint
+ProxyPassReverse        /midpoint       http://localhost:8080/midpoint
+----
+
+After applying the configuration restart apache:
+
+[source]
+----
+sudo service apache2 restart
+----
+
+== Midpoint configuration
+
+Edit the ctx-web-security.xml located at /var/lib/tomcat8/webapps/midpoint/WEB-INF
+
+Uncomment the following so that reads:
+
+[source]
+----
+<!--For SSO integration use the following: -->
+<custom-filter position="PRE_AUTH_FILTER"
+ref="requestHeaderAuthenticationFilter" />
+----
+
+Edit the following value "principalRequestHeader" in the bean "requestHeaderAuthenticationFilter" so that it reads:
+
+[source]
+----
+<!-- Following bean is used with pre-authentication based on HTTP headers (e.g. for SSO integration) -->
+...
+<beans:property name="principalRequestHeader" value="USERINFO_user_name"/>
+...
+----
+
+Edit the following value "defaultTargetUrl" in the bean "logoutHandler" so that it reads :
+
+[source]
+----
+<beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler">
+
+<beans:property name="defaultTargetUrl" value=" https://mydomain/midpoint/redirect_uri?logout=https%3A%2F%2Flocalhost%2F(a logout page)
+"/>
+</beans:bean>
+----
+
+Restart tomcat:
+
+[source]
+----
+sudo service tomcat8 restart
+----
+
+== External links
+
+* xref:/midpoint/reference/legacy/sso/[MidPoint and SSO HOWTO]
+
+* link:https://gluu.org/docs/ce/latest/integration/openidc-rp/[mod_auth_openidc RP Integration]

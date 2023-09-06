@@ -1,0 +1,120 @@
+= Unix Story Test
+:page-wiki-name: Unix Story Test
+:page-wiki-id: 21200990
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-09-30T12:26:09.493+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-09-30T12:26:09.493+02:00
+:page-upkeep-status: orange
+:page-toc: top
+
+[TIP]
+.Story tests
+====
+MidPoint contains a set of "story tests".
+Such tests implement almost complete midPoint deployment scenarios with all the configuration, resources and policies.
+These tests have a configuration that is almost real-world but the individual resources and data are simplified so we are able to automatically execute them as xref:/midpoint/devel/testing/integration/[integration tests.] This helps to make sure that midPoint works in situations that are very close to reality.
+
+As the story tests contain almost complete sophisticated scenarios they are not only interesting to developers but also to system engineers.
+The configuration used in story tests can be used as an inspiration for midPoint configuration in similar real-world scenarios.
+Therefore pages like this one document the story tests.
+Each page describes the basic idea of the test and the most important part of the configuration that is used in the test.
+====
+
+== Basic Idea
+
+The tests demonstrates the provisioning to the LDAP server using Unix-friendly data structures.
+Namely the `posixUser` and `posixGroup` auxiliary object classes are used.
+The test has only one resource, and it is OpenDJ directory server.
+However, there are two quite distinct roles:
+
+* Role *Basic User* grants normal user privileges in the directory server.
+Just ordinary `inetOrgPerson` object class is used in this case.
+
+* Role *Unix User* sets up the account to be also used as an Unix account.
+The `posixUser` object class is used in addition to the `inetOrgPerson` object class.
+
+The interesting thing is that role Unix User can be arbitrarily assigned and unassigned from the user.
+This causes the change in objectclass structure and attributes.
+When the Unix User role is added, the `posixUser` auxiliary object class is added and also all the mandatory attributes that this object class requires (otherwise there would be a schema violation error).
+When the Unix User role is unassigned the `posixUser` auxiliary object class is removed and also all the extra attributes that are defined here (otherwise there also would be a schema violation error).
+
+TODO: sequneces
+
+TODO: groups
+
+
+== The Files
+
+[%autowidth,cols="h,1,1"]
+|===
+| Common story test configuration | https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/common/ | Files used by all story tests
+
+| This story test configuration
+| link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/unix/[https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/unix/]
+| Files used by this story test
+
+
+| Schema extensions
+| link:https://github.com/Evolveum/midpoint/blob/master/testing/story/src/test/resources/schema/unix.xsd[https://github.com/Evolveum/midpoint/blob/master/testing/story/src/test/resources/schema/unix.xsd]
+| XSD files with custom schema extension.
+
+
+| Test source code
+| link:https://github.com/Evolveum/midpoint/blob/master/testing/story/src/test/java/com/evolveum/midpoint/testing/story/TestUnix.java[https://github.com/Evolveum/midpoint/blob/master/testing/story/src/test/java/com/evolveum/midpoint/testing/story/TestUnix.java]
+|
+
+
+|===
+
+
+== Resources
+
+[%autowidth]
+|===
+| Resource | Type | Definition | Description
+
+| OpenDJ
+| LDAP
+| `resource-opendj.xml`
+| Target Resource
+
+
+|===
+
+
+=== OpenDJ
+
+Target resource.
+It is assumed that this is both general-purpose directory system and also a directory system for connecting Unix systems.
+
+[%autowidth]
+|===
+| Resource Objects | kind | intent | Description
+
+| user accounts
+| account
+| default
+|
+
+
+| LDAP groups
+| entitlement
+| ldapGroup
+|
+
+
+| UNIX (posix) groups
+| entitlement
+| unixGroup
+|
+
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/samples/[Configuration Sample]
+
+* xref:/midpoint/reference/expressions/sequences/[Sequences]

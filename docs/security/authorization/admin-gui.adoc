@@ -1,0 +1,545 @@
+= GUI Authorizations
+:page-wiki-name: GUI Authorizations
+:page-wiki-id: 15859800
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T12:30:36.256+02:00
+:page-wiki-metadata-modify-user: katkav
+:page-wiki-metadata-modify-date: 2020-03-27T20:17:57.504+01:00
+:page-upkeep-status: yellow
+:page-toc: top
+
+In the midPoint, we now support these GUI actions:
+
+== Overall Administration Actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all
+| All GUI pages
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#home
+| Administration dashboard (including the actions)
+| covers also #dashboard and #myPasswords
+
+|
+| All administration pages for users (including the actions)
+|
+
+|
+| All administration pages for resources (including the actions)
+|
+
+|
+| All administration pages for roles (including the actions)
+|
+
+|
+| All administration configuration pages (including the actions)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#allWorkItems
+| All administration pages for work items (including the actions)
+| Since 4.0
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reportsAll
+| All administration pages for reports (including the actions)
+|
+
+|
+| All administration pages for tasks (including the actions)
+|
+
+|
+| All administration pages for org.
+structure (including the actions)
+|
+
+|
+| All pages for access certification (including actions)
+| Since 3.4
+
+|
+| All pages for archetypes
+| Since 4.0
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssign
+| Assign menu item authorization on the Assignment tab
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassign
+| Unassign menu item authorization on the Assignment tab
+|
+
+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignAllMembers
+| Unassign all members menu item authorization on the Assignment tab
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#previewChanges
+| Authorization required to access preview changes page.
+The authorization is also check while deciding if previewButton should be shown.
+| Since 4.1
+
+|===
+
+== Self-service Actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll
+| All self-service pages
+| Since 3.3
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfDashboard
+| Self-service Home
+| Since 3.3
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile
+| Self-service profile
+| Since 3.3
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials
+| Self-service credentials
+| Since 3.3
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestRole
+| Self-service request a role
+| 3.4-3.5.x, not supported in 3.6+
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestAssignmentDEPRECATED
+| Self-service request a role
+| appeared in 3.6 +
+deprecated since 4.0.1 +
+use #selfRequestAssignments instead
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestAssignments
+| Self-service request a role
+| Since 3.6
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#postAuthentication
+| Post-authentication
+| Since 3.8.1
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#assignmentDetails
+| Self-service assignment details
+|
+
+|===
+
+== Administration Dashboard Actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard
+| Administration dashboard
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myPasswords
+| My passwords
+| Page removed in 3.3, see self-service credentials page instead
+
+|===
+
+== User actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users
+| List users
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#user
+| Create user
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails
+| Edit user
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#findUsers
+| Find users
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersView
+| Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for users.
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userHistory
+| User historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
+
+|===
+
+== Resource actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources
+| List resources
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resource
+| Create resource (xml editor)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceDetails
+| Details of resource
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceEdit
+| Edit resource
+| Resource Wizard
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourcesAccount
+| Listing accounts on resource
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourceWizard
+| Resource wizard
+|
+
+|===
+
+== Role actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roles
+| List roles
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#role
+| Create role
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails
+| Details of role (including editing)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignMember
+| Assign/manage role members (role/service details, "Members" tab)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddMember
+| Create new member (role/service details, "Members" tab)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignMember
+| Unassign member (role/service details, "Members" tab)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeMember
+| Recompute member (role/service details, "Members" tab)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignGovernance
+| Assign member (role details, "Governance" tab)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignGovernance
+| Unssign member (role details, "Governance" tab)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddGovernance
+| Create new member (role details, "Governance" tab)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#rolesView
+| Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for roles.
+| Since 4.0.1
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleHistory
+| Role historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
+
+|===
+
+== Organization actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll
+| TODO: #orgTree + #orgStruct?
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree
+| Org tree hierarchy
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
+| Org. unit details (including editing) and New org. link (based on #read, #modify, #add and #delete model authorizations)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignOrgMember
+| Authorization for Assign menu item on the org Managers and Members panels (e.g. Assign Managers, Assign Members)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignOrgMember
+| Authorization for Unassign menu item on the org Managers and Members panels (e.g. Unassign selected members)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddOrgMember
+| Authorization for Create menu item on the org Managers and Members panels (e.g. Create manager, Create member)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminDeleteOrgMember
+| Authorization for Delete menu item on the org Managers and Members panels (e.g. Delete all managers, Delete member, Delete all (focus) members)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeOrgMember
+| Authorization for Recompute menu item on the org Managers and Members panels (e.g. Recompute all managers, Recompute selected members, Recompute direct members, Recompute all members)
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMove
+| Authorization for Move organization menu item
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminOrgMakeRoot
+| Authorization for Make root organization menu item
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnitHistory
+| Org unit historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
+
+|===
+
+== Service actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#services
+| List services
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service
+| Create service
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#serviceDetails
+| Details of service
+| Since 4.4.2
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#serviceHistory
+| Service historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+|
+
+|===
+
+== Configuration actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#debugs
+| Repository objects
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#debug
+| Edit repository object
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configImport
+| Import object
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configLogging
+| Logging settings
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configSystemConfiguration
+| System configuration
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configAbout
+| About system, self tests for repository and provisioning
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configSyncAccounts
+| Accounts synchronization information
+|
+
+|===
+
+== Case actions
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#cases
+| All cases. If only this authorization is defined, no views (My Cases, All Approvals) will be shown in the sidebar menu.
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#casesView
+| Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for cases.
+|
+
+|===
+
+== Work items actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItems
+| List work items
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems
+| My work items
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem
+| Edit work item
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#attorneyWorkItems
+| Attorney items
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems
+| Items claimable by me
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#allRequests
+| All requests
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myRequests
+| My requests
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#requestsAboutMe
+| Requests about me
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItemsProcessInstance
+| Process instance (Work items)
+|
+
+|===
+
+== Report actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#reports
+| List reports
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#createdReports
+| Created reports
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#auditRead
+| Reading audit log data
+| since 3.5
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#auditLogViewer
+| Audit log viewer page
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#auditLogDetails
+| Audit log details viewer page
+| since 4.7
+
+|===
+
+== Task actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#tasks
+| List tasks
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#taskAdd
+| Create task
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#taskDetails
+| Task details
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#task
+| Edit task
+|
+
+|===
+
+== Org. structure actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct
+| Org. tree menu
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree
+| Org. tree hierarchy
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
+| New org unit link
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgDetails
+| Edit Org Unit
+| Since 4.4.3
+
+|===
+
+== Archetype actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetypes
+| List archetypes
+| Since 4.0
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetype
+| Edit archetype
+| Since 4.0
+
+|===
+
+== Access certification actions
+
+Please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] for detailed list.
+
+== Focal object tabs authorizations
+
+Display of object detail tabs is *not* controlled by authorizations.
+xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration] is used to control this behavior.
+
+== See also:
+
+* xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration]

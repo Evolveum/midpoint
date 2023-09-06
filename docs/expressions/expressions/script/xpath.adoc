@@ -1,0 +1,148 @@
+= XPath Expressions
+:page-nav-title: XPath
+:page-wiki-name: XPath Expressions
+:page-wiki-id: 4423685
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-17T18:44:27.069+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-10-01T12:38:48.572+02:00
+:page-obsolete: true
+:page-upkeep-status: green
+
+XPath version 2 was a supported expression language in midPoint.
+It is *not supported* any longer.
+This page is kept solely for historical reasons.
+It is not updated any longer.
+
+Its language URL is:
+
+ http://www.w3.org/TR/xpath/
+
+== Variables and functions
+
+XPath variables are prefixed by dollar sign ($) and must be specified in a correct namespace (using a valid namespace prefix).
+For example, following expression will evaluate to the content of the `fullName` property of a user (using `c` as a namespace prefix):
+
+[source,xpath]
+----
+$c:user/c:fullName
+----
+
+Following table provides summary of commonly used variables in midPoint expressions.
+These variable may or may not be set depending on a specific situation in which the expression is used.
+Please refer to the in-line XSD schema documentation for list of specific variables for each situation.
+
+[%autowidth]
+|===
+|  Variable Name  |  Type  |  Comment
+
+| `$c:user`
+| `UserType`
+|  The User object, available for most expressions
+
+
+| `$c:account`
+| `AccountShadowType`
+|  TODO
+
+
+| `$c:configuration`
+|  TODO
+|  TODO
+
+
+| `$c:environment`
+|  TODO
+|  TODO
+
+
+|===
+
+The XPath is used not only as a pointer language, but also as a generic purpose expression language.
+For example, the following code can be used to concatenate first and last name of a user:
+
+[source,xpath]
+----
+concat($c:user/c:givenName,' ',$c:user/c:familyName)
+----
+
+
+== Path Expressions and Generic Expression
+
+The XPath language is used both as a pointer language and as a generic purpose language.
+Sometimes it may be difficult to distinguish the two different uses.
+
+The path expressions are used in case the schema asks for `XPathType`. The path expressions should not use XPath functions.
+It should be a simple relative path expression, usually starting with an variable.
+An example of a path expression is provided below.
+
+.XPath Path Expression
+[source,xpath]
+----
+$c:user/c:givenName
+----
+
+Path expressions are frequently used as link:http://en.wikipedia.org/wiki/Value_%28computer_science%29[l-values]. The path expressions point to a piece of XML where a value can be assigned or modified.
+
+Path expressions are fixed to XPath version 1 language and are not supposed to be extensible.
+It is not expected that the pointer language will be anything else than XPath.
+
+On the other hand, generic expressions can use full power of XPath.
+Generic expressions can be used when the schema asks for `ExpressionType`. An example of a generic expression is provided below.
+
+.XPath Generic Expression
+[source]
+----
+
+concat('uid=',$c:user/c:name,',ou=people,dc=example,dc=com')
+
+----
+
+Generic expressions are used as link:http://en.wikipedia.org/wiki/Value_%28computer_science%29[r-values], producing a value in any reasonable way.
+Generic expression are now supposed to be in XPath version 2. Generic expressions are extensible and there may be more languages than just XPath in the future.
+
+
+== XPath and Namespaces
+
+Similarly as in BPEL, the XPath expressions are using the context of the XML document that contains them.
+This is used especially to declare namespace prefixes used in the XPath expressions.
+Following example is a XML snippet that declared the namespace prefix that is later used in the expression.
+
+[source,xml]
+----
+
+<whatever xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/core-1.xsd">
+    <c:valueExpression xmlns:foo="http://schemas.foo.com/">
+        $c:user/c:extension/foo:bar
+    </c:valueExpression>
+</whatever>
+
+----
+
+However, the XML normalization process is not aware about the prefixes used in the expression.
+As XML prefixes are considered semantically insignificant, XML normalization may rename the prefixes or remove "unused" prefixes.
+We are not aware of any mechanism that can solve this problem, as this may a systemic problem of XML normalization itself (e.g. there seems to be a hardcoded exception for QName, but only in schema-aware normalization, no similar mechanism was found for XPath).
+Therefore it is recommended not to use XML normalization, if possible.
+
+In case the normalization cannot be turned off, there is an alternative mechanism how to explicitly declare XML namespaces inside XPath expression.
+An example is provided below.
+
+[source,xml]
+----
+<whatever xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/core-1.xsd">
+    <c:valueExpression>
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/core-1.xsd";
+        declare namespace foo="http://schemas.foo.com/"
+        $c:user/c:extension/foo:bar
+    </c:valueExpression>
+</whatever>
+----
+
+Such approach is making the code difficult to read and maintain.
+The namespace prefix declarations are duplicated and have to be provided in each and every expression.
+However, it may be the only feasible approach when XML normalization is used.
+
+
+== See Also
+
+* xref:/midpoint/reference/legacy/xpath2/[XPath2 Tutorial]

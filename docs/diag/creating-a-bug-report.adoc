@@ -1,0 +1,132 @@
+= Creating a Bug Report
+:page-wiki-name: Creating a Bug Report
+:page-wiki-id: 4882530
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-08-08T12:07:41.364+02:00
+:page-wiki-metadata-modify-user: mmacik
+:page-wiki-metadata-modify-date: 2016-12-12T10:27:13.732+01:00
+:page-keywords: [ 'logging', 'log', 'bug', 'bugreport', 'troubleticket', 'trouble', 'bugtracking', 'troubleshooting' ]
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-tag: guide
+:page-upkeep-status: yellow
+
+No software is ever perfect.
+This is doubly true for flexible, configurable and customizable piece of software such as midPoint.
+We try really hard but it is almost impossible to predict all the ways how midPoint can be used not to even think about testing them all.
+Each and every midPoint deployment is slightly different therefore it can be expected that each deployment may uncover a bug because it goes where no man has gone before.
+
+MidPoint team tries to address bugs as quickly as possible.
+To make this process easier for us we need to get some crucial information and your cooperation.
+Creating a report simply stating that _"Provisioning does not work"_ does not help anyone and wastes both yours and our time.
+This page describes how to create a bug report that does not waste anyone's time and makes our cooperation efficient.
+
+
+== Troubleshooting
+
+First of all please make sure you go through xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps] to understand what is going on.
+MidPoint is very flexible and a simple misconfiguration may easily look like a bug.
+We invest a huge amount of time to make the error messages and log entries understandable.
+But nothing is perfect and what seems like a perfectly understandable message for us may look like a gibberish to you.
+In such a case we would appreciate any feedback.
+But first try to go through midPoint documentation and understand how midPoint works.
+If the message still makes no sense then it is a time to go on with a bug report.
+
+Even if you succeed, find a problem and fix it yourself we would still appreciate a feedback.
+You might have spent 4 hours figuring out what's going on and a single log message could have saved that time.
+In such a case we will be more than happy to add that message if you let us know.
+Or even feel free to add it yourself.
+MidPoint is an open source project and we gladly accept contributions.
+
+== Replicating the Problem
+
+The easiest way for us to fix a problem is being able to replicate it.
+In such case we do not only fix the problem but we can also make sure it is gone.
+In most cases we create a test case in our automated test suite to make sure the problem will gone and it will not appear again.
+Therefore your best strategy to make sure that the problem is fixed quickly and does not appear again is to show us how to replicate it in our environment.
+
+We strongly prefer if you could replicate the problem using our link:https://github.com/Evolveum/midpoint/tree/master/samples[sample resources and objects] with minimal customization needed to replicate it.
+This saves you a lot of time describing your environment to us and it also saves us a lot of time to try to re-create your environment in our lab.
+This approach also helps you to check your configuration and to make sure you are not reporting misconfiguration as a bug.
+
+== Non-replicable Problems
+
+If the problem cannot be easily replicated using samples or similar simple setup then we need to work with what we have.
+Therefore we either need to know quite a lot about your environment to be able to set it up in our lab.
+Or we need an access to your environment or your cooperation with diagnosing the problem.
+In such a case please use your common sense in what comes into the bug report.
+Please keep in mind that midPoint is open source project and the bug reports are public therefore please be careful when providing sensitive information in bug reports.
+
+== Submitting a Bug Report
+
+The best way to submit a bug report is to use link:https://jira.evolveum.com/browse/MID[Jira] which is our bug reporting and task tracking system.
+The registration is open to everybody.
+Using jira allows you to track the progress of issue resolution, add additional information, etc.
+
+[NOTE]
+====
+Please keep in mind that Jira is public and open to anyone following the spirit of open source.
+Therefore, be careful about submitting sensitive information.
+====
+
+If Jira cannot be used then use any available channel, e.g. the one agreed in your service contract (if applicable).
+Although we recommend to use Jira all the time we do not enforce it.
+We appreciate feedback regardless of the channel that is used to reach us.
+
+== Usual Content of Bug Report
+
+Good bug report usually contains:
+
+* What *operation* have you tried or what do you *want to achieve*. Some "bugs" may be caused by trying to achieve something using the wrong mechanism.
+Having a broader perspective helps us to help you.
+
+* If there is a *form or other input* to the operation tell us how it was set up or filled in (e.g. an XML snippet used to import, etc.)
+
+* What kind of *resource definition* was used, how it was modified, etc.
+We need to know only the relevant parts.
+We prefer if you replicate the problem with one of our link:https://github.com/Evolveum/midpoint/tree/master/samples[samples], see above.
+
+* Any other *special settings* that you feel can influence the outcome (custom schema, strange things in expressions, etc.)
+
+* If the operation produced an error message in GUI include that *error message* as well.
+
+* If there is an exception in the log files please make sure that you include full *stack trace of the exception*. The exception stack trace is usually a very efficient pointer to likely cause of the problem.
+
+* Relevant part of the *log files*. You may want to have a look at xref:/midpoint/reference/diag/logging/useful-loggers/[Useful Loggers] to correctly set up your logging to get the most useful data in the logs.
+
+* Your *environment*: operating system, J2EE application server and its version, Java version, target system version.
+You do not need to bother with this if the bug is obviously not environment-specific.
+
+* Indication of midPoint version (release) or subversion revision (trunk) that was used.
+
+You can use the following fields in the *Create issue* form in Jira:
+
+* *Issue Type*: select *Bug* for bugs only, not for improvements.
+* *Summary*: short description of the issue
+* *Priority*: please specify the issue priority level. Click "?" icon to provide more help. Please keep in mind that developers may update the issue priority.
+* *Subscription*: please indicate if you have a subscription
+* *Component/s*: please indicate if you know which component might be responsible for the behaviour. Leave empty if you have no idea.
+* *Affects Version/s*: specify on which version(s) the problem appears (multi-value option)
+* *Backport Version*: please indicate the version for backporting the fix, otherwise it will be fixed only in `master` branch. Example: if you are using LTS version `4.4.1`, select `4.4.2`.
+* *Fix Version/s*: this field will be set by developers
+* *Assignee*: this field will be set by developers
+* *Git Revision*: please specify the git revision if using unreleased midPoint version (e.g. builds from one of the supported support branches)
+* *Environment*: please indicate your environment such as: Java version, operating system name and version, memory, number of nodes in case of cluster, JVM variables etc. Please anonymize the content before you submit the form.
+* *Description*: full description of the problem including the steps to reproduce it and error messages, stack trace etc. Please anonymize the content before you submit the form.
+* *Attachment*: attach files if needed, e.g. log file(s), screenshots etc. Please anonymize the content before you submit the form.
+
+*Not all of the above is required in a bug report.*
+Use your common sense.
+As a rule of the thumb more information is usually better than little information.
+But sometimes too much non-relevant information may obscure the tiny problem that would be obvious if just the right amount of information is provided.
+
+== See Also
+
+* xref:/midpoint/reference/diag/troubleshooting/usual-troubleshooting-steps/[Usual Troubleshooting Steps]
+
+* xref:/midpoint/devel/bugfixing/[Bugfixing and Support]
+
+* xref:/support/bug-tracking-system/[]
+
+* xref:/midpoint/reference/diag/troubleshooting/[]
+
+// TODO: configuration samples link?

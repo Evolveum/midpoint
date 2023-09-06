@@ -1,0 +1,606 @@
+= Notification and Transport Configuration
+:page-nav-title: Configuration
+:page-display-order: 200
+:page-toc: top
+
+[NOTE]
+====
+This document shows Notification and Transport configuration *for version 4.5 and later*.
+
+For versions 4.4 and before use xref:../configuration-4.4-and-before/[this Configuration guide] instead.
+====
+
+For a basic introduction to notifications, please see this xref:..[general overview].
+
+Here we describe detailed information on how to configure the notifications as a system administrator.
+
+Notification and transport configuration is specified with `notificationConfiguration` and `messageTransportConfiguration`
+containers inside xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object].
+
+== Configuring transports
+
+[NOTE]
+====
+In 4.5 the new container for transport configuration was introduced - `messageTransportConfiguration`.
+You can still place the transport configuration inside `notificationConfiguration` but that style
+will be eventually deprecated, depending on the GUI support for the new configuration style.
+
+There is just one noteble difference in both styles.
+The "old" style supports `name` _attribute_ to distinguish between multiple transports of the same
+type - while the new style uses `name` _element_ which is more idiomatic for midPoint configuration.
+====
+
+Currently, there are a couple of transports available: *mail, sms*, *custom* and *file*.
+
+They have to be configured to work properly.
+For the time being, here we show a sample configuration, hopefully self-explanatory enough:
+
+[source,xml]
+----
+<mail>
+    <!-- There can be more servers if necessary; they are tried in the specified order. -->
+    <server>
+        <host>smtp.gmail.com</host>
+        <!--
+        Specify port: 25, 587 (e.g. MS Exchange and TLS) or other based on your mail server.
+        You can skip the port definition altogether to use default (25).
+        -->
+        <port>587</port>
+        <username>abc@gmail.com</username>
+        <password>
+            <clearValue>abcdef</clearValue>
+        </password>
+        <!-- Other transportSecurity options: none, starttlsEnabled, starttlsRequired -->
+        <transportSecurity>starttlsRequired</transportSecurity>
+    </server>
+
+    <server> <!-- Second server -->
+       . . .
+    </server>
+    <server> <!-- Third server -->
+       . . .
+    </server>
+
+    <defaultFrom>abc@gmail.com</defaultFrom>
+    <!-- standard javax.mail debugging; it is going to stdout (midpoint.out)! -->
+    <debug>true</debug>
+    <!--
+    All notifications are logged to this file IN ADDITION TO sending them via mail.
+    They are logged in all cases: even if they eventually cannot be sent.
+    -->
+    <logToFile>mail-notifications.log</logToFile>
+</mail>
+----
+
+*Ensure your SMTP server will accept multiple connection (message rate limit)* as midPoint notifications are being sent as the objects are created, e.g. one user can have 15 accounts or one organization 40 entitlements created at the same time.
+This is especially important for Microsoft Exchange, where the default limit seems to be very low (5 connections per minute).
+
+Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of `javax.mail` implementation is used).
+You may also need to store the mail server self-signed SSL certificate in your Java "cacerts" keystore.
+
+[TIP]
+====
+For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
+====
+
+=== "File" transport
+
+This transport can be used to diagnose notifications.
+It works in a similar way as "redirectToFile" option, but:
+
+. can be used when you want to send messages both via mail/sms and log them into a file,
+
+. can be used selectively for some classes of notifications, and not for others.
+
+An example:
+
+[source,xml]
+----
+<notificationConfiguration>
+    <handler>
+        <simpleUserNotifier>
+            ...
+            <transport>mail</transport>
+            <transport>users</transport>
+        </simpleUserNotifier>
+        <simpleWorkflowNotifier>
+            ...
+            <transport>mail</transport>
+            <transport>file</transport>
+        </simpleWorkflowNotifier>
+        <simpleCampaignNotifier>
+            ...
+            <transport>mail</transport>
+            <transport>file</transport>
+        </simpleCampaignNotifier>
+        ...
+    </handler>
+    ...
+</notificationConfiguration>
+<messageTransportConfiguration>
+    <file>
+        <name>users</name>
+        <file>notifications-users.txt</file>
+    </file>
+    <file>
+        <name>file</name>
+        <file>notifications-other.txt</file>
+    </file>
+    <mail>
+        <name>mail</name>
+        ...
+    </mail>
+</messageTransportConfiguration>
+----
+
+=== "SMS" transport
+
+SMS transport assumes the existence of HTTP-based SMS gateway.
+The administrator basically configures how to construct the HTTP request to send the SMS.
+
+Some examples:
+
+[source,xml]
+----
+<!-- there can be more SMS configurations, distinguished by their name -->
+<sms>
+    <name>method1</name>
+    <!-- there can be one or more gateways; if one fails, the next one is tried -->
+    <gateway>
+        <urlExpression>
+            <script>
+                <code>"https://my-sms-gateway.com/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
+            </script>
+        </urlExpression>
+    </gateway>
+</sms>
+
+<sms>
+    <name>with-post</name>
+    <gateway>
+        <method>post</method>
+        <urlExpression>
+            <value>https://gw.com/send</value>
+        </urlExpression>
+        <headersExpression>
+            <value>Content-Type: application/x-www-form-urlencoded</value>
+            <value>X-Custom: test</value>
+        </headersExpression>
+        <bodyExpression>
+            <script>
+                <code>"Body=\"$encodedMessageText\"&amp;To=$encodedTo&amp;From=$encodedFrom".toString()</code>
+            </script>
+        </bodyExpression>
+        <username>a9038321</username>
+        <password>5ecr3t</password>
+        <!-- Logs messages to a file IN ADDITION TO being sent via gateway. Useful for debugging. -->
+        <logToFile>target/sms.log</logToFile>
+    </gateway>
+</sms>
+
+<sms>
+    <name>test</name>
+    <!--
+    When used, logs all notifications to a file INSTEAD OF sending them via gateway;
+    this element can be used also within definition of a gateway - in that case the
+    computed URL is logged as well.
+    -->
+    <redirectToFile>sms-notifications.log</redirectToFile>
+</sms>
+----
+
+The following items can be configured for a gateway:
+
+[%autowidth]
+|===
+| Item | Description | Note
+
+| method
+| Which HTTP method is used to send SMS.
+Currently, "get" and "post" are supported.
+If not specified, "get" is assumed.
+| since 3.7.1
+
+| urlExpression
+| Expression that returns URL used to send SMS.
+| since 3.7.1 (up to 3.7, this item was called `url`)
+
+| headersExpression
+| Expression that returns HTTP request headers.
+The expression should return 0, 1 or more string values that will be used as request HTTP headers.
+Each value is in the form of "name: value", i.e. a header name followed by colon, space and a header value.
+If one header has to have more values, such name-value pair should be present more times for the given header name.
+| since 3.7.1
+
+| bodyExpression
+| Expression that returns request body used to send SMS (as a string).
+| since 3.7.1
+
+| bodyEncoding
+| Encoding to be used for the message body.
+ISO 8859-1 is the default.
+Note that if you use any other encoding, your responsibility is to provide appropriate Content-Type header (see headersExpression item).
+This requirement might change in the future.
+| since 3.7.1
+
+| username, password
+| How to authenticate to the SMS gateway.
+| since 3.7.1
+
+| redirectToFile
+| Instead of opening HTTP connection, writes the URL and other parameters to this file.
+Useful for debugging.
+|  +
+
+| logToFile
+| In addition to executing the expression, writes all messages to a file.
+Useful for debugging.
+| since 3.7.1
+
+|===
+
+Expressions specified in urlExpression (url), headersExpression, bodyExpression can use the following variables:
+
+[%autowidth]
+|===
+| Variable | Meaning
+
+| from
+| The message sender: Either message.from, smsConfiguration.defaultFrom or an empty string (in that order).
+
+| to
+| List of message recipients.
+
+| messageText
+| Message text (body).
+
+| encodedFrom
+| URL-encoded version of the `from` variable.
+
+| encodedTo
+| URL-encoded version of the `to` variable.
+
+| encodedMessageText
+| URL-encoded version of the `messageText` variable.
+
+| message
+| The whole message (`com.evolveum.midpoint.notifications.api.transports.Message`).
+
+|===
+
+== Configuring notifiers
+
+=== generalNotifier
+
+It can accept any event and produce any notification(s).
+All is directed by parameters and expressions, as described in the following table.
+Please note that the following parameters can be used in any kind of notifier.
+
+[%autowidth]
+|===
+| Parameter name | Type | Cardinality | Meaning
+
+| name (attribute)
+| String
+| 0..1
+| Name of the notifier - just a help to the administrator in order to increase readability of the configuration.
+
+
+| description
+| String
+| 0..1
+| Description of the notifier - also just a help to the admin.
+
+
+| recipientExpression
+| ExpressionType
+| 0..1
+| Recipient(s) that should get the notifications.
+(TODO: Exact form is to be determined yet, but here may be mail addresses, phone numbers, etc.
+We need to think how to distinguish these kinds of destinations.) Default: mail address of the requestee - user that is being dealt with by repository object change or within a workflow; or account owner.
+
+
+| ccExpression
+| ExpressionType
+| 0..1
+| Recipient(s) that should get the notifications (as Cc).
+Only for mail transport.
+
+
+| bccExpression
+| ExpressionType
+| 0..1
+| Recipient(s) that should get the notifications (as Bcc).
+Only for mail transport.
+
+
+| subjectExpression
+| ExpressionType
+| 0..1
+| How to construct the subject of the message that is to be sent.
+
+
+| subjectPrefix
+| String
+| 0..1
+| Simpler alternative to subjectExpression: the subject itself will be constructed by the notifier (applicable to concrete kinds of notifiers, like e.g. userPasswordNotifier), but it will be prefixed by value specified here.
+
+
+| bodyExpression
+| ExpressionType
+| 0..1
+| How to construct the body (text) of the message that is to be sent.
+
+
+| watchAuxiliaryAttributes
+| Boolean
+| 0..1
+| Whether to send a notification when only auxiliary attributes (namely: validityStatus, validityChangeTimestamp, effectiveStatus, disableTimestamp, modifyChannel, modifyTimestamp, modifierRef and maybe others) are modified.
+Default value: false.
+This setting also influences the list of modifications that is shown within the notification when using simpleUserNotifier and simplePasswordNotifier - if set to false, modifications of auxiliary attributes are not listed among account/user modifications.
+
+
+| showModifiedValues
+| Boolean
+| 0..1
+| Whether to show modified values (or only names of changed attributes).
+Default: true.
+(NOT IMPLEMENTED YET.
+THE NAME MIGHT CHANGE.) Applies to concrete notifiers, not to the general one.
+
+
+| showTechnicalInformation
+| Boolean
+| 0..1
+| Whether to show technical information (e.g. model context or account operation details) in the notification.
+Applies to concrete notifiers, not to the general one.
+
+
+| transport
+| String
+| 0..N
+| To what transport(s) should the message be sent.
+
+
+|===
+
+An example:
+
+TODO
+
+=== simpleUserNotifier
+
+Sends out a notification about the change of a user.
+It has no special parameters in addition to parameters of a general notifier.
+
+=== simpleResourceObjectNotifier
+
+Sends out a notification about the change of a resource object.It has one parameter:
+
+[%autowidth]
+|===
+| Parameter name | Type | Cardinality | Description
+
+| watchSynchronizationAttributes
+| Boolean
+| 0..1
+| Whether to send a notification when only auxiliary attributes related to synchronization situation (synchronizationSituationDescription, synchronizationSituation) are modified.
+Default: false.
+
+
+|===
+
+=== userPasswordNotifier, accountPasswordNotifier
+
+Send a notification when a user/account password is generated or changed.
+No special parameters.
+
+=== workflowNotifier
+
+Send a notification when a process instance or work item is started or completed.
+No special parameters.
+
+== Configuring filters
+
+=== category filter
+
+Passes events that are of one of the specified categories.
+There are the following categories available:
+
+[%autowidth]
+|===
+| Category name | Expression | Description
+
+| userEvent
+| event.isUserRelated()
+| Event connected to a user object in repository.
+
+
+| resourceObjectEvent
+| event.isAccountRelated() (TODO: change this in code and in docs)
+| Event connected to an object on a resource.
+
+
+| workItemEvent
+| event.isWorkItemRelated()
+| Start/completion of a work item.
+
+
+| workflowProcessEvent
+| event.isWorkflowProcessRelated()
+| Start/completion of a workflow process instance.
+
+
+| workflowEvent
+| event.isWorkflowRelated()
+| workItemEvent or workflowProcessEvent
+
+
+|===
+
+(Expressions are used in scripts connected to event processing, see below.)
+
+An example:
+
+[source,xml]
+----
+<category>userEvent</category>
+
+----
+
+=== status filter
+
+Passes events that can be described by one of specified status descriptions.
+This has a slightly different meaning depending on the event category:
+
+[%autowidth]
+|===
+| Name | Expression | Meaning for user events | Meaning for account events | Meaning for workflow events++****++
+
+| success
+| event.isSuccess()
+| All modifications were carried out successfully.++*++
+.2+| The operation was successful.
+.2+| The request was approved.
+
+
+| alsoSuccess
+| event.isAlsoSuccess()
+| At least one modification was carried out successfully.++*++
+
+
+| onlyFailure
+| event.isOnlyFailure()
+| All modifications failed.++**++
+.2+| The operation was unsuccessful.
+.2+| The request was denied.
+
+
+| failure
+| event.isFailure()
+| At least one modification failed.++**++
+
+
+| inProgress
+| event.isInProgress()
+| At least one modification is in progress.++***++
+| The operation is in progress.
+| The result of request is not known.
+
+|===
+
+(++*++) The result is either SUCCESS, WARNING, or NOT_APPLICABLE.
+
+(++**++) The result is either FATAL_ERROR, PARTIAL_ERROR or NOT_APPLICABLE.
+
+(++***++) The result is IN_PROGRESS.
+
+Please note that we take into account only user (i.e. focus) modifications, *not* modifications of user's accounts.
+
+(++****++) Alternatively, it is possible to use the following expressions for workflow events: event.isApproved(), event.isRejected(), event.isResultKnown().
+
+=== operation filter
+
+Filters events based on operation that was executed (or attempted to execute).
+
+[%autowidth]
+|===
+| Name | Expression | Description for user and account events. | Description for workflow events.
+
+| add
+| event.isAdd()
+| User/account is created.
+| Work item or process instance is started.
+
+
+| modify
+| event.isModify()
+| User/account is modified.
+| N/A
+
+
+| delete
+| event.isDelete()
+| User/account is deleted.
+| Work item or process instance has been competed.
+
+
+|===
+
+=== expression filter
+
+Passes events based on arbitrary expression.
+Some examples:
+
+[source,xml]
+----
+<!-- passes 'new account' events requested by user named "security-admin" -->
+<expressionFilter>
+    <script><code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; "security-admin".equals(requester?.getName()?.getOrig())</code></script>
+</expressionFilter>
+----
+
+== Expressions
+
+Any xref:/midpoint/reference/expressions/expressions/[expressions] supported by midPoint can be used.
+
+Variables that are available are:
+
+[%autowidth]
+|===
+| Name | Type | Description
+
+| event
+| com.evolveum.midpoint.notifications.events.Event
+| The event that is being processed.
+
+| requester
+| UserType
+| The user who requested the operation (if known).
+
+| requestee
+| ObjectType
+| The object (typically a user) that is modified by the operation, or the owner of an account that is modified by the operation (if known).
+
+| assignee
+| UserType
+| The user who is assigned the work item (only for WorkItemEvent).
+
+| transportName
+| String
+| Name of transport (e.g. "mail", "sms", etc.). Available in expressions for getting recipient(s), message subject and body.
+Not available in expressionFilters.
+
+|===
+
+////
+TODO document other expression variables
+
+E.g. for recipient variables it's:
+actor = null (event initiator, administrator, task owner, etc.)
+basic = com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions
+configuration = systemConfiguration:00000000-0000-0000-0000-000000000001
+event = CustomEventImpl{id=1645537796646-0-1,requester=null,requestee=SimpleObjectRef{oid='null', objectType=user:null(null)}} (example, other event types possible)
+localizationService = com.evolveum.midpoint.common.LocalizationServiceImpl
+log = com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions
+midpoint = com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl
+notificationFunctions = com.evolveum.midpoint.notifications.impl.NotificationFunctions
+prismContext = com.evolveum.midpoint.prism.impl.PrismContextImpl
+requestee = user:null(null)
+requester = null (event.requester?)
+textFormatter = com.evolveum.midpoint.notifications.impl.formatters.TextFormatter
+transportName = test (String)
+
+Groovy used to print it: this.binding.variables.each {k,v -> println "$k = $v"}
+
+Link any other expression documentation discussing variables?
+////
+
+== Troubleshooting configuration
+
+If the configuration doesn't do what is expected, or seemingly does nothing at all, it may
+be the right time to add some debug log messages for notifications and transport components.
+In the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration],
+add the logers for `NOTIFICATION` and `TRANSPORT` (predefined `LoggingComponentType`-s)
+and set them to the `DEBUG` level.
+This should provide additional information if the notification is skipped and why.

@@ -1,0 +1,14 @@
+= OpenSSL Tips & Tricks
+:page-wiki-name: OpenSSL Tips&Tricks
+:page-wiki-id: 20709432
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-08-24T14:02:46.376+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-08-24T14:06:00.082+02:00
+
+== Converting key pair to PCKS#12 format
+
+[source,bash]
+----
+openssl pkcs12 -export -out example.pfx -inkey example-privkey.pem -in example-cert.pem
+----

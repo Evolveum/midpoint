@@ -1,0 +1,233 @@
+= Script Expressions
+:page-wiki-name: Script Expression
+:page-wiki-id: 5931047
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-10-01T12:38:14.659+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-03-11T15:07:34.248+01:00
+:page-upkeep-status: yellow
+:page-toc: top
+
+// TODO: add JSON/YAML examples
+
+== Languages
+
+Script expressions can use a variety of scripting languages.
+Currently supported languages are:
+
+* xref:groovy.adoc[Groovy] (built-in)
+
+* xref:javascript.adoc[JavaScript (ECMAScript)] (optional since 4.4, depending on JDK)
+
+* xref:python.adoc[Python] (built-in until 4.3, optional since 4.4)
+
+* xref:/midpoint/reference/misc/notifications/velocity/[Velocity] (since 3.4.1) for expressions returning strings/texts
+
+(xref:xpath.adoc[XPath version 2] was supported until midPoint 3.5, but it is not supported any longer)
+
+[NOTE]
+====
+While you can use any of the languages above, using Groovy is your best bet.
+Virtually all examples in our documentation use Groovy, most of the community is used to it
+and it is used by virtually all the deployments.
+Also, Groovy is packaged with the midPoint explicitly, while the JavaScript/ECMAScript support
+depends on it being part of the JDK - which it is not since Java 15.
+Python is made optional too although still easy to enable even on newer JDKs.
+
+Using Groovy is highly recommended.
+
+Using Velocity for string/textual templates is perfectly OK as well.
+====
+
+== Script Expression Structure
+
+All the script expressions have the same internal structure no matter where and how they are used.
+The structure is illustrated in the following code snippet.
+
+[source,xml]
+----
+<expression>
+    <script>
+        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+        <code>
+            'Mr. ' + user.getFamilyName();
+        </code>
+    </script>
+</expression>
+
+----
+
+Meaning of individual script expression fields is as follows:
+
+[%autowidth]
+|===
+| Field |  | Description
+
+| `language`
+| optional
+| Language URL.
+Specifies the language in which the expression is written.
+If not specified it defaults to Groovy language.
+
+Since midPoint 4.5, it is possible to use the local part after `#` instead of the whole URL;
+for example, you can use just `velocity` or `Groovy`.
+Note that the short name is still case-sensitive!
+
+
+| `trace`
+| optional
+| Explicitly trace the execution of this expression.
+The execution will be logged on INFO level if this property is set to true to make sure that it will be visible in the logs. +
+Available since midPoint 3.5.
+
+////
+TODO: this seems not to work now, see MID-8552
+| `returnType`
+| optional
+| The type of the expression result, either "list" or "scalar".
+If not set it will be determined automatically from the target data type for the expression.
+This setting should be used only if the automatic mechanism does not work as expected.
+////
+
+| `relativityMode`
+| optional
+| Values: relative (default) or absolute.
+See below for more details.
+If not specified and allowed by the expression usage it defaults to relative mode.
+
+| `includeNullInputs`
+| optional
+| If set to true (which is the default) the script will be evaluated with null value as argument when the input is changed from or to an empty value.
+This generally works well for most cases.
+It may be set to false as an optimization.
+
+// TODO see note in common-core-3, name like referenceVariableMode would be better
+| `objectVariableMode`
+| optional
+| How the reference values are interpreted.
+With default value `object`, reference is dereferenced and the target object is provided instead.
+This may fail if the target does not exist, partial error is reported and no value is provided then.
+When `prismReference` is specified, the reference is used as-is, that is as a reference value.
+
+All reference variables are interpreted the same selected way.
+
+| `valueVariableMode`
+| optional
+| How the variable values are provided.
+The default setting is `realValue`, which means that value will have types like `Referencable` or `ObjectType`, or even simple types like `String`.
+Alternative is to use `prismValue` which will wrap the value inside a Prism value,
+e.g. `PrismReferenceValue`, `PrismObjectValue` or any other `PrismValue`.
+
+All variables are provided in the selected manner.
+
+| `code`
+| mandatory
+| Expression code.
+Depends on the script language used for the expression.
+This is usually a string, but it also may be an XML.
+Please note that the code is embedded in the XML therefore proper XML escaping is required
+
+|===
+
+== Variables
+
+The expressions used in midPoint are usually using variables that are set up by midPoint expression engine.
+For example, the following expression will evaluate to the content of the `fullName` property of a user (Groovy and Javascript):
+
+[source,xml]
+----
+<code>
+   user.getFullName()
+</code>
+----
+
+See xref:/midpoint/reference/expressions/expressions/[Expression] page for more generic information about the use of variables in expressions.
+
+== Functions
+
+See xref:/midpoint/reference/expressions/expressions/script/functions/midpoint/[MidPoint Script Library] for more details.
+
+== Absolute and Relative Script Expressions
+
+MidPoint always works with xref:/midpoint/reference/concepts/relativity/[relative changes].
+MidPoint expressions are built for this mode of operation.
+The expression will receive every individual value on input and it has to transform that to output.
+MidPoint will take care of the logic around it.
+If the value was removed in the input, the result will be xref:/midpoint/devel/prism/concepts/deltas/[delete delta].
+If the value was added in the input the result will be xref:/midpoint/devel/prism/concepts/deltas/[add delta].
+MidPoint takes care of all that.
+The administrator only needs to specify an expression that transforms one value.
+
+However, in some cases it might be useful to handle all values at once in an absolute way.
+Imagine, that you have multi-value UID attribute in LDAP and you want to select the right value based on DN.
+Then you need list of all the values.
+On the other hand, in relative approach, each value in UID attribute would be processed individually as a String.
+
+[source,xml]
+----
+<expression>
+    <script>
+        <relativityMode>absolute</relativityMode>
+        <code>
+             //...
+        </code>
+    </script>
+</expression>
+----
+
+The input to this script is a list of all input values.
+The output is a list of new values.
+MidPoint always operates in xref:/midpoint/reference/concepts/relativity/[relative mode], therefore at the end of the evaluation midPoint will diff the value to create a xref:/midpoint/devel/prism/concepts/deltas/[delta].
+This does not change anything about that.
+However, this mode of expression operation can be an advantage if you need to process all values as a group instead of processing every value one by one.
+E.g. in case that you want to choose a particular value or your algorithm depends on other values in some way.
+
+Absolute evaluation mode is especially useful for selecting the most significant value from a multi-valued item:
+
+[source,xml]
+----
+<inbound>
+    <expression>
+        <script>
+            <relativityMode>absolute</relativityMode>
+            <code>basic.determineLdapSingleAttributeValue(basic.getAttributeStringValues(account, 'dn'), 'uid', input)</code>
+        </script>
+    </expression>
+    <target>
+        <path>name</path>
+    </target>
+</inbound>
+----
+
+The `determineLdapSingleAttributeValue()` function above accepts a list of all LDAP attribute values as an input.
+It will then select only one value and return that as an output.
+This approach can be used to reduce typical LDAP multi-value attributes to a single-value midPoint properties.
+
+== Security of Script Expressions
+
+Script expressions are a code that runs inside midPoint servers.
+As such, script expressions are incredibly powerful.
+But with great powers comes great responsibility.
+Script expressions can do a lot of useful things, but they can also do a lot of harm.
+There are just a few simple internal safeguards when it comes to expression evaluation.
+E.g. midPoint script libraries will properly enforce authorization when executing the functions.
+However, script languages are powerful and a clever expression can find a way around this safeguards.
+MidPoint is *not* placing expressions in a sandbox, therefore expressions are free to do almost anything.
+The sandbox is not enforced from complexity and performance reasons, but it may be applied in future midPoint versions if necessary.
+For the time being, please be very careful who can define expressions in midPoint.
+Do not allow any untrusted user to modify the expressions.
+
+See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] for more details.
+
+== Future
+
+The expressions are designed to be extensible and the expression language is not fixed.
+New expression languages may come in the future if there is a demand for them.
+
+== See Also
+
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
+
+* xref:/midpoint/reference/expressions/expressions/[Expression]
+
+* xref:/midpoint/reference/expressions/mappings/[Mapping]

@@ -1,0 +1,87 @@
+= Prism Experimental Features
+:page-since: "4.4"
+:page-experimental: true
+:page-toc: top
+
+== Efficient Java serialization for Prism Schema
+
+Prism Schema Definitions support alternative java serialization
+(using serialization proxies)
+if the definition is present in static schema. This allows for smaller sizes of
+serialized GUI sessions and effectively deduplicate definitions if session is restored
+from serialized form.
+
+This feature is disabled by default.  In order to enable this feature you must
+update your system configuration. You need to set `systemConfiguration` -> `internals`-> `prism` -> `useSerializationProxies` to `true`.
+
+.Enabling serialization proxies for Prism Definitions
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+  ...
+  <internals>
+    ...
+    <prism>
+        <useSerializationProxies>true</useSerializationProxies>
+    </prism>
+  </internals>
+  ...
+</systemConfiguration>
+----
+
+NOTE: Serialization Proxies are used only if Prism Definitions are identical to
+their definition in Schema Registry (so we can retrieve them later).
+Definitions which are mutable (may change without system restart, eg. schema from resource)
+will still be serialized using original serialization.
+
+== In-memory indexing of large multi-value prism properties
+
+Prism properties support using hash maps for large multi-value properties. This
+speeds up additions of items to large properties (eg. group `members`). This feature
+
+Behavior is disabled by default, and if enabled, it is triggered by actual number of values in property, if property contains
+more values then `indexPropertyThreshold` (default is 50), the temporary index will be created.
+Reasoning behind having threshold is that most of the properties are single-valued or
+tend to contain small amount of values, for which index would actually decrease performance.
+
+In order to enable feature you must update your system configuration you need
+to set `systemConfiguration` -> `internals`-> `prism` -> `indexPropertyValues` to `true`.
+
+
+.Enabling index for large multi-value prism properties
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+  ...
+  <internals>
+    ...
+    <prism>
+        <indexPropertyValues>true</indexPropertyValues>
+    </prism>
+  </internals>
+  ...
+</systemConfiguration>
+----
+
+If you want to fine-tune threshold in your deployment you can do it as following:
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+  ...
+  <internals>
+    ...
+    <prism>
+        <indexPropertyValues>true</indexPropertyValues>
+        <indexPropertyThreshold>100</indexPropertyThreshold>
+    </prism>
+  </internals>
+  ...
+</systemConfiguration>
+----

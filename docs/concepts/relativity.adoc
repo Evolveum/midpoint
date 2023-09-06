@@ -1,0 +1,95 @@
+= Relativity
+:page-wiki-name: Relativity
+:page-wiki-id: 3571869
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-01-28T16:48:00.601+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-03-12T11:58:29.167+01:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: orange
+
+MidPoint is using internal mechanism based on relative changes.
+This is a unique feature that is distinguishing midPoint from vast majority of other IDM systems that are based in absolute changes.
+
+
+== Problems of Absolute Change Model
+
+Traditional IDM systems works with absolute change model.
+They write a complete set of new values for every change.
+E.g. the change message can look like "user A has roles X, Y and Z now".
+
+The absolute change model used by other IDM systems has many drawbacks in the identity management deployments:
+
+* The data records must be *locked*, otherwise consistency is lost.
+Locking is very difficult to implement reliably in loosely-coupled distributed environment that is typical for IDM deployments.
+
+* It is almost impossible to execute several operations in *parallel*. For example, if addition of role X to user A is being approved, no other role change can be executed on user A. Approvals may take a long time (days, weeks) and locking user record for such a long time is a major obstacle to usability of IDM deployments.
+
+* *Local changes* on the managed systems are in danger.
+The absolute change model works in read-change-write cycles.
+If a local change happens between read and write it will be overwritten even if it was not in conflict with the IDM change.
+The connectors does not have any locking mechanisms to provide better consistency.
+But even if the connector interface supported locking, some system does not support it therefore this approach would still fail for some systems.
+And even if all the systems supported locking, there is still the problem with long-running processes such as approvals.
+
+Consistency and especially parallelism of operations is a major issue in other identity management systems based on the absolute change model.
+Such systems require constant maintenance and attention of IDM administrator, failing to provide the expected ROI.
+Limited usability of such system is also a major obstacle to adoption.
+
+
+== Relative Change Model
+
+MidPoint works with relative changes if possible.
+That means it works with concepts such as "role X was added to user A" instead of "user A has roles X, Y and Z now".
+MidPoint usually conveys only the information what was changed, does not transfer entire state.
+This goes down even to the level of individual attribute values.
+For example, adding a new role to a user only affects a single value of role assignment property.
+The rest of the user record is unaffected by this operation and therefore does not need to be locked.
+Also, other roles can be assigned to or revoked from the user at the same time, improving system usability.
+A very straightforward way of conflict-free merging of several operations is possible.
+
+This approach has substantial advantages:
+
+* *No locking* is necessary in common case.
+Relative operations can be merged with other operations.
+Optimistic locking can be used in the rare cases that a stricter consistency is needed.
+
+* *Parallelism* is not limited.
+As operations can be merged, several processes can run in parallel using the same object.
+
+* The risk of *local change* damage is limited.
+Systems that natively support relative changes (e.g. LDAP) or traditional locking mechanisms (e.g. databases) do not risk conflict with local changes.
+The impact on other systems is very limited, as the duration of read-change-write cycle is very short (milliseconds).
+
+* *Robustness.* The operations can be cached and re-tried lated.
+As the operation does not contain absolute state the side-effects of the operation are limited.
+This provides better tolerance to the failures of managed systems.
+
+As the consistency model is weak, there is still a small chance of inconsistency.
+Reconciliation mechanism is designed to handle such a rare cases.
+However, in the relative change model reconciliation is only a supplementary mechanism and does not need to be executed as frequently.
+Also, reconciliation in midPoint is designed to be seamlessly integrated with other synchronization mechanisms such as live sync, discovery and ordinary provisioning.
+All these mechanisms are using the same interfaces and policies, therefore configuring reconciliations is much easier than it used to be in other IDM systems.
+
+Relative change model is not an invention of midPoint.
+Similar approach is used in one of the most successful identity management technology of all times: LDAP.
+The LDAP protocol is using similar change propagation and weak consistency model and we have chosen to reuse this proven model instead of re-inventing the wheel.
+
+
+== Limitations
+
+While midPoint is built with relativity in mind, this relativity is not complete.
+MidPoint evolution, and especially financial and scheduling constraints, forced us to make compromises during midPoint development.
+This does not affect correctness of midPoint computation, but it may affect performance.
+The deployments that rely on a lightweight processing of large number of small changes may be affected.
+Please see xref:/midpoint/features/planned/complete-relativity/[Complete Relativity] page for more details.
+
+
+== See Also
+
+* xref:/midpoint/architecture/concepts/consistency-model/[Consistency Model]
+
+* xref:/midpoint/reference/expressions/mappings/mapping-relativity/[Mapping Relativity]
+
+* xref:/midpoint/features/planned/complete-relativity/[Complete Relativity]

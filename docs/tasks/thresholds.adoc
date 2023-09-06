@@ -1,0 +1,223 @@
+= Thresholds
+:page-wiki-name: Thresholds
+:page-wiki-id: 27361483
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2018-12-27T19:31:20.556+01:00
+:page-wiki-metadata-modify-user: mmacik
+:page-wiki-metadata-modify-date: 2019-04-23T12:40:41.357+02:00
+:page-since: "4.0"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+MidPoint provides a powerful mechanism to synchronize data among different resources.
+Usually, there is a resource which is authoritative and midPoint should take appropriate actions to keep the data consistent according to the authoritative resource.
+In most cases, authoritative resource is represented by HR system.
+However, there are situations when the data in HR are not 100% correct and midPoint should not propagate such data to other resources.
+
+For example, imagine that by the mistake, thousands of accounts was disabled in the HR system and there is a reconciliation task in midPoint scheduled to run every night.
+If no one noticed the mistake before the reconciliation run it would end up with disabling users across all connected systems.
+To prevent such situations midPoint has to know which changes are critical and what to do in the case they occur.
+
+== Setting Thresholds
+
+For now, it is possible to set up thresholds for different tasks (reconciliation, recomputation, synchronization,...).
+It is done by assigning role with defined policy rules to the task.
+Following is the example for setting thresholds for reconciliation task.
+
+.Policy rule settings
+[source,xml]
+----
+<role oid="f45688cc-332c-409b-a67d-5332dc65768d">
+    <name>Stop on create 5th user</name>
+       <inducement>
+        <policyRule>
+            <name>Add user</name>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>5</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
+</role>
+----
+
+Policy rule above specifies that midPoint should monitor creation of new users
+(specified by xref:/midpoint/devel/design/policy-constraints/[policyConstraints])
+and when the limit is reached (count=5), task execution is suspended (policyAction=suspendTask).
+The fifth user is not added.
+
+After defining such role with policy rules, midPoint has to know that such role should be taken into account.
+Therefore, it is needed to assign this role to the task as in the example below.
+
+=== Before 4.4
+
+.Reconciliation task (before 4.4)
+[source,xml]
+----
+<task oid="10335c7c-838f-11e8-93a6-4b1dd0ab58e4"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Reconciliation: Dummy</name>
+    ...
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/lightweigth-partitioning/handler-3</handlerUri>
+
+    <workManagement>
+        <partitions>
+            <partition>
+                <index>1</index>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+                <stage>simulate</stage>
+                <errorCriticality>
+                    <policy>fatal</policy>
+                </errorCriticality>
+            </partition>
+            <partition>
+                <index>2</index>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
+                <stage>execute</stage>
+                <errorCriticality>
+                    <policy>fatal</policy>
+                </errorCriticality>
+            </partition>
+        </partitions>
+    </workManagement>
+    ...
+    <assignment>
+        <targetRef oid="f45688cc-332c-409b-a67d-5332dc65768d" type="RoleType"/>
+    </assignment>
+</task>
+----
+
+Additionally, we have to add a part of configuration to the task itself regarding task partitioning.
+In this part we will specify that the task should fail based on a violation of the policy which we have defined above.
+
+We are capable of executing the task in multiple stages which we define with multiple partitions.
+The task can be executed first in a simulation stage where the task computes the resulting
+actions without applying them. In this stage we are capable of evaluating the thresholds
+specified in the policy and in the case of a violation the respective policy action
+can be initiated. If there is no violation of the threshold we are capable to continue
+to the execution stage where the computed actions will be applied.
+
+The configuration might as well contain only one partition, only with an execution stage.
+In this case the action will be applied up until the task reaches the threshold.
+
+=== 4.4 and After
+
+In 4.4 we can use the xref:/midpoint/reference/tasks/activities/[activities] to configure
+simulation (now called `preview`) and execution stages.
+
+The selection of execution mode is done by setting `executionMode` configuration property.
+The value of `preview` means we only simulate the execution, without committing any effects.
+On the other hand, `full` (the default) means the regular execution.
+
+If we have to run a simple activity, like e.g. import, first in preview and then in full mode,
+we can use activity composition. It would look like this:
+
+.Import task with "preview, then execute" mode - in 4.4 and after
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    ...
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>simulate</identifier>
+                <work>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5" />
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </import>
+                </work>
+                <executionMode>preview</executionMode>
+            </activity>
+            <activity>
+                <order>2</order>
+                <identifier>execute</identifier>
+                <work>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5" />
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </import>
+                </work>
+                <executionMode>full</executionMode>
+            </activity>
+        </composition>
+    </activity>
+</task>
+----
+
+NOTE: In the future we plan to eliminate the need of specifying the `work` section twice for such tasks.
+
+The reconciliation task, being a pre-defined composite activity, is already prepared for this preview + execution combination.
+It contains two sub-activities, namely `resourceObjectsPreview` and `remainingShadowsPreview` that are prepared to be run
+in `preview` execution mode. They are disabled by default. So the only thing you have to do is to enable them by appropriate
+tailoring:
+
+.Reconciliation task (4.4 and after)
+[source,xml]
+----
+<task
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Reconciliation in Preview and Execution Mode</name>
+
+    ...
+
+    <assignment>
+        <targetRef oid="f45688cc-332c-409b-a67d-5332dc65768d" type="RoleType"/>
+    </assignment>
+
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000003" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:inetOrgPerson</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <tailoring>
+            <change>
+                <reference>resourceObjectsPreview</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+            <change>
+                <reference>remainingShadowsPreview</reference>
+                <controlFlow>
+                    <processingOption>process</processingOption>
+                </controlFlow>
+            </change>
+        </tailoring>
+    </activity>
+</task>
+----
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+
+* xref:/midpoint/architecture/concepts/task/[Task]
+
+* xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Task partitioning]

@@ -1,0 +1,32 @@
+= Function Libraries
+:page-wiki-name: Function Libraries
+:page-wiki-id: 24675700
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-10-23T11:47:13.312+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-10-23T11:47:13.312+02:00
+:page-since: "3.7"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+== Overview
+
+Function libraries are dedicated midPoint objects that contain set of reusable functions.
+The functions can be used in other xref:/midpoint/reference/expressions/[mappings and expressions] in midPoint.
+Function libraries can be used to group frequently-used parts of the code, therefore simplifying midPoint configuration and maintenance.
+
+== Configuration
+
+Please see xref:configuration.adoc[] page for configuration details.
+
+
+== See Also
+
+* xref:configuration.adoc[]
+
+* xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model]
+
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
+
+* xref:/midpoint/reference/expressions/expressions/[Expression]

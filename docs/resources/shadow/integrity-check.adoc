@@ -1,0 +1,150 @@
+= Shadow Integrity Check
+:page-wiki-name: Checking Shadow Integrity HOWTO
+:page-wiki-id: 20709493
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2015-08-29T00:08:10.423+02:00
+:page-wiki-metadata-modify-user: mspanik
+:page-wiki-metadata-modify-date: 2021-01-22T15:26:59.446+01:00
+:page-upkeep-status: yellow
+
+In order to diagnose and fix specific problems with shadow objects in repository, a new task (activity) type was created: Shadow Integrity Check.
+
+== How to use it
+
+Just import the following task:
+
+[source,xml]
+----
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Shadow Integrity Check</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <shadowIntegrityCheck/>
+        </work>
+    </activity>
+</task>
+----
+
+== Configuration Parameters
+
+[%autowidth]
+|===
+| Parameter | Description | Default
+| `shadows`
+| What xref:/midpoint/reference/tasks/activities/object-set-specification/[shadows] to analyze.
+| All shadows.
+| `aspectsToDiagnose`
+| Aspects that should be diagnosed.
+| All.
+| `aspectsToFix`
+| Aspects that should be fixed.
+| None.
+| `duplicateShadowsResolver`
+| Class name of the duplicate shadows resolver to be used.
+| Built-in one.
+| `checkDuplicatesOnPrimaryIdentifiersOnly`
+| Whether to check uniqueness on primary identifiers (or on secondary ones as well).
+| `false` (meaning all identifiers)
+|===
+
+== Aspects being Diagnosed and Fixed
+
+Currently supported checks are:
+
+[%autowidth]
+|===
+| Keyword | Description | Support
+
+| `normalization`
+| Checks whether all identifiers in a shadow are in a normalized form with regard to matching rule specified in the `schemaHandling` section.
+(Note: before running this, please check that you have consistently specified matching rule for all intents of a given kind of objects.
+In the future, we'll check that setting automatically, but currently we do not.)
+| diagnose + fix
+
+| `uniqueness`
+| Checks whether there are more shadows (of given resource+kind) bound to specific identifier value, e.g. icfs:name or icfs:uid or whatever.
+| diagnose + fix (++*++)
+
+| `intents`
+| Checks whether shadow has intent specified. When fixing, fetches the resource object and tries to determine correct intent.
+| diagnose + fix
+
+| `extraData`
+| Checks for extra data in shadow activation container.
+Currently, we store only `enableTimestamp`, `disableTimestamp`, `archiveTimestamp` and `disableReason` there.
+All other data (e.g. `administrativeStatus`) have to be fetched from the resource on the fly.
+This check ensures that the superfluous data are not stored in the shadows, and removes those data
+that are there.
+| diagnose + fix
+
+| `owners`
+| Checks whether shadow has at least one owner + if the synchronization situation (`LINKED`) is consistent
+with owners found. The `LINKED` shadow has to have at least one owner, not-`LINKED` shadow has to have 0 owners.
+| diagnose only
+
+| `existenceOnResource`
+| Checks whether the corresponding object can be fetched from the resource.
+| diagnose only
+
+| `resourceRef`
+| Checks whether resource pointed to by the shadow really exists, including whether resource
+reference is set at all. (Actually, these checks cannot be turned off.) *Fix is done by removing the shadow, so please use with care.*
+| diagnose + fix
+|===
+
+(++*++) Note that the test checking for uniqueness is implemented purely in RAM, so it works for shadow
+sets of reasonable size (e.g. 100K entries, depending on amount of your heap). It is faster and simpler to implement.
+
+== Output
+
+The task produces a report that is written to midPoint log file.
+It looks like this:
+
+[source]
+----
+2015-09-03 12:39:23,464 [] [midPointScheduler_Worker-6] INFO (com.evolveum.midpoint.model.impl.integrity.ShadowIntegrityCheckResultHandler): Shadow integrity check finished. It was run with the configuration:
+- normalization  diagnose=true,    fix=true
+- uniqueness     diagnose=true,    fix=true
+- intents        diagnose=true,    fix=true
+- owners         diagnose=false
+- fetch          diagnose=false
+
+dryRun = true
+
+2015-09-03 12:39:23,464 [] [midPointScheduler_Worker-6] INFO (com.evolveum.midpoint.model.impl.integrity.ShadowIntegrityCheckResultHandler): Results:
+    Shadows processed: 3020 (1 resources),
+    Shadows with no problems: 2875
+    Shadows with warnings: 141
+    Shadows with errors: 4
+    Details:
+     - Non-normalized identifier value: 0 cases; fixed (if not run in dry-run mode) 0 cases.
+     - No resource ref or OID: 0 cases.
+     - Cannot get resource object: 0 cases.
+     - No kind specified: 0 cases.
+     - No intent specified: 145 cases (145 shadows).
+     - No resource refined schema: 0 cases.
+     - Cannot get resource refined schema: 0 cases.
+     - No object class refined schema: 0 cases.
+     - Cannot fetch resource object: 3 cases (3 shadows).
+     - Multiple owners: 0 cases.
+     - Linked shadow with no owner: 0 cases.
+     - Not linked shadow with an owner: 0 cases.
+     - Other failure: 0 cases.
+     - Cannot apply fix: 4 cases (4 shadows).
+
+2015-09-03 12:39:23,464 [] [midPointScheduler_Worker-6] INFO (com.evolveum.midpoint.model.impl.integrity.ShadowIntegrityCheckResultHandler): Uniqueness report:
+Duplicate shadows detected: 1, deleted: 0
+Duplicates for resource: .............. (OID:..............), kind = ENTITLEMENT, identifier = {http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3}name:
+ - value: cn=.............., shadows: 2
+   - shadow: CN=.............. (OID:16fc34ab-5acc-4320-8db1-6f707d2ee9ac); sync situation = null
+     - name = [cn=..............]
+     - uid = [<GUID=5a586bc978e98245ba529adbe83ced57>]
+   - shadow: CN=.............. (OID:9b76adf6-0878-4fd3-a5ec-d9d33505ffa8); sync situation = LINKED
+     - name = [cn=..............]
+     - uid = [<GUID=91ebc50e25056a49a562ea7492467433>]
+   --> deleted redundant shadow (skipped because of dry run) shadow: CN=.............. (OID:16fc34ab-5acc-4320-8db1-6f707d2ee9ac)
+
+2015-09-03 12:39:23,464 [] [midPointScheduler_Worker-6] INFO (com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler): Finished Shadow integrity check (Task(id:1441204963732-0-1, name:A Shadow Integrity Check, oid:db2ce226-c13f-4731-ab2e-9bad11223fe0)). Processed 3020 objects in 180 seconds, got 3 errors. Average time for one object: 56.21755 milliseconds (wall clock time average: 59.927483 ms).
+----

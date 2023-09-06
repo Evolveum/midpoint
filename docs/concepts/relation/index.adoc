@@ -1,0 +1,107 @@
+= Relation
+:page-wiki-name: Relation
+:page-wiki-id: 24084490
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-10T17:16:19.207+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-09-13T11:01:38.651+02:00
+:page-since: "2.x"
+:page-since-improved: [ "3.5", "3.9" ]
+:page-liquid:
+
+Relation is a mechanism that specifies meaning or purpose of xref:/midpoint/reference/schema/object-references/[object references].
+The relation is frequently used to specify the relation of object references of xref:/midpoint/reference/roles-policies/assignment/[assignment/inducement targets] and in the xref:/midpoint/reference/org/organizational-structure/[organizational structure] management.
+For example a relation specifies whether a user is an ordinary member of the organizational unit or whether he is a manager of that unit.
+
+
+== Built-in Relations
+
+There are several relations that are built into midPoint.
+Some of them have a special purpose and behavior, but others are just pre-defined conventions.
+All the built-in relations have the same namespace:
+
+`http://midpoint.evolveum.com/xml/ns/public/common/org-3`
+
+Currently, this namespace is also used by default for all unqualified relation names.
+(This behavior might change in the future.)
+
+Following table summarizes the built-in relations.
+
+[%autowidth]
+|===
+| relation | description | since
+
+| `default` or _null_
+| The default relation.
+It specifies that the reference is of the ordinary type.
+E.g. a default-relation reference to org means that the user is an ordinary member of the org (not manager).
+The default-relation assignment to the role means that the user simply has this role (it is neither approver nor owner of the role).
+| 2.x / 3.6 footnote:[In 3.5.x and earlier versions, the null relation is used. In 3.6, default was introduced, and null was deprecated.]
+
+
+| `manager`
+| Relation "is manager of".
+Used as a relation value in object references.
+Specifies that the subject is a manager of organizational unit.
+| 3.x
+
+
+| `meta`
+| Relation used for metarole assignments.
+Sometimes it is important to distinguish metarole and member assignments.
+This relation is used for that purpose.
+| 3.5
+
+
+| `deputy`
+| Relation "is deputy of".
+Used as a relation value in object references.
+Specifies that the subject is a deputy of another user.
+| 3.5
+
+
+| `approver`
+| Relation "is approver of".
+Used as a relation value in object references.
+Specifies that the subject is a (general) approver of specified (abstract) role.
+The approver will be asked for decision if the role is assigned, if there is a rule conflict during assignment (e.g. SoD conflict) or if there is any similar situation.This is a generic approver used for all the situation.
+The system may be customized with more specific approver roles, e.g. `technicalApprover`, `securityApprover`, etc.This approver is responsible for the use of the role, which mostly means that he decides about role assignment.
+It is NOT meant to approve role changes.
+Role owner is meant for that purpose.
+| 3.5
+
+
+| `owner`
+| Relation "is owner of".
+Used as a relation value in object references.
+Specifies that the subject is a (business) owner of specified (abstract) role.
+The owner will be asked for decision if the role is modified, when the associated policy changes and so on.This owner is responsible for maintaining role definition and policies.
+It is NOT necessarily concerned with role use (e.g. assignment).
+The approver relation is meant for that purpose.
+| 3.5
+
+|===
+
+There is also special pseudo-relation `any`. This pseudo-relation cannot be used in object references.
+But it can be used in search filters for searches that look for references of all relations.
+
+
+== Configurable Relations
+
+++++
+{% include since.html since="3.9" %}
+++++
+
+Since midPoint 3.9 new relations can be configured.
+Those new relations should behave in the same way as pre-configured relations.
+
+Please see xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration] page for more details.
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+
+* xref:/midpoint/reference/misc/deputy/[Deputy]
+
+* xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration]

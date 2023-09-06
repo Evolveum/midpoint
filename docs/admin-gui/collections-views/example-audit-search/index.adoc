@@ -1,0 +1,84 @@
+= Example of Audit search panel configuration
+:page-nav-title: Example: audit search
+:page-wiki-name: Example of Audit search panel configuration
+:page-wiki-id: 61472777
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2021-01-19T12:49:53.940+01:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2021-01-19T13:15:49.441+01:00
+
+This example describe how to configure time interval search item.
+
+Adding next code to systemConfiguration.
+
+
+[source,xml]
+----
+<systemConfiguration>
+    <adminGuiConfiguration>
+        <objectCollectionViews>
+            .
+            .
+            .
+            <objectCollectionView>
+                <identifier>auditRecords</identifier>
+                <searchBoxConfiguration>
+                    <searchItems>
+                        <searchItem>
+                            <filterExpression>
+                                <script>
+                                    <code>
+                                       import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
+                                       String interval = "";
+                                       if ("oneHour".equals(timeInterval)) {
+                                          interval = "-PT1H";
+                                       } else if ("24h".equals(timeInterval)) {
+                                          interval = "-P1D";
+                                       } else if ("week".equals(timeInterval)) {
+                                          interval = "-P7D";
+                                       } else if ("mount".equals(timeInterval)) {
+                                          interval = "-P1M";
+                                       } else {
+                                          return null;
+                                       }
+
+                                       calendar = basic.addDuration(basic.currentDateTime(), interval);
+                                       filter = prismContext.queryFor(AuditEventRecordType.class).item(AuditEventRecordType.F_TIMESTAMP).gt(calendar).buildFilter();
+                                       return prismContext.getQueryConverter().createSearchFilterType(filter)
+                                    </code>
+                                </script>
+                            </filterExpression>
+                            <displayName>Time interval</displayName>
+                            <parameter>
+                                <name>timeInterval</name>
+                                <type>string</type>
+                                <allowedValuesExpression>
+                                    <script>
+                                        <code>
+                                         import com.evolveum.midpoint.web.component.search.SearchValue;
+
+                                         List list = new ArrayList();
+                                         list.add(new SearchValue("oneHour", "Last hour"));
+                                         list.add(new SearchValue("24h", "Last 24 hours"));
+                                         list.add(new SearchValue("week", "Per week"));
+                                         list.add(new SearchValue("mount", "Per mount"));
+                                         return list;
+                                      </code>
+                                    </script>
+                                </allowedValuesExpression>
+                            </parameter>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+                <type>AuditEventRecordType</type>
+            </objectCollectionView>
+            .
+            .
+            .
+        </objectCollectionViews>
+    </adminGuiConfiguration>
+</systemConfiguration>
+----
+
+image::image2021-1-19_13-15-0.png[]

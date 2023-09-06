@@ -1,0 +1,397 @@
+= General notification - role assignment example
+:page-wiki-name: General notification - role assignment example
+:page-wiki-id: 52003422
+:page-wiki-metadata-create-user: kjires
+:page-wiki-metadata-create-date: 2020-12-04T13:31:44.168+01:00
+:page-wiki-metadata-modify-user: kjires
+:page-wiki-metadata-modify-date: 2020-12-04T14:22:39.493+01:00
+:page-display-order: 400
+:page-toc: top
+:page-upkeep-status: yellow
+
+This page tries to explain one specific configuration of general notification.
+The definition here has a potencial to be improved but it is working as it is.
+The goal is not just to provide simple example but mainly to describe it.
+And if you can read this example as well as understand it, the goal is met.
+
+Basic information about the notification is available on a xref:/midpoint/reference/misc/notifications/[dedicated page].
+
+
+== The notification requirements
+
+The notification should be used once the specific roles are assigned to the user.
+The role may be assigned while creating a user object or additionaly during user object modification.
+There can be none, one or even more matching roles processed during one user object processing.
+The content of the notification should be maintained on role object.
+In case more matching roles are assigned the final notification should be a combination of all the messages related to any of them.
+
+== Basic structure of the notification definition
+
+[TIP]
+====
+Even the focus object type has been set to user object the general notification has been used.
+The other option would be to use of the simpleUserNotifier type of notification.
+Anyway, for the description it may be even better to stay more generic.
+
+====
+
+There can be much more things configured (e.g. attachment) but we will stay with simple structure:
+
+* filter
+
+Filter will describe decision rule which will have an impact on the result whether to generate notification or ignore the operation.
+
+* recipient
+
+Once the process matches the filter, the recipient for the notification have to be set.
+As there can be missing information about the e-mail address we have to cover this kind of situation.
+
+* subject
+
+The subject text is supposed to be set for the e-mail communication.
+It is practical (e.g. rules on filters) and also it is polite to the recipients.
+
+* body of the message
+
+As we generate the e-mail, it simply makes sense to also set some text to the body.
+
+Based on this presumptions the structure of the notification will be as following:
+
+[source,xml]
+----
+<notificationConfiguration>
+    ...
+    <handler>
+        <generalNotifier>
+            <name>some name of notifier rule</name>
+            <expressionFilter>
+                <script>
+                    <code>
+                        ...
+                    </code>
+                </script>
+            </expressionFilter>
+            <recipientExpression>
+                <script>
+                    <code>
+                        ...
+                    </code>
+                </script>
+            </recipientExpression>
+            <subjectExpression>
+                <script>
+                    <code>
+                        ...
+                    </code>
+                </script>
+            </subjectExpression>
+            <bodyExpression>
+                <script>
+                    <code>
+                        ...
+                    </code>
+                </script>
+            </bodyExpression>
+            <transport>mail</transport>
+        </generalNotifier>
+    </handler>
+    ...
+</notificationConfiguration>
+----
+
+=== expressionFilter
+
+For the filter expresssion we have to formulate all the parameters, which make difference in decision making whether to sent the notification or not.
+
+Focus object by the requirements is user.
+The notification can be thrown with a new user object or when modifying the existing one.
+There are no requirements related to the removing the role assignments so even deleting whole user object should not generate any notification.
+
+[TIP]
+====
+We can ignore:
+
+* other object type than user
+
+* Delete type of change
+====
+
+Once this is passed, we have to analyze the delta to check the type of operation.
+There again can be ADD, MODIFY or DELETE on the content of the object.
+The content may be assignments or other items.
+By the requirements we are only interested in *ADD* operation for assignment in case of RoleType.
+
+[TIP]
+====
+We are only interested in:
+
+* delta of *ADD* Type
+
+* RoleType object related to assignments
+====
+
+Next to the "basic" requirements we had to set some mark for the role which should has impact on notification.
+We have selected one property of role object - Identifier.
+The value of this property has to be `*notification*` or it will not be taken into a account for this handler.
+his is necessary to differentiate between roles meant to be notified and the other ones.
+
+[TIP]
+====
+Additional selector to allow user to mark the role for notification is `Identifier`.
+The values to search is `*notification*`.
+====
+
+We are iterating over the list of deltas for the operation to ensure the exact combination (*ADD* role with `Identifier`="notification" is processing).
+The summary information is not used to prevent unwanted combination as *ADD* resource & DELETE *Role*.
+
+As the content of the deltas a little bit differs between the case of new user object and the case of modifying an existing user object we have to split these cases to separated blocks of code.
+
+Once we will iterate over the first "valid" case the filter will return *TRUE* and the rest is not parsed at this moment.
+The goal for the filter is just "say yes" once at least one role pass the criteria.
+
+[NOTE]
+====
+The role could have its own projections - e.g. group object representation on the resource.
+Calling `getObject` would cause additional request even to the resource what may cause unwanted load and the delay in processing.
+
+The value we are interested in (`Identifier`) is located in Midpoint repository so we are using specific option for raw operation.
+This will force Midpoint to return what is known in repository without any additional collection of the information.
+====
+
+[source,groovy]
+----
+import com.evolveum.midpoint.notifications.api.events.ModelEvent
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+import com.evolveum.midpoint.prism.delta.ObjectDelta
+import com.evolveum.midpoint.prism.path.ItemPath
+import com.evolveum.midpoint.prism.PrismValue
+
+if (
+event instanceof ModelEvent
+        && event.getFocusContext().getObjectTypeClass().getName().equals(UserType.getName())
+        && !event.isOperationType(EventOperationType.DELETE)
+) {
+    for (ObjectDelta delta : event.getFocusDeltas()) {
+        if (delta.isAdd()) {
+            for (AssignmentType localObject in delta.getObjectToAdd().asObjectable().assignment) {
+                if (localObject.getTargetRef() == null) continue;
+                if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                    if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) return true;
+                }
+            }
+        } else if (delta.isModify()) {
+            for (ItemPath paths : delta.getModifiedItems()) {
+                if (AssignmentHolderType.F_ASSIGNMENT.equivalent(paths)) {
+                    for (PrismValue values : delta.getNewValuesFor(paths)) {
+                        if (values.getRealClass().getName().equals(AssignmentType.getName())) {
+                            AssignmentType localObject = values.getRealValue();
+                            if (localObject.getTargetRef() == null) continue;
+                            if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                                if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+----
+
+=== recipientFilter
+
+Only purpose of this part of code is to cover situation of missing e-mail address.
+The field is not mandatory so no values is also a "valid" content.
+In this case the default `iam@localhost` will be used.
+At this point you should update value for something more real.
+
+[source,groovy]
+----
+if (
+event.requesteeObject.emailAddress != null
+        && event.requesteeObject.emailAddress != ""
+) {
+    return event.requesteeObject.emailAddress
+} else {
+    return "iam@localhost"
+}
+----
+
+=== subjectExpression
+
+The subject of the notification will also vary based on the e-mail address.
+In case of available value for the e-mail the subject "[IDM] New Role assignment notification" will be set.
+This should be correct for the user recipient.
+
+In case the e-mail value is not valid the notification with some prefix in body (this information will follow) will be sent out to common address.
+In this situation the subject in principle should be a little bit different as operation of role assignment is not really the reason why the notificaiton has been sent here.
+
+[source,groovy]
+----
+if (
+event.requesteeObject.emailAddress != null
+        && event.requesteeObject.emailAddress != ""
+) {
+    return "[IDM] New Role assignment notification"
+} else {
+    return "[IDM] unknown address for notification"
+}
+----
+
+=== bodyExpression
+
+....
+Once we will reach this point we know there is something why we will construct the notification.
+Also the recipient and the subject of the e-mail would be known already.
+
+The result will be a static start of the e-mail:
+....
+
+[source]
+----
+Dear XXX,
+----
+
+Where XXX will contain one of following options (first valid in order):
+
+* FullName (username)
+
+* GivenName FamilyName (username)
+
+* username
+
+[TIP]
+====
+Prefered field to user is FullName followed by the username in brackets.
+In case the FullName is empty and at least one of GivenName or FamilyName is available it is used with username in brackets.
+If none of FullName, GivenName and FamilyName is available only username without brackets is used.
+====
+
+The the generated text is added based on the assigned role.
+
+At the end of the e-mail there is added:
+
+[source]
+----
+Best regards,
+
+ IDM admin team
+----
+
+==== magic of generated text
+
+The delta objects are iterated for all the *ADD* operation for *roleType* object in *assignment*. Once one is found (the oid of them) the object is requested calling `getObject` with raw option (only repository information).
+In case the Identifier has a value "notification" the description of the role is taken and it is added to currently built e-mail's body.
+
+It is not sorted anyway so the order of the descriptions from the role objects may differ case to case.
+
+==== begin of the body
+
+Once there is at least one generated body content (last check not to sent out an empty e-mail) the personalized start of the message is created.
+
+There is also a check for existence of e-mail address value.
+In case of missing address there is added extra prefix for the mail containing additional information for the operator.
+There is available information about the recipient user object (username, oid, original subject).
+
+[source,groovy]
+----
+import com.evolveum.midpoint.notifications.api.events.ModelEvent
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+import com.evolveum.midpoint.prism.delta.ObjectDelta
+import com.evolveum.midpoint.prism.path.ItemPath
+import com.evolveum.midpoint.prism.PrismValue
+
+String body = "";
+if (
+event instanceof ModelEvent
+        && event.getFocusContext().getObjectTypeClass().getName().equals(UserType.getName())
+        && !event.isOperationType(EventOperationType.DELETE)
+) {
+    for (ObjectDelta delta : event.getFocusDeltas()) {
+        if (delta.isAdd()) {
+            for (AssignmentType localObject in delta.getObjectToAdd().asObjectable().assignment) {
+                if (localObject.getTargetRef() == null) continue;
+                if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                    if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) {
+                        body += midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getDescription() + "\n\n";
+                    }
+                }
+            }
+        } else if (delta.isModify()) {
+            for (ItemPath paths : delta.getModifiedItems()) {
+                if (AssignmentHolderType.F_ASSIGNMENT.equivalent(paths)) {
+                    for (PrismValue values : delta.getNewValuesFor(paths)) {
+                        if (values.getRealClass().getName().equals(AssignmentType.getName())) {
+                            AssignmentType localObject = values.getRealValue();
+                            if (localObject.getTargetRef() == null) continue;
+                            if (localObject.getTargetRef().getType().localPart.equals("RoleType")) {
+                                if (midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getIdentifier().equals("notification")) {
+                                    body += midpoint.getObject(RoleType, localObject.getTargetRef().getOid(),midpoint.schemaHelper.operationOptionsBuilder.raw().build()).getDescription() + "\n\n";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+if (!body.isEmpty()) {
+    if (event?.requesteeDisplayName == null) {
+        boolean nameContructed = false
+        String tmpName = ""
+        if (event?.requesteeObject.getGivenName() != null) {
+            tmpName += event?.requesteeObject.givenName.toString();
+            nameContructed = true
+        }
+        if (event?.requesteeObject.getFamilyName() != null) {
+            if (nameContructed) tmpName += " "
+            tmpName += event?.requesteeObject.familyName.toString();
+            nameContructed = true
+        }
+        if (nameContructed) {
+            body = "Dear " + tmpName +
+                    " (" + event.requesteeObject.name.toString() + ")" +
+                    ",\n\n" + body + "\n\n Best regards,\n\n IDM admin team"
+        } else {
+            body = "Dear " +
+                    event.requesteeObject.name.toString() +
+                    ",\n\n" + body + "\n\n Best regards,\n\n IDM admin team"
+        }
+    } else {
+        body = "Dear " + event?.requesteeDisplayName.toString() +
+                " (" + event.requesteeObject.name.toString() + ")" +
+                ",\n\n" + body + "\nBest regards,\n\n IDM admin team";
+    }
+    if (
+    event.requesteeObject.emailAddress == null
+            || event.requesteeObject.emailAddress == ""
+    ) {
+        body = "Notification for the user : " + event.requesteeObject.name.toString() + " / " + event.requesteeObject.oid +
+                "\nSubject: [IDM] New Role assignment notification\n" +
+                "\nThe e-mail address is not know at this moment" +
+                "\n - - - - - - -\n" + body
+    }
+    return body
+}
+----
+
+== Relevant role maintenance
+
+If you want to have some role which will be covered by this notification rule, it should have :
+
+* Identifier = "notification"
+
+* description is set (as it is added to the notification body)
+
+If you want to cover additional role, those two "requirements" have to be met.
+To stop using role description for notification generation clear `Identifier` field is enough.
+To change the content of the notification, edit the description field on role object.

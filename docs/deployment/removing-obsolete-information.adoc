@@ -1,0 +1,61 @@
+= Removing obsolete information
+:page-wiki-name: Removing obsolete information
+:page-wiki-id: 11075722
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2013-06-25T18:03:53.167+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2013-06-25T18:03:54.167+02:00
+:page-keywords: [ 'cleanup' ]
+:page-toc: top
+
+During midPoint operation, some data items gradually gather in the repository.
+Typical examples are tasks and audit records.
+
+== Cleanup policy
+
+MidPoint provides a feature that automatically cleans-up the repository with respect to these items.
+A system task named *Cleanup* runs (by default) every 24 hours and removes tasks and audit records older than predefined time value.
+This is the default configuration from the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration object]:
+
+[source,xml]
+----
+<c:cleanupPolicy xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	<c:auditRecords>
+		<c:maxAge>P3M</c:maxAge>
+	</c:auditRecords>
+	<c:closedTasks>
+		<c:maxAge>P1M</c:maxAge>
+	</c:closedTasks>
+</c:cleanupPolicy>
+----
+
+This configuration causes the Cleanup task to remove all audit records older than three months
+(see link:http://en.wikipedia.org/wiki/ISO_8601[the ISO 8601 specification]) and all closed tasks that are more than one month after their completion.
+
+Note: More precisely, when removing the tasks, only root tasks are considered.
+When a root task is removed, all of its subtasks (that should be completed before the root) are removed as well.
+
+== Cleanup elements
+
+Element type for `cleanupPolicy` is documented in our https://evolveum.com/downloads/midpoint/4.4/midpoint-4.4-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/type/CleanupPoliciesType.html[schemadoc].
+There are more `CleanupPolicyType` elements available in `cleanupPolicy`, not configured by default in the System Configuration object:
+
+* `auditRecords` to clean up audit records,
+* `closedTasks` to clean up closed tasks,
+* `closedCases` to clean up closed cases,
+* `closedCertificationCampaigns` to clean up closed certification campaigns,
+* `outputReports` to clean up output reports,
+* and `deadNodes` to clean up dead nodes.
+
+The things mentioned above are cleaned up regularly by the *Cleanup* task.
+
+There are other clean-up settings, but these are consulted only when the relevant structures are worked with:
+
+* `objectResults` clean-up policy for object execution results - used as a default when the following settings are not specified,
+* `simpleOperationExecutions` is used to clean up simple execution results,
+* `complexOperationExecutions` is used to clean up complex execution results.
+
+== See Also
+
+* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration object]
+* xref:/midpoint/reference/repository/native-audit/#cleanup-task-vs-partitions[Audit cleanup using task vs partitions]

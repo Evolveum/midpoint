@@ -1,0 +1,18 @@
+= MidPoint Troubleshooting Guides
+:page-nav-title: Troubleshooting Guides
+:page-wiki-name: Troubleshooting
+:page-wiki-id: 4882523
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-08-08T10:48:15.794+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-08-08T10:48:17.794+02:00
+:page-display-order: 800
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-tag: guide
+:page-upkeep-status: green
+
+Following guides provide step-by-step information and recommendations on troubleshooting specific issues in midPoint configuration.
+
+++++
+{% children %}
+++++

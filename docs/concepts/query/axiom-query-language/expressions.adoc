@@ -1,0 +1,136 @@
+= Expressions in Axiom Query
+:page-since: "4.5"
+:page-toc: top
+
+:triple-backtick: ```
+
+Axiom Query language also provides special syntax support for most common
+expression types.
+
+NOTE: Expressions are not executed / supported for user entered queries in
+search box in midPoint GUI, since that would allow users to execute code and
+may pose additional security risks.
+
+Script expressions are supported for following filters:
+
+* **Value comparison filters**
+** `=`, `<`, `>`, `&lt;=`, `>=`
+** `equal`, `less`, `greater`, `lessOrEqual`, `greaterOrEqual`
+* **String filters**
+** `contains`, `startsWith`, `endsWith`
+
+
+== Path Expression
+
+The syntax for path expression is pretty straight-forward, since most path expression
+references variable.
+
+Variables starts with dollar `$` symbol. Note that variables are only supported
+as right-hand side value.
+
+.Path Expression in Equals filter
+----
+name = $c:account/c:attributes/ri:uid
+----
+
+.XML equivalent
+----
+<q:equal>
+    <q:path>name</q:path>
+    <c:expression>
+       <c:path>$c:account/c:attributes/ri:uid</c:path>
+    </c:expression>
+</q:equal>
+----
+
+== Script
+
+There are two syntaxes for script expression: single-line scripts and multi-line scripts.
+By default scripts are Groovy scripts unless other scripting language is specified.
+
+.Single-line Groovy expression
+----
+metadata/createTimestamp > `basic.fromNow("-P30D")`
+----
+
+Single-line expressions are written as strings surrounded with single ``` (backtick)
+character. This allows you to use quotes inside script without need to escape them.
+
+.Multi-line Groovy expression
+----
+metadata/createTimestamp > ```
+    now = basic.currentDateTime();
+    ret = basic.addDuration(now, "-P30D");
+    return ret
+    ```
+----
+
+The syntax for multi-line expressions is bit more elaborated, multi-line script
+starts with triple backticks (`{triple-backtick}`), followed by new-line.
+Script body is closed by triple backticks (`{triple-backtick}`). This minimizes
+need for escaping most of the qoutes or sequences inside the script body.
+
+=== Other Scripting languages
+
+You can use other supported scripting language for expressions, by prefixing
+quotes with language name e.g.:
+
+[source]
+----
+metadata/createTimestamp > groovy`basic.fromNow("-P30D")`
+----
+
+The language name is same as you would use in XML filter script expressions.
+
+== Other expression types
+
+If you plan to use expression type, which does not have simplified syntax,
+you can use `yaml` expression (`yaml` language is only available in Axiom Queries).
+
+`yaml` expression allows you to pass-thru standard `expression` element
+serialized in YAML format.
+
+This is useful, if you need to define additional properties of expression,
+or use other expression types, which does not have built-in syntax support.
+
+----
+metadata/createTimestamp > yaml```
+    script:
+        language: groovy
+        code: |
+            now = basic.currentDateTime();
+            ret = basic.addDuration(now, "-P30D");
+            return ret
+    ```
+----
+
+.XML Equivalent
+[source,xml]
+----
+<filter>
+  <gt>
+    <path>metadata/createTimestamp</path>
+    <expression>
+      <script>
+        <language>groovy</language>
+        <code>
+          ret = basic.addDuration(now, "-P30D");
+          now = basic.currentDateTime();
+          return ret
+        </code>
+      </script>
+    </expression>
+  </gt>
+</filter>
+----
+
+[WARNING]
+====
+In midPoint 4.5 and 4.6 you *have to indent* the content of the YAML expression with at least
+one space, otherwise it will not parse with quite an obscure error.
+// TODO fixed in 4.7? MID-8286
+====
+
+== See Also
+
+* xref:/midpoint/reference/expressions/expressions/[Expressions] in general

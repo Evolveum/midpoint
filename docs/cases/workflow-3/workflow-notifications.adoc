@@ -1,0 +1,585 @@
+= Workflow notifications
+:page-wiki-name: Workflow notifications
+:page-wiki-id: 22741465
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-06-10T10:08:20.092+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-11-14T16:59:32.330+01:00
+:page-obsolete: true
+:page-obsolete-since: "4.0"
+:page-toc: top
+
+== Overview
+
+Workflow module provides the following notifications:
+
+[%autowidth]
+|===
+| Event | Default recipient(s)
+
+| Process instance start
+.2+| User that requested the operation (as of 3.4)
+
+
+| Process instance end
+
+
+| Work item creation
+.3+| The work item actor (i.e. assignee) (as of 3.4).
+
+All assignees (as of 3.6).
+| Work item escalation, delegation, or other event
+
+
+| Work item completion
+
+
+|===
+
+
+== Event types and variables
+
+These variables can be accessed through the 'event' object.
+Some of them are available also as standalone variables.
+
+[%autowidth]
+|===
+| Event type | Variable/method | Meaning | Comment
+
+| (all)
+| requester
+| The user who requested the operation (as in other notification types).
+| also a standalone variable
+
+
+| (all)
+| requestee
+| The object that is being modified by the operation.
+So, for example, when a role assignment is to be added to a user, this user is the requestee.
+The variable might be null if the object does not exist yet.
+| also a standalone variable
+
+
+| (all)
+| changeType
+| ADD = process instance start or work item creation
+
+DELETE = process instance end or work item completion
+|
+
+
+| (all)
+| status
+| SUCCESS = result is 'approved' (you can use also isApproved() method to determine this)
+
+FAILURE = result is 'rejected' (also isRejected() method)
+
+IN_PROGRESS = result is not yet known (you can also use isResultKnown() to determine this)
+|
+
+
+| (all)
+| processInstanceName
+| Name of the corresponding process instance.
+|
+
+
+| (all)
+| processorSpecificState,primaryChangeProcessorState
+| State specific to a change processor, or to a primary change processor in particular.
+|
+
+
+| (all)
+| processSpecificState,itemApprovalProcessState
+| State specific to an approval process, or to standard ItemApproval BPMN process in particular.
+|
+
+
+| (all)
+| workflowContext
+| The whole workflow context.
+|
+
+
+| WorkItemEvent
+| assignee
+| Current work item xref:/midpoint/devel/design/approvals-terminology/[actor] (but there's collision on the term 'actor', so we use the older term 'assignee' here; this needs to be clarified - TODO).
+| also a standalone variable
+
+
+| WorkItemEvent
+| workItem
+| The work item.
+| also a standalone variable
+
+
+|===
+
+
+== Some examples
+
+Sending default mails when a role assignment is requested:
+
+[source,xml]
+----
+<notificationConfiguration>
+    <handler>
+        <simpleWorkflowNotifier>
+            <transport>mail</transport>
+        </simpleWorkflowNotifier>
+    </handler>
+    <mail>
+        <server>
+            <host>smtp.gmail.com</host>
+            <port>587</port>
+            <username>...</username>
+            <password>...</password>
+            <transportSecurity>starttlsEnabled</transportSecurity>
+         </server>
+         <redirectToFile>c:\midpoint\home\mail-notifications.txt</redirectToFile>       <!-- just for debugging -->
+      </mail>
+</notificationConfiguration>
+----
+
+After attempting to assign a approval-enabled role to a user, the following notifications are sent:
+
+[source]
+----
+To: <role approver>
+Subject: A new work item has been created
+
+A new work item has been created
+
+Process instance name: Assigning <role> to <user>
+Work item: Approve adding <role> to <user>
+Assignee: <role approver>
+
+Notification created on: Fri Jun 10 10:53:02 CEST 2016
+----
+
+And:
+
+[source]
+----
+To: <requester>
+Subject: Workflow process instance has been started
+
+Workflow process instance has been started
+
+Process instance name: Assigning <role> to <user>
+
+Notification created on: Fri Jun 10 10:53:02 CEST 2016
+----
+
+Similar notifications are then sent when the work item (and the whole process) is completed, indicating the result of the approval process (approved / rejected).
+
+
+== More on work item events
+
+These events are divided into the following categories:
+
+[%autowidth]
+|===
+| Category | Description | Notes
+
+| WorkItemLifecycleEvent
+| Emitted when the work item is created and deleted (completed or cancelled).
+|
+
+
+| WorkItemAllocationEvent
+| Emitted when the relation "assigned to" between a work item and a user is created or deleted - or about to be deleted.
+The "assigned to" relation is created when the work item is created but also when it is delegated/escalated.
+The relation is deleted when the work item is completed or cancelled but also when it is delegated/escalated (in a way that deletes the original assignment).
+Such events are sent even before the actual delegation/escalation/auto-completion takes place, as a reminder to complete the work item by a given deadline.
+Note, however, that these events are currently *not* emitted when the relation is created or deleted in an indirect way: e.g. by creating or deleting a deputy relation between an assignee and someone else.
+| Work item allocation events are actually the most interesting ones for any user as they tell him: "this is something you should do" or "this was already taken care for".
+
+
+| WorkItemCustomEvent
+| Emitted when `notification` timed action is encountered.
+|
+
+
+|===
+
+
+=== An example from TestStrings story test
+
+Sensitive role `a-test-1` is being assigned to user `bob`.
+
+In the first stage there is a single approver `lechuck` with two deputies: `lechuck-deputy` and `lechuck-deputy-deputy`. These following events are generated.
+
+
+==== Events generated when entering 1st stage
+
+
+===== Lifecycle events
+
+[source]
+----
+To: lechuck (the same message body is sent to lechuck-deputy and lechuck-deputy-deputy)
+
+A new work item has been created
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Line managers (1/3)
+
+Allocated to: Captain LeChuck (lechuck)
+----
+
+
+===== Allocation events
+
+[source]
+----
+To: lechuck (the same message body is sent to lechuck-deputy and lechuck-deputy-deputy)
+
+Work item has been allocated to you
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Line managers (1/3)
+
+Allocated to: Captain LeChuck (lechuck)
+----
+
+
+==== Events generated on lechuck approval (leading to 2nd stage)
+
+After `lechuck` approves, several things happen:
+
+. The respective work item is completed (and therefore deleted).
+
+. Work items for 2nd stage are created.
+There are two of them: one for `barkeeper` and one for `elaine`.
+
+Again, there are both lifecycle and allocation events:
+
+
+===== Lifecycle events
+
+[source]
+----
+To: lechuck (the same message body is sent to lechuck-deputy and lechuck-deputy-deputy)
+
+Work item has been completed
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Line managers (1/3)
+
+Allocated to: Captain LeChuck (lechuck)
+
+Result: APPROVED
+Carried out by: Captain LeChuck (lechuck)
+----
+
+[source]
+----
+To: barkeeper
+
+A new work item has been created
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Horridly Scarred Barkeep (barkeeper)
+----
+
+[source]
+----
+To: elaine
+
+A new work item has been created
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Elaine Marley (elaine)
+----
+
+
+===== Allocation events
+
+[source]
+----
+To: lechuck (the same message body is sent to lechuck-deputy and lechuck-deputy-deputy)
+
+Work item has been completed
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Line managers (1/3)
+
+Allocated to: Captain LeChuck (lechuck)
+
+Result: APPROVED
+Carried out by: Captain LeChuck (lechuck)
+----
+
+[source]
+----
+To: barkeeper
+
+Work item has been allocated to you
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Horridly Scarred Barkeep (barkeeper)
+----
+
+[source]
+----
+To: elaine
+
+Work item has been allocated to you
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Elaine Marley (elaine)
+----
+
+
+==== Events generated on administrator approval (leading to 3rd stage)
+
+Now imagine that administrator approves the work item allocated to `elaine`. Several things happen:
+
+. The respective work item is completed (and therefore deleted).
+
+. The other work item (barkeeper's) is cancelled; and therefore deleted as well.
+
+. Work items for 3rd stage are created.
+There are two of them: one for `cheese` and one for `chef`.
+
+Again, there are both lifecycle and allocation events:
+
+
+===== Lifecycle events
+
+[source]
+----
+To: elaine
+
+Work item has been completed
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Elaine Marley (elaine)
+
+Result: APPROVED
+Carried out by: midPoint Administrator (administrator)
+----
+
+[source]
+----
+To: barkeeper
+
+Work item has been cancelled
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Horridly Scarred Barkeep (barkeeper)
+----
+
+[source]
+----
+To: cheese
+
+A new work item has been created
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Role approvers (all) (3/3)
+
+Allocated to: Ignatius Cheese (cheese)
+----
+
+[source]
+----
+To: chef
+
+A new work item has been created
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Role approvers (all) (3/3)
+
+Allocated to: Scumm Bar Chef (chef)
+----
+
+
+===== Allocation events
+
+[source]
+----
+To: elaine
+
+Work item has been completed
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Elaine Marley (elaine)
+
+Result: APPROVED
+Carried out by: midPoint Administrator (administrator)
+----
+
+[source]
+----
+To: barkeeper
+
+Work item has been cancelled
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Security (2/3)
+
+Allocated to: Horridly Scarred Barkeep (barkeeper)
+----
+
+[source]
+----
+To: cheese
+
+Work item has been allocated to you
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Role approvers (all) (3/3)
+
+Allocated to: Ignatius Cheese (cheese)
+----
+
+[source]
+----
+To: chef
+
+Work item has been allocated to you
+
+Process instance name: Assigning role "a-test-1" to user "bob"
+Work item: Assigning role "a-test-1" to user "bob"
+Stage: Role approvers (all) (3/3)
+
+Allocated to: Scumm Bar Chef (chef)
+----
+
+
+=== Another example from TestStrings story test
+
+In the above scenario the allocation events correspond directly to lifecycle ones.
+However, in other situations (e.g. delegation or escalation) they do not.
+
+A new work item is created and allocated to guybrush:
+
+[source]
+----
+To: guybrush
+
+A new work item has been created
+
+Process instance name: Assigning role "a-test-1" to user "carla"
+Work item: Assigning role "a-test-1" to user "carla"
+Stage: Line managers (1/3)
+
+Allocated to: Guybrush Threepwood (guybrush)
+
+Deadline: Sun Nov 19 12:50:30 CET 2017 (in 5 days)
+----
+
+Because `guybrush` carries out no action, some days later a new event is generated.
+It is allocation event, not accompanied by any lifecycle one:
+
+[source]
+----
+To: guybrush
+
+Work item will be automatically escalated in 1 day
+
+Process instance name: Assigning role "a-test-1" to user "carla"
+Work item: Assigning role "a-test-1" to user "carla"
+Stage: Line managers (1/3)
+
+Allocated to (before escalation): Guybrush Threepwood (guybrush)
+
+Reason: Timed action
+
+Deadline: Sun Nov 19 12:50:30 CET 2017 (...)
+----
+
+After another day, the escalation takes place.
+The following allocation events are emitted.
+Again, without any lifecycle event.
+
+[source]
+----
+To: guybrush
+
+Work item has been escalated
+
+Process instance name: Assigning role "a-test-1" to user "carla"
+Work item: Assigning role "a-test-1" to user "carla"
+Stage: Line managers (1/3)
+
+Allocated to (before escalation): Guybrush Threepwood (guybrush)
+
+Reason: Timed action
+
+Deadline: Sun Nov 19 12:50:30 CET 2017 (...)
+----
+
+[source]
+----
+To: guybrush
+
+Work item has been allocated to you
+
+Process instance name: Assigning role "a-test-1" to user "carla"
+Work item: Assigning role "a-test-1" to user "carla"
+Stage: Line managers (1/3)
+Escalation level: Line manager escalation (1)
+
+Originally allocated to: Guybrush Threepwood (guybrush)
+Allocated to (after escalation): Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)
+
+Reason: Timed action
+
+Deadline: Thu Nov 23 12:50:31 CET 2017 (in 9 days)
+----
+
+(this one is sent to `guybrush` again: he is among new assignees because the escalation is set up that way)
+
+
+
+[source]
+----
+To: cheese
+
+Work item has been allocated to you
+
+Process instance name: Assigning role "a-test-1" to user "carla"
+Work item: Assigning role "a-test-1" to user "carla"
+Stage: Line managers (1/3)
+Escalation level: Line manager escalation (1)
+
+Originally allocated to: Guybrush Threepwood (guybrush)
+Allocated to (after escalation): Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)
+
+Reason: Timed action
+
+Deadline: Thu Nov 23 12:50:31 CET 2017 (in 9 days)
+----

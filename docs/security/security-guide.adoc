@@ -1,0 +1,339 @@
+= Security Guide
+:page-wiki-name: Security Guide
+:page-wiki-id: 30245226
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-03-21T07:53:00.834+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2021-01-12T18:13:24.430+01:00
+:page-tag: guide
+:page-toc: top
+:page-upkeep-status: green
+:page-alias: { "parent" : "/midpoint/guides/" }
+
+== Introduction
+
+This page describes the principles and procedures of midPoint development that relate to information security.
+
+
+== Security Issues
+
+MidPoint development team takes security of midPoint very seriously.
+Security was an integral part of midPoint design since the day one.
+And security issues are always a priority, regardless of who and when reported them.
+
+MidPoint xref:/support/support-guidelines/[support process] is prioritizing issues of the xref:/support/subscription-sponsoring/[subscribers], which means that a non-subscribers usually has to wait a long time for their issue to get fixed.
+But that does not apply to security issues.
+Security issues are always addressed with highest priority, regardless whether they are reported by subscriber on non-subscriber.
+The reason is that a security issues has potential to affect everybody, even midPoint subscribers.
+Therefore it is addressed immediately.
+
+
+=== Reporting Security Issues
+
+General rule is that security issues should *not*  be reported directly to bug tracking system or publicly discussed in the mailing lists.
+Exposing the details of security issue publicly may put midPoint users at risk.
+Therefore Evolveum has set up a dedicated mail alias for the purposes of reporting security issues:
+
+*Responsible disclosure mail address: `security@evolveum.com`*
+
+Please use this mail address for all communication about security issues.
+
+
+=== Fixing Security Issues
+
+There is a process for fixing a security issue that slightly differs from a normal bugfixing process:
+
+. Security issue is reported, usually by using the responsible disclosure channels.
+Not public information is published at that moment.
+Therefore there is *no ticket* in a bug tracking system, there is no communication on mailing list.
+All the communication is *private* at the stage.
+
+. The issue is assigned to a developer using internal communication channels in Evolveum.
+The developer works on the fix.
+
+. When the developer is done and ready to commit the fix, bug tracking *ticket is created*  just before the commit (so the commit can reference the ticket).
+The fix is committed to master branch.
+
+. The fix is backported to other branches as needed.
+
+. Security advisory is published.
+
+Discovery of severe security issue (CVSS rating: critical)  usually means that new maintenance or patch releases of all supported versions will be published.
+However new releases are unlikely for a medium-severity issues (CVSS rating: high-medium).
+User are advised to use recent build from a xref:/midpoint/install/using-support-branch/[support branch] for their release.
+In case that a xref:/support/subscription-sponsoring/[subscriber] needs official release to deploy in their environment, such subscriber should contact Evolveum and a xref:/midpoint/devel/guidelines/development-process/[patch release] will be created in that case.
+But this will not happen automatically for issues of medium and low severity.
+Low severity issues (CVSS rating: low) may not even get backported to support branches unless such action is explicitly requested by a subscriber.
+
+
+=== Security Advisories
+
+MidPoint team will publish security advisory at the appropriate time after a security issue is discovered and addressed.
+Security advisories are listed on a dedicated page.
+
+See xref:/midpoint/reference/security/advisories/[Security Advisories] page for details.
+
+
+== Default Configuration
+
+When MidPoint instance is started for the first time is creates a default configuration.
+The goal of the default configuration is provide starting point for midPoint customization.
+*The default configuration is not meant to be complete or completely secure.* For example, the default End User role has quite a broad privileges, there is just one global all-powerful administrator and so on.
+Please do not use the default configuration in a production environment unless the configuration is properly reviewed and customized to your needs.
+
+
+=== Administrator and Superuser
+
+MidPoint comes with a pre-configured user `administrator`. This is almighty user, because it has role `Superuser`. Both the user and the role are created for a very specific purpose of initial system configuration.
+This is the user that you can use to login to a brand new system and configure it.
+
+Neither user `administrator` nor role `Superuser` are meant to be used for routine system administration.
+Once the initial system configuration is done, user `administrator` should be removed from the system.
+Or at least disabled.
+Personalized administration users should be used instead of `administrator`, even though those users may still have `Superuser` role.
+
+Some deployments may choose to retain `administrator` user for emergency purposes.
+In that case the `administrator` should be set up with a very strong random password.
+Such password should be stored in a secure location and only used for emergency operations.
+
+
+=== H2 Database
+
+When  midPoint starts using the default configuration, it will start with an embedded H2 database engine.
+This database engine is provided for convenience purposes only.
+The H2 database is *not supposed to be used for production purposes* or any other purposes that are security-sensitive in any way.
+
+The goal of the H2 database is to make it easy for the users to familiarize themselves with midPoint.
+It is supposed to be used for demonstrations, experiments and other non-critical purposes that do not include any sensitive data.
+The default setup of H2 database strongly prefers convenience over security.
+E.g. the H2 database port is exposed to all network nodes, allowing easier diagnostics and visibility into H2 database structures.
+
+*Use embedded H2 database at your own risk only*. We do not guarantee any security, reliability or any other quality when using the embedded H2 database.
+
+*Do not store any sensitive data in the embedded H2 database.*  Do not use H2 database in unprotected network environments.
+
+
+== Password Storage
+
+One of the usual responsibilities of an IDM system is to manage credentials, including passwords.
+MidPoint is an IDM system and, naturally, there is a password management component in midPoint.
+But being an IDM system the password management in midPoint is much more complex that a password management of any ordinary application.
+MidPoint does not manage a password just for itself, it manages passwords for other applications.
+And then there is a problem.
+It is easy to to set up new accounts in a "big bang" provisioning case.
+This means that a new user is created in midPoint, new password is generated and that password is used when creating a new accounts at that very moment.
+But there is a problem if a new account has to be created later.
+For example, if an used gets assigned new role which needs new account to be created.
+In that case we do not have user's cleartext password any more.
+Therefore we cannot use it while creating a new account.
+
+MidPoint supports two methods to deal with this problem.
+One is more convenient, but there are security issues.
+The other is less convenient, but more secure.
+MidPoint supports both methods, as both may be needed in practice.
+And then, of course, there is an option for midPoint not to manage passwords at all.
+
+This pages is giving only a high-level overview of the mechanisms.
+Please see xref:/midpoint/reference/security/credentials/password-storage-configuration/[Password Storage Configuration] page for the details.
+
+
+=== Storing Encrypted Passwords
+
+The default behavior of midPoint is to store user's password in an encrypted form.
+When user password is seen by midPoint, it is stored in the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User object] in a form of `ProtectedString` data type.
+The default configuration is to encrypt the value of all `ProtectedString`s before storing them in the database.
+The encryption is reversible, therefore if midPoint needs the password at any later time it still has access to it.
+Therefore the problem of creating a new account can be easily solved.
+MidPoint decrypt the password and new account is seamlessly created.
+
+The problem is, of course, that the password cleartext is always accessible.
+It is encrypted.
+But the key is available to all midPoint instances.
+The key itself is stored in midPoint keystore, which can be theoretically be placed in hardware security module (HSM).
+But system administrator usually has access to the keystore (directly or indirectly) and also can access the encrypted data in the database.
+Therefore this method provides a very limited protection.
+In fact, the primary reason for this protection is to avoid unintentional logging of password cleartext.
+This method also protects the passwords from database administrators and data leaks originated from database backups.
+But overall, this protection is not very strong.
+
+However, this method is very convenient.
+And it was a very common practice in 2000s and it still remain quite popular even today.
+Therefore midPoint supports this method.
+And as it lowers the entry barrier and it makes demonstrations and PoCs smoother it is also the default behavior of midPoint.
+This is similar principle as with default midPoint configuration: it is not meant to be completely secure, it is meant to be a starting point.
+
+
+=== Storing Hashed Passwords
+
+MidPoint can be configured to hash passwords instead of encrypting them.
+This works perfectly fine for the "big bang" provisioning case, as at the first moment when new user is created we have cleartext password.
+Therefore that password can be used to set up initial accounts.
+After that brief moment midPoint will hash the password, store the hashed value and forget the cleartext.
+This is a similar procedure as most ordinary applications use.
+
+However, there is this problem of creating an additional account.
+The hash is not veresible, therefore we cannot get cleartext password to set up new account.
+Almost no target system (resource) supports creating an account with password that is already hashed.
+And even if few system do support it, each of them needs a slightly different form of password hash, different salting and so on.
+This method may be feasible for a couple of special cases, but we need a different mechanism for a general case.
+And that mechanism is account activation.
+
+When midPoint is adding a new account to an existing user, that account is created without any password.
+If that is not possible or it may be insecure, then a temporary randomly-generated password is used.
+Such account is created, but it is not usable as the user cannot authenticate.
+Therefore such account needs to needs to be initialized (or "activated") before first use.
+The user will be notified that there is a new account that needs to be initialized.
+The user is instructed to go to midPoint for initialization.
+When the user goes to midPoint, midPoint will ask the user for the password.
+As user enters the password, midPoint can get password cleartext and use it for a moment.
+MidPoint will use that opportunity to set up password to user's new accounts and password cleartext is discarded right after that.
+User accounts are now ready to be used.
+
+This is slightly less convenient method, but it is more secure.
+In this case the password cleartext is not accessing for all the time.
+It is only used when needed.
+
+
+=== No Password Storage
+
+The best to eliminate risk of password management is not to manage passwords at all.
+Even though most midPoint deployments will need to manage passwords in midPoint, there are cases when password management can be avoided.
+The usual case is an organization that is using a centralized authentication mechanism such as central LDAP server, Active Directory or an SSO system.
+For this to be efficient such an authentication mechanism must be able to cover *all* the applications in an organization - which is something that almost all organizations strive for, but almost no organizations achieve.
+In practice this is feasible only for small and/or simple deployments.
+
+If this approach is feasible, it is strongly recommended to use it.
+Strictly speaking, midPoint is an identity management system (IDM), not an access management (AM) system.
+Therefore midPoitn should not deal with authentication at all.
+Therefore midPoint should not need to manage the credentials at all.
+The fact that midPoint is managing credentials is given by requirements of practical deployments.
+It is very expensive to have and authentication system or SSO/AM system that can work for 100% of applications.
+In practical cases such systems won't get far beyond 50% coverage.
+Therefore password management in midPoint is needed to provide at least some level of security for the rest of the applications.
+
+
+== Expression Security
+
+MidPoint is a very flexible system.
+Being an identity management system, all the flexibility is needed to allow practical and efficient deployments.
+However, with great power comes great responsibility.
+
+One of the most powerful parts of midPoint are xref:/midpoint/reference/expressions/[mappings and expressions]. Expressions allow to customize midPoint behavior and they are essential for the success of midPoint deployments.
+However, the expressions are very powerful and they may even be too powerful for some use cases.
+The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
+Therefore such expressions have almost unlimited capabilities.
+Which means that the expressions can damage the system or compromise security of the system.
+*Use the expressions with utmost care.*
+
+Currently, there are very little restraints for expression execution.
+The xref:/midpoint/reference/expressions/expressions/script/functions/[expression functions] provided by midPoint usually check for proper authorizations.
+But as the expressions can use general-purpose languages, there is no obligation for the expressions to use those libraries.
+The expression can easily circumvent those weak protections.
+Therefore do not let any unauthorized user to set up any kind of expression in midPoint.
+*Allowing the right to edit any expression may lead to compromise of system security.*
+
+Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles]. However, the usefulness of this feature is currently limited.
+See xref:/midpoint/reference/expressions/expressions/profiles/configuration/[Expression Profile Configuration] page for details.
+Please consider using xref:/support/subscription-sponsoring/[platform subscription] to  fund xref:/midpoint/features/planned/expression-profiles/[full implementation of expression profiles.]
+
+
+== Networking
+
+xref:/midpoint/reference/deployment/stand-alone-deployment/[Stand-alone deployment] of midPoint is supposed to expose only HTTP port 8080 by default.
+Other ports (e.g. H2 database port) may be exposed as well, depending on midPoint configuration and customization.
+
+MidPoint is not supposed to be directly exposed to unprotected network.
+It is assumed that additional network protection will be applied, such as HTTP/HTTPS reverse proxy.
+Many midPoint deployments will take benefit of clustering mechanisms and those will be multi-node deployments.
+Therefore a form of HTTP/HTTPS reverse proxy is expected anyway, e.g. in a form of a network load balancer.
+
+Due to operating system security reasons and limitations of the Java platform, midPoint listens at port 8080 by default.
+This is usually not the desired solution, as ports 80 and 443 are usually expected.
+Therefore this is yet another reason for using a network security component in front of midPoint.
+
+See also xref:/midpoint/reference/deployment/ports-80-and-443/[Ports 80 and 443].
+
+MidPoint deployment that are explicitly deployed into existing web container environment (Apache Tomcat) should adhere to the recommended security practices of the web container.
+As such web container is not under the control of midPoint, midPoint is not responsible for any security issues of such web container.
+
+
+== Security of MidPoint Services
+
+MidPoint is exposing remote services, such as xref:/midpoint/reference/interfaces/rest/[RESTful API]. Those services provide access to a significant part of midPoint functionality.
+The services allow "raw" access to midPoint data, which means access that is not protected by the mechanisms of user interface.
+Significant harm can be done by using those services, as there are almost no safeguards with respect to robustness.
+E.g. the services will not ask for confirmation dialog, they will allow to delete objects that are in use and so on.
+Significant care should be employed when using those services.
+
+MidPoint remote services are using the same authentication credentials as ordinary midPoint users.
+However, special xref:/midpoint/reference/security/authorization/[authorization] is required to access those services.
+Both _service_ authorization and _object_ authorization are required to access the service and execute operations.
+Therefore even a user that has very broad privileges in midPoint user interface cannot use those privileges in the context of remote services unless special service authorization is in place.
+
+Administrators are advised to give access to the services very carefully.
+Those services are designed with the purpose of being comprehensive, secure and general services that are exposing (almost) all functionality of midPoint.
+However, the implementation has not reached that stage yet.
+Some parts of the service will be further developed in the future.
+Current purpose of midPoint remote services is to allow access to few trusted applications that implement the barriers the midPoint services do not provide yet.
+The services are not meant to be used by end users directly.
+
+There are many ways how the use of midPoint services may impact availability of midPoint functions, creating Denial of Service (DoS) situation.
+The user of the services may create messages that are too long, flood midPoint servers with many messages, depleting network resources, craft messages that overload the server hosting midPoint application or use similar mechanism.
+Therefore it is recommended to prohibit access to midPoint services on network level, make them available only to trusted entities.
+
+
+== Platform and Dependencies
+
+MidPoint is an application, running on existing computing platform.
+There is operating system and Java platform as two major components.
+There are also engines that are embedded in midPoint, most notably Tomcat web server and Groovy, JavaScript and Python interpreters.
+Although we try to make sure that midPoint is interacting with the platform and its dependencies in a secure way, it is recommended to use the usual practice to secure the host system where midPoint is running, limit the exposure of midPoint network services and use similar security practices to limit the exposure of midPoint instance.
+Also, we try to make the scripting interpreters safe.
+However, the scripting languages create very complex environment, and as most software packages, some scripting operations may be vulnerable to some forms of attacks.
+Therefore it is recommended to follow security advisories of the scripting platform that you are using to create midPoint customizations (e.g. Groovy) and adapt your code to avoid vulnerabilities given by the platform.
+
+
+== Experimental Features
+
+We recommend *not*  to use experimental features in security-sensitive deployments.
+Experimental features were subjected only to a very limited amount of testing - including security testing.
+The functionality may also change at any time in quite unexpected way, there is limited documentation and so on.
+Therefore you should either thoroughly test the experimental functionality yourself or do not use it at all.
+
+
+== MidPoint Security Certifications And Testing
+
+MidPoint team is often asked if midPoint has any security certifications.
+This is a very difficult questions to answer.
+MidPoint is an identity management product.
+As such, it is very flexible and it can be configured and customized _ad nauseam_. There are too many things that can go wrong during the configuration and customization, few of them are described in this guide.
+Therefore even if midPoint as a product had a security certification, it would not make any guarantees about security of a particular midPoint deployment.
+To make the situation even worse, product security certifications are very expensive.
+It is a long and laborious process.
+The cost of such a certification would need to be reflected into the cost of midPoint subscription and all users would be impacted.
+And as product certifications are only valid for a particular version of a product, we would need to repeat the entire process every 6 months.
+This approach is just too costly and it provides very little benefit for midPoint user community.
+Therefore we have decided not to go this way.
+
+However, midPoint is an open source product.
+All the source code and all the information that is needed for a certification is public.
+Therefore if any particular midPoint user insist on security certification, such user has all the necessary information to follow through this process.
+
+While product security certifications is out, there are other methods that can be used for security testing.
+Penetration testing is a popular choice here.
+But similarly to the security certification, penetration testing is usually done against a deployed application, not a general-purpose product.
+Penetration testing almost always uncovers problems with configuration, not problems with the products.
+Albeit all that, there is still some chance that penetration testing may uncover a flaw in generic midPoint implementation.
+Therefore we would be willing to participate in a penetration testing exercise with midPoint.
+However, so far there was no one that would be willing to fund such activity.
+
+Fortunately, there are other methods.
+In early 2019 midPoint was a part of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[European Union Free and Open Source Software Auditing (EU-FOSSA2) project]. A link:https://hackerone.com/midpoint_h1c?view_policy=true[bug bounty] was announced for vulnerabilities in midPoint product.
+The bug bounty program was very successful, resulting in discovery and mitigation of several security issues.
+
+
+== See Also
+
+* xref:/midpoint/reference/security/advisories/[Security Advisories]
+
+* xref:/midpoint/reference/deployment/ports-80-and-443/[Ports 80 and 443]

@@ -1,0 +1,7 @@
+= Description of Specific Activity Types
+
+Here are the descriptions of activities that are not documented elsewhere. (E.g. as part of a specific feature description.)
+
+++++
+{% children %}
+++++

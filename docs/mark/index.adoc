@@ -1,0 +1,234 @@
+= Object Marks
+:page-toc: top
+:page-since: "4.7"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: green
+
+== Introduction
+
+Object Marks are light-weight marking mechanism for objects in order to ease
+administration of Midpoint and/or induce specific behavior policies to marked
+objects.
+
+Marked objects could be filtered by mark in Admin GUI and may receive additional
+policies based on effective marks.
+
+Technically object marks are `MarkType` with archetype `Object Mark`.
+
+IMPORTANT: Object Marks are only supported with Postgres Native Repository
+
+IMPORTANT: Object Marks are currently only supported for shadows
+
+== Basic Concepts
+
+=== Effective Marks
+
+Effective marks are marks, which are applied to object based on policies, or explicitly
+specified by policy statements of the object.
+
+Effective marks are stored in object `effectiveMarkRef` of type `ObjectReferenceType`
+and are indexed by repository, so it is possible to use them for search.
+
+=== Policy Statements
+
+Effective marks could be manually added / induced / excluded from object
+by modifying policy statement of particular object.
+
+Policy statement has two main properties:
+
+* *markRef* - object reference, which specifies mark
+* *type* - enumeration, which specifies type of policy statement
+** `apply` - referenced mark is manually added as effective mark
+** `exclude` - referenced mark will not be effective, even if other policy may specify it so.
+
+
+.Marking Shadow as Protected
+[source, xml]
+----
+<policyStatement>
+    <markRef oid="00000000-0000-0000-0000-000000000800" relation="org:default" type="c:MarkType">
+        <!-- Protected -->
+    </markRef>
+    <type>apply</type>
+</policyStatement>
+----
+
+== Object Operation Policy
+
+NOTE: In 4.7 object operation policy is only supported for shadow objects
+
+Object Marks allows to specify operation policy, which may disable specific operations for marked objects.
+
+Currently supported object operation policies for shadows are:
+
+* `synchronize/inbound`
+** if enabled, shadow is used for inbound synchronization
+** if disabled shadow is excluded from inbound synchronization, changes on resource
+   does not trigger mappings / recomputation of focus object
+* `synchronize/outbound`
+** if enabled, changes in focus object triggers changes in shadows
+** if disabled, changes in focus object does not trigger mappings and are not propagated to resource
+* `add`
+* `modify`
+** if disabled, any modifications of shadow (mappings or manual) results in error
+* `delete`
+** if disabled, shadow on resource can not be deleted (enforced in provisioning)
+
+*Default object operation policy* for objects without marks specifying policy is to have *all operations enabled*.
+
+If object has multiple effective marks specifying object operation policy, policies are merged, operations disabled by any of the marks are always disabled.
+
+
+.Object Operation Policy of Protected mark
+[source, xml]
+----
+<objectOperationPolicy>
+        <synchronize>
+            <inbound>
+                <enabled>false</enabled>
+                <severity>info</severity>
+            </inbound>
+            <outbound>
+                <enabled>false</enabled>
+                <severity>error</severity>
+            </outbound>
+        </synchronize>
+        <add>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </add>
+        <modify>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </modify>
+        <delete>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </delete>
+    </objectOperationPolicy>
+----
+
+WARNING: Currently only severity `error` is supported for `add`,`modify`,`delete` operations.
+
+=== Built-in Object Marks
+
+==== Protected
+
+Object Mark which denotes object (shadow) as Protected. Behavior of shadow marked with this mark is equivalent to setting it as protected in resource schema handling.
+
+NOTE: In 4.7 if shadow is to be protected according to resource definition, shadow
+is automatically marked `Protected` (`effectiveMarkRef`) and `objectOperationPolicy` defined in `Protected` mark enables protected behavior.
+
+
+.Built-in Object Marks
+[cols="20%,5%,5%,5%,5%,60%"]
+|===
+
+.2+^.^h|Mark
+4+^.^h|Operations allowed
+.2+^.^h|Description
+
+h|Sync
+h|Add
+h|Mod
+h|Del
+
+|*Protected*
+|No
+|No
+|No
+|No
+|Protected accounts. MidPoint ignores them in both synchronization and provisioning. Usually used for administrative or technical accounts.
+
+|*Decommission later*
+|No
+|Yes
+|Yes
+|Yes
+|Accounts which should not be updated automatically by synchronization, but may be edited / deleted manually later.
+
+|*Correlate later*
+|No
+|Yes
+|Yes
+|Yes
+|Accounts which can not be correlated automaticly and should be skipped during synchronization.
+
+|*Do not touch*
+|No
+|No
+|No
+|No
+|Accounts which we do not want to be synchronized / modified by midPoint. (same as protected), but reason may be different.
+|*Invalid data*
+|No
+|No
+|No
+|No
+|Account which has bad data and should be ignored by synchronization. Same behavior as `Protected`, but different semantic meaning.
+|===
+
+
+== GUI: Object Marks and Shadows
+
+NOTE: In midPoint 4.7 object marks are only supported for shadows.
+
+=== Marking Shadows in Resource Details
+
+MidPoint GUI allows manually marking shadows in resource details view
+using *Add Marks*, *Mark as Protected* actions in *Accounts* and *Entitlements*.
+
+==== Workflow screenshots
+
+.Go to Resource -> Accounts
+image::resources-accounts-00.png[]
+
+.Click on Menu for Shadow
+image::resources-accounts-01.png[]
+
+.Select Add Marks
+image::resources-accounts-02.png[]
+
+.Select Marks to be added to shadow
+image::resources-accounts-03.png[]
+
+=== Removing Shadow Marks in Resource Details
+
+MidPoint GUI allows removing manually mark of shadows in resource details view using *Remove Marks* actions in *Accounts* and *Entitlements*.
+
+==== Workflow screenshots
+.Go to Resource -> Accounts, select accounts from which marks will be removed
+image::mark-shadow-remove-01.png[]
+
+.Click on Menu for Selected Shadows, Select Remove Marks
+image::mark-shadow-remove-02.png[]
+
+.Select Marks which should be removed from selected accounts
+image::mark-shadow-remove-03.png[]
+
+.Click Remove Marks to remove them
+image::mark-shadow-remove-04.png[]
+
+=== Marking Shadows in Simulation Results
+
+MidPoint GUI allows manually marking shadows in Simulations results -> Processed Object views.
+This is done by clicking menu icon and selecting Add Marks. Note that mark
+is applied to real shadow (not simulated result). This allows for use-cases such as running simulations
+and excluding particular shadows from real run.
+
+NOTE: In Simulations GUI mark is applied to actual underlying object
+
+==== Workflow screenshots
+
+.Click on Menu icon for shadow
+image::simulations-processed-object-01.png[]
+
+.Select Add Marks
+image::simulations-processed-object-02.png[]
+.Select Marks and click Add
+image::simulations-processed-object-04.png[]
+
+=== Listing marked shadows across resources
+
+In order to view all shadows marked by specific mark, you can navigate in midPoint GUI, to *Marks*, open specific object mark details and click on *Marked Shadows*.

@@ -1,0 +1,174 @@
+= XML Query Language
+:page-wiki-name: XML Object Query
+:page-wiki-id: 655379
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:52:35.673+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-23T10:51:03.770+02:00
+
+This is a XML-based query language that was used in midPoint for years.
+It is still a supported option.
+However, it is gradually replaced by xref:axiom-query-language/[Axiom query language].
+
+== Examples
+
+.Searching for account by DN
+[source,xml]
+----
+<q:equal>
+    <q:path>c:attributes/icfs:name</q:path>
+    <q:value>cn=foobar,uo=people,dc=nlight,dc=eu</q:value>
+</q:equal>
+
+----
+
+
+.Searching for user by user name or full name (short polyString version)
+[source,xml]
+----
+<q:or>
+    <q:equal>
+        <q:path>c:name</q:path>
+        <q:value>jack</q:value>
+    </q:equal>
+    <q:equal>
+        <q:path>c:fullName</q:path>
+        <q:value>cpt. Jack Sparrow</q:value>
+    </q:equal>
+</q:or>
+
+----
+
+
+.Searching for user by user name or full name (long polyString version)
+[source,xml]
+----
+<q:or>
+    <q:equal>
+        <q:path>c:name</q:path>
+        <q:value>
+            <t:orig>jack</t:orig>
+            <t:norm>jack</t:norm>
+        </q:value>
+    </q:equal>
+    <q:equal>
+        <q:path>c:fullName</q:path>
+        <q:value>
+            <t:orig>cpt. Jack Sparrow</t:orig>
+            <t:norm>cpt jack sparrow</t:norm>
+        </q:value>
+    </q:equal>
+</q:or>
+
+----
+
+
+.Searching for account by resource and intent (account type)
+[source,xml]
+----
+<q:and>
+    <q:ref>
+        <q:path>c:resourceRef</q:path>
+		<q:value>
+	        <q:oid>ef2bc900-76e0-59e2-86d6-004f02d30000</q:oid>
+		</q:value>
+    </q:ref>
+    <q:equal>
+        <q:path>c:intent</q:path>
+        <q:value>default</q:value>
+    </q:equal>
+</q:and>
+
+----
+
+
+.Searching for user by employee type and organization structure membership
+[source,xml]
+----
+<q:and>
+    <q:equal>
+        <q:path>c:employeeType</q:path>
+        <q:value>FTE</q:value>
+    </q:equal>
+    <q:org>
+        <q:orgRef>
+            <q:oid>ef2bc900-76e0-59e2-86d6-004f02d30000</q:oid>
+        </q:orgRef>
+        <q:maxDepth>unbounded</q:maxDepth>
+    </q:org>
+</q:and>
+
+----
+
+The search filter language definition is part of Query Schema. See the `FilterType` and derived types in the XSD file for more details.
+
+
+== Filters with Expressions
+
+.Equals filter with expression
+[source,xml]
+----
+<q:equal>
+    <q:path>name</q:path>
+    <c:expression>
+       <c:path>$c:account/c:attributes/ri:uid</c:path>
+    </c:expression>
+</q:equal>
+
+----
+
+
+.Reference with inner expression
+[source,xml]
+----
+<q:org>
+    <q:ref>
+        <q:oid>
+            <c:expression>
+                <c:path>$role:orgRef</c:path>
+            </c:expression>
+        </q:oid>
+    </q:ref>
+    <q:maxDepth>unbounded</q:maxDepth>
+</q:org>
+
+----
+
+
+.Reference with inner search filter (NOT YET IMPLEMENTED)
+[source,xml]
+----
+<q:org>
+    <q:ref>
+        <q:query>
+        	<q:filter>
+        		<q:equals>
+    	    		<q:path>name</q:path>
+    	    		<c:expression>
+    	    			<c:path>$role/extension/orgName</c:path>
+    	    		</c:expression>
+    	    	</q:equals>
+    	    </q:filter>
+        <q:query>
+    </q:ref>
+    <q:maxDepth>unbounded</q:maxDepth>
+</q:org>
+
+----
+
+Note the namespaces.
+
+
+== Motivation
+
+Long time ago, midPoint was completely based on XML.
+Therefore a XML-based query language was a natural choice.
+There was even a SOAP web service interface, therefore the XML-based query language was working fine in WSDL interface definitions, can be checked by XSD schema and so on.
+
+However, as midPoint evolved to be independent of particular data representation format (XML, JSON, YAML), the XML-based query language did not make much sense any more.
+It was also not entirely user-friendly.
+Therefore it was replaced by xref:axiom-query-language/[Axiom Query Language]
+
+== See Also
+
+* xref:axiom-query-language/[Axiom Query Language]

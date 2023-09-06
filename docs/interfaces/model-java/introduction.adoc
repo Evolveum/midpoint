@@ -1,0 +1,295 @@
+= IDM Model Interface Introduction
+:page-wiki-name: IDM Model Interface Introduction
+:page-wiki-id: 13074765
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-03T13:51:06.952+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-08T14:02:33.009+02:00
+:page-upkeep-status: orange
+:page-toc: top
+
+
+
+
+== Introduction
+
+*TODO*
+
+== IDM Model Interface Concepts
+
+=== Working With Objects
+
+This interface mostly work with midPoint objects as described in our xref:/midpoint/reference/schema/[Data Model]. Please see the xref:/midpoint/reference/schema/data-model-essentials/[Basic Data Model] page for a quick introduction to the data model.
+The xref:/midpoint/reference/schema/[Data Model] page expands on that and provides more details.
+Almost all state and configuration changes in midPoint are done by creating, modifying and deleting midPoint objects.
+
+Each midPoint objects has a type and an xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. These two pieces of information are all you need to read a midPoint object.
+This is what identifies an object.
+And both type and OID are immutable.
+Once set these cannot be changed.
+The type is represented as Java class in this interface.
+The xref:/midpoint/devel/prism/concepts/object-identifier/[OID] is a string, usually in a form of link:http://en.wikipedia.org/wiki/UUID[UUID].
+
+This interface provides a *unified view* of the objects.
+It means that the user of IDM Model Interface does not need to care about where the data resides.
+Some data reside in the midPoint repository (e.g. relational database).
+These are typically objects that represent xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[users] or configuration objects.
+Other objects reside partially in midPoint repository and partially on remote resources (e.g. xref:/midpoint/reference/resources/shadow/[Shadow Objects]). However this distinction is mostly hidden from the user of IDM Model Interface.
+This interface provides uniform access to all objects regardless of how and where are they stored.
+You can simply read an object and the implementation will figure out how to do that.
+And the implementation will take care of merging the data from several sources, process meta-data, data caching, type conversion and any other mechanism that needs to take place to work with the data.
+
+=== Prism Objects and Deltas
+
+Almost all business data are represented in midPoint in a form of xref:/midpoint/devel/prism/[Prism Objects]. xref:/midpoint/devel/prism/[Prism] is somehow lightweight and very powerful data representation framework.
+It can be used to access the data using a variety of interfaces, parse and serialize using multiple data formats (e.g. XML and JSON) and so on.
+This is the basic framework of midPoint data therefore it is also used in all midPoint Java interfaces.
+Please have a look at xref:/midpoint/devel/prism/[Prism] page to get a generic introduction to the framework.
+
+MidPoint is designed to work with xref:/midpoint/reference/concepts/relativity/[relative change model.] This model is built deeply into the basic midPoint functionality.
+Therefore it is obvious that also midPoint interfaces will work with xref:/midpoint/devel/prism/concepts/deltas/[deltas]. Similarly to the objects the Java interfaces to midPoint are using deltas provided by xref:/midpoint/devel/prism/[prism framework]. Prism deltas are designed especially to work with prism objects and together they work a complete and elegant data representation and management solution.
+
+As midPoint is heavily relying on prism framework an instance of _prism context_ is sometimes needed to complete some tasks.
+One of the important responsibilities of prism context is to maintain pre-parsed schemas of all midPoint objects and also schemas of user extensions.
+MidPoint is internally a fully type-based system which provides very powerful features such as transparent type checking and conversion.
+Therefore an instance of _prism context_  is needed to complete some operations (e.g. creating new object or delta).
+Similarly to other such instances also the prism context is managed by Spring framework.
+Therefore instance of prism context can be obtained by using Spring dependency injection, e.g. using the `@Autowire` annotation.
+
+Please note that most objects are using xref:/midpoint/reference/concepts/polystring/[PolyString] instead of plain strings for some attributes.
+The use of xref:/midpoint/reference/concepts/polystring/[PolyString] provides important advantage in internationalized environment.
+E.g. it provides ability for database-independent searches that are quite close to an internationalized full-text search.
+While PolyString values are almost transparent when used for reading they require some attention when constructing objects and deltas.
+
+=== Interface and Implementation
+
+MidPoint follows established practice of separating the interface (abstract definition) and implementation (concrete algorithms).
+Therefore all major midPoint interfaces are provided in a form of Java `interface` constructs.
+There is no implementation code directly associated with such interface.
+However an "instance" of the interface needs to be retrieved for the code to be practical.
+MidPoint is using Spring framework to manage component dependencies and to inject implementations where they are needed (a.k.a. "wiring" the components).
+
+All samples assume that the instance of `ModelService` is in the variable `modelService`. This instance can be obtained by using Spring, e.g. using autowiring
+
+[source,java]
+----
+import com.evolveum.midpoint.model.api.ModelService;
+
+@Autowire(required=true)
+private ModelService modelService;
+----
+
+=== Operational Status, Security Context and Error Handling
+
+MidPoint is a sophisticated system that is supposed to be secure and auditable and easy to diagnose.
+Therefore each operation has to know a security context in which it runs to be able to properly process authorization and auditing.
+The xref:/midpoint/architecture/concepts/task/[Task] data structure is designed for this responsibility.
+It contains the identity of the user and security context.
+But the task has much more capabilities.
+It can be also used for run control, e.g. midPoint has the ability to switch the execution to asynchronous if needed.
+The xref:/midpoint/architecture/concepts/task/[Task] data structure mains information about the context and the state of operation execution.
+Therefore it needs to be provided as an argument in each invocation.
+
+Error reporting and handling is a very important concern in integration systems such as midPoint.
+The interface provide two mechanisms to describe errors and error conditions:
+
+* *Java Exceptions* indicate severe errors that *cause whole operation to fail*. The capabilities of exceptions as error indication technique are very limited.
+E.g. they cannot provide track of the complete operation or cannot indicate partial success.
+Therefore the use of exceptions is limited only the most severe cases and an additional error indication mechanism is needed.
+
+* *xref:/midpoint/architecture/concepts/operation-result/[Operation Result]* is used as a rich data structure that describe useful information about the whole operation and its suboperations.
+It describes what parts of the operation failed and provides a rich diagnostics information to display to user.
+The operation result is used to *indicate both fatal (complete) and partial failures*. The analysis of the operation result may also provide debugging data about the operation itself (e.g. for debugging the policies and configuration).
+
+The exceptions are "standardized" through the system.
+A common set of exceptions is defined in the xref:/midpoint/architecture/archive/subsystems/infra/[Infrastructure Subsystem] and these exceptions are reused by all midPoint interfaces if possible.
+Most of the exceptions are checked exceptions that define a specific circumstances (semantics) of the error.
+Therefore it is usually sufficient to react to (catch) a specific exception to handle the error.
+However the exception is only thrown if the whole operation fails or if an unexpected situation with unpredictable results occurs (e.g. out of memory error).
+More sophisticated error handling is possible by inspecting the xref:/midpoint/architecture/concepts/operation-result/[Operation Result]. E.g. if a user is modified, the modification is reflected to several accounts using xref:/midpoint/reference/expressions/mappings/[mappings], some of account modification succeed and one of the account modification fails then an exception is *not* thrown.
+In such case the the operation returns as in it would after a successful operation.
+Operation result structure will be filled with details of every significant sub-operation.
+The overall status will indicate _partial error_ and one of the sub-operations will be set to _fatal error_. As this structure is intended for human readability and machine processability it can be used for variety of purposes.
+It can be used to display detailed error information to the user, to automatically react to certain situation or for any similar purpose.
+
+== Reading Objects
+
+Reading objects is the simplest and perhaps also the most often used operation.
+As midPoint objects are identified by xref:/midpoint/devel/prism/concepts/object-identifier/[OID] it is also the most important parameter in the invocation:
+
+[source,java]
+----
+PrismObject<UserType> user = modelService.getObject(UserType.class, "6bb5c524-5c18-11e3-979a-001e8c717e5b", null, task, result);
+----
+
+Once retrieved the object can be manipulated using any of the xref:/midpoint/devel/prism/[prism] "facets":
+
+[source,java]
+----
+String empNo = user.asObjectable().getEmployeeNumber(); // returns the value of user's employeeNumber property
+----
+
+This works for any object of any type as long as you know xref:/midpoint/devel/prism/concepts/object-identifier/[OID]:
+
+[source,java]
+----
+PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, "750e4d3a-5c18-11e3-8174-001e8c717e5b", null, task, result);
+PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, "399e161c-5c19-11e3-9cd0-001e8c717e5b", null, task, result);
+----
+
+== Searching Objects
+
+If you want to do anything interesting with a midPoint object you need to know its xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. Most methods need an OID to be able to work properly.
+Perhaps the only real exception are _search_ methods.
+These methods are designed to obtain midPoint objects even without knowing their OID.
+In fact these methods are often used to find out OID of an object to be used in other midPoint operations.
+
+The key to search methods is xref:/midpoint/reference/concepts/query/[midPoint query language]. This query language is specific to midPoint and it describes an abstract tree of search criteria.
+It may be slightly complex to construct but there are convenient factory methods that can be used for this purpose.
+The following example shows how a simple query is constructed and used in a search.
+Factory methods `createObjectQuery` and `createEqual` are used to construct a simple query.
+The query describes objects for which the `name` property (specified as `ResourceType.F_NAME`) equals to xref:/midpoint/reference/concepts/polystring/[PolyString]`"My Resource`". Once executed this will return all such xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/resourcetype/[ResourceType] objects (which obviously is at most one object as `name` property is unique across all the resources).
+
+[source,java]
+----
+ObjectQuery query = ObjectQuery.createObjectQuery(
+        EqualsFilter.createEqual(ResourceType.class, prismContext, ResourceType.F_NAME, new PolyString("My Resource")));
+Collection<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, query, null, task, result);
+----
+
+There are two versions of the search methods: plain and iterative.
+The plain method (`searchObjects`) stores all the results in a collection that it returns.
+This is easy-to-use version for a very small queries such as the one above (which cannot return more than one object).
+But the plain search method does not scale well.
+Therefore there is an iterative search method (`searchObjectsIterative`) is not storing the objects at all.
+This method is using a callback handler to process each object as it is fetched from the repository (or resource).
+Following example show how it is used:
+
+[source,java]
+----
+ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+        @Override
+        public boolean handle(PrismObject<UserType> user, OperationResult parentResult) {
+            // do something with user here
+            return true; // true indicates that we want to continue
+        }
+    };
+modelService.searchObjectsIterative(UserType.class, query, handler, null, task, result);
+----
+
+== Creating, Modifying and Deleting Objects
+
+Unlike other interfaces the MidPoint Java API uses a single method for all changes.
+The method is called `executeChanges` and it takes a collection of xref:/midpoint/devel/prism/concepts/deltas/[deltas] as its argument.
+The trick is to correctly construct the deltas.
+Deltas are part of the xref:/midpoint/devel/prism/[Prism] framework that is used in midPoint to represent data.
+
+
+=== Creating Objects
+
+To create an object in midPoint you need to do the following
+
+. Create a prism object
+
+. Create an ADD delta from the object
+
+. Put the delta into a collection
+
+. invoke `executeChanges`
+
+The following example demonstrates this process.
+It creates a new user.
+
+[source,java]
+----
+PrismObject<UserType> user = .... // parse or instantiate the user
+ObjectDelta<UserType> userAddDelta = ObjectDelta.createAddDelta(user);
+Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userAddDelta);
+modelService.executeChanges(deltas, null, task, result);
+----
+
+If you need an OID of a newly created object then have a look at the delta after the operation.
+The OID will be set back to the original (input) delta.
+
+=== Modifying Objects
+
+Object modification is also using similar process, just the delta construction is different:
+
+. Create a MODIFY delta using appropriate factory methods
+
+. Put the delta into a collection
+
+. invoke `executeChanges`
+
+The following example demonstrates this process.
+It modifies existing user.
+The user's `employeeType` property will be set to a new value `Pirate`.
+
+[source,java]
+----
+String oid = "2cd99790-47be-11e3-a71a-3c970e467874";
+ObjectDelta<UserType> userModifyDelta = ObjectDelta.createModificationAddProperty(UserType.class, oid, UserType.F_EMPLOYEE_TYPE, "Pirate");
+Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userModifyDelta);
+modelService.executeChanges(deltas, null, task, result);
+----
+
+The modification is much more powerful than just this simple example.
+A modify delta can contain several modifications of various modify types (see xref:/midpoint/devel/prism/concepts/deltas/[Deltas]). There may also be more than one object delta in the collection, e.g. to modify user and its accounts in a single midPoint operation (but see limitations below).
+
+=== Deleting Objects
+
+Object deletion is quite simple and it is also using similar process:
+
+. Create a DELETE delta using a factory method
+
+. Put the delta into a collection
+
+. invoke `executeChanges`
+
+The following example demonstrates this process.
+Essentially all you need to create a delete delta is an OID.
+Following code deletes a user:
+
+[source,java]
+----
+String oid = "2cd99790-47be-11e3-a71a-3c970e467874";
+ObjectDelta<UserType> userDeleteDelta = ObjectDelta.createDeleteDelta(UserType.class, oid, prismContext);
+Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDeleteDelta);
+modelService.executeChanges(deltas, null, task, result);
+----
+
+=== Limitations and Misc Notes
+
+The `executeChanges` method can take several deltas at once.
+This is a powerful feature.
+The deltas may influence each other (e.g. through mappings) and processing them all together provides more reliable results and especially better error messages.
+However the deltas that are places in a single `executeChanges` invocation must be *related*. They need to correspond to a user and his accounts.
+Or to other focus-projection pairs.
+But there cannot be unrelated deltas.
+E.g. an attempt to provide two user deltas to a single `executeChanges` invocation will fail.
+
+This Java API and especially the `executeChanges` method is very powerful.
+It is almost impossible to describe the full power of this method on a single page.
+If you are interested in more examples than midPoint integration tests are perhaps a good place to look.
+These tests are using a fully initialized midPoint instance in unit test framework (Test NG).
+The tests are accessing the instance using the same Java API as is described here.
+Therefore you can find a lot more examples of the API usage by looking at the tests.
+The test reside in `model/model-intest` component of the xref:/midpoint/devel/source/structure/[midPoint source code]. Especially `TestModelServiceContract` is a nice comprehensive test that provides a good overview of basic API operations.
+
+== Misc Operations
+
+TODO: findShadowOwner, countObjects, testResource
+
+== Advanced Features
+
+TODO: options: partial reads, resolve, paging, ...
+
+== See Also
+
+* xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]
+
+* xref:/midpoint/devel/prism/[Prism Objects]
+
+* xref:/midpoint/devel/prism/concepts/[Using Prism Objects]
+
+* xref:/midpoint/reference/interfaces/invoking-midpoint-services/[Invoking MidPoint Services HOWTO]

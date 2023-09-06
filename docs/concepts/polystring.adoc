@@ -1,0 +1,73 @@
+= PolyString
+:page-wiki-name: PolyString
+:page-wiki-id: 4424110
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-06-21T11:40:22.867+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-03-26T11:35:30.352+01:00
+:page-toc: top
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+
+== Introduction
+
+PolyString is an unusual kind of animal.
+It is a built-in data type for _polymorphic string_. This string maintains extra values in addition to its original value.
+The extra values are derived from the original value automatically using a _normalization_ code.
+
+[source,xml]
+----
+<user>
+  <fullName>
+    <orig>Count Felix Téléké from Tölökö</orig>
+    <norm>count felix teleke from toloko</norm>
+  </fullName>
+</user>
+----
+
+PolyString is currently used to support national characters in strings.
+The PolyString contains both the original value (with national characters) and normalized value (without national characters).
+This can be used in expressions e.g. to generate username that does not contain national characters or is a transliteration of the national characters.
+It deprecates the need to use custom conversion routines and each expression and therefore it brings some consistency into the integration code.
+
+The normalized value can be used for uniqueness checking, therefore avoiding use of object names that can be confusing (e.g. only lowercase/uppercase differences) or names that look almost the same (characters that looks the same but have different unicode codes).
+
+But the most important reason is data storage.
+All the values are stored in the repository therefore they can be used to look for the object.
+Search that ignores the difference in diacritics or search by transliterated value can be used even if the repository itself does not support that feature explicitly.
+
+MidPoint data processing layer (xref:/midpoint/devel/prism/[Prism]) is designed with syntactic shortcuts in mind.
+And there is a nice syntactic shortcut for PolyString as well.
+In all data supported data formats simple PolyStrings can be specified as strings:
+
+.PolyString syntactic shortcut
+[source,xml]
+----
+<user>
+  <fullName>Count Felix Téléké from Tölökö</fullName>
+</user>
+----
+
+The system will make sure that such PolyString is properly processed and normalized.
+
+== Normalization
+
+There are several pre-built normalizers for PolyString that can be used in midPoint deployment.
+And there is an (experimental) option to create a completely custom normalizer.
+
+See xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration] page for more details.
+
+== Future
+
+See xref:/midpoint/features/planned/polystring/[PolyString Improvements] page to learn about planned improvements to polystrings.
+
+
+== See Also
+
+* xref:/midpoint/devel/prism/concepts/[Using Prism Objects]
+
+* xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration]
+
+* xref:/midpoint/features/planned/polystring/[PolyString Improvements]

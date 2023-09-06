@@ -1,0 +1,135 @@
+= Log Levels
+:page-wiki-name: Log Levels
+:page-wiki-id: 655463
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T14:36:50.558+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-08-16T18:30:53.218+02:00
+:page-upkeep-status: orange
+:page-alias: { "parent" : "/midpoint/devel/guides/" }
+
+== Log Levels
+
+[%autowidth,cols="h,1,1,1,1"]
+|===
+| Level | Circumstances | Purpose | Audience | Example
+
+| FATAL
+| Critical errors.
+The system cannot continue operation, will crash or stop working
+| Detect critical system malfunction
+| System administrator, system management (e.g. Network Operation Center)
+| _System out of memory_
+
+
+| ERROR
+| Error that seriously affects the system, but the system as a whole can recover.
+| Detect system misconfiguration of major component failures
+| System administrator, Deployment engineer
+| _Definition of resource c0c010c0-123456-... not found in the repository_
+
+
+| WARNING
+| Suspicious situation.
+System may be able to operate normally, but there may be a hidden or temporary problem or an indication of future error.
+| Pro-active detection of problems
+| System administrator, Deployment engineer
+| _Connection to host foobar timed-out, retrying in 10 seconds_
+
+
+| INFO
+| Important changes in system state, start/stop of important system tasks, etc.
+| Rough system diagnostics (by *non-developer*)
+| Deployment engineer, Advanced system administrator
+| _### MODEL # Enter addObject(ObjectContainer(AccountShadowType(null,Localhost OpenDJ-jack)))_ +
+_Synchronization thread starting_
+
+
+| DEBUG
+| Execution messages, state changes, expression evaluation messages and similar messages for system administrator.
+| Fine-grained system diagnostics (by *non-developer*)
+| Deployment Engineer
+| _Executing outbound expression ... for attribute "cn", resource "ds1", result: cpt. Jack Sparrow_
+
+
+| TRACE
+| Fine-grained messages about execution details.
+| System diagnostics by the developer
+| Developer or advanced engineer
+| _Moooo! Where the hell came the value of "foo" from?_
+
+
+|===
+
+
+== Recommendations For Developers
+
+=== Log Messages
+
+Generaly speaking, avoid messages like:
+
+* `Something bad happened somewhere, HA HA HA`
+
+* `FooTLA threw InvalidContextException while processing line 3324 of STDIN  [ ... 200 lines of stack strace ... ] Caused by NullPointerException at MyThousandLinesLongClass:853.`
+
+
+=== Provide Meaningful Error Message
+
+Provide all the information needed to diagnose the problem.
+Try to include root cause in the message.
+
+.Bad
+[source]
+----
+Error resolving variable "foo"
+----
+
+
+
+.Good
+[source]
+----
+Error resolving variable "foo": Object not found (OID:123456-123456-...)
+----
+
+
+=== Do Not Use Developer's Language
+
+Try to think like a system administrator, not like a developer.
+It will not help administrator that an InvalidArgumentExeption was throws somewhere at the line 42 of `MyDeeplyBurriedUtilClass`. What administrator needs to know is that he has made a typo in the configuration file.
+The only log level that can use any kind of developer's terminology is TRACE.
+Level DEBUG may use some geekish terminology, but should be generally understood by deployment engineers with a very limited knowledge of Java.
+The INFO level and above must not use any of the Java jargon.
+
+.Bad
+[source]
+----
+IDMException was thrown at ProvisioningService:42, root cause: IllegalArgumentException at SchemaParser:32.
+----
+
+
+.Good
+[source]
+----
+Unexpected annotation "<foobar/>" while processing resource schema, attribute "cn", resource "ldap1"
+----
+
+
+=== Provide Context
+
+The messages on WARNING, ERROR and FATAL levels should not depend on the context, they should stand alone and provide all the information needed.
+In other words, the administrator should not need to analyze 100 lines of log file to see where the error happened.
+The reason is that the log level of production systems is usually set to WARNING, therefore the message with lower log levels will not even appear in the log.
+
+.Bad
+[source]
+----
+Error resolving a reference: Object not found
+----
+
+
+.Good
+[source]
+----
+Error resolving variable "foo" in outbound expression processing for variable "cn", resource "ldap42": Object not found (OID:123456-123456-...)
+----

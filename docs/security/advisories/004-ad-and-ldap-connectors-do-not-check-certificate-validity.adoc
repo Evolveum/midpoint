@@ -1,0 +1,75 @@
+= Security Advisory: AD and LDAP connectors do not check certificate validity
+:page-wiki-name: Security Advisory: AD and LDAP connectors do not check certificate validity
+:page-wiki-id: 30245410
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-17T14:24:10.571+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-04-18T09:28:47.469+02:00
+:page-nav-title: AD and LDAP connectors do not check certificate validity
+:page-display-order: 4
+:page-upkeep-status: green
+
+*Date:* 17 April 2019
+
+*Severity:* High (CVSS 8.0)
+
+*Affected versions:* all AD and LDAP connector versions (indirectly: all midPoint versions)
+
+*Fixed in versions:* 2.1, 1.6.1
+
+
+== Description
+
+LDAP and Active Directory connectors are not properly checking TLS/SSL certificate validity.
+
+
+== Severity and Impact
+
+This is high-severity issue.
+The connections are open to man-in-the-middle attack.
+The severity of this attack may be limited by the fact, that in many midPoint deployments the AD and LDAP connections are established over a trusted networks.
+However, as midPoint is transferring sensitive information over such connections user are advised to mitigate this issue immediately.
+
+
+== Mitigation
+
+LDAP and LDAP-based Active Directory connectors that are used by in supported midPoint versions were fixed.
+MidPoint deployments should update the LDAP/AD connector bundle as soon as possible.
+Recommended connector versions:
+
+[%autowidth]
+|===
+| MidPoint version | Recommended LDAP/AD connector version
+
+| 3.9 and later
+| 2.1
+
+
+| 3.6.x, 3.7.x, 3.8.x
+| 1.6.1
+
+
+|===
+
+As this severity issue, updated connector versions were released immediately.
+
+
+== Discussion and Explanation
+
+Those LDAP-based connectors are using Apache Directory API as a library to access LDAP servers.
+The default setting of Apache Directory API was to use "no verification" trust manager.
+Therefore certificate verification was skipped.
+It is not clear whether this was the original default or whether it was changed during the course of LDAP connector development, therefore we consider all pre-existing LDAP and AD connector versions as vulnerable.
+
+Connector code was updated to use system trust manager as a default choice.
+New configuration option `allowUntrustedSsl` was provided for the cases when certification validation needs to be skipped by purpose.
+
+
+== Credit
+
+Variants of this issue were reported by Martin Lizner, who has also contributed the fix for this issue. The report was processed by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]
