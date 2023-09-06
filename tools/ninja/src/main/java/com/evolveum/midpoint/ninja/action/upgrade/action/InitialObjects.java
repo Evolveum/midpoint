@@ -25,14 +25,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 
 // todo action should write XML + maybe csv? for review
 public class InitialObjects extends Action<InitialObjectsOptions, ActionResult<InitialObjectsResult>> {
@@ -46,14 +48,27 @@ public class InitialObjects extends Action<InitialObjectsOptions, ActionResult<I
 
     @Override
     public ActionResult<InitialObjectsResult> execute() throws Exception {
-
         InitialObjectsResult actionResult = new InitialObjectsResult();
 
         OperationResult result = new OperationResult("Initial objects update");
 
-        Resource[] resources = new PathMatchingResourcePatternResolver()
-                .getResources(INITIAL_OBJECTS_RESOURCE_PATTERN);
-        Arrays.sort(resources, Comparator.comparing(Resource::getFilename));
+        List<Resource> resources = new ArrayList<>();
+        List<File> files = options.getFiles();
+        if (files != null && !files.isEmpty()) {
+            for (File file : options.getFiles()) {
+                if (file.isDirectory()) {
+                    FileUtils.listFiles(file, new String[] { "xml" }, true)
+                            .forEach(f -> resources.add(new FileSystemResource(f)));
+                } else {
+                    resources.add(new org.springframework.core.io.FileSystemResource(file));
+                }
+            }
+        } else {
+            Resource[] array = new PathMatchingResourcePatternResolver().getResources(INITIAL_OBJECTS_RESOURCE_PATTERN);
+            resources.addAll(Arrays.asList(array));
+        }
+
+        Collections.sort(resources, Comparator.comparing(Resource::getFilename));
 
         for (Resource resource : resources) {
             actionResult.incrementTotal();
@@ -128,9 +143,13 @@ public class InitialObjects extends Action<InitialObjectsOptions, ActionResult<I
         }
 
         try {
-            log.debug("Updating object {} in repository", NinjaUtils.printObjectNameOidAndType(existing));
+            log.debug(
+                    "Updating object {} in repository {}",
+                    NinjaUtils.printObjectNameOidAndType(existing), options.isDryRun() ? "(dry run)" : "");
 
-            context.getRepository().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
+            if (!options.isDryRun()) {
+                context.getRepository().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
+            }
 
             actionResult.incrementMerged();
         } catch (ObjectNotFoundException | ObjectAlreadyExistsException | SchemaException ex) {
@@ -142,10 +161,11 @@ public class InitialObjects extends Action<InitialObjectsOptions, ActionResult<I
         }
     }
 
+    /**
+     * @deprecated This is just a hack to trigger recompute after midpoint is started. TODO FIXME fix this
+     */
     @Deprecated
     private <O extends ObjectType> void addTrigger(PrismObject<O> object) {
-        // todo fix this hack
-        // so it's recomputed after midpoint is started
         TriggerType trigger = new TriggerType()
                 .timestamp(MiscUtil.asXMLGregorianCalendar(0L))
                 .handlerUri(SchemaConstants.NS_MODEL + "/trigger/recompute/handler-3");
@@ -158,9 +178,13 @@ public class InitialObjects extends Action<InitialObjectsOptions, ActionResult<I
         addTrigger(object);
 
         try {
-            log.debug("Adding object {} to repository", NinjaUtils.printObjectNameOidAndType(object));
+            log.debug(
+                    "Adding object {} to repository {}",
+                    NinjaUtils.printObjectNameOidAndType(object), options.isDryRun() ? "(dry run)" : "");
 
-            context.getRepository().addObject(object, RepoAddOptions.createOverwrite(), result);
+            if (!options.isDryRun()) {
+                context.getRepository().addObject(object, RepoAddOptions.createOverwrite(), result);
+            }
 
             actionResult.incrementAdded();
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
