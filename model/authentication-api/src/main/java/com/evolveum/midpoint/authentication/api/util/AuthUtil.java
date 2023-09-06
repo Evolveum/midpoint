@@ -314,4 +314,15 @@ public class AuthUtil {
         }
        return SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(authentication.getAuthenticationChannel().getChannelId());
    }
+
+    public static boolean isClusterAuthentication(MidpointAuthentication authentication) {
+        if (authentication.getAuthModules().size() != 1) {
+            return false;
+        }
+        ModuleAuthentication baseAuthentication = authentication.getAuthModules().get(0).getBaseModuleAuthentication();
+        if (baseAuthentication == null) {
+            return false;
+        }
+        return AuthenticationModuleNameConstants.CLUSTER.equals(baseAuthentication.getModuleTypeName());
+    }
 }

@@ -55,9 +55,6 @@ public class NodeAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl
         LOGGER.debug("Checking if {} ({}) is a known node", remoteName, remoteAddress);
         OperationResult result = new OperationResult(OPERATION_SEARCH_NODE);
 
-        //(!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "node authentication"))
-//        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
-
         try {
             List<PrismObject<NodeType>> allNodes = repositoryService.searchObjects(NodeType.class, null, null, result);
             List<PrismObject<NodeType>> matchingNodes = getMatchingNodes(allNodes, remoteName, remoteAddress);
@@ -77,8 +74,10 @@ public class NodeAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl
                 if (actualNode != null) {
                     LOGGER.trace("Established authenticity for remote {}", actualNode);
                     auditAuthenticationSuccess(actualNode.asObjectable(), connEnv);
-                    return new NodeAuthenticationTokenImpl(actualNode, remoteAddress,
+                    NodeAuthenticationTokenImpl token = new NodeAuthenticationTokenImpl(actualNode, remoteAddress,
                             Collections.emptyList());
+                    token.setAuthenticated(true);
+                    return token;
                 } else {
                     LOGGER.debug("Authenticity for {} couldn't be established: none of the secrets match", matchingNodes);
                 }
@@ -114,10 +113,6 @@ public class NodeAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl
         }
         return null;
     }
-
-//    public boolean authenticate(@Nullable String remoteName, String remoteAddress, @NotNull String credentials, String operation) {
-//
-//    }
 
     private List<PrismObject<NodeType>> getMatchingNodes(List<PrismObject<NodeType>> knownNodes, String remoteName,
             String remoteAddress) {

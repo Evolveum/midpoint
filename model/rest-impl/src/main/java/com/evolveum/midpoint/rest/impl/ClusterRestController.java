@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -373,9 +375,21 @@ public class ClusterRestController extends AbstractRestController {
 
     private void checkNodeAuthentication() throws SecurityViolationException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof NodeAuthenticationToken)) {
-            throw new SecurityViolationException("Node authentication is expected but not present");
+
+        if (!authentication.isAuthenticated()) {
+            throw new SecurityViolationException("Unauthenticated token");
         }
+
+        if (authentication instanceof MidpointAuthentication) {
+            if (!AuthUtil.isClusterAuthentication((MidpointAuthentication) authentication)) {
+                throw new SecurityViolationException("Midpoint authentication for cluster is expected but not present");
+            }
+        } else {
+            if (!(authentication instanceof NodeAuthenticationToken)) {
+                throw new SecurityViolationException("Node authentication is expected but not present");
+            }
+        }
+
         // TODO consider allowing administrator access here as well
     }
 }
