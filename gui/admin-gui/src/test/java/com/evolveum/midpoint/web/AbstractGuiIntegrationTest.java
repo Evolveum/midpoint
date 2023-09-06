@@ -16,7 +16,7 @@ import java.io.File;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
@@ -25,9 +25,6 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.behavior.AbstractAjaxBehavior;
-import org.apache.wicket.behavior.Behavior;
 //import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.util.tester.WicketTester;
 import org.jetbrains.annotations.NotNull;
