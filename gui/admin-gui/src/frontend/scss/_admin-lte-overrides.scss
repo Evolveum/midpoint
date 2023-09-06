@@ -11,6 +11,9 @@
   &.info-box {
     min-height:70px;
   }
+  &.info-box > div > div:first-child {
+    min-height:54px;
+  }
 }
 
 .btn-default {

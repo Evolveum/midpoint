@@ -80,3 +80,11 @@
   transition: all ease $duration#{$important-flag};
   -webkit-transition: all ease $duration#{$important-flag};
 }
+
+.fp-center {
+  min-height:100%!important;
+  width: 100%;
+  min-height: 100% !important;
+  height: auto !important;
+  position: absolute;
+}
