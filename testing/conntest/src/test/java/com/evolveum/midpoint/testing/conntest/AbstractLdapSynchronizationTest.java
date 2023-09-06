@@ -96,17 +96,17 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // WHEN
         when();
-        addObject(getSyncTaskFile(), task, result);
+        getSyncTask().init(AbstractLdapSynchronizationTest.this, task, result);
 
         // THEN
         then();
         assertSuccess(result);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         long tsEnd = System.currentTimeMillis();
 
-        assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 0, tsStart, tsEnd);
     }
 
     @Test
@@ -123,7 +123,8 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
+
 
         // THEN
         then();
@@ -137,7 +138,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertNotNull("No user " + ACCOUNT_HT_UID + " created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 1, tsStart, tsEnd);
     }
 
     /**
@@ -166,7 +167,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -178,7 +179,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertNotNull("No user " + ACCOUNT_HT_UID + " created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
 
-        assertStepSyncToken(getSyncTaskOid(), 2, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 2, tsStart, tsEnd);
 
     }
 
@@ -200,7 +201,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -214,7 +215,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         PrismAsserts.assertPropertyValue(role, RoleType.F_DESCRIPTION, GROUP_MONKEYS_DESCRIPTION);
         assertNotNull("No role " + GROUP_MONKEYS_CN + " created", role);
 
-        assertStepSyncToken(getSyncTaskOid(), 3, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 3, tsStart, tsEnd);
     }
 
     @Test
@@ -242,7 +243,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -255,7 +256,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertUser(user, user.getOid(), ACCOUNT_HTM_UID, getAccountHtmCnAfterRename(), ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
         assertNull("User " + ACCOUNT_HT_UID + " still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 4, tsStart, tsEnd);
 
     }
 
@@ -287,7 +288,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         syncWait();
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -304,7 +305,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
             deleteObject(UserType.class, user.getOid(), task, result);
         }
 
-        assertStepSyncToken(getSyncTaskOid(), 5, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 5, tsStart, tsEnd);
     }
 
     // TODO: sync with "ALL" object class
@@ -317,11 +318,12 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // WHEN
         when();
-        suspendAndDeleteTasks(getSyncTaskOid());
+        getSyncTask().suspend();
+        deleteObject(TaskType.class, getSyncTask().oid);
 
         // THEN
         then();
-        assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
+        assertNoObject(TaskType.class, getSyncTask().oid, task, result);
     }
 
     @Test
@@ -334,20 +336,20 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // WHEN
         when();
-        addObject(getSyncTaskInetOrgPersonFile(), task, result);
+        getSyncTaskInetOrgPerson().init(AbstractLdapSynchronizationTest.this, task, result);
 
         // THEN
         then();
         assertSuccess(result);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTaskInetOrgPerson().rerun(result);
 
         long tsEnd = System.currentTimeMillis();
 
-        PrismObject<TaskType> syncTask = getTask(getSyncTaskOid());
+        PrismObject<TaskType> syncTask = getTask(getSyncTaskInetOrgPerson().oid);
         display("Sync task after start", syncTask);
 
-        assertStepSyncToken(getSyncTaskOid(), 5, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskInetOrgPerson().oid, 5, tsStart, tsEnd);
     }
 
     @Test
@@ -361,7 +363,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // WHEN
         when();
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -375,7 +377,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertNotNull("No user " + ACCOUNT_HT_UID + " created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertStepSyncToken(getSyncTaskOid(), 6, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 6, tsStart, tsEnd);
     }
 
     @Test
@@ -393,7 +395,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         connection.modify(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN), modCn);
         ldapDisconnect(connection);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -405,7 +407,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertNotNull("No user " + ACCOUNT_HT_UID + " created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
 
-        assertStepSyncToken(getSyncTaskOid(), 7, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 7, tsStart, tsEnd);
     }
 
     /**
@@ -422,7 +424,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // WHEN
         when();
         addLdapGroup(GROUP_FOOLS_CN, GROUP_FOOLS_DESCRIPTION, toGroupDn("nobody"));
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -433,7 +435,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         PrismObject<RoleType> roleFools = findObjectByName(RoleType.class, GROUP_FOOLS_CN);
         assertNull("Unexpected role " + roleFools, roleFools);
 
-        assertStepSyncToken(getSyncTaskOid(), 8, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 8, tsStart, tsEnd);
     }
 
     @Test
@@ -459,7 +461,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         ldapDisconnect(connection);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -472,7 +474,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertUser(user, user.getOid(), ACCOUNT_HTM_UID, getAccountHtmCnAfterRename(), ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
         assertNull("User " + ACCOUNT_HT_UID + " still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertStepSyncToken(getSyncTaskOid(), 9, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 9, tsStart, tsEnd);
 
     }
 
@@ -492,7 +494,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         when();
         deleteLdapEntry(toAccountDn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -508,7 +510,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
             deleteObject(UserType.class, user.getOid(), task, result);
         }
 
-        assertStepSyncToken(getSyncTaskOid(), 10, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 10, tsStart, tsEnd);
     }
 
     @Test
@@ -519,13 +521,14 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // WHEN
         when();
-        suspendAndDeleteTasks(getSyncTaskOid());
+        getSyncTask().suspend();
+        deleteObject(TaskType.class, getSyncTask().oid);
 
         // THEN
         then();
         assertSuccess(result);
 
-        assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
+        assertNoObject(TaskType.class, getSyncTask().oid, task, result);
     }
 
 }

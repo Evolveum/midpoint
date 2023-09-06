@@ -65,7 +65,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     private boolean alreadyHasNonce() {
         UserType user = searchUser();
-        if (user.getCredentials() == null) {
+        if (user == null || user.getCredentials() == null) {
             return false;
         }
         NonceType nonceType = user.getCredentials().getNonce();

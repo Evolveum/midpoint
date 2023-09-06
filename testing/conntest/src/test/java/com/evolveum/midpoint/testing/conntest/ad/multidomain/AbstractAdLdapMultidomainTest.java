@@ -2292,17 +2292,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         // WHEN
         when();
-        addObject(getSyncTaskFile(), task, result);
+        getSyncTask().init(AbstractAdLdapMultidomainTest.this, task, result);
 
         // THEN
         then();
         assertSuccess(result);
 
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         long tsEnd = System.currentTimeMillis();
 
-        assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 0, tsStart, tsEnd);
     }
 
     @Test
@@ -2316,7 +2316,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         // WHEN
         when();
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
-        waitForTaskNextRunAssertSuccess(getSyncTaskOid());
+        getSyncTask().rerun(result);
 
         // THEN
         then();
@@ -2330,7 +2330,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertNotNull("No user " + ACCOUNT_HT_UID + " created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
-        assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTask().oid, 1, tsStart, tsEnd);
     }
 
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
