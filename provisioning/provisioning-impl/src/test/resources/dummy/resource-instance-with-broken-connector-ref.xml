@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="201e83f6-184e-46b0-92ec-16d1b639f6cb"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>resource-instance-with-broken-connector-ref</name>
+    <super>
+        <resourceRef oid="c41900ce-6b86-476a-a7c9-6eb797f7d405"/>
+    </super>
+</resource>

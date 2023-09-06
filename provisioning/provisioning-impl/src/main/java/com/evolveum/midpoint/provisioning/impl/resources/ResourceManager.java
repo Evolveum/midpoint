@@ -150,19 +150,8 @@ public class ResourceManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
-        String oid = repositoryObject.getOid();
 
-        if (isAbstract(repositoryObject)) {
-            expandResource(repositoryObject, result);
-            LOGGER.trace("Not putting {} into cache because it's abstract", repositoryObject);
-            return repositoryObject;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Completing and caching fetched resource {}, version {} to cache "
-                            + "(previously cached version {}, options={})",
-                    repositoryObject, repositoryObject.getVersion(), beans.resourceCache.getVersion(oid), options);
-        }
+        logResourceBeforeCompletion(repositoryObject, options);
 
         ResourceCompletionOperation completionOperation = new ResourceCompletionOperation(repositoryObject, options, task, beans);
         ResourceType completedResource = completionOperation.execute(result);
@@ -170,7 +159,9 @@ public class ResourceManager {
         logResourceAfterCompletion(completedResource);
 
         // TODO fix this diagnostics using member methods of the completion operation
-        if (!ResourceTypeUtil.isComplete(completedResource)) {
+        if (isAbstract(completedResource)) {
+            LOGGER.debug("Not putting {} into cache because it's abstract", completedResource);
+        } else if (!ResourceTypeUtil.isComplete(completedResource)) {
             // No not cache non-complete resources (e.g. those retrieved with noFetch)
             LOGGER.debug("Not putting {} into cache because it's not complete: hasSchema={}, hasCapabilitiesCached={}",
                     repositoryObject, hasSchema(completedResource), hasCapabilitiesCached(completedResource));
@@ -188,11 +179,27 @@ public class ResourceManager {
         return completedResource;
     }
 
+    private void logResourceBeforeCompletion(
+            @NotNull ResourceType repositoryObject, @Nullable GetOperationOptions options) {
+        if (!LOGGER.isDebugEnabled()) {
+            return;
+        }
+        if (isAbstract(repositoryObject)) {
+            LOGGER.debug("Partially completing fetched abstract resource {}, version {}",
+                    repositoryObject, repositoryObject.getVersion());
+        } else {
+            String oid = repositoryObject.getOid();
+            LOGGER.debug("Completing and caching fetched resource {}, version {} to cache "
+                            + "(previously cached version {}, options={})",
+                    repositoryObject, repositoryObject.getVersion(), beans.resourceCache.getVersion(oid), options);
+        }
+    }
+
     private void logResourceAfterCompletion(ResourceType completedResource) {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
-        LOGGER.trace("Resource after completion, before putting into cache:\n{}", completedResource.debugDump());
+        LOGGER.trace("Resource after completion, before (considering) putting into cache:\n{}", completedResource.debugDump());
         Element xsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(completedResource);
         if (xsdSchemaElement == null) {
             LOGGER.trace("Schema: null");
