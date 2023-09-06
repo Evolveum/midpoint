@@ -89,7 +89,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
             @Override
             protected <T> IModel<T> wrapModel(IModel<T> model) {
-                if (model.getObject() == null) {
+                if (model == null || model.getObject() == null) {
                     return () -> (T) "";
                 }
                 if (model.getObject() instanceof Referencable) {
