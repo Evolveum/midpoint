@@ -103,7 +103,8 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
 
             String msg = "EXPECTED:\n" + PrismTestUtil.serializeObjectToString(expected) +
                     "\nUPDATED:\n" + PrismTestUtil.serializeObjectToString(updated) +
-                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original);
+                    "\nORIGINAL:\n" + PrismTestUtil.serializeObjectToString(original) +
+                    "\nDELTA:\n" + updated.diff(expected).debugDump();
 
             LOGGER.info(msg);
 
@@ -165,7 +166,7 @@ public class TestUpgradeProcessors extends AbstractSchemaTest {
     @Test
     public void test30TestSystemConfig() throws Exception {
         testUpgradeValidator("system-configuration.xml", result -> {
-            Assertions.assertThat(result.getItems()).hasSize(11);
+            Assertions.assertThat(result.getItems()).hasSize(12);
         });
     }
 
