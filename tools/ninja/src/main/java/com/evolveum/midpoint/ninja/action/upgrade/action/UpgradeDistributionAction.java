@@ -1,13 +1,67 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.fusesource.jansi.Ansi;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.*;
 
 public class UpgradeDistributionAction extends UpgradeBaseAction<UpgradeDistributionOptions, ActionResult<Void>> {
+
+    public static final File SCRIPT_48_AND_LATER = new File("./doc/config/sql/native");
+
+    public enum Scripts48AndLater {
+
+        /**
+         * This will create raw datasource from JDBC url/username/password. Midpoint home doesn't have to be defined.
+         */
+        RAW(RunSqlOptions.Mode.RAW, Collections.emptyList(), Collections.emptyList()),
+
+        /**
+         * This mode will set up datasource based on midpoint home config.xml pointing to midpoint repository.
+         */
+        REPOSITORY(
+                RunSqlOptions.Mode.REPOSITORY,
+                List.of(new File(SCRIPT_48_AND_LATER, "postgres.sql"),
+                        new File(SCRIPT_48_AND_LATER, "postgres-quartz.sql")),
+                List.of(new File(SCRIPT_48_AND_LATER, "postgres-upgrade.sql"))
+        ),
+
+        /**
+         * This mode will set up datasource based on midpoint home config.xml pointing to midpoint audit database.
+         */
+        AUDIT(
+                RunSqlOptions.Mode.AUDIT,
+                List.of(new File(SCRIPT_48_AND_LATER, "postgres-audit.sql")),
+                List.of(new File(SCRIPT_48_AND_LATER, "postgres-audit-upgrade.sql"))
+        );
+
+        public final RunSqlOptions.Mode mode;
+
+        public final List<File> createScripts;
+
+        public final List<File> updateScripts;
+
+        Scripts48AndLater(RunSqlOptions.Mode mode, List<File> createScripts, List<File> updateScripts) {
+            this.mode = mode;
+            this.createScripts = createScripts;
+            this.updateScripts = updateScripts;
+        }
+
+        public static Scripts48AndLater getScriptByMode(@NotNull RunSqlOptions.Mode mode) {
+            for (Scripts48AndLater script : Scripts48AndLater.values()) {
+                if (script.mode == mode) {
+                    return script;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown mode: " + mode);
+        }
+    }
 
     @Override
     public String getOperationName() {
@@ -91,9 +145,10 @@ public class UpgradeDistributionAction extends UpgradeBaseAction<UpgradeDistribu
         RunSqlOptions runSqlOptions = new RunSqlOptions();
         runSqlOptions.setUpgrade(true);
         runSqlOptions.setMode(mode);
-        runSqlOptions.setScripts(mode.updateScripts.stream()
-                .map(f -> new File(distributionDirectory, f.getPath()))
-                .collect(Collectors.toList()));
+        runSqlOptions.setScripts(
+                Scripts48AndLater.getScriptByMode(mode).updateScripts.stream()
+                        .map(f -> new File(distributionDirectory, f.getPath()))
+                        .collect(Collectors.toList()));
 
         executeAction(new RunSqlAction(), runSqlOptions);
     }
