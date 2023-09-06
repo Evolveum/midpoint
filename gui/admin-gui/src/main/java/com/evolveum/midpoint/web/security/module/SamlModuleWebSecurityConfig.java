@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.filter.UseCsrfFilterOnlyForAuthenticatedRequest;
 import com.evolveum.midpoint.web.security.saml.MidpointMetadataRelyingPartyRegistrationResolver;
 
 import com.evolveum.midpoint.web.security.saml.MidpointSaml2LoginConfigurer;
@@ -78,7 +79,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
         super.configure(http);
 
         http.antMatcher(SecurityUtils.stripEndingSlashes(getPrefix()) + "/**");
-        http.csrf().disable();
+        http.csrf().requireCsrfProtectionMatcher(new UseCsrfFilterOnlyForAuthenticatedRequest());
 
         MidpointExceptionHandlingConfigurer exceptionConfigurer = new MidpointExceptionHandlingConfigurer() {
             @Override
