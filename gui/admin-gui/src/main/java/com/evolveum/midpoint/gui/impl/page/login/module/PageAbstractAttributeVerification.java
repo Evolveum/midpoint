@@ -12,13 +12,15 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,7 +38,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -111,9 +112,9 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
         item.add(attributeNameLabel);
 
-        var itemWrapper = item.getModelObject().getItemWrapper();
-        var valuePanel = new PrismPropertyValuePanel<PrismPropertyValueWrapper<?>>(ID_ATTRIBUTE_VALUE,
-                new PropertyModel<>(itemWrapper, "value"),
+        PrismPropertyWrapper<?> itemWrapper = item.getModelObject().getItemWrapper();
+        var valuePanel = new PrismPropertyValuePanel(ID_ATTRIBUTE_VALUE,
+                new PropertyModel<PrismPropertyValueWrapper>(itemWrapper, "value"),
                 new ItemPanelSettingsBuilder().build()) {
 
             @Serial private static final long serialVersionUID = 1L;
@@ -136,6 +137,25 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
                     }
                 };
             }
+
+            @Override
+            protected void remove(PrismPropertyValueWrapper valueToRemove, AjaxRequestTarget target)
+                    throws SchemaException {
+                try {
+                    OperationResult result = new OperationResult("removeAttributeValue");
+                    PrismObject<UserType> administrator = getAdministratorPrivileged(result);
+                    runAsChecked(
+                            (lResult) -> {
+                                if (valueToRemove != null) {
+                                    itemWrapper.remove(valueToRemove, PageAbstractAttributeVerification.this);
+                                    target.add(getValuePanel());
+                                }
+                                return null;
+                            }, administrator, result);
+                } catch (CommonException e) {
+                    LOGGER.error("Unable to remove attribute value.");
+                }
+            }
         };
         item.add(valuePanel);
     }
@@ -153,7 +173,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         return StringUtils.isEmpty(label) ? path.toString() : label;
     }
 
-    protected ItemWrapper<?, ?> createItemWrapper(ItemPath itemPath) {
+    protected PrismPropertyWrapper<?> createItemWrapper(ItemPath itemPath) {
         try {
             var itemDefinition = resolveAttributeDefinition(itemPath);
             var wrapperContext = createWrapperContext();
