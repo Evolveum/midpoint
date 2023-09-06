@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
+import com.evolveum.midpoint.web.page.error.PageError;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,6 +37,9 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 /**
  * @author lskublik
  */
@@ -51,6 +55,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     private static final String ID_SEND_NONCE = "sendNonce";
     private static final String OPERATION_DETERMINE_NONCE_CREDENTIALS_POLICY = DOT_CLASS + "determineNonceCredentialsPolicy";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     public PageEmailNonce() {
 
@@ -114,7 +119,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
     private void validateUserNotNullOrFail(UserType user) {
         if (user == null) {
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
-            throw new RestartResponseException(PageEmailNonce.class);
+            throw new RestartResponseException(PageError.class);
         }
     }
 

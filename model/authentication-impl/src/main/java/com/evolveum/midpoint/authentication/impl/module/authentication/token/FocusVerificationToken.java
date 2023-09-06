@@ -22,12 +22,15 @@ public class FocusVerificationToken extends AbstractAuthenticationToken {
     }
 
     @Override
-    public Object getCredentials() {
-        return null;
+    public Map<ItemPath, String> getCredentials() {
+        return attributes;
     }
 
     @Override
-    public Map<ItemPath, String> getPrincipal() {
+    public String getPrincipal() {
+        if (attributes != null && attributes.size() == 1) {
+            return attributes.values().stream().findFirst().orElse(null);
+        }
         return null;
     }
 
