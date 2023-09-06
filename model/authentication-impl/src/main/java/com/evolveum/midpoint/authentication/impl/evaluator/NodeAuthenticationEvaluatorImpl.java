@@ -98,6 +98,7 @@ public class NodeAuthenticationEvaluatorImpl {
                     LOGGER.trace("Established authenticity for remote {}", actualNode);
                     NodeAuthenticationTokenImpl authNtoken = new NodeAuthenticationTokenImpl(actualNode, remoteAddress,
                             Collections.emptyList());
+                    authNtoken.setAuthenticated(true);
                     SecurityContextHolder.getContext().setAuthentication(authNtoken);
                     securityHelper.auditLoginSuccess(actualNode.asObjectable(), connEnv);
                     return true;

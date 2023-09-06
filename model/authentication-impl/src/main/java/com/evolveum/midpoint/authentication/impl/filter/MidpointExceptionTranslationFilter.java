@@ -52,7 +52,7 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
             requestCache.saveRequest(request, response);
         }
         if (reason != null) {
-            LOGGER.debug(reason.getMessage());
+            LOGGER.debug(reason.getMessage(), reason);
         }
         LOGGER.debug("Calling Authentication entry point.");
         getAuthenticationEntryPoint().commence(request, response, reason);

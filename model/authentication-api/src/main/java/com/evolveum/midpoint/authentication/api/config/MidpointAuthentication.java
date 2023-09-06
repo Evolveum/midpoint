@@ -182,8 +182,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     @Override
     public boolean isAuthenticated() {
         List<AuthenticationSequenceModuleType> modules = sequence.getModule();
-        if (modules.isEmpty()) {
-            return false;
+        if (modules.isEmpty() && !AuthUtil.isClusterAuthentication(MidpointAuthentication.this)) {
+                return false;
         }
 
         if (shouldEvaluateAuthentication()) {
