@@ -201,6 +201,10 @@
                     </searchItems>
                 </searchBoxConfiguration>
             </objectCollectionView>
+            <objectCollectionView id="15">
+                <identifier>orgMember</identifier>
+                <type>OrgType</type>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage id="10">
@@ -215,6 +219,35 @@
                 <container id="9">
                     <identifier>123</identifier>
                 </container>
+            </objectDetailsPage>
+            <objectDetailsPage>
+                <type>OrgType</type>
+                <panel>
+                    <identifier>orgMembers</identifier>
+                    <listView>
+                        <searchBoxConfiguration>
+                            <scopeConfiguration>
+                                <display>
+                                    <label>Custom Scope</label>
+                                    <help>Help scope text</help>
+                                </display>
+                                <defaultValue>subtree</defaultValue>
+                            </scopeConfiguration>
+                            <objectTypeConfiguration>
+                                <display>
+                                    <label>Custom Type</label>
+                                </display>
+                                <defaultValue>OrgType</defaultValue>
+                                <supportedTypes>OrgType</supportedTypes>
+                                <supportedTypes>UserType</supportedTypes>
+                                <supportedTypes>ServiceType</supportedTypes>
+                            </objectTypeConfiguration>
+                            <indirectConfiguration>
+                                <visibility>hidden</visibility>
+                            </indirectConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
             </objectDetailsPage>
         </objectDetails>
         <accessRequest>

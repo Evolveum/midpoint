@@ -287,7 +287,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong # of assignments", 2, alice.getAssignment().size());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2); // rules without IDs, with IDs ?
+        dummyAuditService.assertExecutionRecords(1 + accessesMetadataAuditOverhead(1));
 
         for (AssignmentType assignment : alice.getAssignment()) {
             assertExclusionViolationState(assignment, 1);
@@ -428,7 +428,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong policy situations for role", Collections.singletonList(WRONG_URI), wrong2.getPolicySituation());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2);            // extra policy state update because of OID
+        dummyAuditService.assertExecutionRecords(1 + accessesMetadataAuditOverhead(1));
     }
 
     @Test

@@ -14331,9 +14331,17 @@
                      <xsd:documentation>
                          The property value will be bound to OID. This property will be set to the value
                          of OID and it cannot be changed.
+
+                         DEPRECATED since 3.0.
+                         NOT SUPPORTED since 4.8.
+
+                         Migration: Since 4.8, focus OID is known right at the operation start. Hence, it can be used in mappings
+                         just like any other focus property.
                      </xsd:documentation>
                      <xsd:appinfo>
                          <a:deprecated>true</a:deprecated>
+                         <a:deprecatedSince>3.0</a:deprecatedSince>
+                         <a:plannedRemoval>4.9</a:plannedRemoval>
                      </xsd:appinfo>
                  </xsd:annotation>
              </xsd:element>
