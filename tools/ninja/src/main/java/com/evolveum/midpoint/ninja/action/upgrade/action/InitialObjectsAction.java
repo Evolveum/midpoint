@@ -37,7 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 // todo action should write XML + maybe csv? for review
-public class InitialObjects extends Action<InitialObjectsOptions, ActionResult<InitialObjectsResult>> {
+public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionResult<InitialObjectsResult>> {
 
     private static final String INITIAL_OBJECTS_RESOURCE_PATTERN = "classpath*:/initial-objects/**/*.xml";
 
@@ -174,6 +174,11 @@ public class InitialObjects extends Action<InitialObjectsOptions, ActionResult<I
 
     private <O extends ObjectType> void addObject(
             PrismObject<O> object, OperationResult result, InitialObjectsResult actionResult) {
+
+        if (!options.isForceAdd()) {
+            log.debug("Skipping object add, force-add options is not set, object will be correctly added during midpoint startup.");
+            return;
+        }
 
         addTrigger(object);
 

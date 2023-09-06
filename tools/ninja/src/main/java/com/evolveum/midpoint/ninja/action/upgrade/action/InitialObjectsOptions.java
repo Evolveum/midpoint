@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.beust.jcommander.Parameter;
@@ -24,6 +23,10 @@ public class InitialObjectsOptions {
     public static final String P_OUTPUT_LONG = "--output";
     public static final String P_REPORT = "-r";
     public static final String P_REPORT_LONG = "--report";
+    public static final String P_FORCE_ADD = "--force-add";
+
+    @Parameter(names = { P_FORCE_ADD }, descriptionKey = "initialObjects.forceAdd")
+    private boolean forceAdd;
 
     @Parameter(names = { P_FILES, P_FILES_LONG }, descriptionKey = "initialObjects.files")
     private List<File> files;
@@ -67,5 +70,13 @@ public class InitialObjectsOptions {
 
     public void setFiles(List<File> files) {
         this.files = files;
+    }
+
+    public boolean isForceAdd() {
+        return forceAdd;
+    }
+
+    public void setForceAdd(boolean forceAdd) {
+        this.forceAdd = forceAdd;
     }
 }
