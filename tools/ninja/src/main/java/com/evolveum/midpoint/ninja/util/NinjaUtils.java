@@ -37,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -49,7 +51,16 @@ public class NinjaUtils {
             "\txmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"\n" +
             "\txmlns:org=\"http://midpoint.evolveum.com/xml/ns/public/common/org-3\">\n";
 
-    public static final String XML_OBJECTS_SUFFIX = "</c:objects>";
+    public static final String XML_OBJECTS_SUFFIX = "</c:objects>\n";
+
+    public static final String XML_DELTAS_PREFIX = "<deltas "
+            + "xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/api-types-3\" "
+            + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+            + "xsi:type=\"ObjectDeltaListType\">\n";
+
+    public static final String XML_DELTAS_SUFFIX = "</deltas>\n";
+
+    public static final QName DELTA_LIST_DELTA = new QName("http://midpoint.evolveum.com/xml/ns/public/common/api-types-3", "delta");
 
     public static final String JSON_OBJECTS_PREFIX = "[\n";
 
