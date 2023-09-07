@@ -323,6 +323,12 @@ Therefore midPoint 4.0 has a few default archetypes that can be used as starting
 | Archetype for system users, i.e. non-person users that are needed for system to work.
 This may be (root-like) system administrator, application users and so on.
 
+| Person
+| User
+| _none_
+| Archetype for persons, which is used in xref:/midpoint/methodology/first-steps/[First Steps Methodology]
+
+Since version 4.8.
 
 | System Role
 | Role
@@ -342,7 +348,6 @@ Business roles are usually composed from smaller roles.
 | Manual Provisioning Case
 | Case
 | _none, assigned dynamically_
-_
 | Archetype for cases that describe xref:/midpoint/reference/resources/manual/[manual provisioning operations].
 
 
