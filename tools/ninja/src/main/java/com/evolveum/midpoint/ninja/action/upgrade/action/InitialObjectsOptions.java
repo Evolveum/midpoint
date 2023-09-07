@@ -21,6 +21,10 @@ public class InitialObjectsOptions {
     private static final String P_DRY_RUN = "--dry-run";
     public static final String P_OUTPUT = "-o";
     public static final String P_OUTPUT_LONG = "--output";
+    public static final String P_OVERWRITE = "-O";
+    public static final String P_OVERWRITE_LONG = "--overwrite";
+    public static final String P_ZIP = "-z";
+    public static final String P_ZIP_LONG = "--zip";
     public static final String P_REPORT = "-r";
     public static final String P_REPORT_LONG = "--report";
     public static final String P_FORCE_ADD = "--force-add";
@@ -39,6 +43,12 @@ public class InitialObjectsOptions {
 
     @Parameter(names = { P_REPORT, P_REPORT_LONG }, descriptionKey = "initialObjects.report")
     private boolean report;
+
+    @Parameter(names = { P_OVERWRITE, P_OVERWRITE_LONG }, descriptionKey = "initialObjects.overwrite")
+    private boolean overwrite;
+
+    @Parameter(names = {P_ZIP, P_ZIP_LONG}, descriptionKey = "initialObjects.zip")
+    private boolean zip;
 
     public boolean isDryRun() {
         return dryRun;
@@ -78,5 +88,21 @@ public class InitialObjectsOptions {
 
     public void setForceAdd(boolean forceAdd) {
         this.forceAdd = forceAdd;
+    }
+
+    public boolean isOverwrite() {
+        return overwrite;
+    }
+
+    public void setOverwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+    }
+
+    public boolean isZip() {
+        return zip;
+    }
+
+    public void setZip(boolean zip) {
+        this.zip = zip;
     }
 }
