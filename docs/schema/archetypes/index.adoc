@@ -43,19 +43,19 @@ Following table lists commonly-used archetypes and their mapping to primary midP
 | Primary Object Type | Archetype
 
 | UserType
-| Employee, Contractor, Partner, SupplierStudent, Teacher
+| Employee, Contractor, Partner, Supplier, Student, Teacher
 
 
 | OrgType
-| Company, Division, Department, SectionProject, Team, Workgroup, Task force, CommitteeClass, Research team
+| Company, Division, Department, Section, Project, Team, Workgroup, Task force, Committee, Class, Research team
 
 
 | RoleType
-| Business role, Application role, MetaroleTeaching engagementProtection scope, Consent target
+| Business role, Application role, Metarole, Teaching engagement, Protection scope, Consent target
 
 
 | ServiceType
-| Application, Device, PrinterProvider, NetworkWeb API endpoint
+| Application, Device, Printer, Provider, Network, Web API endpoint
 
 
 |===
