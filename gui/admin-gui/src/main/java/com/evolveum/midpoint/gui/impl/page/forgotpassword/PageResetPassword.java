@@ -55,7 +55,6 @@ public class PageResetPassword extends AbstractPageLogin {
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CHANGE_PASSWORD_PANEL = "changePasswordPanel";
     private static final String CHANGE_PASSWORD_BUTTON_STYLE = "btn btn-primary login-panel-control";
-    private static final String ID_BACK_BUTTON = "back";
 
     public PageResetPassword() {
         super();
@@ -133,16 +132,6 @@ public class PageResetPassword extends AbstractPageLogin {
         };
         changePasswordPanel.setOutputMarkupId(true);
         form.add(changePasswordPanel);
-        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed();
-            }
-        };
-        backButton.setOutputMarkupId(true);
-        add(backButton);
 
     }
 

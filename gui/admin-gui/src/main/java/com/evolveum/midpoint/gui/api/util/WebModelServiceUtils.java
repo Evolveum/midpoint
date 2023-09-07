@@ -291,21 +291,21 @@ public class WebModelServiceUtils {
 
     @NotNull
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(
-            Class<T> type, ObjectQuery query, OperationResult result, PageBase page) {
+            Class<T> type, ObjectQuery query, OperationResult result, PageAdminLTE page) {
         return searchObjects(type, query, null, result, page, null);
     }
 
     @NotNull
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult result, PageBase page) {
+            OperationResult result, PageAdminLTE page) {
         return searchObjects(type, query, options, result, page, null);
     }
 
     @NotNull
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(
             Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult result, PageBase page, PrismObject<UserType> principal) {
+            OperationResult result, PageAdminLTE page, PrismObject<UserType> principal) {
         LOGGER.debug("Searching {} with oid {}, options {}", type.getSimpleName(), query, options);
 
         OperationResult subResult;

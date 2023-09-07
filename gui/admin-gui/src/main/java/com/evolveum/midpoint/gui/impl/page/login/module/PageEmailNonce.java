@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.web.page.error.PageError;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -36,6 +39,9 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 /**
  * @author lskublik
  */
@@ -51,13 +57,14 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     private static final String ID_SEND_NONCE = "sendNonce";
     private static final String OPERATION_DETERMINE_NONCE_CREDENTIALS_POLICY = DOT_CLASS + "determineNonceCredentialsPolicy";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     public PageEmailNonce() {
 
         // TODO improve message with the time when the mail was sent (saved in nonce metadata)
 
         if (!alreadyHasNonce()) {
-            generateAndSendNonce();
+            generateAndSendNonce(null);
         }
 
         LOGGER.debug("Nonce won't be generated automatically, user already has one.");
@@ -88,8 +95,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                generateAndSendNonce();
-                //TODO toast with success message.
+                generateAndSendNonce(target);
             }
 
         };
@@ -97,7 +103,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
     }
 
 
-    private void generateAndSendNonce() {
+    private void generateAndSendNonce(AjaxRequestTarget target) {
         UserType user = searchUser();
         validateUserNotNullOrFail(user);
         LOGGER.trace("Reset Password user: {}", user);
@@ -107,6 +113,15 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
         OperationResult result = saveUserNonce(user, noncePolicy);
         if (result.getStatus() != OperationResultStatus.SUCCESS) {
             LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
+        } else if (target != null) {
+            new Toast()
+                    .success()
+                    .title(getString("PageEmailNonce.sentNonce"))
+                    .icon("fas fa-circle-check")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(getString("PageEmailNonce.sentNonce.message"))
+                    .show(target);
         }
 
     }
@@ -114,7 +129,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
     private void validateUserNotNullOrFail(UserType user) {
         if (user == null) {
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
-            throw new RestartResponseException(PageEmailNonce.class);
+            throw new RestartResponseException(PageError.class);
         }
     }
 
