@@ -10,15 +10,34 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+
 public class LookupTableLabelPanel extends Label {
 
 
-    public LookupTableLabelPanel(String id, IModel<?> model) {
+    private final String lookupTableOid;
+
+    public LookupTableLabelPanel(String id, IModel<?> model, String lookupTableOid) {
         super(id, model);
+        this.lookupTableOid = lookupTableOid;
     }
 
     @Override
     public <C> IConverter<C> getConverter(Class<C> type) {
-        return new LookupTableConverter<C>(super.getConverter(type), this, true);
+        return new LookupTableConverter<C>(super.getConverter(type), this, true){
+            @Override
+            protected LookupTableType getLookupTable() {
+                if (lookupTableOid != null) {
+                    return WebModelServiceUtils.loadLookupTable(lookupTableOid, getPageBase());
+                }
+                return null;
+            }
+        };
+    }
+
+    public PageBase getPageBase() {
+        return (PageBase) getPage();
     }
 }
