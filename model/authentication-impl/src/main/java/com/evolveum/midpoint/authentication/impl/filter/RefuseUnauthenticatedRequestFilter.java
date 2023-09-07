@@ -8,8 +8,11 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.config.NodeAuthenticationToken;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -30,10 +33,13 @@ public class RefuseUnauthenticatedRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Authentication mpAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (AuthSequenceUtil.isPermitAll(request)
                 || AuthSequenceUtil.isLoginPage(request)
-                || (mpAuthentication instanceof MidpointAuthentication && mpAuthentication.isAuthenticated())) {
+                || (authentication instanceof MidpointAuthentication && authentication.isAuthenticated())
+                || (AuthSequenceUtil.isClusterSequence(request)
+                    && authentication instanceof NodeAuthenticationToken
+                    && authentication.isAuthenticated())) {
             filterChain.doFilter(request, response);
             return;
         }
