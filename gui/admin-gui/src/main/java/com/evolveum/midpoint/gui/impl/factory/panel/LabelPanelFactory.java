@@ -6,20 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-
 import jakarta.annotation.PostConstruct;
-
-import com.evolveum.midpoint.gui.api.component.autocomplete.LookupTableLabelPanel;
-
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.LookupTableLabelPanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 
 @Component
@@ -41,7 +37,7 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
         String lookupTableOid = panelCtx.getPredefinedValuesOid();
         if (lookupTableOid != null) {
-            return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
+            return new LookupTableLabelPanel(panelCtx.getComponentId(), panelCtx.getRealValueStringModel(), lookupTableOid);
         }
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
     }
