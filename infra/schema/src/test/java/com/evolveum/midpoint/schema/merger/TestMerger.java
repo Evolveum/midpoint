@@ -7,36 +7,49 @@
 
 package com.evolveum.midpoint.schema.merger;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.AbstractSchemaTest;
-import com.evolveum.midpoint.schema.merger.object.LookupTableMergeOperation;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import java.io.File;
+import java.io.IOException;
 
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
-import java.io.File;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.AbstractSchemaTest;
+import com.evolveum.midpoint.schema.merger.object.ObjectMergeOperation;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public class TestMerger extends AbstractSchemaTest {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TestMerger.class);
 
     private static final File TEST_ROOT_DIR = new File("./src/test/resources/merger");
 
     @Test
-    public void testLookupTableMergeOperation() throws Exception {
-        PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, "lookup-table-source.xml"));
-        PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, "lookup-table-target.xml"));
-        PrismObject<LookupTableType> result = getPrismContext().parseObject(new File(TEST_ROOT_DIR, "lookup-table-result.xml"));
+    public void test10LookupTableMergeOperation() throws Exception {
+        testMergeOperation("lookup-table");
+    }
 
-        LookupTableMergeOperation operation = new LookupTableMergeOperation(target.asObjectable(), source.asObjectable());
-        operation.execute();
+    @Test
+    public void test20SecurityPolicyMergeOperation() throws Exception {
+        testMergeOperation("security-policy");
+    }
 
-        System.out.println("Merged object:\n" + target.debugDump());
-        // TODO
+    private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
+        PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
+        PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));
+        PrismObject<LookupTableType> result = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-result.xml"));
+
+        ObjectMergeOperation.merge(target, source);
+
+        LOGGER.trace("Merged object:\n{}", target.debugDump());
 
         Assertions.assertThat(target)
-                        .matches(t -> t.equivalent(result));
+                .matches(t -> t.equivalent(result));
     }
 }

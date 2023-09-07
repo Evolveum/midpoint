@@ -63,7 +63,13 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractSynchronizationActionType.F_NAME))),
                 entry(
                         LookupTableRowType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(LookupTableRowType.F_KEY)))
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(LookupTableRowType.F_KEY))),
+                entry(
+                        AbstractAuthenticationModuleType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractAuthenticationModuleType.F_IDENTIFIER))),
+                entry(
+                        AuthenticationSequenceType.class,
+                       () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceType.F_IDENTIFIER)))
         );
     }
 }
