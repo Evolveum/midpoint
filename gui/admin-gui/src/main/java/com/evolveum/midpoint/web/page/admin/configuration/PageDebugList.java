@@ -149,7 +149,23 @@ public class PageDebugList extends PageAdminConfiguration {
         Search search = searchBuilder.build();
         //TODO axiom?
         search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
+        search.setSearchMode(getDefaultMode(search.getAllowedModeList(), search.getSearchMode()));
         return search;
+    }
+
+    private SearchBoxModeType getDefaultMode(List<SearchBoxModeType> menuItems, SearchBoxModeType defaultValue) {
+        if (defaultValue == null) {
+            return defaultValue;
+        }
+
+        if (menuItems.isEmpty() || menuItems.contains(defaultValue)) {
+            return defaultValue;
+        }
+        if (menuItems.contains(SearchBoxModeType.BASIC)) {
+            return SearchBoxModeType.BASIC;
+        }
+
+        return menuItems.get(0);
     }
 
     private SearchContext createAdditionalSearchContext() {
