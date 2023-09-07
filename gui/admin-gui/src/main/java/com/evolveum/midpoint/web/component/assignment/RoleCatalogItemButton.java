@@ -335,7 +335,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     }
 
     private boolean canAssign(AssignmentEditorDto assignment) {
-        return assignment.isAssignable();
+        return assignment.isAssignable(getRoleCatalogStorage().getSelectedRelation());
     }
 
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){

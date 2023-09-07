@@ -157,7 +157,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void populateItem(Item item) {
+                    protected void populateItem(Item<AssignmentEditorDto> item) {
                         item.add(new RoleCatalogItemButton(getCellItemId(), item.getModel()) {
                             private static final long serialVersionUID = 1L;
 
@@ -175,6 +175,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                                 return AbstractShoppingCartTabPanel.this.getNewAssignmentRelation();
                             }
                         });
+                        item.add(new VisibleBehaviour(() -> canBeAssigned(item.getModelObject())));
                     }
                 };
         catalogItemsGrid.add(new VisibleEnableBehaviour() {
@@ -503,5 +504,9 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
     protected GridViewComponent getGridViewComponent() {
         return (GridViewComponent) get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_SHOPPING_CART_ITEMS_PANEL));
+    }
+
+    private boolean canBeAssigned(AssignmentEditorDto dto) {
+        return dto.isAssignable(getNewAssignmentRelation());
     }
 }
