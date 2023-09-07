@@ -17,7 +17,6 @@ public class UpgradeDistributionAction extends UpgradeBaseAction<UpgradeDistribu
     @Override
     public ActionResult<Void> execute() throws Exception {
         File tempDirectory = createTmpDirectory(options.getTempDirectory());
-        // todo: Should we log pre-upgrade checks
 
         // pre-upgrade checks
         if (!options.isSkipPreCheck()) {
