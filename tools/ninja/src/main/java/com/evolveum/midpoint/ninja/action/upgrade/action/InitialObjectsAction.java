@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.merger.object.ObjectMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -142,7 +143,12 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
             PrismObject<O> existing = null;
             try {
-                existing = repository.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+                Class type = object.getCompileTimeClass();
+
+                GetOperationOptionsBuilder optionsBuilder = context.getSchemaService().getOperationOptionsBuilder();
+                NinjaUtils.addIncludeOptionsForExport(optionsBuilder, type);
+
+                existing = repository.getObject(type, object.getOid(), optionsBuilder.build(), result);
             } catch (ObjectNotFoundException ex) {
                 // this is ok, object will be added, no merge needed
             }
