@@ -1,12 +1,10 @@
-== Using Midpoint Query Language in Groovy Expressions
-
+= Using Midpoint Query Language in Groovy Expressions
+:page-nav-title: Midpoint Query Language in Groovy Expressions
 
 Midpoint Query Language (formerly referenced as Axiom) is available to be used in Groovy expressions using `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
 
 
-
-
-=== Creating and using Queries
+== Creating and using Queries
 .Using midpoint functions
 [source, groovy]
 ----
@@ -17,7 +15,7 @@ def result = midpoint.searchObjects(query); // <2>
 <1> Creates `TypedQuery` for specified object type (in this case `UserType`)
 <2> Search objects using query
 
-==== Additional parameters and APIs of Typed Query
+=== Additional parameters and APIs of Typed Query
 
 TypedQuery API allows user to also specify ordering, paging and options of resulting query.
 
@@ -36,7 +34,7 @@ def result = midpoint.searchObjects(query);
 <1> Orders result set by `activation/enableTimestamp` descending (newest first)
 <2> Limit search to 10 items
 
-=== Prepared Queries:  (with Placeholders)
+== Prepared Queries:  (with Placeholders)
 
 In order to facilitate better support for use in code, `placeholders` are introduced. Placeholders can be bind later to variables and MidPoint code will take care of proper escaping and type checking.
 
@@ -50,7 +48,7 @@ def result = midpoint.searchObjects(query); // <3>
 <2> Binds positional arguments to PreparedQuery using var args
 <3> Executes search using query
 
-==== Named Placeholders
+=== Named Placeholders
 
 Positional (anonymous placeholders) are fine for simple queries, but for larger queries it may be good idea to have support for named placeholders.
 Named placeholders are entered in form `:name` and their value could be set by `PreparedQuery.set(name, value)` method.
