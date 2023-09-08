@@ -9,7 +9,10 @@ package com.evolveum.midpoint.authentication.impl.filter.oidc;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.filter.RemoteModuleAuthorizationFilter;
+import com.evolveum.midpoint.authentication.impl.module.authentication.OidcClientModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.util.RequestState;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -37,6 +40,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 
 public class OidcAuthorizationRequestRedirectFilter extends RemoteModuleAuthorizationFilter<OidcAuthorizationRequestRedirectFilter> {
@@ -44,7 +48,6 @@ public class OidcAuthorizationRequestRedirectFilter extends RemoteModuleAuthoriz
     private final OAuth2AuthorizationRequestResolver authorizationRequestResolver;
 
     private final ThrowableAnalyzer throwableAnalyzer = new OidcAuthorizationRequestRedirectFilter.DefaultThrowableAnalyzer();
-
 
     private final AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository =
             new HttpSessionOAuth2AuthorizationRequestRepository();
@@ -64,55 +67,56 @@ public class OidcAuthorizationRequestRedirectFilter extends RemoteModuleAuthoriz
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication) {
-            try {
-                OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request);
-                if (authorizationRequest != null) {
-                    getSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
-                    this.sendRedirectForAuthorization(request, response, authorizationRequest);
-                    return;
-                }
-            } catch (Exception ex) {
-                unsuccessfulAuthentication(request, response,
-                        new InternalAuthenticationServiceException("web.security.provider.invalid", ex));
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
+        OidcClientModuleAuthenticationImpl moduleAuthentication =
+                (OidcClientModuleAuthenticationImpl) authentication.getProcessingModuleAuthentication();
+
+        try {
+            OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request);
+            if (authorizationRequest != null) {
+                getSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
+                this.sendRedirectForAuthorization(request, response, authorizationRequest);
+                moduleAuthentication.setRequestState(RequestState.SENT);
                 return;
             }
-            try {
-                filterChain.doFilter(request, response);
-            } catch (IOException ex) {
-                throw ex;
-            } catch (Exception ex) {
-                // Check to see if we need to handle ClientAuthorizationRequiredException
-                Throwable[] causeChain = this.throwableAnalyzer.determineCauseChain(ex);
-                ClientAuthorizationRequiredException authzEx = (ClientAuthorizationRequiredException) this.throwableAnalyzer
-                        .getFirstThrowableOfType(ClientAuthorizationRequiredException.class, causeChain);
-                if (authzEx != null) {
-                    try {
-                        OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request,
-                                authzEx.getClientRegistrationId());
-                        if (authorizationRequest == null) {
-                            throw authzEx;
-                        }
-                        getSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
-                        this.sendRedirectForAuthorization(request, response, authorizationRequest);
-                        getRequestCache().saveRequest(request, response);
-                    } catch (Exception failed) {
-                        unsuccessfulAuthentication(request, response,
-                                new InternalAuthenticationServiceException("web.security.provider.invalid", failed));
+        } catch (Exception ex) {
+            unsuccessfulAuthentication(request, response,
+                    new InternalAuthenticationServiceException("web.security.provider.invalid", ex));
+            return;
+        }
+        try {
+            filterChain.doFilter(request, response);
+        } catch (IOException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            // Check to see if we need to handle ClientAuthorizationRequiredException
+            Throwable[] causeChain = this.throwableAnalyzer.determineCauseChain(ex);
+            ClientAuthorizationRequiredException authzEx = (ClientAuthorizationRequiredException) this.throwableAnalyzer
+                    .getFirstThrowableOfType(ClientAuthorizationRequiredException.class, causeChain);
+            if (authzEx != null) {
+                try {
+                    OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request,
+                            authzEx.getClientRegistrationId());
+                    if (authorizationRequest == null) {
+                        throw authzEx;
                     }
-                    return;
+                    getSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
+                    this.sendRedirectForAuthorization(request, response, authorizationRequest);
+                    moduleAuthentication.setRequestState(RequestState.SENT);
+                    getRequestCache().saveRequest(request, response);
+                } catch (Exception failed) {
+                    unsuccessfulAuthentication(request, response,
+                            new InternalAuthenticationServiceException("web.security.provider.invalid", failed));
                 }
-                if (ex instanceof ServletException) {
-                    throw (ServletException) ex;
-                }
-                if (ex instanceof RuntimeException) {
-                    throw (RuntimeException) ex;
-                }
-                throw new RuntimeException(ex);
+                return;
             }
-        } else {
-            throw new AuthenticationServiceException("Unsupported type of Authentication");
+            if (ex instanceof ServletException) {
+                throw (ServletException) ex;
+            }
+            if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            }
+            throw new RuntimeException(ex);
         }
     }
 
