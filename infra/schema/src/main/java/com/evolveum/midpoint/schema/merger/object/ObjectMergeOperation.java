@@ -7,13 +7,6 @@
 
 package com.evolveum.midpoint.schema.merger.object;
 
-import static java.util.Map.entry;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-
-import org.apache.commons.lang3.Validate;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -21,11 +14,20 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+
+import org.apache.commons.lang3.Validate;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+
+import static java.util.Map.entry;
 
 public class ObjectMergeOperation {
 
     public static final Map<Class<? extends ObjectType>, Class<? extends BaseMergeOperation>> MERGE_OPERATIONS = Map.ofEntries(
-            entry(LookupTableType.class, LookupTableMergeOperation.class)
+            entry(LookupTableType.class, LookupTableMergeOperation.class),
+            entry(SecurityPolicyType.class, SecurityPolicyMergeOperation.class)
     );
 
     public static <O extends ObjectType> boolean hasMergeOperationFor(PrismObject<O> target) {

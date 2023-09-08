@@ -17,6 +17,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.FileSystemResource;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.merger.object.ObjectMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -46,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-// todo action should write XML + maybe csv? for review
 public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionResult<InitialObjectsResult>> {
 
     private static final String INITIAL_OBJECTS_RESOURCE_PATTERN = "classpath*:/initial-objects/**/*.xml";
@@ -58,7 +60,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
     @Override
     public LogTarget getLogTarget() {
-        return options.getOutput() != null ? LogTarget.SYSTEM_ERR : LogTarget.SYSTEM_OUT;
+        return options.getOutput() != null ? LogTarget.SYSTEM_OUT : LogTarget.SYSTEM_ERR;
     }
 
     @Override
@@ -70,7 +72,12 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
             if (options.isReport()) {
                 writer = NinjaUtils.createWriter(
                         options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite(), context.out);
-                writer.write(NinjaUtils.XML_DELTAS_PREFIX);
+
+                if (options.getReportStyle() == InitialObjectsOptions.ReportStyle.DELTA) {
+                    writer.write(NinjaUtils.XML_DELTAS_PREFIX);
+                } else {
+                    writer.write(NinjaUtils.XML_OBJECTS_PREFIX);
+                }
             }
 
             OperationResult result = new OperationResult("Initial objects update");
@@ -100,10 +107,13 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
             }
         } finally {
             if (writer != null) {
-                writer.write(NinjaUtils.XML_DELTAS_SUFFIX);
+                if (options.getReportStyle() == InitialObjectsOptions.ReportStyle.DELTA) {
+                    writer.write(NinjaUtils.XML_DELTAS_SUFFIX);
+                } else {
+                    writer.write(NinjaUtils.XML_OBJECTS_SUFFIX);
+                }
 
                 if (options.getOutput() != null) {
-
                     // todo this should be handled better, not manually on multiple places
                     // we don't want to close stdout, e.g. only if we were writing to file
                     IOUtils.closeQuietly(writer);
@@ -142,16 +152,30 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
             PrismObject<O> existing = null;
             try {
-                existing = repository.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+                Class type = object.getCompileTimeClass();
+
+                GetOperationOptionsBuilder optionsBuilder = context.getSchemaService().getOperationOptionsBuilder();
+                NinjaUtils.addIncludeOptionsForExport(optionsBuilder, type);
+
+                existing = repository.getObject(type, object.getOid(), optionsBuilder.build(), result);
             } catch (ObjectNotFoundException ex) {
                 // this is ok, object will be added, no merge needed
             }
 
             if (existing == null) {
                 // we'll just import object, since it's new one
-                addObject(object, result, actionResult, writer);
+                addObject(object, result, actionResult, writer, false);
             } else {
-                mergeObject(object, existing, result, actionResult, writer);
+                if (options.isNoMerge()) {
+                    if (!object.equivalent(existing)) {
+                        addObject(object, result, actionResult, writer, true);
+                    } else {
+                        log.info("Object {} unchanged, skipping add.", NinjaUtils.printObjectNameOidAndType(existing));
+                        actionResult.incrementUnchanged();
+                    }
+                } else {
+                    mergeObject(object, existing, result, actionResult, writer);
+                }
             }
         } catch (Exception ex) {
             log.error("Unexpected exception occurred processing file {}", ex, resource.getFilename());
@@ -167,25 +191,30 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
         final PrismObject<O> merged = existing.clone();
 
-        boolean wasMerged = mergeObject(merged, initial);
-        if (!wasMerged) {
-            log.warn("Couldn't merge object {}, skipping", NinjaUtils.printObjectNameOidAndType(existing));
+        boolean mergeExecuted = mergeObject(merged, initial);
+        if (!mergeExecuted) {
+            log.error("Merge operation not supported for object {}, skipping", NinjaUtils.printObjectNameOidAndType(existing));
             actionResult.incrementError();
+            return;
         }
 
         // addTrigger(existing);
         ObjectDelta<O> delta = existing.diff(merged);
         if (delta.isEmpty()) {
-            log.debug("Skipping object update, delta is empty");
+            log.info("Object {} merged, no differences found. Skipping object update.", NinjaUtils.printObjectNameOidAndType(existing));
 
             actionResult.incrementUnchanged();
             return;
         }
 
-        reportDelta(delta, writer);
+        if (options.getReportStyle() == InitialObjectsOptions.ReportStyle.DELTA) {
+            reportDelta(delta, writer);
+        } else {
+            reportObject(merged, writer);
+        }
 
         try {
-            log.debug(
+            log.info(
                     "Updating object {} in repository {}",
                     NinjaUtils.printObjectNameOidAndType(existing), options.isDryRun() ? "(dry run)" : "");
 
@@ -203,6 +232,9 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         }
     }
 
+    /**
+     * @return true if merge operation was executed, false otherwise
+     */
     private <O extends ObjectType> boolean mergeObject(PrismObject<O> target, PrismObject<O> source)
             throws SchemaException, ConfigurationException {
 
@@ -229,7 +261,18 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         object.asObjectable().trigger(trigger);
     }
 
+    private <O extends ObjectType> void reportObject(PrismObject<O> object, Writer writer) throws SchemaException, IOException {
+        String xml = context.getPrismContext().xmlSerializer()
+                .serialize(object.getValue(), SchemaConstantsGenerated.C_OBJECT);
+        writer.write(xml);
+    }
+
     private <O extends ObjectType> void reportAddDelta(PrismObject<O> object, Writer writer) throws SchemaException, IOException {
+        if (options.getReportStyle() == InitialObjectsOptions.ReportStyle.FULL_OBJECT) {
+            reportObject(object, writer);
+            return;
+        }
+
         ObjectDelta<O> delta = context.getPrismContext().deltaFactory()
                 .object()
                 .createEmptyAddDelta(object.getCompileTimeClass(), object.getOid());
@@ -250,25 +293,28 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
     }
 
     private <O extends ObjectType> void addObject(
-            PrismObject<O> object, OperationResult result, InitialObjectsResult actionResult, Writer writer)
+            PrismObject<O> object, OperationResult result, InitialObjectsResult actionResult, Writer writer, boolean overwrite)
             throws SchemaException, IOException {
 
-        reportAddDelta(object, writer);
-
-        if (!options.isForceAdd()) {
-            log.debug("Skipping object add, force-add options is not set, object will be correctly added during midpoint startup.");
+        if (!options.isForceAdd() && !overwrite) {
+            log.info("Skipping object add (force-add options is not set), object will be correctly added during midpoint startup.");
             return;
         }
+
+        reportAddDelta(object, writer);
 
         // addTrigger(object);
 
         try {
-            log.debug(
-                    "Adding object {} to repository {}",
+            log.info(
+                    "Adding object {} {} to repository {}",
+                    overwrite ? "(overwrite)" : "",
                     NinjaUtils.printObjectNameOidAndType(object), options.isDryRun() ? "(dry run)" : "");
 
             if (!options.isDryRun()) {
-                context.getRepository().addObject(object, RepoAddOptions.createOverwrite(), result);
+                RepoAddOptions opts = overwrite ? RepoAddOptions.createOverwrite() : null;
+
+                context.getRepository().addObject(object, opts, result);
             }
 
             actionResult.incrementAdded();

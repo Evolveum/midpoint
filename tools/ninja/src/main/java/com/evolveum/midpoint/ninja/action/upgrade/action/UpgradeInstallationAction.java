@@ -52,6 +52,10 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
 
         log.info(ConsoleFormat.formatSuccessMessage("Installation upgraded successfully"));
 
+        log.info("");
+        log.info("Next step should be to update initial objects. You can use 'ninja initial-objects --dry-run' to review changes.");
+        log.info("Please see documentation and initial-objects command options for more information.");
+
         return null;
     }
 
