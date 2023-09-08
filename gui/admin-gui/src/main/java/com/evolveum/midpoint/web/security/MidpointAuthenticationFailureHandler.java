@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.model.api.authentication.*;
 
+import com.evolveum.midpoint.web.security.saml.NotShowedAuthenticationServiceException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -62,7 +64,9 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             moduleAuthentication.setState(StateOfModule.FAILURE);
         }
 
-        saveException(request, exception);
+        if (!(exception instanceof NotShowedAuthenticationServiceException)) {
+            saveException(request, exception);
+        }
 
         SavedRequest savedRequest = getRequestCache().getRequest(request, response);
 

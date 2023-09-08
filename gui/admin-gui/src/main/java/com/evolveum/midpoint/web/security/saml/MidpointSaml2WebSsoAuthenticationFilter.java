@@ -52,7 +52,9 @@ public class MidpointSaml2WebSsoAuthenticationFilter extends Saml2WebSsoAuthenti
             boolean requiresAuthentication = requiresAuthentication((HttpServletRequest) req, (HttpServletResponse) res);
 
             if (!requiresAuthentication && sentRequest) {
-                AuthenticationServiceException exception = new AuthenticationServiceException("web.security.flexAuth.saml.not.response");
+                NotShowedAuthenticationServiceException exception =
+                        new NotShowedAuthenticationServiceException(
+                                "Midpoint saml module doesn't receive response from Identity Provider server.");
                 unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res, exception);
             } else {
                 if (moduleAuthentication != null && requiresAuthentication && sentRequest) {
