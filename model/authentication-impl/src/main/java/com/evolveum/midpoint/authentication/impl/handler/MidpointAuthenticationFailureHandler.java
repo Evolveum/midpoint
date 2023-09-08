@@ -17,6 +17,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
+import com.evolveum.midpoint.authentication.impl.NotShowedAuthenticationServiceException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -73,13 +74,17 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             //abort the authentication in case of requisite module fail
             if (!mpAuthentication.isLast(moduleAuthentication) &&
                     AuthenticationSequenceModuleNecessityType.REQUISITE.equals(moduleAuthentication.getNecessity())) {
-                saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
+                if (!(mpAuthentication.getAuthenticationExceptionIfExsits() instanceof NotShowedAuthenticationServiceException)) {
+                    saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
+                }
                 getRedirectStrategy().sendRedirect(request, response,
                         mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication());
                 return;
             }
 
-            if (mpAuthentication.isLast(moduleAuthentication) && !mpAuthentication.isAuthenticated()) {
+            if (!(mpAuthentication.getAuthenticationExceptionIfExsits() instanceof NotShowedAuthenticationServiceException)
+                    && mpAuthentication.isLast(moduleAuthentication)
+                    && !mpAuthentication.isAuthenticated()) {
                 saveException(request, mpAuthentication.getAuthenticationExceptionIfExsits());
 
             }

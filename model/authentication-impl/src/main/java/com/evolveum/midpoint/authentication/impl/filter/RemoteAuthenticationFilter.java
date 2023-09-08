@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.impl.NotShowedAuthenticationServiceException;
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.util.RequestState;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
@@ -55,7 +56,8 @@ public interface RemoteAuthenticationFilter extends Filter {
             boolean requiresAuthentication = requiresAuth((HttpServletRequest) req, (HttpServletResponse) res);
 
             if (!requiresAuthentication && sentRequest) {
-                AuthenticationServiceException exception = new AuthenticationServiceException(getErrorMessageKeyNotResponse());
+                NotShowedAuthenticationServiceException exception =
+                        new NotShowedAuthenticationServiceException(getErrorMessageKeyNotResponse());
                 unsuccessfulAuth((HttpServletRequest) req, (HttpServletResponse) res, exception);
             } else {
                 if (moduleAuthentication != null && requiresAuthentication && sentRequest) {
