@@ -113,6 +113,8 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                     writer.write(NinjaUtils.XML_OBJECTS_SUFFIX);
                 }
 
+                writer.flush();
+
                 if (options.getOutput() != null) {
                     // todo this should be handled better, not manually on multiple places
                     // we don't want to close stdout, e.g. only if we were writing to file
