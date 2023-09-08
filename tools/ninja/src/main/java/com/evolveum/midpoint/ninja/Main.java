@@ -6,21 +6,8 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.fusesource.jansi.AnsiConsole;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.ActionResult;
@@ -31,6 +18,20 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.fusesource.jansi.AnsiConsole;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class Main {
 
@@ -70,6 +71,17 @@ public class Main {
     protected <T> @NotNull MainResult<?> run(String[] args) {
         AnsiConsole.systemInstall();
 
+        try {
+            return runInternal(args);
+        } finally {
+            out.flush();
+            err.flush();
+
+            AnsiConsole.systemUninstall();
+        }
+    }
+
+    private <T> @NotNull MainResult<?> runInternal(String[] args) {
         JCommander jc = NinjaUtils.setupCommandLineParser();
 
         try {
@@ -152,8 +164,6 @@ public class Main {
             return MainResult.EMPTY_ERROR;
         } finally {
             cleanupResources(base, context);
-
-            AnsiConsole.systemUninstall();
         }
     }
 
