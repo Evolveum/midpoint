@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.authentication.impl.handler;
 
 import java.io.IOException;
+
+import com.evolveum.midpoint.authentication.impl.NotShowedAuthenticationServiceException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -70,17 +73,20 @@ public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticatio
             moduleAuthentication.recordFailure(exception);
 
             //abort the authentication in case of requisite module fail
-            if (!mpAuthentication.isLast(moduleAuthentication) &&
-                    AuthenticationSequenceModuleNecessityType.REQUISITE.equals(moduleAuthentication.getNecessity())) {
-                saveException(request, mpAuthentication.getAuthenticationExceptionIfExists());
+            if (!mpAuthentication.isLast(moduleAuthentication)
+                    && AuthenticationSequenceModuleNecessityType.REQUISITE.equals(moduleAuthentication.getNecessity())) {
+                if (!(mpAuthentication.getAuthenticationExceptionIfExists() instanceof NotShowedAuthenticationServiceException)) {
+                    saveException(request, mpAuthentication.getAuthenticationExceptionIfExists());
+                }
                 getRedirectStrategy().sendRedirect(request, response,
                         mpAuthentication.getAuthenticationChannel().getPathAfterUnsuccessfulAuthentication());
                 return;
             }
 
-            if (mpAuthentication.isLast(moduleAuthentication) && !mpAuthentication.isAuthenticated()) {
+            if (!(mpAuthentication.getAuthenticationExceptionIfExists() instanceof NotShowedAuthenticationServiceException)
+                    && mpAuthentication.isLast(moduleAuthentication)
+                    && !mpAuthentication.isAuthenticated()) {
                 saveException(request, mpAuthentication.getAuthenticationExceptionIfExists());
-
             }
 
             if (!mpAuthentication.isOverLockoutMaxAttempts()) {

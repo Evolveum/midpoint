@@ -7,10 +7,16 @@
 
 package com.evolveum.midpoint.authentication.impl.filter.saml;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.module.authentication.Saml2ModuleAuthenticationImpl;
+import com.evolveum.midpoint.authentication.impl.util.RequestState;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
 import org.springframework.security.saml2.provider.service.web.Saml2WebSsoAuthenticationRequestFilter;
@@ -23,7 +29,6 @@ import java.io.IOException;
 
 public class MidpointSaml2WebSsoAuthenticationRequestFilter extends Saml2WebSsoAuthenticationRequestFilter {
 
-    private RequestMatcher redirectMatcher = new AntPathRequestMatcher("/saml2/authenticate/{registrationId}");
     private final OpenSaml4AuthenticationRequestResolver authenticationRequestResolver;
 
     private final SecurityContextRepository securityContextRepository;
@@ -36,7 +41,6 @@ public class MidpointSaml2WebSsoAuthenticationRequestFilter extends Saml2WebSsoA
         this.securityContextRepository = securityContextRepository;
     }
 
-
     public OpenSaml4AuthenticationRequestResolver getAuthenticationRequestResolver() {
         return authenticationRequestResolver;
     }
@@ -47,6 +51,16 @@ public class MidpointSaml2WebSsoAuthenticationRequestFilter extends Saml2WebSsoA
         if (authenticationRequest != null) {
             securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
         }
+
         super.doFilterInternal(request, response, filterChain);
+
+        if (authenticationRequest == null) {
+            return;
+        }
+
+        MidpointAuthentication authentication = AuthUtil.getMidpointAuthentication();
+        Saml2ModuleAuthenticationImpl moduleAuthentication =
+                (Saml2ModuleAuthenticationImpl) authentication.getProcessingModuleAuthentication();
+        moduleAuthentication.setRequestState(RequestState.SENT);
     }
 }
