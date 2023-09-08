@@ -798,7 +798,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         return availableRelations;
     }
 
-    public boolean isAssignable() {
+    public boolean isAssignable(QName selectedRelation) {
         if (!isAlreadyAssigned) {
             return true;
         }
@@ -808,14 +808,11 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         if (defaultAssignmentConstraints.isAllowSameTarget() && defaultAssignmentConstraints.isAllowSameRelation()) {
             return true;
         }
-        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
-        int relationsListSize = availableRelations == null ? 0 : availableRelations.size();
-        if (defaultAssignmentConstraints.isAllowSameTarget() && !defaultAssignmentConstraints.isAllowSameRelation()
-                && getAssignedRelationsList().size() < relationsListSize) {
-            return true;
-        }
         if (!defaultAssignmentConstraints.isAllowSameTarget()) {
             return false;
+        }
+        if (!defaultAssignmentConstraints.isAllowSameRelation() && !assignedRelationsList.contains(selectedRelation)) {
+            return true;
         }
         return false;
     }

@@ -93,8 +93,14 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
 
     @Override
     public String getName() {
+        if (getDefinition() == null) {
+            return "";
+        }
         if (getDefinition().getDisplayName() != null){
             return WebComponentUtil.getTranslatedPolyString(getDefinition().getDisplayName());
+        }
+        if (getDefinition().getDef() == null) {
+            return "";
         }
         String key = getDefinition().getDef().getDisplayName();
         if (StringUtils.isEmpty(key)) {

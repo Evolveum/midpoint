@@ -50,16 +50,16 @@ public abstract class GridViewComponent<O extends Object> extends BasePanel<Obje
     }
 
     private void initLayout(){
-        GridView gridView = new GridView(ID_ROWS, getModelObject()) {
+        GridView<AssignmentEditorDto> gridView = new GridView<>(ID_ROWS, getModelObject()) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateEmptyItem(Item item) {
+            protected void populateEmptyItem(Item<AssignmentEditorDto> item) {
                 GridViewComponent.this.populateEmptyItem(item);
             }
 
             @Override
-            protected void populateItem(Item item) {
+            protected void populateItem(Item<AssignmentEditorDto> item) {
                 GridViewComponent.this.populateItem(item);
                 item.add(AttributeAppender.append("class", getGridItemStyleClass(item.getModel())));
             }
@@ -125,11 +125,11 @@ public abstract class GridViewComponent<O extends Object> extends BasePanel<Obje
         return DEFAULT_COLS_COUNT;
     }
 
-    protected void populateEmptyItem(Item item) {
+    protected void populateEmptyItem(Item<AssignmentEditorDto> item) {
         item.add(new WebMarkupContainer(ID_CELL_ITEM));
     }
 
-    protected String getGridItemStyleClass(IModel model){
+    protected String getGridItemStyleClass(IModel<AssignmentEditorDto> model){
         return "";
     }
 
@@ -137,7 +137,7 @@ public abstract class GridViewComponent<O extends Object> extends BasePanel<Obje
         return ID_CELL_ITEM;
     }
 
-    protected abstract void populateItem(Item item);
+    protected abstract void populateItem(Item<AssignmentEditorDto> item);
 
     public ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> getProvider(){
         return GridViewComponent.this.getModelObject();

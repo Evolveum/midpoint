@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -123,7 +125,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(AbstractRoleMainPanel.this.getObject().asObjectable(),
                         UserDtoStatus.ADD, parentPage);
                 return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, parentPage)
-                        && (storage.isMultiUserRequest() || dto.isAssignable());
+                        && (storage.isMultiUserRequest() || dto.isAssignable(SchemaConstants.ORG_DEFAULT));
             }
         });
         addToCartButton.add(AttributeAppender.append("title",

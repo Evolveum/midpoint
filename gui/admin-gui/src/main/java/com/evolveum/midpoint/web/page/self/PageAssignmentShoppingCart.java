@@ -60,9 +60,7 @@ public class PageAssignmentShoppingCart extends PageSelf {
     private static final String DOT_CLASS = PageAssignmentShoppingCart.class.getName() + ".";
 
     private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getRoleCatalogViewsList";
-    private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
     private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
-    private static final String OPERATION_LOAD_DEFAULT_VIEW_TYPE = DOT_CLASS + "loadDefaultViewType";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingCart.class);
 
     private IModel<RoleManagementConfigurationType> roleManagementConfigModel;
