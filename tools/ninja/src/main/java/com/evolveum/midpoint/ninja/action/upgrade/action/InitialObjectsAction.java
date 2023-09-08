@@ -12,12 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -33,21 +28,25 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.merger.object.ObjectMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionResult<InitialObjectsResult>> {
 
@@ -60,6 +59,10 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
     @Override
     public LogTarget getLogTarget() {
+        if (!options.isReport()) {
+            return LogTarget.SYSTEM_OUT;
+        }
+
         return options.getOutput() != null ? LogTarget.SYSTEM_OUT : LogTarget.SYSTEM_ERR;
     }
 
@@ -100,10 +103,24 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
             resources.sort(Comparator.comparing(Resource::getFilename));
 
+            List<ObjectReferenceType> refs = new ArrayList<>();
+
             for (Resource resource : resources) {
                 actionResult.incrementTotal();
 
-                processFile(resource, result, actionResult, writer);
+                ObjectReferenceType ref = processFile(resource, result, actionResult, writer);
+                if (ref != null) {
+                    refs.add(ref);
+                }
+            }
+
+            log.info("");
+            if (!refs.isEmpty()) {
+                PrismObject<TaskType> task = createRecomputeTask(refs);
+                context.getRepository().addObject(task, null, result);
+                log.info("Recompute task {} created, it will be started after midpoint starts and will recompute {} objects.", task, refs.size());
+            } else {
+                log.info("Recompute task not created, no objects were changed in repository.");
             }
         } finally {
             if (writer != null) {
@@ -138,7 +155,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         return new ActionResult<>(actionResult, status);
     }
 
-    private <O extends ObjectType> void processFile(
+    private <O extends ObjectType> ObjectReferenceType processFile(
             Resource resource, OperationResult parentResult, InitialObjectsResult actionResult, Writer writer) {
 
         OperationResult result = parentResult.createSubresult("Process file");
@@ -154,7 +171,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
             PrismObject<O> existing = null;
             try {
-                Class type = object.getCompileTimeClass();
+                Class<O> type = object.getCompileTimeClass();
 
                 GetOperationOptionsBuilder optionsBuilder = context.getSchemaService().getOperationOptionsBuilder();
                 NinjaUtils.addIncludeOptionsForExport(optionsBuilder, type);
@@ -164,28 +181,40 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                 // this is ok, object will be added, no merge needed
             }
 
+            boolean changed = false;
             if (existing == null) {
                 // we'll just import object, since it's new one
-                addObject(object, result, actionResult, writer, false);
+                changed = addObject(object, result, actionResult, writer, false);
             } else {
                 if (options.isNoMerge()) {
                     if (!object.equivalent(existing)) {
-                        addObject(object, result, actionResult, writer, true);
+                        changed = addObject(object, result, actionResult, writer, true);
                     } else {
                         log.info("Object {} unchanged, skipping add.", NinjaUtils.printObjectNameOidAndType(existing));
                         actionResult.incrementUnchanged();
                     }
                 } else {
-                    mergeObject(object, existing, result, actionResult, writer);
+                    changed = mergeObject(object, existing, result, actionResult, writer);
                 }
+            }
+
+            if (changed) {
+                return new ObjectReferenceType()
+                        .oid(object.getOid())
+                        .type(object.getComplexTypeDefinition().getTypeName());
             }
         } catch (Exception ex) {
             log.error("Unexpected exception occurred processing file {}", ex, resource.getFilename());
             actionResult.incrementError();
         }
+
+        return null;
     }
 
-    private <O extends ObjectType> void mergeObject(
+    /**
+     * @return true if object was added/modified/merged in repository, false otherwise
+     */
+    private <O extends ObjectType> boolean mergeObject(
             PrismObject<O> initial, PrismObject<O> existing, OperationResult result, InitialObjectsResult actionResult, Writer writer)
             throws SchemaException, ConfigurationException, IOException {
 
@@ -197,16 +226,15 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         if (!mergeExecuted) {
             log.error("Merge operation not supported for object {}, skipping", NinjaUtils.printObjectNameOidAndType(existing));
             actionResult.incrementError();
-            return;
+            return false;
         }
 
-        // addTrigger(existing);
         ObjectDelta<O> delta = existing.diff(merged);
         if (delta.isEmpty()) {
             log.info("Object {} merged, no differences found. Skipping object update.", NinjaUtils.printObjectNameOidAndType(existing));
 
             actionResult.incrementUnchanged();
-            return;
+            return false;
         }
 
         if (options.getReportStyle() == InitialObjectsOptions.ReportStyle.DELTA) {
@@ -215,6 +243,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
             reportObject(merged, writer);
         }
 
+        boolean modified = false;
         try {
             log.info(
                     "Updating object {} in repository {}",
@@ -222,6 +251,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
             if (!options.isDryRun()) {
                 context.getRepository().modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
+                modified = true;
             }
 
             actionResult.incrementMerged();
@@ -232,6 +262,8 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
             actionResult.incrementError();
         }
+
+        return modified;
     }
 
     /**
@@ -250,17 +282,6 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
         ObjectMergeOperation.merge(target, source);
         return true;
-    }
-
-    /**
-     * @deprecated This is just a hack to trigger recompute after midpoint is started. TODO FIXME fix this
-     */
-    @Deprecated
-    private <O extends ObjectType> void addTrigger(PrismObject<O> object) {
-        TriggerType trigger = new TriggerType()
-                .timestamp(MiscUtil.asXMLGregorianCalendar(0L))
-                .handlerUri(SchemaConstants.NS_MODEL + "/trigger/recompute/handler-3");
-        object.asObjectable().trigger(trigger);
     }
 
     private <O extends ObjectType> void reportObject(PrismObject<O> object, Writer writer) throws SchemaException, IOException {
@@ -294,19 +315,21 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         writer.write(xml);
     }
 
-    private <O extends ObjectType> void addObject(
+    /**
+     * @return true if object was added, false if it was skipped
+     */
+    private <O extends ObjectType> boolean addObject(
             PrismObject<O> object, OperationResult result, InitialObjectsResult actionResult, Writer writer, boolean overwrite)
             throws SchemaException, IOException {
 
         if (!options.isForceAdd() && !overwrite) {
             log.info("Skipping object add (force-add options is not set), object will be correctly added during midpoint startup.");
-            return;
+            return false;
         }
 
         reportAddDelta(object, writer);
 
-        // addTrigger(object);
-
+        boolean added = false;
         try {
             log.info(
                     "Adding object {} {} to repository {}",
@@ -317,6 +340,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                 RepoAddOptions opts = overwrite ? RepoAddOptions.createOverwrite() : null;
 
                 context.getRepository().addObject(object, opts, result);
+                added = true;
             }
 
             actionResult.incrementAdded();
@@ -325,5 +349,52 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
             actionResult.incrementError();
         }
+
+        return added;
+    }
+
+    private PrismObject<TaskType> createRecomputeTask(List<ObjectReferenceType> refs) throws SchemaException {
+        TaskType task = new TaskType();
+        task.setOid(UUID.randomUUID().toString());
+        task.setName(new PolyStringType("Initial objects recompute after upgrade to 4.8"));
+        task.setExecutionState(TaskExecutionStateType.RUNNABLE);
+
+        task.setOwnerRef(new ObjectReferenceType()
+                .oid(SystemObjectsType.USER_ADMINISTRATOR.value())
+                .type(UserType.COMPLEX_TYPE));
+
+        AssignmentType assignment = new AssignmentType()
+                .targetRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ArchetypeType.COMPLEX_TYPE);
+        task.getAssignment().add(assignment);
+
+        task.schedule(new ScheduleType().recurrence(TaskRecurrenceType.SINGLE));
+
+        ObjectFilter filter = context.getPrismContext().queryFor(ObjectType.class)
+                .id(refs.stream().map(ObjectReferenceType::getOid).toArray(String[]::new))
+                .buildFilter();
+        SearchFilterType searchFilter = context.getPrismContext().getQueryConverter().createSearchFilterType(filter);
+
+        //@formatter:off
+        IterativeScriptingWorkDefinitionType iterativeScripting = new IterativeScriptingWorkDefinitionType();
+        iterativeScripting
+                .beginObjects()
+                    .type(ObjectType.COMPLEX_TYPE)
+                    .query(new QueryType().filter(searchFilter))
+                .<IterativeScriptingWorkDefinitionType>end()
+                .beginScriptExecutionRequest()
+                    .scriptingExpression(
+                            new ObjectFactory()
+                                    .createAction(
+                                            new ActionExpressionType()
+                                                .type("recompute")));
+
+        task
+                .beginActivity()
+                    .beginWork()
+                        .iterativeScripting(iterativeScripting)
+                .<ActivityDefinitionType>end();
+        //@formatter:on
+
+        return task.asPrismObject();
     }
 }
