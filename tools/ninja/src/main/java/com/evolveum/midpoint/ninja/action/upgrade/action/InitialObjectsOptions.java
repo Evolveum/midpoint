@@ -13,8 +13,23 @@ import java.util.List;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import com.evolveum.midpoint.ninja.util.EnumConverterValidator;
+
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "initialObjects")
 public class InitialObjectsOptions {
+
+    public enum ReportStyle {
+        DELTA,
+
+        FULL_OBJECT,
+    }
+
+    public static class ReportStyleConverter extends EnumConverterValidator<ReportStyle> {
+
+        public ReportStyleConverter() {
+            super(ReportStyle.class);
+        }
+    }
 
     private static final String P_FILE_LONG = "--file";
     private static final String P_DRY_RUN = "--dry-run";
@@ -27,9 +42,14 @@ public class InitialObjectsOptions {
     public static final String P_REPORT = "-r";
     public static final String P_REPORT_LONG = "--report";
     public static final String P_FORCE_ADD_LONG = "--force-add";
+    public static final String P_NO_MERGE = "--no-merge";
+    public static final String P_REPORT_STYLE = "--report-style";
 
     @Parameter(names = { P_FORCE_ADD_LONG }, descriptionKey = "initialObjects.forceAdd")
     private boolean forceAdd;
+
+    @Parameter(names = { P_NO_MERGE }, descriptionKey = "initialObjects.noMerge")
+    private boolean noMerge;
 
     @Parameter(names = { P_FILE_LONG }, descriptionKey = "initialObjects.file", variableArity = true)
     private List<File> files;
@@ -48,6 +68,10 @@ public class InitialObjectsOptions {
 
     @Parameter(names = { P_ZIP, P_ZIP_LONG }, descriptionKey = "initialObjects.zip")
     private boolean zip;
+
+    @Parameter(names = { P_REPORT_STYLE }, descriptionKey = "initialObjects.reportStyle",
+            converter = ReportStyleConverter.class, validateWith = ReportStyleConverter.class)
+    private ReportStyle reportStyle = ReportStyle.DELTA;
 
     public boolean isDryRun() {
         return dryRun;
@@ -103,5 +127,21 @@ public class InitialObjectsOptions {
 
     public void setZip(boolean zip) {
         this.zip = zip;
+    }
+
+    public boolean isNoMerge() {
+        return noMerge;
+    }
+
+    public void setNoMerge(boolean noMerge) {
+        this.noMerge = noMerge;
+    }
+
+    public ReportStyle getReportStyle() {
+        return reportStyle;
+    }
+
+    public void setReportStyle(ReportStyle reportStyle) {
+        this.reportStyle = reportStyle;
     }
 }
