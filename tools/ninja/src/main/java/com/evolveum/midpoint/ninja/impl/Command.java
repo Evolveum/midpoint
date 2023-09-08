@@ -58,7 +58,8 @@ public enum Command {
 
     HELP("help", HelpOptions.class, HelpAction.class),
 
-    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
+    // todo disabled, because it's not finished yet
+    // UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
 
     INITIAL_OBJECTS("initial-objects", InitialObjectsOptions.class, InitialObjectsAction.class);
 
