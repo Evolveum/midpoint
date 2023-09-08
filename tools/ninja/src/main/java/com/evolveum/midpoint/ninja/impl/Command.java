@@ -56,9 +56,10 @@ public enum Command {
 
     PRE_UPGRADE_CHECK("pre-upgrade-check", PreUpgradeCheckOptions.class, PreUpgradeCheckAction.class),
 
-    HELP("help", HelpOptions.class, HelpAction.class),
+    HELP("help", HelpOptions.class, HelpAction.class);
 
-    UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class);
+    // todo disabled, because it's not finished yet
+    // UPGRADE("upgrade", UpgradeOptions.class, UpgradeAction.class),
 
     private final String commandName;
 
