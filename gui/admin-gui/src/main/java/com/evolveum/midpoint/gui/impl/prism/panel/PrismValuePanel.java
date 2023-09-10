@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -15,6 +17,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -154,6 +157,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         panelCtx.setAjaxEventBehavior(createEventBehavior());
         panelCtx.setMandatoryHandler(getMandatoryHandler());
         panelCtx.setVisibleEnableBehaviour(createVisibleEnableBehavior());
+        panelCtx.setExpressionValidator(createExpressionValidator());
         panelCtx.setFeedback(feedback);
 
         Component component;
@@ -169,6 +173,18 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             throw new RuntimeException(e);
         }
 
+    }
+
+    private ExpressionValidator createExpressionValidator() {
+        ItemWrapper itemWrapper = getModelObject().getParent();
+        return new ExpressionValidator(
+                LambdaModel.of(() -> itemWrapper.getFormComponentValidator()), getPageBase()) {
+
+            @Override
+            protected ObjectType getObjectType() {
+                return getObject();
+            }
+        };
     }
 
     protected void createMetadataPanel(MidpointForm form) {
