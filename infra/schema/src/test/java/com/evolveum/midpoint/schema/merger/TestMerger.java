@@ -40,6 +40,11 @@ public class TestMerger extends AbstractSchemaTest {
         testMergeOperation("security-policy");
     }
 
+    @Test
+    public void test30SystemConfigurationMergeOperation() throws Exception {
+        testMergeOperation("system-configuration");
+    }
+
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
         PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
         PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));

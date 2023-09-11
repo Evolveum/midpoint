@@ -16,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
 import org.apache.commons.lang3.Validate;
 
 import java.lang.reflect.InvocationTargetException;
@@ -27,7 +29,8 @@ public class ObjectMergeOperation {
 
     public static final Map<Class<? extends ObjectType>, Class<? extends BaseMergeOperation>> MERGE_OPERATIONS = Map.ofEntries(
             entry(LookupTableType.class, LookupTableMergeOperation.class),
-            entry(SecurityPolicyType.class, SecurityPolicyMergeOperation.class)
+            entry(SecurityPolicyType.class, SecurityPolicyMergeOperation.class),
+            entry(SystemConfigurationType.class, SystemConfigurationMergeOperation.class)
     );
 
     public static <O extends ObjectType> boolean hasMergeOperationFor(PrismObject<O> target) {
