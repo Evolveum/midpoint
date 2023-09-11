@@ -20,6 +20,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.ActionResult;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
@@ -27,6 +28,8 @@ import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -323,7 +326,9 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
             throws SchemaException, IOException {
 
         if (!options.isForceAdd() && !overwrite) {
-            log.info("Skipping object add (force-add options is not set), object will be correctly added during midpoint startup.");
+            log.info(
+                    "Skipping object add (force-add options is not set), object {} will be correctly added during midpoint startup.",
+                    NinjaUtils.printObjectNameOidAndType(object));
             return false;
         }
 
@@ -337,6 +342,9 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                     NinjaUtils.printObjectNameOidAndType(object), options.isDryRun() ? "(dry run)" : "");
 
             if (!options.isDryRun()) {
+                Protector protector = context.getApplicationContext().getBean(Protector.class);
+                CryptoUtil.encryptValues(protector, object);
+
                 RepoAddOptions opts = overwrite ? RepoAddOptions.createOverwrite() : null;
 
                 context.getRepository().addObject(object, opts, result);
@@ -344,7 +352,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
             }
 
             actionResult.incrementAdded();
-        } catch (ObjectAlreadyExistsException | SchemaException ex) {
+        } catch (ObjectAlreadyExistsException | SchemaException | EncryptionException ex) {
             log.error("Couldn't add object {} to repository", ex, NinjaUtils.printObjectNameOidAndType(object));
 
             actionResult.incrementError();
@@ -363,9 +371,15 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                 .oid(SystemObjectsType.USER_ADMINISTRATOR.value())
                 .type(UserType.COMPLEX_TYPE));
 
+        ObjectReferenceType archetypeRef = new ObjectReferenceType()
+                .oid(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value())
+                .type(ArchetypeType.COMPLEX_TYPE);
+
         AssignmentType assignment = new AssignmentType()
-                .targetRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ArchetypeType.COMPLEX_TYPE);
+                .targetRef(archetypeRef);
         task.getAssignment().add(assignment);
+
+        task.getArchetypeRef().add(archetypeRef.clone());
 
         task.schedule(new ScheduleType().recurrence(TaskRecurrenceType.SINGLE));
 
