@@ -7,13 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.recomputeRoleAnalysisClusterDetectionOptions;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getScaleScript;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -61,19 +58,13 @@ import java.io.Serial;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_ANALYSIS_CLUSTER_URL,
                 label = "PageRoleAnalysis.auth.roleAnalysisCluster.label",
                 description = "PageRoleAnalysis.auth.roleAnalysisCluster.description")
-         })
+})
 
 public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAnalysisClusterType, AssignmentHolderDetailsModel<RoleAnalysisClusterType>> {
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-        response.render(OnDomReadyHeaderItem.forScript(getScaleScript()));
-    }
-
-    public StringResourceModel setDetectionButtonTitle() {
-        return ((PageBase) getPage()).createStringResource("PageAnalysisCluster.button.save");
-    }
+    private static final String DOT_CLASS = PageRoleAnalysisCluster.class.getName() + ".";
+    private static final String OP_PATTERN_DETECTION = DOT_CLASS + "patternDetection";
+    private static final String OP_RECOMPUTE_SESSION_STAT = DOT_CLASS + "recomputeSessionStatistic";
 
     @Override
     protected AssignmentHolderOperationalButtonsPanel<RoleAnalysisClusterType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<RoleAnalysisClusterType>> wrapperModel) {
@@ -111,17 +102,17 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     public void detectionPerform(AjaxRequestTarget target) {
 
         //TODO
-        OperationResult result = new OperationResult("ImportSessionObject");
+        OperationResult result = new OperationResult(OP_PATTERN_DETECTION);
 
         String clusterOid = getObjectDetailsModels().getObjectType().getOid();
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable();
 
-        Task task = ((PageBase) getPage()).createSimpleTask("Pattern detection");
+        Task task = ((PageBase) getPage()).createSimpleTask(OP_PATTERN_DETECTION);
         ModelService modelService = ((PageBase) getPage()).getModelService();
         DetectionOption detectionOption = new DetectionOption(cluster);
 
-        recomputeRoleAnalysisClusterDetectionOptions(clusterOid, modelService, detectionOption, result, task);
+        recomputeRoleAnalysisClusterDetectionOptions(modelService, clusterOid, detectionOption, task, result);
 
         executeDetectionTask(result, task, clusterOid);
 
@@ -149,6 +140,9 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
 
         } catch (CommonException e) {
             LOGGER.error("Couldn't execute Cluster Detection Task {}", clusterOid, e);
+            result.recordPartialError(e);
+        } finally {
+            result.recordSuccessIfUnknown();
         }
     }
 
@@ -166,15 +160,19 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                         .roleAnalysisPatternDetection(rdw));
     }
 
+    public StringResourceModel setDetectionButtonTitle() {
+        return ((PageBase) getPage()).createStringResource("PageAnalysisCluster.button.save");
+    }
+
     @Override
     public void afterDeletePerformed(AjaxRequestTarget target) {
         PageBase pageBase = (PageBase) getPage();
-        Task task = pageBase.createSimpleTask("Recompute object");
+        Task task = pageBase.createSimpleTask(OP_RECOMPUTE_SESSION_STAT);
         OperationResult result = task.getResult();
 
         RoleAnalysisClusterType cluster = getModelWrapperObject().getObjectOld().asObjectable();
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-        RoleAnalysisObjectUtils.recomputeSessionStatic(result, roleAnalysisSessionRef.getOid(), cluster, pageBase.getModelService(), task);
+        RoleAnalysisObjectUtils.recomputeSessionStatic(pageBase.getModelService(), roleAnalysisSessionRef.getOid(), cluster, task, result);
 
     }
 

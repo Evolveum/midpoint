@@ -232,7 +232,6 @@ public class PatternResolver implements DetectionOperation, Serializable {
         handler.setOperationCountToProcess(outerIntersectionsList.size());
 
         for (List<String> members : outerIntersectionsList) {
-
             handler.iterateActualStatus();
 
             Set<String> properties = new HashSet<>();

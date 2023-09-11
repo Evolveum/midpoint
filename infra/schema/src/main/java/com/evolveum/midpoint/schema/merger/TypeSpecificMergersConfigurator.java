@@ -69,7 +69,97 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractAuthenticationModuleType.F_IDENTIFIER))),
                 entry(
                         AuthenticationSequenceType.class,
-                       () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceType.F_IDENTIFIER)))
+                       () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceType.F_IDENTIFIER))),
+                entry(
+                        ClassLoggerConfigurationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerConfigurationType.F_PACKAGE))),
+                entry(
+                        AppenderConfigurationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AppenderConfigurationType.F_NAME))),
+                entry(
+                        TracingProfileType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(TracingProfileType.F_NAME))),
+                entry(
+                        HomePageType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(HomePageType.F_IDENTIFIER))),
+                entry(
+                        PreviewContainerPanelConfigurationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(PreviewContainerPanelConfigurationType.F_IDENTIFIER))),
+                entry(
+                        UserInterfaceFeatureType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(UserInterfaceFeatureType.F_IDENTIFIER))),
+                entry(
+                        SearchItemType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        SearchItemType.F_PATH, SearchItemType.F_FILTER, SearchItemType.F_FILTER_EXPRESSION))),
+                entry(
+                        GuiObjectDetailsPageType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectDetailsPageType.F_TYPE))),
+                entry(
+                        VirtualContainerItemSpecificationType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(VirtualContainerItemSpecificationType.F_PATH))),
+                entry(
+                        GuiResourceDetailsPageType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(GuiResourceDetailsPageType.F_CONNECTOR_REF))),
+                entry(
+                        RoleCollectionViewType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(RoleCollectionViewType.F_IDENTIFIER))),
+                entry(
+                        RichHyperlinkType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(RichHyperlinkType.F_TARGET_URL))),
+                entry(
+                        ExpressionProfileType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ExpressionProfileType.F_IDENTIFIER))),
+                entry(
+                        ExpressionEvaluatorProfileType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ExpressionEvaluatorProfileType.F_TYPE))),
+                entry(
+                        ScriptLanguageExpressionProfileType.class,
+                        () -> new GenericItemMerger(
+                                marker, DefaultNaturalKeyImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE))),
+                entry(
+                        ExpressionPermissionProfileType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(ExpressionPermissionProfileType.F_IDENTIFIER))),
+                entry(
+                        ExpressionPermissionPackageProfileType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(ExpressionPermissionPackageProfileType.F_NAME))),
+                entry(
+                        ExpressionPermissionClassProfileType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(ExpressionPermissionClassProfileType.F_NAME))),
+                entry(
+                        ExpressionPermissionMethodProfileType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(ExpressionPermissionMethodProfileType.F_NAME))),
+                entry(
+                        TracingTypeProfileType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        TracingTypeProfileType.F_LEVEL, TracingTypeProfileType.F_OPERATION_TYPE))),
+                entry(
+                        ClassLoggerLevelOverrideType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER))),
+                entry(
+                        AuthorizationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthorizationType.F_NAME))),
+                entry(
+                        ObjectSelectorType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE)))
         );
     }
 }

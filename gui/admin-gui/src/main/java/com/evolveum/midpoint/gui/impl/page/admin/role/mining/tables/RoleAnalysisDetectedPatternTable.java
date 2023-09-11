@@ -69,9 +69,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
-    OperationResult result = new OperationResult("LoadRoleAnalysisDetectedPatternTable");
+    private static final String ID_DATATABLE = "datatable";
     boolean isOperationEnable;
-    private static final String ID_DATATABLE = "datatable_extra";
+    private static final String DOT_CLASS = RoleAnalysisDetectedPatternTable.class.getName() + ".";
+    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
+    OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
+
 
     public RoleAnalysisDetectedPatternTable(String id, LoadableDetachableModel<List<DetectedPattern>> detectedPatternList,
             boolean isOperationEnable, RoleAnalysisClusterType cluster) {
@@ -372,15 +375,13 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                             @Override
                             protected void onSubmit(AjaxRequestTarget target) {
 
-                                OperationResult operationResult = new OperationResult("PerformPatternCreation");
-
                                 Set<String> roles = rowModel.getObject().getRoles();
                                 Set<String> users = rowModel.getObject().getUsers();
 
                                 List<AssignmentType> roleAssignments = new ArrayList<>();
 
                                 for (String roleOid : roles) {
-                                    PrismObject<RoleType> roleObject = getRoleTypeObject(getPageBase(), roleOid, operationResult);
+                                    PrismObject<RoleType> roleObject = getRoleTypeObject(getPageBase(), roleOid, result);
                                     if (roleObject != null) {
                                         roleAssignments.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
                                     }
@@ -391,7 +392,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                 List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
 
                                 for (String userOid : users) {
-                                    PrismObject<UserType> userObject = getUserTypeObject(getPageBase(), userOid, operationResult);
+                                    PrismObject<UserType> userObject = getUserTypeObject(getPageBase(), userOid, result);
                                     if (userObject != null) {
                                         roleApplicationDtos.add(new BusinessRoleDto(userObject,
                                                 businessRole, getPageBase()));

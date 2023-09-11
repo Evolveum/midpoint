@@ -62,9 +62,12 @@ import org.apache.wicket.util.string.StringValue;
 })
 
 public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
-    boolean isWizardPanel = false;
 
+    private static final String DOT_CLASS = PageRoleAnalysisSession.class.getName() + ".";
+    private static final String OP_DELETE_CLEANUP = DOT_CLASS + "deleteCleanup";
+    private static final String OP_PERFORM_CLUSTERING = DOT_CLASS + "performClustering";
     public static final String PARAM_IS_WIZARD = "isWizard";
+    boolean isWizardPanel = false;
 
     public boolean isWizardPanel() {
         StringValue stringValue = getPageParameters().get(PARAM_IS_WIZARD);
@@ -86,13 +89,12 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     @Override
     public void afterDeletePerformed(AjaxRequestTarget target) {
         PageBase pageBase = (PageBase) getPage();
-        Task task = pageBase.createSimpleTask("Recompute object");
-        OperationResult result = task.getResult();
+        OperationResult result = new OperationResult(OP_DELETE_CLEANUP);
 
         RoleAnalysisSessionType session = getModelWrapperObject().getObjectOld().asObjectable();
         String sessionOid = session.getOid();
 
-        searchAndDeleteCluster(pageBase, result, sessionOid);
+        searchAndDeleteCluster(pageBase, sessionOid, result);
     }
 
     @Override
@@ -104,7 +106,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     public void addAdditionalButtons(RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
                 LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton detection = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+        AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
                 iconBuilder.build(),
                 setDetectionButtonTitle()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -119,26 +121,27 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             }
         };
-        detection.titleAsLabel(true);
-        detection.setOutputMarkupId(true);
-        detection.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-        repeatingView.add(detection);
+        rebuildButton.titleAsLabel(true);
+        rebuildButton.setOutputMarkupId(true);
+        rebuildButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        repeatingView.add(rebuildButton);
 
-        Form<?> form = detection.findParent(Form.class);
+        Form<?> form = rebuildButton.findParent(Form.class);
         if (form != null) {
-            form.setDefaultButton(detection);
+            form.setDefaultButton(rebuildButton);
         }
     }
 
     public void clusteringPerform(AjaxRequestTarget target) {
 
-        OperationResult result = new OperationResult("ClusteringPerform");
-        Task task = getPageBase().createSimpleTask("executeClusteringTask");
+        Task task = getPageBase().createSimpleTask(OP_PERFORM_CLUSTERING);
+        OperationResult result = task.getResult();
 
         String sessionOid = getObjectDetailsModels().getObjectType().getOid();
 
         executeClusteringTask(result, task, sessionOid);
 
+        result.recordSuccessIfUnknown();
         setResponsePage(PageRoleAnalysis.class);
         ((PageBase) getPage()).showResult(result);
         target.add(getFeedbackPanel());

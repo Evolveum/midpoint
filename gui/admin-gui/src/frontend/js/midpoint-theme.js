@@ -565,4 +565,72 @@ export default class MidPointTheme {
         panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
         panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
     }
+
+    initScaleResize(containerId) {
+        let div = document.querySelector(containerId);
+        let scale = 0.5;
+        let component = null;
+
+        if (!div) {
+            console.error('Container not found');
+            return;
+        }
+
+        if (containerId === '#tableScaleContainer') {
+            component = div.querySelector('table');
+        } else if (containerId === '#imageScaleContainer') {
+            component = div.querySelector('img');
+        }
+
+        if (component) {
+            div.addEventListener('wheel', handleZoom);
+        } else {
+            console.error('Component not found');
+        }
+
+        function handleZoom(e) {
+            e.preventDefault();
+            let rectBefore = component.getBoundingClientRect();
+            let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;
+            let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;
+
+            if (e.deltaY < 0) {
+                zoomIn(rectBefore, x, y);
+            } else if (e.deltaY > 0) {
+                zoomOut(rectBefore);
+            }
+        }
+
+        function zoomIn(rectBefore, x, y) {
+            console.log('Zooming in');
+            scale += 0.03;
+
+            let prevScale = scale - 0.1;
+            let scaleFactor = scale / prevScale;
+
+            let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);
+            let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);
+
+            setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor);
+        }
+
+        function zoomOut(rectBefore) {
+            console.log('Zooming out');
+            scale -= 0.03;
+            scale = Math.max(0.1, scale);
+
+            setTransform(0, 0, scale, rectBefore, 0, 0, 1);
+        }
+
+        function setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor) {
+            component.style.transformOrigin = `${x}% ${y}%`;
+            component.style.transition = 'transform 0.3s';
+            component.style.transform = `scale(${scale})`;
+
+            let rectAfter = component.getBoundingClientRect();
+            div.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);
+            div.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);
+        }
+    }
+
 }

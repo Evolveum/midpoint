@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.chunk;
 
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getUserTypeObject;
+
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
@@ -18,16 +21,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.getUserTypeObject;
-
 public class CacheUtils {
 
-    protected static PrismObject<RoleType> cacheRole(ModelService modelService, OperationResult result,
-            Map<String, PrismObject<RoleType>> roleExistCache, String roleOid, Task task) {
+    @Nullable
+    protected static PrismObject<RoleType> cacheRole(ModelService modelService, Map<String, PrismObject<RoleType>> roleExistCache,
+            String roleOid, Task task, OperationResult result) {
         PrismObject<RoleType> role = roleExistCache.get(roleOid);
         if (role == null) {
-            role = getRoleTypeObject(modelService, roleOid, result, task);
+            role = getRoleTypeObject(modelService, roleOid, task, result);
             if (role == null) {
                 return null;
             }
@@ -37,11 +38,11 @@ public class CacheUtils {
     }
 
     @Nullable
-    protected static PrismObject<UserType> cacheUser(ModelService modelService, OperationResult result,
-            Map<String, PrismObject<UserType>> userExistCache, String userOid, Task task) {
+    protected static PrismObject<UserType> cacheUser(ModelService modelService, Map<String, PrismObject<UserType>> userExistCache,
+            String userOid, Task task, OperationResult result) {
         PrismObject<UserType> user = userExistCache.get(userOid);
         if (user == null) {
-            user = getUserTypeObject(modelService, userOid, result, task);
+            user = getUserTypeObject(modelService, userOid, task, result);
             if (user == null) {
                 return null;
             }

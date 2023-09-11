@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.migratedRoles",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                icon = GuiStyleConstants.CLASS_GROUP_ICON,
                 order = 30
         )
 )
@@ -65,7 +65,9 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
 
-    private final OperationResult operationResult = new OperationResult("LoadMigratedRoles");
+    private static final String DOT_CLASS = MigratedRolesPanel.class.getName() + ".";
+    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
+    private final OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
 
     public MigratedRolesPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
             ContainerPanelConfigurationType config) {
@@ -81,7 +83,7 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         for (ObjectReferenceType objectReferenceType : reductionObject) {
             String oid = objectReferenceType.getOid();
             if (oid != null) {
-                PrismObject<RoleType> roleTypeObject = getRoleTypeObject(getPageBase(), oid, operationResult);
+                PrismObject<RoleType> roleTypeObject = getRoleTypeObject(getPageBase(), oid, result);
                 if (roleTypeObject != null) {
                     roles.add(roleTypeObject.asObjectable());
                 }
@@ -221,7 +223,7 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
             @Override
             public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
                     IModel<RoleType> rowModel) {
-                Integer membersCount = countRoleMembers(null, operationResult, getPageBase(), rowModel.getObject().getOid());
+                Integer membersCount = countRoleMembers(getPageBase(), null, rowModel.getObject().getOid(), result);
 
                 if (membersCount == null) {
                     membersCount = 0;

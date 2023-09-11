@@ -98,8 +98,8 @@ public class CandidateAssignPanel extends BasePanel<String> implements Popupable
                             protected void onSubmit(AjaxRequestTarget target) {
                                 this.setEnabled(false);
                                 enable = false;
-                                target.add(this);
                                 performAddOperation(target, iModel);
+                                target.add(this);
                             }
 
                             @Override

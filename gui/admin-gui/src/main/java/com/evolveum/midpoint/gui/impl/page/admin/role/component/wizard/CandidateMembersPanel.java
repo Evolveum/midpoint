@@ -7,19 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.ModificationTargetPanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.apache.wicket.model.IModel;
 
 @PanelType(name = "brw-candidateMembers")
 @PanelInstance(identifier = "brw-access",
@@ -30,10 +28,8 @@ import org.apache.wicket.model.IModel;
 public class CandidateMembersPanel<AR extends AbstractRoleType>
         extends AbstractWizardStepPanel<AbstractRoleDetailsModel<AR>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CandidateMembersPanel.class);
-
     public static final String PANEL_TYPE = "brw-candidateMembers";
-    private static final String ID_CANDIDATE_MEMEBERS = "candidateMembers";
+    private static final String ID_CANDIDATE_MEMBERS = "candidateMembers";
 
 
     public CandidateMembersPanel(AbstractRoleDetailsModel<AR> model) {
@@ -47,7 +43,7 @@ public class CandidateMembersPanel<AR extends AbstractRoleType>
     }
 
     private void initLayout() {
-        ModificationTargetPanel<AR> roleInducementsPanel = new ModificationTargetPanel<>(ID_CANDIDATE_MEMEBERS, getDetailsModel(), getContainerConfiguration(PANEL_TYPE));
+        ModificationTargetPanel<AR> roleInducementsPanel = new ModificationTargetPanel<>(ID_CANDIDATE_MEMBERS, getDetailsModel(), getContainerConfiguration(PANEL_TYPE));
         add(roleInducementsPanel);
     }
 

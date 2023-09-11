@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionPatternType.detectedPattern",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                icon = GuiStyleConstants.CLASS_ICON_SEARCH,
                 order = 30
         )
 )

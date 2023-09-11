@@ -27,7 +27,15 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * TODO
+ * Clustering action.
+ * <p>
+ * This action is responsible for clustering objects based on selected role analysis mode.
+ * <p>
+ * It is possible to cluster objects based on user or role. This is set in session object.
+ * <p>
+ * This action is also responsible for importing clusters into repository.
+ * <p>
+ * This action also updates session object with information about clusters.
  */
 public class ClusteringAction extends BaseAction {
 
@@ -44,10 +52,10 @@ public class ClusteringAction extends BaseAction {
         var task = activityRun.getRunningTask();
         ModelService modelService = ModelBeans.get().modelService;
 
-        PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(modelService, result, sessionOid, task);
+        PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(modelService, sessionOid, task, result);
         if (prismSession != null) {
 
-            deleteRoleAnalysisSessionClusters(modelService, result, prismSession.getOid(), task);
+            deleteRoleAnalysisSessionClusters(modelService, prismSession.getOid(), task, result);
 
             RoleAnalysisProcessModeType processMode = prismSession.asObjectable().getProcessMode();
             if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
@@ -58,7 +66,7 @@ public class ClusteringAction extends BaseAction {
 
             RoleAnalysisSessionType session = prismSession.asObjectable();
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
-                    clusterable.executeClustering(session, result, modelService, handler, task);
+                    clusterable.executeClustering(session, modelService, handler, task, result);
 
             if (clusterObjects != null && !clusterObjects.isEmpty()) {
                 importObjects(clusterObjects, session, modelService, task, result);
@@ -105,10 +113,7 @@ public class ClusteringAction extends BaseAction {
             objectReferenceType.setOid(clusterTypePrismObject.getOid());
             objectReferenceType.setType(complexType);
 
-            importRoleAnalysisClusterObject(result, task, modelService,
-                    clusterTypePrismObject,
-                    sessionRef,
-                    session.getDefaultDetectionOption()
+            importRoleAnalysisClusterObject(modelService, clusterTypePrismObject, session.getDefaultDetectionOption(), sessionRef, task, result
             );
         }
         result.getSubresults().get(0).close();
@@ -122,11 +127,9 @@ public class ClusteringAction extends BaseAction {
 
         handler.enterNewStep("Update Session");
         handler.setOperationCountToProcess(clusters.size());
-        modifySessionAfterClustering(sessionRef,
+        modifySessionAfterClustering(modelService, sessionRef,
                 sessionStatistic,
-                modelService,
-                result,
-                task
+                task, result
         );
     }
 

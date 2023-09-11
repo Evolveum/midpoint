@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.deleteSingleRoleAnalysisCluster;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +20,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
@@ -62,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.roleAnalysisClusterRef",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                icon = GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON,
                 order = 20
         )
 )
@@ -70,6 +71,8 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_FORM = "form";
+    private static final String DOT_CLASS = ClustersPanel.class.getName() + ".";
+    private static final String OP_DELETE_CLUSTER = DOT_CLASS + "deleteCluster";
 
     public ClustersPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -116,14 +119,24 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
             }
 
             @Override
+            protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createIconColumn() {
+                return super.createIconColumn();
+            }
+
+            @Override
             protected List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> createDefaultColumns() {
 
                 List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns = new ArrayList<>();
 
                 IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
 
-                column = new AbstractColumn<>(
-                        createStringResource("")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("AnalysisClusterStatisticType.usersCount")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                        return extractUserObjectCount(iModel);
+                    }
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -133,16 +146,8 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-
-                        RoleAnalysisClusterType value = model.getObject().getValue();
-                        if (value != null
-                                && value.getClusterStatistics() != null
-                                && value.getClusterStatistics().getUsersCount() != null) {
-                            cellItem.add(new Label(componentId,
-                                    value.getClusterStatistics().getUsersCount()));
-                        } else {
-                            cellItem.add(new EmptyPanel(componentId));
-                        }
+                        IModel<?> userObjectCount = extractUserObjectCount(model);
+                        cellItem.add(new Label(componentId, userObjectCount));
                     }
 
                     @Override
@@ -153,8 +158,13 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 };
                 columns.add(column);
 
-                column = new AbstractColumn<>(
-                        createStringResource("")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("AnalysisClusterStatisticType.rolesCount")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                        return extractRoleObjectCount(iModel);
+                    }
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -163,17 +173,8 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-
-                        RoleAnalysisClusterType value = model.getObject().getValue();
-                        if (value != null
-                                && value.getClusterStatistics() != null
-                                && value.getClusterStatistics().getRolesCount() != null) {
-                            cellItem.add(new Label(componentId, model.getObject().getValue().getClusterStatistics().getRolesCount()));
-                        } else {
-                            cellItem.add(new Label(componentId,
-                                    (Integer) null));
-                        }
+                                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                        cellItem.add(new Label(componentId, extractRoleObjectCount(model)));
                     }
 
                     @Override
@@ -184,8 +185,13 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 };
                 columns.add(column);
 
-                column = new AbstractColumn<>(
-                        createStringResource("RoleMining.cluster.table.column.header.range.properties")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("AnalysisClusterStatisticType.membershipRange")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                        return extractMembershipRange(iModel);
+                    }
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -197,23 +203,8 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-                        AnalysisClusterStatisticType clusterStatistics = null;
-                        RoleAnalysisClusterType value = model.getObject().getValue();
-                        if (value != null) {
-                            clusterStatistics = value.getClusterStatistics();
-                        }
-
-                        if (clusterStatistics != null
-                                && clusterStatistics.getMembershipRange() != null
-                                && clusterStatistics.getMembershipRange().getMin() != null
-                                && clusterStatistics.getMembershipRange().getMax() != null) {
-                            cellItem.add(new Label(componentId, clusterStatistics.getMembershipRange().getMin()
-                                    + " - " + clusterStatistics.getMembershipRange().getMax()));
-
-                        } else {
-                            cellItem.add(new Label(componentId,
-                                    (Integer) null));
-                        }
+                        IModel<?> membershipRange = extractMembershipRange(model);
+                        cellItem.add(new Label(componentId, membershipRange));
                     }
 
                     @Override
@@ -224,8 +215,13 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 };
                 columns.add(column);
 
-                column = new AbstractColumn<>(
-                        createStringResource("RoleMining.cluster.table.column.header.mean")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("AnalysisClusterStatisticType.membershipMean")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                        return extractMembershipMean(iModel);
+                    }
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -237,15 +233,7 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-                        RoleAnalysisClusterType value = model.getObject().getValue();
-                        if (value != null
-                                && value.getClusterStatistics() != null
-                                && value.getClusterStatistics().getMembershipMean() != null) {
-                            cellItem.add(new Label(componentId, value.getClusterStatistics().getMembershipMean()));
-                        } else {
-                            cellItem.add(new Label(componentId,
-                                    (Integer) null));
-                        }
+                        cellItem.add(new Label(componentId, extractMembershipMean(model)));
 
                     }
 
@@ -257,8 +245,13 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 };
                 columns.add(column);
 
-                column = new AbstractColumn<>(
-                        createStringResource("")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("AnalysisClusterStatisticType.detectedReductionMetric")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                        return extractReductionMetric(iModel);
+                    }
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -269,17 +262,7 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
-                        RoleAnalysisClusterType value = model.getObject().getValue();
-                        if (value != null
-                                && value.getClusterStatistics() != null
-                                && value.getClusterStatistics().getDetectedReductionMetric() != null) {
-                            Double detectedReductionMetric = value.getClusterStatistics().getDetectedReductionMetric();
-                            cellItem.add(new Label(componentId,
-                                    detectedReductionMetric));
-                        } else {
-
-                            cellItem.add(new EmptyPanel(componentId));
-                        }
+                        cellItem.add(new Label(componentId, extractReductionMetric(model)));
                     }
 
                     @Override
@@ -294,8 +277,13 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 };
                 columns.add(column);
 
-                column = new AbstractColumn<>(
-                        createStringResource("RoleMining.cluster.table.column.header.density")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("AnalysisClusterStatisticType.membershipDensity")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                        return extractMembershipDensity(iModel);
+                    }
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -433,19 +421,19 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                     public void onClick(AjaxRequestTarget target) {
 
                         List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable().getSelectedObjects();
-                        OperationResult result = new OperationResult("Delete cluster object");
+                        OperationResult result = new OperationResult(OP_DELETE_CLUSTER);
                         if (selectedObjects.size() == 1 && getRowModel() == null) {
                             try {
                                 SelectableBean<RoleAnalysisClusterType> roleAnalysisSessionTypeSelectableBean = selectedObjects.get(0);
-                                deleteSingleRoleAnalysisCluster(result, roleAnalysisSessionTypeSelectableBean.getValue(),
-                                        (PageBase) getPage());
+                                deleteSingleRoleAnalysisCluster((PageBase) getPage(), roleAnalysisSessionTypeSelectableBean.getValue(), result
+                                );
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
                         } else if (getRowModel() != null) {
                             try {
                                 IModel<SelectableBean<RoleAnalysisClusterType>> rowModel = getRowModel();
-                                deleteSingleRoleAnalysisCluster(result, rowModel.getObject().getValue(), (PageBase) getPage());
+                                deleteSingleRoleAnalysisCluster((PageBase) getPage(), rowModel.getObject().getValue(), result);
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -453,7 +441,7 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                             for (SelectableBean<RoleAnalysisClusterType> selectedObject : selectedObjects) {
                                 try {
                                     RoleAnalysisClusterType roleAnalysisClusterType = selectedObject.getValue();
-                                    deleteSingleRoleAnalysisCluster(result, roleAnalysisClusterType, (PageBase) getPage());
+                                    deleteSingleRoleAnalysisCluster((PageBase) getPage(), roleAnalysisClusterType, result);
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
@@ -471,6 +459,87 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
             }
         };
+    }
+
+    private static IModel<?> extractUserObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+        RoleAnalysisClusterType value = model.getObject().getValue();
+        if (value != null
+                && value.getClusterStatistics() != null
+                && value.getClusterStatistics().getUsersCount() != null) {
+            return Model.of(value.getClusterStatistics().getUsersCount());
+        } else {
+            return Model.of("");
+        }
+    }
+
+    private static IModel<?> extractRoleObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+        RoleAnalysisClusterType value = model.getObject().getValue();
+        if (value != null
+                && value.getClusterStatistics() != null
+                && value.getClusterStatistics().getRolesCount() != null) {
+            Integer rolesCount = value.getClusterStatistics().getRolesCount();
+            return Model.of(rolesCount);
+        } else {
+            return Model.of("");
+        }
+    }
+
+    private static IModel<?> extractMembershipRange(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+        AnalysisClusterStatisticType clusterStatistics = null;
+        RoleAnalysisClusterType value = model.getObject().getValue();
+        if (value != null) {
+            clusterStatistics = value.getClusterStatistics();
+        }
+
+        if (clusterStatistics != null
+                && clusterStatistics.getMembershipRange() != null
+                && clusterStatistics.getMembershipRange().getMin() != null
+                && clusterStatistics.getMembershipRange().getMax() != null) {
+            return Model.of(clusterStatistics.getMembershipRange().getMin()
+                    + " - " + clusterStatistics.getMembershipRange().getMax());
+
+        } else {
+            return Model.of("");
+        }
+    }
+
+    private static IModel<?> extractMembershipMean(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+        RoleAnalysisClusterType value = model.getObject().getValue();
+        if (value != null
+                && value.getClusterStatistics() != null
+                && value.getClusterStatistics().getMembershipMean() != null) {
+            return Model.of(value.getClusterStatistics().getMembershipMean());
+        } else {
+            return Model.of("");
+        }
+    }
+
+    private static IModel<?> extractReductionMetric(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+        RoleAnalysisClusterType value = model.getObject().getValue();
+        if (value != null
+                && value.getClusterStatistics() != null
+                && value.getClusterStatistics().getDetectedReductionMetric() != null) {
+            Double detectedReductionMetric = value.getClusterStatistics().getDetectedReductionMetric();
+            return Model.of(detectedReductionMetric);
+        } else {
+            return Model.of("");
+        }
+    }
+
+    private static IModel<?> extractMembershipDensity(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+        RoleAnalysisClusterType value = model.getObject().getValue();
+        if (value != null
+                && value.getClusterStatistics() != null
+                && value.getClusterStatistics().getMembershipDensity() != null) {
+            AnalysisClusterStatisticType clusterStatistics = model.getObject().getValue().getClusterStatistics();
+            String pointsDensity = String.format("%.3f",
+                    clusterStatistics.getMembershipDensity());
+
+            return Model.of(pointsDensity + " (%)");
+        } else {
+
+            return Model.of("");
+        }
     }
 
     private <C extends Containerable> PrismPropertyHeaderPanel<?> createModeBasedColumnHeader(String componentId,
