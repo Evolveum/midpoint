@@ -16,15 +16,15 @@ import com.evolveum.midpoint.ninja.action.VerifyOptions;
 import com.evolveum.midpoint.ninja.action.VerifyResult;
 import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 public class VerificationReporter {
 
@@ -86,7 +86,7 @@ public class VerificationReporter {
     public void destroy() {
         if (deltaWriter != null) {
             try {
-                deltaWriter.write("</deltas>\n");
+                deltaWriter.write(NinjaUtils.XML_DELTAS_SUFFIX);
             } catch (IOException ex) {
                 throw new NinjaException("Couldn't finish file for XML deltas", ex);
             }
@@ -146,11 +146,7 @@ public class VerificationReporter {
             deltaFile.createNewFile();
 
             deltaWriter = new FileWriter(deltaFile, charset);
-            deltaWriter.write(
-                    "<deltas "
-                            + "xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/api-types-3\" "
-                            + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-                            + "xsi:type=\"ObjectDeltaListType\">\n");
+            deltaWriter.write(NinjaUtils.XML_DELTAS_PREFIX);
         } catch (IOException ex) {
             throw new NinjaException("Couldn't create file for XML deltas " + deltaFile.getPath(), ex);
         }
@@ -225,8 +221,10 @@ public class VerificationReporter {
 
             if (deltaWriter != null) {
                 try {
-                    deltaWriter.write(DeltaConvertor.serializeDelta(
-                            (ObjectDelta) item.getDelta(), DeltaConversionOptions.createSerializeReferenceNames(), "xml"));
+                    ObjectDeltaType deltaType = DeltaConvertor.toObjectDeltaType(item.getDelta());
+                    String xml = prismContext.xmlSerializer()
+                            .serializeRealValue(deltaType, NinjaUtils.DELTA_LIST_DELTA);
+                    deltaWriter.write(xml);
                 } catch (SchemaException | IOException ex) {
                     log.error("Couldn't write object delta to XML file", ex);
                 }

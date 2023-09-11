@@ -70,7 +70,7 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         VerifyResult result;
         if (options.getOutput() != null) {
             log.info("Verification report will be saved to '{}'", options.getOutput().getPath());
-        } else if (context.isUserMode()) {
+        } else if (context.isUserMode() && !partial) {
             log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradeability status of deprecated items.");
             log.warn("It is recommended to review this report and actions for proper upgrade procedure.");
         }
