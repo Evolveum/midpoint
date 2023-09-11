@@ -23,11 +23,12 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAn
 
 public class CacheUtils {
 
-    protected static PrismObject<RoleType> cacheRole(ModelService modelService, OperationResult result,
-            Map<String, PrismObject<RoleType>> roleExistCache, String roleOid, Task task) {
+    @Nullable
+    protected static PrismObject<RoleType> cacheRole(ModelService modelService, Map<String, PrismObject<RoleType>> roleExistCache,
+            String roleOid, Task task, OperationResult result) {
         PrismObject<RoleType> role = roleExistCache.get(roleOid);
         if (role == null) {
-            role = getRoleTypeObject(modelService, roleOid, result, task);
+            role = getRoleTypeObject(modelService, roleOid, task, result);
             if (role == null) {
                 return null;
             }
@@ -37,11 +38,11 @@ public class CacheUtils {
     }
 
     @Nullable
-    protected static PrismObject<UserType> cacheUser(ModelService modelService, OperationResult result,
-            Map<String, PrismObject<UserType>> userExistCache, String userOid, Task task) {
+    protected static PrismObject<UserType> cacheUser(ModelService modelService, Map<String, PrismObject<UserType>> userExistCache,
+            String userOid, Task task, OperationResult result) {
         PrismObject<UserType> user = userExistCache.get(userOid);
         if (user == null) {
-            user = getUserTypeObject(modelService, userOid, result, task);
+            user = getUserTypeObject(modelService, userOid, task, result);
             if (user == null) {
                 return null;
             }

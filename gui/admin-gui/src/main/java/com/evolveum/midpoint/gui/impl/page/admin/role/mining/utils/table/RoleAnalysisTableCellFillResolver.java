@@ -24,7 +24,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 
-public class TableCellFillOperation {
+public class RoleAnalysisTableCellFillResolver {
 
     public static void updateFrequencyUserBased(IModel<MiningRoleTypeChunk> rowModel, double minFrequency, double maxFrequency) {
         if (minFrequency > rowModel.getObject().getFrequency() && rowModel.getObject().getFrequency() < maxFrequency) {
@@ -107,7 +107,7 @@ public class TableCellFillOperation {
                 if (found) {
                     model.getObject().setStatus(RoleAnalysisOperationMode.ADD);
                     userChunk.setStatus(RoleAnalysisOperationMode.ADD);
-                    Tools.filledCell(cellItem, componentId, "bg-success");
+                    RoleAnalysisTableTools.filledCell(cellItem, componentId, "bg-success");
                 } else {
                     filledCell(cellItem, componentId, rowUsers, colUsers, "table-dark", "");
                 }

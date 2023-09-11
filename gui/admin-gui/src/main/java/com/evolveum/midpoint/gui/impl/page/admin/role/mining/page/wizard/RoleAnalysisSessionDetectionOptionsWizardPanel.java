@@ -26,6 +26,9 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     private static final String WORK_PANEL_TYPE = "rm-detection";
 
+    private static final double DEFAULT_MIN_FREQUENCY = 30.0;
+    private static final double DEFAULT_MAX_FREQUENCY = 100.0;
+
     public RoleAnalysisSessionDetectionOptionsWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(model);
     }
@@ -53,8 +56,8 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
             setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_DETECTION_PROCESS_MODE, RoleAnalysisDetectionProcessType.PARTIAL);
             setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, new RangeType()
-                    .min(30.0)
-                    .max(100.0));
+                    .min(DEFAULT_MIN_FREQUENCY)
+                    .max(DEFAULT_MAX_FREQUENCY));
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);

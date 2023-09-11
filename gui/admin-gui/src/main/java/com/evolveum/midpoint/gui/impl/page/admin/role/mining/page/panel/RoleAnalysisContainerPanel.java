@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "AnalysisClusterStatisticType.clusterStatistic",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                icon = GuiStyleConstants.CLASS_REPORT_ICON,
                 order = 40
         ),
         containerPath = "clusterStatistics",
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.detectionOption",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                icon = GuiStyleConstants.CLASS_OPTIONS,
                 order = 30
         ),
         containerPath = "detectionOption",
@@ -51,8 +51,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 50
+                icon = GuiStyleConstants.CLASS_OPTIONS,
+                order = 40
         ),
         containerPath = "roleModeOptions",
         type = "RoleAnalysisSessionOptionType",
@@ -63,8 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 50
+                icon = GuiStyleConstants.CLASS_OPTIONS,
+                order = 40
         ),
         containerPath = "userModeOptions",
         type = "UserAnalysisSessionOptionType",
@@ -76,8 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionStatistic",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-                order = 40
+                icon = GuiStyleConstants.CLASS_REPORT_ICON,
+                order = 50
         ),
         containerPath = "sessionStatistic",
         type = "RoleAnalysisSessionStatisticType",
@@ -89,7 +89,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionOptionType.defaultDetectionOption",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                icon = GuiStyleConstants.CLASS_OPTIONS,
                 order = 30
         ),
         containerPath = "defaultDetectionOption",

@@ -7,26 +7,21 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+import java.io.Serial;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
 public class SessionSummaryPanel extends FocusSummaryPanel<RoleAnalysisSessionType> {
-    private static final long serialVersionUID = 8087858942603720878L;
+    @Serial private static final long serialVersionUID = 8087858942603720878L;
 
     public SessionSummaryPanel(String id, IModel<RoleAnalysisSessionType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
         super(id, RoleAnalysisSessionType.class, model, summaryPanelSpecificationType);
-    }
-
-    @Override
-    protected QName getDisplayNamePropertyName() {
-        return RoleAnalysisSessionType.F_NAME;
     }
 
     @Override
@@ -36,7 +31,7 @@ public class SessionSummaryPanel extends FocusSummaryPanel<RoleAnalysisSessionTy
 
     @Override
     protected String getDefaultIconCssClass() {
-        return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
+        return IconAndStylesUtil.createDefaultIcon(getModelObject().asPrismObject());
     }
 
     @Override
@@ -49,4 +44,8 @@ public class SessionSummaryPanel extends FocusSummaryPanel<RoleAnalysisSessionTy
         return "summary-panel-role";
     }
 
+    @Override
+    protected boolean isActivationVisible() {
+        return false;
+    }
 }

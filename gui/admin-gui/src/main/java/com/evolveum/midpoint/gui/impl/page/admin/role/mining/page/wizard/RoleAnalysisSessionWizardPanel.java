@@ -12,7 +12,6 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
@@ -34,8 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    private static final double DEFAULT_MIN_FREQUENCY = 30;
-    private static final double DEFAULT_MAX_FREQUENCY = 100;
+    private static final String DOT_CLASS = RoleAnalysisSessionWizardPanel.class.getName() + ".";
+    private static final String OP_PROCESS_CLUSTERING = DOT_CLASS + "processClustering";
 
     public RoleAnalysisSessionWizardPanel(String id, WizardPanelHelper<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> helper) {
         super(id, helper);
@@ -111,8 +110,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                OperationResult result = new OperationResult("ImportSessionObject");
-                Task task = getPageBase().createSimpleTask("Import Session object");
+                Task task = getPageBase().createSimpleTask(OP_PROCESS_CLUSTERING);
+                OperationResult result = task.getResult();
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas;
                 try {
@@ -137,14 +136,6 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         });
 
         return steps;
-    }
-
-    private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
-        OperationResult result = onSavePerformed(target);
-        if (!result.isError()) {
-//            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
-            exitToPreview(target);
-        }
     }
 
     private void onExitPerformed() {
@@ -184,61 +175,6 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
     }
 
     private void exitToPreview(AjaxRequestTarget target) {
-//        showChoiceFragment(
-//                target,
-//                new RoleWizardPreviewPanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {
-//                    @Override
-//                    protected void onTileClickPerformed(PreviewTileType value, AjaxRequestTarget target) {
-//                        switch (value) {
-//                            case CONFIGURE_MEMBERS:
-//                                showMembersPanel(target);
-//                                break;
-//                            case CONFIGURE_GOVERNANCE_MEMBERS:
-//                                showGovernanceMembersPanel(target);
-//                                break;
-//                        }
-//                    }
-//                });
     }
 
-    private void showGovernanceMembersPanel(AjaxRequestTarget target) {
-//        showChoiceFragment(target, new GovernanceMembersWizardPanel(
-//                getIdOfChoicePanel(),
-//                getAssignmentHolderModel()) {
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//        });
-    }
-
-    private void showMembersPanel(AjaxRequestTarget target) {
-//        showChoiceFragment(target, new MembersWizardPanel(
-//                getIdOfChoicePanel(),
-//                getAssignmentHolderModel()) {
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//        });
-    }
-
-    enum PreviewTileType implements TileEnum {
-
-        CONFIGURE_GOVERNANCE_MEMBERS("fa fa-users"),
-        CONFIGURE_MEMBERS("fa fa-users");
-
-        private final String icon;
-
-        PreviewTileType(String icon) {
-            this.icon = icon;
-        }
-
-        @Override
-        public String getIcon() {
-            return icon;
-        }
-    }
 }

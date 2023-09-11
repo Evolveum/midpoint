@@ -52,6 +52,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, AbstractRoleDetailsModel<RoleType>> {
 
+    private static final String DOT_CLASS = BusinessRoleWizardPanel.class.getName() + ".";
+    private static final String OP_PERFORM_MIGRATION = DOT_CLASS + "performMigration";
     public BusinessRoleWizardPanel(String id, WizardPanelHelper<RoleType, AbstractRoleDetailsModel<RoleType>> helper) {
         super(id, helper);
     }
@@ -122,8 +124,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
             }
 
             private void businessRoleMigrationPerform(AjaxRequestTarget target) {
-                OperationResult result = new OperationResult("Migration");
-                Task task = getPageBase().createSimpleTask("executeMigration");
+                Task task = getPageBase().createSimpleTask(OP_PERFORM_MIGRATION);
+                OperationResult result = task.getResult();
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas;
                 try {
@@ -143,9 +145,9 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                             .executeChanges(deltas, false, task, result, target);
 
                     String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
-                    clusterMigrationRecompute(result, patternDeltas.getCluster().getOid(), roleOid, getPageBase(), task);
+                    clusterMigrationRecompute(getPageBase(), patternDeltas.getCluster().getOid(), roleOid, task, result);
 
-                    PrismObject<RoleType> roleObject = getRoleTypeObject(modelService, roleOid, result, task);
+                    PrismObject<RoleType> roleObject = getRoleTypeObject(modelService, roleOid, task, result);
                     if (roleObject != null) {
                         executeMigrationTask(result, task, patternDeltas.getBusinessRoleDtos(), roleObject);
                     }

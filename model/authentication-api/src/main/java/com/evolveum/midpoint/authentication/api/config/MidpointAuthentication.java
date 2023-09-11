@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.api.config;
 import java.util.*;
 import java.util.stream.Stream;
 
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -655,7 +655,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public Collection<? extends GrantedAuthority> resolveAuthorities(Authentication token) {
         if (token.getPrincipal() instanceof MidPointPrincipal mpPrincipal) {
-            return authenticationChannel.resolveAuthorities(mpPrincipal.getAuthorities());
+            Collection<Authorization> newAuthorities = authenticationChannel.resolveAuthorities(mpPrincipal.getAuthorities());
+            newAuthorities.forEach(a -> mpPrincipal.addExtraAuthorizationIfMissing(a, true));
+            return newAuthorities;
         }
         return token.getAuthorities();
     }

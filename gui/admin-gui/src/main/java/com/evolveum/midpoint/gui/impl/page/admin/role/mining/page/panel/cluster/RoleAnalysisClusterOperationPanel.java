@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getSessionTypeObject;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 
 import java.util.List;
 
@@ -48,22 +48,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.operationsPanel",
-                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                icon = GuiStyleConstants.CLASS_ICON_TASK_RESULTS,
                 order = 20
         )
 )
-public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_MAIN_PANEL = "main";
     private static final String ID_DATATABLE = "datatable_extra";
-    private final OperationResult result = new OperationResult("GetObject");
+
+    private static final String DOT_CLASS = RoleAnalysisClusterOperationPanel.class.getName() + ".";
+    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
+    private final OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
     private DetectedPattern analysePattern = null;
     private MiningOperationChunk miningOperationChunk;
     private RoleAnalysisSortMode roleAnalysisSortMode;
     private boolean isRoleMode;
     private boolean compress = true;
 
-    public PageClusterOperationsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
+    public RoleAnalysisClusterOperationPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -73,8 +76,8 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
         ModelService modelService = ((PageBase) getPage()).getModelService();
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-        PrismObject<RoleAnalysisSessionType> getParent = getSessionTypeObject(modelService, result,
-                cluster.getRoleAnalysisSessionRef().getOid(), task);
+        PrismObject<RoleAnalysisSessionType> getParent = getSessionTypeObject(modelService, cluster.getRoleAnalysisSessionRef().getOid(), task, result
+        );
 
         if (getParent != null) {
             isRoleMode = getParent.asObjectable().getProcessMode().equals(RoleAnalysisProcessModeType.ROLE);
@@ -174,7 +177,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
             );
             boxedTablePanel.setOutputMarkupId(true);
             getMiningRoleBasedTable().replaceWith(boxedTablePanel);
-            target.appendJavaScript(getScaleScript());
+            target.appendJavaScript(applyTableScaleScript());
             target.add(getMiningRoleBasedTable().setOutputMarkupId(true));
 
         } else {
@@ -184,7 +187,7 @@ public class PageClusterOperationsPanel extends AbstractObjectMainPanel<RoleAnal
             );
             boxedTablePanel.setOutputMarkupId(true);
             getMiningUserBasedTable().replaceWith(boxedTablePanel);
-            target.appendJavaScript(getScaleScript());
+            target.appendJavaScript(applyTableScaleScript());
             target.add(getMiningUserBasedTable().setOutputMarkupId(true));
         }
 
