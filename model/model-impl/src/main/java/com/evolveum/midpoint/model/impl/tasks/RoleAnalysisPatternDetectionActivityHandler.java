@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.mining.algorithm.detection.DetectionActionExecutorNew;
+import com.evolveum.midpoint.model.impl.mining.algorithm.detection.DetectionActionExecutor;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
@@ -81,7 +81,7 @@ public class RoleAnalysisPatternDetectionActivityHandler
         return new MyActivityRun(context);
     }
 
-    class MyActivityRun
+    static class MyActivityRun
             extends LocalActivityRun<MyWorkDefinition, RoleAnalysisPatternDetectionActivityHandler, AbstractActivityWorkStateType> {
 
         MyActivityRun(
@@ -108,7 +108,7 @@ public class RoleAnalysisPatternDetectionActivityHandler
                 String clusterOid = getWorkDefinition().clusterOid;
                 LOGGER.debug("Running role analysis pattern detection activity; cluster OID: {}", clusterOid);
 
-                new DetectionActionExecutorNew(this, clusterOid, result)
+                new DetectionActionExecutor(this, clusterOid, result)
                         .executeDetectionProcess();
 
             } catch (Throwable t) {

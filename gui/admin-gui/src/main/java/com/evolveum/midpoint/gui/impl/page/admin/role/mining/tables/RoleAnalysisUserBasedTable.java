@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.TableCellFillOperation.updateFrequencyUserBased;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.TableCellFillOperation.updateUserBasedTableData;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.applySquareTableCell;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.updateFrequencyUserBased;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.updateUserBasedTableData;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 import java.io.Serial;
@@ -71,8 +71,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisUserBasedTable extends Panel {
 
-    private static final String ID_DATATABLE = "datatable_extra";
-    private final OperationResult result = new OperationResult("GetObject");
+    private static final String ID_DATATABLE = "datatable";
+    private static final String DOT_CLASS = RoleAnalysisUserBasedTable.class.getName() + ".";
+    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
+    private final OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
 
     private String valueTitle = null;
     private int currentPageView = 0;
@@ -114,6 +116,14 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
         initLayout(cluster);
     }
+
+
+//    @Override
+//    public void renderHead(IHeaderResponse response) {
+//        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initTableZoom('#role-mining-table');"));
+//    }
+
+
 
     private void initLayout(PrismObject<RoleAnalysisClusterType> cluster) {
 
@@ -204,13 +214,12 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 toCol = Integer.parseInt(rangeParts[1]);
                 getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster));
                 target.add(getTable().setOutputMarkupId(true));
-                target.appendJavaScript(getScaleScript());
+                target.appendJavaScript(applyTableScaleScript());
             }
 
             @Override
             public BusinessRoleApplicationDto getOperationData() {
 
-                OperationResult operationResult = new OperationResult("PerformPatternCreation");
                 if (miningOperationChunk == null) {
                     return null;
                 }
@@ -221,7 +230,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 for (MiningRoleTypeChunk roleChunk : simpleMiningRoleTypeChunks) {
                     if (roleChunk.getStatus().equals(RoleAnalysisOperationMode.ADD)) {
                         for (String roleOid : roleChunk.getRoles()) {
-                            PrismObject<RoleType> roleObject = getRoleTypeObject(getPageBase(), roleOid, operationResult);
+                            PrismObject<RoleType> roleObject = getRoleTypeObject(getPageBase(), roleOid, result);
                             if (roleObject != null) {
                                 roleAssignments.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
                             }
@@ -238,7 +247,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 for (MiningUserTypeChunk userChunk : simpleMiningUserTypeChunks) {
                     if (userChunk.getStatus().equals(RoleAnalysisOperationMode.ADD)) {
                         for (String userOid : userChunk.getUsers()) {
-                            PrismObject<UserType> userObject = getUserTypeObject(getPageBase(), userOid, operationResult);
+                            PrismObject<UserType> userObject = getUserTypeObject(getPageBase(), userOid, result);
                             if (userObject != null) {
                                 roleApplicationDtos.add(new BusinessRoleDto(userObject,
                                         businessRole, getPageBase()));
@@ -269,7 +278,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 getTable().replaceWith(generateTable(provider, users,
                         reductionObjects, cluster));
                 target.add(getTable().setOutputMarkupId(true));
-                target.appendJavaScript(getScaleScript());
+                target.appendJavaScript(applyTableScaleScript());
             }
 
             @Override
@@ -283,7 +292,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 getTable().replaceWith(generateTable(provider, users,
                         reductionObjects, cluster));
                 target.add(getTable().setOutputMarkupId(true));
-                target.appendJavaScript(getScaleScript());
+                target.appendJavaScript(applyTableScaleScript());
             }
 
             @Override

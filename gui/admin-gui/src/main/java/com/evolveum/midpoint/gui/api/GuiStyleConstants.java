@@ -201,6 +201,8 @@ public class GuiStyleConstants {
     public static final String CLASS_BAN = "fa fa-ban";
 
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
+
+    public static final String CLASS_OPTIONS = "fa fa-cogs";
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";
 
     public static final String CLASS_ASSIGN = "fa fa-link";
@@ -238,6 +240,10 @@ public class GuiStyleConstants {
     public static final String EVO_CASE_THICK_ICON = "fe fe-case_thick";
     public static final String EVO_ARCHETYPE_TYPE_ICON = "fe fe-archetype_smooth";
     public static final String EVO_MESSAGE_TEMPLATE_TYPE_ICON = "fa fa-book";
+
+    public static final String CLASS_ROLE_ANALYSIS_SESSION_ICON = "fa fa-bar-chart";
+    public static final String CLASS_ROLE_ANALYSIS_CLUSTER_ICON = "fa fa-cubes";
+
 
     public static final String GREEN_COLOR = "color-green";
     public static final String YELLOW_COLOR = "color-yellow";

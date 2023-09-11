@@ -27,14 +27,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserAnalysisSessionOptionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusterDataLoaderUtils.prepareDataPoints;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusterUtils.prepareDataPoints;
 
 public class UserBasedClustering implements Clusterable {
 
-    //TODO add progress handler
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, ModelService modelService, RoleAnalysisProgressIncrement handler, Task task) {
+            ModelService modelService, RoleAnalysisProgressIncrement handler, Task task, OperationResult result) {
 
         UserAnalysisSessionOptionType sessionOptionType = session.getUserModeOptions();
 
@@ -61,7 +60,8 @@ public class UserBasedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
 
         if (similarityDifference == 0.00) {
-            return new RoleAnalysisAlgorithmUtils().processExactMatch(modelService, task, result, dataPoints, session, handler);
+            return new RoleAnalysisAlgorithmUtils().processExactMatch(modelService, dataPoints, session,
+                    handler, task, result);
         }
 
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
@@ -72,16 +72,18 @@ public class UserBasedClustering implements Clusterable {
                 minUsersCount, distanceMeasure, minRolesOverlap);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
-        return new RoleAnalysisAlgorithmUtils().processClusters(modelService, task, result, dataPoints, clusters, session, handler);
+        return new RoleAnalysisAlgorithmUtils().processClusters(modelService, dataPoints, clusters, session,
+                handler, task, result);
     }
 
     private ListMultimap<List<String>, String> loadData(OperationResult result, ModelService modelService,
             int minProperties, int maxProperties, SearchFilterType userQuery, Task task) {
 
-        Set<String> existingRolesOidsSet = ClusterDataLoaderUtils.getExistingRolesOidsSet(result, modelService, task);
+        Set<String> existingRolesOidsSet = ClusterUtils.getExistingRolesOidsSet(modelService, task, result);
 
         //role //user
-        return ClusterDataLoaderUtils.getUserBasedRoleToUserMap(result, modelService, task, minProperties, maxProperties, userQuery, existingRolesOidsSet);
+        return ClusterUtils.getUserBasedRoleToUserMap(modelService, minProperties, maxProperties, userQuery, existingRolesOidsSet, task, result
+        );
     }
 
 }

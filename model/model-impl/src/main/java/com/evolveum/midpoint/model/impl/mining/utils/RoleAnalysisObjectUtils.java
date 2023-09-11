@@ -11,7 +11,6 @@ import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.loadIntersections;
-import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
 import java.util.*;
@@ -32,13 +31,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisObjectUtils {
 
+    private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisObjectUtils.class);
+
     public static PrismObject<UserType> getUserTypeObject(@NotNull ModelService modelService, String oid,
-            OperationResult result, Task task) {
+            Task task, OperationResult result) {
 
         try {
             return modelService.getObject(UserType.class, oid, null, task, result);
@@ -51,7 +54,7 @@ public class RoleAnalysisObjectUtils {
     }
 
     public static PrismObject<FocusType> getFocusTypeObject(@NotNull ModelService modelService, String oid,
-            OperationResult result, Task task) {
+            Task task, OperationResult result) {
 
         try {
             return modelService.getObject(FocusType.class, oid, null, task, result);
@@ -64,7 +67,7 @@ public class RoleAnalysisObjectUtils {
     }
 
     public static PrismObject<RoleType> getRoleTypeObject(@NotNull ModelService modelService, String oid,
-            OperationResult result, Task task) {
+            Task task, OperationResult result) {
 
         try {
             return modelService.getObject(RoleType.class, oid, null, task, result);
@@ -77,12 +80,13 @@ public class RoleAnalysisObjectUtils {
     }
 
     public static PrismObject<RoleAnalysisClusterType> getClusterTypeObject(@NotNull ModelService modelService, String oid,
-            OperationResult result, Task task) {
+            Task task, OperationResult result) {
 
         try {
             return modelService.getObject(RoleAnalysisClusterType.class, oid, null, task, result);
         } catch (Exception ex) {
-            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleAnalysisClusterType object, Probably not set yet", ex);
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER,
+                    "Couldn't get RoleAnalysisClusterType object, Probably not set yet", ex);
         } finally {
             result.recomputeStatus();
         }
@@ -90,34 +94,35 @@ public class RoleAnalysisObjectUtils {
     }
 
     public static PrismObject<RoleAnalysisSessionType> getSessionTypeObject(@NotNull ModelService modelService,
-            OperationResult result, String oid, Task task) {
+            String oid, Task task, OperationResult result) {
 
         try {
             return modelService.getObject(RoleAnalysisSessionType.class, oid, null, task, result);
         } catch (Exception ex) {
-            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleAnalysisSessionType object, Probably not set yet", ex);
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER,
+                    "Couldn't get RoleAnalysisSessionType object, Probably not set yet", ex);
         } finally {
             result.recomputeStatus();
         }
         return null;
     }
 
-
     public static Integer getSessionTypeObjectCount(@NotNull ModelService modelService,
-            OperationResult result, Task task) {
+            Task task, OperationResult result) {
 
         try {
             return modelService.countObjects(RoleAnalysisSessionType.class, null, null, task, result);
         } catch (Exception ex) {
-            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't count RoleAnalysisSessionType object, Probably not set yet", ex);
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER,
+                    "Couldn't count RoleAnalysisSessionType object, Probably not set yet", ex);
         } finally {
             result.recomputeStatus();
         }
         return 0;
     }
 
-    public static List<PrismObject<UserType>> extractRoleMembers(ObjectFilter userFilter, OperationResult result,
-            ModelService modelService, String objectId, Task task) {
+    public static List<PrismObject<UserType>> extractRoleMembers(ModelService modelService, ObjectFilter userFilter,
+            String objectId, Task task, OperationResult result) {
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .exists(AssignmentHolderType.F_ASSIGNMENT)
@@ -141,17 +146,18 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
-    public static void importRoleAnalysisClusterObject(OperationResult result, Task task, @NotNull ModelService modelService,
-            @NotNull PrismObject<RoleAnalysisClusterType> cluster, ObjectReferenceType parentRef,
-            RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption) {
+    public static void importRoleAnalysisClusterObject(@NotNull ModelService modelService,
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption, ObjectReferenceType parentRef,
+            Task task, OperationResult result) {
         cluster.asObjectable().setRoleAnalysisSessionRef(parentRef);
         cluster.asObjectable().setDetectionOption(roleAnalysisSessionDetectionOption);
         modelService.importObject(cluster, null, task, result);
     }
 
-    public static void modifySessionAfterClustering(ObjectReferenceType sessionRef,
+    public static void modifySessionAfterClustering(ModelService modelService, ObjectReferenceType sessionRef,
             RoleAnalysisSessionStatisticType sessionStatistic,
-            ModelService modelService, OperationResult result, Task task) {
+            Task task, OperationResult result) {
 
         try {
 
@@ -169,8 +175,8 @@ public class RoleAnalysisObjectUtils {
 
     }
 
-    public static void replaceRoleAnalysisClusterDetectionPattern(String clusterOid,
-            ModelService modelService, OperationResult result, List<DetectedPattern> detectedPatterns, Task task) {
+    public static void replaceRoleAnalysisClusterDetectionPattern(ModelService modelService, String clusterOid,
+            List<DetectedPattern> detectedPatterns, Task task, OperationResult result) {
 
         List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypes = loadIntersections(detectedPatterns);
 
@@ -181,27 +187,22 @@ public class RoleAnalysisObjectUtils {
             max = Math.max(max, clusterDetectionType.getClusterMetric());
         }
 
-        PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject(modelService, clusterOid, result, task);
+        PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject(modelService, clusterOid, task, result);
 
         if (clusterTypeObject == null) {
             return;
         }
         AnalysisClusterStatisticType clusterStatistics = clusterTypeObject.asObjectable().getClusterStatistics();
 
-        AnalysisClusterStatisticType analysisClusterStatisticType = new AnalysisClusterStatisticType();
-        analysisClusterStatisticType.setDetectedReductionMetric(max);
-        analysisClusterStatisticType.setMembershipDensity(clusterStatistics.getMembershipDensity());
-        analysisClusterStatisticType.setRolesCount(clusterStatistics.getRolesCount());
-        analysisClusterStatisticType.setUsersCount(clusterStatistics.getUsersCount());
-        analysisClusterStatisticType.setMembershipMean(clusterStatistics.getMembershipMean());
-        analysisClusterStatisticType.setMembershipRange(clusterStatistics.getMembershipRange());
+        AnalysisClusterStatisticType analysisClusterStatisticType = getAnalysisClusterStatisticType(max, clusterStatistics);
 
         try {
 
             ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(collection)
                     .item(RoleAnalysisClusterType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
-                    .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS).replace(analysisClusterStatisticType.asPrismContainerValue())
+                    .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS).replace(analysisClusterStatisticType
+                            .asPrismContainerValue())
                     .asObjectDelta(clusterOid);
 
             modelService.executeChanges(singleton(delta), null, task, result);
@@ -213,13 +214,26 @@ public class RoleAnalysisObjectUtils {
 
     }
 
-    public static @NotNull Set<ObjectReferenceType> createObjectReferences(Set<String> objects, QName complexType,
-            ModelService modelService, Task task, OperationResult operationResult) {
+    @NotNull
+    private static AnalysisClusterStatisticType getAnalysisClusterStatisticType(double max,
+            AnalysisClusterStatisticType clusterStatistics) {
+        AnalysisClusterStatisticType analysisClusterStatisticType = new AnalysisClusterStatisticType();
+        analysisClusterStatisticType.setDetectedReductionMetric(max);
+        analysisClusterStatisticType.setMembershipDensity(clusterStatistics.getMembershipDensity());
+        analysisClusterStatisticType.setRolesCount(clusterStatistics.getRolesCount());
+        analysisClusterStatisticType.setUsersCount(clusterStatistics.getUsersCount());
+        analysisClusterStatisticType.setMembershipMean(clusterStatistics.getMembershipMean());
+        analysisClusterStatisticType.setMembershipRange(clusterStatistics.getMembershipRange());
+        return analysisClusterStatisticType;
+    }
+
+    public static @NotNull Set<ObjectReferenceType> createObjectReferences(ModelService modelService, Set<String> objects,
+            QName complexType, Task task, OperationResult operationResult) {
 
         Set<ObjectReferenceType> objectReferenceList = new HashSet<>();
         for (String item : objects) {
 
-            PrismObject<FocusType> object = getFocusTypeObject(modelService, item, operationResult, task);
+            PrismObject<FocusType> object = getFocusTypeObject(modelService, item, task, operationResult);
             ObjectReferenceType objectReferenceType = new ObjectReferenceType();
             objectReferenceType.setType(complexType);
             objectReferenceType.setOid(item);
@@ -232,12 +246,12 @@ public class RoleAnalysisObjectUtils {
         return objectReferenceList;
     }
 
-    public static void deleteRoleAnalysisSessionClusters(ModelService modelService, OperationResult result, String sessionOid,
-            Task task) {
+    public static void deleteRoleAnalysisSessionClusters(ModelService modelService, String sessionOid,
+            Task task, OperationResult result) {
 
         ResultHandler<RoleAnalysisClusterType> resultHandler = (object, parentResult) -> {
             try {
-                deleteSingleRoleAnalysisCluster(result, object.asObjectable(), modelService, task);
+                deleteSingleRoleAnalysisCluster(modelService, object.asObjectable(), task, result);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -257,12 +271,14 @@ public class RoleAnalysisObjectUtils {
 
     }
 
-    public static void deleteSingleRoleAnalysisCluster(OperationResult result,
-            @NotNull RoleAnalysisClusterType cluster, @NotNull ModelService modelService, Task task) {
+    public static void deleteSingleRoleAnalysisCluster(@NotNull ModelService modelService,
+            @NotNull RoleAnalysisClusterType cluster,
+            Task task, OperationResult result) {
 
         String clusterOid = cluster.getOid();
-        PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(modelService, result,
-                cluster.getRoleAnalysisSessionRef().getOid(), task);
+        PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(modelService,
+                cluster.getRoleAnalysisSessionRef().getOid(), task, result
+        );
 
         if (sessionObject == null) {
             return;
@@ -288,7 +304,7 @@ public class RoleAnalysisObjectUtils {
 
             modelService.executeChanges(singleton(delta), null, task, result);
 
-            recomputeSessionStatic(result, sessionObject.getOid(), cluster, modelService, task);
+            recomputeSessionStatic(modelService, sessionObject.getOid(), cluster, task, result);
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
@@ -297,10 +313,11 @@ public class RoleAnalysisObjectUtils {
 
     }
 
-    public static void recomputeSessionStatic(OperationResult result, String sessionOid,
-            @NotNull RoleAnalysisClusterType roleAnalysisClusterType, @NotNull ModelService modelService, Task task) {
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(modelService, result,
-                sessionOid, task);
+    public static void recomputeSessionStatic(@NotNull ModelService modelService, String sessionOid,
+            @NotNull RoleAnalysisClusterType roleAnalysisClusterType,
+            Task task, OperationResult result) {
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = getSessionTypeObject(modelService, sessionOid, task, result
+        );
 
         assert sessionTypeObject != null;
         RoleAnalysisSessionType session = sessionTypeObject.asObjectable();

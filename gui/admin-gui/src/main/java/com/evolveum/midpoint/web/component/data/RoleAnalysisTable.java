@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.Tools.getScaleScript;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -89,7 +89,8 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     }
     @Override
     public void renderHead(IHeaderResponse response) {
-        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
+        response.render(OnDomReadyHeaderItem
+                .forScript("MidPointTheme.initResponsiveTable(); MidPointTheme.initScaleResize('#tableScaleContainer');"));
     }
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T,?> provider, int colSize) {
@@ -305,7 +306,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                 @Override
                 protected void onPageChanged(AjaxRequestTarget target, long page) {
                     target.add(count);
-                    target.appendJavaScript(getScaleScript());
+                    target.appendJavaScript(applyTableScaleScript());
 
                 }
 
@@ -347,7 +348,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
                         table.setItemsPerPage(pageSize);
                     }
-                    target.appendJavaScript(getScaleScript());
+                    target.appendJavaScript(applyTableScaleScript());
                     target.add(findParent(RoleAnalysisTable.PagingFooter.class));
                     target.add((Component) table);
                 }

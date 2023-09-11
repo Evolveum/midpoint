@@ -111,7 +111,7 @@ public class DefaultPatternResolver {
 
         DetectionOption roleAnalysisSessionDetectionOptionType = loadDetectionOption(session.getDefaultDetectionOption());
 
-        possibleBusinessRole = new DetectionActionExecutor(roleAnalysisSessionDetectionOptionType)
+        possibleBusinessRole = new DefaultDetectionAction(roleAnalysisSessionDetectionOptionType)
                 .executeDetection(miningRoleTypeChunks, miningUserTypeChunks, mode);
 
         List<DetectedPattern> topPatterns = loadTopPatterns(possibleBusinessRole);

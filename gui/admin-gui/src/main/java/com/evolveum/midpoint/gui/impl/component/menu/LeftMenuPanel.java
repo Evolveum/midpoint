@@ -401,7 +401,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
 
         roleMenu.addMenuItemAtIndex(new MenuItem("PageRoleAnalysis.menu.title",
-                GuiStyleConstants.EVO_CASE_OBJECT_ICON,
+                GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON,
                 PageRoleAnalysis.class), 1);
         roleMenu.addMenuItem(new MenuItem("PageRoleAnalysisSession.menu.title",
                 GuiStyleConstants.CLASS_PLUS_CIRCLE,

@@ -8,9 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
-import java.io.Serializable;
 import java.util.*;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -25,14 +23,18 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-public class ClusterDataLoaderUtils implements Serializable {
+public class ClusterUtils{
+
+    private static final Trace LOGGER = TraceManager.getTrace(ClusterUtils.class);
 
     @NotNull
-    protected static Set<String> getExistingRolesOidsSet(OperationResult result, @NotNull ModelService modelService, Task task) {
+    protected static Set<String> getExistingRolesOidsSet(@NotNull ModelService modelService, Task task, OperationResult result) {
         Set<String> existingRolesOidsSet = new HashSet<>();
         ResultHandler<RoleType> roleTypeHandler = (object, parentResult) -> {
             try {
@@ -55,9 +57,9 @@ public class ClusterDataLoaderUtils implements Serializable {
     }
 
     @NotNull
-    protected static ListMultimap<List<String>, String> getUserBasedRoleToUserMap(OperationResult result,
-            @NotNull ModelService modelService, Task task, int minProperties, int maxProperties, SearchFilterType userQuery,
-            Set<String> existingRolesOidsSet) {
+    protected static ListMultimap<List<String>, String> getUserBasedRoleToUserMap(@NotNull ModelService modelService,
+            int minProperties, int maxProperties, SearchFilterType userQuery, Set<String> existingRolesOidsSet,
+            Task task, OperationResult result) {
         ListMultimap<List<String>, String> roleToUserMap = ArrayListMultimap.create();
 
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {
@@ -93,8 +95,8 @@ public class ClusterDataLoaderUtils implements Serializable {
     }
 
     @NotNull
-    protected static ListMultimap<String, String> getRoleBasedRoleToUserMap(OperationResult result,
-            @NotNull ModelService modelService, Task task, SearchFilterType userQuery, Set<String> existingRolesOidsSet) {
+    protected static ListMultimap<String, String> getRoleBasedRoleToUserMap(@NotNull ModelService modelService,
+            SearchFilterType userQuery, Set<String> existingRolesOidsSet, Task task, OperationResult result) {
         ListMultimap<String, String> roleToUserMap = ArrayListMultimap.create();
 
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {

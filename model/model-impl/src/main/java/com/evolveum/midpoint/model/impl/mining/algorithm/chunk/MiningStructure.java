@@ -18,12 +18,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 
 public interface MiningStructure {
     MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, RoleAnalysisProgressIncrement handler, Task task);
+            RoleAnalysisProgressIncrement handler, Task task, OperationResult result);
     MiningOperationChunk prepareUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, RoleAnalysisProgressIncrement handler, Task task);
+            RoleAnalysisProgressIncrement handler, Task task, OperationResult result);
     MiningOperationChunk preparePartialRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, RoleAnalysisProgressIncrement state, Task task);
+            RoleAnalysisProgressIncrement state, Task task, OperationResult result);
     MiningOperationChunk preparePartialUserBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
-            OperationResult result, RoleAnalysisProgressIncrement handler, Task task);
+            RoleAnalysisProgressIncrement handler, Task task, OperationResult result);
 
 }

@@ -23,5 +23,5 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 
 public interface Clusterable {
     List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            OperationResult result, ModelService modelService, RoleAnalysisProgressIncrement handler, Task task);
+            ModelService modelService, RoleAnalysisProgressIncrement handler, Task task, OperationResult result);
 }
