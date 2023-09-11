@@ -45,6 +45,11 @@ public class TestMerger extends AbstractSchemaTest {
         testMergeOperation("system-configuration");
     }
 
+    @Test
+    public void test40RoleEndUserMergeOperation() throws Exception {
+        testMergeOperation("role-enduser");
+    }
+
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
         PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
         PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));
@@ -55,6 +60,6 @@ public class TestMerger extends AbstractSchemaTest {
         LOGGER.trace("Merged object:\n{}", target.debugDump());
 
         Assertions.assertThat(target)
-                .matches(t -> t.equivalent(result));
+                .matches(t -> t.equivalent(result), result.debugDump());
     }
 }

@@ -151,7 +151,15 @@ class TypeSpecificMergersConfigurator {
                                         TracingTypeProfileType.F_LEVEL, TracingTypeProfileType.F_OPERATION_TYPE))),
                 entry(
                         ClassLoggerLevelOverrideType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER)))
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER))),
+                entry(
+                        AuthorizationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthorizationType.F_NAME))),
+                entry(
+                        ObjectSelectorType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE)))
         );
     }
 }
