@@ -144,6 +144,11 @@ public class TestMerger extends AbstractSchemaTest {
         testMergeOperation("mark/mark-focus-deactivated");
     }
 
+    @Test
+    public void test130ValuePolicyMergeOperation() throws Exception {
+        testMergeOperation("value-policy/value-policy");
+    }
+
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
         PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
         PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));
