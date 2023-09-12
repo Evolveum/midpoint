@@ -23,6 +23,8 @@ import static java.util.Map.entry;
 
 /**
  * Separate class to hold the configuration of type-specific item mergers.
+ *
+ * TODO: this should be moved to XSDs as schema annotations.
  */
 class TypeSpecificMergersConfigurator {
 

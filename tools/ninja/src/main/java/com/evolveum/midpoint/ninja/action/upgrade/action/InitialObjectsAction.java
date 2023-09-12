@@ -39,7 +39,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.merger.object.ObjectMergeOperation;
+import com.evolveum.midpoint.schema.merger.SimpleObjectMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -281,11 +281,11 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
             return true;
         }
 
-        if (!ObjectMergeOperation.hasMergeOperationFor(target)) {
+        if (!SimpleObjectMergeOperation.isMergeSupported(target)) {
             return false;
         }
 
-        ObjectMergeOperation.merge(target, source);
+        SimpleObjectMergeOperation.merge(target, source);
         return true;
     }
 

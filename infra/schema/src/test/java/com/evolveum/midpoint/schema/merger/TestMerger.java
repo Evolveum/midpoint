@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -24,7 +23,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
-import com.evolveum.midpoint.schema.merger.object.ObjectMergeOperation;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,7 +53,7 @@ public class TestMerger extends AbstractSchemaTest {
             }
 
             try {
-                ObjectMergeOperation.merge(targetObject, sourceObject);
+                SimpleObjectMergeOperation.merge(targetObject, sourceObject);
                 successCount++;
             } catch ( Exception ex) {
                 errorCount++;
@@ -151,7 +149,7 @@ public class TestMerger extends AbstractSchemaTest {
         PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));
         PrismObject<LookupTableType> result = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-result.xml"));
 
-        ObjectMergeOperation.merge(target, source);
+        SimpleObjectMergeOperation.merge(target, source);
 
         LOGGER.trace("Merged object:\n{}", target.debugDump());
         LOGGER.trace("Result object:\n{}", result.debugDump());
