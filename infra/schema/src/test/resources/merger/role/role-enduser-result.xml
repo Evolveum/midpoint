@@ -20,12 +20,23 @@
         Therefore we have chosen not to mark it with any archetype to avoid risk of creating
         a confusing situation.
     -->
-    <authorization>
+    <authorization id="1">
         <name>gui-self-service-access</name>
         <description>
-            Allow access to all self-service operations in GUI. TEST
+            Allow access to all self-service operations in GUI.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+    </authorization>
+    <authorization id="2">
+        <name>self-read</name>
+        <description>
+            Allow to read all the properties of "self" object. I.e. every logged-in user can read
+            object that represent his own identity.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object id="16">
+            <special>self</special>
+        </object>
     </authorization>
     <authorization>
         <name>self-read-test</name>
@@ -38,34 +49,34 @@
             <special>self</special>
         </object>
     </authorization>
-    <authorization>
+    <authorization id="3">
         <name>self-shadow-read</name>
         <description>
             Allow to read all the properties of all the shadows that belong to "self" object.
-            I.e. every logged-in user can read all his accounts. TEST
+            I.e. every logged-in user can read all his accounts.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="17">
             <type>ShadowType</type>
             <owner>
                 <special>self</special>
             </owner>
         </object>
     </authorization>
-    <authorization>
+    <authorization id="4">
         <name>self-persona-read</name>
         <description>
             Allow to read all the personas of currently logged-in user.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="18">
             <type>UserType</type>
             <owner>
                 <special>self</special>
             </owner>
         </object>
     </authorization>
-    <authorization>
+    <authorization id="5">
         <name>self-credentials-request</name>
         <description>
             Allow to modify user's own credentials.
@@ -73,12 +84,12 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
         <phase>request</phase>
-        <object>
+        <object id="19">
             <special>self</special>
         </object>
         <item>credentials</item>
     </authorization>
-    <authorization>
+    <authorization id="6">
         <name>self-shadow-credentials-request</name>
         <description>
             Allow to modify credentials of all users accounts.
@@ -86,7 +97,7 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
         <phase>request</phase>
-        <object>
+        <object id="20">
             <type>ShadowType</type>
             <owner>
                 <special>self</special>
@@ -94,13 +105,13 @@
         </object>
         <item>credentials</item>
     </authorization>
-    <authorization>
+    <authorization id="7">
         <name>read-requestable-roles</name>
         <description>
             Allow to read requestable roles. This allows to search for requestable roles in user interface.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="21">
             <type>RoleType</type>
             <filter>
                 <q:equal>
@@ -111,7 +122,7 @@
         </object>
         <!-- Note: for production use you should consider limiting the items that can be read. -->
     </authorization>
-     <authorization>
+    <authorization id="8">
         <name>requestable-role-details</name>
         <description>
             Allow to show details of requestable roles in the user interface.
@@ -120,7 +131,7 @@
         <!-- Note: object specification should be here to limit this authorization to requestable roles.
              But this is not yet supported. -->
     </authorization>
-    <authorization>
+    <authorization id="9">
         <name>assign-requestable-roles</name>
         <description>
             Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
@@ -130,10 +141,10 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
         <phase>request</phase>
-        <object>
+        <object id="22">
             <special>self</special>
         </object>
-        <target>
+        <target id="23">
             <type>RoleType</type>
             <filter>
                 <q:equal>
@@ -144,7 +155,7 @@
         </target>
         <relation>org:default</relation>        <!-- only assignments with the default (member) relation can be requested -->
     </authorization>
-    <authorization>
+    <authorization id="10">
         <name>self-execution-modify</name>
         <description>
             Authorization that allows to self-modification of some properties, but only in execution phase.
@@ -154,13 +165,13 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
         <phase>execution</phase>
-        <object>
+        <object id="24">
             <special>self</special>
         </object>
         <item>credentials</item>
         <item>assignment</item>
     </authorization>
-    <authorization>
+    <authorization id="11">
         <name>self-shadow-execution-add-modify-delete</name>
         <description>
             Authorization that allows to self-modification of user's accounts, but only in execution phase.
@@ -170,14 +181,14 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
         <phase>execution</phase>
-        <object>
+        <object id="25">
             <type>ShadowType</type>
             <owner>
                 <special>self</special>
             </owner>
         </object>
     </authorization>
-    <authorization>
+    <authorization id="12">
         <name>assignment-target-get</name>
         <description>
             Authorization that allows to read all the object that are possible assignment targets. We want that
@@ -186,68 +197,101 @@
             selected properties such as name and description.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
-        <object>
+        <object id="26">
             <type>OrgType</type>
         </object>
-        <object>
+        <object id="27">
             <type>ResourceType</type>
         </object>
-        <object>
+        <object id="28">
             <type>RoleType</type>
         </object>
-        <object>
+        <object id="29">
             <type>ServiceType</type>
         </object>
-        <object> <!-- Deputy delegations may have users as targets -->
+        <object id="30"> <!-- Deputy delegations may have users as targets -->
             <type>UserType</type>
         </object>
         <!-- Note: for production use you should consider limiting the items that can be read. -->
     </authorization>
-    <authorization>
+    <authorization id="13">
         <name>operational-objects-get</name>
         <description>
             Authorization that allows to read all the object that are possible to use for (not only) GUI
             customizations. E.g there might be lookup tables used for attributes, custom form types defined, etc.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
-        <object>
+        <object id="31">
             <type>LookupTableType</type>
         </object>
         <!-- Note: for production use you should consider limiting the items that can be read. -->
     </authorization>
-    <authorization>
+    <authorization id="14">
         <name>assignment-target-read-case</name>
         <description>
             Authorization that allows to read approval status of cases. This is used to display requests
             to the end users, especially in the "My Requests" box in user dashboard.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="32">
             <type>CaseType</type>
             <requester>
                 <special>self</special>
             </requester>
         </object>
     </authorization>
-    <authorization>
+    <authorization id="15">
         <name>self-owned-task-read</name>
         <description>
             Authorization that allows to see all tasks owned by a currently logged-in user.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
+        <object id="33">
             <type>TaskType</type>
             <owner>
                 <special>self</special>
             </owner>
         </object>
     </authorization>
+    <authorization>
+        <name>gui-approver-access</name>
+        <description>
+            Allow access to list of work items in GUI. Allow access to pages that show object details,
+            so the approver may examine who is requesting and what is requesting.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
+    </authorization>
     <adminGuiConfiguration>
-        <homePage>
+        <homePage id="34">
             <type>UserType</type>
-            <widget>
+            <widget id="35">
                 <identifier>myWorkItems</identifier>
+                <visibility>visible</visibility>
+            </widget>
+            <widget id="36">
+                <identifier>myHistory</identifier>
                 <visibility>hidden</visibility>
+            </widget>
+            <widget id="37">
+                <identifier>listUsersWidget</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+            <widget id="38">
+                <identifier>listResourcesWidget</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+            <widget id="39">
+                <identifier>myRequests</identifier>
+                <action id="40">
+                    <identifier>viewAll</identifier>
+                    <visibility>hidden</visibility>
+                </action>
             </widget>
             <widget>
                 <identifier>listUsersWidget-test</identifier>
@@ -256,9 +300,9 @@
         </homePage>
         <selfProfilePage>
             <type>UserType</type>
-            <panel>
+            <panel id="41">
                 <identifier>history</identifier>
-                <visibility>hidden</visibility>
+                <visibility>visible</visibility>
             </panel>
         </selfProfilePage>
     </adminGuiConfiguration>

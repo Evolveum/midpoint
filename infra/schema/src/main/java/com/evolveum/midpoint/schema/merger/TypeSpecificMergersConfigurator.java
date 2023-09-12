@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
 import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.key.ItemPathNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
@@ -154,12 +155,16 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER))),
                 entry(
                         AuthorizationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthorizationType.F_NAME))),
+                        () -> new GenericItemMerger(
+                                marker, DefaultNaturalKeyImpl.of(AuthorizationType.F_NAME, AuthorizationType.F_ACTION))),
                 entry(
                         ObjectSelectorType.class,
                         () -> new GenericItemMerger(
                                 marker,
-                                DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE)))
+                                DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE))),
+                entry(
+                        AssignmentType.class,
+                        () -> new AssignmentMerger(marker))
         );
     }
 }

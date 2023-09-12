@@ -47,7 +47,12 @@ public class TestMerger extends AbstractSchemaTest {
 
     @Test
     public void test40RoleEndUserMergeOperation() throws Exception {
-        testMergeOperation("role-enduser");
+        testMergeOperation("role/role-enduser");
+    }
+
+    @Test
+    public void test50RoleSuperuserMergeOperation() throws Exception {
+        testMergeOperation("role/role-superuser");
     }
 
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
