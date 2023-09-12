@@ -193,7 +193,7 @@ public class ScriptExpressionFactory implements Cache {
             if (expressionProfile.getDecision() == AccessDecision.ALLOW) {
                 return null;
             } else {
-                throw new SecurityViolationException("Access to script expression evaluator " +
+                throw new SecurityViolationException("Access to script expression evaluator" +
                         " not allowed (expression profile: " + expressionProfile.getIdentifier() + ") in " + shortDesc);
             }
         }

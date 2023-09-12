@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @Component
 public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-    private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_VALUE;
+    public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_VALUE;
 
     @Autowired private PrismContext prismContext;
     @Autowired private Protector protector;

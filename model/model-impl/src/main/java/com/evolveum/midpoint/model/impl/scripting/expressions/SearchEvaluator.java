@@ -64,8 +64,6 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notNull(searchExpression.getType());
 
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-
         List<PipelineItem> data = input.getData();
         if (data.isEmpty()) {
             // TODO fix this brutal hack (with dummyValue)
@@ -109,6 +107,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                 //noinspection unchecked
                 item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
                 try {
+                    ExpressionProfile expressionProfile = context.determineExpressionProfile();
                     objectQuery = ExpressionUtil
                             .evaluateQueryExpressions(unresolvedObjectQuery, variables, expressionProfile, expressionFactory, prismContext,
                                     "bulk action query", context.getTask(), globalResult);
@@ -167,5 +166,4 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         }
         return outputData;
     }
-
 }

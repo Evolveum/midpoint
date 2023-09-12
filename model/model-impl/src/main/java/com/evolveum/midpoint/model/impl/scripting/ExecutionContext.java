@@ -10,16 +10,28 @@ package com.evolveum.midpoint.model.impl.scripting;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.common.expression.evaluator.ConstExpressionEvaluatorFactory;
+import com.evolveum.midpoint.model.common.expression.evaluator.path.PathExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
+import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
+import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,16 +51,20 @@ public class ExecutionContext {
     private final VariablesMap initialVariables;                             // used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use
     private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
     private final boolean recordProgressAndIterationStatistics;
+    /** Are we running under root principal? This is used to derive expression profiles in some cases. */
+    private final boolean root;
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
             ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            boolean privileged, boolean recordProgressAndIterationStatistics, VariablesMap initialVariables) {
+            boolean privileged, boolean recordProgressAndIterationStatistics, VariablesMap initialVariables,
+            boolean root) {
         this.options = options;
         this.task = task;
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
         this.privileged = privileged;
         this.initialVariables = initialVariables;
         this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
+        this.root = root;
     }
 
     public Task getTask() {
@@ -145,5 +161,30 @@ public class ExecutionContext {
 
     public QueryConverter getQueryConverter() {
         return getPrismContext().getQueryConverter();
+    }
+
+    @Nullable
+    public ExpressionProfile determineExpressionProfile()
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        if (root) {
+            return MiscSchemaUtil.getExpressionProfile(); // currently null, i.e. allowing everything
+        } else {
+            // Profile for unprivileged users. Only "safe" evaluators are allowed.
+            ExpressionProfile profile = new ExpressionProfile("##builtin-safe##");
+            profile.setDecision(AccessDecision.DENY);
+            profile.add(evaluatorAllowed(AsIsExpressionEvaluatorFactory.ELEMENT_NAME));
+            profile.add(evaluatorAllowed(PathExpressionEvaluatorFactory.ELEMENT_NAME));
+            profile.add(evaluatorAllowed(LiteralExpressionEvaluatorFactory.ELEMENT_NAME));
+            profile.add(evaluatorAllowed(ConstExpressionEvaluatorFactory.ELEMENT_NAME));
+            return profile;
+        }
+    }
+
+    @NotNull
+    private static ExpressionEvaluatorProfile evaluatorAllowed(QName elementName) {
+        ExpressionEvaluatorProfile profile = new ExpressionEvaluatorProfile(elementName);
+        profile.setDecision(AccessDecision.ALLOW);
+        return profile;
     }
 }
