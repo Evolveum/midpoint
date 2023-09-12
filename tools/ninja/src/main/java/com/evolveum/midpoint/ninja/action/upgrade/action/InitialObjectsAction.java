@@ -229,14 +229,14 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
         boolean mergeExecuted = mergeObject(merged, initial);
         if (!mergeExecuted) {
-            log.error("Merge operation not supported for object {}, skipping", NinjaUtils.printObjectNameOidAndType(existing));
+            log.error("Skipping object update, merge operation not supported for object {}.", NinjaUtils.printObjectNameOidAndType(existing));
             actionResult.incrementError();
             return false;
         }
 
         ObjectDelta<O> delta = existing.diff(merged);
         if (delta.isEmpty()) {
-            log.info("Object {} merged, no differences found. Skipping object update.", NinjaUtils.printObjectNameOidAndType(existing));
+            log.info("Skipping object update, object {} merged, no differences found.", NinjaUtils.printObjectNameOidAndType(existing));
 
             actionResult.incrementUnchanged();
             return false;
