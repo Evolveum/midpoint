@@ -40,7 +40,7 @@ public class TenantSearchItemPanel extends SingleSearchItemPanel<TenantSearchIte
     }
 
     public PrismReferenceDefinition getTenantDefinition() {
-        return getModelObject().getTenantDefinition();
+        return getModelObject() != null ? getModelObject().getTenantDefinition() : null;
     }
 
 }

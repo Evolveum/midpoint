@@ -14,6 +14,8 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import com.evolveum.midpoint.ninja.util.BasicLightweightIdentifierGenerator;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.FileSystemResource;
@@ -366,6 +368,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         task.setOid(UUID.randomUUID().toString());
         task.setName(new PolyStringType("Initial objects recompute after upgrade to 4.8"));
         task.setExecutionState(TaskExecutionStateType.RUNNABLE);
+        task.setTaskIdentifier(new BasicLightweightIdentifierGenerator().generate().toString());
 
         task.setOwnerRef(new ObjectReferenceType()
                 .oid(SystemObjectsType.USER_ADMINISTRATOR.value())

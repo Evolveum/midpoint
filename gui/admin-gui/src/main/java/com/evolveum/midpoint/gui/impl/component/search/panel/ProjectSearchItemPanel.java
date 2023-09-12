@@ -44,7 +44,7 @@ public class ProjectSearchItemPanel extends SingleSearchItemPanel<ProjectSearchI
     }
 
     private PrismReferenceDefinition getProjectDefinition() {
-        return getModelObject().getProjectRefDef();
+        return getModelObject() != null ? getModelObject().getProjectRefDef() : null;
     }
 
 

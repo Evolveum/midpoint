@@ -17,8 +17,6 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.Validatable;
 import org.jetbrains.annotations.NotNull;
 
@@ -111,14 +109,6 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
         };
 
         validator.validate(validatable);
-        if (!validatable.isValid()) {
-            validatable.getErrors().forEach(e ->
-                    form.error(e.getErrorMessage((key, vars) ->
-                            new StringResourceModel(key)
-                                    .setModel(new Model<String>())
-                                    .setDefaultValue(key)
-                                    .getString())));
-        }
     }
 
     protected abstract PrismObjectWrapper<O> getObjectWrapper();
