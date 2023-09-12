@@ -181,7 +181,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private ExpressionValidator createExpressionValidator() {
         ItemWrapper itemWrapper = getModelObject().getParent();
         return new ExpressionValidator(
-                LambdaModel.of(() -> itemWrapper.getFormComponentValidator()), getPageBase()) {
+                LambdaModel.of(() -> itemWrapper.getFormComponentValidator()), getParentPage()) {
 
             @Override
             protected ObjectType getObjectType() {
