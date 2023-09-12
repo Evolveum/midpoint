@@ -131,6 +131,11 @@ public class TestMerger extends AbstractSchemaTest {
         testMergeOperation("dashboard/dashboard-admin");
     }
 
+    @Test
+    public void test100UserAdministratorMergeOperation() throws Exception {
+        testMergeOperation("user/user-administrator");
+    }
+
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
         PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
         PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));
