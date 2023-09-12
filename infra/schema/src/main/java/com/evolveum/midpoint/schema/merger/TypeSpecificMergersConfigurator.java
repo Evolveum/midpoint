@@ -164,7 +164,13 @@ class TypeSpecificMergersConfigurator {
                                 DefaultNaturalKeyImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE))),
                 entry(
                         AssignmentType.class,
-                        () -> new AssignmentMerger(marker))
+                        () -> new AssignmentMerger(marker)),
+                entry(
+                        GuiObjectColumnType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectColumnType.F_NAME))),
+                entry(
+                        SearchFilterParameterType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SearchFilterParameterType.F_NAME)))
         );
     }
 }

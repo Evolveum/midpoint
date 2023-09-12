@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        oid="00000000-0000-0000-0000-000000000140">
+    <name>Certification campaigns report</name>
+    <description>All certification campaigns along with their state.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType" />
+    </assignment>
+    <objectCollection>
+        <collection>
+            <filter>
+                <q:or>
+                    <q:equal>
+                        <q:path>state</q:path>
+                        <expression>
+                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType
+
+                                    // If "alsoClosedCampaigns" is true, we return null that causes all campaigns to be considered
+                                    return alsoClosedCampaigns ? null : AccessCertificationCampaignStateType.CREATED
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>state</q:path>
+                        <q:value>inReviewStage</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>state</q:path>
+                        <q:value>reviewStageDone</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>state</q:path>
+                        <q:value>inRemediation</q:value>
+                    </q:equal>
+                </q:or>
+            </filter>
+            <baseCollectionRef>
+                <collectionRef oid="00000000-0000-0000-0001-000000000280" type="ObjectCollectionType"/>
+            </baseCollectionRef>
+        </collection>
+        <view>
+            <column>
+                <name>name</name>
+                <path>name</path>
+                <display>
+                    <label>Name</label>
+                </display>
+            </column>
+            <column>
+                <name>owner</name>
+                <path>ownerRef</path>
+                <display>
+                    <label>Owner</label>
+                </display>
+                <previousColumn>name</previousColumn>
+            </column>
+            <column>
+                <name>startTimestamp</name>
+                <path>startTimestamp</path>
+                <display>
+                    <label>Start</label>
+                </display>
+                <previousColumn>owner</previousColumn>
+            </column>
+            <column>
+                <name>endTimestamp</name>
+                <path>endTimestamp</path>
+                <display>
+                    <label>Finish</label>
+                </display>
+                <previousColumn>startTimestamp</previousColumn>
+            </column>
+            <column>
+                <name>cases</name>
+                <path>case</path>
+                <display>
+                    <label>Cases</label>
+                </display>
+                <previousColumn>endTimestamp</previousColumn>
+                <displayValue>number</displayValue>
+            </column>
+            <column>
+                <name>state</name>
+                <path>stateTest</path>
+                <display>
+                    <label>State</label>
+                </display>
+                <previousColumn>cases</previousColumn>
+            </column>
+            <column>
+                <name>stageNumber</name>
+                <path>stageNumber</path>
+                <display>
+                    <label>Actual stage 3</label>
+                </display>
+                <previousColumn>state</previousColumn>
+            </column>
+            <column>
+                <name>stageCases</name>
+                <display>
+                    <label>Stage cases</label>
+                </display>
+                <previousColumn>stageNumber</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
+
+                                def campaign = object as AccessCertificationCampaignType
+                                def test = "ignore row"
+                                CertCampaignTypeUtil.getActiveCases(campaign.case, campaign.stageNumber, campaign.state)
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>percentComplete</name>
+                <display>
+                    <label>% complete</label>
+                </display>
+                <previousColumn>stageCases</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
+
+                                def campaign = object as AccessCertificationCampaignType
+                                CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(campaign) + " %"
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <paging>
+                <q:orderBy>name</q:orderBy>
+                <q:orderDirection>ascending</q:orderDirection>
+            </paging>
+            <type>AccessCertificationCampaignType</type>
+        </view>
+        <useOnlyReportView>true</useOnlyReportView>
+        <parameter>
+            <name>alsoClosedCampaigns</name>
+            <type>boolean</type>
+            <display>
+                <label>
+                    <t:orig>alsoClosedCampaignsTestSource</t:orig>
+                    <t:translation>
+                        <t:key>runReportPopupContent.param.name.alsoClosedCampaigns</t:key>
+                    </t:translation>
+                </label>
+            </display>
+        </parameter>
+    </objectCollection>
+</report>

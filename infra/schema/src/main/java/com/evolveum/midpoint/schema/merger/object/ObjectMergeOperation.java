@@ -28,7 +28,8 @@ public class ObjectMergeOperation {
             entry(SecurityPolicyType.class, SecurityPolicyMergeOperation.class),
             entry(SystemConfigurationType.class, SystemConfigurationMergeOperation.class),
             entry(RoleType.class, RoleMergeOperation.class),
-            entry(TaskType.class, TaskMergeOperation.class)
+            entry(TaskType.class, TaskMergeOperation.class),
+            entry(ReportType.class, ReportMergeOperation.class)
     );
 
     public static <O extends ObjectType> boolean hasMergeOperationFor(PrismObject<O> target) {

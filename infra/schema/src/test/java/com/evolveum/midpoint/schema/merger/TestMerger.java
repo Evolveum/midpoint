@@ -116,6 +116,11 @@ public class TestMerger extends AbstractSchemaTest {
         testMergeOperation("task/task-validity");
     }
 
+    @Test
+    public void test70ReportCertificationCampaignsMergeOperation() throws Exception {
+        testMergeOperation("report/report-certification-campaigns");
+    }
+
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
         PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
         PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));
