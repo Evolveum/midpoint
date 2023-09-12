@@ -34,7 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  */
 public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
 
-    private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_PATH;
+    public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_PATH;
 
     private final Protector protector;
 

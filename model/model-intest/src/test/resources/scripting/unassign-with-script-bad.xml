@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:search>
+        <s:type>UserType</s:type>
+        <s:searchFilter>
+            <q:equal>
+                <path>name</path>
+                <value>jack</value>
+            </q:equal>
+        </s:searchFilter>
+        <s:unassign>
+            <s:filter>
+                <q:equal>
+                    <q:path>subtype</q:path>
+                    <c:expression>
+                        <c:script>
+                            <c:code>null</c:code>
+                        </c:script>
+                    </c:expression>
+                </q:equal>
+            </s:filter>
+        </s:unassign>
+    </s:search>
+</s:executeScript>
