@@ -18,7 +18,7 @@
             </translation>
         </label>
     </display>
-    <widget>
+    <widget id="1">
         <identifier>resources-up</identifier>
         <description>Widget that shows all the resources that are up. Based on "Resources Up" object collection.</description>
         <display>
@@ -40,26 +40,26 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="5">
                 <fieldType>value</fieldType>
                 <expression>
-                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
+                    <proportional>
                         <style>value-slash-domain</style>
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="6">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'), false)
                         </code>
                     </script>
                 </expression>
             </dataField>
-            <variation>
+            <variation id="7">
                 <condition>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
@@ -73,19 +73,19 @@
             </variation>
         </presentation>
     </widget>
-    <widget>
+    <widget id="2">
         <identifier>audit-recent-errors</identifier>
-        <description>Widget that shows recent errors. Data are taken from audit log. test-change</description>
+        <description>Widget that shows recent errors. Data are taken from audit log.</description>
         <display>
             <label>
-                <orig>Recent errors test-change</orig>
+                <orig>Recent errors</orig>
                 <translation>
-                    <key>AdminDashboard.recentErrorstest-change</key>
+                    <key>AdminDashboard.recentErrors</key>
                 </translation>
             </label>
-            <color>#00a65atest-change</color>
+            <color>#00a65a</color>
             <icon>
-                <cssClass>fa fa-bantest-change</cssClass>
+                <cssClass>fa fa-ban</cssClass>
             </icon>
         </display>
         <data>
@@ -95,7 +95,7 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="8">
                 <fieldType>value</fieldType>
                 <expression>
                     <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
@@ -103,19 +103,18 @@
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="9">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            def test = "ignored row"
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'), false)
                         </code>
                     </script>
                 </expression>
             </dataField>
-            <variation>
+            <variation id="10">
                 <condition>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>proportional.getPercentage() &gt; 5</code>
@@ -127,19 +126,19 @@
             </variation>
         </presentation>
     </widget>
-    <widget>
+    <widget id="3">
         <identifier>audit-recent-modifications</identifier>
-        <description>Widget that shows recent modifications. Data are taken from audit log. test-change</description>
+        <description>Widget that shows recent modifications. Data are taken from audit log.</description>
         <display>
             <label>
-                <orig>Recent modifications test-change</orig>
+                <orig>Recent modifications</orig>
                 <translation>
                     <key>AdminDashboard.recentModifications</key>
                 </translation>
             </label>
             <color>#00a65a</color>
             <icon>
-                <cssClass>fa fa-cog test-change</cssClass>
+                <cssClass>fa fa-cog</cssClass>
             </icon>
         </display>
         <data>
@@ -149,7 +148,7 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="11">
                 <fieldType>value</fieldType>
                 <expression>
                     <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
@@ -157,20 +156,20 @@
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="12">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'), false)
                         </code>
                     </script>
                 </expression>
             </dataField>
         </presentation>
     </widget>
-    <widget>
+    <widget id="4">
         <identifier>active-task</identifier>
         <display>
             <label>
@@ -191,7 +190,7 @@
             </collection>
         </data>
         <presentation>
-            <dataField>
+            <dataField id="13">
                 <fieldType>value</fieldType>
                 <expression>
                     <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
@@ -199,18 +198,18 @@
                     </proportional>
                 </expression>
             </dataField>
-            <dataField>
+            <dataField id="14">
                 <fieldType>unit</fieldType>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'))
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'), false)
                         </code>
                     </script>
                 </expression>
             </dataField>
-            <variation>
+            <variation id="15">
                 <condition>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>

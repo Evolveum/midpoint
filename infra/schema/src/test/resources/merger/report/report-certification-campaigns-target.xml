@@ -12,13 +12,12 @@
         oid="00000000-0000-0000-0000-000000000140">
     <name>Certification campaigns report</name>
     <description>All certification campaigns along with their state.</description>
-    <assignment id="1">
+    <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType" />
     </assignment>
     <objectCollection>
         <collection>
             <filter>
-                <!--  TODO: Convert to Axiom Query -->
                 <q:or>
                     <q:equal>
                         <q:path>state</q:path>
@@ -53,14 +52,14 @@
             </baseCollectionRef>
         </collection>
         <view>
-            <column id="2">
+            <column>
                 <name>name</name>
                 <path>name</path>
                 <display>
-                    <label>Name test</label>
+                    <label>Name</label>
                 </display>
             </column>
-            <column id="3">
+            <column>
                 <name>owner</name>
                 <path>ownerRef</path>
                 <display>
@@ -68,7 +67,7 @@
                 </display>
                 <previousColumn>name</previousColumn>
             </column>
-            <column id="4">
+            <column>
                 <name>startTimestamp</name>
                 <path>startTimestamp</path>
                 <display>
@@ -76,7 +75,7 @@
                 </display>
                 <previousColumn>owner</previousColumn>
             </column>
-            <column id="5">
+            <column>
                 <name>endTimestamp</name>
                 <path>endTimestamp</path>
                 <display>
@@ -84,7 +83,7 @@
                 </display>
                 <previousColumn>startTimestamp</previousColumn>
             </column>
-            <column id="6">
+            <column>
                 <name>cases</name>
                 <path>case</path>
                 <display>
@@ -93,23 +92,23 @@
                 <previousColumn>endTimestamp</previousColumn>
                 <displayValue>number</displayValue>
             </column>
-            <column id="7">
+            <column>
                 <name>state</name>
-                <path>state</path>
+                <path>stateTest</path>
                 <display>
                     <label>State</label>
                 </display>
                 <previousColumn>cases</previousColumn>
             </column>
-            <column id="8">
+            <column>
                 <name>stageNumber</name>
                 <path>stageNumber</path>
                 <display>
-                    <label>Actual stage</label>
+                    <label>Actual stage 3</label>
                 </display>
                 <previousColumn>state</previousColumn>
             </column>
-            <column id="9">
+            <column>
                 <name>stageCases</name>
                 <display>
                     <label>Stage cases</label>
@@ -123,13 +122,14 @@
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
 
                                 def campaign = object as AccessCertificationCampaignType
+                                def test = "new row"
                                 CertCampaignTypeUtil.getActiveCases(campaign.case, campaign.stageNumber, campaign.state)
                             </code>
                         </script>
                     </expression>
                 </export>
             </column>
-            <column id="10">
+            <column>
                 <name>percentComplete</name>
                 <display>
                     <label>% complete</label>
@@ -156,12 +156,12 @@
             <type>AccessCertificationCampaignType</type>
         </view>
         <useOnlyReportView>true</useOnlyReportView>
-        <parameter id="11">
+        <parameter>
             <name>alsoClosedCampaigns</name>
             <type>boolean</type>
             <display>
                 <label>
-                    <t:orig>alsoClosedCampaignsTest</t:orig>
+                    <t:orig>alsoClosedCampaignsTestTarget</t:orig>
                     <t:translation>
                         <t:key>runReportPopupContent.param.name.alsoClosedCampaigns</t:key>
                     </t:translation>

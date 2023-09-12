@@ -20,7 +20,7 @@
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-sync-alt</cssClass>
+                <cssClass>fa fa-refresh</cssClass>
                 <color>green</color>
             </icon>
         </display>
@@ -121,10 +121,10 @@
                     <listView>
                         <searchBoxConfiguration>
                             <indirectConfiguration>
-                                <indirect>true</indirect>
+                                <indirect>false</indirect>
                             </indirectConfiguration>
                             <objectTypeConfiguration>
-                                <visibility>hidden</visibility>
+                                <visibility>visible</visibility>
                                 <defaultValue>UserType</defaultValue>
                                 <supportedTypes>UserType</supportedTypes>
                             </objectTypeConfiguration>
@@ -139,50 +139,6 @@
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement id="27">
-        <focusMappings>
-            <mapping id="28">
-                <name>name</name>
-                <strength>weak</strength>
-                <expression>
-                    <script>
-                        <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
-                            import org.apache.commons.lang3.StringUtils
-
-                            def task = focus as TaskType
-
-                            String name = source.name
-
-                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.liveSynchronization?.resourceObjects)
-                            if(StringUtils.isNotEmpty(description)) {
-                                return name + ': ' + description
-                            }
-
-                            return name
-                        </code>
-                    </script>
-                </expression>
-                <target>
-                    <path>name</path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement id="30">
-        <focusMappings>
-            <mapping id="31">
-                <name>shadow</name>
-                <strength>weak</strength>
-                <expression>
-                    <value>shadow</value>
-                </expression>
-                <target>
-                    <c:path>extension/mext:objectType</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
     <inducement>
         <focusMappings>
             <mapping>
@@ -194,7 +150,7 @@
                             import org.apache.commons.lang3.StringUtils
 
                             def task = focus as TaskType
-                            def test = "ignored row"
+                            def test = "new row"
 
                             String name = source.name
 
@@ -242,6 +198,50 @@
                         </code>
                     </script>
                 </condition>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement id="27">
+        <focusMappings>
+            <mapping id="28">
+                <name>name</name>
+                <strength>weak</strength>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
+                            import org.apache.commons.lang3.StringUtils
+
+                            def task = focus as TaskType
+
+                            String name = source.name
+
+                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.liveSynchronization?.resourceObjects)
+                            if(StringUtils.isNotEmpty(description)) {
+                                return name + ': ' + description
+                            }
+
+                            return name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement id="30">
+        <focusMappings>
+            <mapping id="31">
+                <name>shadow</name>
+                <strength>weak</strength>
+                <expression>
+                    <value>shadow</value>
+                </expression>
+                <target>
+                    <c:path>extension/mext:objectType</c:path>
+                </target>
             </mapping>
         </focusMappings>
     </inducement>

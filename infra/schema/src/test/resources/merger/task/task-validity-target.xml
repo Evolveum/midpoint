@@ -10,25 +10,23 @@
 
     <name>Validity Scanner</name>
     <description>A system task that maintains effective status of objects, based on their validity time constraints.</description>
-    <assignment id="1">
+    <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000529" type="ArchetypeType" />
     </assignment>
-    <assignment id="2">
+    <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000530" type="ArchetypeType" />
     </assignment>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-    <executionState>suspended</executionState>
+    <executionState>runnable</executionState>
 
     <binding>loose</binding>
     <schedule>
-        <interval>9000</interval>
+        <interval>900</interval>
     </schedule>
 
     <activity>
         <work>
-            <focusValidityScan>
-                <queryStyle>singleQuery</queryStyle>
-            </focusValidityScan>
+            <focusValidityScan/>
         </work>
     </activity>
 </task>

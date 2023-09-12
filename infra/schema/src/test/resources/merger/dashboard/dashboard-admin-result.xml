@@ -54,7 +54,7 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'), false)
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'))
                         </code>
                     </script>
                 </expression>
@@ -75,17 +75,17 @@
     </widget>
     <widget id="2">
         <identifier>audit-recent-errors</identifier>
-        <description>Widget that shows recent errors. Data are taken from audit log.</description>
+        <description>Widget that shows recent errors. Data are taken from audit log. test-change</description>
         <display>
             <label>
-                <orig>Recent errors</orig>
+                <orig>Recent errors test-change</orig>
                 <translation>
-                    <key>AdminDashboard.recentErrors</key>
+                    <key>AdminDashboard.recentErrorstest-change</key>
                 </translation>
             </label>
-            <color>#00a65a</color>
+            <color>#00a65atest-change</color>
             <icon>
-                <cssClass>fa fa-ban</cssClass>
+                <cssClass>fa fa-bantest-change</cssClass>
             </icon>
         </display>
         <data>
@@ -109,7 +109,8 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'), false)
+                            def test = "new row"
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'))
                         </code>
                     </script>
                 </expression>
@@ -128,17 +129,17 @@
     </widget>
     <widget id="3">
         <identifier>audit-recent-modifications</identifier>
-        <description>Widget that shows recent modifications. Data are taken from audit log.</description>
+        <description>Widget that shows recent modifications. Data are taken from audit log. test-change</description>
         <display>
             <label>
-                <orig>Recent modifications</orig>
+                <orig>Recent modifications test-change</orig>
                 <translation>
                     <key>AdminDashboard.recentModifications</key>
                 </translation>
             </label>
             <color>#00a65a</color>
             <icon>
-                <cssClass>fa fa-cog</cssClass>
+                <cssClass>fa fa-cog test-change</cssClass>
             </icon>
         </display>
         <data>
@@ -162,7 +163,7 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'), false)
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'))
                         </code>
                     </script>
                 </expression>
@@ -204,7 +205,7 @@
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
-                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'), false)
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'))
                         </code>
                     </script>
                 </expression>

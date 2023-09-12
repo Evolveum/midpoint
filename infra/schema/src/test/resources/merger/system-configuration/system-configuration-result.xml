@@ -634,7 +634,7 @@
                         </translation>
                     </pluralLabel>
                     <icon>
-                        <cssClass>fa fa-chart-pie</cssClass>
+                        <cssClass>fa fa-pie-chart</cssClass>
                         <color>green</color>
                     </icon>
                 </display>

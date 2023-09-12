@@ -13,33 +13,41 @@
         This is an operation that deleted or effectively disabled the focus.
         (So, previously it existed and was effectively enabled.)
     </documentation>
-    <assignment id="1">
+    <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>110</displayOrder>
-    <policyRule id="2">
+    <policyRule>
         <name>focus-deactivated</name>
         <policyConstraints>
-            <custom id="3">
+            <custom>
                 <name>$focus-deactivated</name>
+                <expression>
+                    <script>
+                        <code>midpoint.focusDeactivatedTest</code>
+                    </script>
+                </expression>
+            </custom>
+            <custom>
+                <name>$focus-deactivated-test</name>
                 <expression>
                     <script>
                         <code>midpoint.focusDeactivated</code>
                     </script>
                 </expression>
             </custom>
-            <modification id="4">
+            <modification>
                 <name>$focus-renamed</name>
                 <operation>modify</operation>
-                <item>name</item>
+                <item>email</item>
             </modification>
-            <or id="5">
+            <or>
                 <name>$resource-object-affected</name>
-                <modification id="6">
+                <modification>
                     <operation>modify</operation>
-                    <specialItem>resourceObjectItem</specialItem>
+                    <specialItem>resourceObjectNamingAttribute</specialItem>
                 </modification>
-                <modification id="7">
+                <modification>
                     <!-- We assume that ADD/DELETE always modifies the state of the resource -->
                     <operation>add</operation>
                     <operation>delete</operation>
@@ -52,7 +60,7 @@
         <synchronize>
             <inbound>
                 <enabled>false</enabled>
-                <severity>info</severity>
+                <severity>error</severity>
             </inbound>
             <outbound>
                 <enabled>false</enabled>
@@ -61,15 +69,15 @@
         </synchronize>
         <!--  Provisioning level -->
         <add>
-            <enabled>false</enabled>
-            <severity>error</severity>
+            <enabled>true</enabled>
+            <severity>info</severity>
         </add>
         <modify>
             <enabled>false</enabled>
-            <severity>error</severity>
+            <severity>info</severity>
         </modify>
         <delete>
-            <enabled>false</enabled>
+            <enabled>true</enabled>
             <severity>error</severity>
         </delete>
     </objectOperationPolicy>

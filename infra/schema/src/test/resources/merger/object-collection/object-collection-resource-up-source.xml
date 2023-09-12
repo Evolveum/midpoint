@@ -11,11 +11,11 @@
                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   oid="00000000-0000-0000-0001-000000000003">
     <name>Resources up</name>
-    <assignment>
+    <assignment id="1">
         <policyRule>
             <policyConstraints>
-                <collectionStats>
-                    <collection>
+                <collectionStats id="2">
+                    <collection id="3">
                         <interpretation>explicit</interpretation>
                     </collection>
                 </collectionStats>
@@ -30,10 +30,7 @@
     </assignment>
     <type>ResourceType</type>
     <filter>
-        <q:equal>
-            <q:path>operationalState/lastAvailabilityStatus</q:path>
-            <q:value>up</q:value>
-        </q:equal>
+        <q:text>operationalState/lastAvailabilityStatus = "up"</q:text>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000006" type="c:ObjectCollectionType"/>

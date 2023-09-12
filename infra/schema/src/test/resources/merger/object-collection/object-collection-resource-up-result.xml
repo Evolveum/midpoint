@@ -30,7 +30,10 @@
     </assignment>
     <type>ResourceType</type>
     <filter>
-        <q:text>operationalState/lastAvailabilityStatus = "up"</q:text>
+        <q:equal>
+            <q:path>operationalState/lastAvailabilityStatus</q:path>
+            <q:value>up</q:value>
+        </q:equal>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000006" type="c:ObjectCollectionType"/>

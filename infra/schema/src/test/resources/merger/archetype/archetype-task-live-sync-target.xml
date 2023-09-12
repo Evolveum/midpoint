@@ -20,111 +20,111 @@
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-sync-alt</cssClass>
+                <cssClass>fa fa-refresh</cssClass>
                 <color>green</color>
             </icon>
         </display>
-        <itemConstraint id="1">
+        <itemConstraint>
             <path>extension</path>
             <visibility>vacant</visibility>
         </itemConstraint>
-        <itemConstraint id="2">
+        <itemConstraint>
             <path>extension/mext:objectclass</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="3">
+        <itemConstraint>
             <path>extension/mext:kind</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="4">
+        <itemConstraint>
             <path>extension/mext:intent</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="5">
+        <itemConstraint>
             <path>extension/mext:synchronizationOptions</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="6">
+        <itemConstraint>
             <path>extension/mext:workerThreads</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="7">
+        <itemConstraint>
             <path>extension/mext:dryRun</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="8">
+        <itemConstraint>
             <path>extension/mext:retryLiveSyncErrors</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="9">
+        <itemConstraint>
             <path>extension/mext:updateLiveSyncTokenInDryRun</path>
             <visibility>visible</visibility>
         </itemConstraint>
-        <itemConstraint id="10">
+        <itemConstraint>
             <path>extension/livesync:token</path>
             <visibility>visible</visibility>
         </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
-                <panel id="11">
+                <panel>
                     <identifier>activity</identifier>
-                    <panel id="13">
+                    <panel>
                         <identifier>work</identifier>
-                        <container id="14">
+                        <container>
                             <identifier>work-live-sync</identifier>
                             <path>activity/work/liveSynchronization</path>
                         </container>
                     </panel>
                 </panel>
-                <panel id="12">
+                <panel>
                     <identifier>taskBasic</identifier>
-                    <container id="15">
+                    <container>
                         <identifier>objects-to-synchronize</identifier>
                         <display>
                             <label>LiveSynchronizationTask.objectsToSynchronize</label>
                         </display>
-                        <item id="17">
+                        <item>
                             <c:path>objectRef</c:path>
                         </item>
-                        <item id="18">
+                        <item>
                             <c:path>extension/mext:objectclass</c:path>
                         </item>
-                        <item id="19">
+                        <item>
                             <c:path>extension/mext:kind</c:path>
                         </item>
-                        <item id="20">
+                        <item>
                             <c:path>extension/mext:intent</c:path>
                         </item>
                     </container>
-                    <container id="16">
+                    <container>
                         <identifier>synchronization-options</identifier>
                         <display>
                             <label>LiveSynchronizationTask.synchronizationOptions</label>
                         </display>
-                        <item id="21">
+                        <item>
                             <c:path>extension/mext:workerThreads</c:path>
                         </item>
-                        <item id="22">
+                        <item>
                             <c:path>extension/mext:dryRun</c:path>
                         </item>
-                        <item id="23">
+                        <item>
                             <c:path>extension/mext:retryLiveSyncErrors</c:path>
                         </item>
-                        <item id="24">
+                        <item>
                             <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
                         </item>
                     </container>
                 </panel>
-                <panel id="29">
+                <panel>
                     <identifier>serviceMembers</identifier>
                     <listView>
                         <searchBoxConfiguration>
                             <indirectConfiguration>
-                                <indirect>true</indirect>
+                                <indirect>false</indirect>
                             </indirectConfiguration>
                             <objectTypeConfiguration>
-                                <visibility>hidden</visibility>
+                                <visibility>visible</visibility>
                                 <defaultValue>UserType</defaultValue>
                                 <supportedTypes>UserType</supportedTypes>
                             </objectTypeConfiguration>
@@ -134,15 +134,14 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment id="25">
-        <assignmentRelation id="26">
+    <assignment>
+        <assignmentRelation>
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement id="27">
+    <inducement>
         <focusMappings>
-            <mapping id="28">
-                <name>name</name>
+            <mapping>
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -151,6 +150,7 @@
                             import org.apache.commons.lang3.StringUtils
 
                             def task = focus as TaskType
+                            def test = "new row"
 
                             String name = source.name
 
@@ -167,19 +167,37 @@
                     <path>name</path>
                 </target>
             </mapping>
-        </focusMappings>
-    </inducement>
-    <inducement id="30">
-        <focusMappings>
-            <mapping id="31">
-                <name>shadow</name>
+            <mapping>
                 <strength>weak</strength>
                 <expression>
-                    <value>shadow</value>
+                    <value>LiveSynchronization</value>
                 </expression>
                 <target>
-                    <c:path>extension/mext:objectType</c:path>
+                    <c:path>category</c:path>
                 </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <source>
+                    <path>activity</path>
+                </source>
+                <expression>
+                    <value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</value>
+                </expression>
+                <target>
+                    <c:path>handlerUri</c:path>
+                </target>
+                <condition>
+                    <script>
+                        <code>
+                            activity == null
+                        </code>
+                    </script>
+                </condition>
             </mapping>
         </focusMappings>
     </inducement>

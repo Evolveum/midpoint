@@ -57,7 +57,7 @@
                 <name>name</name>
                 <path>name</path>
                 <display>
-                    <label>Name test</label>
+                    <label>Name</label>
                 </display>
             </column>
             <column id="3">
@@ -95,7 +95,7 @@
             </column>
             <column id="7">
                 <name>state</name>
-                <path>state</path>
+                <path>stateTest</path>
                 <display>
                     <label>State</label>
                 </display>
@@ -105,7 +105,7 @@
                 <name>stageNumber</name>
                 <path>stageNumber</path>
                 <display>
-                    <label>Actual stage</label>
+                    <label>Actual stage 3</label>
                 </display>
                 <previousColumn>state</previousColumn>
             </column>
@@ -123,6 +123,7 @@
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
 
                                 def campaign = object as AccessCertificationCampaignType
+                                def test = "new row"
                                 CertCampaignTypeUtil.getActiveCases(campaign.case, campaign.stageNumber, campaign.state)
                             </code>
                         </script>
@@ -161,7 +162,7 @@
             <type>boolean</type>
             <display>
                 <label>
-                    <t:orig>alsoClosedCampaignsTest</t:orig>
+                    <t:orig>alsoClosedCampaignsTestTarget</t:orig>
                     <t:translation>
                         <t:key>runReportPopupContent.param.name.alsoClosedCampaigns</t:key>
                     </t:translation>

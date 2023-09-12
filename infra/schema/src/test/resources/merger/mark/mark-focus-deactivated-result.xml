@@ -24,7 +24,7 @@
                 <name>$focus-deactivated</name>
                 <expression>
                     <script>
-                        <code>midpoint.focusDeactivated</code>
+                        <code>midpoint.focusDeactivatedTest</code>
                     </script>
                 </expression>
             </custom>
@@ -62,7 +62,7 @@
         <synchronize>
             <inbound>
                 <enabled>false</enabled>
-                <severity>info</severity>
+                <severity>error</severity>
             </inbound>
             <outbound>
                 <enabled>false</enabled>
@@ -71,15 +71,15 @@
         </synchronize>
         <!--  Provisioning level -->
         <add>
-            <enabled>false</enabled>
-            <severity>error</severity>
+            <enabled>true</enabled>
+            <severity>info</severity>
         </add>
         <modify>
             <enabled>false</enabled>
-            <severity>error</severity>
+            <severity>info</severity>
         </modify>
         <delete>
-            <enabled>false</enabled>
+            <enabled>true</enabled>
             <severity>error</severity>
         </delete>
     </objectOperationPolicy>

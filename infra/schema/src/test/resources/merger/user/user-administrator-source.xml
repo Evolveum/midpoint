@@ -10,14 +10,17 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>administrator</name>
-    <indestructible>false</indestructible>
-    <fullName>midPoint Administrator test change</fullName>
-    <givenName>midPointtest change</givenName>
-    <familyName>Administratortest change</familyName>
-    <assignment>
+    <indestructible>true</indestructible>
+    <fullName>midPoint Administrator</fullName>
+    <givenName>midPoint</givenName>
+    <familyName>Administrator</familyName>
+    <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/> <!-- Superuser -->
+        <activation>
+            <administrativeStatus>enabled</administrativeStatus>
+        </activation>
     </assignment>
-    <assignment>
+    <assignment id="2">
         <targetRef oid="00000000-0000-0000-0000-000000000300" type="ArchetypeType"/> <!-- System user -->
     </assignment>
     <activation>

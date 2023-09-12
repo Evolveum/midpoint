@@ -23,7 +23,7 @@
     <authorization id="1">
         <name>gui-self-service-access</name>
         <description>
-            Allow access to all self-service operations in GUI.
+            Allow access to all self-service operations in GUI. TEST
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
     </authorization>
@@ -53,7 +53,7 @@
         <name>self-shadow-read</name>
         <description>
             Allow to read all the properties of all the shadows that belong to "self" object.
-            I.e. every logged-in user can read all his accounts.
+            I.e. every logged-in user can read all his accounts. TEST
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object id="17">
@@ -272,7 +272,7 @@
             <type>UserType</type>
             <widget id="35">
                 <identifier>myWorkItems</identifier>
-                <visibility>visible</visibility>
+                <visibility>hidden</visibility>
             </widget>
             <widget id="36">
                 <identifier>myHistory</identifier>
@@ -302,7 +302,7 @@
             <type>UserType</type>
             <panel id="41">
                 <identifier>history</identifier>
-                <visibility>visible</visibility>
+                <visibility>hidden</visibility>
             </panel>
         </selfProfilePage>
     </adminGuiConfiguration>
