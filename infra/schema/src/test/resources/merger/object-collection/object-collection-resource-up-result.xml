@@ -19,11 +19,6 @@
                         <interpretation>explicit</interpretation>
                     </collection>
                 </collectionStats>
-                <collectionStats>
-                    <collection>
-                        <interpretation>explicit</interpretation>
-                    </collection>
-                </collectionStats>
             </policyConstraints>
             <policySituation>#resourceHealthDanger</policySituation>
             <policyThreshold>

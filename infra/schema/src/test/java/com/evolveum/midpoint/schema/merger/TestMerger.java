@@ -141,6 +141,11 @@ public class TestMerger extends AbstractSchemaTest {
         testMergeOperation("archetype/archetype-task-live-sync");
     }
 
+    @Test
+    public void test120MarkMergeOperation() throws Exception {
+        testMergeOperation("mark/mark-focus-deactivated");
+    }
+
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
         PrismObject<LookupTableType> source = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-source.xml"));
         PrismObject<LookupTableType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR, fileNamePrefix + "-target.xml"));

@@ -194,7 +194,20 @@ class TypeSpecificMergersConfigurator {
                                         AssignmentRelationType.F_HOLDER_ARCHETYPE_REF))),
                 entry(
                         ItemConstraintType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ItemConstraintType.F_PATH)))
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ItemConstraintType.F_PATH))),
+                entry(
+                        GlobalPolicyRuleType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GlobalPolicyRuleType.F_NAME))),
+                entry(
+                        ModificationPolicyConstraintType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        ModificationPolicyConstraintType.F_NAME,
+                                        ModificationPolicyConstraintType.F_OPERATION))),
+                entry(
+                        AbstractPolicyConstraintType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractPolicyConstraintType.F_NAME)))
         );
     }
 }
