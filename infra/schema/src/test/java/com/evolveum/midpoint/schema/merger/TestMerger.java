@@ -105,7 +105,7 @@ public class TestMerger extends AbstractSchemaTest {
         LOGGER.trace("Merged object:\n{}", target.debugDump());
         LOGGER.trace("Result object:\n{}", result.debugDump());
 
-        ObjectDelta<O> delta = target.diff(source);
+        ObjectDelta<O> delta = target.diff(result);
 
         Assertions.assertThat(target)
                 .matches(

@@ -140,9 +140,9 @@
         </assignmentRelation>
     </assignment>
     <inducement id="27">
+        <identifier>nameMapping</identifier>
         <focusMappings>
             <mapping id="28">
-                <name>name</name>
                 <strength>weak</strength>
                 <expression>
                     <script>

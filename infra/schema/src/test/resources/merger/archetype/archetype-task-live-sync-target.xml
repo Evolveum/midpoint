@@ -150,7 +150,6 @@
                             import org.apache.commons.lang3.StringUtils
 
                             def task = focus as TaskType
-                            def test = "new row"
 
                             String name = source.name
 
@@ -165,15 +164,6 @@
                 </expression>
                 <target>
                     <path>name</path>
-                </target>
-            </mapping>
-            <mapping>
-                <strength>weak</strength>
-                <expression>
-                    <value>LiveSynchronization</value>
-                </expression>
-                <target>
-                    <c:path>category</c:path>
                 </target>
             </mapping>
         </focusMappings>
