@@ -30,7 +30,10 @@ public class SimpleObjectMergeOperation extends BaseMergeOperation<ObjectType> {
             DashboardType.class,
             UserType.class,
             ArchetypeType.class,
-            MarkType.class
+            MarkType.class,
+            ObjectTemplateType.class,
+            ServiceType.class,
+            ValuePolicyType.class
     );
 
     public SimpleObjectMergeOperation(
