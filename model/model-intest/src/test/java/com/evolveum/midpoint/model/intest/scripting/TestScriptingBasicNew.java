@@ -9,16 +9,20 @@ package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
@@ -27,6 +31,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +51,10 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private static final File ASSIGN_CAPTAIN_BY_NAME_TO_JACK_FILE = new File(TEST_DIR, "assign-captain-by-name-to-jack.xml");
     private static final File UNASSIGN_ALL_FROM_JACK_FILE = new File(TEST_DIR, "unassign-all-from-jack.xml");
     private static final File EXECUTE_CUSTOM_DELTA = new File(TEST_DIR, "execute-custom-delta.xml");
+
+    private static final File SEARCH_WITH_SCRIPT_OK = new File(TEST_DIR, "search-with-script-ok.xml");
+    private static final File SEARCH_WITH_SCRIPT_BAD = new File(TEST_DIR, "search-with-script-bad.xml");
+    private static final File UNASSIGN_WITH_SCRIPT_BAD = new File(TEST_DIR, "unassign-with-script-bad.xml");
 
     private static final TestResource<TaskType> TASK_DELETE_SHADOWS_MULTINODE = new TestResource<>(TEST_DIR, "task-delete-shadows-multinode.xml", "931e34be-5cf0-46c6-8cc1-90812a66d5cb");
 
@@ -272,5 +281,82 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         displayValue("objects",
                 DebugUtil.debugDump(repositoryService.searchObjects(ShadowType.class, query, null, result)));
         return repositoryService.countObjects(ShadowType.class, query, null, result);
+    }
+
+    /**
+     * Check for execution of groovy script as part of search filter at various places.
+     */
+    @Test
+    public void test920CheckScriptExecution() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user able to run bulk actions");
+        RoleType role = new RoleType()
+                .name(getTestNameShort())
+                .authorization(new AuthorizationType()
+                        .action(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl()))
+                .authorization(new AuthorizationType()
+                        .action(ModelAuthorizationAction.READ.getUrl()));
+        addObject(role.asPrismObject(), task, result);
+
+        String regularUserName = getTestNameShort();
+        UserType user = new UserType()
+                .name(regularUserName)
+                .assignment(ObjectTypeUtil.createAssignmentTo(role, SchemaConstants.ORG_DEFAULT));
+        addObject(user.asPrismObject(), task, result);
+
+        checkSearchWithScriptExecuted(regularUserName, SEARCH_WITH_SCRIPT_OK);
+        checkSearchWithScriptNotExecuted(regularUserName, SEARCH_WITH_SCRIPT_BAD);
+        checkSearchWithScriptExecuted(USER_ADMINISTRATOR_USERNAME, SEARCH_WITH_SCRIPT_OK);
+        checkSearchWithScriptExecuted(USER_ADMINISTRATOR_USERNAME, SEARCH_WITH_SCRIPT_BAD);
+
+        checkUnassignWithScriptNotExecuted(regularUserName, UNASSIGN_WITH_SCRIPT_BAD);
+    }
+
+    private void checkSearchWithScriptExecuted(String userName, File file) throws CommonException, IOException {
+        ExecutionContext output = execute(userName, file);
+        int objects = output.getFinalOutput().getData().size();
+        assertThat(objects).as("Objects found").isEqualTo(1);
+    }
+
+    private ExecutionContext execute(String userName, File file) throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("logged in as " + userName);
+        login(userName);
+
+        and("executing " + file);
+        ExecuteScriptType executeScriptBean = parseExecuteScript(file);
+        return evaluator.evaluateExpression(
+                executeScriptBean, VariablesMap.emptyMap(), false, task, result);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void checkSearchWithScriptNotExecuted(String userName, File file) throws CommonException, IOException {
+        try {
+            execute(userName, file);
+            fail("unexpected success");
+        } catch (ScriptExecutionException e) {
+            assertNoScriptsAllowed(e);
+        }
+    }
+
+    private void assertNoScriptsAllowed(ScriptExecutionException e) {
+        SecurityViolationException cause = ExceptionUtil.findCause(e, SecurityViolationException.class);
+        displayExpectedException(cause);
+        assertThat(cause)
+                .hasMessageContaining("Access to script expression evaluator not allowed");
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void checkUnassignWithScriptNotExecuted(String userName, File file) throws CommonException, IOException {
+        try {
+            execute(userName, file);
+            fail("unexpected success");
+        } catch (ScriptExecutionException e) {
+            assertNoScriptsAllowed(e);
+        }
     }
 }

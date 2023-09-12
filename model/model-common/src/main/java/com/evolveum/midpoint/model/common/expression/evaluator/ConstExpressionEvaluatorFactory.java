@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvalu
 @Component
 public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-    private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_CONST;
+    public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_CONST;
 
     @Autowired private Protector protector;
     @Autowired private ConstantsManager constantsManager;

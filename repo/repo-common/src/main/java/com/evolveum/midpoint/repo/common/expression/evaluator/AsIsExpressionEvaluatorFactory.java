@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvalua
 @Component
 public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-    private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_AS_IS;
+    public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_AS_IS;
 
     @Autowired private PrismContext prismContext;
     @Autowired private Protector protector;

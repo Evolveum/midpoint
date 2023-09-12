@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.scripting.expressions.FilterContentEvaluator;
@@ -64,6 +67,7 @@ public class ScriptingExpressionEvaluator {
     @Autowired private ModelObjectResolver modelObjectResolver;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired public ScriptingActionExecutorRegistry actionExecutorRegistry;
+    @Autowired public SecurityEnforcer securityEnforcer;
 
     /**
      * Asynchronously executes any scripting expression.
@@ -133,8 +137,13 @@ public class ScriptingExpressionEvaluator {
         try {
             VariablesMap frozenVariables = VariablesUtil.initialPreparation(initialVariables, executeScript.getVariables(), expressionFactory, modelObjectResolver, prismContext, expressionProfile, task, result);
             PipelineData pipelineData = PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext);
-            ExecutionContext context = new ExecutionContext(executeScript.getOptions(), task, this,
-                    privileged, recordProgressAndIterationStatistics, frozenVariables);
+            boolean root = securityEnforcer.isAuthorized(
+                    AuthorizationConstants.AUTZ_ALL_URL, null,
+                    AuthorizationParameters.EMPTY, null, task, result);
+            ExecutionContext context = new ExecutionContext(
+                    executeScript.getOptions(), task, this,
+                    privileged, recordProgressAndIterationStatistics, frozenVariables,
+                    root);
             PipelineData output = evaluateExpression(executeScript.getScriptingExpression().getValue(), pipelineData, context, result);
             context.setFinalOutput(output);
             result.computeStatusIfUnknown();
