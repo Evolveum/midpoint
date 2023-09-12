@@ -172,6 +172,7 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
                             source.getTargetRef().asReferenceValue(), BaseItemMerger.VALUE_COMPARISON_STRATEGY)) {
                     return true;
                 }
+                return false;
             }
             case RELATION -> {
                 return true;
@@ -208,7 +209,7 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
             return AssignmentTypeType.PERSONA_CONSTRUCTION;
         }
 
-        if (assignment.getAssignmentRelation() != null) {
+        if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
             return AssignmentTypeType.RELATION;
         }
 
