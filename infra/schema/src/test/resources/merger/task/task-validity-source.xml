@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<task oid="00000000-0000-0000-0000-000000000006"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <name>Validity Scanner</name>
+    <description>A system task that maintains effective status of objects, based on their validity time constraints.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000529" type="ArchetypeType" />
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000530" type="ArchetypeType" />
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+
+    <binding>loose</binding>
+    <schedule>
+        <interval>900</interval>
+    </schedule>
+
+    <activity>
+        <work>
+            <focusValidityScan/>
+        </work>
+    </activity>
+</task>

@@ -88,17 +88,17 @@ public class TestMerger extends AbstractSchemaTest {
 
     @Test
     public void test10LookupTableMergeOperation() throws Exception {
-        testMergeOperation("lookup-table");
+        testMergeOperation("lookup-table/lookup-table");
     }
 
     @Test
     public void test20SecurityPolicyMergeOperation() throws Exception {
-        testMergeOperation("security-policy");
+        testMergeOperation("security-policy/security-policy");
     }
 
     @Test
     public void test30SystemConfigurationMergeOperation() throws Exception {
-        testMergeOperation("system-configuration");
+        testMergeOperation("system-configuration/system-configuration");
     }
 
     @Test
@@ -109,6 +109,11 @@ public class TestMerger extends AbstractSchemaTest {
     @Test
     public void test50RoleSuperuserMergeOperation() throws Exception {
         testMergeOperation("role/role-superuser");
+    }
+
+    @Test
+    public void test60TaskValidityMergeOperation() throws Exception {
+        testMergeOperation("task/task-validity");
     }
 
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
