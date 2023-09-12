@@ -32,7 +32,8 @@ public class ObjectMergeOperation {
             entry(ReportType.class, ReportMergeOperation.class),
             entry(ObjectCollectionType.class, ObjectCollectionMergeOperation.class),
             entry(DashboardType.class, DashboardMergeOperation.class),
-            entry(UserType.class, UserMergeOperation.class)
+            entry(UserType.class, UserMergeOperation.class),
+            entry(ArchetypeType.class, ArchetypeMergeOperation.class)
     );
 
     public static <O extends ObjectType> boolean hasMergeOperationFor(PrismObject<O> target) {

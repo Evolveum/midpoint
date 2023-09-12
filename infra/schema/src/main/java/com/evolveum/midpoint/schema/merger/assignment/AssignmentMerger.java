@@ -17,14 +17,12 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +37,7 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentMerger.class);
 
     public enum AssignmentTypeType {
-        CONSTRUCTION, ABSTRACT_ROLE, POLICY_RULE, FOCUS_MAPPING, PERSONA_CONSTRUCTION
+        CONSTRUCTION, ABSTRACT_ROLE, POLICY_RULE, FOCUS_MAPPING, PERSONA_CONSTRUCTION, RELATION
     }
 
     public AssignmentMerger(@Nullable OriginMarker originMarker) {
@@ -127,7 +125,10 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
             case FOCUS_MAPPING -> {
                 List<String> targetMappingsNames = getMappingsNames(def.getFocusMappings());
                 List<String> sourceMappingsNames = getMappingsNames(source.getFocusMappings());
-                return sourceMappingsNames.containsAll(targetMappingsNames);
+                if (targetMappingsNames.isEmpty() || sourceMappingsNames.isEmpty()) {
+                    return false;
+                }
+                return sourceMappingsNames.stream().anyMatch(sourceName -> targetMappingsNames.contains(sourceName));
             }
             case PERSONA_CONSTRUCTION -> {
                 if (def.getPersonaConstruction().getObjectMappingRef() != null
@@ -172,13 +173,18 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
                     return true;
                 }
             }
+            case RELATION -> {
+                return true;
+            }
         }
         return false;
     }
 
     private List<String> getMappingsNames(MappingsType focusMappings) {
-        return focusMappings.getMapping()
-                .stream().map(mapping -> mapping.getName()).collect(Collectors.toList());
+        return focusMappings.getMapping().stream()
+                .filter(mappingType -> mappingType.getName() != null)
+                .map(mapping -> mapping.getName())
+                .collect(Collectors.toList());
     }
 
     private AssignmentTypeType getAssignmentType(AssignmentType assignment) {
@@ -200,6 +206,10 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
 
         if (assignment.getPersonaConstruction() != null) {
             return AssignmentTypeType.PERSONA_CONSTRUCTION;
+        }
+
+        if (assignment.getAssignmentRelation() != null) {
+            return AssignmentTypeType.RELATION;
         }
 
         return AssignmentTypeType.ABSTRACT_ROLE;

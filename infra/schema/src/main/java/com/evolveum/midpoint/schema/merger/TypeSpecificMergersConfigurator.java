@@ -183,7 +183,18 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(
                                 marker,
                                 DefaultNaturalKeyImpl.of(
-                                        DashboardWidgetVariationType.F_DISPLAY, DashboardWidgetVariationType.F_CONDITION)))
+                                        DashboardWidgetVariationType.F_DISPLAY, DashboardWidgetVariationType.F_CONDITION))),
+                entry(
+                        AssignmentRelationType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        AssignmentRelationType.F_HOLDER_TYPE,
+                                        AssignmentRelationType.F_RELATION,
+                                        AssignmentRelationType.F_HOLDER_ARCHETYPE_REF))),
+                entry(
+                        ItemConstraintType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ItemConstraintType.F_PATH)))
         );
     }
 }

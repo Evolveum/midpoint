@@ -1,0 +1,186 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000504"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+           xmlns:livesync="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3">
+    <name>Live synchronization task</name>
+    <archetypePolicy>
+        <display>
+            <label>Live synchronization task</label>
+            <pluralLabel>
+                <orig>Live synchronization tasks</orig>
+                <translation>
+                    <key>LiveSynchronizationTasks.title</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-sync-alt</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+        <itemConstraint id="1">
+            <path>extension</path>
+            <visibility>vacant</visibility>
+        </itemConstraint>
+        <itemConstraint id="2">
+            <path>extension/mext:objectclass</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="3">
+            <path>extension/mext:kind</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="4">
+            <path>extension/mext:intent</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="5">
+            <path>extension/mext:synchronizationOptions</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="6">
+            <path>extension/mext:workerThreads</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="7">
+            <path>extension/mext:dryRun</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="8">
+            <path>extension/mext:retryLiveSyncErrors</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="9">
+            <path>extension/mext:updateLiveSyncTokenInDryRun</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint id="10">
+            <path>extension/livesync:token</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <panel id="11">
+                    <identifier>activity</identifier>
+                    <panel id="13">
+                        <identifier>work</identifier>
+                        <container id="14">
+                            <identifier>work-live-sync</identifier>
+                            <path>activity/work/liveSynchronization</path>
+                        </container>
+                    </panel>
+                </panel>
+                <panel id="12">
+                    <identifier>taskBasic</identifier>
+                    <container id="15">
+                        <identifier>objects-to-synchronize</identifier>
+                        <display>
+                            <label>LiveSynchronizationTask.objectsToSynchronize</label>
+                        </display>
+                        <item id="17">
+                            <c:path>objectRef</c:path>
+                        </item>
+                        <item id="18">
+                            <c:path>extension/mext:objectclass</c:path>
+                        </item>
+                        <item id="19">
+                            <c:path>extension/mext:kind</c:path>
+                        </item>
+                        <item id="20">
+                            <c:path>extension/mext:intent</c:path>
+                        </item>
+                    </container>
+                    <container id="16">
+                        <identifier>synchronization-options</identifier>
+                        <display>
+                            <label>LiveSynchronizationTask.synchronizationOptions</label>
+                        </display>
+                        <item id="21">
+                            <c:path>extension/mext:workerThreads</c:path>
+                        </item>
+                        <item id="22">
+                            <c:path>extension/mext:dryRun</c:path>
+                        </item>
+                        <item id="23">
+                            <c:path>extension/mext:retryLiveSyncErrors</c:path>
+                        </item>
+                        <item id="24">
+                            <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
+                        </item>
+                    </container>
+                </panel>
+                <panel id="29">
+                    <identifier>serviceMembers</identifier>
+                    <listView>
+                        <searchBoxConfiguration>
+                            <indirectConfiguration>
+                                <indirect>true</indirect>
+                            </indirectConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>UserType</defaultValue>
+                                <supportedTypes>UserType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment id="25">
+        <assignmentRelation id="26">
+            <holderType>TaskType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement id="27">
+        <focusMappings>
+            <mapping id="28">
+                <name>name</name>
+                <strength>weak</strength>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType
+                            import org.apache.commons.lang3.StringUtils
+
+                            def task = focus as TaskType
+
+                            String name = source.name
+
+                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.liveSynchronization?.resourceObjects)
+                            if(StringUtils.isNotEmpty(description)) {
+                                return name + ': ' + description
+                            }
+
+                            return name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement id="30">
+        <focusMappings>
+            <mapping id="31">
+                <name>shadow</name>
+                <strength>weak</strength>
+                <expression>
+                    <value>shadow</value>
+                </expression>
+                <target>
+                    <c:path>extension/mext:objectType</c:path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</archetype>

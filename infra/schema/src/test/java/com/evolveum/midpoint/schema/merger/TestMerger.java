@@ -112,28 +112,33 @@ public class TestMerger extends AbstractSchemaTest {
     }
 
     @Test
-    public void test60TaskValidityMergeOperation() throws Exception {
+    public void test60TaskMergeOperation() throws Exception {
         testMergeOperation("task/task-validity");
     }
 
     @Test
-    public void test70ReportCertificationCampaignsMergeOperation() throws Exception {
+    public void test70ReportMergeOperation() throws Exception {
         testMergeOperation("report/report-certification-campaigns");
     }
 
     @Test
-    public void test80ObjectCollectionResourceUpMergeOperation() throws Exception {
+    public void test80ObjectCollectionMergeOperation() throws Exception {
         testMergeOperation("object-collection/object-collection-resource-up");
     }
 
     @Test
-    public void test90DashboardAdminMergeOperation() throws Exception {
+    public void test90DashboardMergeOperation() throws Exception {
         testMergeOperation("dashboard/dashboard-admin");
     }
 
     @Test
-    public void test100UserAdministratorMergeOperation() throws Exception {
+    public void test100UserMergeOperation() throws Exception {
         testMergeOperation("user/user-administrator");
+    }
+
+    @Test
+    public void test110ArchetypeMergeOperation() throws Exception {
+        testMergeOperation("archetype/archetype-task-live-sync");
     }
 
     private void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
@@ -144,8 +149,9 @@ public class TestMerger extends AbstractSchemaTest {
         ObjectMergeOperation.merge(target, source);
 
         LOGGER.trace("Merged object:\n{}", target.debugDump());
+        LOGGER.trace("Result object:\n{}", result.debugDump());
 
         Assertions.assertThat(target)
-                .matches(t -> t.equivalent(result), result.debugDump());
+                .matches(t -> t.equivalent(result));
     }
 }
