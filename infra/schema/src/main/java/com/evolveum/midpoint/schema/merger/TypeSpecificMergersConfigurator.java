@@ -7,19 +7,19 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import static java.util.Map.entry;
+
+import java.util.Map;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
 import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.key.ItemPathNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
 import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
-import java.util.function.Supplier;
-
-import static java.util.Map.entry;
 
 /**
  * Separate class to hold the configuration of type-specific item mergers.
@@ -72,7 +72,7 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractAuthenticationModuleType.F_IDENTIFIER))),
                 entry(
                         AuthenticationSequenceType.class,
-                       () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceType.F_IDENTIFIER))),
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceType.F_IDENTIFIER))),
                 entry(
                         ClassLoggerConfigurationType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ClassLoggerConfigurationType.F_PACKAGE))),
@@ -84,7 +84,9 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(TracingProfileType.F_NAME))),
                 entry(
                         HomePageType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(HomePageType.F_IDENTIFIER))),
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
+                                HomePageType.F_IDENTIFIER,
+                                HomePageType.F_TYPE))),
                 entry(
                         PreviewContainerPanelConfigurationType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(PreviewContainerPanelConfigurationType.F_IDENTIFIER))),
@@ -107,9 +109,9 @@ class TypeSpecificMergersConfigurator {
                                 DefaultNaturalKeyImpl.of(VirtualContainerItemSpecificationType.F_PATH))),
                 entry(
                         GuiResourceDetailsPageType.class,
-                        () -> new GenericItemMerger(
-                                marker,
-                                DefaultNaturalKeyImpl.of(GuiResourceDetailsPageType.F_CONNECTOR_REF))),
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
+                                GuiResourceDetailsPageType.F_TYPE,
+                                GuiResourceDetailsPageType.F_CONNECTOR_REF))),
                 entry(
                         RoleCollectionViewType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(RoleCollectionViewType.F_IDENTIFIER))),
@@ -209,7 +211,42 @@ class TypeSpecificMergersConfigurator {
                                 marker,
                                 DefaultNaturalKeyImpl.of(
                                         ModificationPolicyConstraintType.F_NAME,
-                                        ModificationPolicyConstraintType.F_OPERATION)))
-        );
+                                        ModificationPolicyConstraintType.F_OPERATION))),
+                entry(
+                        AuthenticationSequenceModuleType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AuthenticationSequenceModuleType.F_IDENTIFIER))),
+                entry(
+                        CredentialPolicyType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(CredentialPolicyType.F_NAME))),
+                entry(
+                        SecurityQuestionDefinitionType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SecurityQuestionDefinitionType.F_IDENTIFIER))),
+                entry(
+                        SubSystemLoggerConfigurationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SubSystemLoggerConfigurationType.F_COMPONENT))),
+                entry(
+                        GuiObjectListViewType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
+                                GuiObjectListViewType.F_IDENTIFIER,
+                                GuiObjectListViewType.F_TYPE))),
+                entry(
+                        GuiShadowListViewType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
+                                GuiShadowListViewType.F_IDENTIFIER,
+                                GuiShadowListViewType.F_TYPE,
+                                GuiShadowListViewType.F_RESOURCE_REF,
+                                GuiShadowListViewType.F_KIND,
+                                GuiShadowListViewType.F_INTENT))),
+                entry(
+                        AbstractObjectTypeConfigurationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractObjectTypeConfigurationType.F_TYPE))),
+                entry(
+                        GuiShadowDetailsPageType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
+                                GuiShadowDetailsPageType.F_TYPE,
+                                GuiShadowDetailsPageType.F_RESOURCE_REF,
+                                GuiShadowDetailsPageType.F_KIND,
+                                GuiShadowDetailsPageType.F_INTENT))));
+
     }
 }

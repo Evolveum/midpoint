@@ -98,7 +98,7 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
             return byItemName;
         }
 
-        // Then let's have a look at the type. Currently we use definitions to determine it,
+        // Then let's have a look at the type. Currently, we use definitions to determine it,
         // but maybe we could go with the real values (if this would not work).
         ComplexTypeDefinition ctd = sourcePcv.getComplexTypeDefinition();
         stateCheck(ctd != null, "No complex type definition of %s", sourcePcv);
@@ -106,12 +106,24 @@ public class GenericItemMerger extends BaseItemMerger<Item<?, ?>> {
         stateCheck(childDef != null, "No definition of %s in %s", itemName, ctd);
         Class<?> valueClass = childDef.getTypeClass();
         if (valueClass != null) {
+            Map.Entry<Class<?>, Supplier<ItemMerger>> entryFound = null;
             for (Map.Entry<Class<?>, Supplier<ItemMerger>> entry : typeSpecificMergers.entrySet()) {
                 if (entry.getKey().isAssignableFrom(valueClass)) {
-                    ItemMerger byTypeName = entry.getValue().get();
-                    LOGGER.trace("Type-specific merger for {} (type {}) was found: {}", itemName, valueClass, byTypeName);
-                    return byTypeName;
+                    if (entryFound == null) {
+                        entryFound = entry;
+                    } else {
+                        // we're looking for the most concrete supplier
+                        if (entryFound.getKey().isAssignableFrom(entry.getKey())) {
+                            entryFound = entry;
+                        }
+                    }
                 }
+            }
+
+            if (entryFound != null) {
+                ItemMerger byTypeName = entryFound.getValue().get();
+                LOGGER.trace("Type-specific merger for {} (type {}) was found: {}", itemName, valueClass, byTypeName);
+                return byTypeName;
             }
         }
 
