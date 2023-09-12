@@ -170,7 +170,10 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectColumnType.F_NAME))),
                 entry(
                         SearchFilterParameterType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SearchFilterParameterType.F_NAME)))
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SearchFilterParameterType.F_NAME))),
+                entry(
+                        CollectionSpecificationType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(CollectionSpecificationType.F_INTERPRETATION)))
         );
     }
 }

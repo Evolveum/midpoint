@@ -140,11 +140,29 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
                 return false;
             }
             case POLICY_RULE -> {
+                boolean allIsNull = true;
                 if (def.getPolicyRule().getName() != null
-                        && source.getPolicyRule().getName() != null
-                        && def.getPolicyRule().getName().equals(source.getPolicyRule().getName())) {
-                    return true;
+                        && source.getPolicyRule().getName() != null) {
+                    if (!(def.getPolicyRule().getName().equals(source.getPolicyRule().getName()))) {
+                        return false;
+                    }
+                    allIsNull = false;
+                } else if (!(def.getPolicyRule().getName() == null
+                        && source.getPolicyRule().getName() == null)) {
+                    return false;
                 }
+
+                if (def.getPolicyRule().getPolicySituation() != null
+                        && source.getPolicyRule().getPolicySituation() != null) {
+                    if (!(def.getPolicyRule().getPolicySituation().equals(source.getPolicyRule().getPolicySituation()))) {
+                        return false;
+                    }
+                    allIsNull = false;
+                } else if (!(def.getPolicyRule().getPolicySituation() == null
+                        && source.getPolicyRule().getPolicySituation() == null)) {
+                    return false;
+                }
+                return !allIsNull;
             }
             case ABSTRACT_ROLE -> {
                 if (def.getTargetRef() != null
