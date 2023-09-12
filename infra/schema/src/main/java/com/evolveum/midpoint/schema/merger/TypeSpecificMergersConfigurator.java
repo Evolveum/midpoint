@@ -173,7 +173,17 @@ class TypeSpecificMergersConfigurator {
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SearchFilterParameterType.F_NAME))),
                 entry(
                         CollectionSpecificationType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(CollectionSpecificationType.F_INTERPRETATION)))
+                        () -> new GenericItemMerger(
+                                marker, DefaultNaturalKeyImpl.of(CollectionSpecificationType.F_INTERPRETATION))),
+                entry(
+                        DashboardWidgetDataFieldType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(DashboardWidgetDataFieldType.F_FIELD_TYPE))),
+                entry(
+                        DashboardWidgetVariationType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        DashboardWidgetVariationType.F_DISPLAY, DashboardWidgetVariationType.F_CONDITION)))
         );
     }
 }

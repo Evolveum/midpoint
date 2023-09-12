@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<dashboard xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="00000000-0000-0000-0001-000000000001">
+    <name>admin-dashboard</name>
+    <display>
+        <label>
+            <orig>Admin dashboard</orig>
+            <translation>
+                <key>AdminDashboard.title</key>
+            </translation>
+        </label>
+    </display>
+    <widget id="1">
+        <identifier>resources-up</identifier>
+        <description>Widget that shows all the resources that are up. Based on "Resources Up" object collection.</description>
+        <display>
+            <label>
+                <orig>Resources up</orig>
+                <translation>
+                    <key>AdminDashboard.resourcesUp</key>
+                </translation>
+            </label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-database</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000003" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="5">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-slash-domain</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField id="6">
+                <fieldType>unit</fieldType>
+                <expression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'), false)
+                        </code>
+                    </script>
+                </expression>
+            </dataField>
+            <variation id="7">
+                <condition>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                           policySituations.contains("#resourceHealthDanger")
+                        </code>
+                    </script>
+                </condition>
+                <display>
+                    <color>#dd4b39</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+    <widget id="2">
+        <identifier>audit-recent-errors</identifier>
+        <description>Widget that shows recent errors. Data are taken from audit log.</description>
+        <display>
+            <label>
+                <orig>Recent errors</orig>
+                <translation>
+                    <key>AdminDashboard.recentErrors</key>
+                </translation>
+            </label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-ban</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>auditSearch</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000004" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="8">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>percentage</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField id="9">
+                <fieldType>unit</fieldType>
+                <expression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'), false)
+                        </code>
+                    </script>
+                </expression>
+            </dataField>
+            <variation id="10">
+                <condition>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>proportional.getPercentage() &gt; 5</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>#dd4b39</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+    <widget id="3">
+        <identifier>audit-recent-modifications</identifier>
+        <description>Widget that shows recent modifications. Data are taken from audit log.</description>
+        <display>
+            <label>
+                <orig>Recent modifications</orig>
+                <translation>
+                    <key>AdminDashboard.recentModifications</key>
+                </translation>
+            </label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-cog</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>auditSearch</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000002" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="11">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>percentage</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField id="12">
+                <fieldType>unit</fieldType>
+                <expression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'), false)
+                        </code>
+                    </script>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget id="4">
+        <identifier>active-task</identifier>
+        <display>
+            <label>
+                <orig>Active tasks</orig>
+                <translation>
+                    <key>AdminDashboard.activeTasks</key>
+                </translation>
+            </label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-tasks</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000005" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField id="13">
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-slash-domain</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField id="14">
+                <fieldType>unit</fieldType>
+                <expression>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'), false)
+                        </code>
+                    </script>
+                </expression>
+            </dataField>
+            <variation id="15">
+                <condition>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                           policySituations.contains("#taskHealthDanger")
+                        </code>
+                    </script>
+                </condition>
+                <display>
+                    <color>#dd4b39</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+</dashboard>
