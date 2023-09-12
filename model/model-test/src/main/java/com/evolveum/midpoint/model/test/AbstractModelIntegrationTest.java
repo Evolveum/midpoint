@@ -4627,7 +4627,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
         // If we are brave enough, we can use getTestOperationResult here -- later.
-        return focusProfileService.getPrincipal(user, new OperationResult(OPERATION_GET_PRINCIPAL));
+        return focusProfileService.getPrincipal(user, true, new OperationResult(OPERATION_GET_PRINCIPAL));
     }
 
     protected void login(MidPointPrincipal principal) {

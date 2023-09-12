@@ -34,21 +34,21 @@ import org.jetbrains.annotations.NotNull;
 public interface GuiProfiledPrincipalManager extends MidPointPrincipalManager {
 
     @Override
-    GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-    GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
-
-    @Override
-    GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     @Override
-    GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result)
+    GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+
+    @Override
+    GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, boolean supportGuiConfig, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
     @Override
     GuiProfiledPrincipal getPrincipal(
-            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result)
+            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, boolean supportGuiConfig, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 

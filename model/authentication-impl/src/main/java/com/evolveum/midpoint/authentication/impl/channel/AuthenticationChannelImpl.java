@@ -139,6 +139,11 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     }
 
     @Override
+    public boolean isSupportGuiConfigByChannel() {
+        return true;
+    }
+
+    @Override
     public String getUrlSuffix() {
         return this.channel.getUrlSuffix();
     }

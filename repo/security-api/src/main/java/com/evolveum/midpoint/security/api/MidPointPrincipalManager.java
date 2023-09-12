@@ -33,22 +33,30 @@ public interface MidPointPrincipalManager extends OwnerResolver {
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
+    // This method is used from many test cases, and some of them require GUI Config.
+    // Therefore, supportGuiConfig must be set to true.
+    default MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return getPrincipal(username, clazz, true);
+    }
+
     // TODO add OperationResult here
-    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
+    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, boolean supportGuiConfig)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
     // TODO add OperationResult here
-    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz)
+    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, boolean supportGuiConfig)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
-    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result)
+    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, boolean supportGuiConfig, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
     MidPointPrincipal getPrincipal(
-            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, OperationResult result)
+            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, boolean supportGuiConfig, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 

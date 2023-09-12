@@ -25,4 +25,9 @@ public class RestAuthenticationChannel extends AuthenticationChannelImpl {
     public String getPathAfterSuccessfulAuthentication() {
         return "/ws/rest/self";
     }
+
+    @Override
+    public boolean isSupportGuiConfigByChannel() {
+        return false;
+    }
 }

@@ -1851,7 +1851,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         try {
-            MidPointPrincipal principal = guiProfiledPrincipalManager.getPrincipalByOid(oid, clazz);
+            // For refreshing current logged-in principal, we need to support GUI config
+            MidPointPrincipal principal = guiProfiledPrincipalManager.getPrincipalByOid(oid, clazz, true);
             Authentication authentication = securityContextManager.getAuthentication();
             if (authentication instanceof MidpointAuthentication) {
                 ((MidpointAuthentication) authentication).setPrincipal(principal);

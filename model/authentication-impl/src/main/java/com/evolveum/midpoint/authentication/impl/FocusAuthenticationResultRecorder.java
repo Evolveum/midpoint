@@ -179,7 +179,8 @@ public class FocusAuthenticationResultRecorder {
         FocusType focusType = null;
         if (principal == null && StringUtils.isNotEmpty(username)) {
             try {
-                principal = focusProfileService.getPrincipal(username, FocusType.class);
+                // For recording audit log, we don't need to support GUI config
+                principal = focusProfileService.getPrincipal(username, FocusType.class, false);
             } catch (CommonException e) {
                 //ignore error
             }
