@@ -199,15 +199,15 @@ class TypeSpecificMergersConfigurator {
                         GlobalPolicyRuleType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GlobalPolicyRuleType.F_NAME))),
                 entry(
+                        AbstractPolicyConstraintType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractPolicyConstraintType.F_NAME))),
+                entry(
                         ModificationPolicyConstraintType.class,
                         () -> new GenericItemMerger(
                                 marker,
                                 DefaultNaturalKeyImpl.of(
                                         ModificationPolicyConstraintType.F_NAME,
-                                        ModificationPolicyConstraintType.F_OPERATION))),
-                entry(
-                        AbstractPolicyConstraintType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(AbstractPolicyConstraintType.F_NAME)))
+                                        ModificationPolicyConstraintType.F_OPERATION)))
         );
     }
 }
