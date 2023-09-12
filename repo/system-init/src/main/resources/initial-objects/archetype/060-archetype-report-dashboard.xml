@@ -83,6 +83,7 @@
         </adminGuiConfiguration>
     </archetypePolicy>
     <assignment id="9">
+        <identifier>holderType</identifier>
         <assignmentRelation id="10">
             <holderType>ReportType</holderType>
         </assignmentRelation>

@@ -60,11 +60,13 @@
         </adminGuiConfiguration>
     </archetypePolicy>
     <assignment id="9">
+        <identifier>holderType</identifier>
         <assignmentRelation id="10">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
     <inducement id="11">
+        <identifier>nameMapping</identifier>
         <focusMappings>
             <mapping id="12">
                 <strength>weak</strength>

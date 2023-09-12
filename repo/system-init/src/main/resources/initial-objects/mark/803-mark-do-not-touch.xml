@@ -9,6 +9,7 @@
         oid="00000000-0000-0000-0000-000000000803">
     <name>Do not touch</name>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
     </assignment>
 

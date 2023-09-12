@@ -11,9 +11,11 @@
     <name>Trigger Scanner</name>
     <description>A system task that executes triggers attached to objects.</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000529" type="ArchetypeType" />
     </assignment>
     <assignment id="2">
+        <identifier>auxiliaryArchetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000531" type="ArchetypeType" />
     </assignment>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>

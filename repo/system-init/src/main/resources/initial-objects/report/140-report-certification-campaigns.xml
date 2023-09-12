@@ -13,6 +13,7 @@
     <name>Certification campaigns report</name>
     <description>All certification campaigns along with their state.</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType" />
     </assignment>
     <objectCollection>

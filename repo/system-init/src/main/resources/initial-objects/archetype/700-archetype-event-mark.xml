@@ -10,6 +10,7 @@
     <name>Event mark</name>
     <description>Denotes marks for audit and simulation events</description>
     <assignment id="1">
+        <identifier>holderType</identifier>
         <assignmentRelation id="2">
             <holderType>MarkType</holderType>
         </assignmentRelation>

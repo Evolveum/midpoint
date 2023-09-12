@@ -43,6 +43,7 @@
         </adminGuiConfiguration>
     </archetypePolicy>
     <assignment id="5">
+        <identifier>holderType</identifier>
         <assignmentRelation id="6">
             <holderType>TaskType</holderType>
         </assignmentRelation>

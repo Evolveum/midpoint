@@ -40,11 +40,13 @@
         </adminGuiConfiguration>
     </archetypePolicy>
     <assignment id="4">
+        <identifier>holderType</identifier>
         <assignmentRelation id="5">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
     <inducement id="6">
+        <identifier>nameMapping</identifier>
         <focusMappings>
             <mapping id="7">
                 <strength>weak</strength>

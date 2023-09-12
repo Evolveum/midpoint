@@ -11,6 +11,7 @@
     <name>Cleanup</name>
     <description>A system task that repeatedly checks for outdated objects (e.g. closed tasks, old audit records) and removes them.</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000506" type="ArchetypeType" />
     </assignment>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>

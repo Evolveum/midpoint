@@ -2957,6 +2957,17 @@
         </xsd:annotation>
         <xsd:sequence>
 
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AssignmentType.identifier</a:displayName>
+                        <xsd:documentation>
+                            Identifier of assignment. Have to be unique to the object. It is now used for merging.
+                        </xsd:documentation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>

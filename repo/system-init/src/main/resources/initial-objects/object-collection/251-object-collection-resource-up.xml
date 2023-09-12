@@ -12,6 +12,7 @@
                   oid="00000000-0000-0000-0001-000000000003">
     <name>Resources up</name>
     <assignment id="1">
+        <identifier>resourceHealth</identifier>
         <policyRule>
             <policyConstraints>
                 <collectionStats id="2">

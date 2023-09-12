@@ -12,6 +12,7 @@
     <name>Simulation report: Results</name>
     <description>Individual simulation results, along with respective metric values.</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType"/>
     </assignment>
     <objectCollection>
