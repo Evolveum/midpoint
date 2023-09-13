@@ -123,6 +123,11 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
             protected void onTileClick(AjaxRequestTarget target) {
                 target.add(getWizard().getPanel());
             }
+
+            @Override
+            protected QName getDefaultRelation() {
+                return RelationPanel.this.getModelObject().getDefaultRelation();
+            }
         };
         panel.setOutputMarkupId(true);
         add(panel);

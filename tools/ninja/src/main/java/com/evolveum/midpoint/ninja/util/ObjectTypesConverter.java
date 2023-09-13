@@ -58,23 +58,27 @@ public class ObjectTypesConverter implements IStringConverter<Set<ObjectTypes>>,
 
         String[] items = value.split(",");
         for (String item : items) {
+            item = item.trim();
             if (StringUtils.isEmpty(item)) {
                 continue;
             }
 
             boolean found = false;
             for (ObjectTypes o : ObjectTypes.values()) {
-                if (o.name().equalsIgnoreCase(item) || o.getRestType().equalsIgnoreCase(value)) {
+                if (o.name().equalsIgnoreCase(item)
+                        || o.getRestType().equalsIgnoreCase(item)
+                        || o.getTypeQName().getLocalPart().equalsIgnoreCase(item)
+                        || o.getElementName().getLocalPart().equalsIgnoreCase(item)) {
                     set.add(o);
                     found = true;
+                    break;
                 }
             }
 
             if (!found) {
-                throw new IllegalArgumentException("Unknown object type " + item);
+                throw new IllegalArgumentException("Unknown object type '" + item + "'");
             }
         }
-
 
         return set;
     }
