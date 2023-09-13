@@ -8,7 +8,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 
 import com.evolveum.midpoint.ninja.action.Action;
@@ -56,17 +55,19 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
     private File unzipDistribution(File distributionZip) throws IOException {
         final File tempDirectory = options.getTempDirectory();
 
-        String name = distributionZip.getName();
-        File distribution = new File(tempDirectory, StringUtils.left(name, name.length() - 4));
-        if (distribution.exists()) {
-            distribution.delete();
-        }
+        File distribution;
 
         byte[] buffer = new byte[1024];
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(distributionZip))) {
             ZipEntry zipEntry = zis.getNextEntry();
+
+            distribution = newFile(tempDirectory, zipEntry);
+            if (distribution.exists() && distribution.isDirectory()) {
+                FileUtils.deleteDirectory(distribution);
+            }
+
             while (zipEntry != null) {
-                File newFile = newFile(distribution, zipEntry);
+                File newFile = newFile(tempDirectory, zipEntry);
                 if (zipEntry.isDirectory()) {
                     if (!newFile.isDirectory() && !newFile.mkdirs()) {
                         throw new IOException("Failed to create directory " + newFile);
@@ -88,15 +89,6 @@ public class DownloadDistributionAction extends Action<DownloadDistributionOptio
                 }
                 zipEntry = zis.getNextEntry();
             }
-        }
-
-        File[] files = distribution.listFiles();
-        if (files != null && files.length == 1) {
-            File zipRootDirectory = files[0];
-            for (File file : zipRootDirectory.listFiles()) {
-                FileUtils.moveToDirectory(file, distribution, false);
-            }
-            zipRootDirectory.delete();
         }
 
         if (options.getDistributionDirectory() != null) {
