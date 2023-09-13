@@ -38,6 +38,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.merger.SimpleObjectMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -151,7 +152,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
 
         log.info("");
         log.info(
-                "Initial objects update finished. {}, {}, {} and {}, total: {} objects processed.",
+                "Initial objects update finished. {}, {}, {} and {}, total: {} files processed.",
                 ConsoleFormat.formatMessageWithSuccessParameters("{} added", actionResult.getAdded()),
                 ConsoleFormat.formatMessageWithInfoParameters("{} merged", actionResult.getMerged()),
                 ConsoleFormat.formatMessageWithParameters(
@@ -160,6 +161,35 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                 actionResult.getTotal());
 
         return new ActionResult<>(actionResult, status);
+    }
+
+    private <O extends ObjectType> boolean matchFilter(PrismObject<O> object) {
+        Set<ObjectTypes> types = options.getType() != null ? options.getType() : Collections.emptySet();
+        boolean reverseTypeFilter = options.isReverseTypeFilter();
+
+        ObjectTypes type = ObjectTypes.getObjectType(object.getCompileTimeClass());
+
+        boolean matches;
+        if (!types.isEmpty()) {
+            matches = types.contains(type) != reverseTypeFilter;
+        } else {
+            matches = !reverseTypeFilter;
+        }
+
+        if (!matches) {
+            return false;
+        }
+
+        Set<String> oids = options.getOid() != null ? options.getOid() : Collections.emptySet();
+        boolean reverseOidFilter = options.isReverseOidFilter();
+
+        String oid = object.getOid();
+
+        if (!oids.isEmpty()) {
+            return oids.contains(oid) != reverseOidFilter;
+        }
+
+        return !reverseOidFilter;
     }
 
     private <O extends ObjectType> ObjectReferenceType processFile(
@@ -175,6 +205,12 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
         try (InputStream is = resource.getInputStream()) {
             String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
             PrismObject<O> object = prismContext.parseObject(xml);
+
+            if (!matchFilter(object)) {
+                log.debug(
+                        "Skipping object, object {} doesn't match defined filter.", NinjaUtils.printObjectNameOidAndType(object));
+                return null;
+            }
 
             PrismObject<O> existing = null;
             try {

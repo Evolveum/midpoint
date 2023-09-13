@@ -9,11 +9,14 @@ package com.evolveum.midpoint.ninja.action.upgrade.action;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import com.evolveum.midpoint.ninja.util.EnumConverterValidator;
+import com.evolveum.midpoint.ninja.util.ObjectTypesConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 @Parameters(resourceBundle = "messages", commandDescriptionKey = "initialObjects")
 public class InitialObjectsOptions {
@@ -44,6 +47,10 @@ public class InitialObjectsOptions {
     public static final String P_FORCE_ADD_LONG = "--force-add";
     public static final String P_NO_MERGE = "--no-merge";
     public static final String P_REPORT_STYLE = "--report-style";
+    public static final String P_TYPE_LONG = "--type";
+    public static final String P_OID_LONG = "--oid";
+    public static final String P_REVERSE_TYPE_FILTER_LONG = "--reverse-type-filter";
+    public static final String P_REVERSE_OID_FILTIER_LONG = "--reverse-oid-filter";
 
     @Parameter(names = { P_FORCE_ADD_LONG }, descriptionKey = "initialObjects.forceAdd")
     private boolean forceAdd;
@@ -72,6 +79,19 @@ public class InitialObjectsOptions {
     @Parameter(names = { P_REPORT_STYLE }, descriptionKey = "initialObjects.reportStyle",
             converter = ReportStyleConverter.class, validateWith = ReportStyleConverter.class)
     private ReportStyle reportStyle = ReportStyle.DELTA;
+
+    @Parameter(names = { P_TYPE_LONG }, descriptionKey = "initialObjects.type",
+            validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class, variableArity = true)
+    private Set<ObjectTypes> type;
+
+    @Parameter(names = { P_OID_LONG }, descriptionKey = "initialObjects.oid", variableArity = true)
+    private Set<String> oid;
+
+    @Parameter(names = { P_REVERSE_TYPE_FILTER_LONG }, descriptionKey = "initialObjects.reverseTypeFilter")
+    private boolean reverseTypeFilter;
+
+    @Parameter(names = { P_REVERSE_OID_FILTIER_LONG }, descriptionKey = "initialObjects.reverseOidFilter")
+    private boolean reverseOidFilter;
 
     public boolean isDryRun() {
         return dryRun;
@@ -143,5 +163,37 @@ public class InitialObjectsOptions {
 
     public void setReportStyle(ReportStyle reportStyle) {
         this.reportStyle = reportStyle;
+    }
+
+    public Set<ObjectTypes> getType() {
+        return type;
+    }
+
+    public void setType(Set<ObjectTypes> type) {
+        this.type = type;
+    }
+
+    public Set<String> getOid() {
+        return oid;
+    }
+
+    public void setOid(Set<String> oid) {
+        this.oid = oid;
+    }
+
+    public boolean isReverseTypeFilter() {
+        return reverseTypeFilter;
+    }
+
+    public void setReverseTypeFilter(boolean reverseTypeFilter) {
+        this.reverseTypeFilter = reverseTypeFilter;
+    }
+
+    public boolean isReverseOidFilter() {
+        return reverseOidFilter;
+    }
+
+    public void setReverseOidFilter(boolean reverseOidFilter) {
+        this.reverseOidFilter = reverseOidFilter;
     }
 }
