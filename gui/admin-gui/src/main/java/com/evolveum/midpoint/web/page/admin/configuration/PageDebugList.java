@@ -54,7 +54,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -109,6 +108,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
     private IModel<DebugConfDialogDto> confDialogModel = null;
+    private Class<? extends ObjectType> objectType = SystemConfigurationType.class;
 
     public PageDebugList() {
     }
@@ -119,7 +119,6 @@ public class PageDebugList extends PageAdminConfiguration {
         DebugConfDialogDto searchDto = new DebugConfDialogDto();
         searchDto.setType(SystemConfigurationType.class);
         confDialogModel = Model.of(searchDto);
-
         searchModel = new LoadableDetachableModel<>() {
 
             @Override
@@ -342,7 +341,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
     @NotNull
     private Class<? extends ObjectType> getType() {
-        return searchModel.isAttached() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
+        if (searchModel.isAttached()) {
+            objectType = searchModel.getObject().getTypeClass();
+        }
+        return objectType;
     }
 
     private List<InlineMenuItem> initInlineMenu() {

@@ -14,8 +14,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import com.evolveum.midpoint.ninja.util.BasicLightweightIdentifierGenerator;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.FileSystemResource;
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.action.ActionResult;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.util.BasicLightweightIdentifierGenerator;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -56,6 +55,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionResult<InitialObjectsResult>> {
 
     private static final String INITIAL_OBJECTS_RESOURCE_PATTERN = "classpath*:/initial-objects/**/*.xml";
+
+    private static final String OPERATION_UPDATE_OBJECTS = "Initial objects update";
+    private static final String OPERATION_PROCESS_FILE = "Process file";
 
     @Override
     public String getOperationName() {
@@ -88,7 +90,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
                 }
             }
 
-            OperationResult result = new OperationResult("Initial objects update");
+            OperationResult result = new OperationResult(OPERATION_UPDATE_OBJECTS);
 
             List<Resource> resources = new ArrayList<>();
             List<File> files = options.getFiles();
@@ -163,7 +165,7 @@ public class InitialObjectsAction extends Action<InitialObjectsOptions, ActionRe
     private <O extends ObjectType> ObjectReferenceType processFile(
             Resource resource, OperationResult parentResult, InitialObjectsResult actionResult, Writer writer) {
 
-        OperationResult result = parentResult.createSubresult("Process file");
+        OperationResult result = parentResult.createSubresult(OPERATION_PROCESS_FILE);
 
         final PrismContext prismContext = context.getPrismContext();
         final RepositoryService repository = context.getRepository();

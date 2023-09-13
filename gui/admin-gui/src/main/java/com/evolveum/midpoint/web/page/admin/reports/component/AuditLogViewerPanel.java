@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -50,6 +47,8 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanCont
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -181,6 +180,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     public List<AuditEventRecordType> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
     }
+
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
@@ -333,6 +333,17 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
                     String color = eventType != null && eventType.getDisplay() != null && eventType.getDisplay().getIcon() != null ?
                             eventType.getDisplay().getIcon().getColor() : null;
                     return Model.of(new DisplayType().label(label).color(color));
+                }
+
+                @Override
+                public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                    AuditEventRecordType record = unwrapModel(rowModel);
+                    if (record == null) {
+                        return Model.of("");
+                    }
+                    String value = WebComponentUtil.createLocalizedModelForEnum(record.getEventType(),
+                            AuditLogViewerPanel.this).getObject();
+                    return Model.of(value);
                 }
             };
         }

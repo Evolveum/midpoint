@@ -118,14 +118,14 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
                     return false;
                 }
 
-                if (def.getConstruction().getKind() != null
-                        && source.getConstruction().getKind() != null) {
-                    if (!(def.getConstruction().getKind().equals(source.getConstruction().getKind()))) {
+                if (def.getConstruction().getIntent() != null
+                        && source.getConstruction().getIntent() != null) {
+                    if (!(def.getConstruction().getIntent().equals(source.getConstruction().getIntent()))) {
                         return false;
                     }
                     allIsNull = false;
-                } else if (!(def.getConstruction().getKind() == null
-                        && source.getConstruction().getKind() == null)) {
+                } else if (!(def.getConstruction().getIntent() == null
+                        && source.getConstruction().getIntent() == null)) {
                     return false;
                 }
                 return !allIsNull;
