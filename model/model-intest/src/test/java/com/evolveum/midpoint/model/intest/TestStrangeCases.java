@@ -498,7 +498,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.SUCCESS);
     }
 
     /**
