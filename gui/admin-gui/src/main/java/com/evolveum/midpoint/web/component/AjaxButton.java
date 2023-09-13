@@ -14,6 +14,7 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.string.Strings;
 
 /**
  * @author lazyman
@@ -32,6 +33,10 @@ public abstract class AjaxButton extends AjaxLink<String> {
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
         String text = getModelObject();
         if (StringUtils.isNotEmpty(text)) {
+            if (this.getEscapeModelStrings()) {
+                // Escape text iif escapeModel is enabled.
+                text = Strings.escapeMarkup(text, false, false).toString();
+            }
             replaceComponentTagBody(markupStream, openTag, text);
             return;
         }
