@@ -12,6 +12,7 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -1761,7 +1762,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     private void setPasswordMinOccurs(Integer value, Task task, OperationResult result) throws CommonException {
         ObjectDelta<SecurityPolicyType> delta = prismContext.deltaFor(SecurityPolicyType.class)
                 .item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_OCCURS)
-                .replace(value)
+                .replace(value != null ? value.toString() : null)
                 .asObjectDelta(getSecurityPolicyOid());
         executeChanges(delta, null, task, result);
     }

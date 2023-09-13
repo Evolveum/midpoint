@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.test.util.TestUtil;
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -46,7 +48,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class,
-                        MappingTestEvaluator.USER_OLD_OID, UserType.F_ADDITIONAL_NAME, "Jackie");
+                        MappingTestEvaluator.USER_OLD_OID, UserType.F_ADDITIONAL_NAME, PolyString.fromOrig("Jackie"));
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -69,7 +71,7 @@ public class TestMappingComplex extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class,
-                        MappingTestEvaluator.USER_OLD_OID, UserType.F_ADDITIONAL_NAME, "Jackie");
+                        MappingTestEvaluator.USER_OLD_OID, UserType.F_ADDITIONAL_NAME, PolyString.fromOrig("Jackie"));
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
 
         PrismObject<UserType> userOld = evaluator.getUserOld();
