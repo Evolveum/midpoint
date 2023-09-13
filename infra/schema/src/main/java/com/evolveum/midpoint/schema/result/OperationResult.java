@@ -927,15 +927,9 @@ public class OperationResult
                 newMessage = sub.getMessage();
                 newUserFriendlyMessage = sub.getUserFriendlyMessage();
             }
-            if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
-                if (subStatus == OperationResultStatus.HANDLED_ERROR) {
-                    newStatus = OperationResultStatus.HANDLED_ERROR;
-                    newMessage = sub.getMessage();
-                    newUserFriendlyMessage = sub.getUserFriendlyMessage();
-                }
-            }
             if (subStatus != OperationResultStatus.SUCCESS
-                    && subStatus != OperationResultStatus.NOT_APPLICABLE) {
+                    && subStatus != OperationResultStatus.NOT_APPLICABLE
+                    && subStatus != OperationResultStatus.HANDLED_ERROR) {
                 allSuccess = false;
             }
             if (newStatus != OperationResultStatus.HANDLED_ERROR) {

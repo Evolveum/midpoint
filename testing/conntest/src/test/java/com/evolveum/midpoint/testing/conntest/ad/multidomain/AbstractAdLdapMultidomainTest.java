@@ -759,7 +759,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         // THEN
         then();
-        assertHandledError(result);
+        assertSuccess(result);
 
         assertRepoShadow(SHADOW_GHOST_OID)
                 .assertDead();
