@@ -309,7 +309,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         result.computeStatus();
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertSingleNotifyInProgressOnly();
 
@@ -345,7 +345,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         result.computeStatus();
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR); // TODO why not fatal error here?
+        assertSuccess(result); // TODO why not fatal error here?
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertSingleNotifyFailureOnly();
 
@@ -698,7 +698,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         result.computeStatus();
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertSingleNotifyInProgressOnly();
 
@@ -736,7 +736,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         result.computeStatus();
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertSingleNotifyFailureOnly();
 
@@ -1038,7 +1038,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         result.computeStatus();
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertSingleNotifyInProgressOnly();
 
@@ -1076,7 +1076,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         result.computeStatus();
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertSingleNotifyFailureOnly();
 
@@ -1899,7 +1899,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         // THEN
         then();
         display("Result", result);
-        assertHandledError(result);
+        assertSuccess(result);
 
         // @formatter:off
         var asserter1 = syncServiceMock
@@ -2151,7 +2151,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
 
         then();
-        assertHandledError(result);
+        assertSuccess(result);
 
         assertRepoShadow(ACCOUNT_LATE.oid)
                 .assertNotDead();
@@ -2196,7 +2196,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         provisioningService.getObject(ShadowType.class, ACCOUNT_LATE.oid, options, task, result);
 
         then();
-        assertHandledError(result);
+        assertSuccess(result);
 
         assertRepoShadow(ACCOUNT_LATE.oid)
                 .assertNotDead()
