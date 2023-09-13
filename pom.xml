@@ -1306,7 +1306,7 @@
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-archiver</artifactId>
-                <version>4.2.5</version>
+                <version>4.8.0</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId> <!-- We do not want multiple SLF4J implementations -->
