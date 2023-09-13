@@ -1552,7 +1552,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
-        assertMessageContains(parentResult, "Connection failed");
+        assertSubresultMessageContains(parentResult, "Connection failed");
 
         assertUser(USER_JACKIE_OID, "User after first modify")
                 .assertLiveLinks(1)
@@ -2290,7 +2290,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         display("add object communication problem result: ", parentResult);
-        assertEquals("Expected success but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
+        assertEquals("Expected success but got: " + parentResult.getStatus(), OperationResultStatus.SUCCESS, parentResult.getStatus());
 
         String accountOid = assertUserOneLinkRef(USER_DISCOVERY_OID);
 

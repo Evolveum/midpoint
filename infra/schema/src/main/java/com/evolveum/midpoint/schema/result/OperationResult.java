@@ -151,18 +151,18 @@ import org.jetbrains.annotations.VisibleForTesting;
  * private static final OP_SOME_METHOD = ThisClass.class.getName() + ".someMethod";
  *
  * void someMethod(String param1, Object param2, OperationResult parentResult) throws SomeException {
- *     OperationResult result = parentResult.subresult(OP_SOME_METHOD)
- *                     .addParam("param1", param1)
- *                     .addArbitraryObjectAsParam("param2", param2)
- *                     .build();
- *     try {
- *         // ... some meat here ...
- *     } catch (SomeException | RuntimeException e) {
- *         result.recordException(e);
- *         throw e;
- *     } finally {
- *         result.close();
- *     }
+ * OperationResult result = parentResult.subresult(OP_SOME_METHOD)
+ * .addParam("param1", param1)
+ * .addArbitraryObjectAsParam("param2", param2)
+ * .build();
+ * try {
+ * // ... some meat here ...
+ * } catch (SomeException | RuntimeException e) {
+ * result.recordException(e);
+ * throw e;
+ * } finally {
+ * result.close();
+ * }
  * }
  * ----
  *
@@ -328,6 +328,11 @@ public class OperationResult
 
     private OperationInvocationRecord invocationRecord;
 
+    /**
+     * Resolving that status HANDLED_ERROR will be propagated to parent as SUCCESS.
+     */
+    private boolean propagateHandledErrorAsSuccess = true;
+
     private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
     public OperationResult(String operation) {
@@ -386,6 +391,7 @@ public class OperationResult
         subresult.tracingProfile = tracingProfile;
         subresult.preserve = preserve;
         subresult.parentLogRecorder = logRecorder;
+        subresult.propagateHandledErrorAsSuccess = propagateHandledErrorAsSuccess;
         return subresult;
     }
 
@@ -693,6 +699,7 @@ public class OperationResult
             subresult.tracingProfile = tracingProfile;
         }
         subresult.preserve = preserve;
+        subresult.propagateHandledErrorAsSuccess = propagateHandledErrorAsSuccess;
     }
 
     public OperationResult findSubresult(String operation) {
@@ -926,17 +933,22 @@ public class OperationResult
                 newMessage = sub.getMessage();
                 newUserFriendlyMessage = sub.getUserFriendlyMessage();
             }
-            if (subStatus != OperationResultStatus.SUCCESS
-                    && subStatus != OperationResultStatus.NOT_APPLICABLE
-                    && subStatus != OperationResultStatus.HANDLED_ERROR) {
+            if (!propagateHandledErrorAsSuccess
+                    && newStatus != OperationResultStatus.PARTIAL_ERROR
+                    && subStatus == OperationResultStatus.HANDLED_ERROR) {
+                newStatus = OperationResultStatus.HANDLED_ERROR;
+                newMessage = sub.getMessage();
+                newUserFriendlyMessage = sub.getUserFriendlyMessage();
+            }
+            if (subStatus != OperationResultStatus.SUCCESS && subStatus != OperationResultStatus.NOT_APPLICABLE
+                    && (!propagateHandledErrorAsSuccess || subStatus != OperationResultStatus.HANDLED_ERROR)) {
                 allSuccess = false;
             }
-            if (newStatus != OperationResultStatus.HANDLED_ERROR) {
-                if (subStatus == OperationResultStatus.WARNING) {
-                    newStatus = OperationResultStatus.WARNING;
-                    newMessage = sub.getMessage();
-                    newUserFriendlyMessage = sub.getUserFriendlyMessage();
-                }
+            if (newStatus != OperationResultStatus.HANDLED_ERROR
+                    && subStatus == OperationResultStatus.WARNING) {
+                newStatus = OperationResultStatus.WARNING;
+                newMessage = sub.getMessage();
+                newUserFriendlyMessage = sub.getUserFriendlyMessage();
             }
         }
 
@@ -1883,6 +1895,10 @@ public class OperationResult
         }
     }
 
+    public void setPropagateHandledErrorAsSuccess(boolean propagateHandledErrorAsSuccess) {
+        this.propagateHandledErrorAsSuccess = propagateHandledErrorAsSuccess;
+    }
+
     public void recordFatalError(String message) {
         recordStatus(OperationResultStatus.FATAL_ERROR, message);
     }
@@ -2008,6 +2024,7 @@ public class OperationResult
     public OperationResultType createBeanReduced() {
         return createOperationResultBean(this, null, BeanContent.REDUCED);
     }
+
     /**
      * As {@link #createOperationResultType()} but exports only the root result.
      */

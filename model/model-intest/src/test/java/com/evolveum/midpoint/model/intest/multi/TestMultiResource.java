@@ -1348,7 +1348,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // there is a failure while reading dummy account - it was not created
         // because of unavailability of the resource..but it is OK..
         OperationResultStatus status = result.getStatus();
-        if (status != OperationResultStatus.HANDLED_ERROR && status != OperationResultStatus.PARTIAL_ERROR) {
+        if (status != OperationResultStatus.SUCCESS && status != OperationResultStatus.PARTIAL_ERROR) {
             AssertJUnit.fail("Expected result success or partial error status, but was "+status);
         }
 
