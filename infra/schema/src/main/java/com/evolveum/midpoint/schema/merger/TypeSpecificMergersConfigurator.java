@@ -108,6 +108,13 @@ class TypeSpecificMergersConfigurator {
                                 marker,
                                 DefaultNaturalKeyImpl.of(VirtualContainerItemSpecificationType.F_PATH))),
                 entry(
+                        VirtualContainersSpecificationType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        VirtualContainersSpecificationType.F_IDENTIFIER,
+                                        VirtualContainersSpecificationType.F_PATH))),
+                entry(
                         GuiResourceDetailsPageType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(
                                 GuiResourceDetailsPageType.F_TYPE,
@@ -173,8 +180,8 @@ class TypeSpecificMergersConfigurator {
                         GuiObjectColumnType.class,
                         () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(GuiObjectColumnType.F_NAME))),
                 entry(
-                        SearchFilterParameterType.class,
-                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(SearchFilterParameterType.F_NAME))),
+                        ParameterType.class,
+                        () -> new GenericItemMerger(marker, DefaultNaturalKeyImpl.of(ParameterType.F_NAME))),
                 entry(
                         CollectionSpecificationType.class,
                         () -> new GenericItemMerger(
@@ -246,7 +253,14 @@ class TypeSpecificMergersConfigurator {
                                 GuiShadowDetailsPageType.F_TYPE,
                                 GuiShadowDetailsPageType.F_RESOURCE_REF,
                                 GuiShadowDetailsPageType.F_KIND,
-                                GuiShadowDetailsPageType.F_INTENT))));
+                                GuiShadowDetailsPageType.F_INTENT))),
+                entry(
+                        SelectorQualifiedGetOptionType.class,
+                        () -> new GenericItemMerger(
+                                marker,
+                                DefaultNaturalKeyImpl.of(
+                                        SelectorQualifiedGetOptionType.F_OPTIONS,
+                                        SelectorQualifiedGetOptionType.F_SELECTOR))));
 
     }
 }

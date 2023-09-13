@@ -9,6 +9,7 @@
     <test name="Test" parallel="none">
         <classes>
             <class name="com.evolveum.midpoint.init.TestConfigurationLoad"/>
+            <class name="com.evolveum.midpoint.init.TestInitialObjects"/>
         </classes>
     </test>
 </suite>

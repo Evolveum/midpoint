@@ -117,7 +117,7 @@
         </focusMappings>
     </inducement>
     <inducement id="21">
-        <identifier>nameMapping</identifier>
+        <identifier>shadowMapping</identifier>
         <focusMappings>
             <mapping id="22">
                 <strength>weak</strength>
