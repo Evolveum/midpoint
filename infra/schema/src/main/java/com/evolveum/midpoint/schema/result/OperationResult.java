@@ -152,18 +152,18 @@ import org.jetbrains.annotations.VisibleForTesting;
  * private static final OP_SOME_METHOD = ThisClass.class.getName() + ".someMethod";
  *
  * void someMethod(String param1, Object param2, OperationResult parentResult) throws SomeException {
- * OperationResult result = parentResult.subresult(OP_SOME_METHOD)
- * .addParam("param1", param1)
- * .addArbitraryObjectAsParam("param2", param2)
- * .build();
- * try {
- * // ... some meat here ...
- * } catch (SomeException | RuntimeException e) {
- * result.recordException(e);
- * throw e;
- * } finally {
- * result.close();
- * }
+ *     OperationResult result = parentResult.subresult(OP_SOME_METHOD)
+ *                     .addParam("param1", param1)
+ *                     .addArbitraryObjectAsParam("param2", param2)
+ *                     .build();
+ *     try {
+ *         // ... some meat here ...
+ *     } catch (SomeException | RuntimeException e) {
+ *         result.recordException(e);
+ *         throw e;
+ *     } finally {
+ *         result.close();
+ *     }
  * }
  * ----
  *
