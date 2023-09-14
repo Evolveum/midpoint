@@ -61,7 +61,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         if (!options.getFiles().isEmpty()) {
             if (context.isUserMode() && !options.isSkipUpgradeWarning()) {
                 log.warn("File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)");
-                String result = NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
+                String result = NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.matches("[Yn]"));
 
                 if (result.trim().equalsIgnoreCase("n")) {
                     log.info("Upgrade aborted");
@@ -70,6 +70,15 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
             }
 
             return upgradeObjectsInFiles();
+        }
+
+        if (context.isUserMode() && !options.isSkipUpgradeWarning()) {
+            log.warn("Object now will be updated in repository. Do you wish to proceed? (Y/n)");
+            String result = NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.matches("[Yn]"));
+            if (result.trim().equalsIgnoreCase("n")) {
+                log.info("Upgrade aborted");
+                return null;
+            }
         }
 
         return super.execute();
