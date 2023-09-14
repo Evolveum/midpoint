@@ -122,7 +122,9 @@ public class LifecycleStatePanel extends InputPanel {
             public DisplayableValue<String> getObject() {
                 String value = null;
                 try {
-                    value = getModelObject().getValue().getRealValue();
+                    if (getModelObject() != null) {
+                        value = getModelObject().getValue().getRealValue();
+                    }
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't get value from " + getModelObject(), e);
                 }
@@ -132,7 +134,7 @@ public class LifecycleStatePanel extends InputPanel {
                 String finalValue = value;
                 return (DisplayableValue<String>) choicesModel.getObject()
                         .stream()
-                        .filter(choice -> ((DisplayableValue<String>)choice).getValue().equals(finalValue))
+                        .filter(choice -> ((DisplayableValue<String>) choice).getValue().equals(finalValue))
                         .findFirst()
                         .get();
             }
@@ -246,6 +248,11 @@ public class LifecycleStatePanel extends InputPanel {
 
     private List getChoices() {
         List choices = new ArrayList();
+
+        if (getModelObject() == null) {
+            return choices;
+        }
+
         String lookupOid = getModelObject().getPredefinedValuesOid();
         if (StringUtils.isEmpty(lookupOid)) {
             return choices;
@@ -266,13 +273,11 @@ public class LifecycleStatePanel extends InputPanel {
             choices.add(display);
         }
 
-
-
         return choices;
     }
 
     @Override
-    public FormComponent getBaseFormComponent(){
+    public FormComponent getBaseFormComponent() {
         return (FormComponent) get(ID_PANEL);
     }
 }
