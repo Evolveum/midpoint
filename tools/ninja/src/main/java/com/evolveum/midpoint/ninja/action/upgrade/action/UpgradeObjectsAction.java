@@ -59,7 +59,7 @@ public class UpgradeObjectsAction extends AbstractRepositorySearchAction<Upgrade
         log.info("Upgrade will skip {} objects", skipUpgradeItems.size());
 
         if (!options.getFiles().isEmpty()) {
-            if (!options.isSkipUpgradeWarning()) {
+            if (context.isUserMode() && !options.isSkipUpgradeWarning()) {
                 log.warn("File update will remove XML comments and change formatting. Do you wish to proceed? (Y/n)");
                 String result = NinjaUtils.readInput(log, input -> StringUtils.isEmpty(input) || input.equalsIgnoreCase("y"));
 
