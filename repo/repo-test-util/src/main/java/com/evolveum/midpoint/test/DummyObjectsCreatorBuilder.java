@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.test;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import java.io.FileNotFoundException;
@@ -61,7 +58,7 @@ public final class DummyObjectsCreatorBuilder<O extends DummyObject> {
 
     public List<O> execute()
             throws ConflictException, FileNotFoundException, CommonException, SchemaViolationException,
-            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+            ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         return build().execute();
     }
 }

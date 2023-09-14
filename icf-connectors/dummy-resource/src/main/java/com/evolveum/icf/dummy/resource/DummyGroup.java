@@ -32,7 +32,8 @@ public class DummyGroup extends DummyObject {
         return getAttributeValues(ATTR_MEMBERS_NAME, String.class);
     }
 
-    public void addMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+    public void addMember(String newMember)
+            throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
         addAttributeValue(ATTR_MEMBERS_NAME, newMember);
     }
 
@@ -41,10 +42,11 @@ public class DummyGroup extends DummyObject {
         if (members == null) {
             return false;
         }
-        return members.contains(member);            // TODO ok? what about case ignoring scenarios?
+        return members.contains(member); // TODO ok? what about case ignoring scenarios?
     }
 
-    public void removeMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+    public void removeMember(String newMember)
+            throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
         removeAttributeValue(ATTR_MEMBERS_NAME, newMember);
     }
 

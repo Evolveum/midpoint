@@ -7,6 +7,8 @@
 package com.evolveum.icf.dummy.connector;
 
 import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -113,7 +115,9 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         } catch (ObjectAlreadyExistsException e) {
             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
             // The framework should deal with it ... somehow
-            throw new AlreadyExistsException(e.getMessage(),e);
+            throw new AlreadyExistsException(e.getMessage(), e);
+        } catch (ObjectDoesNotExistException e) {
+            throw new InvalidAttributeValueException(e.getMessage(), e); // TODO explain
         } catch (ConnectException e) {
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
@@ -375,8 +379,8 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private ObjectClassInfo createOrgObjectClass() {
-        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(OBJECTCLASS_ORG_NAME,
-                resource.getPrivilegeObjectClass(), false);
+        ObjectClassInfoBuilder objClassBuilder =
+                createCommonObjectClassBuilder(OBJECTCLASS_ORG_NAME, resource.getOrgObjectClass(), false);
         return objClassBuilder.build();
     }
 
@@ -1174,18 +1178,15 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private ConnectorObject convertToConnectorObject(DummyOrg org, Collection<String> attributesToGet) {
-        ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(org, resource.getPrivilegeObjectClass(),
-                attributesToGet, false);
+        ConnectorObjectBuilder builder =
+                createConnectorObjectBuilderCommon(org, resource.getOrgObjectClass(), attributesToGet, false);
         builder.setObjectClass(new ObjectClass(OBJECTCLASS_ORG_NAME));
         return builder.build();
     }
 
     private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         LOG.ok("Create attributes: {0}", createAttributes);
-        String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
-        if (configuration.getUpCaseName()) {
-            userName = StringUtils.upperCase(userName);
-        }
+        String userName = getIcfName(createAttributes);
         LOG.ok("Username {0}", userName);
         final DummyAccount newAccount = new DummyAccount(userName);
 
@@ -1248,11 +1249,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
-        if (configuration.getUpCaseName()) {
-            icfName = StringUtils.upperCase(icfName);
-        }
-        final DummyGroup newGroup = new DummyGroup(icfName);
+        final DummyGroup newGroup = new DummyGroup(getIcfName(createAttributes));
 
         Boolean enabled = null;
         for (Attribute attr : createAttributes) {
@@ -1297,11 +1294,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
     }
 
     private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, ConflictException {
-        String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
-        if (configuration.getUpCaseName()) {
-            icfName = StringUtils.upperCase(icfName);
-        }
-        final DummyPrivilege newPriv = new DummyPrivilege(icfName);
+        final DummyPrivilege newPriv = new DummyPrivilege(getIcfName(createAttributes));
 
         for (Attribute attr : createAttributes) {
             if (attr.is(Uid.NAME)) {
@@ -1331,13 +1324,9 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         return newPriv;
     }
 
-    private DummyOrg convertToOrg(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, ConflictException {
-        String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
-        if (configuration.getUpCaseName()) {
-            icfName = StringUtils.upperCase(icfName);
-        }
-        final DummyOrg newOrg = new DummyOrg(icfName);
-
+    private DummyOrg convertToOrg(Set<Attribute> createAttributes)
+            throws ConnectException, FileNotFoundException, ConflictException {
+        DummyOrg newOrg = new DummyOrg(getIcfName(createAttributes));
         for (Attribute attr : createAttributes) {
             if (attr.is(Uid.NAME)) {
                 throw new IllegalArgumentException("UID explicitly specified in the org attributes");
@@ -1362,8 +1351,16 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
                 }
             }
         }
-
         return newOrg;
+    }
+
+    private String getIcfName(Set<Attribute> createAttributes) {
+        String icfName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+        if (configuration.getUpCaseName()) {
+            return StringUtils.upperCase(icfName);
+        } else {
+            return icfName;
+        }
     }
 
     protected Boolean getBoolean(Attribute attr) {

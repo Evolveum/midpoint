@@ -126,6 +126,8 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
         }
         resource.setMonsterization(this.configuration.isMonsterized());
         resource.setUidMode(this.configuration.getUidMode());
+        resource.setHierarchicalObjectsEnabled(this.configuration.isHierarchicalObjectsEnabled());
+
         if (connected) {
             throw new IllegalStateException("Double connect in " + this);
         }

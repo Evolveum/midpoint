@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -53,7 +50,7 @@ public class SourceInitializer {
 
     private void createAccounts(DummyTestResource resource, boolean primary)
             throws ConflictException, FileNotFoundException, SchemaViolationException,
-            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+            ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         for (int u = 0; u < SOURCES_CONFIGURATION.getNumberOfAccounts(); u++) {
             createAccount(u, resource, primary);
         }
@@ -61,7 +58,7 @@ public class SourceInitializer {
 
     private void createAccount(int u, DummyTestResource resource, boolean primary)
             throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
-            ConflictException, InterruptedException {
+            ConflictException, InterruptedException, ObjectDoesNotExistException {
         String name = getAccountName(u);
         DummyAccount account = resource.controller.addAccount(name);
         if (primary) {
