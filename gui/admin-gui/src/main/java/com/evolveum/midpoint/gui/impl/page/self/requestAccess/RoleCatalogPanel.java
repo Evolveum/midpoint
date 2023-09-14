@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -411,8 +413,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                List<ObjectType> selected = provider.getSelectedData();
-                                addItemsPerformed(target, selected);
+                                List<SelectableBean<ObjectType>> selected = TableUtil.getSelectedModels(getTable().getDataTable());
+                                List<ObjectType> selectedObjects = selected.stream()
+                                        .map(SelectableBean::getValue)
+                                        .toList();
+                                addItemsPerformed(target, selectedObjects);
                             }
                         });
 

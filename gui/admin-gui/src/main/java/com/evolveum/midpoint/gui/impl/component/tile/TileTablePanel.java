@@ -280,6 +280,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         }
     }
 
+    public BoxedTablePanel getTable() {
+        return (BoxedTablePanel) get(ID_TABLE);
+    }
+
     protected NavigatorPanel getTilesNavigation() {
         return (NavigatorPanel) get(createComponentPath(ID_FOOTER_CONTAINER, ID_TILES_PAGING));
     }
