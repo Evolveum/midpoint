@@ -604,7 +604,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the root object of the role catalog (org. structure).
-                        Up to 3 levels of org. structure will be shown as menus/submenus.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleCatalogDepth" type="xsd:int" minOccurs="0" default="3">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Depth determines how many levels will be shown as menus/submenus.
+                        All roles below this depth level will be listed using subtree query.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
