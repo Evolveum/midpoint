@@ -258,7 +258,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
-    private String getObjectCollectionName() {
+    protected String getObjectCollectionName() {
         if (getModelWrapperObject() == null || getModelWrapperObject().getObject() == null) {
             return null;
         }
