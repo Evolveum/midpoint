@@ -106,6 +106,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
     private static final String ID_ADD_SELECTED = "addSelected";
     private static final String ID_ADD_ALL = "addAll";
+    public static final int DEFAULT_ROLE_CATALOG_DEPTH = 3;
 
     private final PageBase page;
 
@@ -815,7 +816,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref) {
-        return loadMenuFromOrgTree(ref, 1, 3);
+        RoleCatalogType catalog = getRoleCatalogConfiguration();
+        int depth = catalog.getRoleCatalogDepth() != null ? catalog.getRoleCatalogDepth() : DEFAULT_ROLE_CATALOG_DEPTH;
+        return loadMenuFromOrgTree(ref, 1, depth);
     }
 
     private List<ListGroupMenuItem<RoleCatalogQueryItem>> loadMenuFromOrgTree(ObjectReferenceType ref, int currentLevel, int maxLevel) {
@@ -850,14 +853,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         .orgRef(new ObjectReferenceType().oid(o.getOid()).type(o.getDefinition().getTypeName()))
                         .scopeOne(currentLevel < maxLevel));
 
+                final ObjectReferenceType parentRef = new ObjectReferenceType()
+                        .oid(o.getOid())
+                        .targetName(o.getName().getOrig())
+                        .type(o.getDefinition().getTypeName());
+
                 menu.setItemsModel(new LoadableModel<>(false) {
                     @Override
                     protected List<ListGroupMenuItem<RoleCatalogQueryItem>> load() {
-                        ObjectReferenceType parentRef = new ObjectReferenceType()
-                                .oid(o.getOid())
-                                .targetName(o.getName().getOrig())
-                                .type(o.getDefinition().getTypeName());
-
                         return loadMenuFromOrgTree(parentRef, currentLevel + 1, maxLevel);
                     }
                 });
