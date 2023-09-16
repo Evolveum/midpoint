@@ -37,7 +37,6 @@ public class RepositoryShadowBeanObjectDataProvider extends SelectableBeanObject
     public RepositoryShadowBeanObjectDataProvider(Component component, IModel<Search<ShadowType>> search, Set<ShadowType> selected) {
         super(component, search, selected);
         setEmptyListOnNullQuery(true);
-        setSort(null);
         setDefaultCountIfNull(Integer.MAX_VALUE);
     }
 
