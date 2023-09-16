@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.test.asserter.DummyOrgAsserter;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -546,6 +547,17 @@ public class DummyResourceContoller extends AbstractResourceController {
 
     private DummyGroupAsserter<Void> assertGroup(DummyGroup group) {
         return new DummyGroupAsserter<>(group, getName());
+    }
+
+    public DummyOrgAsserter<Void> assertOrgByName(String name)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        DummyOrg org = dummyResource.getOrgByName(name);
+        assertNotNull("Org " + name + " does not exist on dummy resource " + getName(), org);
+        return assertOrg(org);
+    }
+
+    private DummyOrgAsserter<Void> assertOrg(DummyOrg org) {
+        return new DummyOrgAsserter<>(org, getName());
     }
 
     public void setSyncStyle(DummySyncStyle syncStyle) {

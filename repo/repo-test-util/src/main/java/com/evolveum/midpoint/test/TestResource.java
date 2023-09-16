@@ -12,6 +12,10 @@ import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,5 +49,12 @@ public class TestResource extends TestObject<ResourceType> {
         assertSuccess(
                 tester.testResource(oid, task, result));
         reload(tester.getResourceReloader(), result);
+    }
+
+    public @NotNull ConstructionType construction(ShadowKindType kind, String intent) {
+        return new ConstructionType()
+                .resourceRef(oid, ResourceType.COMPLEX_TYPE)
+                .kind(kind)
+                .intent(intent);
     }
 }

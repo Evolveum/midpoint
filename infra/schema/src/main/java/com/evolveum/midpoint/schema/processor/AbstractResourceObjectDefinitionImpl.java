@@ -134,7 +134,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      * refinements).
      * - For object type definitions, it is relevant `objectType` value in `schemaHandling`, expanded by resolving
      * object type inheritance. Note that object type definition that refers to refined object class definition is also
-     * a case of inheritance! Such definition bean contains all data from the refining object class definition bean.
+     * a case of inheritance! Such definition bean contains all data from the refined object class definition bean.
      *
      * Immutable.
      */
