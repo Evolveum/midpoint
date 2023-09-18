@@ -209,7 +209,7 @@ public class QuartzUtil {
         boolean lbrDiffer = toBe.getBoolean(KEY_LOOSELY_BOUND_RECURRENT) != asIs.getBoolean(KEY_LOOSELY_BOUND_RECURRENT);
         String tbh = toBe.getString(KEY_HANDLER_URI);
         String aih = asIs.getString(KEY_HANDLER_URI);
-        boolean handlersDiffer = tbh != null ? !tbh.equals(aih) : aih == null;
+        boolean handlersDiffer = !Objects.equals(tbh, aih);
 
         if (LOGGER.isTraceEnabled()) {
             if (scheduleDiffer) {

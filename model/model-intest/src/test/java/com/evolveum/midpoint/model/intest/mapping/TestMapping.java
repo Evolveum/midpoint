@@ -3591,24 +3591,27 @@ public class TestMapping extends AbstractMappingTest {
         assertSuccess(result);
         assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_DD_NAME, USER_SHELDON_USERNAME, false);
 
-        assertShadow(findShadowByNameViaModel(
-                ShadowKindType.ACCOUNT,
-                "default",
-                USER_SHELDON_USERNAME,
-                getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_DD_NAME),
-                null,
-                task,
-                result), "shadow after")
+        // @formatter:off
+        assertShadow(
+                findShadowByNameViaModel(
+                        ShadowKindType.ACCOUNT,
+                        "default",
+                        USER_SHELDON_USERNAME,
+                        getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_DD_NAME),
+                        null,
+                        task,
+                        result), "shadow after")
                 .display()
                 .triggers()
-                .single()
-                .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                .assertOriginDescription(DelayedDeleteEvaluator.class.getSimpleName())
-                .assertTimestampFuture("P5D", 20000)
-                .end()
+                    .single()
+                        .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                        .assertOriginDescription(DelayedDeleteEvaluator.class.getSimpleName())
+                        .assertTimestampFuture("P5D", 20000)
+                    .end()
                 .end()
                 .asShadow()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED);
+        // @formatter:on
 
         when("override time to future and recompute user");
         assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_DD_NAME, USER_SHELDON_USERNAME);
