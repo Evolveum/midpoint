@@ -326,7 +326,7 @@ This may be (root-like) system administrator, application users and so on.
 | Person
 | User
 | _none_
-| Archetype for persons, which is used in xref:/midpoint/methodology/first-steps/[First Steps Methodology]
+| Archetype for persons, which is used in xref:/midpoint/methodology/first-steps/[First Steps Methodology]. This archetype includes a reference to *Person Object Template* (also a midPoint initial object).
 
 Since version 4.8.
 
