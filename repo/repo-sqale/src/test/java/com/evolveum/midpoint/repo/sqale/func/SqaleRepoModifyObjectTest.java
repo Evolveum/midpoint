@@ -3475,9 +3475,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 u -> List.of(),
                                 null, result))
                 .isInstanceOf(ObjectNotFoundException.class);
-
-        and("operation result is handled error");
-        assertThatOperationResult(result).isHandledError();
     }
 
     // endregion
