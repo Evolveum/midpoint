@@ -106,7 +106,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
 
             ObjectQuery query = createQueryBySecondaryIdentifier(newShadow);
             List<PrismObject<ShadowType>> conflictingRepoShadows = shadowFinder.searchShadows(ctx, query, null, result);
-            PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows);
+            PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows, "(conflicting repo shadows)");
             if (oldShadow != null) {
                 ctx.applyAttributesDefinition(oldShadow);
             }
@@ -115,7 +115,8 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
 
             final List<PrismObject<ShadowType>> conflictingResourceShadows =
                     findConflictingShadowsOnResource(query, ctx.getTask(), result);
-            PrismObject<ShadowType> conflictingShadow = selectLiveShadow(conflictingResourceShadows);
+            PrismObject<ShadowType> conflictingShadow =
+                    selectLiveShadow(conflictingResourceShadows, "(conflicting shadows)");
 
             LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow,
                     conflictingShadow == null ? "  no conflicting shadow" : conflictingShadow.debugDumpLazily(1));

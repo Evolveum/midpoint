@@ -16,6 +16,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,7 +86,11 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             LOGGER.trace("Going to find matching shadows using the query:\n{}", query.debugDumpLazily(1));
             List<PrismObject<ShadowType>> matchingShadows = shadowFinder.searchShadows(ctx, query, null, result);
             LOGGER.trace("Found {}: {}", matchingShadows.size(), matchingShadows);
-            ShadowType liveShadow = asObjectable(selectLiveShadow(matchingShadows));
+            ShadowType liveShadow =
+                    asObjectable(
+                            selectLiveShadow(
+                                    matchingShadows,
+                                    DebugUtil.lazy(() -> "when looking by secondary identifier: " + query)));
             LOGGER.trace("Live shadow found: {}", liveShadow);
 
             if (liveShadow != null) {
