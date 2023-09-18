@@ -271,14 +271,14 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test202GetObjectWrongOidNonFatal() {
+    public void test202GetObjectWrongOidNonFatal() throws Exception {
         OperationResult result = createOperationResult();
 
         expect("getObject for non-existent OID with allow-not-found options throws exception");
-        assertThatNoException().isThrownBy(() -> repositoryService.getObject(
+        repositoryService.getObject(
                 UserType.class, UUID.randomUUID().toString(),
                 SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
-                result));
+                result);
         assertThatOperationResult(result).isSuccess();
     }
 
