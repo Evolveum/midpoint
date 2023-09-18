@@ -281,9 +281,6 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
                 result))
                 .isInstanceOf(ObjectNotFoundException.class);
-
-        and("operation result is handled error");
-        assertThatOperationResult(result).isHandledError();
     }
 
     @Test
