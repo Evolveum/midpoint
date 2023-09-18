@@ -12,13 +12,17 @@
         <ul class="details-menu">
             <wicket:container wicket:id="menu">
                 <li class="navigation-details" wicket:id="navLinkStyle">
-                    <a wicket:id="navItemLink" class="d-flex align-items-center" >
-                        <i class="mr-1" wicket:id="navItemIcon"></i>
-                        <span class="flex-grow-1 details-menu-label" wicket:id="navItem"></span>
-                        <span class="d-flex">
+                    <a wicket:id="navItemLink" class="d-flex align-items-center">
+                        <div class="d-flex flex-grow-1 mr-auto align-items-center">
+                            <i wicket:id="navItemIcon"></i>
+                            <div class="text-truncate" wicket:id="navItem"></div>
+                        </div>
+                        <div class="d-flex gap-1 flex-grow-1 details-menu-items align-items-center">
                             <span class="badge bg-blue" wicket:id="count"></span>
-                            <i class="fa fa-fw fa-angle-left" wicket:id="submenuLink"></i>
-                        </span>
+                            <span class="details-caret">
+                                <i class="fa fa-angle-left" wicket:id="submenuLink"></i>
+                            </span>
+                        </div>
                     </a>
                     <div wicket:id="subNavigation"/>
                 </li>
