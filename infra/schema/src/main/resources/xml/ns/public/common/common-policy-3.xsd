@@ -275,7 +275,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
-                                <a:experimental>true</a:experimental>
                                 <a:elaborate>true</a:elaborate>
                                 <a:displayName>PolicyConstraintsType.alwaysTrue</a:displayName>
                             </xsd:appinfo>
@@ -595,41 +594,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <!--<xsd:simpleType name="SituationConstraintsStorageStrategyType">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:documentation>-->
-                <!--Should triggers for situation constraints be stored "as is" or should referenced rules be unwrapped?-->
-                <!--EXPERIMENTAL-->
-            <!--</xsd:documentation>-->
-            <!--<xsd:appinfo>-->
-                <!--<jaxb:typesafeEnumClass/>-->
-                <!--<a:deprecated>true</a:deprecated>-->
-            <!--</xsd:appinfo>-->
-        <!--</xsd:annotation>-->
-        <!--<xsd:restriction base="xsd:string">-->
-            <!--<xsd:enumeration value="asIs">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Triggers for situation constraints should be stored "as is".-->
-                    <!--</xsd:documentation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<jaxb:typesafeEnumMember name="AS_IS"/>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:enumeration>-->
-            <!--<xsd:enumeration value="unwrapped">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Rules referenced from situation constraints should be unwrapped.-->
-                    <!--</xsd:documentation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<jaxb:typesafeEnumMember name="UNWRAPPED"/>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:enumeration>-->
-        <!--</xsd:restriction>-->
-    <!--</xsd:simpleType>-->
-
     <xsd:complexType name="ExclusionPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
@@ -674,7 +638,7 @@
                                 (I.e. this is evaluated against the object defining this exclusion constraint.)
                                 The default is "order = 1".
 
-                                EXPERIMENTAL. Currently it does not work with non-member relations because of assignment
+                                Limitation: Currently it does not work with non-member relations because of assignment
                                 evaluation optimizations (see TestSegregationOfDuties.test950JackSelfExclusion). So it can
                                 be used only for default and manager relations.
                             </xsd:documentation>
@@ -691,7 +655,7 @@
                                 (I.e. this is evaluated against the target object.)
                                 The default is "order = 1".
 
-                                EXPERIMENTAL. Currently it does not work with non-member relations because of assignment
+                                Limitation: Currently it does not work with non-member relations because of assignment
                                 evaluation optimizations (see TestSegregationOfDuties.test950JackSelfExclusion). So it can
                                 be used only for default and manager relations.
                             </xsd:documentation>
@@ -759,7 +723,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.5</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -917,7 +880,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.5</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1101,13 +1063,12 @@
     <xsd:complexType name="StatePolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
-                A constraint that triggers when a object or assignment is in a given state.
+                A constraint that triggers when an object or assignment is in a given state.
                 If both filter and expressions are specified, both must be true in order for constraint to be triggered.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.7</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1139,7 +1100,7 @@
                                 Expression that is to be used to determine the state: if state matches it should return LocalizableMessageType to be used
                                 (both as normal and short messages). Mutually exclusive with message, filter, and executeScript.
 
-                                HIGHLY EXPERIMENTAL. Probably will change in the future.
+                                Probably will change in the future.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>StatePolicyConstraintType.messageExpression</a:displayName>
@@ -1278,7 +1239,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1309,7 +1269,7 @@
     <xsd:complexType name="TransitionPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies how the inner constraints are to be evaluated with regards to operation start and end state.
+                Specifies how the inner constraints are to be evaluated with regard to operation start and end state.
                 May not include any transitional constraints itself!
             </xsd:documentation>
             <xsd:appinfo>
@@ -1502,7 +1462,6 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1609,10 +1568,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Execute script (bulk action). The operation will proceed. Script(s) are executed at the end of the operation.
-                        HIGHLY EXPERIMENTAL. Use at your own risk. No guarantees here.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
                         <a:displayName>PolicyActionsType.scriptExecution</a:displayName>
                         <a:help>PolicyActionsType.scriptExecution.help</a:help>
                     </xsd:appinfo>
@@ -1641,7 +1598,6 @@
             <xsd:appinfo>
                 <a:container />
                 <a:since>3.5</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1698,7 +1654,6 @@
             <xsd:appinfo>
                 <a:container />
                 <a:since>3.5</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1719,7 +1674,6 @@
             <xsd:appinfo>
                 <a:container />
                 <a:since>4.0</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1742,7 +1696,6 @@
             <xsd:appinfo>
                 <a:container />
                 <a:since>3.5</a:since>
-                <a:experimental>true</a:experimental>
                 <a:displayName>ApprovalPolicyActionType.details</a:displayName>
                 <a:schemaMigration>
                     <a:element>tns:automaticallyApproved</a:element>
@@ -1758,7 +1711,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 TODO
-                                EXPERIMENTAL
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
@@ -2143,7 +2095,6 @@
             <xsd:appinfo>
                 <a:container />
                 <a:since>3.5</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2214,12 +2165,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 TODO
-                HIGHLY EXPERIMENTAL. Use at your own risk. No guarantees here.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container />
                 <a:since>3.9</a:since>
-                <a:experimental>true</a:experimental>
                 <a:displayName>ExecuteScriptPolicyActionType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2799,12 +2748,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 Object(s) on which the script should be executed.
-                EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2837,6 +2784,9 @@
                             EXPERIMENTAL. UNSTABLE. DO NOT USE.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="linkSource" type="c:LinkSourceObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
@@ -2859,6 +2809,9 @@
                             EXPERIMENTAL. UNSTABLE. DO NOT USE.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

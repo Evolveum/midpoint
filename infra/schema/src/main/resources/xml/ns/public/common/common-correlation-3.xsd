@@ -40,7 +40,6 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -78,7 +77,8 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.8</a:deprecatedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -108,7 +108,8 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.8</a:deprecatedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -129,13 +130,11 @@
     <xsd:complexType name="CompositeCorrelatorType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
                 User-friendly way of defining a correlator or correlators.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
                 <a:elaborate>true</a:elaborate>
             </xsd:appinfo>
         </xsd:annotation>
@@ -267,7 +266,6 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -376,7 +374,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -445,13 +442,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 "No-op" correlation that always returns "certainly no owner" result.
-
-                TODO NoneCorrelatorType?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -471,7 +465,6 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -498,7 +491,6 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -541,7 +533,6 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -797,7 +788,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -817,7 +807,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -877,7 +866,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -900,7 +888,6 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1004,7 +991,6 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1028,7 +1014,6 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.5</a:since>
-                <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
@@ -1184,7 +1169,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1266,7 +1250,6 @@
             <xsd:appinfo>
                 <a:since>4.6</a:since>
                 <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1275,6 +1258,9 @@
                     <xsd:documentation>
                         How to search for the item values?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="focusItem" type="t:ItemPathType" minOccurs="0">
@@ -1542,7 +1528,6 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
-                <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>

@@ -87,18 +87,8 @@ public class DurationWithOneElementPanel extends InputPanel {
         IModel<String> unitModel = new LoadableModel<>(false) {
             @Override
             protected String load() {
-                if (model.getObject() == null) {
-                    return DurationWithOneElementPanel.this.choices.get(0).name;
-                }
-
-                List<DatatypeConstants.Field> choices = getChoicesAsField();
-
-                Optional<DatatypeConstants.Field> unit =
-                        choices.stream().filter(choice -> model.getObject().isSet(choice)).findFirst();
-                if (unit.isPresent()) {
-                    return unit.get().toString();
-                }
-                return DurationWithOneElementPanel.this.choices.get(0).name;
+                DatatypeConstants.Field actualUnit = parseUnitFiled(model);
+                return actualUnit.toString();
             }
         };
 
@@ -109,8 +99,34 @@ public class DurationWithOneElementPanel extends InputPanel {
                 StringChoiceRenderer.prefixed("DurationWithOneElementPanel.unit."));
         unit.setNullValid(false);
         unit.setOutputMarkupId(true);
-        unit.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        unit.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                DurationConverter converter = new DurationConverter();
+                Duration duration = converter.convertToObject(
+                        converter.convertToString(
+                                model.getObject(),
+                                parseUnitFiled(model)),
+                        getPageBase().getLocale());
+                model.setObject(duration);
+            }
+        });
         add(unit);
+    }
+
+    private DatatypeConstants.Field parseUnitFiled(IModel<Duration> model) {
+        if (model.getObject() == null) {
+            return getChoicesAsField().get(0);
+        }
+
+        List<DatatypeConstants.Field> choices = getChoicesAsField();
+
+        Optional<DatatypeConstants.Field> unit =
+                choices.stream().filter(choice -> model.getObject().isSet(choice)).findFirst();
+        if (unit.isPresent()) {
+            return unit.get();
+        }
+        return getChoicesAsField().get(0);
     }
 
     private List<DatatypeConstants.Field> getChoicesAsField() {
@@ -185,6 +201,16 @@ public class DurationWithOneElementPanel extends InputPanel {
             Optional<DatatypeConstants.Field> field = choices
                     .stream()
                     .filter(choice -> choice.toString().equals(unit.name))
+                    .findFirst();
+            return String.valueOf(duration.getField(field.get()).intValue());
+        }
+
+        private String convertToString(Duration duration, DatatypeConstants.Field unit) {
+            List<DatatypeConstants.Field> choices = getChoicesAsField();
+
+            Optional<DatatypeConstants.Field> field = choices
+                    .stream()
+                    .filter(choice -> choice.equals(unit))
                     .findFirst();
             return String.valueOf(duration.getField(field.get()).intValue());
         }
