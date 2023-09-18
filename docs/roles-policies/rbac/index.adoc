@@ -13,15 +13,35 @@
 
 == Introduction
 
-link:https://evolveum.com/midpoint[midPoint] is using a (very) extended version of Role-Based Access Control (RBAC) mechanism.
+xref:/iam/rbac/[Role-based access control (RBAC)] principles are present in almost all identity management systems.
+Therefore, it is no surprise that RBAC is one of the basic midPoint mechanisms to organize privileges in midPoint.
+MidPoint supports all the usual RBAC features such as role hierarchies, an automatic assignment of roles, entitlement definition etc.
+However, midPoint goes beyond traditional RBAC.
+midPoint is using a (very) extended version of Role-Based Access Control (RBAC) mechanism.
 RBAC is originally defined as mostly static structure of users and roles.
 The original RBAC defines that user assigned to the role gets all the rights implied by the role.
-If two users have the same role, they have the same rights.
-However, this leads to the problem of xref:/iam/role-explosion/[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
-We add ability to specify expressions in role definitions that determine how and when the role is used.
-Therefore the role can adapt to the attributes of user that has the role or even the role assignment itself can be parametrized.
+If two users have the same role, they have the same privileges.
+However, this leads to the problem of xref:/iam/role-explosion/[role rxplosion] and numerous role maintenance problems.
+We mitigate such problems by enhancing RBAC model with logic.
+We extended basic RBAC model with ability to specify expressions in role definitions that determine how and when the role is used.
+Therefore, the role can adapt to the attributes of user that has the role or even the role assignment itself can be parametrized.
 This allows to construct RBAC structures that are using fewer roles and that are much more manageable.
 
+Moreover, midPoint RBAC system can be applied to the roles themselves, thus creating _meta-roles_.
+It is quite common that the roles are divided into several types: application roles, business roles, technical roles and so on.
+However, all the business roles have common characteristics such as common approval processes, common life-cycle policies etc.
+Instead of copying the common parts into each and every business role, the business roles may be assigned a common _archetype_ which acts as a meta-role.
+Archetype defines all the common characteristics of all business roles, therefore the RBAC system is much easier to maintain.
+
+MidPoint advanced RBAC mechanism, together with role auto-assignment capabilities and other policy mechanisms create a very powerful combination to express complex policies.
+Although midPoint policy mechanisms are based on RBAC principles, its capabilities are similar to other popular access control models, such as attribute-based access control (ABAC) or policy-based access control (PBAC).
+
+.Terminology
+NOTE: The term _RBAC_ is many things to many people.
+We use the term _RBAC_ in quite a broad sense.
+We do not strictly mean NIST RBAC model.
+What me mean by _RBAC_ is a generic mechanism that is based on the concept of roles.
+Although the basic principles of midPoint RBAC are very similar to NIST RBAC model, we take the liberty to deviate from NIST model when needed.
 
 == Roles
 
