@@ -24,6 +24,13 @@
                 </resourceObjects>
             </import>
         </work>
-        <executionMode>preview</executionMode>
+        <execution>
+            <mode>preview</mode>
+        </execution>
+        <reporting>
+            <simulationResult>
+                <enabled>false</enabled>
+            </simulationResult>
+        </reporting>
     </activity>
 </task>
