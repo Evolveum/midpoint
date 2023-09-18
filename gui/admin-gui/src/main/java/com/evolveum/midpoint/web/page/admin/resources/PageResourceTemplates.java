@@ -11,9 +11,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateBadgeColumn;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -288,6 +292,10 @@ public class PageResourceTemplates extends PageAdmin {
                 SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorType"));
         columns.add(new PropertyColumn<>(createStringResource("pageResources.version"),
                 SelectableBeanImpl.F_VALUE + ".connectorRef.objectable.connectorVersion"));
+
+        IModel<PrismContainerDefinition<ResourceType>> def =
+                () -> PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+        columns.add(new LifecycleStateBadgeColumn<>(def, PageResourceTemplates.this));
         return columns;
     }
 

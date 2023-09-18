@@ -6017,6 +6017,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Should the simulation result be created for the activity? If so, how?
+
+                        For native repository, the default is "yes, with the default settings" for simulation
+                        (full or shadow-level) mode and "no" for all other modes.
+
+                        For generic repository that does not support simulation results, the default is always "no".
+
+                        If you want to explicitly disable the creation of simulation result for simulation-mode activities,
+                        set "enabled" to "false" inside.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.7</a:since>
@@ -6763,6 +6771,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the creation of simulation result enabled?
+                        The default is "true" if this container is present.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="definition" type="tns:SimulationDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6773,8 +6792,6 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
-
 
     <xsd:complexType name="BasicObjectSetType">
         <xsd:annotation>

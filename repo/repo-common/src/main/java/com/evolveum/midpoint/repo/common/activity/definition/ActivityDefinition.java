@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import org.jetbrains.annotations.NotNull;
@@ -253,5 +254,21 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                     executionModeDefinition.getMode(),
                     executionModeDefinition.getPredefinedConfiguration());
         }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean shouldCreateSimulationResult() {
+        var explicit = reportingDefinition.getExplicitSimulationResultCreationInstruction();
+        if (explicit != null) {
+            return explicit;
+        }
+
+        if (!CommonTaskBeans.get().repositoryService.isNative()) {
+            return false;
+        }
+
+        ExecutionModeType mode = executionModeDefinition.getMode();
+        return mode == ExecutionModeType.PREVIEW
+                || mode == ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
     }
 }
