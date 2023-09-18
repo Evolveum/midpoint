@@ -99,7 +99,7 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
             return false;
         }
 
-        if (isConditionSatisfied(projCtx)) {
+        if (!isConditionSatisfied(projCtx)) {
             LOGGER.trace(
                     "DelayedDeleteEvaluator: activation status isn't disabled "
                     + "or disable reason isn't mapped or deprovision, skipping");
