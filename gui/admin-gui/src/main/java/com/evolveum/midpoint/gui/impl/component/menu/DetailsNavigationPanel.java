@@ -140,7 +140,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-
+        link.add(AttributeAppender.append("title", createButtonLabel(item.getModel())));
         addIcon(link, item);
         addLabel(link, item);
         addCount(link, item);
