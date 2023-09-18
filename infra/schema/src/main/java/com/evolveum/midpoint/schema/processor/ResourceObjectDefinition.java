@@ -419,9 +419,6 @@ public interface ResourceObjectDefinition
     //region Other
     /**
      * Returns the "raw" configuration bean for this object type.
-     *
-     * BEWARE: In the case of inherited object types, this is only the partial information.
-     * (Parts inherited from the parents are not returned.)
      */
     @NotNull ResourceObjectTypeDefinitionType getDefinitionBean();
 

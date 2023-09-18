@@ -12,13 +12,17 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -40,15 +44,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
@@ -119,6 +114,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     private static final File ROLE_DARK_YELLOW_PERU_FILE = new File(TEST_DIR, "role-dark-yellow-peru.xml");
     private static final String ROLE_DARK_YELLOW_PERU_OID = "95213bbc-3357-11e8-aeb8-439c6ddc0fa0";
 
+    private static final String ATTR_BUSINESS_ID = "businessId";
+
+    private static final DummyTestResource RESOURCE_DUMMY_NESTED = new DummyTestResource(
+            TEST_DIR, "resource-nested.xml", "3d49a5df-ca1c-43a7-a64a-c01e3e2a9ec9", "nested",
+            controller -> {
+                controller.addAttrDef(controller.getDummyResource().getOrgObjectClass(),
+                        ATTR_BUSINESS_ID, String.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
+                        ATTR_BUSINESS_ID, String.class, false, false);
+            });
+
     private static final String USER_WORLD_NAME = "world";
     private static final String USER_WORLD_FULL_NAME = "The World";
 
@@ -167,6 +173,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(ROLE_DARK_YELLOW_PERU_FILE, initResult);
 
         getDummyResource().resetBreakMode();
+
+        RESOURCE_DUMMY_NESTED.init(this, initTask, initResult);
+        RESOURCE_DUMMY_NESTED.controller.addOrg("production");
+        RESOURCE_DUMMY_NESTED.controller.addOrg("archived");
     }
 
     @Test
@@ -3052,5 +3062,98 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
         assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+    }
+
+    /**
+     * Tests interdependent objects. A role has two projections: an org and a group (within that org).
+     * When the role is renamed, both projections should be renamed as well. Org is renamed explicitly, while group is renamed
+     * implicitly (by the resource). MidPoint should cope with that.
+     *
+     * The first test consists of simple renaming of a role.
+     *
+     * MID-8929
+     */
+    @Test
+    public void test550RoleRename() throws Exception {
+        testRoleChange(getTestNameShort(), TestAction.RENAME, false);
+    }
+
+    /** Same as {@link #test550RoleRename()} but with reconcile option enabled. */
+    @Test
+    public void test555RoleRenameReconcile() throws Exception {
+        testRoleChange(getTestNameShort(), TestAction.RENAME, true);
+    }
+
+    /** Role will be disabled, instead of renaming. MID-8929. */
+    @Test
+    public void test560RoleDisable() throws Exception {
+        testRoleChange(getTestNameShort(), TestAction.DISABLE, false);
+    }
+
+    /** Same as {@link #test560RoleDisable()} but with reconcile option enabled. */
+    @Test
+    public void test565RoleDisableReconcile() throws Exception {
+        testRoleChange(getTestNameShort(), TestAction.DISABLE, true);
+    }
+
+    private void testRoleChange(String roleNameBefore, TestAction action, boolean reconcile) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a role");
+        RoleType role = new RoleType()
+                .name(roleNameBefore)
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DUMMY_NESTED.construction(ShadowKindType.ENTITLEMENT, "org")))
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DUMMY_NESTED.construction(ShadowKindType.ENTITLEMENT, "group")));
+        var roleOid = addObject(role, task, result);
+
+        assertRoleBefore(roleOid)
+                .assertLinks(2, 0);
+        RESOURCE_DUMMY_NESTED.controller.assertOrgByName(roleNameBefore + ":production");
+        RESOURCE_DUMMY_NESTED.controller.assertGroupByName("group:" + roleNameBefore + ":production");
+
+        String roleNameAfter;
+        String rootAfter;
+        if (action == TestAction.RENAME) {
+            when("role is renamed");
+            roleNameAfter = roleNameBefore + "-X";
+            rootAfter = "production";
+            executeChanges(
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_NAME).replace(PolyString.fromOrig(roleNameAfter))
+                            .asObjectDelta(roleOid),
+                    ModelExecuteOptions.create().reconcile(reconcile),
+                    task, result);
+        } else {
+            assert action == TestAction.DISABLE;
+            when("role is renamed");
+            roleNameAfter = roleNameBefore;
+            rootAfter = "archived";
+            executeChanges(
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
+                            .replace(ActivationStatusType.DISABLED)
+                            .asObjectDelta(roleOid),
+                    ModelExecuteOptions.create().reconcile(reconcile),
+                    task, result);
+        }
+
+        then("operation is successful");
+        assertSuccess(result);
+
+        and("role and its projections are renamed");
+        assertRoleAfter(roleOid)
+                .assertName(roleNameAfter)
+                .assertLinks(2, 0);
+        RESOURCE_DUMMY_NESTED.controller.assertOrgByName(roleNameAfter + ":" + rootAfter);
+        RESOURCE_DUMMY_NESTED.controller.assertGroupByName("group:" + roleNameAfter + ":" + rootAfter);
+
+        displayDumpable("resource", RESOURCE_DUMMY_NESTED.getDummyResource());
+    }
+
+    enum TestAction {
+        RENAME, DISABLE
     }
 }

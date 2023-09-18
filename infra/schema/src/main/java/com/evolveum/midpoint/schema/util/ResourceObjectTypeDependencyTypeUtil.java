@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyDataBindingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 
@@ -66,5 +67,9 @@ public class ResourceObjectTypeDependencyTypeUtil {
 
     public static boolean isForceLoadDependentShadow(ResourceObjectTypeDependencyType dependency) {
         return Boolean.TRUE.equals(dependency.isForceLoad());
+    }
+
+    public static boolean isDataBindingPresent(ResourceObjectTypeDependencyType dependency) {
+        return dependency.getDataBinding() == ResourceObjectTypeDependencyDataBindingKindType.SOME;
     }
 }

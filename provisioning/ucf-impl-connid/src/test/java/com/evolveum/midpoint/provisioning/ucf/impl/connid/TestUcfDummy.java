@@ -6,18 +6,19 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.provisioning.ucf.api.*;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -25,14 +26,14 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -58,6 +60,43 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummy extends AbstractUcfDummyTest {
+
+    private static final File HIERARCHICAL_RESOURCE_DUMMY_FILE =
+            new File(UcfTestUtil.TEST_DIR, "hierarchical-resource-dummy.xml");
+
+    private PrismObject<ResourceType> hierarchicalResourceObject;
+    private ResourceType hierarchicalResourceBean;
+    private DummyResource hierarchicalResource;
+    private DummyResourceContoller hierarchicalResourceCtl;
+    private ConnectorInstance hierarchicalConnectorInstance;
+
+    /** For test2xx. */
+    private void initializeHierarchicalResourceIfNeeded() throws Exception {
+        if (hierarchicalResource != null) {
+            return;
+        }
+
+        OperationResult result = createOperationResult();
+
+        hierarchicalResourceObject = PrismTestUtil.parseObject(HIERARCHICAL_RESOURCE_DUMMY_FILE);
+        hierarchicalResourceBean = hierarchicalResourceObject.asObjectable();
+
+        hierarchicalResourceCtl = DummyResourceContoller.create("hierarchical");
+        hierarchicalResourceCtl.setResource(hierarchicalResourceObject);
+        hierarchicalResourceCtl.extendSchemaPirate();
+        hierarchicalResource = hierarchicalResourceCtl.getDummyResource();
+
+        hierarchicalConnectorInstance =
+                connectorFactory.createConnectorInstance(connectorType, "hierarchical", "");
+        assertNotNull("Failed to instantiate connector", hierarchicalConnectorInstance);
+
+        //noinspection unchecked
+        PrismContainerValue<ConnectorConfigurationType> configContainer =
+                hierarchicalResourceBean.getConnectorConfiguration().asPrismContainerValue();
+        displayDumpable("Configuration container", configContainer);
+        hierarchicalConnectorInstance.configure(configContainer, ConnectorConfigurationOptions.DEFAULT, result);
+        hierarchicalConnectorInstance.initialize(null, null, false, result);
+    }
 
     @Test
     public void test000PrismContextSanity() {
@@ -77,7 +116,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         displayDumpable("Resource", resource);
 
         assertEquals("Wrong oid", "ef2bc95b-76e0-59e2-86d6-9999dddddddd", resource.getOid());
-//        assertEquals("Wrong version", "42", resource.getVersion());
         PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
         assertNotNull("No resource definition", resourceDefinition);
         PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "resource"),
@@ -199,7 +237,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
         displayDumpable("Configuration container", configContainer);
-        //ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
         cc.configure(configContainer, ConnectorConfigurationOptions.DEFAULT, result);
 
         // WHEN
@@ -298,7 +335,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " was not created", dummyAccount);
         assertNotNull("Account " + ACCOUNT_JACK_USERNAME + " has no username", dummyAccount.getName());
-
     }
 
     @Test
@@ -417,6 +453,95 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
         assertNotNull("null identifiers", identifiers);
         assertFalse("empty identifiers", identifiers.isEmpty());
+    }
+
+    @Test
+    public void test200AddObjects() throws Exception {
+        initializeHierarchicalResourceIfNeeded();
+
+        given("an org exists");
+        hierarchicalResourceCtl.addOrg("org200");
+
+        when("top-level account is added");
+        hierarchicalResourceCtl.addAccount("test");
+
+        then("it is there");
+        assertThat(hierarchicalResource.getAccountByUsername("test")).isNotNull();
+
+        when("account in non-existent org is added");
+        try {
+            hierarchicalResourceCtl.addAccount("test:org200a");
+            fail("unexpected success");
+        } catch (ObjectDoesNotExistException e) {
+            then("exception is thrown");
+            assertExpectedException(e)
+                    .hasMessageContaining(
+                            "Cannot add object with name 'test:org200a' because its parent org 'org200a' does not exist");
+        }
+
+        when("account in existing org is added");
+        hierarchicalResourceCtl.addAccount("test:org200");
+
+        then("it is there");
+        assertThat(hierarchicalResource.getAccountByUsername("test:org200")).isNotNull();
+    }
+
+    @Test
+    public void test210DeleteNonEmptyOrg() throws Exception {
+        initializeHierarchicalResourceIfNeeded();
+
+        given("an org with account exists");
+        hierarchicalResourceCtl.addOrg("org210");
+        hierarchicalResourceCtl.addAccount("test:org210");
+
+        when("org is being deleted");
+        try {
+            hierarchicalResource.deleteOrgByName("org210");
+            fail("unexpected success");
+        } catch (SchemaViolationException e) {
+            assertExpectedException(e);
+        }
+    }
+
+    @Test
+    public void test220RenameOrg() throws Exception {
+        initializeHierarchicalResourceIfNeeded();
+
+        given("two nested orgs with an account exist");
+        DummyOrg root = hierarchicalResourceCtl.addOrg("root220");
+        DummyOrg org = hierarchicalResourceCtl.addOrg("org220:root220");
+        hierarchicalResourceCtl.addAccount("test:org220:root220");
+
+        displayDumpable("root", root);
+        displayDumpable("org", org);
+
+        when("root is renamed");
+        hierarchicalResource.renameOrg(root.getId(), "root220", "root220a");
+
+        then("orgs and account have new names");
+        assertOrgExists("root220a");
+        assertOrgExists("org220:root220a");
+        assertAccountExists("test:org220:root220a");
+
+        when("org is renamed");
+        hierarchicalResource.renameOrg(org.getId(), "org220:root220a", "org220a:root220a");
+
+        then("orgs and account have new names");
+        assertOrgExists("root220a");
+        assertOrgExists("org220a:root220a");
+        assertAccountExists("test:org220a:root220a");
+    }
+
+    private void assertOrgExists(String name)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        DummyOrg org = hierarchicalResource.getOrgByName(name);
+        assertThat(org).as("org named '" + name + "'").isNotNull();
+    }
+
+    private void assertAccountExists(String name)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        DummyAccount account = hierarchicalResource.getAccountByUsername(name);
+        assertThat(account).as("account named '" + name + "'").isNotNull();
     }
 
     @Test

@@ -1685,6 +1685,13 @@
         <xsd:annotation>
             <xsd:documentation>
                 Describes a dependency of an object type on another object type.
+                For example, a role may have two Active Directory projections: an OU and a group residing in that OU.
+                We say that the group depends on the OU: the OU has to be provisioned first; and only after that, the group
+                can be created. When de-provisioning, the group has to be deleted first, and the OU only after that.
+
+                We call the group the "dependent object" or "depender". The OU is a "dependee".
+
+                This data structure has to reside within the dependent object (depender).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1735,6 +1742,22 @@
                         Specifies if the shadow on which we depend has to be loaded. By default, we do
                         not force loading full dependent shadow.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dataBinding" type="tns:ResourceObjectTypeDependencyDataBindingKindType" minOccurs="0"
+                    default="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Are the attributes of the dependent object bound to the dependee attributes in any way?
+                        For example, in AD, if the distinguished name of an OU (dependee) changes, the DNs of all dependent
+                        objects (e.g. groups within that OU) change as well.
+
+                        EXPERIMENTAL. Mainly to implement MID-8929. Maybe it will not be needed in the future.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1795,6 +1818,43 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LAX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ResourceObjectTypeDependencyDataBindingKindType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Level of binding between dependent resource objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.8</a:since>
+                <a:experimental>true</a:experimental>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attributes of the dependent resource objects are not bound in any way.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="some">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        There is some binding between attributes of the dependent resource objects, but the exact character
+                        of this binding is not known or specified. We must assume that anything can happen when the dependee
+                        object changes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SOME"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

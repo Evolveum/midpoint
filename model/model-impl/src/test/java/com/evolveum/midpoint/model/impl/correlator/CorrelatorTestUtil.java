@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.impl.correlator.correlation.CorrelationTestingAccount;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -49,7 +46,8 @@ public class CorrelatorTestUtil {
      * by {@link #getAllAccounts(AbstractModelIntegrationTest, DummyTestResource, Function, Task, OperationResult)} method.
      */
     public static void addAccountsFromCsvFile(AbstractIntegrationTest test, File accountsFile, DummyTestResource resource)
-            throws IOException, ConflictException, SchemaViolationException, InterruptedException, ObjectAlreadyExistsException {
+            throws IOException, ConflictException, SchemaViolationException, InterruptedException, ObjectAlreadyExistsException,
+            ObjectDoesNotExistException {
         CSVParser parser = CSVParser.parse(
                 accountsFile,
                 StandardCharsets.UTF_8,

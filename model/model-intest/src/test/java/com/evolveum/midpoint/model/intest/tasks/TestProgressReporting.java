@@ -19,6 +19,7 @@ import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
@@ -302,7 +303,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
     }
 
     private void createAccounts(String accountPrefix, int users) throws ObjectAlreadyExistsException, SchemaViolationException,
-            ConnectException, FileNotFoundException, ConflictException, InterruptedException {
+            ConnectException, FileNotFoundException, ConflictException, InterruptedException, ObjectDoesNotExistException {
         for (int i = 0; i < users; i++) {
             interruptedSyncResource.getController().addAccount(String.format("%s%03d", accountPrefix, i));
         }

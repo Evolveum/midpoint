@@ -62,7 +62,7 @@ public class DummyObjectsCreator<O extends DummyObject> {
 
     public List<O> execute()
             throws CommonException, ConflictException, FileNotFoundException, SchemaViolationException,
-            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+            ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         List<O> objects = new ArrayList<>(objectCount);
 
         for (int i = 0; i < objectCount; i++) {
@@ -86,7 +86,7 @@ public class DummyObjectsCreator<O extends DummyObject> {
     }
 
     private void addObject(O object) throws ConflictException, FileNotFoundException, SchemaViolationException,
-            ObjectAlreadyExistsException, InterruptedException, ConnectException {
+            ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         DummyResource resource = controller.getDummyResource();
         if (object instanceof DummyAccount) {
             resource.addAccount((DummyAccount) object);

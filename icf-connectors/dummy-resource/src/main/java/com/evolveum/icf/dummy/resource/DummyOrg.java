@@ -19,18 +19,18 @@ public class DummyOrg extends DummyObject {
         super();
     }
 
-    public DummyOrg(String username) {
-        super(username);
+    public DummyOrg(String orgName) {
+        super(orgName);
     }
 
     @Override
     protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException {
-        return resource.getPrivilegeObjectClass();
+        return resource.getOrgObjectClass();
     }
 
     @Override
     protected DummyObjectClass getObjectClassNoExceptions() {
-        return resource.getPrivilegeObjectClass();
+        return resource.getOrgObjectClass();
     }
 
     @Override

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationPropertyValuesDescription;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
@@ -318,7 +319,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     @SuppressWarnings("SameParameterValue")
     private void executeTest(String name, File usersFile)
             throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
-            InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+            InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ObjectDoesNotExistException {
         executeTest(
                 correlator(name),
                 usersFile,
@@ -330,7 +331,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     @SuppressWarnings("SameParameterValue")
     private void executeTest(String name, File usersFile, TestObject<ObjectTemplateType> template)
             throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
-            InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+            InterruptedException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ObjectDoesNotExistException {
         executeTest(
                 correlator(name, template),
                 usersFile,
@@ -345,8 +346,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             File usersFile,
             DescriptionMode descriptionMode,
             FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
-            throws CommonException, IOException, ConflictException, SchemaViolationException,
-            InterruptedException, EncryptionException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+            throws CommonException, IOException, ConflictException, SchemaViolationException, InterruptedException,
+            EncryptionException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ObjectDoesNotExistException {
         executeTest(
                 correlator(name),
                 usersFile,
@@ -362,7 +363,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             DescriptionMode descriptionMode,
             FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
             throws CommonException, IOException, ConflictException, SchemaViolationException,
-            InterruptedException, EncryptionException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+            InterruptedException, EncryptionException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException,
+            ObjectDoesNotExistException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 

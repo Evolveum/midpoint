@@ -563,7 +563,6 @@ public class ResourceObjectConverter {
             LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDumpLazily(itemDeltas, 1));
 
             ResourceObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-            Collection<Operation> operations = new ArrayList<>();
 
             Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 
@@ -622,10 +621,26 @@ public class ResourceObjectConverter {
              *
              *  We decide based on setting of explicitReferentialIntegrity in association definition.
              */
+            Collection<Operation> operations = new ArrayList<>();
             collectAttributeAndEntitlementChanges(ctx, itemDeltas, operations, repoShadow, result);
 
+            boolean shouldDoPreRead;
+            if (hasVolatilityTriggerModification) {
+                LOGGER.trace("-> Doing resource object pre-read because of volatility trigger modification");
+                shouldDoPreRead = true;
+            } else if (ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource())) {
+                LOGGER.trace("Doing resource object pre-read because 'avoidDuplicateValues' is set");
+                shouldDoPreRead = true;
+            } else if (isRename(ctx, operations)) {
+                LOGGER.trace("Doing resource object pre-read because of rename operation");
+                shouldDoPreRead = true;
+            } else {
+                LOGGER.trace("Will not do resource object pre-read because there's no explicit reason to do so");
+                shouldDoPreRead = false;
+            }
+
             ShadowType preReadShadow = null;
-            if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
+            if (shouldDoPreRead) {
                 // We need to filter out the deltas that add duplicate values or remove values that are not there
                 LOGGER.trace("Pre-reading resource shadow");
                 preReadShadow = preReadShadow(ctx, identifiers, operations, true, repoShadow, result);  // yes, we need associations here
@@ -644,7 +659,14 @@ public class ResourceObjectConverter {
             if (!operations.isEmpty()) {
                 assertNoDuplicates(operations);
                 // Execute primary ICF operation on this shadow
-                modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, scripts, result, connOptions);
+                modifyAsyncRet = executeModify(
+                        ctx,
+                        (preReadShadow == null ? repoShadow.clone() : preReadShadow),
+                        identifiers,
+                        operations,
+                        scripts,
+                        result,
+                        connOptions);
             } else {
                 // We have to check BEFORE we add script operations, otherwise the check would be pointless
                 LOGGER.trace("No modifications for connector object specified. Skipping processing of subject executeModify.");

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.correlator.idmatch.*;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
@@ -91,7 +92,8 @@ public abstract class AbstractIdMatchServiceTest extends AbstractInternalModelIn
      * by {@link #getAllAccounts(Task, OperationResult)} method.
      */
     private void addAccountsFromCsvFile()
-            throws IOException, ConflictException, SchemaViolationException, InterruptedException, ObjectAlreadyExistsException {
+            throws IOException, ConflictException, SchemaViolationException, InterruptedException, ObjectAlreadyExistsException,
+            ObjectDoesNotExistException {
         CorrelatorTestUtil.addAccountsFromCsvFile(this, FILE_ACCOUNTS, RESOURCE_FUZZY);
     }
 

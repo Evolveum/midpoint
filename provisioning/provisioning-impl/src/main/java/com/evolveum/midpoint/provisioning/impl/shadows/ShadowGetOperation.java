@@ -260,7 +260,7 @@ class ShadowGetOperation {
         if (isForceRefresh(rootOptions)
                 || isForceRetry(rootOptions)
                 || ResourceTypeUtil.isRefreshOnRead(ctx.getResource())) {
-            LOGGER.trace("Doing full refresh shadow refresh before read operation for {}", repositoryShadow);
+            LOGGER.trace("Doing full shadow refresh before read operation for {}", repositoryShadow);
             doFullShadowRefresh(result);
         } else {
             LOGGER.trace("Full refresh is not requested, doing quick one only for {}", repositoryShadow);
