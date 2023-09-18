@@ -3492,13 +3492,13 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         when("modifyObjectDynamically for non-existent fails with allow-not-found option");
-        Assertions.assertThatThrownBy(() ->
+        Assertions.assertThatNoException().isThrownBy(() ->
                         repositoryService.modifyObjectDynamically(
                                 UserType.class, TestUtil.NON_EXISTENT_OID,
                                 SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
                                 u -> List.of(),
-                                null, result))
-                .isInstanceOf(ObjectNotFoundException.class);
+                                null, result));
+        assertThatOperationResult(result).isSuccess();
     }
 
     // endregion

@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME;
+
+import static org.assertj.core.api.Assertions.*;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -276,11 +275,11 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
 
         expect("getObject for non-existent OID with allow-not-found options throws exception");
-        assertThatThrownBy(() -> repositoryService.getObject(
+        assertThatNoException().isThrownBy(() -> repositoryService.getObject(
                 UserType.class, UUID.randomUUID().toString(),
                 SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
-                result))
-                .isInstanceOf(ObjectNotFoundException.class);
+                result));
+        assertThatOperationResult(result).isSuccess();
     }
 
     @Test
