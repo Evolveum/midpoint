@@ -200,6 +200,7 @@
         <prism.version>${project.version}</prism.version>
 
         <!-- Dependencies global versions -->
+        <assertj.version>3.23.1</assertj.version>
         <commons.io.version>2.9.0</commons.io.version>
         <commons.cli>1.5.0</commons.cli>
         <cxf.version>3.4.10</cxf.version>
