@@ -14,7 +14,7 @@ public class UpgradeInstallationOptions {
 
     public static final String P_INSTALLATION_DIRECTORY = "--installation-directory";
 
-    @Parameter(names = { P_DISTRIBUTION_DIRECTORY }, descriptionKey = "upgradeInstallation.distributionDirectory")
+    @Parameter(names = { P_DISTRIBUTION_DIRECTORY }, descriptionKey = "upgradeInstallation.distributionDirectory", required = true)
     private File distributionDirectory;
 
     @Parameter(names = { P_BACKUP_INSTALLATION_DIRECTORY }, descriptionKey = "upgradeInstallation.backupInstallationDirectory")

@@ -28,6 +28,9 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
     @Override
     public Void execute() throws Exception {
         final File distributionDirectory = options.getDistributionDirectory();
+        if (distributionDirectory == null) {
+            throw new NinjaException("Undefined distribution directory");
+        }
 
         final boolean backupFiles = options.isBackup();
 
