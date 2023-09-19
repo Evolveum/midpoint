@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -32,8 +33,9 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
     private QName targetType;
 //    List<T> availableValues = new ArrayList<>();
 
-    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, QName targetType, Class<?> searchType) {
-        super(def.getItemName());
+    public ReferenceSearchItemWrapper(
+            PrismReferenceDefinition def, ItemPath pathFromSearchableObjects, QName targetType, Class<?> searchType) {
+        super(pathFromSearchableObjects);
         this.def = def;
         this.targetType = targetType;
         this.searchType = searchType;
