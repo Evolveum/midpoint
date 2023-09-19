@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsModel> {
@@ -70,9 +71,14 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
         steps.add(new TaskDistributionWizardPanel(getAssignmentHolderModel()) {
 
             @Override
+            protected IModel<String> getSubmitLabelModel() {
+                return getPageBase().createStringResource("PageBase.button.saveAndRun");
+            }
+
+            @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 WebComponentUtil.setTaskStateBeforeSave(
-                        getDetailsModel().getObjectWrapper(), false, getPageBase(), target);
+                        getDetailsModel().getObjectWrapper(), true, getPageBase(), target);
                 getHelper().onSaveObjectPerformed(target);
             }
 
@@ -81,11 +87,11 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
                 AjaxIconButton saveAndRun = new AjaxIconButton(
                         customButtons.newChildId(),
                         Model.of("mr-1 fa fa-save"),
-                        getPageBase().createStringResource("PageBase.button.saveAndRun")) {
+                        getPageBase().createStringResource("WizardPanel.submit")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         WebComponentUtil.setTaskStateBeforeSave(
-                                getDetailsModel().getObjectWrapper(), true, getPageBase(), target);
+                                getDetailsModel().getObjectWrapper(), false, getPageBase(), target);
                         getHelper().onSaveObjectPerformed(target);
                     }
                 };
