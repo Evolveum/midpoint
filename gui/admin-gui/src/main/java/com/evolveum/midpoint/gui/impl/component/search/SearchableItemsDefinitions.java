@@ -101,12 +101,11 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(UserType.F_PERSONAL_NUMBER)
         ));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
-                ItemPath.create(RoleType.F_NAME),
-                ItemPath.create(RoleType.F_DISPLAY_NAME)
+                ItemPath.create(RoleType.F_NAME)
+
         ));
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
                 ItemPath.create(ServiceType.F_NAME),
-                ItemPath.create(RoleType.F_DISPLAY_NAME),
                 ItemPath.create(ServiceType.F_URL)
         ));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
@@ -119,10 +118,10 @@ public class SearchableItemsDefinitions {
         ));
         SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
                 ItemPath.create(AbstractRoleType.F_IDENTIFIER),
-                ItemPath.create(AbstractRoleType.F_REQUESTABLE)
+                ItemPath.create(AbstractRoleType.F_REQUESTABLE),
+                ItemPath.create(RoleType.F_DISPLAY_NAME)
         ));
         SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
-                ItemPath.create(OrgType.F_DISPLAY_NAME),
                 ItemPath.create(OrgType.F_COST_CENTER),
                 ItemPath.create(OrgType.F_TENANT),
                 ItemPath.create(OrgType.F_PARENT_ORG_REF),
