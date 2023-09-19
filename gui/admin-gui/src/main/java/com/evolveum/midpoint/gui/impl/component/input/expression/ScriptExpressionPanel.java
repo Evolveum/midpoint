@@ -40,10 +40,6 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
-        ScriptExpressionWrapper wrapper = getEvaluatorValue();
-        if (wrapper == null || wrapper.isEmpty()) {
-            updateEvaluatorValue((ExpressionUtil.Language) null);
-        }
     }
 
     @Override
@@ -123,8 +119,6 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         editorPanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                String updatedValue = ((AceEditor) editorPanel.getBaseFormComponent()).getConvertedInput();
-                updateEvaluatorValue(updatedValue);
                 target.add(getFeedback());
             }
         });
@@ -149,9 +143,11 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     private void updateEvaluatorValue(String code) {
+        ExpressionType expressionType = getModelObject();
         try {
             ScriptExpressionEvaluatorType evaluator = getEvaluatorValue().code(code).toEvaluator();
-            ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
+            expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
+            getModel().setObject(expressionType);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
