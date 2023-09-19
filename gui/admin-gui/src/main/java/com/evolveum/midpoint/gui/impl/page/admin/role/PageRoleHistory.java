@@ -98,5 +98,7 @@ public class PageRoleHistory extends PageRole {
         return String.valueOf(getPageParameters().get(EID_PARAMETER_LABEL));
     }
 
+    protected boolean isHistoryPage() {
+        return true;
+    }
 }
-
