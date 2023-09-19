@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -72,7 +74,8 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
     protected Fragment createWizardFragment(Component wizardPanel) {
         Fragment fragment = new Fragment(ID_FRAGMENT, ID_WIZARD_FRAGMENT, AbstractWizardPanel.this);
         fragment.setOutputMarkupId(true);
-        Form mainForm = new Form(ID_MAIN_FORM);
+        MidpointForm mainForm = new MidpointForm(ID_MAIN_FORM);
+        mainForm.setMultiPart(true);
         fragment.add(mainForm);
         wizardPanel.setOutputMarkupId(true);
         mainForm.add(wizardPanel);

@@ -107,8 +107,8 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         return super.createDetailsFragment();
     }
 
-    private boolean canShowWizard(SystemObjectsType archetype) {
-        return !isEditObject() && WebComponentUtil.hasArchetypeAssignment(
+    protected boolean canShowWizard(SystemObjectsType archetype) {
+        return !isHistoryPage() && !isEditObject() && WebComponentUtil.hasArchetypeAssignment(
                 getObjectDetailsModels().getObjectType(),
                 archetype.value());
     }
@@ -127,5 +127,9 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
                 }
             }
         };
+    }
+
+    protected boolean isHistoryPage() {
+        return false;
     }
 }
