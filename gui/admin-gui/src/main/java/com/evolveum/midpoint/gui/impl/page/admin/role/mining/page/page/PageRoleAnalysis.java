@@ -334,10 +334,11 @@ public class PageRoleAnalysis extends PageAdmin {
                                 && value.getSessionStatistic() != null
                                 && value.getSessionStatistic().getMeanDensity() != null) {
 
+                            Double density = value.getSessionStatistic().getMeanDensity();
                             String meanDensity = new DecimalFormat("#.###")
-                                    .format(Math.round(value.getSessionStatistic().getMeanDensity() * 1000.0) / 1000.0);
+                                    .format(Math.round(density * 1000.0) / 1000.0);
 
-                            String colorClass = densityBasedColor(meanDensity);
+                            String colorClass = densityBasedColor(density);
 
                             Label label = new Label(componentId, meanDensity + " (%)");
                             label.setOutputMarkupId(true);

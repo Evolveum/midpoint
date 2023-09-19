@@ -15,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class RoleAnalysisTableTools {
 
-    public static String densityBasedColor(String density) {
-        double densityValue = Double.parseDouble(density);
+    public static String densityBasedColor(double density) {
+        double densityValue = density;
 
         if (densityValue >= 60) {
             return "bg-success text-center";
