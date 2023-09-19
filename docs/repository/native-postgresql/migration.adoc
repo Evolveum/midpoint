@@ -30,7 +30,7 @@ In terminal, go to your midPoint installation directory and execute:
 
 [source,bash]
 ----
-bin/ninja.sh -v export -r -O export.xml
+bin/ninja.sh -v export -r -o export.xml
 ----
 
 NOTE: See xref:/midpoint/reference/deployment/ninja[Ninja] for more export configuration options and their meaning.

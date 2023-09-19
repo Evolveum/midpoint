@@ -458,7 +458,7 @@ To do it all at once just run the following command (use `-z` for manageable fil
 
 [source,bash]
 ----
-MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -z -O audit-export.zip
+MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v export-audit -z -o audit-export.zip
 ----
 
 [NOTE]
@@ -469,7 +469,7 @@ Following example uses Axiom language filter preceded by `%` (different paramete
 
 [source,bash]
 ----
-MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v exportAudit -z -O audit-export.zip -f '% timestamp >= "2019-01-01"'
+MIDPOINT_HOME='/var/old-mp-home' bin/ninja.sh -v export-audit -z -o audit-export.zip -f '% timestamp >= "2019-01-01"'
 ----
 
 Be sure to check the first audit records and add the timezone if needed, e.g. the proper value
@@ -480,7 +480,7 @@ Now you can move the file to a new environment, if necessary, and import the aud
 
 [source,bash]
 ----
-MIDPOINT_HOME='/var/new-mp-home' bin/ninja.sh -v importAudit -z -i audit-export.zip
+MIDPOINT_HOME='/var/new-mp-home' bin/ninja.sh -v import-audit -z -i audit-export.zip
 ----
 
 Be sure there is enough free disk space on the target database server.
@@ -513,7 +513,7 @@ but the last interval is open, because we don't expect that some newest audits a
 [source,sql]
 ----
 with defs (threads, files) as (values (5, 10))
-select 'bin/ninja.sh -v exportAudit -O audit-export-' || lpad(num::text, 2, '0') || '.zip -z -ow' ||
+select 'bin/ninja.sh -v export-audit -o audit-export-' || lpad(num::text, 2, '0') || '.zip -z -ow' ||
     ' -f ''% ' || case when goe is not null then 'repoId >= ' || goe else '' end ||
     case when goe is not null and lt is not null then ' and ' else '' end ||
     case when lt is not null then 'repoId < ' || lt else '' end || '''' ||
@@ -549,16 +549,16 @@ Run the query and paste the result into an `export.sh` script after the designat
 export MIDPOINT_HOME=/var/old-mp-home
 
 ### THIS PART IS PASTED FROM THE SQL OUTPUT
-bin/ninja.sh -v exportAudit -O audit-export-02.zip -z -ow -f '% repoId >= 1 and repoId < 20004' &
-bin/ninja.sh -v exportAudit -O audit-export-03.zip -z -ow -f '% repoId >= 20004 and repoId < 40008' &
-bin/ninja.sh -v exportAudit -O audit-export-04.zip -z -ow -f '% repoId >= 40008 and repoId < 60011' &
-bin/ninja.sh -v exportAudit -O audit-export-05.zip -z -ow -f '% repoId >= 60011 and repoId < 80015' &
-bin/ninja.sh -v exportAudit -O audit-export-06.zip -z -ow -f '% repoId >= 80015 and repoId < 100018'
-bin/ninja.sh -v exportAudit -O audit-export-07.zip -z -ow -f '% repoId >= 100018 and repoId < 120022' &
-bin/ninja.sh -v exportAudit -O audit-export-08.zip -z -ow -f '% repoId >= 120022 and repoId < 140026' &
-bin/ninja.sh -v exportAudit -O audit-export-09.zip -z -ow -f '% repoId >= 140026 and repoId < 160029' &
-bin/ninja.sh -v exportAudit -O audit-export-10.zip -z -ow -f '% repoId >= 160029 and repoId < 180033' &
-bin/ninja.sh -v exportAudit -O audit-export-11.zip -z -ow -f '% repoId >= 180033'
+bin/ninja.sh -v export-audit -o audit-export-02.zip -z -O -f '% repoId >= 1 and repoId < 20004' &
+bin/ninja.sh -v export-audit -o audit-export-03.zip -z -O -f '% repoId >= 20004 and repoId < 40008' &
+bin/ninja.sh -v export-audit -o audit-export-04.zip -z -O -f '% repoId >= 40008 and repoId < 60011' &
+bin/ninja.sh -v export-audit -o audit-export-05.zip -z -O -f '% repoId >= 60011 and repoId < 80015' &
+bin/ninja.sh -v export-audit -o audit-export-06.zip -z -O -f '% repoId >= 80015 and repoId < 100018'
+bin/ninja.sh -v export-audit -o audit-export-07.zip -z -O -f '% repoId >= 100018 and repoId < 120022' &
+bin/ninja.sh -v export-audit -o audit-export-08.zip -z -O -f '% repoId >= 120022 and repoId < 140026' &
+bin/ninja.sh -v export-audit -o audit-export-09.zip -z -O -f '% repoId >= 140026 and repoId < 160029' &
+bin/ninja.sh -v export-audit -o audit-export-10.zip -z -O -f '% repoId >= 160029 and repoId < 180033' &
+bin/ninja.sh -v export-audit -o audit-export-11.zip -z -O -f '% repoId >= 180033'
 ----
 
 Notice that some ninjas are to be run in the background (`&` suffix) and some not, working as a barrier.
@@ -570,7 +570,7 @@ After you move the files to your new environment, you import them with a bash lo
 [source,bash]
 ----
 $ for i in audit-export-*zip; do
-  MIDPOINT_HOME=/var/old-mp-home bin/ninja.sh -v importAudit -i $i -l 4 -z
+  MIDPOINT_HOME=/var/old-mp-home bin/ninja.sh -v import-audit -i $i -l 4 -z
 done
 ----
 

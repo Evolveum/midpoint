@@ -115,7 +115,7 @@ Export objects to compressed zip file using 4 threads:
 java -jar ninja.jar -m ~/Desktop/midpoint/var export -O export.zip -z -l 4
 ----
 
-Use -ow switch if you wish to overwrite an existing output file.
+Use -O switch if you wish to overwrite an existing output file.
 
 === Verify
 
@@ -144,7 +144,7 @@ Following command will show warnings about planned removal of items used by all 
 .Example: verify all objects in repository for planned removal of items
 [source,bash]
 ----
-ninja.sh verify -w plannedRemoval
+ninja.sh verify --verification-category planned_removal
 ----
 
 === Keys
@@ -167,7 +167,7 @@ These files are only useful for Ninja import/export, do not try to use them in S
 .Example: audit export to a zipped file, overwriting any existing file, using an Axiom filter
 [source,bash]
 ----
-ninja.sh exportAudit -O audit-export.xml.zip -z -ow -f '%timestamp < "2021-12-01"'
+ninja.sh exportAudit -o audit-export.xml.zip -z -O -f '%timestamp < "2021-12-01"'
 ----
 
 Now you can move the exported file to a new environment and run the import:
@@ -189,39 +189,39 @@ be helpful in the development of new features such as "Role mining".
 For detailed information regarding role mining export, please refer to the
 xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data].
 
-.Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and `ADVANCED` security by default. For exporting in JSON format, rename the exported file extension to `-O role-mining-export.json`.
+.Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and `ADVANCED` security by default. For exporting in JSON format, rename the exported file extension to `-o role-mining-export.json`.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml.zip -z -ow
+ninja.sh export-mining -o role-mining-export.xml.zip -z -O
 ----
 
 ----
-java -jar ninja.jar -m <midpoint.home> exportMining -O role-mining-export.xml.zip -z -ow
+java -jar ninja.jar -m <midpoint.home> export-mining -o role-mining-export.xml.zip -z -O
 
 ----
 
 .Example: role mining export using `ENCRYPTED` name mode and  `STANDARD` security.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml.zip -z -ow -nm ENCRYPTED -s STANDARD
+ninja.sh export-mining -o role-mining-export.xml.zip -z -O -nm ENCRYPTED -s STANDARD
 ----
 
 .Example: role mining export using an `Axiom filter` for roles.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml -fr '% name != "Superuser"'
+ninja.sh export-mining -o role-mining-export.xml -fr '% name != "Superuser"'
 ----
 
 .Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oids`.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --businessRoleArchetypeOid "e9c4654e-c146-4b5f-8336-2065c65060df" --applicationRoleArchetypeOid "52b8361a-c955-4132-97a4-77ff3820beeb"
+ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --businessRoleArchetypeOid "e9c4654e-c146-4b5f-8336-2065c65060df" --applicationRoleArchetypeOid "52b8361a-c955-4132-97a4-77ff3820beeb"
 ----
 
 .Example: role mining export with `disable organization` structure export.
 [source,bash]
 ----
-ninja.sh exportMining -O role-mining-export.xml --disableOrg
+ninja.sh export-mining -o role-mining-export.xml --disableOrg
 ----
 
 .Example: role mining import.
@@ -305,279 +305,71 @@ This will also properly encrypt it in the object representation, as expected.
 .Full help
 [source]
 ----
-$ java -jar target/ninja.jar -h
+$ java -jar target/ninja.jar help
 Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [command] [command options]
   Options:
+    -B, --batch-mode
+      Run in non-interactive (batch) mode (disables output color).
+      Default: false
     -c, --charset
       Charset used for input/output
-      Default: utf-8
+      Default: UTF-8
     -h, --help
       Print this help
     -m, --midpoint-home
       Path to MidPoint home folder. If relative path is specified, it will be translated to absolute path.
-    --offline
-      Do not use repository (local nor via webservice)
-      Default: false
     -p, --password
-      Password for rest/jdbc connection
+      Password for JDBC connection
     -P, --password-ask
-      Please write rest/jdbc connection password
+      Ninja will ask for JDBC connection password
+    --psn-class-name
+      PolyString normalizer class name
+    --psn-lowercase
+      PolyString normalizer lowercase
+    --psn-nfkd
+      PolyString normalizer NFKD. Unicode Normalization Form Compatibility Decomposition (NFKD). This process
+      expands composed characters (e.g. diacritic marks, ligatures, roman numerals). Character components are
+      then processed individually. E.g. ascii7 normalizer will then remove just the diacritic mark, but leave
+      the base letter. Therefore, for a-acute character with NFKD processing the output will be plain "a"
+      character. Without NFKD processing the whole character will be removed.
+    --psn-trim
+      PolyString normalizer trim. Removes whitespace from beginning and end of the string. Trimming is done
+      before any other processing.
+    --psn-trim-whitespace
+      PolyString normalizer trim whitespace
     -s, --silent
       No output at all
       Default: false
     -U, --url
-      URL to MidPoint model webservice endpoint or JDBC URL to database. If '-m' option is used URL will be
-      used to connect to JDBC database. If '-m' is not specified then this parameter is used as MidPoint REST
-      URL endpoint.
+      JDBC URL to database. If '-m' option is used URL will be used to connect to JDBC database.
     -u, --username
-      Username for rest/jdbc connection
+      Username for JDBC connection
     -v, --verbose
       Verbose output
       Default: false
     -V, --version
       Version and build description
-      Default: false
+
   Commands:
-    import      Imports objects into MidPoint
-      Usage: import [options]
-        Options:
-          -e, --allowUnencryptedValues
-            Allow unencrypted values
-            Default: false
-          -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the
-            rest should be a filename. Start the filter with % to use Axiom query language.
-          -i, --input
-            Input file for import
-          -l, --multi-thread
-            How many threads to use for operation.
-            Default: 1
-          -o, --oid
-            Object OID
-          -O, --overwrite
-            Overwrite input file
-            Default: false
-          -r, --raw
-            Use raw option
-            Default: false
-          -t, --type
-            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
-            Default: []
-          -z, --zip
-            Use zip/unzip compression
-            Default: false
 
-    export      Exports objects from midPoint
-      Usage: export [options]
-        Options:
-          -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the
-            rest should be a filename. Start the filter with % to use Axiom query language.
-          -l, --multi-thread
-            How many threads to use for operation.
-            Default: 1
-          -ni, --no-container-ids
-            Skips container ids
-            Default: false
-          -o, --oid
-            Object OID
-          -O, --output
-            Output file for export
-          -ow, --overwrite
-            Overwrite output file
-            Default: false
-          -r, --raw
-            Use raw option
-            Default: false
-          -t, --type
-            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
-            Default: []
-          -z, --zip
-            Use zip/unzip compression
-            Default: false
-
-    delete      delete
-      Usage: delete [options]
-        Options:
-          -a, --ask
-            Ask before object deletion
-            Default: false
-          -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the
-            rest should be a filename. Start the filter with % to use Axiom query language.
-          -F, --force
-            Force option
-            Default: false
-          -o, --oid
-            Object OID
-          -r, --raw
-            Raw option
-            Default: false
-          -t, --type
-            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
-            Possible Values: [CONNECTOR, CONNECTOR_HOST, GENERIC_OBJECT, RESOURCE, USER, OBJECT_TEMPLATE, SYSTEM_CONFIGURATION, TASK, SHADOW, ROLE, PASSWORD_POLICY, NODE, FORM, ORG, ABSTRACT_ROLE, FOCUS_TYPE, ASSIGNMENT_HOLDER_TYPE, REPORT, REPORT_DATA, SECURITY_POLICY, LOOKUP_TABLE, ACCESS_CERTIFICATION_DEFINITION, ACCESS_CERTIFICATION_CAMPAIGN, SEQUENCE, SERVICE, CASE, FUNCTION_LIBRARY, OBJECT_COLLECTION, ARCHETYPE, DASHBOARD, OBJECT]
-
-    count      Count objects in midPoint repository
-      Usage: count [options]
-        Options:
-          -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the
-            rest should be a filename. Start the filter with % to use Axiom query language.
-          -t, --type
-            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
-            Default: []
-
-    verify      Verify objects in midPoint repository
-      Usage: verify [options]
-        Options:
-          -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the
-            rest should be a filename. Start the filter with % to use Axiom query language.
-          -l, --multi-thread
-            How many threads to use for operation.
-            Default: 1
-          -ni, --no-container-ids
-            Skips container ids
-            Default: false
-          -o, --oid
-            Object OID
-          -O, --output
-            Output file for export
-          -ow, --overwrite
-            Overwrite output file
-            Default: false
-          -r, --raw
-            Use raw option
-            Default: false
-          -t, --type
-            Object type, case insensitive value, e.g. "user". Do not use "Type" suffix.
-            Default: []
-          -w, --warn
-            List of displayed warning categories, e.g. deprecated, plannedRemoval, uuid
-          -z, --zip
-            Use zip/unzip compression
-            Default: false
-
-    keys      List keys from keystore
-      Usage: keys [options]
-        Options:
-          -k, --key-password
-            Key password
-          -K
-            Please write key password
-
-    info      Shows information about repository for the provided midPoint home
-      Usage: info
-
-    importAudit      Imports audit records into MidPoint
-      Usage: importAudit [options]
-        Options:
-          -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the
-            rest should be a filename. Start the filter with % to use Axiom query language.
-          -i, --input
-            Input file for import
-          -l, --multi-thread
-            How many threads to use for operation.
-            Default: 1
-          -O, --overwrite
-            Overwrite input file
-            Default: false
-          -z, --zip
-            Use zip/unzip compression
-            Default: false
-
-    exportAudit      Exports audit records from MidPoint
-      Usage: exportAudit [options]
-        Options:
-          -f, --filter
-            Value of object filter used to search objects. If you start the filter with the letter @, the
-            rest should be a filename. Start the filter with % to use Axiom query language.
-          -l, --multi-thread
-            How many threads to use for operation.
-            Default: 1
-          -O, --output
-            Output file for export
-          -ow, --overwrite
-            Overwrite output file
-            Default: false
-          -z, --zip
-            Use zip/unzip compression
-            Default: false
-
-    exportMining      Export of anonymized structure of relationships between roles, users and organizations
-            objects.
-      Usage: exportMining [options]
-        Options:
-          -fo, --filterOrg
-            Value of organization object filter used to search objects. If you start the filter with the
-            letter @, the rest should be a filename. Start the filter with % to use Axiom query language.
-          -fr, --filterRole
-            Value of role object filter used to search objects. If you start the filter with the letter @,
-            the rest should be a filename. Start the filter with % to use Axiom query language.
-          -fu, --filterUser
-            Value of user object filter used to search objects. If you start the filter with the letter @,
-            the rest should be a filename. Start the filter with % to use Axiom query language.
-          -l, --multi-thread
-            How many threads to use for operation.
-            Default: 1
-          -O, --output
-            Output file for export
-          -ow, --overwrite
-            Overwrite output file
-            Default: false
-          -z, --zip
-            Use zip/unzip compression
-            Default: false
-          --applicationRoleArchetypeOid
-            Detects an application role according to a specific archetype. The parameter input is the oid of
-            the archetype.
-            Default: 00000000-0000-0000-0000-000000000328
-          -arp, --applicationRolePrefix
-            Prefix for identifying exported application roles. Multiple prefixes can be specified by using a
-            comma "," as a delimiter.
-          -ars, --applicationRoleSuffix
-            Suffix for identifying exported application roles. Multiple suffixes can be specified by using a
-            comma "," as a delimiter.
-          --businessRoleArchetypeOid
-            Detects a business role according to a specific archetype. The parameter input is the oid of the
-            archetype.
-            Default: 00000000-0000-0000-0000-000000000321.
-          -brp, --businessRolePrefix
-            Prefix for identifying exported business roles. Multiple prefixes can be specified by using a
-            comma "," as a delimiter.
-          -brs, --businessRoleSuffix
-            Suffix for identifying exported business roles. Multiple suffixes can be specified by using a
-            comma "," as a delimiter.
-          -do, --disableOrg
-            Prevent the export of organizational structures.
-            Default: false
-          -nm, --nameMode
-            Defines the format of the name parameter in the export (case-insensitive value).
-            Default: SEQUENTIAL
-            Possible Values: [ENCRYPTED, SEQUENTIAL, ORIGINAL]
-          -s, --security
-            Set the security level (case-insensitive value). Standard offers (128-bit) security measures and
-            advanced offers (256-bit) security measures.
-            Default: ADVANCED
-            Possible Values: [STANDARD, ADVANCED]
-
-    trace      Edit trace file
-      Usage: trace [options]
-        Options:
-          --input
-            Input trace file
-          --keep
-            Operation results to be kept (with their children). Asterisk is allowed. All above them will be
-            removed.
-          --kill
-            Operation results to be removed (with their children). Asterisk is allowed.
-          --output
-            Output trace file (default is "output.zip")
-          --print-stat
-            Print statistics
-            Default: false
-          --print-stat-extra
-            Print extra statistics i.e. the node size. Takes longer time.
-            Default: false
+    import                  Imports objects into MidPoint
+    export                  Exports objects from midPoint
+    delete                  Delete objects from MidPoint
+    count                   Count objects in midPoint repository
+    verify                  Verify objects in midPoint repository
+    keys                    List keys from keystore
+    info                    Shows information about the repository for the provided midPoint home
+    import-audit            Imports audit records into MidPoint
+    export-audit            Exports audit records from MidPoint
+    export-mining           Export of anonymized structure of relationships between roles, users and
+            organizations objects.
+    trace                   Edit trace file
+    download-distribution   Download target midPoint distribution (latest LTS).
+    run-sql                 Run arbitrary SQL scripts
+    upgrade-installation    Upgrade installation
+    upgrade-distribution    Upgrade midPoint distribution and related DB schema
+    upgrade-objects         Upgrade objects
+    pre-upgrade-check       Pre-upgrade check
+    help                    Print this help, or prints help for specific command.
+    initial-objects         Initial objects
 ----
