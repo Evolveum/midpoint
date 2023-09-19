@@ -660,4 +660,14 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
             }
         }
     }
+
+    @Override
+    public boolean isValidated() {
+        return metadataValueWrapper.isValidated();
+    }
+
+    @Override
+    public void setValidated(boolean validated) {
+        metadataValueWrapper.setValidated(validated);
+    }
 }
