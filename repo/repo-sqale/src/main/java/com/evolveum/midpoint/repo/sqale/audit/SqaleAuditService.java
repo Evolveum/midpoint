@@ -156,18 +156,21 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
 
     private Collection<MAuditDelta> prepareDeltas(Collection<ObjectDeltaOperation<?>> deltas) {
         // we want to keep only unique deltas, checksum is also part of PK
-        Map<String, MAuditDelta> deltasByChecksum = new HashMap<>();
+        Set<String> seenChecksums = new HashSet<>();
+
+        var ret = new ArrayList<MAuditDelta>(deltas.size());
         for (ObjectDeltaOperation<?> deltaOperation : deltas) {
             if (deltaOperation == null) {
                 continue;
             }
-
             MAuditDelta mAuditDelta = convertDelta(deltaOperation);
-            if (mAuditDelta != null) {
-                deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
+            if (mAuditDelta != null && !seenChecksums.contains(mAuditDelta.checksum)) {
+                // If we did not see checksum, store it, if we seen it already, skip it
+                seenChecksums.add(mAuditDelta.checksum);
+                ret.add(mAuditDelta);
             }
         }
-        return deltasByChecksum.values();
+        return ret;
     }
 
     /**

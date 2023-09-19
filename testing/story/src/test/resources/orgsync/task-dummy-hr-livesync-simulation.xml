@@ -23,8 +23,5 @@
         <execution>
             <mode>preview</mode>
         </execution>
-        <reporting>
-            <simulationResult/>
-        </reporting>
     </activity>
 </task>

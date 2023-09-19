@@ -53,8 +53,7 @@ class SimulationSupport {
 
     /** Creates the simulation result for the current activity. Assumed to be called once per realization. */
     void getOrCreateSimulationResult(OperationResult result) throws ActivityRunException {
-        ActivityReportingDefinition reportingDefinition = activityRun.getReportingDefinition();
-        if (!reportingDefinition.shouldCreateSimulationResult()) {
+        if (!activityRun.getActivityDefinition().shouldCreateSimulationResult()) {
             return;
         }
         if (simulationResult != null) {
@@ -85,6 +84,7 @@ class SimulationSupport {
         }
         if (simResultOid == null) {
             try {
+                ActivityReportingDefinition reportingDefinition = activityRun.getReportingDefinition();
                 ActivityExecutionModeDefinition execModeDef = activityRun.getActivityDefinition().getExecutionModeDefinition();
                 simulationResult = advancedActivityRunSupport.createSimulationResult(
                         reportingDefinition.getSimulationDefinition(),
@@ -110,9 +110,8 @@ class SimulationSupport {
         if (simulationResult != null) {
             return;
         }
-        ActivityReportingDefinition modeDef = activityRun.getReportingDefinition();
-        if (!modeDef.shouldCreateSimulationResult()) {
-            LOGGER.trace("Skipping initialization of simulation result context; mode definition = {}", modeDef);
+        if (!activityRun.getActivityDefinition().shouldCreateSimulationResult()) {
+            LOGGER.trace("Skipping initialization of simulation result context");
             return;
         }
         String simulationResultOid = activityRun.activityState.getSimulationResultOid();

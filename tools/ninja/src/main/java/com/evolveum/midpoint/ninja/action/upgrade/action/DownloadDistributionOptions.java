@@ -22,7 +22,7 @@ public class DownloadDistributionOptions extends UpgradeCommonOptions {
     @Parameter(names = { P_DISTRIBUTION_DIRECTORY }, descriptionKey = "upgradeDistribution.distributionDirectory")
     private File distributionDirectory;
 
-    @Parameter(names = { P_DISTRIBUTION_VERSION }, descriptionKey = "upgradeDistribution.distributionVersion", hidden = true)
+    @Parameter(names = { P_DISTRIBUTION_VERSION }, descriptionKey = "upgradeDistribution.distributionVersion")
     private String distributionVersion = UpgradeConstants.SUPPORTED_VERSION_TARGET;
 
     public File getDistributionArchive() {

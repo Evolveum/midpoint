@@ -2455,14 +2455,18 @@ public final class WebComponentUtil {
         }
         //TODO trigger
 
-        IconType lifecycleStateIcon = IconAndStylesUtil.getIconForLifecycleState(obj);
-        IconType activationStatusIcon = IconAndStylesUtil.getIconForActivationStatus(obj);
-
         String iconColor = GuiDisplayTypeUtil.getIconColor(basicIconDisplayType);
 
         CompositedIconBuilder builder = iconBuilder.setBasicIcon(
                         GuiDisplayTypeUtil.getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "");
+
+        if (obj instanceof ResourceType) {
+            return builder.build();
+        }
+
+        IconType lifecycleStateIcon = IconAndStylesUtil.getIconForLifecycleState(obj);
+        IconType activationStatusIcon = IconAndStylesUtil.getIconForActivationStatus(obj);
 
         StringBuilder title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getTooltip()));
         if (lifecycleStateIcon != null) {

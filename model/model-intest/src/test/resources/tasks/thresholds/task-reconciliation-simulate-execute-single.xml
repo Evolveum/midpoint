@@ -30,12 +30,22 @@
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
             </change>
             <change>
                 <reference>remainingShadowsPreview</reference>
                 <controlFlow>
                     <processingOption>process</processingOption>
                 </controlFlow>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
             </change>
             <change>
                 <reference>resourceObjects</reference>

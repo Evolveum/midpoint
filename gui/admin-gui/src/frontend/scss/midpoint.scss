@@ -1578,6 +1578,8 @@ fieldset.objectButtons {
   flex-direction: row;
   align-items: stretch;
   background-color: $white;
+  overflow: hidden;
+  box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
 }
 
 .details-panel-navigation {
@@ -1943,4 +1945,13 @@ th.debug-list-buttons {
 
 .lh-2 {
   line-height: 1.5;
+}
+
+//Grouped classes with smooth-transition function
+.details-menu a,
+.details-menu a:hover,
+.nav-sidebar .nav-item > .nav-link,
+.nav-sidebar .nav-item > .nav-link:hover
+{
+  @include smooth-transition(0.08s);
 }
