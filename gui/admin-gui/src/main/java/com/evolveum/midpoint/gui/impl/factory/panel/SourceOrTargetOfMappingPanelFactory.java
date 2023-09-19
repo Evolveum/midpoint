@@ -129,4 +129,9 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
         panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         return panel;
     }
+
+    @Override
+    public Integer getOrder() {
+        return 100;
+    }
 }
