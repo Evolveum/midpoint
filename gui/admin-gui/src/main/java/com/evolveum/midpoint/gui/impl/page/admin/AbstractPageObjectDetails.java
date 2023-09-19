@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -185,7 +187,17 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             @Override
             protected void initFragmentLayout() {
                 add(initSummaryPanel());
-                MidpointForm form = new MidpointForm(ID_MAIN_FORM);
+                MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onDetach() {
+                        resetValidatedValue();
+                        super.onDetach();
+                    }
+
+                };
                 form.add(new FormWrapperValidator(AbstractPageObjectDetails.this) {
 
                     @Override
@@ -684,5 +696,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected SummaryPanelSpecificationType getSummaryPanelSpecification() {
         return getObjectDetailsModels().getSummaryPanelSpecification();
+    }
+
+    private void resetValidatedValue() {
+        List<ItemWrapper> iws = new ArrayList<>();
+        PrismObjectWrapper<O> wrapper = getModelWrapperObject();
+        WebPrismUtil.collectWrappers(wrapper, iws);
+
+        iws.forEach(iw -> iw.setValidated(false));
     }
 }

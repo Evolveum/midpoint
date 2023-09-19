@@ -12,13 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.visit.IVisit;
@@ -64,34 +65,18 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
         PrismObjectWrapper pow = getObjectWrapper();
 
         List<ItemWrapper> iws = new ArrayList<>();
-        visitWrapper(pow, iws);
+        WebPrismUtil.collectWrappers(pow, iws);
 
-        return iws;
-    }
-
-    private void visitWrapper(ItemWrapper iw, List<ItemWrapper> iws) {
-        if (iw.getFormComponentValidator() != null) {
-            iws.add(iw);
-        }
-
-        if (!(iw instanceof PrismContainerWrapper)) {
-            return;
-        }
-
-        PrismContainerWrapper pcw = (PrismContainerWrapper) iw;
-        List<PrismContainerValueWrapper> pcvws = pcw.getValues();
-        if (pcvws == null) {
-            return;
-        }
-
-        pcvws.forEach(pcvw -> {
-            pcvw.getItems().forEach(childIW -> {
-                visitWrapper((ItemWrapper) childIW, iws);
-            });
-        });
+        return iws
+                .stream()
+                .filter(iw -> iw.getFormComponentValidator() != null)
+                .toList();
     }
 
     private void validateItemWrapperWithFormValidator(Form form, ItemWrapper iw, PrismValueWrapper value) {
+        if (iw.isValidated()) {
+            return;
+        }
         Validatable<Serializable> validatable = new Validatable<>() {
 
             @Override
@@ -105,8 +90,7 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
             }
         };
 
-        ExpressionValidator validator = new ExpressionValidator(
-                LambdaModel.of(() -> iw.getFormComponentValidator()), modelServiceLocator) {
+        ExpressionValidator validator = new ExpressionValidator(iw, modelServiceLocator) {
 
             @Override
             protected ObjectType getObjectType() {
@@ -116,16 +100,12 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
 
         validator.validate(validatable);
         if (!validatable.isValid()) {
-            validatable.getErrors().forEach(e -> {
-                Serializable errorMessage = e.getErrorMessage((key, vars) ->
-                        new StringResourceModel(key)
-                                .setModel(new Model<String>())
-                                .setDefaultValue(key)
-                                .getString());
-                if (errorMessage!= null && !hasError(form, errorMessage.toString())) {
-                    form.error(errorMessage);
-                }
-            });
+            validatable.getErrors().forEach(e ->
+                    form.error(e.getErrorMessage((key, vars) ->
+                            new StringResourceModel(key)
+                                    .setModel(new Model<String>())
+                                    .setDefaultValue(key)
+                                    .getString())));
         }
     }
 
