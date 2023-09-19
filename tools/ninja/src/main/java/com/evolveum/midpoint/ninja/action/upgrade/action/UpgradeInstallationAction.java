@@ -8,12 +8,12 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
-
 import org.apache.commons.io.FileUtils;
 
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
 public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions, Void> {
@@ -29,7 +29,7 @@ public class UpgradeInstallationAction extends Action<UpgradeInstallationOptions
     public Void execute() throws Exception {
         final File distributionDirectory = options.getDistributionDirectory();
         if (distributionDirectory == null) {
-            throw new NinjaException("Undefined distribution directory");
+            throw new InputParameterException("Undefined distribution directory option " + UpgradeInstallationOptions.P_DISTRIBUTION_DIRECTORY);
         }
 
         final boolean backupFiles = options.isBackup();
