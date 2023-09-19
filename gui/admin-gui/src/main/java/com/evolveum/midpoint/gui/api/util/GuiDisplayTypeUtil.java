@@ -85,10 +85,15 @@ public class GuiDisplayTypeUtil {
     }
 
     public static <O extends ObjectType> DisplayType getArchetypePolicyDisplayType(PrismObject<O> object, PageAdminLTE pageBase) {
-        if (object != null && StringUtils.isNotEmpty(object.getOid())) {
-            ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
-            if (archetypePolicy != null) {
-                return archetypePolicy.getDisplay();
+        if (object != null) {
+            try {
+                ArchetypePolicyType archetypePolicy = WebComponentUtil.getArchetypeSpecification(object, pageBase);
+                if (archetypePolicy != null) {
+                    return archetypePolicy.getDisplay();
+                }
+            } catch (Exception e) {
+                LOGGER.debug("Couldn't get archetype policy for " + object, e);
+                return null;
             }
         }
         return null;
