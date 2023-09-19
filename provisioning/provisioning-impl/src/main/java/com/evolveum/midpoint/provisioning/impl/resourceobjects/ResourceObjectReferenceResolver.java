@@ -162,12 +162,20 @@ class ResourceObjectReferenceResolver {
 
     /**
      * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
+     *
+     * We accept also dead shadows, but only if there is only one. (This is a bit inconsistent, should be fixed somehow.)
+     * Actually, we could be more courageous, and reject dead shadows altogether, as we use the result for object modification;
+     * but there is a theoretical chance that the shadow is dead in the repo but alive on the resource.
+     * See also {@link #resolvePrimaryIdentifiers(ProvisioningContext, ResourceObjectIdentification, OperationResult)}.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    Collection<? extends ResourceAttribute<?>> resolvePrimaryIdentifier(ProvisioningContext ctx,
-            Collection<? extends ResourceAttribute<?>> identifiers, final String desc, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-                    ExpressionEvaluationException {
+    Collection<? extends ResourceAttribute<?>> resolvePrimaryIdentifier(
+            ProvisioningContext ctx,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            final String desc,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         if (identifiers == null) {
             return null;
         }
@@ -202,7 +210,8 @@ class ResourceObjectReferenceResolver {
     /**
      * @param repoShadow Used when read capability is "caching only"
      */
-    PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
+    PrismObject<ShadowType> fetchResourceObject(
+            ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
             @Nullable PrismObject<ShadowType> repoShadow,
@@ -262,10 +271,15 @@ class ResourceObjectReferenceResolver {
 
     /**
      * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
+     *
+     * We accept also dead shadows, but only if there is only one. (This is a bit inconsistent, should be fixed somehow.)
+     * Actually, we could be more courageous, and reject dead shadows altogether, as we use the result for object fetching;
+     * but there is a theoretical chance that the shadow is dead in the repo but alive on the resource.
+     * See also {@link #resolvePrimaryIdentifier(ProvisioningContext, Collection, String, OperationResult)}.
      */
     @SuppressWarnings("unchecked")
-    private ResourceObjectIdentification resolvePrimaryIdentifiers(ProvisioningContext ctx,
-            ResourceObjectIdentification identification, OperationResult result)
+    private ResourceObjectIdentification resolvePrimaryIdentifiers(
+            ProvisioningContext ctx, ResourceObjectIdentification identification, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         if (identification == null) {
@@ -274,7 +288,8 @@ class ResourceObjectReferenceResolver {
         if (identification.hasPrimaryIdentifiers()) {
             return identification;
         }
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = (Collection<ResourceAttribute<?>>) identification.getSecondaryIdentifiers();
+        Collection<ResourceAttribute<?>> secondaryIdentifiers =
+                (Collection<ResourceAttribute<?>>) identification.getSecondaryIdentifiers();
         PrismObject<ShadowType> repoShadow = shadowFinder.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
         if (repoShadow == null) {
             // TODO: we should attempt resource search here
