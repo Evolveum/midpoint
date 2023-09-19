@@ -233,7 +233,7 @@
         <surefire.version>3.0.0-M5</surefire.version>
         <guava.version>32.1.2-jre</guava.version>
         <jcommander.version>1.81</jcommander.version>
-        <failsafe.version>3.0.0-M5</failsafe.version>
+        <failsafe.version>3.0.0-M4</failsafe.version>
         <qpid-broker.version>8.0.6</qpid-broker.version>
         <apache-artemis.version>2.24.0</apache-artemis.version>
         <asm.version>9.1</asm.version>
