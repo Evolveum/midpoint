@@ -570,7 +570,7 @@ public class ProvisioningUtil {
     public static PrismObject<ShadowType> selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
         LOGGER.trace("Selecting from {} objects", shadows.size());
 
-        if (shadows.size() == 0) {
+        if (shadows.isEmpty()) {
             return null;
         } else if (shadows.size() > 1) {
             LOGGER.error("Too many shadows ({}) for {}", shadows.size(), context);
@@ -581,24 +581,48 @@ public class ProvisioningUtil {
         }
     }
 
+    /**
+     * As {@link #selectSingleShadow(List, Object)} but allows the existence of multiple dead shadows
+     * (if single live shadow exists). Not very nice! Transitional solution until better one is found.
+     */
+    @Nullable
+    public static PrismObject<ShadowType> selectSingleShadowRelaxed(
+            @NotNull List<PrismObject<ShadowType>> shadows, Object context) {
+        var singleLive = selectLiveShadow(shadows, context);
+        if (singleLive != null) {
+            return singleLive;
+        }
+
+        // all remaining shadows (if any) are dead
+        if (shadows.isEmpty()) {
+            return null;
+        } else if (shadows.size() > 1) {
+            LOGGER.error("Cannot select from dead shadows ({}) for {}", shadows.size(), context);
+            LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
+            throw new IllegalStateException("More than one [dead] shadow for " + context);
+        } else {
+            return shadows.get(0);
+        }
+    }
+
     // TODO better place?
     @Nullable
-    public static PrismObject<ShadowType> selectLiveShadow(List<PrismObject<ShadowType>> shadows) {
+    public static PrismObject<ShadowType> selectLiveShadow(List<PrismObject<ShadowType>> shadows, Object context) {
         if (shadows == null || shadows.isEmpty()) {
             return null;
         }
 
         List<PrismObject<ShadowType>> liveShadows = shadows.stream()
                 .filter(ShadowUtil::isNotDead)
-                .collect(Collectors.toList());
+                .toList();
 
         if (liveShadows.isEmpty()) {
             return null;
         } else if (liveShadows.size() > 1) {
-            LOGGER.trace("More than one live shadow found ({} out of {}):\n{}",
-                    liveShadows.size(), shadows.size(), DebugUtil.debugDumpLazily(shadows, 1));
+            LOGGER.trace("More than one live shadow found ({} out of {}) {}\n{}",
+                    liveShadows.size(), shadows.size(), context, DebugUtil.debugDumpLazily(shadows, 1));
             // TODO: handle "more than one shadow" case for conflicting shadows - MID-4490
-            throw new IllegalStateException("Found more than one live shadow: " + liveShadows);
+            throw new IllegalStateException("Found more than one live shadow " + context + ": " + liveShadows);
         } else {
             return liveShadows.get(0);
         }
@@ -611,7 +635,7 @@ public class ProvisioningUtil {
      * TODO better place?
      */
     public static ShadowType selectLiveOrAnyShadow(List<PrismObject<ShadowType>> shadows) {
-        PrismObject<ShadowType> liveShadow = ProvisioningUtil.selectLiveShadow(shadows);
+        PrismObject<ShadowType> liveShadow = ProvisioningUtil.selectLiveShadow(shadows, "");
         if (liveShadow != null) {
             return liveShadow.asObjectable();
         } else if (shadows.isEmpty()) {
