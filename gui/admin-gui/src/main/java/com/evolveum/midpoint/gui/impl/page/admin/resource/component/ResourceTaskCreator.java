@@ -50,8 +50,10 @@ public class ResourceTaskCreator {
     private PredefinedConfigurationType predefinedConfiguration;
     private SimulationDefinitionType simulationDefinition;
 
+    /** Options provided by the caller. See {@link #submissionOptions()}. */
     private ActivitySubmissionOptions submissionOptions;
 
+    /** Owner provided by the caller. If set, it has precedence over the owner specified in the options. */
     private FocusType owner;
 
     private ResourceTaskCreator(@NotNull ResourceType resource, @NotNull PageBase pageBase) {
@@ -78,6 +80,7 @@ public class ResourceTaskCreator {
         return this;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public ResourceTaskCreator ownedByCurrentUser() throws NotLoggedInException {
         this.owner = AuthUtil.getPrincipalObjectRequired();
         return this;
@@ -90,6 +93,7 @@ public class ResourceTaskCreator {
         return this;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public ResourceTaskCreator withCoordinates(QName objectClass) {
         this.objectClass = objectClass;
         return this;
@@ -169,12 +173,16 @@ public class ResourceTaskCreator {
     }
 
     private @NotNull ActivitySubmissionOptions submissionOptions() {
-        return Objects.requireNonNullElseGet(
-                        submissionOptions,
-                        () -> ActivitySubmissionOptions.create())
-                .withTaskTemplate(new TaskType()
-                        .objectRef(ObjectTypeUtil.createObjectRef(resource)))
-                .withOwner(owner);
+        var options = Objects.requireNonNullElseGet(
+                submissionOptions,
+                () -> ActivitySubmissionOptions.create());
+        options = options.updateTaskTemplate(
+                t -> t.objectRef(ObjectTypeUtil.createObjectRef(resource)));
+        if (owner != null) {
+            return options.withOwner(owner);
+        } else {
+            return options;
+        }
     }
 
     public @NotNull String submit(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
