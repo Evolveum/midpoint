@@ -92,4 +92,8 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     void setProcessProvenanceMetadata(boolean processProvenanceMetadata);
 
     <C extends Containerable> PrismContainerValueWrapper<C> getParentContainerValue(Class<? extends C> parentClass);
+
+    boolean isValidated();
+
+    void setValidated(boolean validated);
 }
