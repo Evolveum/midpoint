@@ -21,9 +21,9 @@ import com.evolveum.midpoint.ninja.action.BasicExportOptions;
 public class ExportMiningOptions extends BaseMiningOptions implements BasicExportOptions {
 
     private static final String DELIMITER = ",";
-    public static final String P_OUTPUT = "-O";
+    public static final String P_OUTPUT = "-o";
     public static final String P_OUTPUT_LONG = "--output";
-    public static final String P_OVERWRITE = "-ow";
+    public static final String P_OVERWRITE = "-O";
     public static final String P_OVERWRITE_LONG = "--overwrite";
     public static final String P_PREFIX_APPLICATION = "-arp";
     public static final String P_PREFIX_APPLICATION_LONG = "--application-role-prefix";
