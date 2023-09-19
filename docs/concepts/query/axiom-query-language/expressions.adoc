@@ -25,7 +25,7 @@ Script expressions are supported for following filters:
 The syntax for path expression is pretty straight-forward, since most path expression
 references variable.
 
-Variables starts with dollar `$` symbol. Note that variables are only supported
+Variables start with dollar `$` symbol. Note that variables are only supported
 as right-hand side value.
 
 .Path Expression in Equals filter
@@ -45,8 +45,8 @@ name = $c:account/c:attributes/ri:uid
 
 == Script
 
-There are two syntaxes for script expression: single-line scripts and multi-line scripts.
-By default scripts are Groovy scripts unless other scripting language is specified.
+There are two syntax options for script expression: single-line scripts and multi-line scripts.
+By default, scripts are Groovy scripts unless other scripting language is specified.
 
 .Single-line Groovy expression
 ----
@@ -65,10 +65,12 @@ metadata/createTimestamp > ```
     ```
 ----
 
-The syntax for multi-line expressions is bit more elaborated, multi-line script
+The syntax for multi-line expressions is a bit more elaborated, multi-line script
 starts with triple backticks (`{triple-backtick}`), followed by new-line.
 Script body is closed by triple backticks (`{triple-backtick}`). This minimizes
-need for escaping most of the qoutes or sequences inside the script body.
+need for escaping most of the quotes or sequences inside the script body.
+
+NOTE: Script expressions are not allowed in search box in GUI.
 
 === Other Scripting languages
 
