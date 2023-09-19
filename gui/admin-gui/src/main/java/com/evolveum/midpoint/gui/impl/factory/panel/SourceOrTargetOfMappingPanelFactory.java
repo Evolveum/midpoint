@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -28,6 +30,8 @@ import java.util.*;
 
 @Component
 public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefinitionTypePanelFactory implements Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SourceOrTargetOfMappingPanelFactory.class);
 
     private static final List<ItemPath> MATCHED_PATHS = List.of(
             ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
@@ -56,16 +60,22 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return QNameUtil.match(VariableBindingDefinitionType.COMPLEX_TYPE, wrapper.getTypeName())
+        LOGGER.trace("Start of match for SourceOrTargetOfMappingPanelFactory, wrapper: " + wrapper + ", value: " + valueWrapper);
+        boolean match = QNameUtil.match(VariableBindingDefinitionType.COMPLEX_TYPE, wrapper.getTypeName())
                 && MATCHED_PATHS.stream().anyMatch(path -> {
             if (createTargetPath(path).equivalent(wrapper.getPath().namedSegmentsOnly())) {
+                LOGGER.trace("Matches for target path: " + path);
                 return true;
             }
             if (createSourcePath(path).equivalent(wrapper.getPath().namedSegmentsOnly())) {
+                LOGGER.trace("Matches for source path: " + path);
                 return true;
             }
+            LOGGER.trace("Not found match for SourceOrTargetOfMappingPanelFactory for path: " + path);
             return false;
         });
+        LOGGER.trace("Result of match for SourceOrTargetOfMappingPanelFactory is " + match);
+        return match;
     }
 
     private ItemPath createTargetPath(ItemPath containerPath) {
