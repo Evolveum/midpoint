@@ -11,6 +11,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
@@ -39,17 +40,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
-public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
+public class ExpressionValidator<T, IW extends ItemWrapper> implements INullAcceptingValidator<T> {
+
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<ExpressionType> expressionTypeModel;
+    private ItemWrapper itemWrapper;
     private ModelServiceLocator serviceLocator;
 
     private static final String OPERATION_EVALUATE_EXPRESSION = ExpressionValidator.class.getName() + ".evaluateValidationExpression";
 
-    public ExpressionValidator(IModel<ExpressionType> expressionType, ModelServiceLocator serviceLocator) {
-        this.expressionTypeModel = expressionType;
+    public ExpressionValidator(IW itemWrapper, ModelServiceLocator serviceLocator) {
+        this.itemWrapper = itemWrapper;
         this.serviceLocator = serviceLocator;
     }
 
@@ -57,7 +59,7 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 
     @Override
     public void validate(IValidatable<T> validatable) {
-        ExpressionType expressionType = expressionTypeModel.getObject();
+        ExpressionType expressionType = itemWrapper.getFormComponentValidator();
 
         if (expressionType == null) {
             return;
@@ -107,6 +109,7 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
         if (outputValues.isEmpty()) {
             return;
         }
+        itemWrapper.setValidated(true);
         if (outputValues.size() > 1) {
             ValidationError error = new ValidationError();
             error.setMessage("Expression "+contextDesc+" produced more than one value");

@@ -77,6 +77,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     //consider
     private boolean readOnly;
     private UserInterfaceElementVisibilityType visibleOverwrite;
+    private boolean validated;
 
     public ItemWrapperImpl(PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
         Validate.notNull(item, "Item must not be null.");
@@ -830,5 +831,15 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public Optional<ComplexTypeDefinition> structuredType() {
         return getItemDefinition().structuredType();
+    }
+
+    @Override
+    public boolean isValidated() {
+        return validated;
+    }
+
+    @Override
+    public void setValidated(boolean validated) {
+        this.validated = validated;
     }
 }

@@ -38,7 +38,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     private AjaxEventBehavior ajaxEventBehavior;
     private ItemMandatoryHandler mandatoryHandler;
     private VisibleEnableBehaviour visibleEnableBehaviour;
-    private ExpressionValidator<T> expressionValidator;
+    private ExpressionValidator<T, IW> expressionValidator;
     private FeedbackAlerts feedback;
 
     public ItemPanelContext(IModel<IW> itemWrapper) {
@@ -129,11 +129,11 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         return itemWrapper.getObject().isMandatory();
     }
 
-    public void setExpressionValidator(ExpressionValidator<T> expressionValidator) {
+    public void setExpressionValidator(ExpressionValidator<T, IW> expressionValidator) {
         this.expressionValidator = expressionValidator;
     }
 
-    public ExpressionValidator<T> getExpressionValidator() {
+    public ExpressionValidator<T, IW> getExpressionValidator() {
         return expressionValidator;
     }
 

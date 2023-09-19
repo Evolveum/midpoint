@@ -94,4 +94,7 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
 
     boolean isProcessProvenanceMetadata();
     void setProcessProvenanceMetadata(boolean processProvenanceMetadata);
+    boolean isValidated();
+
+    void setValidated(boolean validated);
 }
