@@ -229,9 +229,13 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
 
                         PrismContainerValue<ResourceObjectAssociationType> newValue = associationContainer.getItem().createNewValue();
 
+
                         NameItemPathSegment segment = new NameItemPathSegment(item.associationName);
                         newValue.asContainerable().ref(new ItemPathType(ItemPath.create(segment)));
-                        newValue.asContainerable().beginOutbound().beginExpression();
+                        newValue.asContainerable()
+                                .beginOutbound()
+                                    .strength(MappingStrengthType.STRONG)
+                                    .beginExpression();
 
                         valueWrapper = WebPrismUtil.createNewValueWrapper(
                                 associationContainer,
