@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationService;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -54,16 +56,14 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
@@ -689,15 +689,11 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             protected Integer countObjects(Class<ShadowType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommonException {
                 Integer count = 0;
                 ResourceType resource = getObjectDetailsModels().getObjectType();
-                ShadowKindType kind = getKind();
-                if (kind != null) {
-                    ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
-                    @Nullable ResourceObjectDefinition objectTypeDefinition = resourceSchema.findDefaultDefinitionForKind(kind);
-                    if (objectTypeDefinition != null) {
-                        count = super.countObjects(type, query, currentOptions, task, result);
-                    } else {
-                        warn(String.format("No object type definition for %s/%s in %s", kind, getIntent(), resource));
-                    }
+                if (getSelectedObjectType() == null) {
+                    StringResourceModel warnMessage = createStringResource("PageResource.warn.no.object.definition", getKind(), getIntent(), resource);
+                    String localeWarnMessage = getLocalizationService()
+                            .translate(PolyString.fromOrig(warnMessage.getString()), WebComponentUtil.getCurrentLocale(), true);
+                    warn(localeWarnMessage);
                 } else {
                     count = super.countObjects(type, query, currentOptions, task, result);
                 }

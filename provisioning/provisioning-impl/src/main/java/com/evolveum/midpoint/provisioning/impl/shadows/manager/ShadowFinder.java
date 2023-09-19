@@ -121,7 +121,8 @@ public class ShadowFinder {
         List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result);
         LOGGER.trace("Found {} shadows (live or dead)", shadowsFound.size());
 
-        PrismObject<ShadowType> liveShadow = selectLiveShadow(shadowsFound);
+        PrismObject<ShadowType> liveShadow =
+                selectLiveShadow(shadowsFound, "when looking by primary identifier " + primaryIdentifier);
         checkConsistency(liveShadow);
         return asObjectable(liveShadow);
     }
@@ -178,7 +179,8 @@ public class ShadowFinder {
 
         List<PrismObject<ShadowType>> shadows = searchRepoShadows(query, null, result);
 
-        PrismObject<ShadowType> singleShadow = ProvisioningUtil.selectLiveShadow(shadows);
+        PrismObject<ShadowType> singleShadow =
+                ProvisioningUtil.selectLiveShadow(shadows, "when looking by IDs: " + identifierContainer);
         checkConsistency(singleShadow);
         return asObjectable(singleShadow);
     }
@@ -214,7 +216,7 @@ public class ShadowFinder {
             Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult result)
             throws SchemaException {
         List<PrismObject<ShadowType>> shadows = searchShadowsBySecondaryIds(ctx, secondaryIdentifiers, result);
-        return ProvisioningUtil.selectSingleShadow(shadows, lazy(() -> "secondary identifiers: " + secondaryIdentifiers));
+        return ProvisioningUtil.selectSingleShadowRelaxed(shadows, lazy(() -> "secondary identifiers: " + secondaryIdentifiers));
     }
 
     private List<PrismObject<ShadowType>> searchShadowsBySecondaryIds(
