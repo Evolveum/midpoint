@@ -5251,12 +5251,20 @@ public final class WebComponentUtil {
 
             @Override
             public String getIdValue(DisplayableValue val, int index) {
+                if (index == -1 && val != null && val.getValue() instanceof QName) {
+                    Optional<DisplayableValue<T>> match = choices.getObject().stream()
+                            .filter(choice -> QNameUtil.match((QName) choice.getValue(), (QName) val.getValue()))
+                            .findFirst();
+                    if (match.isPresent()) {
+                        index = choices.getObject().indexOf(match.get());
+                    }
+                }
                 return Integer.toString(index);
             }
 
             @Override
             public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
-                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.valueOf(id)) : null;
             }
         }, allowNull);
     }

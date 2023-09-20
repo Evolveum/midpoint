@@ -399,12 +399,18 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
         }
 
-        if (memberPanelStorage.getSearch() != null) {
+        if (memberPanelStorage.getSearch() != null && !memberPanelStorage.getSearch().isTypeChanged()) {
             return memberPanelStorage.getSearch();
         }
 
         SearchBoxConfigurationHelper searchBoxConfig = getSearchBoxConfiguration();
-        Search<AH> search = SearchFactory.createSearch(createSearchTypeItem(searchBoxConfig), null, null,
+
+        ContainerTypeSearchItem newSearchTypeItem = createSearchTypeItem(searchBoxConfig);
+        if (memberPanelStorage.getSearch() != null && memberPanelStorage.getSearch().isTypeChanged()) {
+            Class<AH> newType = memberPanelStorage.getSearch().getTypeClass();
+            newSearchTypeItem.setType(createTypeSearchValue(newType));
+        }
+        Search<AH> search = SearchFactory.createSearch(newSearchTypeItem, null, null,
                 null, getPageBase(), null, true, true, Search.PanelType.MEMBER_PANEL);
         search.addCompositedSpecialItem(createMemberSearchPanel(search, searchBoxConfig));
 
@@ -488,7 +494,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private <AH extends AssignmentHolderType> SearchValue<Class<AH>> createTypeSearchValue(QName type) {
         Class<AH> typeClass = ObjectTypes.getObjectTypeClass(type);
-        return new SearchValue<>(typeClass, "ObjectType." + typeClass.getSimpleName());
+        return createTypeSearchValue(typeClass);
+    }
+
+    private <AH extends AssignmentHolderType> SearchValue<Class<AH>> createTypeSearchValue(Class<AH> type) {
+        return new SearchValue<>(type, "ObjectType." + type.getSimpleName());
     }
 
     protected LoadableModel<MultiFunctinalButtonDto> loadMultiFunctionalButtonModel(boolean useDefaultObjectRelations) {
