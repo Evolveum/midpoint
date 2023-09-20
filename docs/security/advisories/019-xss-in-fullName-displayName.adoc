@@ -1,5 +1,5 @@
-= Security Advisory: XSS Vulnerability In displayName
-:page-nav-title: XSS Vulnerability In displayName
+= Security Advisory: XSS Vulnerability In fullName and displayName
+:page-nav-title: XSS Vulnerability In fullName and displayName
 :page-display-order: 19
 :page-upkeep-status: green
 
@@ -26,11 +26,7 @@ Exploiting this vulnerability requires administrative privileges.
 
 == Mitigation
 
-Users of affected MidPoint versions are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches].
-
-As this is a low severity issue, it is not forcing official maintenance releases of midPoint.
-However, the fix is provided in all the support branches.
-
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest maintenance release.
 
 == Discussion and Explanation
 

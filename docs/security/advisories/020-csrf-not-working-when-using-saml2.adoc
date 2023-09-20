@@ -1,5 +1,4 @@
 = Security Advisory: CSRF protetcion was not working if user logged using SAML2 or OIDC
-:page-nav-title: XSS Vulnerability In displayName
 :page-display-order: 20
 :page-upkeep-status: green
 

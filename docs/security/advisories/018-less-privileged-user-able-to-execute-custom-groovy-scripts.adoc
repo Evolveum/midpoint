@@ -1,10 +1,11 @@
-= Self Registration feature allows to change password of other users
+= Security Advisory: Less privileged user able to execute custom Groovy scripts via Bulk Tasks
+:page-nav-title: Less privileged user able to execute custom Groovy scripts via Bulk Tasks
 :page-display-order: 18
 :page-upkeep-status: green
 
-*Date:* 
+*Date:* 20. 9. 2023
 
-*Severity:* High (CVSS 8.0)
+*Severity:* High (CVSS 8.5)
 
 *Affected versions:* all midPoint versions
 

@@ -130,5 +130,25 @@
 | MidPoint may be vulnerable to password change attack if self registration or post registration is configured.
 
 
+| 18
+| xref:/midpoint/reference/security/advisories/018-less-privileged-user-able-to-execute-custom-groovy-scripts/[Less privileged user able to execute custom Groovy scripts via Bulk Tasks]
+| 20 September 2023
+| High
+| Non-Administrator users authorized to execute Bulk Actions are able to execute Groovy Scripts if they are able to enter raw XML for bulk actions.
+
+
+| 19
+| xref:/midpoint/reference/security/advisories/019-xss-in-fullName-displayName/[Stored XSS Vulnerability In fullName and displayName]
+| 20 September 2023
+| High
+| Stored cross-site scripting (XSS) vulnerability exists in midPoint user interface that can be exploited by manipulation of object 'displayName' property.
+
+
+| 20
+| xref:/midpoint/reference/security/advisories/020-csrf-not-working-when-using-saml2/[CSRF protection was not working if user logged using SAML2 or OIDC]
+| 20 September 2023
+| High
+| MidPoint may be vulnerable to CSRF attacks if user was authenticated using SAML 2 or OIDC.
+
 
 |===
