@@ -142,7 +142,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         while (iterator.hasNext()) {
             AuditEventRecord record = iterator.next();
             num++;
-            assertRecordSanity("" + num + "th record", record);
+            assertRecordSanity(num + "th record", record);
 
             if (record.getEventStage() == AuditEventStage.REQUEST) {
                 numRequests++;

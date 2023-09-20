@@ -384,17 +384,17 @@ public class ProjectionMappingSetEvaluator {
                         }
                         targetItemDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(valuesToReplace));
 
-                        applyEstimatedOldValueInReplaceCase(targetItemDelta, outputTriple);
-
                     } else if (outputTriple.hasMinusSet()) {
                         LOGGER.trace("{} resulted in null or empty value for {} and there is a minus set, resetting it (replace with empty)", mappingDesc, targetContext);
                         targetItemDelta.setValueToReplace();
-                        applyEstimatedOldValueInReplaceCase(targetItemDelta, outputTriple);
 
                     } else {
                         LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
                     }
 
+                    // Here we intentionally do not set estimated old values in the delta. The reason is that the old values
+                    // here would be determined by what the mapping THINKS was there. The reality may be different. The
+                    // LensElementContext would know better when swallowing the delta.
                 }
 
                 if (targetItemDelta.isEmpty()) {
@@ -428,16 +428,6 @@ public class ProjectionMappingSetEvaluator {
         return outputTripleMap;
     }
 
-
-    private <V extends PrismValue, D extends ItemDefinition<?>> void applyEstimatedOldValueInReplaceCase(
-            ItemDelta<V, D> targetItemDelta, PrismValueDeltaSetTriple<V> outputTriple) {
-        Collection<V> nonPositiveValues = outputTriple.getNonPositiveValues();
-        if (nonPositiveValues.isEmpty()) {
-            return;
-        }
-        targetItemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(nonPositiveValues));
-    }
-
     private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {
         if (mappingOutputTriple == null) {
             // this means: mapping not applicable
@@ -453,7 +443,9 @@ public class ProjectionMappingSetEvaluator {
             return true;
         }
         //noinspection RedundantIfStatement
-        if (hasNoOrHashedValuesOnly(mappingOutputTriple.getMinusSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getZeroSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getPlusSet())) {
+        if (hasNoOrHashedValuesOnly(mappingOutputTriple.getMinusSet())
+                && hasNoOrHashedValuesOnly(mappingOutputTriple.getZeroSet())
+                && hasNoOrHashedValuesOnly(mappingOutputTriple.getPlusSet())) {
             // Used to skip application of mapping that produces only hashed protected values.
             // Those values are useless, e.g. to set new password. If we would consider them as
             // meaningful then a normal mapping with such values may prohibit application of
