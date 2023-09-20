@@ -23,7 +23,6 @@
         <xsd:documentation>
             Schema for audit event serialization.
 
-            Version: 3.7
             Recommended namespace prefix: audit
         </xsd:documentation>
         <xsd:appinfo>
