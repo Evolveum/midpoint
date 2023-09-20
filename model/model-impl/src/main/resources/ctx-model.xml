@@ -96,6 +96,7 @@
             </list>
         </constructor-arg>
         <constructor-arg name="objectResolver" ref="modelObjectResolver"/>
+        <constructor-arg name="functionLibraryManager" ref="functionLibraryManager"/>
     </bean>
 
     <bean id="functionExpressionEvaluatorFactory"

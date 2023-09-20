@@ -49,6 +49,7 @@ public class ModelCommonBeans {
         instance = this;
     }
 
+    /** BEWARE! Do not use in constructors of Spring beans! */
     public static ModelCommonBeans get() {
         return instance;
     }

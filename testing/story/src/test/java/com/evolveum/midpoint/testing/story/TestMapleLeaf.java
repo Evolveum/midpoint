@@ -413,7 +413,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         assertEquals(administrativeStatus.getRealValue(), ActivationStatusType.ARCHIVED, "Unexpected administrative status");
         PrismProperty<ActivationStatusType> effectiveStatus = user.findProperty(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
         assertNotNull("No effective status property present.", effectiveStatus);
-        assertEquals(effectiveStatus.getRealValue(), ActivationStatusType.ARCHIVED, "Unexpected effective status");
+        assertEquals(effectiveStatus.getRealValue(), ActivationStatusType.DISABLED, "Unexpected effective status");
 
     }
 

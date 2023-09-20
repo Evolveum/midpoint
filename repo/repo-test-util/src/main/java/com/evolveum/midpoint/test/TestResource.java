@@ -51,6 +51,10 @@ public class TestResource extends TestObject<ResourceType> {
         reload(tester.getResourceReloader(), result);
     }
 
+    public @NotNull ConstructionType defaultConstruction() {
+        return construction(null, null);
+    }
+
     public @NotNull ConstructionType construction(ShadowKindType kind, String intent) {
         return new ConstructionType()
                 .resourceRef(oid, ResourceType.COMPLEX_TYPE)
