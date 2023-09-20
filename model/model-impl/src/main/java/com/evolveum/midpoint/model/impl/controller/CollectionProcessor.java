@@ -582,10 +582,17 @@ public class CollectionProcessor {
     private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         List<GuiActionType> newActions = objectListViewType.getAction();
         for (GuiActionType newAction : newActions) {
-            // TODO: check for action duplication/override
-            existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
+            // TODO: check for action override
+            if (!alreadyExist(existingView, newAction)) {
+                existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
+            }
         }
+    }
 
+    private boolean alreadyExist(CompiledObjectCollectionView view, GuiActionType action) {
+        return view.getActions()
+                .stream()
+                .anyMatch(a -> ObjectReferenceTypeUtil.referencesOidEqual(a.getTaskTemplateRef(), action.getTaskTemplateRef()));
     }
 
     private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {

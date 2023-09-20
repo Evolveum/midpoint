@@ -114,4 +114,9 @@ public abstract class SynchronizationReactionTable extends AbstractResourceWizar
     protected String getKeyOfTitleForNewObjectButton() {
         return "SynchronizationReactionTable.newObject";
     }
+
+    @Override
+    protected boolean isCreateNewObjectVisible() {
+        return false;
+    }
 }

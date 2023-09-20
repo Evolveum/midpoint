@@ -73,20 +73,6 @@ public abstract class AbstractResourceWizardTable<C extends Containerable, CV ex
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttons = new ArrayList<>();
 
-        AjaxIconButton newObjectButton = new AjaxIconButton(
-                idButton,
-                Model.of("fa fa-circle-plus"),
-                createStringResource(getKeyOfTitleForNewObjectButton())) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                editItemPerformed(target, Model.of(createNewValue(target)), null);
-            }
-        };
-        newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-        newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
-        buttons.add(newObjectButton);
-
         AjaxIconButton newObjectSimpleButton = new AjaxIconButton(
                 idButton,
                 new Model<>("fa fa-circle-plus"),
@@ -99,10 +85,24 @@ public abstract class AbstractResourceWizardTable<C extends Containerable, CV ex
                 newItemPerformed(target, null);
             }
         };
-        newObjectSimpleButton.add(AttributeAppender.append("class", "btn btn-default btn-sm ml-3"));
+        newObjectSimpleButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm ml-3"));
         newObjectSimpleButton.add(new VisibleBehaviour(this::isCreateNewObjectSimpleVisible));
         newObjectSimpleButton.showTitleAsLabel(true);
         buttons.add(newObjectSimpleButton);
+
+        AjaxIconButton newObjectButton = new AjaxIconButton(
+                idButton,
+                Model.of("fa fa-circle-plus"),
+                createStringResource(getKeyOfTitleForNewObjectButton())) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                editItemPerformed(target, Model.of(createNewValue(target)), null);
+            }
+        };
+        newObjectButton.showTitleAsLabel(true);
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
+        buttons.add(newObjectButton);
 
         return buttons;
     }

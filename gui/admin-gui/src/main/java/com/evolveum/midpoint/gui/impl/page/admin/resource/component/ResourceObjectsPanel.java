@@ -582,33 +582,29 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         if (isSimulationTasks) {
             filter = addSimulationRule(
                     filter.and().block(),
-                    isSimulationTasks,
+                    true,
                     ActivityAffectedObjectsType.F_EXECUTION_MODE,
                     ExecutionModeType.PREVIEW);
             filter = addSimulationRule(
                     filter.or(),
-                    isSimulationTasks,
+                    true,
                     ActivityAffectedObjectsType.F_EXECUTION_MODE,
                     ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
             filter = filter.endBlock();
         } else {
             filter = addSimulationRule(
                     filter.and(),
-                    isSimulationTasks,
+                    false,
                     ActivityAffectedObjectsType.F_EXECUTION_MODE,
                     ExecutionModeType.PREVIEW);
             filter = addSimulationRule(
                     filter.and(),
-                    isSimulationTasks,
+                    false,
                     ActivityAffectedObjectsType.F_EXECUTION_MODE,
                     ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
+
         }
 
-        filter = addSimulationRule(
-                filter.and(),
-                isSimulationTasks,
-                ActivityAffectedObjectsType.F_PREDEFINED_CONFIGURATION_TO_USE,
-                PredefinedConfigurationType.DEVELOPMENT);
 
         return filter.build();
     }

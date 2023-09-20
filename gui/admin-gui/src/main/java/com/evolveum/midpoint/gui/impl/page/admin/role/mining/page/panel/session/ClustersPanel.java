@@ -300,10 +300,11 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                                 && value.getClusterStatistics() != null
                                 && value.getClusterStatistics().getMembershipDensity() != null) {
                             AnalysisClusterStatisticType clusterStatistics = model.getObject().getValue().getClusterStatistics();
+                            Double density = clusterStatistics.getMembershipDensity();
                             String pointsDensity = String.format("%.3f",
-                                    clusterStatistics.getMembershipDensity());
+                                    density);
 
-                            String colorClass = densityBasedColor(pointsDensity);
+                            String colorClass = densityBasedColor(density);
 
                             Label label = new Label(componentId, pointsDensity + " (%)");
                             label.setOutputMarkupId(true);

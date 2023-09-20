@@ -25,4 +25,14 @@ public class ObjectReferenceTypeUtil {
         }
         return ref.getOid();
     }
+
+    public static boolean referencesOidEqual(ObjectReferenceType ref1, ObjectReferenceType ref2) {
+        if (ref1 == null || ref2 == null) {
+            return false;
+        }
+        if (ref1.getOid() == null || ref2.getOid() == null) {
+            return false;
+        }
+        return ref1.getOid().equals(ref2.getOid());
+    }
 }

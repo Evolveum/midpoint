@@ -119,4 +119,9 @@ public abstract class AssociationsTable extends AbstractResourceWizardTable<Reso
     protected String getKeyOfTitleForNewObjectButton() {
         return "AssociationsTable.newObject";
     }
+
+    @Override
+    protected boolean isCreateNewObjectVisible() {
+        return false;
+    }
 }
