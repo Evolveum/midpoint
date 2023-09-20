@@ -283,11 +283,6 @@ public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<
 
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
-        return "CorrelationItemsTable.newObject";
-    }
-
-    @Override
-    protected boolean isCreateNewObjectVisible() {
-        return false;
+        return "CorrelationItemsTable.newObject.simple";
     }
 }
