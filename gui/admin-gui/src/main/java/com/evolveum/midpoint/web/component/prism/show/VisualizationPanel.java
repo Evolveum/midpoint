@@ -74,6 +74,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private boolean operationalItemsVisible = false;
 
     private IModel<String> overviewModel;
+    private final IModel<Boolean> minimalized;
 
     public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
         this(id, model, false, true);
@@ -84,6 +85,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         this.advanced = advanced;
         this.showOperationalItems = showOperationalItems;
+        minimalized = Model.of(model.getObject().isMinimized());
     }
 
     @Override
@@ -94,7 +96,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         initLayout();
 
         if (!advanced && overviewModel.getObject() != null) {
-            getModelObject().setMinimized(true);
+            minimalized.setObject(true);
         }
     }
 
@@ -145,7 +147,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         headerPanel.add(new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget target) {
-                headerOnClickPerformed(target, model);
+                headerOnClickPerformed(target);
             }
         });
         add(headerPanel);
@@ -246,8 +248,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         headerPanel.add(warning);
 
         final AjaxIconButton minimize = new AjaxIconButton(ID_MINIMIZE,
-                () -> getModelObject().isMinimized() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
-                () -> getModelObject().isMinimized() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
+                () -> minimalized.getObject() ? GuiStyleConstants.CLASS_ICON_EXPAND : GuiStyleConstants.CLASS_ICON_COLLAPSE,
+                () -> minimalized.getObject() ? getString("prismOptionButtonPanel.maximize") : getString("prismOptionButtonPanel.minimize")) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -258,7 +260,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                headerOnClickPerformed(target, VisualizationPanel.this.getModel());
+                headerOnClickPerformed(target);
             }
         };
         minimize.add(new VisibleBehaviour(this::hasBodyContent));
@@ -266,8 +268,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
-            VisualizationDto dto = getModelObject();
-            if (dto.isMinimized()) {
+            if (minimalized.getObject()) {
                 return false;
             }
 
@@ -319,9 +320,8 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 obj.getOid() != null && (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
     }
 
-    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
-        VisualizationDto dto = model.getObject();
-        dto.setMinimized(!dto.isMinimized());
+    public void headerOnClickPerformed(AjaxRequestTarget target) {
+        minimalized.setObject(!minimalized.getObject());
         target.add(this);
     }
 

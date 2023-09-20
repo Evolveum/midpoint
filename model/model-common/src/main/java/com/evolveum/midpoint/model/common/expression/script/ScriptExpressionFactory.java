@@ -65,12 +65,13 @@ public class ScriptExpressionFactory {
             @NotNull PrismContext prismContext,
             @NotNull Collection<FunctionLibraryBinding> builtInLibraryBindings,
             @NotNull Collection<ScriptEvaluator> evaluators,
-            @NotNull ObjectResolver objectResolver) {
+            @NotNull ObjectResolver objectResolver,
+            @NotNull FunctionLibraryManager functionLibraryManager) {
         this.prismContext = prismContext;
         this.builtInLibraryBindings = Collections.unmodifiableCollection(builtInLibraryBindings);
         registerEvaluators(evaluators);
         this.objectResolver = objectResolver;
-        this.functionLibraryManager = ModelCommonBeans.get().functionLibraryManager; // TODO initialize via spring?
+        this.functionLibraryManager = functionLibraryManager;
     }
 
     @VisibleForTesting

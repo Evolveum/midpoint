@@ -33,4 +33,8 @@ public abstract class ButtonInlineMenuItem extends InlineMenuItem {
         return builder;
     }
 
+    protected boolean isBadgeVisible() {
+        return false;
+    }
+
 }

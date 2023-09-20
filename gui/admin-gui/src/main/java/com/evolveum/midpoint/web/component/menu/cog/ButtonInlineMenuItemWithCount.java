@@ -10,14 +10,18 @@ import org.apache.wicket.model.IModel;
 
 public abstract class ButtonInlineMenuItemWithCount extends ButtonInlineMenuItem {
 
-    public ButtonInlineMenuItemWithCount(IModel<String> labelModel){
+    public ButtonInlineMenuItemWithCount(IModel<String> labelModel) {
         super(labelModel);
     }
 
-    public ButtonInlineMenuItemWithCount(IModel<String> labelModel, boolean isSubmit){
+    public ButtonInlineMenuItemWithCount(IModel<String> labelModel, boolean isSubmit) {
         super(labelModel, isSubmit);
     }
 
     protected abstract int getCount();
 
+    @Override
+    protected boolean isBadgeVisible() {
+        return true;
+    }
 }

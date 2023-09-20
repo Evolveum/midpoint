@@ -35,6 +35,7 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
     private static final String ID_OLD_VALUE_IMAGE = "oldValueImage";
     private static final String ID_OLD_VALUE = "oldValue";
     private static final String ID_NEW_VALUE_CONTAINER = "newValueContainer";
+    private static final String ID_NEW_VALUE_SUB_CONTAINER = "newValueSubContainer";
     private static final String ID_NEW_VALUE_IMAGE = "newValueImage";
     private static final String ID_NEW_VALUE = "newValue";
     private static final String ID_OLD_METADATA = "oldMetadata";
@@ -114,25 +115,34 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         }
 
         WebMarkupContainer newValueCell = new WebMarkupContainer(ID_NEW_VALUE_CONTAINER);
-        sivp = new VisualizationItemValuePanel(ID_NEW_VALUE, () -> getModel().getObject().getNewValue());
-        sivp.setRenderBodyOnly(true);
-        newValueCell.add(sivp);
         newValueCell.add(AttributeModifier.replace("colspan",
                 () -> !getModelObject().isDelta() && !getModelObject().isNullEstimatedOldValues() && getModelObject().isDeltaVisualization() ? 2 : 1));
         newValueCell.add(AttributeModifier.replace("align",
                 () -> !getModelObject().isDelta() && !getModelObject().isNullEstimatedOldValues() && getModelObject().isDeltaVisualization() ? "center" : null));
+
+        WebMarkupContainer newValueSubContainer = new WebMarkupContainer(ID_NEW_VALUE_SUB_CONTAINER);
+        newValueSubContainer.add(AttributeModifier.append("class",
+                () -> !getModelObject().isDelta()
+                        && !getModelObject().isNullEstimatedOldValues()
+                        && getModelObject().isDeltaVisualization()
+                        ? "justify-content-center" : null));
+        newValueCell.add(newValueSubContainer);
+
+        sivp = new VisualizationItemValuePanel(ID_NEW_VALUE, () -> getModel().getObject().getNewValue());
+        sivp.setRenderBodyOnly(true);
+        newValueSubContainer.add(sivp);
 
         IconComponent newValueImagePanel = new IconComponent(ID_NEW_VALUE_IMAGE, newValueIconModel, newValueTitleModel);
         newValueImagePanel.add(new VisibleBehaviour(() -> {
             VisualizationItemValue val = getModelObject().getNewValue();
             return newValueIconModel.getObject() != null && val != null && val.getSourceValue() != null;
         }));
-        newValueCell.add(newValueImagePanel);
+        newValueSubContainer.add(newValueImagePanel);
 
         add(newValueCell);
 
         initMetadataButton(oldValueCell, ID_OLD_METADATA, () -> getModelObject().getOldValue());
-        initMetadataButton(newValueCell, ID_NEW_METADATA, () -> getModelObject().getNewValue());
+        initMetadataButton(newValueSubContainer, ID_NEW_METADATA, () -> getModelObject().getNewValue());
     }
 
     private void initMetadataButton(WebMarkupContainer parent, String id, IModel<VisualizationItemValue> model) {

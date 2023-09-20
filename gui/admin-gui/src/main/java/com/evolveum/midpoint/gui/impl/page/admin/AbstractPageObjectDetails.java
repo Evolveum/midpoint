@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -362,11 +364,26 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected void navigateAction() {
         Class<? extends PageBase> objectListPage = DetailsPageUtil.getObjectListPage(getType());
-        if (!canRedirectBack() && DetailsPageUtil.getObjectListPage(getType()) != null) {
+        var pageClass = DetailsPageUtil.getObjectListPage(getType());
+        if (!canRedirectBack() && pageClass != null && isAuthorized(pageClass)) {
             navigateToNext(objectListPage);
         } else {
             redirectBack();
         }
+    }
+
+    private boolean isAuthorized(Class<? extends PageBase> pageClass) {
+        try {
+            List<String> pageAuths = LeftMenuAuthzUtil.getAuthorizationsForPage(pageClass);
+            for (String auth : pageAuths) {
+                if (!isAuthorized(auth)) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            //nothing to do here
+        }
+        return true;
     }
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
