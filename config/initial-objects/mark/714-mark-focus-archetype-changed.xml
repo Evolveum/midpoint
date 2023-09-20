@@ -10,6 +10,7 @@
     <name>Focus archetype changed</name>
     <description>Operation that changed the focus archetype or archetypes</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>140</displayOrder>

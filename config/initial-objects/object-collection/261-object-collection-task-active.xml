@@ -12,6 +12,7 @@
                   oid="00000000-0000-0000-0001-000000000005">
     <name>Active tasks</name>
     <assignment id="1">
+        <identifier>taskHealth</identifier>
         <policyRule>
             <policyConstraints>
                 <collectionStats id="2">
