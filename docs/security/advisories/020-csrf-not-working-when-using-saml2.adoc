@@ -1,4 +1,4 @@
-= Security Advisory: CSRF protetcion was not working if user logged using SAML2 or OIDC
+= Security Advisory: CSRF protection was not working if user logged using SAML2 or OIDC
 :page-display-order: 20
 :page-upkeep-status: green
 
