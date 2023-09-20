@@ -461,6 +461,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return () -> ProvisioningObjectsUtil.determineDisplayNameForDefinition(shadowModel.getObject().getRealValue(), getPageBase());
     }
 
+    //TODO what is this anyway?
     private ShadowType createShadowType(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
         ShadowType shadow = rowModel.getObject().getRealValue();
         try {
@@ -482,6 +483,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         try {
             PrismContainerWrapper<TriggerType> triggers = rowModel.getObject().findContainer(ShadowType.F_TRIGGER);
             if (triggers != null && !triggers.isEmpty()) {
+                shadow.getTrigger().clear();
                 for (PrismContainerValueWrapper<TriggerType> trigger : triggers.getValues()) {
                     if (trigger != null) {
                         shadow.getTrigger().add(trigger.getRealValue().cloneWithoutId());
