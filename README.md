@@ -1,4 +1,4 @@
-MidPoint 4.7.2 "Johnson" Update 2
+MidPoint 4.7 Support Branch
 ---------------------------
 
 General information:
