@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -67,8 +69,13 @@ import java.util.*;
 import java.util.Objects;
 import java.util.Map.Entry;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 /**
  * The processor that takes care of user activation mapping to an account (outbound direction).
+ *
+ * Note: We use "old" state as the "before" state for mappings. It makes sense because we are dealing with projections,
+ * which are relative to the initial focus state. (What about projections in waves greater than 0? TODO think about this.)
  *
  * @author Radovan Semancik
  */
@@ -81,6 +88,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     private static final ItemName SHADOW_EXISTS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "shadowExists");
     private static final ItemName LEGAL_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "legal");
     private static final ItemName ASSIGNED_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "assigned");
+    private static final ItemName ADAPTED_ADMINISTRATIVE_STATUS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "adaptedAdministrativeStatus");
     private static final ItemName FOCUS_EXISTS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "focusExists");
 
     private static final String OP_ACTIVATION = Projector.class.getName() + ".activation"; // for historical reasons
@@ -431,7 +439,8 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         LOGGER.trace("processActivationMetadata starting for {}", projCtx);
 
-        PropertyDelta<ActivationStatusType> statusDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+        PropertyDelta<ActivationStatusType> statusDelta =
+                projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 
         if (statusDelta != null && !statusDelta.isDelete()) {
 
@@ -444,7 +453,8 @@ public class ActivationProcessor implements ProjectorProcessor {
                 statusOld = null;
             }
 
-            PrismProperty<ActivationStatusType> statusPropNew = (PrismProperty<ActivationStatusType>) statusDelta.getItemNewMatchingPath(null);
+            PrismProperty<ActivationStatusType> statusPropNew =
+                    (PrismProperty<ActivationStatusType>) statusDelta.getItemNewMatchingPath(null);
             ActivationStatusType statusNew = statusPropNew.getRealValue();
 
             if (statusNew == statusOld) {
@@ -806,27 +816,35 @@ public class ActivationProcessor implements ProjectorProcessor {
                     builder.implicitTargetPath(projectionPropertyPath);
 
                     // Source: administrativeStatus, validFrom or validTo
-                    ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
+                    LensFocusContext<F> focusContext = context.getFocusContext();
+                    ObjectDeltaObject<F> focusOdoAbsolute = focusContext.getObjectDeltaObjectAbsolute();
                     ItemDeltaItem<PrismPropertyValue<T>, PrismPropertyDefinition<T>> sourceIdi = focusOdoAbsolute.findIdi(focusPropertyPath);
 
                     if (capActivation != null && focusPropertyPath.equivalent(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
                         ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
                         ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
 
-                        // Source: computedShadowStatus
+                        // "Magic" computed status (tweaked admin status if validity is supported, effective status if not)
+                        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>, PrismPropertyDefinition<ActivationStatusType>> inputIdi;
                         ItemPath sourcePath;
                         if (capValidFrom != null && capValidTo != null) {
-                            // "Native" validFrom and validTo, directly use administrativeStatus
-                            sourcePath = focusPropertyPath;
+                            LOGGER.trace("Native validFrom and validTo -> using adapted administrativeStatus as the implicit input");
+                            // We have to convert ARCHIVED to DISABLED, to avoid passing it forward via "asIs" mapping (MID-9026)
+                            inputIdi = createIdi(
+                                    ADAPTED_ADMINISTRATIVE_STATUS_PROPERTY_NAME, SchemaConstants.C_ACTIVATION_STATUS_TYPE,
+                                    getAdaptedAdministrativeStatus(focusContext.getObjectOld()),
+                                    getAdaptedAdministrativeStatus(focusContext.getObjectNew()));
+                            // Marking the source as "administrativeStatus" is not entirely correct, because we actually use
+                            // a derived value. Fortunately, the implicit source path is only for tracing purposes; moreover,
+                            // this should be a temporary solution until ARCHIVED is removed in 4.9.
+                            builder.implicitSourcePath(focusPropertyPath);
                         } else {
-                            // Simulate validFrom and validTo using effectiveStatus
-                            sourcePath = SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS;
+                            LOGGER.trace("No native validFrom and validTo -> using effectiveStatus as the implicit input");
+                            inputIdi = focusOdoAbsolute.findIdi(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
+                            builder.implicitSourcePath(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
                         }
-                        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>, PrismPropertyDefinition<ActivationStatusType>> computedIdi =
-                                focusOdoAbsolute.findIdi(sourcePath); // TODO wave
-                        builder.implicitSourcePath(sourcePath);
 
-                        builder.defaultSource(new Source<>(computedIdi, ExpressionConstants.VAR_INPUT_QNAME));
+                        builder.defaultSource(new Source<>(inputIdi, ExpressionConstants.VAR_INPUT_QNAME));
                         builder.additionalSource(new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS_QNAME));
 
                     } else {
@@ -836,21 +854,26 @@ public class ActivationProcessor implements ProjectorProcessor {
 
                     builder.additionalSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
                     builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
-                    builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
+                    builder.additionalSource(new Source<>(getFocusExistsIdi(focusContext), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
 
                     return builder;
                 };
 
         evaluateOutboundMapping( // [EP:M:OM] DONE
-                context, projCtx, bidirectionalMappingBean, focusPropertyPath, projectionPropertyPath, initializer,
+                context, projCtx, bidirectionalMappingBean, projectionPropertyPath, initializer,
                 now, current, desc + " outbound activation mapping", task, result);
+    }
+
+    private <F extends FocusType> ActivationStatusType getAdaptedAdministrativeStatus(PrismObject<F> object) {
+        return ActivationComputer.archivedToDisabled(
+                ActivationUtil.getAdministrativeStatus(
+                        asObjectable(object)));
     }
 
     private <T, F extends FocusType> void evaluateOutboundMapping(
             LensContext<F> context,
             LensProjectionContext projCtx,
             ResourceBidirectionalMappingType bidirectionalMappingBean, // [EP:M:OM] DONE 1/1
-            ItemPath focusPropertyPath,
             ItemPath projectionPropertyPath,
             MappingInitializer<PrismPropertyValue<T>, PrismPropertyDefinition<T>> initializer,
             XMLGregorianCalendar now,
@@ -999,19 +1022,21 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> getLegalIdi(LensProjectionContext accCtx) throws SchemaException {
-        Boolean legal = accCtx.isLegal();
-        Boolean legalOld = accCtx.isLegalOld();
-        return createBooleanIdi(LEGAL_PROPERTY_NAME, legalOld, legal);
+    private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> getLegalIdi(LensProjectionContext accCtx)
+            throws SchemaException {
+        return createIdi(
+                LEGAL_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN,
+                accCtx.isLegalOld(), accCtx.isLegal());
     }
 
     @NotNull
-    private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createBooleanIdi(
-            QName propertyName, Boolean old, Boolean current) throws SchemaException {
-        MutablePrismPropertyDefinition<Boolean> definition = prismContext.definitionFactory().createPropertyDefinition(propertyName, DOMUtil.XSD_BOOLEAN);
+    private <T> ItemDeltaItem<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createIdi(
+            QName propertyName, QName typeName, T old, T current) throws SchemaException {
+        MutablePrismPropertyDefinition<T> definition =
+                prismContext.definitionFactory().createPropertyDefinition(propertyName, typeName);
         definition.setMinOccurs(1);
         definition.setMaxOccurs(1);
-        PrismProperty<Boolean> property = definition.instantiate();
+        PrismProperty<T> property = definition.instantiate();
         if (current != null) {
             property.add(prismContext.itemFactory().createPropertyValue(current));
         }
@@ -1019,22 +1044,25 @@ public class ActivationProcessor implements ProjectorProcessor {
         if (Objects.equals(current, old)) {
             return new ItemDeltaItem<>(property);
         } else {
-            PrismProperty<Boolean> propertyOld = property.clone();
+            PrismProperty<T> propertyOld = property.clone();
             propertyOld.setRealValue(old);
-            PropertyDelta<Boolean> delta = propertyOld.createDelta();
+            PropertyDelta<T> delta = propertyOld.createDelta();
             if (current != null) {
+                //noinspection unchecked
                 delta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(current));
             } else {
+                //noinspection unchecked
                 delta.setValuesToReplace();
             }
             return new ItemDeltaItem<>(propertyOld, delta, property, definition);
         }
     }
 
-    private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> getAssignedIdi(LensProjectionContext accCtx) throws SchemaException {
-        Boolean assigned = accCtx.isAssigned();
-        Boolean assignedOld = accCtx.isAssignedOld();
-        return createBooleanIdi(ASSIGNED_PROPERTY_NAME, assignedOld, assigned);
+    private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> getAssignedIdi(LensProjectionContext accCtx)
+            throws SchemaException {
+        return createIdi(
+                ASSIGNED_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN,
+                accCtx.isAssignedOld(), accCtx.isAssigned());
     }
 
     private <F extends ObjectType> ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> getFocusExistsIdi(

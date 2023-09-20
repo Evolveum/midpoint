@@ -41,9 +41,9 @@ import java.util.*;
  *
  * Currently used for:
  *
- * - outbound password mappings ({@link ProjectionCredentialsProcessor},
- * - outbound existence and activation mappings ({@link ActivationProcessor},
- * - inbound password and activation mappings ({@link ClockworkInboundsProcessing}.
+ * - outbound password mappings ({@link ProjectionCredentialsProcessor}),
+ * - outbound existence and activation mappings ({@link ActivationProcessor}),
+ * - inbound password and activation mappings ({@link ClockworkInboundsProcessing}).
  *
  * TODO Consider merging evaluation of these special mappings with the evaluation of standard attribute/association mappings.
  *

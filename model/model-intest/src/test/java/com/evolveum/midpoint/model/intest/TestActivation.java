@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ENABLE_TIMESTAMP;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
 
 import java.io.File;
@@ -77,6 +77,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_DUMMY_PRECREATE = new DummyTestResource(TEST_DIR,
             "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d", "precreate");
+    private static final DummyTestResource RESOURCE_DUMMY_FULL_VALIDITY = new DummyTestResource(TEST_DIR,
+            "resource-dummy-full-validity.xml", "729b0fc8-261b-476b-bfcc-9ac2be3ecd8a", "full-validity",
+            c -> c.extendSchemaPirate());
 
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
@@ -111,6 +114,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyKhaki = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_KHAKI_FILE, RESOURCE_DUMMY_KHAKI_OID, initTask, initResult);
         resourceDummyKhakiType = resourceDummyKhaki.asObjectable();
         dummyResourceCtlKhaki.setResource(resourceDummyKhaki);
+        dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_KHAKI_NAME, dummyResourceCtlKhaki);
 
         dummyResourceCtlCoral = DummyResourceContoller.create(RESOURCE_DUMMY_CORAL_NAME, resourceDummyCoral);
         DummyObjectClass accountObjectClass = dummyResourceCtlCoral.getDummyResource().getAccountObjectClass();
@@ -119,10 +123,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyCoral = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CORAL_FILE, RESOURCE_DUMMY_CORAL_OID, initTask, initResult);
         resourceDummyCoralType = resourceDummyCoral.asObjectable();
         dummyResourceCtlCoral.setResource(resourceDummyCoral);
+        dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_CORAL_NAME, dummyResourceCtlCoral);
 
         RESOURCE_DUMMY_PRECREATE.init(this, initTask, initResult);
-//
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        RESOURCE_DUMMY_FULL_VALIDITY.init(this, initTask, initResult);
     }
 
     @Test
@@ -438,7 +442,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAdministrativeStatusEnabled(userJack);
         assertValidity(userJack, null);
-        assertEffectiveStatus(userJack, ActivationStatusType.ARCHIVED);
+        assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
 
         TestUtil.assertModifyTimestamp(userJack, start, end);
     }
@@ -1378,10 +1382,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         for (ObjectDeltaOperation<? extends ObjectType> executionDelta : executionDeltas) {
             ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
             if (objectDelta.getObjectTypeClass() == ShadowType.class) {
-                // Actually, there should be no F_TRIGGER delta! It was there by mistake.
-//                if (objectDelta.findContainerDelta(ShadowType.F_TRIGGER) != null) {
-//                    continue;
-//                }
                 PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
                 displayDumpable("Audit enableTimestamp delta", enableTimestampDelta);
                 assertNotNull("EnableTimestamp delta vanished from audit record, delta: " + objectDelta, enableTimestampDelta);
@@ -1389,6 +1389,90 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
             }
         }
         assertTrue("Shadow delta not found", found);
+    }
+
+    /**
+     * Administrative status of `archived` should not be propagated to resources (khaki, full-validity).
+     * Testing on object ADD operation.
+     *
+     * MID-9026.
+     */
+    @Test
+    public void test165AddWithArchived() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("user has administrativeStatus of ARCHIVED");
+        String userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .activation(new ActivationType()
+                        .administrativeStatus(ActivationStatusType.ARCHIVED))
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_KHAKI_OID, ResourceType.COMPLEX_TYPE)))
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DUMMY_FULL_VALIDITY.construction(null, null)));
+        addObject(user, task, result);
+
+        then("the khaki account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_KHAKI_NAME, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        then("the 'full-validity' account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FULL_VALIDITY.name, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        // To make downstream tests happy
+        deleteObject(UserType.class, user.getOid());
+    }
+
+    /**
+     * Administrative status of `archived` should not be propagated to resources (khaki, full-validity).
+     * Testing on object MODIFY operation.
+     *
+     * MID-9026.
+     */
+    @Test
+    public void test167ModifyWithArchived() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("user with two accounts exists");
+        String userName = getTestNameShort();
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_KHAKI_OID, ResourceType.COMPLEX_TYPE)))
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DUMMY_FULL_VALIDITY.construction(null, null)));
+        addObject(user, task, result);
+        assertDummyAccountByUsername(RESOURCE_DUMMY_KHAKI_NAME, userName);
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FULL_VALIDITY.name, userName);
+
+        when("the administrativeStatus is changed to ARCHIVED");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
+                        .replace(ActivationStatusType.ARCHIVED)
+                        .asObjectDelta(user.getOid()),
+                null, task, result);
+
+        then("the khaki account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_KHAKI_NAME, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        then("the 'full-validity' account simulation attribute indicates it's disabled");
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FULL_VALIDITY.name, userName)
+                .display()
+                .assertAttribute("gossip", "dead");
+
+        // To make downstream tests happy
+        deleteObject(UserType.class, user.getOid());
     }
 
     @Test
@@ -2190,7 +2274,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
         display("user after", userAfter);
-        assertEffectiveActivation(userAfter, ActivationStatusType.ARCHIVED);
+        assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
