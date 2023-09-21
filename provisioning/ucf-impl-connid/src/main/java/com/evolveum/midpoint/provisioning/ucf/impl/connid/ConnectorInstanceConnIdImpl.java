@@ -909,6 +909,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
         result.addArbitraryObjectAsParam("identification", identification);
         result.addArbitraryObjectCollectionAsParam("changes", changes);
+        result.addArbitraryObjectAsParam("options", options);
 
         if (changes.isEmpty()) {
             LOGGER.info("No modifications for connector object specified. Skipping processing.");
@@ -1998,7 +1999,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     }
                 }
             }
-            throw new SchemaException("More than one secondary indentifier in "+resourceObjectIdentification+", cannot detemine ConnId __NAME__");
+            throw new SchemaException(
+                    "More than one secondary identifier in "+resourceObjectIdentification+", cannot determine ConnId __NAME__");
         }
         return null;
     }

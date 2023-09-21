@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -950,11 +951,17 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         return provisioningOptions;
     }
 
-    // This is a bit of black magic. We only want to execute as self if there a user is changing its own password
-    // and we also have old password value.
-    // Later, this should be improved. Maybe we need special model operation option for this? Or maybe it should be somehow
-    // automatically detected based on resource capabilities? We do not know yet. Therefore let's do the simplest possible
-    // thing. Otherwise we might do something that we will later regret.
+    /**
+     * This is a bit of black magic. We only want to execute as self if there a user is changing its own password
+     * and we also have old password value.
+     *
+     * TODO Later, this should be improved. Maybe we need special model operation option for this? Or maybe it should be somehow
+     *  automatically detected based on resource capabilities? We do not know yet. Therefore let's do the simplest possible
+     *  thing. Otherwise we might do something that we will later regret.
+     *
+     * See also {@link ProjectionMappingSetEvaluator#applyEstimatedOldValueInReplaceCaseIfCredentials
+     * (MappingEvaluatorParams, ItemDelta, PrismValueDeltaSetTriple)}.
+     */
     private boolean isExecuteAsSelf(ShadowType existingShadow) throws SecurityViolationException {
         if (existingShadow == null) {
             return false;

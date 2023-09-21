@@ -384,17 +384,17 @@ public class ProjectionMappingSetEvaluator {
                         }
                         targetItemDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(valuesToReplace));
 
+                        applyEstimatedOldValueInReplaceCaseIfCredentials(params, targetItemDelta, outputTriple);
+
                     } else if (outputTriple.hasMinusSet()) {
                         LOGGER.trace("{} resulted in null or empty value for {} and there is a minus set, resetting it (replace with empty)", mappingDesc, targetContext);
                         targetItemDelta.setValueToReplace();
 
+                        applyEstimatedOldValueInReplaceCaseIfCredentials(params, targetItemDelta, outputTriple);
+
                     } else {
                         LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
                     }
-
-                    // Here we intentionally do not set estimated old values in the delta. The reason is that the old values
-                    // here would be determined by what the mapping THINKS was there. The reality may be different. The
-                    // LensElementContext would know better when swallowing the delta.
                 }
 
                 if (targetItemDelta.isEmpty()) {
@@ -426,6 +426,33 @@ public class ProjectionMappingSetEvaluator {
         }
 
         return outputTripleMap;
+    }
+
+    /**
+     * Sets estimated old values - but only for credentials in a projection.
+     *
+     * Note: Here we intentionally DO NOT set estimated old values in the delta for all the other cases.
+     * The reason is that the old values here would be determined by what the mapping THINKS was there.
+     * The reality may be different. The {@link LensElementContext#swallowToSecondaryDelta(ItemDelta)} would know better.
+     *
+     * The only exception is when we are dealing with credentials in a projection. In that case, we probably won't be able
+     * to obtain the estimatedOldValue from the projection (as it's usually not possible to fetch the password from the resource),
+     * and there is a code that relies on the estimatedOldValue being set for credentials changes
+     * `DeltaExecution#isExecuteAsSelf`. We should replace the magic in that method by something more serious.
+     * Also here we could probably restrict providing old values only to `credentials/password/value`? Maybe, maybe not.
+     */
+    private <V extends PrismValue, D extends ItemDefinition<?>> void applyEstimatedOldValueInReplaceCaseIfCredentials(
+            MappingEvaluatorParams<?, ?, ?, ?> params,
+            ItemDelta<V, D> targetItemDelta,
+            PrismValueDeltaSetTriple<V> outputTriple) {
+        if (!params.isTargetProjection() || !targetItemDelta.getPath().startsWith(ShadowType.F_CREDENTIALS)) {
+            return;
+        }
+        Collection<V> nonPositiveValues = outputTriple.getNonPositiveValues();
+        if (nonPositiveValues.isEmpty()) {
+            return;
+        }
+        targetItemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(nonPositiveValues));
     }
 
     private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {
