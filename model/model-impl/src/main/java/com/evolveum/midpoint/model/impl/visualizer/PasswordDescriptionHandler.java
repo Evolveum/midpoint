@@ -31,7 +31,7 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
     private static final ItemPath PATH_PASSWORD = ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
 
     @Override
-    public boolean match(VisualizationImpl visualization) {
+    public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         if (value == null) {
             return false;
@@ -47,7 +47,7 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
     }
 
     @Override
-    public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
+    public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
         ChangeType change = visualization.getChangeType();
 
         VisualizationItemImpl item = visualization.getItems().stream()

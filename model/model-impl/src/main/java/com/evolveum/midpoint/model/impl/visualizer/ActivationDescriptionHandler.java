@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
@@ -27,10 +35,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class ActivationDescriptionHandler implements VisualizationDescriptionHandler {
 
     @Override
-    public boolean match(VisualizationImpl visualization) {
+    public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
+
         PrismContainerValue<?> value = visualization.getSourceValue();
         if (value == null) {
             return false;
+        }
+
+        if (parentVisualization != null && parentVisualization.getSourceDelta() != null) {
+            ItemDelta<PrismValue, ItemDefinition<?>> deltaItem = parentVisualization.getSourceDelta().findItemDelta(ItemPath.create(
+                    visualization.getSourceRelPath(), ActivationType.F_EFFECTIVE_STATUS));
+            try {
+                if(deltaItem != null && deltaItem.getItemNew() != null && deltaItem.getItemNew().getRealValue() != null) {
+                    return true;
+                }
+            } catch (SchemaException e) {
+                //ignore it and try sourceValue
+            }
         }
 
         if (ActivationType.class.equals(value.getCompileTimeClass())) {
@@ -43,10 +64,26 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
     }
 
     @Override
-    public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
+    public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
+        ActivationStatusType status = null;
+        if (parentVisualization != null && parentVisualization.getSourceDelta() != null) {
+            ItemDelta<PrismValue, ItemDefinition<?>> deltaItem = parentVisualization.getSourceDelta().findItemDelta(ItemPath.create(
+                    visualization.getSourceRelPath(), ActivationType.F_EFFECTIVE_STATUS));
+            try {
+                if(deltaItem != null && deltaItem.getItemNew() != null) {
+                    status = (ActivationStatusType) deltaItem.getItemNew().getRealValue();
+                }
+            } catch (SchemaException e) {
+                //ignore it and try sourceValue
+            }
+        }
+
         PrismContainerValue<?> value = visualization.getSourceValue();
-        PrismProperty<ActivationStatusType> effectiveStatus = value.findProperty(ActivationType.F_EFFECTIVE_STATUS);
-        ActivationStatusType status = effectiveStatus.getRealValue();
+
+        if (status == null) {
+            PrismProperty<ActivationStatusType> effectiveStatus = value.findProperty(ActivationType.F_EFFECTIVE_STATUS);
+            status = effectiveStatus.getRealValue();
+        }
 
         if (status == null) {
             return;

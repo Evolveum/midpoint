@@ -32,13 +32,13 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
     private Resolver resolver;
 
     @Override
-    public boolean match(VisualizationImpl visualization) {
+    public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         return value != null && ShadowType.class.equals(value.getCompileTimeClass());
     }
 
     @Override
-    public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
+    public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         ShadowType shadow = (ShadowType) value.asContainerable();
 

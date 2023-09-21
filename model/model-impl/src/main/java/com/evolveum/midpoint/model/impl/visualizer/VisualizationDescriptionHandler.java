@@ -16,7 +16,7 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public interface VisualizationDescriptionHandler {
 
-    boolean match(VisualizationImpl visualization);
+    boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization);
 
-    void apply(VisualizationImpl visualization, Task task, OperationResult result);
+    void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result);
 }

@@ -16,7 +16,6 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import java.util.*;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -105,7 +104,7 @@ public class Visualizer {
         visualization.setSourceDelta(null);
         visualizeItems(visualization, object.getValue().getItems(), false, context, task, result);
 
-        evaluateDescriptionHandlers(visualization, task, result);
+        evaluateDescriptionHandlers(visualization, visualization, task, result);
 
         return visualization;
     }
@@ -283,7 +282,7 @@ public class Visualizer {
             throw new IllegalStateException("Object delta that is neither ADD, nor MODIFY nor DELETE: " + objectDelta);
         }
 
-        evaluateDescriptionHandlers(visualization, task, result);
+        evaluateDescriptionHandlers(visualization, visualization, task, result);
 
         return visualization;
     }
@@ -379,7 +378,7 @@ public class Visualizer {
                     }
                     visualizeItems(currentVisualization, pcv.getItems(), descriptive, context, task, result);
 
-                    evaluateDescriptionHandlers(currentVisualization, task, result);
+                    evaluateDescriptionHandlers(currentVisualization, visualization, task, result);
                 }
             } else {
                 throw new IllegalStateException("Not a property nor reference nor container: " + item);
@@ -515,13 +514,14 @@ public class Visualizer {
 
         parentVisualization.addPartialVisualization(visualization);
 
-        evaluateDescriptionHandlers(visualization, task, result);
+        evaluateDescriptionHandlers(visualization, visualization, task, result);
     }
 
-    private void evaluateDescriptionHandlers(VisualizationImpl visualization, Task task, OperationResult result) {
+    private void evaluateDescriptionHandlers(
+            VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
         for (VisualizationDescriptionHandler handler : descriptionHandlers) {
-            if (handler.match(visualization)) {
-                handler.apply(visualization, task, result);
+            if (handler.match(visualization, parentVisualization)) {
+                handler.apply(visualization, parentVisualization, task, result);
             }
         }
     }
@@ -631,7 +631,7 @@ public class Visualizer {
         }
         visualizeAtomicItemDelta(visualizationForItem, delta, context, task, result);
 
-        evaluateDescriptionHandlers(visualizationForItem, task, result);
+        evaluateDescriptionHandlers(visualizationForItem, visualization, task, result);
     }
 
     private void addDescriptiveItems(VisualizationImpl visualization, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
