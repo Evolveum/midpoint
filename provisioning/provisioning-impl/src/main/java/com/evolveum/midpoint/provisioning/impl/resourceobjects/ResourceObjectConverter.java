@@ -557,7 +557,12 @@ public class ResourceObjectConverter {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        OperationResult result = parentResult.createSubresult(OPERATION_MODIFY_RESOURCE_OBJECT);
+        OperationResult result = parentResult.subresult(OPERATION_MODIFY_RESOURCE_OBJECT)
+                .addParam("repoShadow", repoShadow)
+                .addArbitraryObjectAsParam("connOptions", connOptions)
+                .addArbitraryObjectCollectionAsParam("itemDeltas", itemDeltas)
+                .addArbitraryObjectAsContext("ctx", ctx)
+                .build();
 
         try {
             LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDumpLazily(itemDeltas, 1));

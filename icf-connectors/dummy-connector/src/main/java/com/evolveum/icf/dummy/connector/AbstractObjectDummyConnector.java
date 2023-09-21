@@ -1480,7 +1480,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
             }
             DummyAccount runAsAccount = resource.getAccountByUsername(runAsUser);
             if (runAsAccount == null) {
-                new ConfigurationException("No runAsUser "+runAsUser);
+                throw new ConfigurationException("No runAsUser "+runAsUser);
             }
             GuardedString runWithPassword = options.getRunWithPassword();
             if (runWithPassword != null) {

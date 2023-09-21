@@ -27,4 +27,11 @@ public class ConnectorOperationOptions {
     public void setRunAsIdentification(ResourceObjectIdentification runAsIdentification) {
         this.runAsIdentification = runAsIdentification;
     }
+
+    @Override
+    public String toString() {
+        return "ConnectorOperationOptions{" +
+                "runAsIdentification=" + runAsIdentification +
+                '}';
+    }
 }

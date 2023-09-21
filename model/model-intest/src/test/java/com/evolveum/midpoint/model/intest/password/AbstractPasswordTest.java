@@ -3639,8 +3639,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         assertUserAfter(USER_JACK_OID)
                 .assertPassword(USER_PASSWORD_VALID_5, getPasswordStorageType())
-                .assertLiveLinks(4)
-                .getObject();
+                .assertLiveLinks(4);
 
         // default password mapping is normal
         assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
