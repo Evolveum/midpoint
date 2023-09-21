@@ -62,7 +62,7 @@ public class PredefinedMappingStepPanel
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
     }
 
     @Override
@@ -72,7 +72,7 @@ public class PredefinedMappingStepPanel
 
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
-        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
+        return VisibleBehaviour.ALWAYS_INVISIBLE;
     }
 
     @Override
@@ -83,12 +83,6 @@ public class PredefinedMappingStepPanel
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
         return VisibleBehaviour.ALWAYS_INVISIBLE;
-    }
-
-    @Override
-    public boolean onBackPerformed(AjaxRequestTarget target) {
-        onExitPerformed(target);
-        return false;
     }
 
     @Override

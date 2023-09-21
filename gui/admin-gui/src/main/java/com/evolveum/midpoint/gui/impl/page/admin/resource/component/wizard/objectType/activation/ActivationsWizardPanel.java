@@ -95,6 +95,7 @@ public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTy
         steps.add(new PredefinedMappingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
                 showActivationTablePanel(target, direction);
             }
         });
