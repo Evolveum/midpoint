@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -310,11 +311,26 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected void navigateAction() {
         Class<? extends PageBase> objectListPage = WebComponentUtil.getObjectListPage(getType());
-        if (!canRedirectBack() && WebComponentUtil.getObjectListPage(getType()) != null) {
+        var pageClass = WebComponentUtil.getObjectListPage(getType());
+        if (!canRedirectBack() && pageClass != null && isAuthorized(pageClass)) {
             navigateToNext(objectListPage);
         } else {
             redirectBack();
         }
+    }
+
+    private boolean isAuthorized(Class<? extends PageBase> pageClass) {
+        try {
+            List<String> pageAuths = LeftMenuAuthzUtil.getAuthorizationsForPage(pageClass);
+            for (String auth : pageAuths) {
+                if (!isAuthorized(auth)) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            //nothing to do here
+        }
+        return true;
     }
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
