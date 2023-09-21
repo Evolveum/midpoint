@@ -206,6 +206,9 @@ public class DurationWithOneElementPanel extends InputPanel {
         }
 
         private String convertToString(Duration duration, DatatypeConstants.Field unit) {
+            if (duration == null) {
+                return null;
+            }
             List<DatatypeConstants.Field> choices = getChoicesAsField();
 
             Optional<DatatypeConstants.Field> field = choices

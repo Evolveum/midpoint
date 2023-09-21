@@ -29,7 +29,7 @@ public class ClassLoggerDescriptionHandler implements VisualizationDescriptionHa
     private static final ItemPath PATH_CLASS_LOGGER = ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER);
 
     @Override
-    public boolean match(VisualizationImpl visualization) {
+    public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         if (value == null) {
             return false;
@@ -39,7 +39,7 @@ public class ClassLoggerDescriptionHandler implements VisualizationDescriptionHa
     }
 
     @Override
-    public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
+    public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         ChangeType changeType = visualization.getChangeType();
 

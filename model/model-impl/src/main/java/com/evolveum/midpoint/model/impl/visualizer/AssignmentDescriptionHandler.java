@@ -34,7 +34,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     private Resolver resolver;
 
     @Override
-    public boolean match(VisualizationImpl visualization) {
+    public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
         PrismContainerValue<?> value = visualization.getSourceValue();
         if (value == null) {
             return false;
@@ -44,7 +44,7 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
     }
 
     @Override
-    public void apply(VisualizationImpl visualization, Task task, OperationResult result) {
+    public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
         PrismContainerValue<?> value = visualization.getSourceValue();
 
         AssignmentType a = (AssignmentType) value.asContainerable();
