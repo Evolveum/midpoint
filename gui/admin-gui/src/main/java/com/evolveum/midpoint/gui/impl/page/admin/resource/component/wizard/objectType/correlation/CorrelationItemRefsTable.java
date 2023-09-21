@@ -212,11 +212,6 @@ public class CorrelationItemRefsTable extends AbstractResourceWizardTable<Correl
 
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
-        return "CorrelationItemRefsTable.newObject";
-    }
-
-    @Override
-    protected boolean isCreateNewObjectVisible() {
-        return false;
+        return "CorrelationItemRefsTable.newObject.simple";
     }
 }
