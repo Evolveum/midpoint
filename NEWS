@@ -1,13 +1,13 @@
-midPoint 4.4.5 "Tesla" Update 5
+midPoint 4.4.6 "Tesla" Update 6
 -------------------------------
 
-Release 4.4.5 is a forty-eighth midPoint release.
-It is the fifth maintenance update for 4.4.x version family code-named _Tesla_.
-The 4.4.5 release brings miscellaneous bugfixes.
+Release 4.4.6 is a forty-ninth midPoint release.
+It is the sixth maintenance update for 4.4.x version family code-named _Tesla_.
+The 4.4.6 release brings miscellaneous bugfixes.
 
-Release date: 5th June 2023
+Release date: 20th September 2023
 Release type: Long-term support maintenance release
 End of support: 26th November 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.4.5/
+https://docs.evolveum.com/midpoint/release/4.4.6/
