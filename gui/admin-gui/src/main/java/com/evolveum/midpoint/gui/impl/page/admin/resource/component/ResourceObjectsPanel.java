@@ -491,7 +491,20 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private InlineMenuItem createTaskViewMenuItem(StringResourceModel label, String archetypeOid, boolean isSimulationTasks) {
         return new ButtonInlineMenuItemWithCount(label) {
             @Override
+            protected boolean isBadgeVisible() {
+                if (!getPageBase().isNativeRepo()) {
+                    return false;
+                }
+
+                return super.isBadgeVisible();
+            }
+
+            @Override
             public int getCount() {
+                if (!getPageBase().isNativeRepo()) {
+                    return 0;
+                }
+
                 ObjectQuery query = createQueryFroTasks(isSimulationTasks);
                 if (archetypeOid != null) {
                     query.addFilter(PrismContext.get()
@@ -527,10 +540,17 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 return new InlineMenuItemAction() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+
+                        if (warnIfNonNative(target)) {
+                            return;
+                        }
+
                         redirectToTasksListPage(archetypeOid, isSimulationTasks);
                     }
+
                 };
             }
+
         };
     }
 
@@ -605,7 +625,6 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
         }
 
-
         return filter.build();
     }
 
@@ -632,6 +651,19 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         };
         getPageBase().showMainPopup(createTaskPopup, target);
 
+    }
+
+    private boolean warnIfNonNative(AjaxRequestTarget target) {
+        if (!getPageBase().isNativeRepo()) {
+            String warnMessage = getString("PageAdmin.operation.nonNativeRepositoryWarning");
+            String localeWarnMessage = getLocalizationService()
+                    .translate(PolyString.fromOrig(warnMessage),
+                            WebComponentUtil.getCurrentLocale(), true);
+            warn(localeWarnMessage);
+            target.add(getPageBase().getFeedbackPanel());
+            return true;
+        }
+        return false;
     }
 
     private void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean isSimulation, AjaxRequestTarget target) {
@@ -666,6 +698,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     protected abstract UserProfileStorage.TableId getRepositorySearchTableId();
+
     protected abstract StringResourceModel getLabelModel();
 
     protected final RepositoryShadowBeanObjectDataProvider createProvider(IModel<Search<ShadowType>> searchModel, CompiledShadowCollectionView collection) {

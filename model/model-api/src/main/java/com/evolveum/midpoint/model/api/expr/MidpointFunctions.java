@@ -1021,7 +1021,7 @@ public interface MidpointFunctions {
 
     /**
      * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to
-     * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}.
+     * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}).
      *
      * Not always precise - the original value may not be known.
      *

@@ -150,7 +150,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
         ActivationType activation = principal.getFocus().getActivation();
         if (activation != null) {
-            activationComputer.computeEffective(principal.getFocus().getLifecycleState(), activation, null);
+            activationComputer.setValidityAndEffectiveStatus(principal.getFocus().getLifecycleState(), activation, null);
         }
     }
 

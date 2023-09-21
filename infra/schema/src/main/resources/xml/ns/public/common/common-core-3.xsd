@@ -3723,7 +3723,7 @@
                         </p><p>
                             It has been disabled, haven't reached the activation period, etc.
                             This is used to indicate that the entity is TEMPORARILY inactive
-                            and there is an intent to enabled the entity later.
+                            and there is an intent to enable the entity later.
                         </p><p>
                             Usually used for an employee on parental leave, sabbatical, temporarily disabled
                             account for security reasons, etc.
@@ -3749,10 +3749,16 @@
                             identifier to avoid their reuse.
                         </p><p>
                             Usually used for retired employees and similar cases.
+                        </p><p>
+                            DEPRECATED. The "archival" state is to be managed through the object lifecycle state instead.
+                            Since 4.8, this value will not be put into "effectiveStatus" property anymore.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHIVED"/>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:plannedRemoval>4.9</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

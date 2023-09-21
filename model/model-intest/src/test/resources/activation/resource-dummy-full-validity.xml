@@ -6,20 +6,15 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-  <!-- This resource does not support native activation. It has simulated activation instead.
-       + unusual validTo and validFrom mappings -->
-
-<resource oid="10000000-0000-0000-0000-0000000a1004"
+<resource oid="729b0fc8-261b-476b-bfcc-9ac2be3ecd8a"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>Dummy Resource: Khaki</name>
+    <name>resource-dummy-full-validity</name>
+    <documentation>Supports valid from/to and status (simulated - to fail on "archive" status - MID-9026)</documentation>
     <connectorRef type="c:ConnectorType">
         <filter>
             <q:and>
@@ -38,14 +33,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>khaki</icfi:instanceId>
-            <icfi:requireExplicitEnable>false</icfi:requireExplicitEnable>
-            <icfi:supportActivation>false</icfi:supportActivation>
-            <icfi:uselessString>
-                <expression>
-                    <path>$configuration/name</path> <!-- MID-6609 -->
-                </expression>
-            </icfi:uselessString>
+            <icfi:instanceId>full-validity</icfi:instanceId>
         </icfc:configurationProperties>
 
     </connectorConfiguration>
@@ -54,62 +42,29 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
-            <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
-                <displayName>Username</displayName>
                 <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>name</path>
                     </source>
-                    <expression>
-                        <script>
-                            <code>
-                                name + iterationToken
-                            </code>
-                        </script>
-                    </expression>
                 </outbound>
-            </attribute>
-            <attribute>
-                <ref>icfs:uid</ref>
             </attribute>
             <attribute>
                 <ref>ri:fullname</ref>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>fullName</path>
                     </source>
                 </outbound>
             </attribute>
-            <attribute>
-                <ref>ri:location</ref>
-                <outbound>
-                    <source>
-                        <path>
-                            $c:user/c:locality
-                        </path>
-                    </source>
-                </outbound>
-            </attribute>
-
-            <iteration>
-                <maxIterations>5</maxIterations>
-            </iteration>
 
             <activation>
-                <!-- Explicit existence mapping, but does the same as the default one -->
-                <existence>
-                    <outbound/>
-                </existence>
                 <administrativeStatus>
-                    <outbound>
-                        <!-- Strong because of TestActivation.test810 -->
-                        <strength>strong</strength>
-                    </outbound>
+                    <outbound/>
                 </administrativeStatus>
                 <validFrom>
                     <outbound>
@@ -136,24 +91,7 @@
                     </outbound>
                 </validTo>
             </activation>
-
-            <credentials>
-                <password>
-                    <outbound/>
-                </password>
-            </credentials>
-
-            <synchronization>
-                <reaction>
-                    <situation>linked</situation>
-                    <actions>
-                        <synchronize/>
-                    </actions>
-                </reaction>
-            </synchronization>
-
         </objectType>
-
     </schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
@@ -165,9 +103,9 @@
                     <cap:enableValue/>
                     <cap:disableValue>dead</cap:disableValue>
                 </cap:status>
+                <cap:validFrom/>
+                <cap:validTo/>
             </cap:activation>
         </configured>
     </capabilities>
-
-
 </resource>

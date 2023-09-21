@@ -24,11 +24,11 @@ public class FocusComputer {
 
     @Autowired private ActivationComputer activationComputer;
 
-    public void recompute(PrismObject<? extends FocusType> user, LifecycleStateModelType lifecycleModel) {
-        FocusType focusType = user.asObjectable();
-        ActivationType activationType = focusType.getActivation();
-        if (activationType != null) {
-            activationComputer.computeEffective(focusType.getLifecycleState(), activationType, lifecycleModel);
+    public void recompute(PrismObject<? extends FocusType> focusObject, LifecycleStateModelType lifecycleModel) {
+        FocusType focus = focusObject.asObjectable();
+        ActivationType activation = focus.getActivation();
+        if (activation != null) {
+            activationComputer.setValidityAndEffectiveStatus(focus.getLifecycleState(), activation, lifecycleModel);
         }
     }
 

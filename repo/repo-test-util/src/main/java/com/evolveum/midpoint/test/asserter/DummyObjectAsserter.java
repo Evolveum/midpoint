@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.test.asserter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -106,6 +104,11 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
 
     public DummyObjectAsserter<D,R> assertEnabled() {
         assertTrue(desc() + " is disabled", getDummyObjectAssertExists().isEnabled());
+        return this;
+    }
+
+    public DummyObjectAsserter<D,R> assertDisabled() {
+        assertFalse(desc() + " is enabled", getDummyObjectAssertExists().isEnabled());
         return this;
     }
 
