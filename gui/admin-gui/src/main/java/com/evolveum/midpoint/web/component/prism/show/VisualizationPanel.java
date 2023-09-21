@@ -57,6 +57,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     public static final String ID_ICON = "icon";
     public static final String ID_OVERVIEW = "overview";
     public static final String ID_MINIMIZE = "minimize";
+    public static final String ID_ONLY_OPERATIONAL_ITEMS_MESSAGE = "onlyOperationalItemsMessage";
     private static final String ID_HEADER_PANEL = "headerPanel";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
@@ -266,6 +267,12 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         minimize.add(new VisibleBehaviour(this::hasBodyContent));
         headerPanel.add(minimize);
 
+        final Label onlyOperationMessage = new Label(
+                ID_ONLY_OPERATIONAL_ITEMS_MESSAGE,
+                createStringResource("VisualizationPanel.onlyOperationalItemsMessage"));
+        onlyOperationMessage.add(new VisibleBehaviour(this::showOnlyOperationalContentMessage));
+        headerPanel.add(onlyOperationMessage);
+
         final WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
             if (minimalized.getObject()) {
@@ -304,6 +311,11 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         }
 
         return advanced && showOperationalItems && dto.hasOperationalContent();
+    }
+
+    private boolean showOnlyOperationalContentMessage() {
+        VisualizationDto dto = getModelObject();
+        return !advanced && !dto.hasNonOperationalContent() && dto.hasOperationalContent();
     }
 
     protected boolean isExistingViewableObject() {
