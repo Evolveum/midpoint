@@ -6,6 +6,7 @@ WARNING: THIS PAGE IS WORK IN PROGRESS
 == Introduction
 
 This document describe how to upgrade midPoint installation using tool called ninja.
+More overall information about ninja can be found xref:./index.adoc[here].
 Ninja supports two different upgrade paths:
 
 * Feature release upgrade - from previous version to next one (e.g. 4.7 -> 4.8)
@@ -13,9 +14,16 @@ Ninja supports two different upgrade paths:
 
 Deployment has to be upgraded to latest maintenance release before it can be upgraded to next version using ninja.
 
+For concrete examples of upgrade scenarios, please see xref:_sample_upgrade_scenarios[Sample upgrade scenarios].
+
 == Upgrade procedure
 
-Upgrade procedure consists of two main phases with several steps:
+Upgrade procedure consists of two main phases with several steps.
+First phase (preparation) can be executed while midPoint is still running, without any interruption of service.
+Second phase (upgrade) requires downtime of midPoint instance.
+This phase should be quick to minimize required downtime.
+All steps mentioned above are described in following sections, ninja will guide you through them.
+For concrete examples of upgrade scenarios, please see xref:_sample_upgrade_scenarios[Sample upgrade scenarios].
 
 . Preparation phase
 .. Upgrade tasks to use activities
@@ -26,12 +34,6 @@ Upgrade procedure consists of two main phases with several steps:
 .. Upgrade database schema
 .. Upgrade midPoint installation
 .. Update initial objects
-
-Preparation phase can be executed on running midPoint instance, without any interruption of service.
-Upgrade phase requires downtime of midPoint instance.
-Second phase should be quick to minimize required downtime.
-All steps mentioned above are described in following sections, ninja will guide you through them.
-For concrete examples of upgrade scenarios, please see xref:_sample_upgrade_scenarios[Sample upgrade scenarios].
 
 === Upgrade tasks to use activities
 
@@ -280,6 +282,10 @@ If there are no custom changes in securityPolicy, following command can be used:
 
 Following chapter contains few examples on how to upgrade midPoint using ninja.
 First part describes how to setup midPoint instance for upgrade scenarios.
+
+Variables used in examples:
+
+* `$MP_INSTALLATION` - MidPOint installation directory
 
 === Example setup
 
