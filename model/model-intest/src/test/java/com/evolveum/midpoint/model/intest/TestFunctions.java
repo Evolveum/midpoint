@@ -13,21 +13,25 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OB
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getExpressionProfile;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.*;
@@ -36,6 +40,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -184,7 +190,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         given("preparation call");
-        callCustomLibrary(task, result);
+        callTestLibraryFunction(task, result);
 
         when("function library is re-imported while it's in use");
         executeWithReImportInBetween(
@@ -202,7 +208,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         given("preparation call");
-        callCustomLibrary(task, result);
+        callTestLibraryFunction(task, result);
 
         when("function library is re-imported while it's in use");
         executeWithReImportInBetween(
@@ -222,7 +228,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         given("preparation call");
-        callCustomLibrary(task, result);
+        callTestLibraryFunction(task, result);
 
         when("function library is re-imported (without OID) while it's in use");
         FunctionLibraryType objectWithoutOid =
@@ -282,7 +288,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
             if (++iteration % 10_000 == 0) {
                 LOGGER.info("Iteration: {}", iteration);
             }
-            callCustomLibrary(task, result);
+            callTestLibraryFunction(task, result);
             result.computeStatus();
             result.cleanup();
 
@@ -305,7 +311,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         assertThat(terminated).as("action scheduler terminated").isTrue();
     }
 
-    private void callCustomLibrary(Task task, OperationResult result) throws CommonException {
+    private void callTestLibraryFunction(Task task, OperationResult result) throws CommonException {
         String libraryMethodExecutionCode = "testlib.execute('test', [:])";
         ExpressionType expressionBean = new ExpressionType();
         expressionBean.getExpressionEvaluator().add(
@@ -317,7 +323,12 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                         .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
-                        expressionBean, outputDefinition, getExpressionProfile(), "", task, result);
+                        ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.generated()),
+                        outputDefinition,
+                        ExpressionProfile.full(),
+                        "",
+                        task,
+                        result);
         var ctx = new ExpressionEvaluationContext(List.of(), new VariablesMap(), "", task);
         Collection<PrismPropertyValue<String>> nonNegativeValues =
                 Objects.requireNonNull(expression.evaluate(ctx, result))
@@ -340,7 +351,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         given("preparation call");
-        callCustomLibrary(task, result);
+        callTestLibraryFunction(task, result);
 
         when("cached function library is invalidated while it's in use");
         executeWithInvalidationInBetween(10_000, 50, 190, task, result);
@@ -444,5 +455,59 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                 getTestTask(),
                 getTestOperationResult(),
                 () -> libraryMidpointFunctions.describeResourceObjectSetLong(set));
+    }
+
+    /** Can a library function return {@link ObjectListType}? MID-8839. */
+    @Test
+    public void test310FunctionReturningObjects() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("calling library function");
+        var rv = callLibraryFunction("getSelectedObjects", ObjectListType.COMPLEX_TYPE, task, result);
+
+        then("three objects are returned");
+        assertThat(rv).as("return value").isInstanceOf(ObjectListType.class);
+        var objects = ((ObjectListType) rv).getObject();
+        assertThat(objects).as("objects returned").hasSize(3);
+
+        displayCollection("objects", objects);
+        Set<String> names = objects.stream()
+                .map(o -> o.getName().getOrig())
+                .collect(Collectors.toSet());
+        assertThat(names)
+                .as("object names")
+                .containsExactlyInAnyOrder("administrator", "Superuser", "SystemConfiguration");
+    }
+
+    private Object callLibraryFunction(String functionName, QName outputTypeName, Task task, OperationResult result)
+            throws CommonException {
+        ExpressionType expressionBean = new ExpressionType();
+        expressionBean.getExpressionEvaluator().add(
+                new ObjectFactory().createFunction(
+                        new FunctionExpressionEvaluatorType()
+                                .libraryRef(FUNCTION_LIBRARY_TESTLIB.ref())
+                                .name(functionName)));
+        PrismPropertyDefinition<?> outputDefinition =
+                PrismContext.get().definitionFactory()
+                        .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, outputTypeName);
+        Expression<PrismPropertyValue<?>, PrismPropertyDefinition<?>> expression =
+                expressionFactory.makeExpression(
+                        ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.generated()),
+                        outputDefinition,
+                        ExpressionProfile.full(),
+                        "",
+                        task,
+                        result);
+        var ctx = new ExpressionEvaluationContext(List.of(), new VariablesMap(), "", task);
+        Collection<PrismPropertyValue<?>> nonNegativeValues =
+                Objects.requireNonNull(expression.evaluate(ctx, result))
+                        .getNonNegativeValues();
+        PrismPropertyValue<?> value =
+                MiscUtil.extractSingletonRequired(
+                        nonNegativeValues,
+                        () -> new AssertionError("Unexpected multiple values returned: " + nonNegativeValues),
+                        () -> new AssertionError("No values returned"));
+        return value.getRealValue();
     }
 }
