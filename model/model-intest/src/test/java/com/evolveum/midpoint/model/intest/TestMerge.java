@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,14 +50,14 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, initTask, initResult,
                 "SAILOR", "PIRATE WANNABE");
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, initTask, initResult,
-                createPolyString("Pirate Wannabes"), createPolyString("Sailors"), createPolyString("Rum Club"), createPolyString("Lovers"));
+                PolyString.fromOrig("Pirate Wannabes"), PolyString.fromOrig("Sailors"), PolyString.fromOrig("Rum Club"), PolyString.fromOrig("Lovers"));
         assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, initTask, initResult);
         assignRole(USER_GUYBRUSH_OID, ROLE_CYAN_SAILOR_OID, initTask, initResult);
         assignRole(USER_GUYBRUSH_OID, ROLE_EMPTY_OID, initTask, initResult);
         assignRole(USER_GUYBRUSH_OID, ROLE_THIEF_OID, initTask, initResult);
 
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, initTask, initResult,
-                createPolyString("Pirate Brethren"), createPolyString("Sailors"), createPolyString("Rum Club"), createPolyString("Drinkers"));
+                PolyString.fromOrig("Pirate Brethren"), PolyString.fromOrig("Sailors"), PolyString.fromOrig("Rum Club"), PolyString.fromOrig("Drinkers"));
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, initTask, initResult);
         assignRole(USER_JACK_OID, ROLE_RED_SAILOR_OID, initTask, initResult);
         assignRole(USER_JACK_OID, ROLE_EMPTY_OID, initTask, initResult);
@@ -119,14 +121,14 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_GIVEN_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_FAMILY_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_FULL_NAME,
-                createPolyString(USER_GUYBRUSH_FULL_NAME));
+                PolyString.fromOrig(USER_GUYBRUSH_FULL_NAME));
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_LOCALITY,
-                createPolyString(USER_GUYBRUSH_LOCALITY));
+                PolyString.fromOrig(USER_GUYBRUSH_LOCALITY));
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_SUBTYPE,
                 "SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_ORGANIZATION,
-                createPolyString("Pirate Wannabes"), createPolyString("Lovers"));
+                PolyString.fromOrig("Pirate Wannabes"), PolyString.fromOrig("Lovers"));
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ACTIVATION);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ROLE_MEMBERSHIP_REF);
@@ -168,21 +170,21 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong object OID", USER_JACK_OID, object.getOid());
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_NAME, createPolyString(USER_JACK_USERNAME));
+                UserType.F_NAME, PolyString.fromOrig(USER_JACK_USERNAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_GIVEN_NAME, createPolyString(USER_JACK_GIVEN_NAME));
+                UserType.F_GIVEN_NAME, PolyString.fromOrig(USER_JACK_GIVEN_NAME));
         PrismAsserts.assertNoItem(object, UserType.F_FAMILY_NAME);
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_FULL_NAME, createPolyString(USER_GUYBRUSH_FULL_NAME));
+                UserType.F_FULL_NAME, PolyString.fromOrig(USER_GUYBRUSH_FULL_NAME));
         PrismAsserts.assertNoItem(object, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_LOCALITY, createPolyString(USER_GUYBRUSH_LOCALITY));
+                UserType.F_LOCALITY, PolyString.fromOrig(USER_GUYBRUSH_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
                 UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyValue(object,
                 UserType.F_ORGANIZATION,
-                createPolyString("Pirate Brethren"), createPolyString("Sailors"), createPolyString("Rum Club"),
-                createPolyString("Pirate Wannabes"), createPolyString("Lovers"), createPolyString("Drinkers"));
+                PolyString.fromOrig("Pirate Brethren"), PolyString.fromOrig("Sailors"), PolyString.fromOrig("Rum Club"),
+                PolyString.fromOrig("Pirate Wannabes"), PolyString.fromOrig("Lovers"), PolyString.fromOrig("Drinkers"));
 
         assertAssignedRoles(object, ROLE_SAILOR_OID, ROLE_RED_SAILOR_OID, ROLE_CYAN_SAILOR_OID,
                 ROLE_EMPTY_OID, ROLE_THIEF_OID, ROLE_PIRATE_OID, ROLE_NICE_PIRATE_OID);
@@ -226,12 +228,12 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(delta, UserType.F_NAME);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_GIVEN_NAME);
         PrismAsserts.assertPropertyReplace(delta, UserType.F_FAMILY_NAME);
-        PrismAsserts.assertPropertyReplace(delta, UserType.F_FULL_NAME, createPolyString(USER_JACK_FULL_NAME));
-        PrismAsserts.assertPropertyReplace(delta, UserType.F_ADDITIONAL_NAME, createPolyString(USER_JACK_ADDITIONAL_NAME));
-        PrismAsserts.assertPropertyReplace(delta, UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
+        PrismAsserts.assertPropertyReplace(delta, UserType.F_FULL_NAME, PolyString.fromOrig(USER_JACK_FULL_NAME));
+        PrismAsserts.assertPropertyReplace(delta, UserType.F_ADDITIONAL_NAME, PolyString.fromOrig(USER_JACK_ADDITIONAL_NAME));
+        PrismAsserts.assertPropertyReplace(delta, UserType.F_LOCALITY, PolyString.fromOrig(USER_JACK_LOCALITY));
         PrismAsserts.assertPropertyAdd(delta, UserType.F_SUBTYPE, USER_JACK_SUBTYPE);
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ORGANIZATION,
-                createPolyString("Pirate Brethren"), createPolyString("Drinkers"));
+                PolyString.fromOrig("Pirate Brethren"), PolyString.fromOrig("Drinkers"));
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ACTIVATION);
         PrismAsserts.assertNoItemDelta(delta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ROLE_MEMBERSHIP_REF);
@@ -273,22 +275,22 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong object OID", USER_GUYBRUSH_OID, object.getOid());
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_NAME, createPolyString(USER_GUYBRUSH_USERNAME));
+                UserType.F_NAME, PolyString.fromOrig(USER_GUYBRUSH_USERNAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_GIVEN_NAME, createPolyString(USER_GUYBRUSH_GIVEN_NAME));
+                UserType.F_GIVEN_NAME, PolyString.fromOrig(USER_GUYBRUSH_GIVEN_NAME));
         PrismAsserts.assertNoItem(object, UserType.F_FAMILY_NAME);
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_FULL_NAME, createPolyString(USER_JACK_FULL_NAME));
+                UserType.F_FULL_NAME, PolyString.fromOrig(USER_JACK_FULL_NAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_ADDITIONAL_NAME, createPolyString(USER_JACK_ADDITIONAL_NAME));
+                UserType.F_ADDITIONAL_NAME, PolyString.fromOrig(USER_JACK_ADDITIONAL_NAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
+                UserType.F_LOCALITY, PolyString.fromOrig(USER_JACK_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
                 UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyValue(object,
                 UserType.F_ORGANIZATION,
-                createPolyString("Pirate Brethren"), createPolyString("Sailors"), createPolyString("Rum Club"),
-                createPolyString("Pirate Wannabes"), createPolyString("Lovers"), createPolyString("Drinkers"));
+                PolyString.fromOrig("Pirate Brethren"), PolyString.fromOrig("Sailors"), PolyString.fromOrig("Rum Club"),
+                PolyString.fromOrig("Pirate Wannabes"), PolyString.fromOrig("Lovers"), PolyString.fromOrig("Drinkers"));
 
         assertAssignedRoles(object, ROLE_SAILOR_OID, ROLE_RED_SAILOR_OID, ROLE_CYAN_SAILOR_OID,
                 ROLE_EMPTY_OID, ROLE_THIEF_OID, ROLE_PIRATE_OID, ROLE_NICE_PIRATE_OID);
@@ -333,9 +335,9 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyAdd(delta, UserType.F_SUBTYPE,
                 "SAILOR");
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ORGANIZATION,
-                createPolyString("Pirate Wannabes"));
+                PolyString.fromOrig("Pirate Wannabes"));
         PrismAsserts.assertPropertyDelete(delta, UserType.F_ORGANIZATION,
-                createPolyString("Sailors"), createPolyString("Drinkers"));
+                PolyString.fromOrig("Sailors"), PolyString.fromOrig("Drinkers"));
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ACTIVATION);
         PrismAsserts.assertNoItemDelta(delta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ROLE_MEMBERSHIP_REF);
@@ -368,23 +370,23 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong object OID", USER_JACK_OID, object.getOid());
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_NAME, createPolyString(USER_JACK_USERNAME));
+                UserType.F_NAME, PolyString.fromOrig(USER_JACK_USERNAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_GIVEN_NAME, createPolyString(USER_JACK_GIVEN_NAME));
+                UserType.F_GIVEN_NAME, PolyString.fromOrig(USER_JACK_GIVEN_NAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_FAMILY_NAME, createPolyString(USER_JACK_FAMILY_NAME));
+                UserType.F_FAMILY_NAME, PolyString.fromOrig(USER_JACK_FAMILY_NAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_FULL_NAME, createPolyString(USER_JACK_FULL_NAME));
+                UserType.F_FULL_NAME, PolyString.fromOrig(USER_JACK_FULL_NAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_ADDITIONAL_NAME, createPolyString(USER_JACK_ADDITIONAL_NAME));
+                UserType.F_ADDITIONAL_NAME, PolyString.fromOrig(USER_JACK_ADDITIONAL_NAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
+                UserType.F_LOCALITY, PolyString.fromOrig(USER_JACK_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
                 UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR");
         PrismAsserts.assertPropertyValue(object,
                 UserType.F_ORGANIZATION,
-                createPolyString("Pirate Brethren"), createPolyString("Rum Club"),
-                createPolyString("Pirate Wannabes"));
+                PolyString.fromOrig("Pirate Brethren"), PolyString.fromOrig("Rum Club"),
+                PolyString.fromOrig("Pirate Wannabes"));
 
         assertAssignedRoles(object, ROLE_SAILOR_OID, ROLE_RED_SAILOR_OID, ROLE_CYAN_SAILOR_OID,
                 ROLE_EMPTY_OID, ROLE_THIEF_OID, ROLE_PIRATE_OID, ROLE_NICE_PIRATE_OID);
@@ -427,14 +429,14 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_GIVEN_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_FAMILY_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_FULL_NAME,
-                createPolyString(USER_GUYBRUSH_FULL_NAME));
+                PolyString.fromOrig(USER_GUYBRUSH_FULL_NAME));
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_LOCALITY,
-                createPolyString(USER_GUYBRUSH_LOCALITY));
+                PolyString.fromOrig(USER_GUYBRUSH_LOCALITY));
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_SUBTYPE,
                 "SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_ORGANIZATION,
-                createPolyString("Pirate Wannabes"), createPolyString("Lovers"));
+                PolyString.fromOrig("Pirate Wannabes"), PolyString.fromOrig("Lovers"));
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ACTIVATION);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ROLE_MEMBERSHIP_REF);
@@ -476,15 +478,15 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong object OID", USER_JACK_OID, object.getOid());
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_NAME, createPolyString(USER_JACK_USERNAME));
+                UserType.F_NAME, PolyString.fromOrig(USER_JACK_USERNAME));
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_GIVEN_NAME, createPolyString(USER_JACK_GIVEN_NAME));
+                UserType.F_GIVEN_NAME, PolyString.fromOrig(USER_JACK_GIVEN_NAME));
         PrismAsserts.assertNoItem(object, UserType.F_FAMILY_NAME);
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_FULL_NAME, createPolyString(USER_GUYBRUSH_FULL_NAME));
+                UserType.F_FULL_NAME, PolyString.fromOrig(USER_GUYBRUSH_FULL_NAME));
         PrismAsserts.assertNoItem(object, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertPropertyValue(object,
-                UserType.F_LOCALITY, createPolyString(USER_GUYBRUSH_LOCALITY));
+                UserType.F_LOCALITY, PolyString.fromOrig(USER_GUYBRUSH_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
                 UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR", "PIRATE WANNABE");
 

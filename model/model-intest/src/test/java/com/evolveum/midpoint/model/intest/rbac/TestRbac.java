@@ -191,7 +191,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result,
-                createPolyString(LOCALITY_TORTUGA));
+                PolyString.fromOrig(LOCALITY_TORTUGA));
 
         // THEN
         then();
@@ -1172,7 +1172,10 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result, createPolyString("Isla de Muerta"));
+        modifyUserReplace(
+                USER_JACK_OID, UserType.F_LOCALITY,
+                getDefaultOptions(), task, result,
+                PolyString.fromOrig("Isla de Muerta"));
 
         // THEN
         then();

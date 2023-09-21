@@ -14,6 +14,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -345,7 +347,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         when();
         modifyUserAdd(USER_HERMAN_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString(DummyResource.VALUE_MONSTER));
+                PolyString.fromOrig(DummyResource.VALUE_MONSTER));
 
         then();
         result.computeStatus();

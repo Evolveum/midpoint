@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -2255,7 +2256,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         when();
         modifyObjectReplaceProperty(UserType.class, USER_TRAINEE_OID, UserType.F_NAME,
-                ModelExecuteOptions.create().reconcile(), task, result, createPolyString("trainee01"));
+                ModelExecuteOptions.create().reconcile(), task, result, PolyString.fromOrig("trainee01"));
 
         then();
 //        assertResultStatus(result, OperationResultStatus.IN_PROGRESS);

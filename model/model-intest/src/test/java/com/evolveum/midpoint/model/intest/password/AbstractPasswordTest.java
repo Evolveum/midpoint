@@ -12,10 +12,10 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.Channel;
 
 import com.evolveum.midpoint.test.TestObject;
@@ -2109,7 +2109,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // WHEN
         when();
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_LOCALITY, task, result,
-                createPolyString("Monkey Island"));
+                PolyString.fromOrig("Monkey Island"));
 
         // THEN
         then();
@@ -4392,7 +4392,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // WHEN
         when();
         modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_LOCALITY, task, result,
-                createPolyString("Scabb Island"));
+                PolyString.fromOrig("Scabb Island"));
 
         // THEN
         then();

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.testing.story;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -65,7 +67,7 @@ public class TestWriter extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString(USER_JACK_LOCALITY));
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(USER_JACK_LOCALITY));
 
         // WHEN
         when();
@@ -91,7 +93,7 @@ public class TestWriter extends AbstractStoryTest {
         // WHEN
         when();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, createPolyString(USER_JACK_FULL_NAME_CAPTAIN));
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PolyString.fromOrig(USER_JACK_FULL_NAME_CAPTAIN));
 
         // THEN
         then();

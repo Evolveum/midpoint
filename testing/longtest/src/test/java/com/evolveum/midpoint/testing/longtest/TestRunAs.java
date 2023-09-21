@@ -193,7 +193,7 @@ public class TestRunAs extends AbstractLongTest {
 
         when();
         long starMillis = System.currentTimeMillis();
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, PolyString.fromOrig(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
         then();
@@ -254,7 +254,7 @@ public class TestRunAs extends AbstractLongTest {
 
         when();
         long starMillis = System.currentTimeMillis();
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, PolyString.fromOrig(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
         then();
@@ -315,7 +315,7 @@ public class TestRunAs extends AbstractLongTest {
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
         long starMillis = System.currentTimeMillis();
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, PolyString.fromOrig(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
         assertSuccess(result);
@@ -331,14 +331,14 @@ public class TestRunAs extends AbstractLongTest {
 
     @SuppressWarnings("SameParameterValue")
     private void assertUserOrgs(PrismObject<UserType> user, String organization, String principalUsername) {
-        PrismAsserts.assertPropertyValue(user, UserType.F_ORGANIZATION, createPolyString(organization));
+        PrismAsserts.assertPropertyValue(user, UserType.F_ORGANIZATION, PolyString.fromOrig(organization));
         PrismAsserts.assertPropertyValue(user, UserType.F_ORGANIZATIONAL_UNIT, expectedOrgUnits(organization, principalUsername));
     }
 
     private PolyString[] expectedOrgUnits(String organization, String principalUsername) {
         PolyString[] out = new PolyString[NUM_ORG_MAPPINGS];
         for (int i = 0; i < NUM_ORG_MAPPINGS; i++) {
-            out[i] = createPolyString(String.format("%03d%s: %s", i + 1, organization, principalUsername));
+            out[i] = PolyString.fromOrig(String.format("%03d%s: %s", i + 1, organization, principalUsername));
         }
         return out;
     }

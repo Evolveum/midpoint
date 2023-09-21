@@ -10,8 +10,6 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.CHANNEL_TEST_URI;
-
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -1907,7 +1905,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PolyStringType createPolyStringType(String string) {
-        return new PolyStringType(createPolyString(string));
+        return new PolyStringType(PolyString.fromOrig(string));
     }
 
     protected ItemPath getExtensionPath(QName propName) {
