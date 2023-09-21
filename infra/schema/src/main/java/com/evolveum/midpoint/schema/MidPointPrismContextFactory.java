@@ -66,6 +66,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
         context.setDefinitionFactory(createDefinitionFactory());
         context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
+        context.setDefaultReferenceTargetType(SchemaConstants.C_OBJECT_TYPE);
         context.setObjectsElementName(SchemaConstants.C_OBJECTS);
         context.setDefaultReferenceTypeName(ObjectReferenceType.COMPLEX_TYPE);
         context.setExtensionContainerTypeName(ExtensionType.COMPLEX_TYPE);
