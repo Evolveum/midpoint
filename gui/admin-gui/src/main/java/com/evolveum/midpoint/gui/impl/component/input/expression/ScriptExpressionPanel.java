@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPan
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -207,6 +208,9 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         }
 
         public ScriptExpressionWrapper code(String code) {
+            if (StringUtils.isNotEmpty(code)) {
+                code = code.replaceAll("(\r\n)", "\n");
+            }
             this.code = code;
             return ScriptExpressionPanel.ScriptExpressionWrapper.this;
         }
