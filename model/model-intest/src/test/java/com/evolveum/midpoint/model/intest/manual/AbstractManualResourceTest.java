@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -1026,7 +1029,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // WHEN
         when();
-        modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME_PIRATE));
+        modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, PolyString.fromOrig(USER_WILL_FULL_NAME_PIRATE));
 
         // THEN
         then();
@@ -1697,7 +1700,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 ModelExecuteOptions.create().raw(),
                 task,
                 result,
-                createPolyString("Phoenix The Second"));
+                PolyString.fromOrig("Phoenix The Second"));
 
         assignAccountToUser(USER_PHOENIX_2.oid, getResourceOid(), null, task, result);
 

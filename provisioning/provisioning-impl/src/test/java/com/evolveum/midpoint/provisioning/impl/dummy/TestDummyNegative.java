@@ -84,6 +84,10 @@ public class TestDummyNegative extends AbstractDummyTest {
     private static final TestResource RESOURCE_INSTANCE_WITH_BROKEN_CONNECTOR_REF = TestResource.file(
             TEST_DIR, "resource-instance-with-broken-connector-ref.xml", "201e83f6-184e-46b0-92ec-16d1b639f6cb");
 
+    private static final DummyTestResource RESOURCE_DUMMY_BROKEN_ATTRIBUTE_DEF = new DummyTestResource(
+            TEST_DIR, "resource-dummy-broken-attribute-def.xml", "04e54cf7-87df-4b19-9548-fc256b7d585a",
+            "broken-attribute-def");
+
     private static void addFragileAttributes(DummyResourceContoller controller)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         // This gives us a potential to induce exceptions during ConnId->object conversion.
@@ -121,6 +125,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         RESOURCE_WITH_BROKEN_CONNECTOR_REF.initRaw(this, initResult);
         RESOURCE_TEMPLATE_WITH_BROKEN_CONNECTOR_REF.initRaw(this, initResult);
         RESOURCE_INSTANCE_WITH_BROKEN_CONNECTOR_REF.initRaw(this, initResult);
+
+        initDummyResource(RESOURCE_DUMMY_BROKEN_ATTRIBUTE_DEF, initResult); // intentionally not executing the test
     }
 
     //region Broken connectorRef
@@ -876,6 +882,23 @@ public class TestDummyNegative extends AbstractDummyTest {
         RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.controller.getDummyResource().addAccount(account);
     }
     //endregion
+
+    @Test
+    public void test300BrokenAttributeDef() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("testing resource with broken attribute definition");
+        var testResult = provisioningService.testResource(RESOURCE_DUMMY_BROKEN_ATTRIBUTE_DEF.oid, task, result);
+
+        then("error is understandable enough");
+        displayDumpable("test result", testResult);
+        assertThatOperationResult(testResult)
+                .isFatalError()
+                .hasMessageContaining("Couldn't process resource schema refinements")
+                .hasMessageContaining("Missing `ref` element in attribute definition in object type 'ACCOUNT/default' definition in resource:04e54cf7-87df-4b19-9548-fc256b7d585a(resource-dummy-broken-attribute-def)")
+                .hasMessageContaining("schemaHandling/objectType/123/attribute/456");
+    }
 
     private boolean isSqaleRepository() {
         return this.repositoryService instanceof SqaleRepositoryService;

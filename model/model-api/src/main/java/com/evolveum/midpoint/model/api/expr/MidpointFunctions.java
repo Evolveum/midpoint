@@ -861,6 +861,7 @@ public interface MidpointFunctions {
 
     List<String> toList(String... s);
 
+    /** Uses repository service directly, bypassing authorization checking. */
     long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException;
 
     Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
@@ -877,6 +878,7 @@ public interface MidpointFunctions {
 
     Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
+    /** Uses repository service directly, bypassing authorization checking. */
     UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException;
 
     // todo here we could select "functional" org.units in order to filter out e.g. project managers from the list of managers

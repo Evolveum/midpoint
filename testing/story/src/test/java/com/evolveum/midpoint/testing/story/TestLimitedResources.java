@@ -10,8 +10,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.List;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -115,7 +115,7 @@ public class TestLimitedResources extends AbstractStoryTest {
         // WHEN
         when();
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(OU_TREASURE_HUNT));
+                PolyString.fromOrig(OU_TREASURE_HUNT));
 
         // THEN
         then();
@@ -136,7 +136,7 @@ public class TestLimitedResources extends AbstractStoryTest {
         // WHEN
         when();
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(OU_LOOTING), createPolyString(OU_SAILING));
+                PolyString.fromOrig(OU_LOOTING), PolyString.fromOrig(OU_SAILING));
 
         // THEN
         then();
@@ -157,7 +157,7 @@ public class TestLimitedResources extends AbstractStoryTest {
         // WHEN
         when();
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(OU_LOOTING));
+                PolyString.fromOrig(OU_LOOTING));
 
         // THEN
         then();
@@ -181,7 +181,7 @@ public class TestLimitedResources extends AbstractStoryTest {
         // WHEN
         when();
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-                createPolyString(OU_TREASURE_HUNT), createPolyString(OU_SAILING));
+                PolyString.fromOrig(OU_TREASURE_HUNT), PolyString.fromOrig(OU_SAILING));
 
         // THEN
         then();

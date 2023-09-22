@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,6 +40,8 @@ public class BadgePanel extends BasePanel<Badge> {
     }
 
     private void initLayout() {
+        add(AttributeModifier.replace("title", getModelObject().getTitle()));
+
         add(AttributeAppender.append("class", () -> getModelObject().getCssClass()));
         add(new VisibleBehaviour(() ->
                 getModelObject() != null

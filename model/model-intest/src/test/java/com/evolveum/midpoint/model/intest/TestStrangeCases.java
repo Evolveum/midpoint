@@ -657,7 +657,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setModifyBreakMode(BreakMode.CONFLICT);
 
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString("High seas"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig("High seas"));
 
         then();
         result.computeStatus();
@@ -666,7 +666,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_LOCALITY, createPolyString("High seas"));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_LOCALITY, PolyString.fromOrig("High seas"));
 
         assertLiveLinks(userJack, 2);
         String accountJackRedOidAfter = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);

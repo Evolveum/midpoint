@@ -92,7 +92,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         repoAdd(USER_MATCHING, initResult);
         repoAdd(USER_NOT_MATCHING, initResult);
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, initTask, initResult, createPolyString(JACK_TITLE_PIRATE));
+        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, initTask, initResult, PolyString.fromOrig(JACK_TITLE_PIRATE));
     }
 
     @Override
@@ -140,7 +140,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         // WHEN
         when();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_CAPTAIN));
+        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, PolyString.fromOrig(JACK_TITLE_CAPTAIN));
 
         // THEN
         then();
@@ -208,7 +208,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         // WHEN
         when();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_WHATEVER_UPPER));
+        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, PolyString.fromOrig(JACK_TITLE_WHATEVER_UPPER));
 
         // THEN
         then();
@@ -368,7 +368,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         // WHEN
         when();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_WHATEVER_LOWER));
+        modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, PolyString.fromOrig(JACK_TITLE_WHATEVER_LOWER));
 
         // THEN
         then();

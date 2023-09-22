@@ -44,6 +44,9 @@ public class LightweightTaskManager {
     }
 
     public Collection<TaskQuartzImpl> getTransientSubtasks(String identifier) {
+        if (identifier == null) {
+            return List.of();
+        }
         RunningTaskQuartzImpl runningInstance = localNodeState.getLocallyRunningTaskByIdentifier(identifier);
         if (runningInstance != null) {
             List<TaskQuartzImpl> subtasks = new ArrayList<>();

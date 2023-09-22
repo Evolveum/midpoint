@@ -13,6 +13,7 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -2111,7 +2112,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
             .assertLiveLinks(0);
         assertNoShadow(accountWillOid);
 
-        modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME));
+        modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, PolyString.fromOrig(USER_WILL_FULL_NAME));
 
         // WHEN
         assignWillRoleOne(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);

@@ -728,7 +728,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-                createPolyString("Cpt. Jack Sparrow"));
+                PolyString.fromOrig("Cpt. Jack Sparrow"));
 
         // THEN
         then();
@@ -795,7 +795,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-                createPolyString(USER_JACK_FULL_NAME));
+                PolyString.fromOrig(USER_JACK_FULL_NAME));
 
         // THEN
         then();
