@@ -1867,6 +1867,10 @@ CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modif
 -- and also https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/
 CREATE TABLE m_assignment (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+
+    -- Container ID, unique in the scope of the whole object (owner).
+    -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
+    cid BIGINT NOT NULL,
     -- this is different from other containers, this is not generated, app must provide it
     containerType ContainerType NOT NULL CHECK (containerType IN ('ASSIGNMENT', 'INDUCEMENT')),
     ownerType ObjectType NOT NULL,
@@ -1912,8 +1916,7 @@ CREATE TABLE m_assignment (
     modifyTimestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
-)
-    INHERITS(m_container);
+);
 
 CREATE INDEX m_assignment_policySituation_idx
     ON m_assignment USING gin(policysituations gin__int_ops);
