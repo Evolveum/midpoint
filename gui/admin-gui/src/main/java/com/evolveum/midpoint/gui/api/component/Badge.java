@@ -40,6 +40,7 @@ public class Badge implements Serializable {
     private String iconCssClass;
 
     private String text;
+    private String title;
 
     public Badge() {
         this(null, null);
@@ -50,9 +51,14 @@ public class Badge implements Serializable {
     }
 
     public Badge(String cssClass, String iconCssClass, String text) {
+        this(cssClass, iconCssClass, text, null);
+    }
+
+    public Badge(String cssClass, String iconCssClass, String text, String title) {
         this.cssClass = cssClass;
         this.iconCssClass = iconCssClass;
         this.text = text;
+        this.title = title;
     }
 
     public String getCssClass() {
@@ -86,4 +92,13 @@ public class Badge implements Serializable {
     public void setText(String text) {
         this.text = text;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
 }

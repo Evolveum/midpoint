@@ -404,7 +404,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
-        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn());
+        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn(PageSimulationResultObject.this));
         columns.add(new AjaxLinkColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
 
             @Override
