@@ -226,6 +226,9 @@ The second batch of accounts will be audited when they are later approved and cr
 This goes to the second audit record.
 This situation may also happen even if there are no approvals, e.g. in case of resource dependencies or even complex inbound-outbound-template interactions.
 
+Auditing of `RESOURCE` stage is enabled by default.
+This feature can be turned off in system configuration (`systemConfiguration/audit/eventRecording/recordResourceStageChanges`).
+
 === Event Outcomes
 
 The result of the executed operation.
