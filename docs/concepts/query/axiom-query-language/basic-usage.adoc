@@ -1,5 +1,7 @@
-= Example Axiom Queries
-:page-since: "4.5"
+= Basic usage of Axiom
+:page-since: "4.4"
+:page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
+:page-display-order: 100
 
 == Searching by Archetype Name
 
@@ -179,7 +181,6 @@ NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository o
     </filter>
   </referencedBy>
 </filter>
-)
 ----
 
 === Search on assigned role using fullText
