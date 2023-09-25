@@ -8,11 +8,12 @@
 package com.evolveum.midpoint.model.impl.visualizer;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 @Component
 public class ActivationDescriptionHandler implements VisualizationDescriptionHandler {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivationDescriptionHandler.class);
 
     @Override
     public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
@@ -112,15 +115,23 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
     }
 
     private ActivationStatusType getRealValueForDelta(
-            VisualizationImpl visualization, VisualizationImpl parentVisualization, ItemName path) {
-        ItemDelta<PrismValue, ItemDefinition<?>> deltaItem = parentVisualization.getSourceDelta().findItemDelta(ItemPath.create(
-                visualization.getSourceRelPath(), path));
+            VisualizationImpl visualization, VisualizationImpl parentVisualization, ItemName itemPath) {
         try {
+            PrismContainerValue<?> value = visualization.getSourceValue();
+            ItemPath path = ItemPath.create(visualization.getSourceRelPath());
+            if (value.getId() != null) {
+                path = path.append(value.getId());
+            }
+            path = path.append(itemPath);
+
+            PropertyDelta<Object> deltaItem = parentVisualization.getSourceDelta().findPropertyDelta(ItemPath.create(
+                    visualization.getSourceRelPath(), path));
+
             if (deltaItem != null && deltaItem.getItemNew() != null) {
                 return (ActivationStatusType) deltaItem.getItemNew().getRealValue();
             }
-        } catch (SchemaException e) {
-            //ignore it and try sourceValue
+        } catch (Exception e) {
+            LOGGER.trace("Couldn't find delta item for path " + itemPath, e);
         }
         return null;
     }
