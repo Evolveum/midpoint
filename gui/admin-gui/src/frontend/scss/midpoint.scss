@@ -1280,7 +1280,7 @@ td .prism-property-value {
 
 @include bg-variant(".search-item", $gray-300, true);
 
-// deprecated, uses should be replaced by "d-flex gap-1 pl-1 bg-light rounded-sm align-items-center"
+// deprecated, uses should be replaced by "d-flex gap-1 px-2 bg-light rounded-sm align-items-center"
 .search-item {
   display: flex;
   gap: 0.25em;
@@ -1294,6 +1294,12 @@ td .prism-property-value {
     padding-bottom: add($input-padding-y-sm, $input-border-width);
     @include font-size($input-font-size-sm);
     line-height: $input-line-height-sm;
+  }
+}
+
+.search-item-field {
+  .search-item-controls a > i {
+    font-size: 0.8rem;
   }
 }
 
@@ -1578,6 +1584,7 @@ fieldset.objectButtons {
   flex-direction: row;
   align-items: stretch;
   background-color: $white;
+  border-radius: 0.25rem;
   overflow: hidden;
   box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
 }

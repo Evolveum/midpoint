@@ -634,6 +634,7 @@
     </mergeConfiguration>
     <audit>
         <eventRecording>
+            <recordResourceStageChanges>false</recordResourceStageChanges>
             <recordResourceOids>true</recordResourceOids>
             <expression>
                 <script>
