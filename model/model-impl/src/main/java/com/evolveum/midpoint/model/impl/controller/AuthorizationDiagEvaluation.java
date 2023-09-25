@@ -111,8 +111,9 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
         } else {
             FocusType subject = b.modelObjectResolver.resolve(
                     subjectRef, FocusType.class, null, "subject", task, result);
+            // For Authorization Playground page, we don't need to support GUI config
             return b.securityContextManager.getUserProfileService().getPrincipal(
-                    subject.asPrismObject(), null, result);
+                    subject.asPrismObject(), null, false, result);
         }
     }
 

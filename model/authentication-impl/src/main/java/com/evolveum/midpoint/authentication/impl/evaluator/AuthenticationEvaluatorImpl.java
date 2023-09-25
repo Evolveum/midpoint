@@ -59,7 +59,7 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         Class<? extends FocusType> clazz = authCtx.getPrincipalType();
         MidPointPrincipal principal;
         try {
-            principal = focusProfileService.getPrincipal(query, clazz);
+            principal = focusProfileService.getPrincipal(query, clazz, authCtx.isSupportGuiConfigByChannel());
         } catch (ObjectNotFoundException e) {
             recordModuleAuthenticationFailure(username, null, connEnv, null, "no focus");
             throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));

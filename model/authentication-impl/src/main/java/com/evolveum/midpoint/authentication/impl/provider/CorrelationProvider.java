@@ -129,17 +129,6 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
         }
     }
 
-    private Authentication createAuthenticationToken(ObjectType owner, Class<? extends FocusType> focusType) {
-        try {
-            MidPointPrincipal principal = focusProfileService.getPrincipalByOid(owner.getOid(), focusType);
-            return new UsernamePasswordAuthenticationToken(principal, null);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException e) {
-            throw new RuntimeException(e);
-            //TODO
-        }
-    }
-
     private CompleteCorrelationResult correlate(
             CorrelationVerificationToken correlationToken,
             String archetypeOid,

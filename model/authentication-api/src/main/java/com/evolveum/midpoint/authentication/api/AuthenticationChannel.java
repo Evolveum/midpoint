@@ -43,6 +43,8 @@ public interface AuthenticationChannel {
 
     boolean isSupportActivationByChannel();
 
+    boolean isSupportGuiConfigByChannel();
+
     String getUrlSuffix();
 
     boolean isPostAuthenticationEnabled();

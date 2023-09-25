@@ -320,8 +320,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             failAuthorization(attorneyAuthorizationAction, null, autzParams, result);
         }
 
+        // For running operations by Power Of Attorney, we don't need to support GUI config
         MidPointPrincipal donorPrincipal =
-                securityContextManager.getUserProfileService().getPrincipal(donor, limitationsCollector, result);
+                securityContextManager.getUserProfileService().getPrincipal(donor, limitationsCollector, false, result);
         donorPrincipal.setAttorney(attorneyPrincipal.getFocus());
 
         // chain principals so we can easily drop the power of attorney and return back to original identity

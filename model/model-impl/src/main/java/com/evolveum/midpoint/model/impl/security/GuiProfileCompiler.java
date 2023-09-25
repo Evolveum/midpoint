@@ -86,11 +86,20 @@ public class GuiProfileCompiler {
             GuiProfiledPrincipal principal,
             PrismObject<SystemConfigurationType> systemConfiguration,
             AuthorizationTransformer authorizationTransformer,
+            boolean supportGuiConfig,
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
+
         LOGGER.debug("Going to compile focus profile for {}", principal.getName());
+
+        if (!supportGuiConfig) {
+            collectAuthzOnly(principal, authorizationTransformer, task, result);
+            principal.setCompiledGuiProfile(new CompiledGuiProfile());
+            return;
+        }
+
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(),
                 null, systemConfiguration, task, result));
 
@@ -146,6 +155,29 @@ public class GuiProfileCompiler {
             adminGuiConfigurations.add(user.getAdminGuiConfiguration());
         } else if (focus instanceof AbstractRoleType role && role.getAdminGuiConfiguration() != null) {
             adminGuiConfigurations.add(role.getAdminGuiConfiguration());
+        }
+    }
+
+    private void collectAuthzOnly (
+            GuiProfiledPrincipal principal,
+            AuthorizationTransformer authorizationTransformer,
+            Task task,
+            OperationResult result) throws SchemaException, ConfigurationException {
+        FocusType focus = principal.getFocus(); // [EP:APSO] DONE, focus is from repository
+
+        Collection<? extends EvaluatedAssignment> evaluatedAssignments = // [EP:APSO] DONE, see the called method
+                assignmentCollector.collect(focus.asPrismObject(), task, result);
+        for (EvaluatedAssignment assignment : evaluatedAssignments) {
+            if (assignment.isValid()) {
+                addAuthorizations(principal, assignment.getAuthorizations(), authorizationTransformer);
+            }
+            for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
+                if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
+                    principal.addDelegationTarget(
+                            target.getTarget(),
+                            target.getAssignmentPath().getOtherPrivilegesLimitation());
+                }
+            }
         }
     }
 

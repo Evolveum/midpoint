@@ -56,7 +56,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     private PrismContext prismContext;
 
     @Override
-    public MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
+    public MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         PrismObject<? extends FocusType> focus;
         try {
@@ -71,24 +71,25 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return getPrincipal(focus, null, result);
+        return getPrincipal(focus, null, supportGuiConfig, result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException {
+    public MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
         FocusType focus = getUserByOid(oid, clazz, result);
-        return getPrincipal(focus.asPrismObject(), result);
+        return getPrincipal(focus.asPrismObject(), supportGuiConfig, result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, OperationResult result) throws SchemaException {
-        return getPrincipal(focus, null, result);
+    public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, boolean supportGuiConfig, OperationResult result)
+            throws SchemaException {
+        return getPrincipal(focus, null, supportGuiConfig, result);
     }
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus,
-            AuthorizationTransformer authorizationLimiter, OperationResult result) {
+            AuthorizationTransformer authorizationLimiter, boolean supportGuiConfig, OperationResult result) {
         if (focus == null) {
             return null;
         }
@@ -210,7 +211,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 //         TODO Auto-generated method stub
         try {
-            return getPrincipal(username, FocusType.class);
+            return getPrincipal(username, FocusType.class, true);
         } catch (ObjectNotFoundException e) {
             throw new UsernameNotFoundException(e.getMessage(), e);
         } catch (SchemaException e) {
