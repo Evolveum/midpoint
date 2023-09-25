@@ -1255,6 +1255,8 @@ CREATE TABLE m_connector (
     connectorHostRefTargetOid UUID,
     connectorHostRefTargetType ObjectType,
     connectorHostRefRelationId INTEGER REFERENCES m_uri(id),
+    displayNameOrig TEXT,
+    displayNameNorm TEXT,
     targetSystemTypes INTEGER[],
     available BOOLEAN
 )
@@ -2158,4 +2160,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(23, $$ SELECT 1 $$, true);
+call apply_change(24, $$ SELECT 1 $$, true);

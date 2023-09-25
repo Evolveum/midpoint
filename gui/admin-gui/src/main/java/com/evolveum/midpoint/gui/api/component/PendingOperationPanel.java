@@ -38,7 +38,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
     private void initLayout() {
         List<Badge> badgeList = getModelObject()
                 .stream()
-                .map(op -> new Badge(createBadgeClass(op), null, createLabelText(op), null))
+                .map(op -> new Badge(createBadgeClass(op), null, createLabelText(op), createTooltip(op)))
                 .toList();
         add(new BadgeListPanel(
                 ID_OPERATION,

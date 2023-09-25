@@ -427,6 +427,12 @@ CREATE TRIGGER m_role_analysis_session_oid_delete_tr AFTER DELETE ON m_role_anal
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 $aa$);
 
+-- Display Name for Connector Type
+
+call apply_change(24, $aa$
+    ALTER TABLE m_connector ADD  displayNameOrig TEXT;
+    ALTER TABLE m_connector ADD displayNameNorm TEXT;
+$aa$);
 
 ---
 -- WRITE CHANGES ABOVE ^^
