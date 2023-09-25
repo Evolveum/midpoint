@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.ProjectSearchItemPanel;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,7 +42,9 @@ public class ProjectSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRe
 
     @Override
     public String getName() {
-        return "abstractRoleMemberPanel.project";
+        var display = projectConfig == null ? null : projectConfig.getDisplay();
+        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+        return StringUtils.isEmpty(name) ? "abstractRoleMemberPanel.project" : name;
     }
 
 
@@ -60,7 +63,8 @@ public class ProjectSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRe
 
     @Override
     public String getTitle() {
-        return ""; //todo
+        var display = projectConfig == null ? null : projectConfig.getDisplay();
+        return GuiDisplayTypeUtil.getTooltip(display);
     }
 
     public PrismReferenceDefinition getProjectRefDef() {
@@ -75,6 +79,7 @@ public class ProjectSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRe
 
     @Override
     public boolean isVisible() {
-        return true;
+        return projectConfig == null
+                || WebComponentUtil.getElementVisibility(projectConfig.getVisibility());
     }
 }

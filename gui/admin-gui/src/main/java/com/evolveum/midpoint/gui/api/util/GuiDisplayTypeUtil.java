@@ -261,6 +261,13 @@ public class GuiDisplayTypeUtil {
         return LocalizationUtil.translatePolyString(displayType.getHelp());
     }
 
+    public static String getTooltip(DisplayType displayType) {
+        if (displayType == null || displayType.getTooltip() == null) {
+            return "";
+        }
+        return LocalizationUtil.translatePolyString(displayType.getTooltip());
+    }
+
     public static String getDisplayTypeTitle(DisplayType displayType) {
         if (displayType == null || displayType.getTooltip() == null) {
             return "";

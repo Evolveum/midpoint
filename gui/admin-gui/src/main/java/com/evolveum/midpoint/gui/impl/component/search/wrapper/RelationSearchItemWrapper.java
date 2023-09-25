@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.RelationSearchItemPanel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -17,6 +19,8 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,8 +44,10 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
         return CollectionUtils.isNotEmpty(relationSearchItemConfigurationType.getSupportedRelations());
     }
 
+    @Override
     public boolean isVisible() {
-        return true;
+        return relationSearchItemConfigurationType == null
+                || WebComponentUtil.getElementVisibility(relationSearchItemConfigurationType.getVisibility());
     }
 
     @Override
@@ -51,18 +57,23 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
 
     @Override
     public String getName() {
-        return "relationDropDownChoicePanel.relation";
+        var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
+        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+        return StringUtils.isEmpty(name) ? "relationDropDownChoicePanel.relation" : name;
     }
 
     @Override
     public String getHelp() {
-        return "relationDropDownChoicePanel.tooltip.relation";
+        var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
+        var help = GuiDisplayTypeUtil.getHelp(display);
+        return StringUtils.isEmpty(help) ? "relationDropDownChoicePanel.tooltip.relation" : help;
     }
 
 
     @Override
     public String getTitle() {
-        return ""; //todo
+        var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
+        return GuiDisplayTypeUtil.getTooltip(display);
     }
 
     @Override

@@ -6,11 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.IndirectSearchItemPanel;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IndirectSearchItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean> {
 
@@ -22,7 +26,8 @@ public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean
 
     @Override
     public boolean isVisible() {
-        return true;
+        return indirectConfig == null
+                || WebComponentUtil.getElementVisibility(indirectConfig.getVisibility());
     }
 
     @Override
@@ -37,17 +42,22 @@ public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean
 
     @Override
     public String getName() {
-        return "abstractRoleMemberPanel.indirectMembers";
+        var display = indirectConfig == null ? null : indirectConfig.getDisplay();
+        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+        return StringUtils.isEmpty(name) ? "abstractRoleMemberPanel.indirectMembers" : name;
     }
 
     @Override
     public String getHelp() {
-        return "abstractRoleMemberPanel.indirectMembers.tooltip";
+        var display = indirectConfig == null ? null : indirectConfig.getDisplay();
+        var help = GuiDisplayTypeUtil.getHelp(display);
+        return StringUtils.isEmpty(help) ? "abstractRoleMemberPanel.indirectMembers.tooltip" : help;
     }
 
     @Override
     public String getTitle() {
-        return ""; //todo
+        var display = indirectConfig == null ? null : indirectConfig.getDisplay();
+        return GuiDisplayTypeUtil.getTooltip(display);
     }
 
     @Override

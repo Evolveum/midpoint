@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.TenantSearchItemPanel;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -40,7 +41,9 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
 
     @Override
     public String getName() {
-        return "abstractRoleMemberPanel.tenant";
+        var display = tenantConfig == null ? null : tenantConfig.getDisplay();
+        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+        return StringUtils.isEmpty(name) ? "abstractRoleMemberPanel.tenant" : name;
     }
 
 
@@ -59,7 +62,8 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
 
     @Override
     public String getTitle() {
-        return ""; //todo
+        var display = tenantConfig == null ? null : tenantConfig.getDisplay();
+        return GuiDisplayTypeUtil.getTooltip(display);
     }
 
     public PrismReferenceDefinition getTenantDefinition() {
@@ -74,6 +78,6 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
 
     @Override
     public boolean isVisible() {
-        return true;
+        return tenantConfig == null || WebComponentUtil.getElementVisibility(tenantConfig.getVisibility());
     }
 }
