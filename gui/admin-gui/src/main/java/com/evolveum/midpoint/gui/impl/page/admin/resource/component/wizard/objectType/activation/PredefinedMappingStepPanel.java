@@ -94,4 +94,9 @@ public class PredefinedMappingStepPanel
             return ItemVisibility.AUTO;
         };
     }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
+    }
 }
