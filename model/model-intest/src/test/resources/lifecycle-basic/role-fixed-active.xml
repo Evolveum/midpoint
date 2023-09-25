@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="5df4cceb-07c4-4097-ac06-748ac1a3c938">
+    <name>fixed-active</name>
+    <documentation>Role that is always in `active` LC state.</documentation>
+    <lifecycleState>active</lifecycleState>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <expression>
+                    <value>fixed-active</value>
+                </expression>
+                <target>
+                    <path>organization</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <authorization>
+        <action>http://test.evolveum.com/authorization#fixed-active</action>
+    </authorization>
+</role>

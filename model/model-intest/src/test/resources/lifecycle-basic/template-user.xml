@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="1df94b0b-def5-4fcc-a109-965a1e8270db">
+    <name>template-user</name>
+    <item>
+        <ref>organization</ref>
+        <!-- this is to clear this property when assignments' state changes -->
+        <mapping>
+            <expression>
+                <script>
+                    <code>null</code>
+                </script>
+            </expression>
+            <target>
+                <set>
+                    <predefined>all</predefined>
+                </set>
+            </target>
+        </mapping>
+    </item>
+</objectTemplate>
