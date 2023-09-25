@@ -33,7 +33,7 @@ However, all the business roles have common characteristics such as common appro
 Instead of copying the common parts into each and every business role, the business roles may be assigned a common _archetype_ which acts as a meta-role.
 Archetype defines all the common characteristics of all business roles, therefore the RBAC system is much easier to maintain.
 
-MidPoint advanced RBAC mechanism, together with role auto-assignment capabilities and other policy mechanisms create a very powerful combination to express complex policies.
+MidPoint advanced RBAC mechanism, together with role auto-assignment capabilities and other policy mechanisms create a very powerful combination to express complex policies: xref:../policy-based-rbac/[policy-based RBAC].
 Although midPoint policy mechanisms are based on RBAC principles, its capabilities are similar to other popular access control models, such as attribute-based access control (ABAC) or policy-based access control (PBAC).
 
 .Terminology
@@ -58,7 +58,8 @@ image::rbac-1.png[]
 
 The usual use of roles is to imply accounts on the resources and therefore ease the user and account administration by employing RBAC approach.
 However, this is usually not enough to implement efficient and maintainable identity management solution.
-The simple approach leads to xref:/iam/role-explosion/[role explosion]. The roles needs to contain parts of logic to make them efficient.
+The simple approach leads to xref:/iam/role-explosion/[role explosion].
+The roles need to contain parts of logic to make them efficient.
 
 
 === Implied Account Attributes
