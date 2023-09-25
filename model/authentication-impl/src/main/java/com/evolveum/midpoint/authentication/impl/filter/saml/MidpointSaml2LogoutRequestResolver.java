@@ -78,7 +78,9 @@ public class MidpointSaml2LogoutRequestResolver implements Saml2LogoutRequestRes
     private List<RelyingPartyRegistration> createRegistrationsWithFakeKeys(InMemoryRelyingPartyRegistrationRepository relyingPartyRegistrations) {
         List<RelyingPartyRegistration> registrations = new ArrayList<>();
         relyingPartyRegistrations.forEach(registration -> {
-            if (registration.getSigningX509Credentials().isEmpty()) {
+            if (registration.getAssertingPartyDetails() != null
+                    && !registration.getAssertingPartyDetails().getWantAuthnRequestsSigned()
+                    && registration.getSigningX509Credentials().isEmpty()) {
                 LOGGER.debug("Relying party registration with id: " + registration.getRegistrationId()
                         + " doesn't contain any singing key. Logout request need sign key for signing of logout request, "
                         + "so we try creating fake key and certificate.");
@@ -189,7 +191,7 @@ public class MidpointSaml2LogoutRequestResolver implements Saml2LogoutRequestRes
     private X509v3CertificateBuilder getX509v3CertificateBuilder(RSAPrivateCrtKey privateKey, SubjectPublicKeyInfo subPubKeyInfo) {
         Calendar cal = Calendar.getInstance();
         Date from = cal.getTime();
-        cal.add(Calendar.HOUR, 1);
+        cal.add(Calendar.MINUTE, 10);
         Date to = cal.getTime();
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
                 new X500Name("CN=MidPoint,O=Evolveum,L=,C="),
