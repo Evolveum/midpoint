@@ -109,6 +109,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
             // For expression using runAsRef, task execution, etc., we don't need to support GUI config
             principal = userProfileService.getPrincipal(focus, false, result);
         }
+        principal.checkEnabled();
         setupPreAuthenticatedSecurityContext(principal);
     }
 
