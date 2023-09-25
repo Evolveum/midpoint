@@ -44,6 +44,11 @@ public class QConnector extends QAssignmentHolder<MConnector> {
     public static final ColumnMetadata AVAILABLE =
             ColumnMetadata.named("available").ofType(Types.BOOLEAN);
 
+    public static final ColumnMetadata DISPLAY_NAME_ORIG =
+            ColumnMetadata.named("displayNameOrig").ofType(Types.VARCHAR);
+    public static final ColumnMetadata DISPLAY_NAME_NORM =
+            ColumnMetadata.named("displayNameNorm").ofType(Types.VARCHAR);
+
     public final StringPath connectorBundle = createString("connectorBundle", CONNECTOR_BUNDLE);
     public final StringPath connectorType = createString("connectorType", CONNECTOR_TYPE);
     public final StringPath connectorVersion = createString("connectorVersion", CONNECTOR_VERSION);
@@ -58,6 +63,9 @@ public class QConnector extends QAssignmentHolder<MConnector> {
     public final ArrayPath<Integer[], Integer> targetSystemTypes =
             createArray("targetSystemTypes", Integer[].class, TARGET_SYSTEM_TYPES);
     public final BooleanPath available = createBoolean("available", AVAILABLE);
+
+    public final StringPath displayNameNorm = createString("displayNameNorm", DISPLAY_NAME_NORM);
+    public final StringPath displayNameOrig = createString("displayNameOrig", DISPLAY_NAME_ORIG);
 
     public QConnector(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

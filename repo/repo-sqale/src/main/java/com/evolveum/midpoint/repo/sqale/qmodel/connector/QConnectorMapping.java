@@ -54,6 +54,8 @@ public class QConnectorMapping
 
         addItemMapping(F_TARGET_SYSTEM_TYPE, multiUriMapper(q -> q.targetSystemTypes));
         addItemMapping(F_AVAILABLE, booleanMapper(q -> q.available));
+        addItemMapping(F_DISPLAY_NAME,
+                polyStringMapper(q -> q.displayNameOrig, q -> q.displayNameNorm));
     }
 
     @Override
@@ -83,7 +85,8 @@ public class QConnectorMapping
 
         row.targetSystemTypes = processCacheableUris(schemaObject.getTargetSystemType());
         row.available = schemaObject.isAvailable();
-
+        setPolyString(schemaObject.getDisplayName(),
+                o -> row.displayNameOrig = o, n -> row.displayNameNorm = n);
         return row;
     }
 }

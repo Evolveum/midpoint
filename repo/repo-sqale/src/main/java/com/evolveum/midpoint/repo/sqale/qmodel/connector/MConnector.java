@@ -25,4 +25,7 @@ public class MConnector extends MObject {
     public Integer connectorHostRefRelationId;
     public Integer[] targetSystemTypes;
     public Boolean available;
+
+    public String displayNameOrig;
+    public String displayNameNorm;
 }
