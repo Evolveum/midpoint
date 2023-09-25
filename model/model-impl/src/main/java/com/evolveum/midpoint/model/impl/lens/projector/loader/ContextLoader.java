@@ -96,7 +96,9 @@ public class ContextLoader implements ProjectorProcessor {
             }
             LOGGER.trace("Focus OID/OIDs modified during load operation in this thread: {}", modifiedFocusOids);
             LensFocusContext<F> focusContext = context.getFocusContext();
-            if (focusContext != null && focusContext.getOid() != null && modifiedFocusOids.contains(focusContext.getOid())) {
+            if (focusContext != null
+                    && focusContext.getOid() != null
+                    && modifiedFocusOids.contains(focusContext.getOid())) {
                 if (loadAttempt == MAX_LOAD_ATTEMPTS) {
                     LOGGER.warn("Focus was repeatedly modified during loading too many times ({}) - continuing,"
                                     + " but it's suspicious", MAX_LOAD_ATTEMPTS);
@@ -105,6 +107,13 @@ public class ContextLoader implements ProjectorProcessor {
                     LOGGER.debug("Detected modification of the focus during 'load' operation, retrying the loading (#{})",
                             loadAttempt);
                     context.rot("focus modification during loading");
+                    if (context.isInInitial()) {
+                        // This is a partial solution to MID-9103. The problem is the inconsistency between old/new objects
+                        // and the summary delta. The get out of sync when the current object is externally updated, without
+                        // reflecting that in the deltas. This code does not resolve that in general; it only ensures the
+                        // old-current-new consistency when the re-loading occurs in the initial clockwork state. See MID-9113.
+                        focusContext.setRewriteOldObject();
+                    }
                 }
             } else {
                 LOGGER.trace("No modification of the focus during 'load' operation, continuing");

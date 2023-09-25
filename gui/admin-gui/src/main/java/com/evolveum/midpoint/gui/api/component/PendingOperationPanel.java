@@ -7,17 +7,11 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.List;
 
@@ -42,95 +36,55 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
     }
 
     private void initLayout() {
-        ListView<PendingOperationType> operation = new ListView<PendingOperationType>(ID_OPERATION, getModel()) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<PendingOperationType> item) {
-                item.setRenderBodyOnly(true);
-
-                WebMarkupContainer label = new WebMarkupContainer(ID_LABEL);
-                item.add(label);
-
-                Label text = new Label(ID_TEXT, createLabelText(item.getModel()));
-                text.setRenderBodyOnly(true);
-                label.add(text);
-
-                label.add(AttributeAppender.append("class", createTextClass(item.getModel())));
-
-                label.add(AttributeModifier.replace("title", createTextTooltipModel(item.getModel())));
-                label.add(new InfoTooltipBehavior() {
-
-                    @Override
-                    public String getCssClass() {
-                        return null;
-                    }
-                });
-            }
-        };
-        add(operation);
+        List<Badge> badgeList = getModelObject()
+                .stream()
+                .map(op -> new Badge(createBadgeClass(op), null, createLabelText(op), null))
+                .toList();
+        add(new BadgeListPanel(
+                ID_OPERATION,
+                Model.ofList(badgeList)));
     }
 
-    private IModel<String> createTextClass(IModel<PendingOperationType> model) {
-        return new IModel<String>() {
+    private String createBadgeClass(PendingOperationType op) {
+        OperationResultStatusType rStatus = op.getResultStatus();
+        PendingOperationExecutionStatusType eStatus = op.getExecutionStatus();
 
-            private static final long serialVersionUID = 1L;
+        if (rStatus == OperationResultStatusType.FATAL_ERROR
+                || rStatus == OperationResultStatusType.PARTIAL_ERROR) {
+            return Badge.State.DANGER.getCss();
+        }
 
-            @Override
-            public String getObject() {
-                PendingOperationType op = model.getObject();
-                OperationResultStatusType rStatus = op.getResultStatus();
-                PendingOperationExecutionStatusType eStatus = op.getExecutionStatus();
+        if (rStatus == OperationResultStatusType.UNKNOWN
+                || rStatus == OperationResultStatusType.WARNING) {
+            return Badge.State.WARNING.getCss();
+        }
 
-                if (rStatus == OperationResultStatusType.FATAL_ERROR
-                        || rStatus == OperationResultStatusType.PARTIAL_ERROR) {
-                    return "label-danger";
-                }
+        if (rStatus == OperationResultStatusType.SUCCESS
+                || eStatus == PendingOperationExecutionStatusType.COMPLETED) {
+            return Badge.State.SUCCESS.getCss();
+        }
 
-                if (rStatus == OperationResultStatusType.UNKNOWN
-                        || rStatus == OperationResultStatusType.WARNING) {
-                    return "label-warning";
-                }
+        if (rStatus == OperationResultStatusType.IN_PROGRESS
+                || rStatus == OperationResultStatusType.NOT_APPLICABLE
+                || rStatus == OperationResultStatusType.HANDLED_ERROR) {
+            return Badge.State.INFO.getCss();
+        }
 
-                if (rStatus == OperationResultStatusType.SUCCESS
-                        || eStatus == PendingOperationExecutionStatusType.COMPLETED) {
-                    return "label-success";
-                }
-
-                if (rStatus == OperationResultStatusType.IN_PROGRESS
-                        || rStatus == OperationResultStatusType.NOT_APPLICABLE
-                        || rStatus == OperationResultStatusType.HANDLED_ERROR) {
-                    return "label-info";
-                }
-
-                return "label-default";
-            }
-        };
+        return Badge.State.PRIMARY.getCss();
     }
 
-    private IModel<String> createTextTooltipModel(IModel<PendingOperationType> model) {
-        return new IModel<String>() {
+    private String createTooltip(PendingOperationType op) {
+        StringBuilder sb = new StringBuilder();
 
-            private static final long serialVersionUID = 1L;
+        buildStringItem(sb, "PendingOperationPanel.resultStatus", op.getResultStatus());
+        buildStringItem(sb, "PendingOperationPanel.executionStatus", op.getExecutionStatus());
+        buildStringItem(sb, "PendingOperationPanel.operationReference", op.getAsynchronousOperationReference());
+        buildStringItem(sb, "PendingOperationPanel.attempt", op.getAttemptNumber());
+        buildStringItem(sb, "PendingOperationPanel.pendingOperationType", op.getType());
+        buildStringItem(sb, "PendingOperationPanel.lastAttemptTimestamp", WebComponentUtil.formatDate(op.getLastAttemptTimestamp()));
+        buildStringItem(sb, "PendingOperationPanel.completionTimestamp", WebComponentUtil.formatDate(op.getCompletionTimestamp()));
 
-            @Override
-            public String getObject() {
-                StringBuilder sb = new StringBuilder();
-
-                PendingOperationType op = model.getObject();
-
-                buildStringItem(sb, "PendingOperationPanel.resultStatus", op.getResultStatus());
-                buildStringItem(sb, "PendingOperationPanel.executionStatus", op.getExecutionStatus());
-                buildStringItem(sb, "PendingOperationPanel.operationReference", op.getAsynchronousOperationReference());
-                buildStringItem(sb, "PendingOperationPanel.attempt", op.getAttemptNumber());
-                buildStringItem(sb, "PendingOperationPanel.pendingOperationType", op.getType());
-                buildStringItem(sb, "PendingOperationPanel.lastAttemptTimestamp", WebComponentUtil.formatDate(op.getLastAttemptTimestamp()));
-                buildStringItem(sb, "PendingOperationPanel.completionTimestamp", WebComponentUtil.formatDate(op.getCompletionTimestamp()));
-
-                return sb.toString();
-            }
-        };
+        return sb.toString();
     }
 
     private void buildStringItem(StringBuilder sb, String key, Object obj) {
@@ -146,23 +100,14 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
         sb.append('\n');
     }
 
-    private IModel<String> createLabelText(IModel<PendingOperationType> model) {
-        return new IModel<String>() {
+    private String createLabelText(PendingOperationType op) {
+        OperationResultStatusType rStatus = op.getResultStatus();
+        PendingOperationExecutionStatusType eStatus = op.getExecutionStatus();
 
-            private static final long serialVersionUID = 1L;
+        if (rStatus == null) {
+            return getString(eStatus);
+        }
 
-            @Override
-            public String getObject() {
-                PendingOperationType op = model.getObject();
-                OperationResultStatusType rStatus = op.getResultStatus();
-                PendingOperationExecutionStatusType eStatus = op.getExecutionStatus();
-
-                if (rStatus == null) {
-                    return getString(eStatus);
-                }
-
-                return getString(rStatus);
-            }
-        };
+        return getString(rStatus);
     }
 }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.ninja.impl;
 import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.REPOSITORY_CONFIGURATION;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -22,9 +23,11 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.PolyStringNormalizerOptions;
+import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryConverter;
@@ -139,6 +142,8 @@ public class NinjaContext implements Closeable {
 
         String midpointHome = options.getMidpointHome();
 
+        checkAndWarnMidpointHome(midpointHome);
+
         backupAndUpdateSystemProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midpointHome);
         overrideRepoConfiguration(options);
 
@@ -151,6 +156,22 @@ public class NinjaContext implements Closeable {
 
         if (applicationContextLevel.containsPrismInitialization()) {
             updatePolyStringNormalizationConfiguration(ctx.getBean(PrismContext.class));
+        }
+    }
+
+    private void checkAndWarnMidpointHome(String midpointHome) {
+        if (StringUtils.isEmpty(midpointHome)) {
+            throw new InputParameterException("Midpoint home " + ConnectionOptions.P_MIDPOINT_HOME + " option expected, but not defined");
+        }
+
+        File file = new File(midpointHome);
+        if (!file.exists() || !file.isDirectory()) {
+            throw new InputParameterException("Midpoint home directory '" + midpointHome + "' doesn't exist or is not a directory");
+        }
+
+        File config = new File(file, StartupConfiguration.DEFAULT_CONFIG_FILE_NAME);
+        if (!config.exists() || config.isDirectory()) {
+            throw new InputParameterException("Midpoint home config.xml file '" + config.getAbsolutePath() + "' doesn't exist");
         }
     }
 

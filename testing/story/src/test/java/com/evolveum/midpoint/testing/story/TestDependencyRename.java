@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -177,7 +179,7 @@ public class TestDependencyRename extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        modifyUserReplace(userHermanOid, UserType.F_FAMILY_NAME, task, result, createPolyString(USER_HERMAN_FAMILY_NAME_MARLEY));
+        modifyUserReplace(userHermanOid, UserType.F_FAMILY_NAME, task, result, PolyString.fromOrig(USER_HERMAN_FAMILY_NAME_MARLEY));
 
         // THEN
         result.computeStatus();

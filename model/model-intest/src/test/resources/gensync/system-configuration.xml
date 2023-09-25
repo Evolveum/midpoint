@@ -29,6 +29,11 @@
             <append>true</append>
         </appender>
     </logging>
+    <audit>
+        <eventRecording>
+            <recordResourceStageChanges>false</recordResourceStageChanges>
+        </eventRecording>
+    </audit>
     <defaultObjectPolicyConfiguration>
         <type>c:RoleType</type>
         <objectTemplateRef oid="fc0ace70-688f-11e3-ab09-001e8c717e5b"/>

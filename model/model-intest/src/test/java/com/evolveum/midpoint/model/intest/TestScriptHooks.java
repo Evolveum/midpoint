@@ -141,7 +141,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         StaticHookRecorder.reset();
 
         // WHEN
-        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Pirate Brethren"));
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, PolyString.fromOrig("Pirate Brethren"));
 
         // THEN
         assertSuccess(result);

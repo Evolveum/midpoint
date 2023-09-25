@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Collections;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -502,7 +503,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         executeChanges(
                 deltaFor(UserType.class)
-                        .item(UserType.F_ORGANIZATION).add(createPolyString(PLANET_CALADAN), createPolyString(PLANET_KAITAIN))
+                        .item(UserType.F_ORGANIZATION)
+                        .add(PolyString.fromOrig(PLANET_CALADAN), PolyString.fromOrig(PLANET_KAITAIN))
                         .asObjectDelta(userIdahoOid),
                 null, task , result);
 
@@ -541,7 +543,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         when();
         executeChanges(
                 deltaFor(UserType.class)
-                        .item(UserType.F_ORGANIZATION).delete(createPolyString(PLANET_KAITAIN))
+                        .item(UserType.F_ORGANIZATION).delete(PolyString.fromOrig(PLANET_KAITAIN))
                         .asObjectDelta(userIdahoOid),
                 null, task , result);
 
@@ -572,7 +574,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         when();
         executeChanges(
                 deltaFor(UserType.class)
-                        .item(UserType.F_ORGANIZATION).add(createPolyString(PLANET_IX), createPolyString(PLANET_GINAZ))
+                        .item(UserType.F_ORGANIZATION).add(PolyString.fromOrig(PLANET_IX), PolyString.fromOrig(PLANET_GINAZ))
                         .asObjectDelta(userIdahoOid),
                 null, task , result);
 

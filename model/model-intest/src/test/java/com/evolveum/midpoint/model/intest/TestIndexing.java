@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -109,7 +110,7 @@ public class TestIndexing extends AbstractEmptyModelIntegrationTest {
         when("user is modified");
         executeChanges(
                 prismContext.deltaFor(UserType.class)
-                        .item(UserType.F_FAMILY_NAME).replace(createPolyString("Green"))
+                        .item(UserType.F_FAMILY_NAME).replace(PolyString.fromOrig("Green"))
                         .item(UserType.F_COST_CENTER).replace("Aa-2/200")
                         .asObjectDelta(oid),
                 null,

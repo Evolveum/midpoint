@@ -820,7 +820,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void renameObject(Class<O> type, String oid, String newName, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        modifyObjectReplaceProperty(type, oid, ObjectType.F_NAME, task, result, createPolyString(newName));
+        modifyObjectReplaceProperty(type, oid, ObjectType.F_NAME, task, result, PolyString.fromOrig(newName));
     }
 
     protected void recomputeUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -5799,7 +5799,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
         assertNotNull("The org " + orgName + " is missing!", org);
         display("Org " + orgName, org);
-        PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, createPolyString(orgName));
+        PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PolyString.fromOrig(orgName));
         return org;
     }
 

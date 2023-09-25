@@ -24,6 +24,7 @@ import java.util.Properties;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
@@ -2025,7 +2026,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         // WHEN
         when();
         modifyUserReplace(USER_SUBMAN_OID, UserType.F_TITLE, task, result,
-                createPolyString("Underdog"));
+                PolyString.fromOrig("Underdog"));
 
         // THEN
         then();
@@ -2146,9 +2147,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_SUBMAN_OID, UserType.F_NAME,
-                createPolyString(USER_SUBDOG_USERNAME));
+                PolyString.fromOrig(USER_SUBDOG_USERNAME));
         objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME,
-                createPolyString(USER_SUBDOG_FULL_NAME));
+                PolyString.fromOrig(USER_SUBDOG_FULL_NAME));
 
         // WHEN
         when();

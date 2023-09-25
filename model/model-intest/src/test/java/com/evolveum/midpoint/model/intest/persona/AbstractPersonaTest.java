@@ -12,6 +12,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -183,7 +185,7 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
         // WHEN
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, PolyString.fromOrig(USER_JACK_GIVEN_NAME_NEW));
 
         // THEN
         then();

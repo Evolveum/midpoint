@@ -1281,7 +1281,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Whateveric"));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, PolyString.fromOrig("Whateveric"));
 
         // THEN
         then();
@@ -1290,7 +1290,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
         display("User after", userAfter);
 
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, createPolyString("Whateveric"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, PolyString.fromOrig("Whateveric"));
 
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
@@ -1311,7 +1311,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("AUTO-matic"));
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, PolyString.fromOrig("AUTO-matic"));
 
         // THEN
         then();
@@ -1322,8 +1322,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("AUTO-matic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("AUTO-matic"));
 
         AssignmentType autoAssignment = assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
         assertEquals("Wrong originMappingName", "automappic", autoAssignment.getMetadata().getOriginMappingName());
@@ -1348,10 +1348,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString("DEMO-cratic"),
-                createPolyString("AUTO-cratic"),
-                createPolyString("plutocratic"),
-                createPolyString("AUTO-didactic"));
+                PolyString.fromOrig("DEMO-cratic"),
+                PolyString.fromOrig("AUTO-cratic"),
+                PolyString.fromOrig("plutocratic"),
+                PolyString.fromOrig("AUTO-didactic"));
 
         // THEN
         then();
@@ -1362,12 +1362,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("AUTO-matic"),
-                createPolyString("DEMO-cratic"),
-                createPolyString("AUTO-cratic"),
-                createPolyString("plutocratic"),
-                createPolyString("AUTO-didactic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("AUTO-matic"),
+                PolyString.fromOrig("DEMO-cratic"),
+                PolyString.fromOrig("AUTO-cratic"),
+                PolyString.fromOrig("plutocratic"),
+                PolyString.fromOrig("AUTO-didactic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
@@ -1394,8 +1394,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString("meritocratic"),
-                createPolyString("piratocratic"));
+                PolyString.fromOrig("meritocratic"),
+                PolyString.fromOrig("piratocratic"));
 
         // THEN
         then();
@@ -1406,14 +1406,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("AUTO-matic"),
-                createPolyString("DEMO-cratic"),
-                createPolyString("AUTO-cratic"),
-                createPolyString("plutocratic"),
-                createPolyString("AUTO-didactic"),
-                createPolyString("meritocratic"),
-                createPolyString("piratocratic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("AUTO-matic"),
+                PolyString.fromOrig("DEMO-cratic"),
+                PolyString.fromOrig("AUTO-cratic"),
+                PolyString.fromOrig("plutocratic"),
+                PolyString.fromOrig("AUTO-didactic"),
+                PolyString.fromOrig("meritocratic"),
+                PolyString.fromOrig("piratocratic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
@@ -1440,10 +1440,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString("AUTO-matic"),
-                createPolyString("plutocratic"),
-                createPolyString("meritocratic"),
-                createPolyString("AUTO-didactic"));
+                PolyString.fromOrig("AUTO-matic"),
+                PolyString.fromOrig("plutocratic"),
+                PolyString.fromOrig("meritocratic"),
+                PolyString.fromOrig("AUTO-didactic"));
 
         // THEN
         then();
@@ -1455,10 +1455,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("DEMO-cratic"),
-                createPolyString("AUTO-cratic"),
-                createPolyString("piratocratic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("DEMO-cratic"),
+                PolyString.fromOrig("AUTO-cratic"),
+                PolyString.fromOrig("piratocratic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
         assertAssignments(userAfter, 2);
@@ -1483,8 +1483,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString("piratocratic"),
-                createPolyString("DEMO-cratic"));
+                PolyString.fromOrig("piratocratic"),
+                PolyString.fromOrig("DEMO-cratic"));
 
         // THEN
         then();
@@ -1496,8 +1496,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("AUTO-cratic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("AUTO-cratic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
         assertAssignments(userAfter, 2);
@@ -1534,8 +1534,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("AUTO-cratic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("AUTO-cratic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
         assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
@@ -1569,8 +1569,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("AUTO-cratic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("AUTO-cratic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
         assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
@@ -1598,8 +1598,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString("AUTO-graphic"),
-                createPolyString("AUTO-matic"));
+                PolyString.fromOrig("AUTO-graphic"),
+                PolyString.fromOrig("AUTO-matic"));
 
         // THEN
         then();
@@ -1611,10 +1611,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("Whateveric"),
-                createPolyString("AUTO-cratic"),
-                createPolyString("AUTO-graphic"),
-                createPolyString("AUTO-matic"));
+                PolyString.fromOrig("Whateveric"),
+                PolyString.fromOrig("AUTO-cratic"),
+                PolyString.fromOrig("AUTO-graphic"),
+                PolyString.fromOrig("AUTO-matic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
@@ -1644,8 +1644,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-                createPolyString("AUTO-cratic"),
-                createPolyString("Whateveric"));
+                PolyString.fromOrig("AUTO-cratic"),
+                PolyString.fromOrig("Whateveric"));
 
         // THEN
         then();
@@ -1657,8 +1657,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("AUTO-graphic"),
-                createPolyString("AUTO-matic"));
+                PolyString.fromOrig("AUTO-graphic"),
+                PolyString.fromOrig("AUTO-matic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
@@ -1697,8 +1697,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("AUTO-graphic"),
-                createPolyString("AUTO-matic"));
+                PolyString.fromOrig("AUTO-graphic"),
+                PolyString.fromOrig("AUTO-matic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
@@ -1736,8 +1736,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
 
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-                createPolyString("AUTO-graphic"),
-                createPolyString("AUTO-matic"));
+                PolyString.fromOrig("AUTO-graphic"),
+                PolyString.fromOrig("AUTO-matic"));
 
         assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
@@ -2822,7 +2822,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, PolyString.fromOrig("Lootjack"));
 
         // THEN
         assertUserAfter(USER_JACK_OID)
@@ -2884,7 +2884,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Justjack"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, PolyString.fromOrig("Justjack"));
 
         // THEN
         assertUserAfter(USER_JACK_OID)
@@ -2919,7 +2919,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, PolyString.fromOrig("Lootjack"));
 
         // THEN
         assertUserAfter(USER_JACK_OID)

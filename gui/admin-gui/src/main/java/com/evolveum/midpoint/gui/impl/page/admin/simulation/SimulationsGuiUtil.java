@@ -15,7 +15,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -106,7 +110,8 @@ public class SimulationsGuiUtil {
         return LocalizationUtil.translate(key);
     }
 
-    public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn() {
+    public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn(
+            PageAdminLTE parentPage) {
         return new RoundedIconColumn<>(null) {
 
             @Override
@@ -117,7 +122,11 @@ public class SimulationsGuiUtil {
                     return new DisplayType()
                             .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultColoredIcon(object.getType())));
                 }
-
+                DisplayType archetypeDisplayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(obj, parentPage);
+                String iconCss = GuiDisplayTypeUtil.getIconCssClass(archetypeDisplayType);
+                if (StringUtils.isNotEmpty(iconCss)) {
+                    return archetypeDisplayType;
+                }
                 return new DisplayType()
                         .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultIcon(obj.asPrismObject())));
             }

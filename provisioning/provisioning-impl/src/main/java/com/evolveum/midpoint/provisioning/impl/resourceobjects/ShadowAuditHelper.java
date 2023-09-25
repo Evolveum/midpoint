@@ -163,10 +163,10 @@ public class ShadowAuditHelper {
 
     private boolean isRecordResourceStageEnabled(SystemConfigurationType config) {
         if (config == null || config.getAudit() == null) {
-            return false;
+            return true;
         }
 
         SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
-        return BooleanUtils.isTrue(eventRecording.isRecordResourceStageChanges());
+        return eventRecording == null || BooleanUtils.isNotFalse(eventRecording.isRecordResourceStageChanges());
     }
 }

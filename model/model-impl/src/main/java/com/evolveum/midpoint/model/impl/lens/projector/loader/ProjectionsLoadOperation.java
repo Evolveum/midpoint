@@ -515,7 +515,6 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             projectionContext.setFresh(true);
         }
 
-
         /**
          * We have OID. This is either linking of existing account or adding new account - therefore let's check
          * for account existence to decide.
@@ -569,7 +568,6 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         }
 
         private PrismObject<ShadowType> getEmbeddedShadow() {
-            //noinspection unchecked
             return linkRef.asReferenceValue().getObject();
         }
 

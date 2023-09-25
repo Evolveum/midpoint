@@ -135,6 +135,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
     }
 
+    /** Only for internal use! */
+    public void setRewriteOldObject() {
+        rewriteOldObject = true;
+    }
+
     public ArchetypePolicyType getArchetypePolicy() {
         return archetypePolicy;
     }
