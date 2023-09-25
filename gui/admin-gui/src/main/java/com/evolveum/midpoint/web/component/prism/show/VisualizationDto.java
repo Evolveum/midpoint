@@ -14,6 +14,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -35,6 +37,8 @@ public class VisualizationDto implements Serializable {
     private boolean sorted = false;
 
     private String boxClassOverride;
+
+    private PolyString nameOverwrite;
 
     private final List<VisualizationItemDto> items = new ArrayList<>();
     private final List<VisualizationDto> partialVisualizations = new ArrayList<>();
@@ -65,6 +69,10 @@ public class VisualizationDto implements Serializable {
         this.minimized = minimized;
     }
 
+    public void setNameOverwrite(PolyString nameOverwrite) {
+        this.nameOverwrite = nameOverwrite;
+    }
+
     public List<VisualizationDto> getPartialVisualizations() {
         return partialVisualizations;
     }
@@ -86,6 +94,10 @@ public class VisualizationDto implements Serializable {
     }
 
     public String getName() {
+        if (nameOverwrite != null) {
+            return LocalizationUtil.translatePolyString(nameOverwrite);
+        }
+
         Name nameObject = visualization.getName();
         if (nameObject == null) {
             return LocalizationUtil.translate("SceneDto.unnamed");

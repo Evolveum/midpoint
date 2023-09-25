@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.page.admin.audit;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -201,7 +203,15 @@ public class AuditChangesPanel extends ChangesPanel {
                 throw e;
             }
 
-            return Collections.singletonList(new VisualizationDto(visualization));
+            ObjectDeltaOperationType deltaOperation = model.getObject();
+
+            VisualizationDto dto = new VisualizationDto(visualization);
+
+            if (deltaOperation.getObjectName() != null && ChangeType.DELETE == dto.getChangeType()) {
+                dto.setNameOverwrite(deltaOperation.getObjectName().toPolyString());
+            }
+
+            return Collections.singletonList(dto);
         }
     }
 }
