@@ -109,7 +109,7 @@ There is no need to set up a rule to apply `Marketing staff` role to every emplo
 The department itself can act as a role, providing necessary privileges directly and automatically.
 Similarly, midPoint xref:/midpoint/reference/misc/services/[services] acts as role as well.
 Therefore, _applications_, microservices, mobile devices and "things" can automatically grant access to themselves when assigned to user.
-xref:/midpoint/reference/schema/archetypes/[Archetypes] also act as roles, providing direct and easily-manageable _birthright_ access to various types of objetcs.
+xref:/midpoint/reference/schema/archetypes/[Archetypes] also act as roles, providing direct and easily-manageable _birthright_ access to various types of objects.
 The same mechanisms that work for roles can also be applied to other midPoint concept, creating a very flexible and extremely powerful policy platform.
 
 
@@ -156,7 +156,7 @@ Policy-based approach can be implemented using an *incremental approach*, withou
 Support for the *bottom-up approach* is much more important that it may seem.
 It is a public secret that in too many organizations nobody knows what access employees _should_ have.
 There is no single person that _knows_ the policy.
-Knowledge of the policy is amalgamation of many guidelines, processes, rule books, regulations and management decisions, many of which are not documented at all.
+The policy is amalgamation of many guidelines, processes, rule books, regulations and management decisions, many of which are not documented at all.
 Codification of such policy in exact, complete, understandable, up-to-date and machine-executable form is next to impossible.
 However, all hope is not lost.
 Even though it may not be feasible to determine the exact policy in its entirety, there are data that we can build on.
@@ -166,7 +166,7 @@ We can use this information to _mine_ the policy, to determine what the policy a
 Of course, it is only approximate technique.
 Current access is most likely over-provisioned, the policy is not applied in a perfectly consistent way and so on.
 However, _mining_ can give us practical approximations to start from.
-These can be incrementally refined, reviewed and optimized.
+Mined policy can be incrementally refined, reviewed and optimized.
 It is better to have a practical approximate approach than to rely on exact yet infeasible method.
 _Done_ is better than _perfect_.
 
@@ -179,19 +179,20 @@ We rely on _machine learning_ techniques to discover the policy in the dark pool
 
 == Metaphysics
 
-MidPoint policy-based RBAC mechanism may look impressive.
-Yet, midPoint goes one step further.
+MidPoint policy-based RBAC mechanism may look impressive so far.
+Yet, midPoint goes one more step further.
 We have done quite an unprecedented thing.
 We have applied roles to roles, creating xref:/midpoint/reference/roles-policies/metaroles/[meta-roles].
 The concept of meta-roles is used to implement midPoint xref:/midpoint/reference/schema/archetypes/[archetypes].
 Archetypes are used to distinguish various object types and subtypes in midPoint.
-Simply speaking Archetypes give us ability to have _employees_, _students_ and _contractors_ in midPoint, giving each user type a distinctive behavior.
+Simply speaking, Archetypes give us ability to have _employees_, _students_ and _contractors_ in midPoint, giving each user type a distinctive behavior.
 In this case _archetypes_ are similar to roles, usually used to provide _birthright_ access to users.
 
-However, interesting thing happens when archetypes are applied to roles.
+However, interesting thing happens when archetypes are applied to _roles_.
 It does not look entirely extraordinary at the first sight.
 There are the usual `Application role` and `Business role` archetypes, distinguishing individual role types.
-However, archetypes can be used as _meta-roles_, applying RBAC principles to roles themselves.
+However, archetypes behave as roles themselves, which are now applied to other roles.
+We have got _meta-roles_, applying RBAC principles to RBAC itself.
 For example, `Application role` archetype can be used to automatically grant access to application catalog to any _owner_ of any application role in the system.
 This can be done with a single statement in `Application role` archetype.
 
