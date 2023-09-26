@@ -31,9 +31,11 @@ For concrete examples of upgrade scenarios, please see xref:_sample_upgrade_scen
 .. Review verification results
 .. Run upgrade objects
 . Upgrade phase
+.. Stop midPoint
 .. Upgrade database schema
 .. Upgrade midPoint installation
 .. Update initial objects
+.. Start midPoint
 
 === Upgrade tasks to use activities
 
@@ -426,7 +428,8 @@ $MP_INSTALLATION/bin/ninja.sh -v upgrade-distribution \
 
 === Manual upgrade
 
-#TODO#
+Manual upgrade allows for customization of each step done during upgrade procedure via custom options.
+Following example is almost equivalent to simple `upgrade-distribution` command, but split into multiple separate commands.
 
 [source,bash]
 ----
@@ -461,5 +464,13 @@ $MP_INSTALLATION/bin/ninja.sh -v upgrade-installation \
 ----
 
 === Docker environment upgrade
+
+This chapter describes how to ugprade midPoint using ninja in Docker environments, e.g. deployments in Kubernetes.
+
+==== Verification and objects upgrade
+
+#TODO#
+
+==== MidPoint upgrade
 
 #TODO#
