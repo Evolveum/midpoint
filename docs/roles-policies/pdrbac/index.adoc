@@ -1,4 +1,5 @@
-= Policy-Based RBAC
+= Policy-Driven Role-Based Access Control
+:page-nav-title: Policy-Driven RBAC
 :page-toc: top
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
@@ -55,7 +56,7 @@ Both _relation_ and _role parameters_ are efficient method to reduce xref:/iam/r
 == Dynamic Assignments
 
 Traditional RBAC assumes that users are assigned to roles by some kind of higher authority.
-However, it is much better to use algorithmic, _policy-based_ assignment of roles as much as possible.
+However, it is much better to use algorithmic, _policy-driven_ assignment of roles as much as possible.
 If we can specify a condition when a specific role can be assigned to specific user, it can be done automatically.
 Even better, we can reverse the condition.
 We can automatically _unassign_ the role when it is no longer needed.
@@ -101,7 +102,7 @@ Roles, archetypes, organizational structure, policy rules and other midPoint mec
 == Universality
 
 In midPoint, we like universal mechanisms and approaches that can be applied to wide variety of cases.
-This passion lead to the creation of policy-based RBAC in the first place.
+This passion lead to the creation of policy-driven RBAC in the first place.
 While designing our dynamic role-based mechanism, we have figured out that it has far wider applications that just RBAC roles.
 We have applied the same approach to xref:/midpoint/reference/org/[organizational structure] as well.
 Therefore, divisions, sections, teams, projects, cooperating organizations and business partners can act as roles.
@@ -115,15 +116,15 @@ The same mechanisms that work for roles can also be applied to other midPoint co
 
 == Benefits
 
-Benefits of dynamic, policy-based RBAC over a traditional static RBAC are quite clear.
-However, policy-based RBAC has significant advantages over other approaches as well, such as policy-based access control (PBAC) or attribute-based access control (ABAC).
+Benefits of dynamic, policy-driven RBAC over a traditional static RBAC are quite clear.
+However, policy-driven RBAC has significant advantages over other approaches as well, such as policy-based access control (PBAC) or attribute-based access control (ABAC).
 
-In policy-based RBAC the overall *policy can be divided to manageable parts*.
+In policy-driven RBAC the overall *policy can be divided to manageable parts*.
 Each role is a self-contained policy statement.
 It contains expressions that govern privileges granted by the role.
 It also contains autoassignment rules, that control assignment of the role to users.
 
-Policy-based RBAC naturally divides the policy to roles - small objects that can be easily managed.
+policy-driven RBAC naturally divides the policy to roles - small objects that can be easily managed.
 Each role can have its own independent lifecycle, it can be updated as an atomic unit.
 Naturally, a role can be related to other roles, e.g. an application role can be part of business roles.
 This means that change in one role can have indirect effects.
@@ -144,14 +145,14 @@ The role can be clearly marked as being a policy exception, it can be reported, 
 It is not swept under the carpet by legalizing it.
 We clearly admit that there is a policy issue that has to be resolved.
 
-Perhaps the most significant benefit of policy-based RBAC is its practicality.
-Policy-based RBAC is still an RBAC - it is *compatible with static RBAC*.
+Perhaps the most significant benefit of policy-driven RBAC is its practicality.
+policy-driven RBAC is still an RBAC - it is *compatible with static RBAC*.
 Many organizations still use static RBAC.
 Such role structures can easily be represented in midPoint.
 Even organizations that do not use RBAC at all can automatically import static entitlements to midPoint in a form of _application roles_.
-This provides a nice starting point to build up a dynamic policy-based system from the bottom up.
+This provides a nice starting point to build up a dynamic policy-driven system from the bottom up.
 Dynamic RBAC can co-exist with static RBAC in midPoint, providing a feasible evolutionary path.
-Policy-based approach can be implemented using an *incremental approach*, without a need for disruptive big bang.
+Policy-driven approach can be implemented using an *incremental approach*, without a need for disruptive big bang.
 
 Support for the *bottom-up approach* is much more important that it may seem.
 It is a public secret that in too many organizations nobody knows what access employees _should_ have.
@@ -172,14 +173,14 @@ _Done_ is better than _perfect_.
 
 MidPoint 4.8 brings xref:/midpoint/reference/roles-policies/mining/[role mining] mechanism.
 Role mining allows to _mine_ role definitions from existing entitlement data.
-Role definitions form first part of our policy-based RBAC system.
+Role definitions form first part of our policy-driven RBAC system.
 Later on, we plan to introduce _policy mining_, which will provide mechanism to add the second part: role assignment rules.
 We rely on _machine learning_ techniques to discover the policy in the dark pool of your identity, entitlement and role data.
 
 
 == Metaphysics
 
-MidPoint policy-based RBAC mechanism may look impressive so far.
+MidPoint policy-driven RBAC mechanism may look impressive so far.
 Yet, midPoint goes one more step further.
 We have done quite an unprecedented thing.
 We have applied roles to roles, creating xref:/midpoint/reference/roles-policies/metaroles/[meta-roles].

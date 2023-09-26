@@ -33,7 +33,7 @@ However, all the business roles have common characteristics such as common appro
 Instead of copying the common parts into each and every business role, the business roles may be assigned a common _archetype_ which acts as a meta-role.
 Archetype defines all the common characteristics of all business roles, therefore the RBAC system is much easier to maintain.
 
-MidPoint advanced RBAC mechanism, together with role auto-assignment capabilities and other policy mechanisms create a very powerful combination to express complex policies: xref:../policy-based-rbac/[policy-based RBAC].
+MidPoint advanced RBAC mechanism, together with role auto-assignment capabilities and other policy mechanisms create a very powerful combination to express complex policies: xref:../pdrbac/[policy-based RBAC].
 Although midPoint policy mechanisms are based on RBAC principles, its capabilities are similar to other popular access control models, such as attribute-based access control (ABAC) or policy-based access control (PBAC).
 
 .Terminology
