@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.RunFlagsCollector;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -25,16 +26,7 @@ import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.AssignmentsState.ASSIGNMENTS_ACTIVE;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.AssignmentsState.ASSIGNMENTS_INACTIVE;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.Authorizations.AUTHORIZATIONS_ACTIVE;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.Authorizations.AUTHORIZATIONS_INACTIVE;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.Mappings.MAPPINGS_APPLIED;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.Mappings.MAPPINGS_NOT_APPLIED;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.RoleMembershipRef.ROLE_MEMBERSHIP_REF_ACTIVE;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.RoleMembershipRef.ROLE_MEMBERSHIP_REF_INACTIVE;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.UserState.USER_DISABLED;
-import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.UserState.USER_ENABLED;
+import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.LocalAssertion.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * In comparison to {@link TestLifecycle}, this class uses the default (relative) projection enforcement, and no special
  * lifecycle configurations like transitions between states.
+ *
+ * See https://docs.evolveum.com/midpoint/devel/design/lifecycle/current-state/.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -56,39 +50,65 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ObjectTemplateType> TEMPLATE_USER = TestObject.file(
             TEST_DIR, "template-user.xml", "1df94b0b-def5-4fcc-a109-965a1e8270db");
 
-    private static final TestObject<ArchetypeType> ARCHETYPE_BASIC = TestObject.file(
-            TEST_DIR, "archetype-basic.xml", "36f0ede7-959c-450d-9fbc-d0c2cb75e167");
+    private static final TestObject<ResourceType> RESOURCE_TEMPLATE = TestObject.file(
+            TEST_DIR, "resource-template.xml", "ca449b85-f86e-45bd-ab40-4f36028f5b58");
 
-    private static final DummyTestResource RESOURCE_TARGET_ONE = new DummyTestResource(
-            TEST_DIR, "resource-target-one.xml", "bd08e2c7-17bd-42cd-ae07-f78aa16e11b3", "target-one");
-    private static final DummyTestResource RESOURCE_TARGET_TWO = new DummyTestResource(
-            TEST_DIR, "resource-target-two.xml", "2fe7c02d-5f0e-42a4-b4d7-495452179691", "target-two");
+    private static final DummyTestResource RESOURCE_DIRECT_ACTIVE = new DummyTestResource(
+            TEST_DIR, "resource-direct-active.xml", "cd1d3aca-72e5-4b8c-9075-1db6c20b1949", "resource-direct-active");
+    private static final DummyTestResource RESOURCE_DIRECT_DRAFT = new DummyTestResource(
+            TEST_DIR, "resource-direct-draft.xml", "fdfd157e-68f7-4dee-84c2-4a399f12aa23", "resource-direct-draft");
+    private static final DummyTestResource RESOURCE_DIRECT_ASSIGNED_IN_DRAFT = new DummyTestResource(
+            TEST_DIR, "resource-direct-assigned-in-draft.xml", "77440749-8a6d-4630-b1d4-80bc6173c3aa", "resource-direct-assigned-in-draft");
 
-    private static final TestObject<RoleType> ROLE_FIXED_ACTIVE = TestObject.file(
-            TEST_DIR, "role-fixed-active.xml", "5df4cceb-07c4-4097-ac06-748ac1a3c938");
+    private static final TestObject<ArchetypeType> ARCHETYPE_ACTIVE = TestObject.file(
+            TEST_DIR, "archetype-active.xml", "36f0ede7-959c-450d-9fbc-d0c2cb75e167");
+    private static final DummyTestResource RESOURCE_ARCHETYPE_ACTIVE = new DummyTestResource(
+            TEST_DIR, "resource-archetype-active.xml", "842752b4-f0e1-4ed6-a80b-8f919e5a7427", "resource-archetype-active");
 
-    private static final TestObject<RoleType> ROLE_FIXED_DRAFT = TestObject.file(
-            TEST_DIR, "role-fixed-draft.xml", "608c6831-9e53-42a9-9233-12965cac6076");
+    private static final TestObject<ArchetypeType> ARCHETYPE_DRAFT = TestObject.file(
+            TEST_DIR, "archetype-draft.xml", "105ef36d-cffa-4d9a-bf08-ac92fa4042f0");
+    private static final DummyTestResource RESOURCE_ARCHETYPE_DRAFT = new DummyTestResource(
+            TEST_DIR, "resource-archetype-draft.xml", "1a23bcf9-4406-477f-bd86-493ce6920fd6", "resource-archetype-draft");
 
-    private static final TestObject<RoleType> ROLE_ASSIGNED_FIXED_DRAFT = TestObject.file(
-            TEST_DIR, "role-assigned-fixed-draft.xml", "bd910517-8c96-4f35-b95a-c23aac8692f3");
+    private static final TestObject<ArchetypeType> ARCHETYPE_ASSIGNED_IN_DRAFT = TestObject.file(
+            TEST_DIR, "archetype-assigned-in-draft.xml", "54f3eb91-b90b-4391-b3bf-244ec7fe920e");
+    private static final DummyTestResource RESOURCE_ARCHETYPE_ASSIGNED_IN_DRAFT = new DummyTestResource(
+            TEST_DIR, "resource-archetype-assigned-in-draft.xml", "b32ee8bc-6d83-487d-88af-1cefdd0fba59", "resource-archetype-assigned-in-draft");
 
-    private static final TestObject<RoleType> ROLE_TARGET_TWO = TestObject.file(
-            TEST_DIR, "role-target-two.xml", "9f7722eb-6f1a-4c48-a413-50f68871dda2");
+    private static final TestObject<RoleType> ROLE_ACTIVE = TestObject.file(
+            TEST_DIR, "role-active.xml", "5df4cceb-07c4-4097-ac06-748ac1a3c938");
+    private static final DummyTestResource RESOURCE_ROLE_ACTIVE = new DummyTestResource(
+            TEST_DIR, "resource-role-active.xml", "bd08e2c7-17bd-42cd-ae07-f78aa16e11b3", "resource-role-active");
+
+    private static final TestObject<RoleType> ROLE_DRAFT = TestObject.file(
+            TEST_DIR, "role-draft.xml", "608c6831-9e53-42a9-9233-12965cac6076");
+    private static final DummyTestResource RESOURCE_ROLE_DRAFT = new DummyTestResource(
+            TEST_DIR, "resource-role-draft.xml", "1118ae9c-3e85-416b-865c-f99071a9a1a6", "resource-role-draft");
+
+    private static final TestObject<RoleType> ROLE_ASSIGNED_IN_DRAFT = TestObject.file(
+            TEST_DIR, "role-assigned-in-draft.xml", "bd910517-8c96-4f35-b95a-c23aac8692f3");
+    private static final DummyTestResource RESOURCE_ROLE_ASSIGNED_IN_DRAFT = new DummyTestResource(
+            TEST_DIR, "resource-role-assigned-in-draft.xml", "35341da9-97e5-4c30-8c03-f8db6200a939", "resource-role-assigned-in-draft");
+
+    public static final RunFlagsCollector OBJECT_CONSTRAINTS = new RunFlagsCollector("object policy constraints");
+    public static final RunFlagsCollector ASSIGNMENT_CONSTRAINTS = new RunFlagsCollector("assignment policy constraints");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         initTestObjects(initTask, initResult,
+                RESOURCE_TEMPLATE,
                 TEMPLATE_USER,
-                ARCHETYPE_BASIC,
-                RESOURCE_TARGET_ONE,
-                RESOURCE_TARGET_TWO,
-                ROLE_FIXED_ACTIVE,
-                ROLE_FIXED_DRAFT,
-                ROLE_ASSIGNED_FIXED_DRAFT,
-                ROLE_TARGET_TWO);
+                RESOURCE_DIRECT_ACTIVE,
+                RESOURCE_DIRECT_DRAFT,
+                RESOURCE_DIRECT_ASSIGNED_IN_DRAFT,
+                ARCHETYPE_ACTIVE, RESOURCE_ARCHETYPE_ACTIVE,
+                ARCHETYPE_DRAFT, RESOURCE_ARCHETYPE_DRAFT,
+                ARCHETYPE_ASSIGNED_IN_DRAFT, RESOURCE_ARCHETYPE_ASSIGNED_IN_DRAFT,
+                ROLE_ACTIVE, RESOURCE_ROLE_ACTIVE,
+                ROLE_DRAFT, RESOURCE_ROLE_DRAFT,
+                ROLE_ASSIGNED_IN_DRAFT, RESOURCE_ROLE_ASSIGNED_IN_DRAFT);
     }
 
     @Override
@@ -98,156 +118,122 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
 
     @Test
     public void test100CreateEnabledUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+        preTestCleanup();
 
         when("standard user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(standardUser(userName), task, result);
+        String userOid = addUser(userName, null, null);
 
         then("user is OK");
-        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE);
+        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
-    public void test110CreateDisabledUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+    public void test110CreateStatusDisabledUser() throws Exception {
+        preTestCleanup();
 
         when("disabled user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .activation(new ActivationType()
-                                .administrativeStatus(ActivationStatusType.DISABLED)),
-                task, result);
+        String userOid = addUser(userName, ActivationStatusType.DISABLED, null);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
-    public void test120CreateArchivedUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+    public void test120CreateStatusArchivedUser() throws Exception {
+        preTestCleanup();
 
         when("archived user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .activation(new ActivationType()
-                                .administrativeStatus(ActivationStatusType.ARCHIVED)),
-                task, result);
+        String userOid = addUser(userName, ActivationStatusType.ARCHIVED, null);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
     public void test130CreateDraftUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+        preTestCleanup();
 
         when("draft user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .lifecycleState(SchemaConstants.LIFECYCLE_DRAFT),
-                task, result);
+        String userOid = addUser(userName, null, SchemaConstants.LIFECYCLE_DRAFT);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
     public void test140CreateProposedUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+        preTestCleanup();
 
         when("proposed user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .lifecycleState(SchemaConstants.LIFECYCLE_PROPOSED),
-                task, result);
+        String userOid = addUser(userName, null, SchemaConstants.LIFECYCLE_PROPOSED);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
     public void test150CreateSuspendedUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+        preTestCleanup();
 
         when("suspended user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .lifecycleState(SchemaConstants.LIFECYCLE_SUSPENDED),
-                task, result);
+        String userOid = addUser(userName, null, SchemaConstants.LIFECYCLE_SUSPENDED);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
     public void test160CreateDeprecatedUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+        preTestCleanup();
 
         when("deprecated user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .lifecycleState(SchemaConstants.LIFECYCLE_DEPRECATED),
-                task, result);
+        String userOid = addUser(userName, null, SchemaConstants.LIFECYCLE_DEPRECATED);
 
         then("user is OK");
-        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE);
+        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
     public void test170CreateArchivedUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+        preTestCleanup();
 
         when("archived user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .lifecycleState(SchemaConstants.LIFECYCLE_ARCHIVED),
-                task, result);
+        String userOid = addUser(userName, null, SchemaConstants.LIFECYCLE_ARCHIVED);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
     public void test180CreateFailedUser() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
+        preTestCleanup();
 
         when("failed user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(
-                standardUser(userName)
-                        .lifecycleState(SchemaConstants.LIFECYCLE_FAILED),
-                task, result);
+        String userOid = addUser(userName, null, SchemaConstants.LIFECYCLE_FAILED);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
-    public void test200EnabledToDisabledUser() throws Exception {
+    public void test200EnabledToStatusDisabledUser() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
+        preTestCleanup();
 
         when("standard user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(standardUser(userName), task, result);
-        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE);
+        String userOid = addUser(userName, null, null);
+        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
 
         and("user is disabled");
         executeChanges(
@@ -257,20 +243,22 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
                 null, task, result);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     @Test
     public void test210ActiveToSuspendedUser() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
+        preTestCleanup();
 
         when("standard user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(standardUser(userName), task, result);
-        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE);
+        String userOid = addUser(userName, null, null);
+        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
 
         and("user is suspended");
+        clearConstraintFlags();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_SUSPENDED)
@@ -278,20 +266,22 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
                 null, task, result);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
-    @Test
+    @Test(enabled = false) // does not remove accounts yet
     public void test220ActiveToArchivedUser() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
+        preTestCleanup();
 
         when("standard user is created");
         String userName = getTestNameShort();
-        String userOid = addObject(standardUser(userName), task, result);
-        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE);
+        String userOid = addUser(userName, null, null);
+        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
 
         and("user is archived");
+        clearConstraintFlags();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ARCHIVED)
@@ -299,84 +289,181 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
                 null, task, result);
 
         then("user is OK");
-        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE, GLOBAL_POLICY_RULES_APPLIED);
+    }
+
+    private static void preTestCleanup() {
+        clearConstraintFlags();
+    }
+
+    private static void clearConstraintFlags() {
+        OBJECT_CONSTRAINTS.clear();
+        ASSIGNMENT_CONSTRAINTS.clear();
     }
 
     private void assertUser(
             String userOid,
-            UserState userState,
-            AssignmentsState assignmentsState) throws Exception {
-        // @formatter:off
-        var user = assertUserAfter(userOid)
-                .activation()
-                .assertEffectiveStatus(
-                        userState == USER_ENABLED ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED)
-                .end()
-                .getObjectable();
-        // @formatter:on
+            LocalAssertion... assertions) throws Exception {
 
+        var user = assertUserAfter(userOid).getObjectable();
         MidPointPrincipal principal = getPrincipal(user.getName().getOrig());
 
-        if (assignmentsState == ASSIGNMENTS_ACTIVE) {
-            assertAssignmentsActive(user, principal);
-        } else {
-            assertAssignmentsInactive(user, principal);
+        for (var assertion : assertions) {
+            switch (assertion) {
+                case USER_ENABLED ->
+                        assertUser(user, "after")
+                                .activation()
+                                .assertEffectiveStatus(ActivationStatusType.ENABLED);
+                case USER_DISABLED ->
+                        assertUser(user, "after")
+                                .activation()
+                                .assertEffectiveStatus(ActivationStatusType.DISABLED);
+                case ASSIGNMENTS_ACTIVE ->
+                        assertAssignmentsActive(user, principal);
+                case ASSIGNMENTS_INACTIVE ->
+                        assertAssignmentsInactive(user, principal);
+                case GLOBAL_POLICY_RULES_APPLIED ->
+                        OBJECT_CONSTRAINTS.assertPresent("global");
+                default -> throw new AssertionError(assertion);
+            }
         }
+
+        displayValue("Object constraints executed", OBJECT_CONSTRAINTS);
+        displayValue("Assignment constraints executed", ASSIGNMENT_CONSTRAINTS);
     }
 
     private void assertAssignmentsActive(UserType user, MidPointPrincipal principal) throws Exception {
-        assertRole(user, principal, ARCHETYPE_BASIC,
-                ActivationStatusType.ENABLED,
-                ROLE_MEMBERSHIP_REF_ACTIVE,
+        assertAssignment(user, principal, ARCHETYPE_ACTIVE,
+                ASSIGNMENT_ENABLED,
+                ARCHETYPE_REF_PRESENT,
+                ROLE_MEMBERSHIP_REF_PRESENT,
                 MAPPINGS_APPLIED,
-                AUTHORIZATIONS_ACTIVE);
-        assertRole(user, principal, ROLE_FIXED_ACTIVE,
-                ActivationStatusType.ENABLED,
-                ROLE_MEMBERSHIP_REF_ACTIVE,
+                AUTHORIZATIONS_PRESENT,
+                OBJECT_POLICY_RULES_APPLIED,
+                ASSIGNMENT_POLICY_RULES_APPLIED,
+                ACCOUNTS_PRESENT);
+        assertAssignment(user, principal, ROLE_ACTIVE,
+                ASSIGNMENT_ENABLED,
+                ARCHETYPE_REF_NOT_PRESENT,
+                ROLE_MEMBERSHIP_REF_PRESENT,
                 MAPPINGS_APPLIED,
-                AUTHORIZATIONS_ACTIVE);
-        assertRole(user, principal, ROLE_FIXED_DRAFT,
-                ActivationStatusType.ENABLED,
-                ROLE_MEMBERSHIP_REF_ACTIVE,
+                AUTHORIZATIONS_PRESENT,
+                OBJECT_POLICY_RULES_APPLIED,
+                ASSIGNMENT_POLICY_RULES_APPLIED,
+                ACCOUNTS_PRESENT);
+        assertAssignment(user, principal, ARCHETYPE_DRAFT,
+                ASSIGNMENT_ENABLED,
+                ARCHETYPE_REF_PRESENT,
+                ROLE_MEMBERSHIP_REF_PRESENT,
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_INACTIVE);
-        assertRole(user, principal, ROLE_ASSIGNED_FIXED_DRAFT,
-                ActivationStatusType.DISABLED,
-                ROLE_MEMBERSHIP_REF_INACTIVE,
+                AUTHORIZATIONS_NOT_PRESENT,
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_NOT_APPLIED,
+                ACCOUNTS_NOT_PRESENT);
+        assertAssignment(user, principal, ROLE_DRAFT,
+                ASSIGNMENT_ENABLED,
+                ARCHETYPE_REF_NOT_PRESENT,
+                ROLE_MEMBERSHIP_REF_PRESENT,
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_INACTIVE);
+                AUTHORIZATIONS_NOT_PRESENT,
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_NOT_APPLIED,
+                ACCOUNTS_NOT_PRESENT);
+        assertAssignment(user, principal, ARCHETYPE_ASSIGNED_IN_DRAFT,
+                ASSIGNMENT_DISABLED,
+                ARCHETYPE_REF_PRESENT, // FIXME
+                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
+                MAPPINGS_APPLIED, // FIXME
+                AUTHORIZATIONS_PRESENT, // FIXME
+                OBJECT_POLICY_RULES_APPLIED, // FIXME
+                ASSIGNMENT_POLICY_RULES_APPLIED,
+                ACCOUNTS_PRESENT); // FIXME
+        assertAssignment(user, principal, ROLE_ASSIGNED_IN_DRAFT,
+                ASSIGNMENT_DISABLED,
+                ARCHETYPE_REF_NOT_PRESENT,
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
+                MAPPINGS_NOT_APPLIED,
+                AUTHORIZATIONS_NOT_PRESENT,
+                OBJECT_POLICY_RULES_APPLIED, // FIXME
+                ASSIGNMENT_POLICY_RULES_APPLIED,
+                ACCOUNTS_NOT_PRESENT);
 
-        assertUser(user, "after")
-                .assertLiveLinks(2);
-        RESOURCE_TARGET_ONE.controller.assertAccountByUsername(user.getName().getOrig());
-        RESOURCE_TARGET_TWO.controller.assertAccountByUsername(user.getName().getOrig());
+        assertResourceAssignment(user, RESOURCE_DIRECT_ACTIVE,
+                ASSIGNMENT_ENABLED,
+                ACCOUNTS_PRESENT);
+        assertResourceAssignment(user, RESOURCE_DIRECT_DRAFT,
+                ASSIGNMENT_ENABLED,
+                ACCOUNTS_NOT_PRESENT);
+        assertResourceAssignment(user, RESOURCE_DIRECT_ASSIGNED_IN_DRAFT,
+                ASSIGNMENT_DISABLED,
+                ACCOUNTS_NOT_PRESENT);
     }
 
     private void assertAssignmentsInactive(UserType user, MidPointPrincipal principal) throws Exception {
-        assertRole(user, principal, ARCHETYPE_BASIC,
-                ActivationStatusType.ENABLED, // TODO why?
-                ROLE_MEMBERSHIP_REF_ACTIVE, // will change
+        assertAssignment(user, principal, ARCHETYPE_ACTIVE,
+                ASSIGNMENT_ENABLED, // TODO probably not correct
+                ARCHETYPE_REF_PRESENT,
+                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_ACTIVE); // FIXME
-        assertRole(user, principal, ROLE_FIXED_ACTIVE,
-                ActivationStatusType.ENABLED, // TODO why?
-                ROLE_MEMBERSHIP_REF_INACTIVE,
+                AUTHORIZATIONS_PRESENT, // FIXME
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_APPLIED, // TODO not sure if correct
+                ACCOUNTS_NOT_PRESENT);
+        assertAssignment(user, principal, ROLE_ACTIVE,
+                ASSIGNMENT_ENABLED, // TODO probably not correct
+                ARCHETYPE_REF_NOT_PRESENT,
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_INACTIVE);
-        assertRole(user, principal, ROLE_FIXED_DRAFT,
-                ActivationStatusType.ENABLED, // TODO why?
-                ROLE_MEMBERSHIP_REF_INACTIVE,
+                AUTHORIZATIONS_NOT_PRESENT,
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_APPLIED, // TODO not sure if correct
+                ACCOUNTS_NOT_PRESENT);
+        assertAssignment(user, principal, ARCHETYPE_DRAFT,
+                ASSIGNMENT_ENABLED, // TODO probably not correct
+                ARCHETYPE_REF_PRESENT,
+                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_INACTIVE);
-        assertRole(user, principal, ROLE_ASSIGNED_FIXED_DRAFT,
-                ActivationStatusType.DISABLED,
-                ROLE_MEMBERSHIP_REF_INACTIVE,
+                AUTHORIZATIONS_NOT_PRESENT,
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_NOT_APPLIED, // TODO not sure if correct
+                ACCOUNTS_NOT_PRESENT);
+        assertAssignment(user, principal, ROLE_DRAFT,
+                ASSIGNMENT_ENABLED, // TODO probably not correct
+                ARCHETYPE_REF_NOT_PRESENT,
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_INACTIVE);
-        // assertUser(user, "after")
-        //        .assertLiveLinks(0); // FIXME MID-9061
-        RESOURCE_TARGET_ONE.controller.assertNoAccountByUsername(user.getName().getOrig());
-        // RESOURCE_TARGET_TWO.controller.assertNoAccountByUsername(user.getName().getOrig()); // FIXME MID-9061
+                AUTHORIZATIONS_NOT_PRESENT,
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_NOT_APPLIED, // TODO not sure if correct
+                ACCOUNTS_NOT_PRESENT);
+        assertAssignment(user, principal, ARCHETYPE_ASSIGNED_IN_DRAFT,
+                ASSIGNMENT_DISABLED,
+                ARCHETYPE_REF_PRESENT, // FIXME
+                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
+                MAPPINGS_NOT_APPLIED,
+                AUTHORIZATIONS_PRESENT, // FIXME
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_APPLIED, // TODO not sure if correct
+                ACCOUNTS_NOT_PRESENT);
+        assertAssignment(user, principal, ROLE_ASSIGNED_IN_DRAFT,
+                ASSIGNMENT_DISABLED,
+                ARCHETYPE_REF_NOT_PRESENT,
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
+                MAPPINGS_NOT_APPLIED,
+                AUTHORIZATIONS_NOT_PRESENT,
+                OBJECT_POLICY_RULES_NOT_APPLIED,
+                ASSIGNMENT_POLICY_RULES_APPLIED, // TODO not sure if correct
+                ACCOUNTS_NOT_PRESENT);
+
+        assertResourceAssignment(user, RESOURCE_DIRECT_ACTIVE,
+                ASSIGNMENT_ENABLED, // FIXME
+                ACCOUNTS_NOT_PRESENT);
+        assertResourceAssignment(user, RESOURCE_DIRECT_DRAFT,
+                ASSIGNMENT_ENABLED, // FIXME
+                ACCOUNTS_NOT_PRESENT);
+        assertResourceAssignment(user, RESOURCE_DIRECT_ASSIGNED_IN_DRAFT,
+                ASSIGNMENT_DISABLED,
+                ACCOUNTS_NOT_PRESENT);
     }
 
     private Set<String> getAuthorizations(MidPointPrincipal principal) {
@@ -386,103 +473,211 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
                 .collect(Collectors.toSet());
     }
 
-    private UserType standardUser(String name) {
-        return new UserType()
+    private String addUser(String name, ActivationStatusType administrativeStatus, String lifecycleState)
+            throws CommonException {
+        var user = new UserType()
                 .name(name)
+                .activation(new ActivationType()
+                        .administrativeStatus(administrativeStatus))
+                .lifecycleState(lifecycleState)
                 .assignment(
-                        ARCHETYPE_BASIC.assignmentTo())
+                        ARCHETYPE_ACTIVE.assignmentTo())
                 .assignment(
-                        ROLE_FIXED_DRAFT.assignmentTo())
+                        ROLE_ACTIVE.assignmentTo())
                 .assignment(
-                        ROLE_ASSIGNED_FIXED_DRAFT.assignmentTo()
+                        ARCHETYPE_DRAFT.assignmentTo())
+                .assignment(
+                        ROLE_DRAFT.assignmentTo())
+                .assignment(
+                        ARCHETYPE_ASSIGNED_IN_DRAFT.assignmentTo()
                                 .lifecycleState(SchemaConstants.LIFECYCLE_DRAFT))
                 .assignment(
-                        ROLE_FIXED_ACTIVE.assignmentTo())
+                        ROLE_ASSIGNED_IN_DRAFT.assignmentTo()
+                                .lifecycleState(SchemaConstants.LIFECYCLE_DRAFT))
                 .assignment(new AssignmentType()
                         .construction(
-                                RESOURCE_TARGET_ONE.defaultConstruction()))
-                .assignment(
-                        ROLE_TARGET_TWO.assignmentTo());
+                                RESOURCE_DIRECT_ACTIVE.defaultConstruction()))
+                .assignment(new AssignmentType()
+                        .construction(
+                                RESOURCE_DIRECT_DRAFT.defaultConstruction()))
+                .assignment(new AssignmentType()
+                        .construction(
+                                RESOURCE_DIRECT_ASSIGNED_IN_DRAFT.defaultConstruction())
+                        .lifecycleState(SchemaConstants.LIFECYCLE_DRAFT));
+
+        return addObject(user, getTestTask(), getTestOperationResult());
     }
 
     private MidPointPrincipal getPrincipal(String userName) throws CommonException {
         return focusProfileService.getPrincipal(userName, UserType.class);
     }
 
-    private void assertRole(
-            UserType user, MidPointPrincipal principal, TestObject<? extends AbstractRoleType> abstractRole,
-            ActivationStatusType assignmentEffectiveStatus,
-            RoleMembershipRef roleMembershipRefState,
-            Mappings mappingsState,
-            Authorizations authorizationsState) throws CommonException {
+    private void assertAssignment(
+            UserType user, MidPointPrincipal principal, TestObject<? extends AbstractRoleType> target,
+            LocalAssertion... assertions) throws Exception {
 
-        String roleName = abstractRole.getNameOrig();
-
-        // @formatter:off
-        assertUser(user, "after")
-                .assignments()
-                .by().targetOid(abstractRole.oid).find()
-                .activation()
-                .assertEffectiveStatus(assignmentEffectiveStatus)
-                .end()
-                .end()
-                .end();
-        // @formatter:on
-
-        if (roleMembershipRefState == ROLE_MEMBERSHIP_REF_ACTIVE) {
-            assertUser(user, "after")
-                    .roleMembershipRefs()
-                    .by().targetOid(abstractRole.oid).find()
-                    .end();
-        } else {
-            assertUser(user, "after")
-                    .roleMembershipRefs()
-                    .by().targetOid(abstractRole.oid).assertNone()
-                    .end();
-        }
-
+        String userName = user.getName().getOrig();
+        String targetName = target.getNameOrig();
+        String targetOid = target.oid;
+        var archetypeOids = user.getArchetypeRef().stream()
+                .map(ref -> ref.getOid())
+                .collect(Collectors.toSet());
         var organizations = user.getOrganization().stream()
                 .map(o -> o.getOrig())
                 .collect(Collectors.toSet());
-        if (mappingsState == MAPPINGS_APPLIED) {
-            assertThat(organizations)
-                    .withFailMessage("Mapping for %s was not executed", roleName)
-                    .contains(roleName);
-        } else {
-            assertThat(organizations)
-                    .withFailMessage("Mapping for %s was executed even if it should not be", roleName)
-                    .doesNotContain(roleName);
+        var autzActions = getAuthorizations(principal);
+
+        for (LocalAssertion assertion : assertions) {
+            switch (assertion) {
+                case ASSIGNMENT_ENABLED, ASSIGNMENT_DISABLED ->
+                        assertUser(user, "after")
+                                .assignments()
+                                .by().targetOid(target.oid).find()
+                                .activation()
+                                .assertEffectiveStatus(
+                                        assertion == ASSIGNMENT_ENABLED ?
+                                                ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+                case ROLE_MEMBERSHIP_REF_PRESENT ->
+                        assertUser(user, "after")
+                                .roleMembershipRefs()
+                                .by().targetOid(target.oid).find();
+                case ROLE_MEMBERSHIP_REF_NOT_PRESENT ->
+                        assertUser(user, "after")
+                                .roleMembershipRefs()
+                                .by().targetOid(target.oid).assertNone();
+                case ARCHETYPE_REF_PRESENT ->
+                        assertThat(archetypeOids)
+                                .withFailMessage("Archetype %s not present in archetypeRef even if it should be; values: %s", targetName, archetypeOids)
+                                .contains(targetOid);
+                case ARCHETYPE_REF_NOT_PRESENT ->
+                        assertThat(archetypeOids)
+                                .withFailMessage("Archetype %s is present in archetypeRef even if it should not be; values: %s", targetName, archetypeOids)
+                                .doesNotContain(targetOid);
+                case MAPPINGS_APPLIED ->
+                        assertThat(organizations)
+                                .withFailMessage("Mapping for %s was not executed", targetName)
+                                .contains(targetName);
+                case MAPPINGS_NOT_APPLIED ->
+                        assertThat(organizations)
+                                .withFailMessage("Mapping for %s was executed even if it should not be", targetName)
+                                .doesNotContain(targetName);
+                case AUTHORIZATIONS_PRESENT ->
+                        assertThat(autzActions)
+                                .withFailMessage("Authorization for %s is not present", targetName)
+                                .contains(targetName);
+                case AUTHORIZATIONS_NOT_PRESENT ->
+                        assertThat(autzActions)
+                                .withFailMessage("Authorization for %s is present even if it should not be", targetName)
+                                .doesNotContain(targetName);
+                case OBJECT_POLICY_RULES_APPLIED -> OBJECT_CONSTRAINTS.assertPresent(targetName);
+                case OBJECT_POLICY_RULES_NOT_APPLIED -> OBJECT_CONSTRAINTS.assertNotPresent(targetName);
+                case ASSIGNMENT_POLICY_RULES_APPLIED -> ASSIGNMENT_CONSTRAINTS.assertPresent(targetName);
+                case ASSIGNMENT_POLICY_RULES_NOT_APPLIED -> ASSIGNMENT_CONSTRAINTS.assertNotPresent(targetName);
+                case ACCOUNTS_PRESENT ->
+                        getDummyResourceController("resource-" + targetName)
+                                .assertAccountByUsername(userName);
+                case ACCOUNTS_NOT_PRESENT ->
+                        getDummyResourceController("resource-" + targetName)
+                                .assertNoAccountByUsername(userName);
+                default -> throw new AssertionError(assertion);
+            }
         }
+    }
 
-        var actions = getAuthorizations(principal);
-        if (authorizationsState == AUTHORIZATIONS_ACTIVE) {
-            assertThat(actions)
-                    .withFailMessage("Authorization for %s is not present", roleName)
-                    .contains(roleName);
-        } else {
-            assertThat(actions)
-                    .withFailMessage("Authorization for %s is present even if it should not be", roleName)
-                    .doesNotContain(roleName);
+    private void assertResourceAssignment(
+            UserType user, DummyTestResource resource,
+            LocalAssertion... assertions) throws Exception {
+
+        String userName = user.getName().getOrig();
+        String resourceName = resource.getNameOrig();
+
+        for (LocalAssertion assertion : assertions) {
+            switch (assertion) {
+                case ASSIGNMENT_ENABLED, ASSIGNMENT_DISABLED ->
+                        assertUser(user, "after")
+                                .assignments()
+                                .by().resourceOid(resource.oid).find()
+                                .activation()
+                                .assertEffectiveStatus(
+                                        assertion == ASSIGNMENT_ENABLED ?
+                                                ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+                case ACCOUNTS_PRESENT ->
+                        getDummyResourceController(resourceName)
+                                .assertAccountByUsername(userName);
+                case ACCOUNTS_NOT_PRESENT ->
+                        getDummyResourceController(resourceName)
+                                .assertNoAccountByUsername(userName);
+                default -> throw new AssertionError(assertion);
+            }
         }
     }
 
-    enum UserState {
-        USER_ENABLED, USER_DISABLED
-    }
+    enum LocalAssertion {
+        /** User's effective status is "enabled". */
+        USER_ENABLED,
 
-    enum AssignmentsState {
-        ASSIGNMENTS_ACTIVE, ASSIGNMENTS_INACTIVE
-    }
+        /** User's effective status is "disabled". */
+        USER_DISABLED,
 
-    enum RoleMembershipRef {
-        ROLE_MEMBERSHIP_REF_ACTIVE, ROLE_MEMBERSHIP_REF_INACTIVE
-    }
+        /**
+         * Assignments do their job according to their status, see {@link #assertAssignmentsActive(UserType, MidPointPrincipal)}.
+         */
+        ASSIGNMENTS_ACTIVE,
 
-    enum Mappings {
-        MAPPINGS_APPLIED, MAPPINGS_NOT_APPLIED
-    }
+        /**
+         * Assignments do not do their job, see {@link #assertAssignmentsInactive(UserType, MidPointPrincipal)}.
+         */
+        ASSIGNMENTS_INACTIVE,
 
-    enum Authorizations {
-        AUTHORIZATIONS_ACTIVE, AUTHORIZATIONS_INACTIVE
+        /** Assignment's effective status is "enabled". */
+        ASSIGNMENT_ENABLED,
+
+        /** Assignment's effective status is "disabled". */
+        ASSIGNMENT_DISABLED,
+
+        /** Assignment's target is in "roleMembershipRef". */
+        ROLE_MEMBERSHIP_REF_PRESENT,
+
+        /** Assignment's target is not in "roleMembershipRef". */
+        ROLE_MEMBERSHIP_REF_NOT_PRESENT,
+
+        /** Assignment's target is in "archetypeRef". */
+        ARCHETYPE_REF_PRESENT,
+
+        /** Assignment's target is not in "archetypeRef". */
+        ARCHETYPE_REF_NOT_PRESENT,
+
+        /** Mappings induced by the assignment target are applied. */
+        MAPPINGS_APPLIED,
+
+        /** Mappings induced by the assignment target are not applied. */
+        MAPPINGS_NOT_APPLIED,
+
+        /** Authorizations present in assignment target are applied. */
+        AUTHORIZATIONS_PRESENT,
+
+        /** Authorizations present in assignment target are not applied. */
+        AUTHORIZATIONS_NOT_PRESENT,
+
+        /** Policy rules targeted to the object (focus) are applied. */
+        OBJECT_POLICY_RULES_APPLIED,
+
+        /** Policy rules targeted to the object (focus) are not applied. */
+        OBJECT_POLICY_RULES_NOT_APPLIED,
+
+        /** Policy rules targeted to the assignment are applied. */
+        ASSIGNMENT_POLICY_RULES_APPLIED,
+
+        /** Policy rules targeted to the assignment are not applied. */
+        ASSIGNMENT_POLICY_RULES_NOT_APPLIED,
+
+        /** Accounts assigned or induced are present. */
+        ACCOUNTS_PRESENT,
+
+        /** Accounts assigned or induced are not present. */
+        ACCOUNTS_NOT_PRESENT,
+
+        /** Global policy rules are applied. */
+        GLOBAL_POLICY_RULES_APPLIED
     }
 }

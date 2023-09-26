@@ -9,4 +9,24 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
+    <globalPolicyRule>
+        <policyConstraints>
+            <objectState>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.model.intest.TestLifecycleBasic
+
+                            TestLifecycleBasic.OBJECT_CONSTRAINTS.add('global')
+                            false
+                        </code>
+                    </script>
+                </expression>
+            </objectState>
+        </policyConstraints>
+        <focusSelector>
+            <type>UserType</type>
+            <archetypeRef oid="36f0ede7-959c-450d-9fbc-d0c2cb75e167"/>
+        </focusSelector>
+    </globalPolicyRule>
 </systemConfiguration>
