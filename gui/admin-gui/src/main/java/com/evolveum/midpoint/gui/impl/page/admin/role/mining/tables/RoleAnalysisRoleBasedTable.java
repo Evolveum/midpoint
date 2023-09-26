@@ -373,7 +373,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     }
 
                 };
-
+                analyzedMembersDetailsPanel.add(AttributeAppender.replace("class","d-inline-block text-truncate"));
+                analyzedMembersDetailsPanel.add(AttributeAppender.replace("style","width:145px"));
                 analyzedMembersDetailsPanel.setOutputMarkupId(true);
                 item.add(analyzedMembersDetailsPanel);
             }
