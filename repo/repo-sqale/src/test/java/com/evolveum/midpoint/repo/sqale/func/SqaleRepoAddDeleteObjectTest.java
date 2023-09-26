@@ -444,7 +444,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(3); // next free container number
 
-        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QAssignment.class);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
@@ -484,7 +484,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(3); // next free container number
 
-        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QAssignment.class);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
@@ -524,7 +524,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(13); // next free container number
 
-        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QAssignment.class);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
@@ -566,7 +566,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertThat(userRow.oid).isNotNull();
         assertThat(userRow.containerIdSeq).isEqualTo(13); // next free container number
 
-        QContainer<MContainer, ?> c = aliasFor(QContainer.CLASS);
+        QContainer<MContainer, ?> c = aliasFor(QAssignment.class);
         List<MContainer> containers = select(c, c.ownerOid.eq(userRow.oid));
         assertThat(containers).hasSize(2)
                 .allMatch(cRow -> cRow.ownerOid.equals(userRow.oid)
