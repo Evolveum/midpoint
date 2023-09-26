@@ -14,7 +14,7 @@ Ninja supports two different upgrade paths:
 
 Deployment has to be upgraded to latest maintenance release before it can be upgraded to next version using ninja.
 
-For concrete examples of upgrade scenarios, please see xref:_sample_upgrade_scenarios[Sample upgrade scenarios].
+For concrete examples of upgrade scenarios, please see <<Sample upgrade scenarios>>.
 
 == Upgrade procedure
 
@@ -23,7 +23,7 @@ First phase (preparation) can be executed while midPoint is still running, witho
 Second phase (upgrade) requires downtime of midPoint instance.
 This phase should be quick to minimize required downtime.
 All steps mentioned above are described in following sections, ninja will guide you through them.
-For concrete examples of upgrade scenarios, please see xref:_sample_upgrade_scenarios[Sample upgrade scenarios].
+For concrete examples of upgrade scenarios, please see <<Sample upgrade scenarios>>.
 
 . Preparation phase
 .. Upgrade tasks to use activities
@@ -213,7 +213,7 @@ It is necessary to update initial objects to make sure that they are compatible 
 
 IMPORTANT: When upgrading LTS (from 4.4 -> 4.8) it is necessar y to upgrade at least securityPolicy object.
 Reason for this is that there were changes in authentication/authorization processing for different channels and configuration related to it, hence securityPolicy.
-See xref:_important_updates[] for more details.
+See <<Important updates>> for more details.
 
 Ninja contains command `initial-objects` to help you update set of initial objects (see `ninja.sh help initial-objects` for more details).
 Initial objects command will help add, update or replace existing objects in repository.
@@ -237,8 +237,8 @@ If one wants to import them before first start, it is possible to use `--force-a
 
 There are two main scenarios that can be followed:
 
-* xref:_no_changes_in_initial_objects[No changes in initial objects]
-* xref:_custom_changes_in_initial_objects[Custom changes in initial objects]
+* <<No changes in initial objects>>
+* <<Custom changes in initial objects>>
 
 ==== No changes in initial objects
 
