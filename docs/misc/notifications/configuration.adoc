@@ -25,7 +25,7 @@ In 4.5 the new container for transport configuration was introduced - `messageTr
 You can still place the transport configuration inside `notificationConfiguration` but that style
 will be eventually deprecated, depending on the GUI support for the new configuration style.
 
-There is just one noteble difference in both styles.
+There is just one notable difference in both styles.
 The "old" style supports `name` _attribute_ to distinguish between multiple transports of the same
 type - while the new style uses `name` _element_ which is more idiomatic for midPoint configuration.
 ====
@@ -81,6 +81,39 @@ You may also need to store the mail server self-signed SSL certificate in your J
 [TIP]
 ====
 For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
+====
+
+[NOTE]
+====
+In previous versions of midPoint, there could be only one configuration of the mail transport.
+Since 4.5, when using the modern configuration style in `messageTransportConfiguration` container, multiple mail transports can be used.
+They are then distinguished by their name, for example:
+
+[source,xml]
+----
+<notificationConfiguration>
+    <handler>
+        <simpleFocalObjectNotifier>
+            <transport>main</transport>
+        </simpleFocalObjectNotifier>
+        <simpleResourceObjectNotifier>
+            <transport>accounts</transport>
+        </simpleResourceObjectNotifier>
+    </handler>
+</notificationConfiguration>
+<messageTransportConfiguration>
+    <mail>
+        <name>main</name>
+        <!-- ... -->
+    </mail>
+    <mail>
+        <name>accounts</name>
+        <!-- ... -->
+    </mail>
+</messageTransportConfiguration>
+----
+
+The same way of naming individual transports can be used for all transport kinds (sms, custom, file).
 ====
 
 === "File" transport

@@ -105,8 +105,9 @@ Resource with unexpected critical errors, requiring attention od administrators.
 |===
 
 The "Active" column specifies whether the object is active (enabled) in that particular lifecycle state.
-The effective activation status will always be non-active (disabled or archived) in the states that are marked as not active in the above table.
-In these states the object will not be active even if the activation administrative status is explicitly set to `enabled`. See xref:/midpoint/reference/concepts/activation/[Activation] page for more details.
+The effective activation status will always be `disabled` in the states that are marked as not active in the above table.
+In these states the object will not be active even if the activation administrative status is explicitly set to `enabled`.
+See xref:/midpoint/reference/concepts/activation/[Activation] page for more details.
 
 
 == Assignment Lifecycle
@@ -163,18 +164,8 @@ Manual action is needed.
 
 |===
 
-In midPoint 3.6 and later the assignment state is also determined by the focus (user) lifecycle state.
-When the focus (user) is inactive then also the assignments are considered inactive.
-In that case the assignment lifecycle state is not considered.
-The inactive focus lifecycle state overrides assignment lifecycle state.
-
-[NOTE]
-====
-In midPoint 3.5 the assignment lifecycle state is being taken into consideration when deciding whether assignment/inducement is active or not.
-But the assignment state is otherwise not used by midPoint.
-I.e. midPoint is not storing proposed assignments for requested assignments yet.
-====
-
+As described above, the assignment state is also determined by the focus (user) lifecycle state.
+When the focus (user) is in state marked as "Assignments active: no" (like `draft`, `proposed`, `archived`) then the assignments are considered inactive regardless of their lifecycle state.
 
 == See Also
 

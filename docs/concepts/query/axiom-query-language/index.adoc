@@ -1,20 +1,23 @@
 = Axiom Query Language
-:page-since: "4.3"
+:page-since: "4.4"
+:page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 :page-toc: top
 
-//TODO: User-friendly documentation of a user-friendly language.
+//User-friendly documentation of a user-friendly language.
 //This should NOT be a language specification, rather a user-oriented reference documentation with a dash of tutorial on top.
 
-Axiom Query Language is a language used to query objects in midPoint repository.
+Axiom query language is a language used to query objects in midPoint repository.
 It is a universal language used to search for objects in the repository, filter objects, set up object references and so on.
 It is used in all the places where we need to look for an object.
 
 The language closely follows midPoint data model.
 Names of the properties, attributes and all the data items are directly taken from midPoint xref:/midpoint/reference/schema/[data model].
 
-This description is an attempt to provide introduction to the Axiom Query Language for the users.
+This document provides introduction to the Axiom Query language for the users.
 Some details are omitted, and there are some simplifications for clarity.
-Exact specification of the query language will be provided in xref:/midpoint/devel/axiom/[Axiom section of this site].
+Exact developers specification of the query language will be provided in xref:/midpoint/devel/axiom/[Axiom section of this site].
+
+NOTE: The Axiom query language is undergoing rename to Midpoint Query Language since midPoint version 4.8. As the Axiom name is well known, it can and will be still referenced also with this name. Please consider _Axiom query language_ and _Midpoint query language_ as synonyms.
 
 == The Basics
 
