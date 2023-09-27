@@ -41,6 +41,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisChartPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -90,6 +91,10 @@ public class PageRoleAnalysis extends PageAdmin {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+
+        RoleAnalysisChartPanel roleAnalysisChartPanel = new RoleAnalysisChartPanel("chartPanel");
+        roleAnalysisChartPanel.setOutputMarkupId(true);
+        add(roleAnalysisChartPanel);
     }
 
     private InlineMenuItem createDeleteInlineMenu() {

@@ -10,8 +10,9 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        oid="bd08e2c7-17bd-42cd-ae07-f78aa16e11b3">
-    <name>target-one</name>
+        oid="ca449b85-f86e-45bd-ab40-4f36028f5b58">
+    <name>template</name>
+    <template>true</template>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -26,12 +27,6 @@
             </q:and>
         </filter>
     </connectorRef>
-    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-        <icfc:configurationProperties>
-            <icfi:instanceId>target-one</icfi:instanceId>
-        </icfc:configurationProperties>
-    </connectorConfiguration>
     <schemaHandling>
         <objectType>
             <kind>account</kind>
@@ -42,6 +37,7 @@
             </delineation>
             <attribute>
                 <ref>icfs:name</ref>
+                <correlator/>
                 <outbound>
                     <strength>strong</strength>
                     <source>
@@ -54,7 +50,6 @@
                     </target>
                     <use>correlation</use>
                 </inbound>
-                <correlator/>
             </attribute>
         </objectType>
     </schemaHandling>

@@ -579,7 +579,9 @@ export default class MidPointTheme {
             component = div.querySelector('table');
         } else if (containerId === '#imageScaleContainer') {
             component = div.querySelector('img');
-        }
+        } else if (containerId === '#chartScaleContainer') {
+            component = div.querySelector('canvas');
+                     }
 
         if (component) {
             div.addEventListener('wheel', handleZoom);

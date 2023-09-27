@@ -125,6 +125,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_EXPAND = "fa fa-chevron-left";
     public static final String CLASS_ICON_COLLAPSE = "fa  fa-chevron-down";
     public static final String CLASS_ICON_SORT_AMOUNT_ASC = "fa fa-sort-amount-asc";
+    public static final String CLASS_ICON_SORT_AMOUNT_DSC = "fa fa-sort-amount-desc";
+
     public static final String CLASS_ICON_SORT_ALPHA_ASC = "fa fa-sort-alpha-down";
     public static final String CLASS_ICON_SHOW_EMPTY_FIELDS = "fa fa-square-o";
     public static final String CLASS_ICON_NOT_SHOW_EMPTY_FIELDS = "fa fa-square";

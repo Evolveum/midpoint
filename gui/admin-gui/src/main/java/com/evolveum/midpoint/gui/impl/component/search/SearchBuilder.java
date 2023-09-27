@@ -213,10 +213,8 @@ public class SearchBuilder<C extends Serializable> {
                 .additionalSearchContext(additionalSearchContext)
                 .modelServiceLocator(modelServiceLocator)
                 .create();
+        setDefaultSearchMode(defaultSearchBoxConfig);
 
-        if (isFullTextSearchEnabled(type)) {
-            defaultSearchBoxConfig.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
-        }
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
@@ -242,7 +240,7 @@ public class SearchBuilder<C extends Serializable> {
         search.setFulltextQueryWrapper(fulltextQueryWrapper);
         search.setSearchConfigurationWrapper(basicSearchWrapper);
 
-        search.setSearchMode(getDefaultSearchMode(mergedConfig, type));
+        search.setSearchMode(mergedConfig.getDefaultMode());
         search.setAllowedModeList(mergedConfig.getAllowedMode());
         if (collectionView != null) {
             search.setCollectionViewName(collectionView.getViewIdentifier());
@@ -297,21 +295,29 @@ public class SearchBuilder<C extends Serializable> {
         basicSearchWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
     }
 
-    private SearchBoxModeType getDefaultSearchMode(SearchBoxConfigurationType config, Class<C> type) {
+    private void setDefaultSearchMode(SearchBoxConfigurationType config) {
         List<SearchBoxModeType> allowedModes = config.getAllowedMode();
+
+        if (isFullTextSearchEnabled(type) && !allowedModes.contains(SearchBoxModeType.FULLTEXT)) {
+            allowedModes.add(SearchBoxModeType.FULLTEXT);
+        }
+
         if (isFullTextSearchEnabled(type) && allowedModes.contains(SearchBoxModeType.FULLTEXT)) {
-            return SearchBoxModeType.FULLTEXT;
+            config.setDefaultMode(SearchBoxModeType.FULLTEXT);
+            return;
         }
         //This is not entirely correct. however, there is no clever options for now for handling fullText for assignments
         // The main problem is the isFullTextSearchEnabled(type), since the fulltext for assignment is not actually for
         // AssignmentType, but for its targetRef. So, fulltext for AbstractRoleType has to be specified
         if (allowedModes.contains(SearchBoxModeType.FULLTEXT) && AssignmentType.class.isAssignableFrom(type) && isFullTextSearchEnabled((Class<C>) AbstractRoleType.class)) {
-            return SearchBoxModeType.FULLTEXT;
+            config.setDefaultMode(SearchBoxModeType.FULLTEXT);
+            return;
         }
         if (allowedModes.size() == 1) {
-            return allowedModes.get(0);
+            config.setDefaultMode(allowedModes.get(0));
+            return;
         }
-        return config.getDefaultMode();
+        config.setDefaultMode(config.getDefaultMode());
     }
 
     private SearchBoxConfigurationType getConfiguredSearchBox() {

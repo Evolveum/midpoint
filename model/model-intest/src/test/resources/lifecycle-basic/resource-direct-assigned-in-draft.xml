@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="77440749-8a6d-4630-b1d4-80bc6173c3aa">
+    <name>resource-direct-assigned-in-draft</name>
+    <super>
+        <resourceRef oid="ca449b85-f86e-45bd-ab40-4f36028f5b58"/>
+    </super>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>resource-direct-assigned-in-draft</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+</resource>

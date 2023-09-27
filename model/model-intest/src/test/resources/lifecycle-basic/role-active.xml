@@ -1,0 +1,69 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="5df4cceb-07c4-4097-ac06-748ac1a3c938">
+    <name>role-active</name>
+    <documentation>Role that is always in `active` LC state.</documentation>
+    <lifecycleState>active</lifecycleState>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignmentState>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.intest.TestLifecycleBasic
+
+                                TestLifecycleBasic.ASSIGNMENT_CONSTRAINTS.add('role-active')
+                                false
+                            </code>
+                        </script>
+                    </expression>
+                </assignmentState>
+            </policyConstraints>
+        </policyRule>
+    </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <expression>
+                    <value>role-active</value>
+                </expression>
+                <target>
+                    <path>organization</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.intest.TestLifecycleBasic
+
+                                TestLifecycleBasic.OBJECT_CONSTRAINTS.add('role-active')
+                                false
+                            </code>
+                        </script>
+                    </expression>
+                </objectState>
+            </policyConstraints>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="bd08e2c7-17bd-42cd-ae07-f78aa16e11b3"/>
+        </construction>
+    </inducement>
+    <authorization>
+        <action>http://test.evolveum.com/authorization#role-active</action>
+    </authorization>
+</role>

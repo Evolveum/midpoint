@@ -277,7 +277,10 @@ CREATE TABLE m_object (
     -- CHECK helps optimizer to avoid this table when different type is asked, mind that
     -- WHERE objectType = 'OBJECT' never returns anything (unlike select * from m_object).
     -- We don't want this check to be inherited as it would prevent any inserts of other types.
-    objectType ObjectType NOT NULL CHECK (objectType = 'OBJECT') NO INHERIT,
+
+    -- PG16: ObjectType column will be added later, it needs to have different definition for PG < 16 and PG >= 16
+    -- and it is not possible to achieve that definition with ALTER COLUMN statement
+    -- objectType ObjectType NOT NULL CHECK (objectType = 'OBJECT') NO INHERIT,
     nameOrig TEXT NOT NULL,
     nameNorm TEXT NOT NULL,
     fullObject BYTEA,
@@ -323,6 +326,32 @@ CREATE TABLE m_object (
     -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table
     CHECK (FALSE) NO INHERIT
 );
+
+
+
+
+-- Important objectType column needs to be non-generated on PG < 16 and generated on PG>=16
+--
+-- Before Postgres 16: if parent column was generated, child columns must use same value
+-- After 16: Parent must be generated, if children are generated, they may have different generation values
+do $$
+declare
+  pg16 int;
+begin
+
+-- Are we on Posgres 16 or newer? we cannot use VERSION() since it returns formated string
+SELECT 1 FROM "pg_settings" into pg16 WHERE "name" = 'server_version_num' AND "setting" >= '160000';
+  if pg16 then
+       ALTER TABLE m_object ADD COLUMN objectType ObjectType GENERATED ALWAYS AS ('OBJECT') STORED NOT NULL CHECK (objectType = 'OBJECT') NO INHERIT;
+    else
+       -- PG 15 and lower
+       ALTER TABLE m_object ADD COLUMN objectType ObjectType NOT NULL CHECK (objectType = 'OBJECT') NO INHERIT;
+  end if;
+end $$;
+
+
+
+
 -- No indexes here, always add indexes and referential constraints on concrete sub-tables.
 
 -- Represents AssignmentHolderType (all objects except shadows)
@@ -348,18 +377,19 @@ CREATE TABLE m_container (
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
     cid BIGINT NOT NULL,
     -- containerType will be overridden with GENERATED value in concrete table
-    containerType ContainerType NOT NULL,
+    -- containerType will be added by ALTER because we need different definition between PG Versions
+    -- containerType ContainerType NOT NULL,
 
     CHECK (FALSE) NO INHERIT
     -- add on concrete table (additional columns possible): PRIMARY KEY (ownerOid, cid)
 );
-
 -- Abstract reference table, for object but also other container references.
 CREATE TABLE m_reference (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
-    -- referenceType will be overridden with GENERATED value in concrete table
     ownerType ObjectType NOT NULL,
-    referenceType ReferenceType NOT NULL,
+    -- referenceType will be overridden with GENERATED value in concrete table
+    -- referenceType will be added by ALTER because we need different definition between PG Versions
+
     targetOid UUID NOT NULL, -- soft-references m_object
     targetType ObjectType NOT NULL,
     relationId INTEGER NOT NULL REFERENCES m_uri(id),
@@ -368,8 +398,31 @@ CREATE TABLE m_reference (
     CHECK (FALSE) NO INHERIT
     -- add PK (referenceType is the same per table): PRIMARY KEY (ownerOid, relationId, targetOid)
 );
+
+-- Important: referenceType, containerType column needs to be non-generated on PG < 16 and generated on PG>=16
+--
+-- Before Postgres 16: if parent column was generated, child columns must use same value
+-- After 16: Parent must be generated, if children are generated, they may have different generation values
+do $$
+declare
+  pg16 int;
+begin
+
+-- Are we on Postgres 16 or newer? we cannot use VERSION() since it returns formated string
+SELECT 1 FROM "pg_settings" into pg16 WHERE "name" = 'server_version_num' AND "setting" >= '160000';
+  if pg16 then
+       ALTER TABLE m_reference ADD COLUMN referenceType ReferenceType  GENERATED ALWAYS AS (NULL) STORED NOT NULL;
+       ALTER TABLE m_container ADD COLUMN containerType ContainerType  GENERATED ALWAYS AS (NULL) STORED NOT NULL;
+    else
+       -- PG 15 and lower
+       ALTER TABLE m_reference ADD COLUMN referenceType ReferenceType NOT NULL;
+       ALTER TABLE m_container ADD COLUMN containerType ContainerType NOT NULL;
+  end if;
+end $$;
+
 -- Add this index for each sub-table (reference type is not necessary, each sub-table has just one).
 -- CREATE INDEX m_reference_targetOidRelationId_idx ON m_reference (targetOid, relationId);
+
 
 -- references related to ObjectType and AssignmentHolderType
 -- stores AssignmentHolderType/archetypeRef
@@ -1262,6 +1315,10 @@ CREATE TABLE m_connector (
 )
     INHERITS (m_assignment_holder);
 
+
+
+
+
 CREATE TRIGGER m_connector_oid_insert_tr BEFORE INSERT ON m_connector
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
 CREATE TRIGGER m_connector_update_tr BEFORE UPDATE ON m_connector
@@ -1812,6 +1869,10 @@ CREATE INDEX m_message_template_modifyTimestamp_idx ON m_message_template (modif
 -- and also https://docs.evolveum.com/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/
 CREATE TABLE m_assignment (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+
+    -- Container ID, unique in the scope of the whole object (owner).
+    -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
+    cid BIGINT NOT NULL,
     -- this is different from other containers, this is not generated, app must provide it
     containerType ContainerType NOT NULL CHECK (containerType IN ('ASSIGNMENT', 'INDUCEMENT')),
     ownerType ObjectType NOT NULL,
@@ -1857,8 +1918,7 @@ CREATE TABLE m_assignment (
     modifyTimestamp TIMESTAMPTZ,
 
     PRIMARY KEY (ownerOid, cid)
-)
-    INHERITS(m_container);
+);
 
 CREATE INDEX m_assignment_policySituation_idx
     ON m_assignment USING gin(policysituations gin__int_ops);
