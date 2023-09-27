@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplate.TemplateType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -81,6 +82,16 @@ public class ResourceTemplateProvider
                     .build();
         }
         return null;
+    }
+
+    @Override
+    protected ObjectPaging createPaging(long offset, long pageSize) {
+        if (type != null && TemplateType.CONNECTOR == type.getObject()) {
+            setSort("displayName", getDefaultSortOrder());
+        } else {
+            setSort(getDefaultSortParam(), getDefaultSortOrder());
+        }
+        return super.createPaging(offset, pageSize);
     }
 
     public TemplateTile<ResourceTemplate> createDataObjectWrapper(PrismObject<AssignmentHolderType> obj) {
