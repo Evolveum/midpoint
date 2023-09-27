@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.impl.evaluator;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -92,7 +94,7 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
             throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
         }
 
-        checkAuthorizations(principal, connEnv, authnCtx);
+//        checkAuthorizations(principal, connEnv, authnCtx);
         recordModuleAuthenticationSuccess(principal, connEnv);
         return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
     }
@@ -341,5 +343,12 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
 
     public AuthenticationAttemptDataType getAuthenticationData(MidPointPrincipal principal, ConnectionEnvironment connectionEnvironment) {
         return AuthUtil.findAuthAttemptDataForModule(connectionEnvironment, principal);
+    }
+
+    @Override
+    protected ProfileCompilerOptions createOptionForGettingPrincipal() {
+        return ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                .collectAuthorization(false)
+                .locateSecurityPolicy(true);
     }
 }

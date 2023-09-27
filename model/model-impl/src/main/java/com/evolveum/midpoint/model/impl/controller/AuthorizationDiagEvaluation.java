@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.security.enforcer.api.CompileConstraintsOptions;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -113,7 +114,11 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
                     subjectRef, FocusType.class, null, "subject", task, result);
             // For Authorization Playground page, we don't need to support GUI config
             return b.securityContextManager.getUserProfileService().getPrincipal(
-                    subject.asPrismObject(), null, false, result);
+                    subject.asPrismObject(),
+                    null,
+                    ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                            .locateSecurityPolicy(false),
+                    result);
         }
     }
 

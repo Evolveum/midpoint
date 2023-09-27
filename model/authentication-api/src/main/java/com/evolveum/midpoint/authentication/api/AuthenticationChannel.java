@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.api;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
@@ -35,8 +33,6 @@ public interface AuthenticationChannel {
 
     boolean isDefault();
 
-    Collection<Authorization> resolveAuthorities(Collection<Authorization> authorities);
-
     void postSuccessAuthenticationProcessing();
 
     String getSpecificLoginUrl();
@@ -48,4 +44,6 @@ public interface AuthenticationChannel {
     String getUrlSuffix();
 
     boolean isPostAuthenticationEnabled();
+
+    boolean isAllowedAuthorization(Authorization autz);
 }

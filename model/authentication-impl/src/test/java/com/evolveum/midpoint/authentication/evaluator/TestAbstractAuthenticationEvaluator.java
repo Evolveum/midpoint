@@ -24,7 +24,7 @@ import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecord
 import com.evolveum.midpoint.authentication.impl.channel.GuiAuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
 
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
+import com.evolveum.midpoint.authentication.impl.filter.FinishingAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
@@ -111,7 +111,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private MessageSourceAccessor messages;
 
-    private SequenceAuditFilter auditFilter;
+    private FinishingAuthenticationFilter auditFilter;
 
     public abstract T getAuthenticationEvaluator();
     public abstract AC getAuthenticationContext(String username, V value, List<ObjectReferenceType> requiredAssignments);
@@ -186,37 +186,49 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             }
 
             @Override
-            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user, boolean supportGuiConfig, OperationResult result)
-                    throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                return getPrincipal(user, null, supportGuiConfig, result);
+            public GuiProfiledPrincipal getPrincipal(
+                    PrismObject<? extends FocusType> user, ProfileCompilerOptions options, OperationResult result)
+                    throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+                    ExpressionEvaluationException {
+                return getPrincipal(user, null, options, result);
             }
 
             @Override
             public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user,
-                    AuthorizationTransformer authorizationLimiter, boolean supportGuiConfig, OperationResult result)
-                    throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user, supportGuiConfig, result);
+                    AuthorizationTransformer authorizationLimiter, ProfileCompilerOptions options, OperationResult result)
+                    throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+                    ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user, options, result);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(username, clazz, supportGuiConfig);
+            public GuiProfiledPrincipal getPrincipal(
+                    String username, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
+                    throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+                    SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(username, clazz, options);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(query, clazz, supportGuiConfig);
+            public GuiProfiledPrincipal getPrincipal(
+                    ObjectQuery query, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
+                    throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+                    SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(query, clazz, options);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                GuiProfiledPrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz, supportGuiConfig);
+            public GuiProfiledPrincipal getPrincipalByOid(
+                    String oid, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
+                    throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+                    SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz, options);
                 addFakeAuthorization(principal);
                 return principal;
             }
@@ -238,7 +250,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             }
         });
 
-        auditFilter = new SequenceAuditFilter(authenticationRecorder);
+        auditFilter = new FinishingAuthenticationFilter(authenticationRecorder);
     }
 
     @Test

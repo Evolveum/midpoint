@@ -74,7 +74,7 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
             Authentication token = internalAuthentication(processingAuthentication, authRequirements.requireAssignment,
                     authRequirements.channel, authRequirements.focusType);
 
-            token = createNewAuthenticationToken(token, actualAuthentication.resolveAuthorities(token));
+//            token = createNewAuthenticationToken(token, actualAuthentication.resolveAuthorities(token));
 
             writeAuthentication(processingAuthentication, actualAuthentication, token);
 

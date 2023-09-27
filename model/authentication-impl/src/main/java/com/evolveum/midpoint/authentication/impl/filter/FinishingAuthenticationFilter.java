@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.authentication.impl.filter;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -35,30 +43,38 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * finished their evaluation. In those handlers, module state is set which is crucial for
  * correct evaluation.
  *
- * The aim of SequenceAuditFilter is to check the overall authentication, authentication for
+ * The aim of FinishingAuthenticationFilter is to check the overall authentication, authentication for
  * the whole sequence. While partial (module) authentication results are evaluated and
  * recorded by corresponding provider (plus evaluator), the overall status if the whole
- * sequence authentication was successful or not is recorded here. It should be recoded
- * only once per sequence, therefore the isAlreadyRecorded() check.
+ * sequence authentication was successful or not is recorded here. Also, if authentication is success
+ * then class call gui compiler for compilation of admin gui configuration for authenticated principal.
+ * It should be recoded only once per sequence, therefore the isAlreadyRecorded() check.
  *
  * The result is recorded to two places:
  *
  * - focus/behavior/authentication
  * - audit
  */
-public class SequenceAuditFilter extends OncePerRequestFilter {
+public class FinishingAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SequenceAuditFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FinishingAuthenticationFilter.class);
 
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
+    private GuiProfiledPrincipalManager focusProfileService;
+
+    @Autowired
+    public void setPrincipalManager(GuiProfiledPrincipalManager focusProfileService) {
+        this.focusProfileService = focusProfileService;
+    }
+
     private boolean recordOnEndOfChain = true;
 
-    public SequenceAuditFilter() {
+    public FinishingAuthenticationFilter() {
     }
 
     @VisibleForTesting
-    public SequenceAuditFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
+    public FinishingAuthenticationFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
         this.authenticationRecorder = authenticationRecorder;
     }
 
@@ -93,11 +109,33 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
         }
 
         writeRecord(request, mpAuthentication);
+        compileGuiProfile(mpAuthentication);
 
         if (!recordOnEndOfChain) {
             filterChain.doFilter(request, response);
         }
 
+    }
+
+    private void compileGuiProfile(MidpointAuthentication mpAuthentication) {
+        if (!mpAuthentication.isAuthenticated()) {
+            return;
+        }
+
+        AuthenticationChannel channel = mpAuthentication.getAuthenticationChannel();
+        boolean supportGuiConfig = channel == null || channel.isSupportGuiConfigByChannel();
+        try {
+            mpAuthentication.setPrincipal(
+                    focusProfileService.getPrincipal(
+                            ((MidPointPrincipal)mpAuthentication.getPrincipal()).getFocusPrismObject(),
+                            ProfileCompilerOptions.create()
+                                    .collectAuthorization(true)
+                                    .compileGuiAdminConfiguration(supportGuiConfig)
+                                    .locateSecurityPolicy(supportGuiConfig),
+                            new OperationResult("reload principal")));
+        } catch (CommonException e) {
+            LOGGER.debug("Couldn't reload principal after authentication", e);
+        }
     }
 
     @VisibleForTesting

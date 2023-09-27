@@ -88,7 +88,9 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                                 // TODO get operation result from the caller
                                 securityContextManager.getUserProfileService().getPrincipal(
                                         authorizedUser,
-                                        false, // For REST API, we don't need to support GUI config
+                                        // For REST API, we don't need to support GUI config
+                                        ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                                                .locateSecurityPolicy(false),
                                         new OperationResult(MidPointPrincipalManager.OPERATION_GET_PRINCIPAL));
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
                         ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());

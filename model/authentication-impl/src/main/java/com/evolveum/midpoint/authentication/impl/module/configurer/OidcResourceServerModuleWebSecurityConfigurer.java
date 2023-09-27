@@ -12,7 +12,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidpointHttpAuthorizationEvaluator;
 import com.evolveum.midpoint.authentication.impl.entry.point.HttpAuthenticationEntryPoint;
-import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
+import com.evolveum.midpoint.authentication.impl.filter.FinishingAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.authentication.impl.module.configuration.JwtOidcResourceServerConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configuration.OpaqueTokenOidcResourceServerConfiguration;
@@ -123,7 +123,7 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
         http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
 
-        SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());
+        FinishingAuthenticationFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new FinishingAuthenticationFilter());
         sequenceAuditFilter.setRecordOnEndOfChain(false);
         http.addFilterAfter(sequenceAuditFilter, BasicAuthenticationFilter.class);
 

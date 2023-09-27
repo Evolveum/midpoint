@@ -653,15 +653,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return StringUtils.isNotEmpty(archetypeOid) || archetypeSelected;
     }
 
-    public Collection<? extends GrantedAuthority> resolveAuthorities(Authentication token) {
-        if (token.getPrincipal() instanceof MidPointPrincipal mpPrincipal) {
-            Collection<Authorization> newAuthorities = authenticationChannel.resolveAuthorities(mpPrincipal.getAuthorities());
-            newAuthorities.forEach(a -> mpPrincipal.addExtraAuthorizationIfMissing(a, true));
-            return newAuthorities;
-        }
-        return token.getAuthorities();
-    }
-
     public ModuleAuthentication getProcessingModuleOrThrowException() {
         ModuleAuthentication moduleAuthentication = getProcessingModuleAuthentication();
         if (moduleAuthentication == null) {

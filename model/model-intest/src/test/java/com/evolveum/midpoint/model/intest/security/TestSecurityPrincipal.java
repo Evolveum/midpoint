@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -232,7 +234,11 @@ public class TestSecurityPrincipal extends AbstractInitializedSecurityTest {
         resetAuthentication();
 
         // WHEN
-        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class, false);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(
+                USER_JACK_USERNAME,
+                UserType.class,
+                ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                        .locateSecurityPolicy(false));
 
         // THEN
         assertJack(principal);
