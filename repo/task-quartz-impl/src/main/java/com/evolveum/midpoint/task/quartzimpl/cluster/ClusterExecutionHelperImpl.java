@@ -65,6 +65,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
 
     private static final String DOT_CLASS = ClusterExecutionHelperImpl.class.getName() + ".";
 
+
     @Override
     public void execute(@NotNull ClientCode code, ClusterExecutionOptions options, String context, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute");
@@ -178,10 +179,8 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
                 try {
                     WebClient client = getOrCreateClient(node, options, context);
                     if (client != null) {
-                        synchronized (client) {
-                            resetClientForUse(client, options, context);
-                            code.execute(client, node, result);
-                        }
+                        resetClientForUse(client, options, context);
+                        code.execute(client, node, result);
                     } else {
                         result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node " + nodeIdentifier +
                                 " couldn't be contacted. Maybe URL is not known?"); // todo better error reporting
@@ -242,7 +241,7 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper {
 
         WebClient client = clients.get(url);
         if (client == null) {
-            client = WebClient.create(url, Arrays.asList(xmlProvider, jsonProvider, yamlProvider));
+            client = WebClient.create(url, Arrays.asList(xmlProvider, jsonProvider, yamlProvider), true);
             // Client was null, so we create it, but maybe other thread created also client, so we do putIfAbsent
             // if previous return non-null, there is already existing client, so we should use this
             // and let garbage collection take care of rest.
