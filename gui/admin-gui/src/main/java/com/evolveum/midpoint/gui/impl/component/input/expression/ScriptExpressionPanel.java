@@ -204,6 +204,9 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         }
 
         public ScriptExpressionEvaluatorType toEvaluator() {
+            if (StringUtils.isEmpty(code)) {
+                return null;
+            }
             return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getLanguage());
         }
 
