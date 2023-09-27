@@ -357,14 +357,7 @@ public class LensUtil {
             AssignmentHolderType focus, AssignmentType assignment,
             XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel,
             @NotNull TaskExecutionMode taskExecutionMode) {
-        ObjectReferenceType targetRef = assignment.getTargetRef();
-        if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
-            // Archetype assignments are always valid, even in non-valid lifecycle states.
-            // The object cannot lose its (arche)type.
-            return true;
-        }
         String focusLifecycleState = focus.getLifecycleState();
-
         if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel, taskExecutionMode)) {
             return false;
         }

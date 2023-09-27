@@ -245,7 +245,7 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
                     if (convertedFilter != null) {
                         return convertedFilter;
                     }
-                } catch (SchemaException e) {
+                } catch (Exception e) {
                     LOGGER.error("Unable to parse filter {}, {} ", filter, e);
                 }
             }

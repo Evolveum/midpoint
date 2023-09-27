@@ -25,8 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
-
 /**
  * Evaluates resolved assignment target: its payload (authorizations, GUI config) and assignments/inducements.
  */
@@ -138,8 +136,10 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
         // We need to collect membership also for disabled targets (provided the assignment itself is enabled): MID-4127.
         // It is quite logical: if a user is member of a disabled role, it still needs to have roleMembershipRef
         // pointing to that role.
-        if (targetOverallConditionState.isNewTrue() && Util.shouldCollectMembership(segment)) {
-            ctx.membershipCollector.collect(target, segment.relation);
+        if (Util.shouldCollectMembership(segment)) {
+            // TODO reconsider this condition; for example, we may want to have roles with condition=false in the membership
+            boolean archetypeOnly = !targetOverallConditionState.isNewTrue();
+            ctx.membershipCollector.collect(target, segment.relation, archetypeOnly);
         }
 
         if (targetActivity.targetActive) {
