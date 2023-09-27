@@ -104,8 +104,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
                 if (taskBean == null || WebComponentUtil.isClosedTask(taskBean.asObjectable())) {
                     stop(target);
                     taskOidForReloaded = null;
-                }
-                if (WebComponentUtil.isSuspendedTask(taskBean.asObjectable())) {
+                } else if (WebComponentUtil.isSuspendedTask(taskBean.asObjectable())) {
                     OperationResult taskResult = OperationResult.createOperationResult(taskBean.asObjectable().getResult());
                     if (taskResult != null && (taskResult.isFatalError() || taskResult.isPartialError())) {
                         stop(target);
