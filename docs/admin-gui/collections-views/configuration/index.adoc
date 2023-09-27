@@ -449,7 +449,7 @@ The example of search panel configuration for Org member panel:
 
 image::image2021-1-19_9-37-5.png[]
 
-The example of the search panel configuration which adds fulltext search item to the Basic search mode panel. Be aware that fulltext search should be enabled as well to make it work.
+The example of the search panel configuration which adds fulltext search item to the Basic search mode panel. Be aware that fulltext search must be enabled as well to make it work.
 Use case for such search configuration is described more detailed xref:/midpoint/reference/admin-gui/admin-gui-config/index.adoc#configure-fullText-search-item-on-the-members-basic-search-panel[here].
 
 [source,xml]
