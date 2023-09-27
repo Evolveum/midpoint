@@ -1007,10 +1007,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 LOGGER.trace("Adding references from: {}", evalAssignment);
                 addRoleReferences(shouldBeRoleRefs, evalAssignment, focusContext);
                 addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
-                addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
             } else {
-                LOGGER.trace("Skipping because invalid: {}", evalAssignment);
+                LOGGER.trace("Skipping because invalid (except for potential archetypes): {}", evalAssignment);
             }
+            addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
         }
 
         //TODO check for structural archetypes?

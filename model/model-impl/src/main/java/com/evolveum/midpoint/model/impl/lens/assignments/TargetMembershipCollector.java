@@ -29,17 +29,17 @@ class TargetMembershipCollector {
         this.ctx = ctx;
     }
 
-    void collect(AssignmentHolderType targetToAdd, QName relation) {
+    void collect(AssignmentHolderType targetToAdd, QName relation, boolean archetypeRefOnly) {
         PrismReferenceValue valueToAdd = ctx.ae.prismContext.itemFactory().createReferenceValue();
         valueToAdd.setObject(targetToAdd.asPrismObject());
         valueToAdd.setTargetType(ObjectTypes.getObjectType(targetToAdd.getClass()).getTypeQName());
         valueToAdd.setRelation(relation);
         valueToAdd.setTargetName(targetToAdd.getName().toPolyString());
 
-        collect(valueToAdd, targetToAdd.getClass(), relation, targetToAdd, ctx);
+        collect(valueToAdd, targetToAdd.getClass(), relation, targetToAdd, archetypeRefOnly, ctx);
     }
 
-    void collect(ObjectReferenceType referenceToAdd, QName relation) {
+    void collect(ObjectReferenceType referenceToAdd, QName relation, boolean archetypeRefOnly) {
         PrismReferenceValue valueToAdd = ctx.ae.prismContext.itemFactory().createReferenceValue();
         valueToAdd.setOid(referenceToAdd.getOid());
         valueToAdd.setTargetType(referenceToAdd.getType());
@@ -47,7 +47,7 @@ class TargetMembershipCollector {
         valueToAdd.setTargetName(referenceToAdd.getTargetName());
 
         Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(referenceToAdd.getType()).getClassDefinition();
-        collect(valueToAdd, targetClass, relation, referenceToAdd, ctx);
+        collect(valueToAdd, targetClass, relation, referenceToAdd, archetypeRefOnly, ctx);
     }
 
     private void collect(
@@ -55,16 +55,19 @@ class TargetMembershipCollector {
             Class<? extends ObjectType> targetClass,
             QName relation,
             Object targetDesc,
+            boolean archetypeRefOnly,
             EvaluationContext<?> ctx) {
-        if (ctx.assignmentPath.containsDelegation(ctx.evaluateOld, ctx.ae.relationRegistry)) {
-            addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), valueToAdd, "delegationRef", targetDesc);
-        } else {
-            if (AbstractRoleType.class.isAssignableFrom(targetClass)) {
-                addIfNotThere(ctx.evalAssignment.getMembershipRefVals(), valueToAdd, "membershipRef", targetDesc);
+        if (!archetypeRefOnly) {
+            if (ctx.assignmentPath.containsDelegation(ctx.evaluateOld, ctx.ae.relationRegistry)) {
+                addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), valueToAdd, "delegationRef", targetDesc);
+            } else {
+                if (AbstractRoleType.class.isAssignableFrom(targetClass)) {
+                    addIfNotThere(ctx.evalAssignment.getMembershipRefVals(), valueToAdd, "membershipRef", targetDesc);
+                }
             }
-        }
-        if (OrgType.class.isAssignableFrom(targetClass) && ctx.ae.relationRegistry.isStoredIntoParentOrgRef(relation)) {
-            addIfNotThere(ctx.evalAssignment.getOrgRefVals(), valueToAdd, "orgRef", targetDesc);
+            if (OrgType.class.isAssignableFrom(targetClass) && ctx.ae.relationRegistry.isStoredIntoParentOrgRef(relation)) {
+                addIfNotThere(ctx.evalAssignment.getOrgRefVals(), valueToAdd, "orgRef", targetDesc);
+            }
         }
         if (ArchetypeType.class.isAssignableFrom(targetClass)) {
             addIfNotThere(ctx.evalAssignment.getArchetypeRefVals(), valueToAdd, "archetypeRef", targetDesc);

@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.model.intest.TestLifecycleBasic.LocalAssertion.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.LIFECYCLE_DRAFT;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -269,7 +270,7 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
         assertUser(userOid, USER_DISABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
-    @Test(enabled = false) // does not remove accounts yet
+    @Test
     public void test220ActiveToArchivedUser() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -290,6 +291,29 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
 
         then("user is OK");
         assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE, GLOBAL_POLICY_RULES_APPLIED);
+    }
+
+    @Test
+    public void test230DraftToActiveUser() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        preTestCleanup();
+
+        when("draft user is created");
+        String userName = getTestNameShort();
+        String userOid = addUser(userName, null, LIFECYCLE_DRAFT);
+        assertUser(userOid, USER_DISABLED, ASSIGNMENTS_INACTIVE, GLOBAL_POLICY_RULES_APPLIED);
+
+        and("user is activated");
+        clearConstraintFlags();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("user is OK");
+        assertUser(userOid, USER_ENABLED, ASSIGNMENTS_ACTIVE, GLOBAL_POLICY_RULES_APPLIED);
     }
 
     private static void preTestCleanup() {
@@ -371,13 +395,13 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
                 ACCOUNTS_NOT_PRESENT);
         assertAssignment(user, principal, ARCHETYPE_ASSIGNED_IN_DRAFT,
                 ASSIGNMENT_DISABLED,
-                ARCHETYPE_REF_PRESENT, // FIXME
-                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
-                MAPPINGS_APPLIED, // FIXME
-                AUTHORIZATIONS_PRESENT, // FIXME
+                ARCHETYPE_REF_PRESENT, // TODO later (archetype assignment cannot have lifecycle state)
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
+                MAPPINGS_NOT_APPLIED,
+                AUTHORIZATIONS_NOT_PRESENT,
                 OBJECT_POLICY_RULES_APPLIED, // FIXME
                 ASSIGNMENT_POLICY_RULES_APPLIED,
-                ACCOUNTS_PRESENT); // FIXME
+                ACCOUNTS_NOT_PRESENT);
         assertAssignment(user, principal, ROLE_ASSIGNED_IN_DRAFT,
                 ASSIGNMENT_DISABLED,
                 ARCHETYPE_REF_NOT_PRESENT,
@@ -403,9 +427,9 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
         assertAssignment(user, principal, ARCHETYPE_ACTIVE,
                 ASSIGNMENT_ENABLED, // TODO probably not correct
                 ARCHETYPE_REF_PRESENT,
-                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_PRESENT, // FIXME
+                AUTHORIZATIONS_NOT_PRESENT,
                 OBJECT_POLICY_RULES_NOT_APPLIED,
                 ASSIGNMENT_POLICY_RULES_APPLIED, // TODO not sure if correct
                 ACCOUNTS_NOT_PRESENT);
@@ -421,7 +445,7 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
         assertAssignment(user, principal, ARCHETYPE_DRAFT,
                 ASSIGNMENT_ENABLED, // TODO probably not correct
                 ARCHETYPE_REF_PRESENT,
-                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
                 MAPPINGS_NOT_APPLIED,
                 AUTHORIZATIONS_NOT_PRESENT,
                 OBJECT_POLICY_RULES_NOT_APPLIED,
@@ -439,9 +463,9 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
         assertAssignment(user, principal, ARCHETYPE_ASSIGNED_IN_DRAFT,
                 ASSIGNMENT_DISABLED,
                 ARCHETYPE_REF_PRESENT, // FIXME
-                ROLE_MEMBERSHIP_REF_PRESENT, // FIXME
+                ROLE_MEMBERSHIP_REF_NOT_PRESENT,
                 MAPPINGS_NOT_APPLIED,
-                AUTHORIZATIONS_PRESENT, // FIXME
+                AUTHORIZATIONS_NOT_PRESENT,
                 OBJECT_POLICY_RULES_NOT_APPLIED,
                 ASSIGNMENT_POLICY_RULES_APPLIED, // TODO not sure if correct
                 ACCOUNTS_NOT_PRESENT);
