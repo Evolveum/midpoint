@@ -32,8 +32,8 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
     }
 
     @Override
-    protected PopoverSearchPopupPanel createPopupPopoverPanel() {
-        return new DateIntervalSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, fromDateModel, toDateModel) {
+    protected PopoverSearchPopupPanel createPopupPopoverPanel(Popover popover) {
+        return new DateIntervalSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, popover, fromDateModel, toDateModel) {
 
             @Serial private static final long serialVersionUID = 1L;
 

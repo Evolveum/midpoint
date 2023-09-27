@@ -50,8 +50,8 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
     private static final String ID_FEEDBACK = "feedback";
 
 
-    public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
-        super(id, model);
+    public ReferenceValueSearchPopupPanel(String id, Popover popover, IModel<ObjectReferenceType> model) {
+        super(id, popover, model);
     }
 
     @Override
@@ -101,10 +101,8 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
                 ReferenceValueSearchPopupPanel.this.chooseObjectPerformed(target);
             }
         };
-
         feedback.setFilter(new ComponentFeedbackMessageFilter(nameField));
         nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
-
             @Serial private static final long serialVersionUID = 1L;
 
             @Override

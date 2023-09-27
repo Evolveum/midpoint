@@ -10,9 +10,11 @@ import java.io.Serial;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
@@ -22,13 +24,20 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
     private static final String ID_POPOVER_FORM = "popoverForm";
     private static final String ID_CONFIRM_BUTTON = "confirmButton";
     private static final String ID_REMOVE = "remove";
+    private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    public PopoverSearchPopupPanel(String id) {
+    private final Popover popover;
+
+    public PopoverSearchPopupPanel(String id, Popover popover) {
         super(id);
+
+        this.popover = popover;
     }
 
-    public PopoverSearchPopupPanel(String id, IModel<T> model) {
+    public PopoverSearchPopupPanel(String id, Popover popover, IModel<T> model) {
         super(id,model);
+
+        this.popover = popover;
     }
 
     @Override
@@ -46,8 +55,9 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
 
         customizationPopoverForm(midpointForm);
 
-        AjaxButton confirm = new AjaxButton(ID_CONFIRM_BUTTON, createStringResource("Button.ok")) {
-
+        AjaxIconButton confirm = new AjaxIconButton(ID_CONFIRM_BUTTON, new Model<>("fa fa-check"),
+                createStringResource("PopoverSearchPanel.applyButton"))
+        {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -57,9 +67,10 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
                 }
             }
         };
+        confirm.showTitleAsLabel(true);
         midpointForm.add(confirm);
 
-        AjaxButton remove = new AjaxButton(ID_REMOVE, createStringResource("Button.clear")) {
+        AjaxButton remove = new AjaxButton(ID_REMOVE, createStringResource("PopoverSearchPanel.clearButton")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -67,6 +78,16 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
             }
         };
         midpointForm.add(remove);
+
+        AjaxButton cancel = new AjaxButton(ID_CANCEL_BUTTON, createStringResource("PopoverSearchPanel.cancelButton")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                popover.toggle(target);
+            }
+        };
+        midpointForm.add(cancel);
+
     }
 
     protected void customizationPopoverForm(MidpointForm midpointForm){

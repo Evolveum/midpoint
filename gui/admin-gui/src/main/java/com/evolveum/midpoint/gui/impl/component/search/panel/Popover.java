@@ -47,7 +47,7 @@ public abstract class Popover extends Border {
 
     private void initLayout() {
         setOutputMarkupId(true);
-        add(AttributeAppender.prepend("class", "popover bs-popover-bottom"));
+        add(AttributeAppender.prepend("class", "popover bs-popover-bottom mb-0"));
         add(AttributeAppender.append("style", "display: none;"));
 
         Label title = new Label(ID_TITLE, this.title);
