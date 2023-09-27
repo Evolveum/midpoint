@@ -443,7 +443,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     private List<CompositedIconButtonDto> getAssignButtonDescription() {
         List<CompositedIconButtonDto> buttons = new ArrayList<>();
-        List<AssignmentObjectRelation> assignmentObjectRelations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList());
+        List<AssignmentObjectRelation> assignmentObjectRelations =
+                WebComponentUtil.divideAssignmentRelationsByAllValues(loadMemberRelationsList(), true);
         if (assignmentObjectRelations != null) {
             assignmentObjectRelations.forEach(relation -> {
                 DisplayType additionalDispayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(ChooseMemberPopup.this.getPageBase(),

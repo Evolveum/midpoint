@@ -2864,7 +2864,8 @@ public final class WebComponentUtil {
      * in the list will contain not more than 1 relation, not more than 1 object type and not more than one archetype reference.
      * This will simplify creating of a new_assignment_button
      */
-    public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(List<AssignmentObjectRelation> initialAssignmentRelationsList) {
+    public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(
+            List<AssignmentObjectRelation> initialAssignmentRelationsList, boolean isMemberAssignment) {
         if (initialAssignmentRelationsList == null) {
             return null;
         }
@@ -2874,13 +2875,15 @@ public final class WebComponentUtil {
             if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getObjectTypes())) {
                 assignmentObjectRelation.getObjectTypes().forEach(objectType -> {
                     if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())) {
-                        //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
-                        AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
-                        defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
-                        defaultViewRelation.setRelations(assignmentObjectRelation.getRelations());
-                        defaultViewRelation.setDescription(assignmentObjectRelation.getDescription());
-                        if (!assignmentObjectRelationAlreadyExists(resultList, defaultViewRelation)) {
-                            resultList.add(defaultViewRelation);
+                        if (isMemberAssignment) {
+                            //add at first type+relation combination without archetypeRef to cover default views (e.g. all users)
+                            AssignmentObjectRelation defaultViewRelation = new AssignmentObjectRelation();
+                            defaultViewRelation.setObjectTypes(Collections.singletonList(objectType));
+                            defaultViewRelation.setRelations(assignmentObjectRelation.getRelations());
+                            defaultViewRelation.setDescription(assignmentObjectRelation.getDescription());
+                            if (!assignmentObjectRelationAlreadyExists(resultList, defaultViewRelation)) {
+                                resultList.add(defaultViewRelation);
+                            }
                         }
                         assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
                             AssignmentObjectRelation newRelation = new AssignmentObjectRelation();

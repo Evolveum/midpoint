@@ -434,7 +434,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 }
                 List<CompositedIconButtonDto> additionalButtons = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(loadedRelations)) {
-                    List<AssignmentObjectRelation> relations = WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations);
+                    List<AssignmentObjectRelation> relations =
+                            WebComponentUtil.divideAssignmentRelationsByAllValues(loadedRelations, true);
                     relations.forEach(relation -> {
                         DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getAssignmentObjectRelationDisplayType(getPageBase(), relation,
                                 "abstractRoleMemberPanel.menu.createMember");
