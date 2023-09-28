@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.OidSearchItemWrapper;
@@ -46,15 +49,17 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>> implements Popupable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = SaveSearchPanel.class.getName() + ".";
     private static final String OPERATION_SAVE_FILTER = DOT_CLASS + "saveFilter";
     private static final Trace LOGGER = TraceManager.getTrace(SaveSearchPanel.class);
     private static final String ID_FEEDBACK_MESSAGE = "feedbackMessage";
+    private static final String ID_FEEDBACK_LABEL_MESSAGE = "feedbackLabel";
     private static final String ID_SAVE_SEARCH_FORM = "saveSearchForm";
     private static final String ID_SEARCH_NAME = "searchName";
     private static final String ID_BUTTONS_PANEL = "buttonsPanel";
@@ -81,7 +86,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
     private void initLayout() {
         setOutputMarkupId(true);
 
-        MidpointForm form = new MidpointForm(ID_SAVE_SEARCH_FORM);
+        MidpointForm<?> form = new MidpointForm<>(ID_SAVE_SEARCH_FORM);
         form.setOutputMarkupId(true);
         add(form);
 
@@ -90,8 +95,19 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
         feedbackMessage.setOutputMarkupId(true);
         form.add(feedbackMessage);
 
+        FeedbackLabels feedbackLabel = new FeedbackLabels(ID_FEEDBACK_LABEL_MESSAGE);
+        feedbackLabel.setFilter(new ContainerFeedbackMessageFilter(form));
+        feedbackLabel.setOutputMarkupPlaceholderTag(true);
+        form.add(feedbackLabel);
+
         TextField<String> nameField = new TextField<>(ID_SEARCH_NAME, queryNameModel);
-        nameField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        nameField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                validateNameField(target);
+                target.add(getComponentFeedback());
+            }
+        });
         nameField.setOutputMarkupId(true);
         form.add(nameField);
 
@@ -105,8 +121,8 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
             @Override
             public void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
                 if (StringUtils.isEmpty(queryNameModel.getObject())) {
-                    feedbackMessageModel = createStringResource("SaveSearchPanel.enterQueryNameWarning");
-                    ajaxRequestTarget.add(feedbackMessage);
+                    getComponentFeedback().error(createStringResource("SaveSearchPanel.enterQueryNameWarning").getString());
+                    ajaxRequestTarget.add(getComponentFeedback());
                     return;
                 }
                 saveCustomQuery(ajaxRequestTarget);
@@ -217,7 +233,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
     private SearchItemType createFulltextSearchItem() {
         try {
             SearchItemType fulltextSearchItem = new SearchItemType();
-            ObjectFilter filter = PrismContext.get().queryFor((Class<Containerable>)getModelObject().getTypeClass())
+            ObjectFilter filter = PrismContext.get().queryFor((Class<Containerable>) getModelObject().getTypeClass())
                     .fullText(getModelObject().getFullText())
                     .buildFilter();
             fulltextSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(filter));
@@ -274,7 +290,6 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
             }
             addItemToPath = false;
         }
-
 
         StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
         String viewName = collectionViewParameter == null || collectionViewParameter.isNull() ? defaultCollectionViewIdentifier
@@ -347,6 +362,34 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
         result.recomputeStatus();
         getPageBase().showResult(result);
         ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
+    }
+
+    public void validateNameField(AjaxRequestTarget target) {
+        getComponentFeedback().getFeedbackMessages().clear();
+
+        if (queryNameModel == null) {
+            getComponentFeedback().error(createStringResource("SaveSearchPanel.enterQueryNameWarning").getString());
+        } else {
+
+            List<AvailableFilterType> availableSearchFilters = getAvailableSearchFilters();
+            for (AvailableFilterType availableSearchFilter : availableSearchFilters) {
+                PolyStringType label = availableSearchFilter.getDisplay().getLabel();
+                if (label != null && String.valueOf(label).equals(queryNameModel.getObject())) {
+                    getComponentFeedback().error(createStringResource("SaveSearchPanel.filter.name.already.exists",
+                            queryNameModel.getObject()).getString());
+                    target.add(getComponentFeedback());
+                    break;
+                }
+            }
+        }
+    }
+
+    public List<AvailableFilterType> getAvailableSearchFilters() {
+        return getModelObject().getAvailableFilterTypes();
+    }
+
+    private FeedbackLabels getComponentFeedback() {
+        return (FeedbackLabels) get(createComponentPath(ID_SAVE_SEARCH_FORM, ID_FEEDBACK_LABEL_MESSAGE));
     }
 
     @Override

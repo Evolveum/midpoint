@@ -27,7 +27,7 @@ public enum ObjectTypeGuiDescriptor {
 
     GENERIC_OBJECT(ObjectTypes.GENERIC_OBJECT, "ObjectTypeGuiDescriptor.genericObject", "silk-page_white_code", "silk-page_white_code"),
 
-    TAG(ObjectTypes.MARK, "ObjectTypeGuiDescriptor.tag", "silk-page_white_code", "silk-page_white_code"),
+    MARK(ObjectTypes.MARK, "ObjectTypeGuiDescriptor.mark", "silk-page_white_code", "silk-page_white_code"),
 
     RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON),
 
@@ -45,7 +45,7 @@ public enum ObjectTypeGuiDescriptor {
 
     ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
 
-    VALUE_POLICY(ObjectTypes.PASSWORD_POLICY, "ObjectTypeGuiDescriptor.valuePolicy", "silk-lock", "silk-lock"),
+    VALUE_POLICY(ObjectTypes.PASSWORD_POLICY, "ObjectTypeGuiDescriptor.passwordPolicy", "silk-lock", "silk-lock"),
 
     NODE(ObjectTypes.NODE, "ObjectTypeGuiDescriptor.node", "silk-computer", "silk-computer"),
 
