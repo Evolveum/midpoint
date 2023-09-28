@@ -519,8 +519,15 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-            Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
-            model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
+            Class<? extends ObjectType> realType = null;
+            if (ObjectType.class.equals(clazz)) {
+                // Slow path // we need to determine real type of object.
+                realType = model.getObject(clazz, oid, GetOperationOptions.createRawCollection(), task, result).getCompileTimeClass();
+            } else {
+                realType = clazz;
+            }
+            Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, realType, prismContext);
+            model.modifyObject(realType, oid, modifications, modelExecuteOptions, task, result);
             response = createResponse(HttpStatus.NO_CONTENT, result);
         } catch (Exception ex) {
             result.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
