@@ -104,7 +104,6 @@ public class PageArchetypes extends PageAdmin {
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
                 menuItems.add(PageArchetypes.this.createDeleteInlineMenu());
-                menuItems.add(createEditMenuItem());
                 return menuItems;
             }
 
