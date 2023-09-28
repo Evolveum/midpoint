@@ -196,6 +196,20 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertDisableReason(String reason) {
+        ActivationType activation = getActivation();
+        if (activation == null) {
+            if (reason == null) {
+                return this;
+            } else {
+                fail("No activation in " + desc());
+            }
+        }
+        assertEquals("Wrong disableReason in " + desc(),
+                reason, activation.getDisableReason());
+        return this;
+    }
+
     public ShadowAsserter<RA> assertResource(String expectedResourceOid) {
         ObjectReferenceType resourceRef = getObject().asObjectable().getResourceRef();
         if (resourceRef == null) {
