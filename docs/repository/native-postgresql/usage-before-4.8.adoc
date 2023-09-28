@@ -4,7 +4,7 @@
 :page-nav-title: Usage before 4.8
 :page-since: "4.4"
 
-NOTE: For version 4.8 and newer see xref:/midpoint/reference/repository/native-postgres/usage/[Using Native PostgreSQL Repository]
+NOTE: For version 4.8 and newer see xref:/midpoint/reference/repository/native-postgresql/usage/[Using Native PostgreSQL Repository]
 
 == Overview
 
