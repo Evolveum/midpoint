@@ -44,7 +44,7 @@ With release 4.4 this has changed, better configuration schema was introduced wi
 Most of the tasks without activities will not work in 4.8 (or newer) and have to be updated to use activities.
 Few internal types of tasks (e.g. related to certifications will still work with old configuration).
 Migration of tasks should be therefore done before upgrade procedure is started.
-Ninja currently doesn't support task migration out of the box.
+Ninja currently doesn't support tas k migration out of the box.
 MidPoint Studio plugin with Intellij Idea will be able to help with migration of tasks.
 More information about task migration can be found in https://docs.evolveum.com/midpoint/reference/tasks/migration/[Tasks migration] section of midPoint documentation.
 
@@ -175,12 +175,12 @@ If `--result` switch is used, ninja will print results for each query in script 
 .Example uses of run-sql command
 [source,bash]
 ----
-# runs create-database.sql script on JDBC connection specified by url/username/password
+# runs custom-upgrade-database.sql script on JDBC connection specified by url/username/password
 ./bin/ninja.sh run-sql \
   --jdbc-url jdbc:postgresql://localhost:5432/postgres \
   --jdbc-username postgres \
   --jdbc-password postgres \
-  --scripts ./create-database.sql
+  --scripts ./custom-upgrade-database.sql
 
 # runs upgrade scripts for repository on database defined in midpoint-home/config.xml
 ./bin/ninja.sh run-sql \
@@ -463,14 +463,106 @@ $MP_INSTALLATION/bin/ninja.sh -v upgrade-installation \
   --installation-directory $MP_INSTALLATION
 ----
 
-=== Docker environment upgrade
+=== Container environment upgrade
 
-This chapter describes how to ugprade midPoint using ninja in Docker environments, e.g. deployments in Kubernetes.
+This chapter describes how to upgrade midPoint using ninja in container environments, e.g. deployments in Kubernetes, Docker.
 
-==== Verification and objects upgrade
+Ninja in container environment can be accessed by using midPoint container started in interactive mode.
+`$CURRENT_VERSION` in following command is version of midPoint that is currently running.
 
-#TODO#
+Container used to run ninja has to be started with same parameters as midPoint containers in deployment.
+Environment variables or config maps or other configuration has to be passed to container the same way as to midPoint containers.
+This is necessary to make sure that ninja uses same resources.
+Another case when this is necessary is if database connection configuration is not present in `$MIDPOINT_HOME/config.xml`, but passed via parameters.
 
-==== MidPoint upgrade
+[source,bash]
+----
+docker run -ti --rm [-env VARIABLE=VALUE] -w=/opt/midpoint evolveum/midpoint:$CURRENT_VERSION /bin/bash
+----
 
-#TODO#
+After container starts we're presented with bash prompt.
+Now we can run ninja as in non-container environment, e.g.:
+
+. Example printout of ninja version
+[source,bash]
+----
+f41fde86786d:/opt/midpoint# ./bin/ninja.sh -V
+Processing variable (MAP) ... midpoint.repository.database .:. h2
+Processing variable (MAP) ... midpoint.repository.missingSchemaAction .:. create
+Processing variable (MAP) ... midpoint.logging.alt.enabled .:. true
+Processing variable (MAP) ... midpoint.repository.initializationFailTimeout .:. 60000
+Processing variable (MAP) ... file.encoding .:. UTF8
+Processing variable (MAP) ... midpoint.repository.hibe nateHbm2ddl .:. none
+Processing variable (MAP) ... midpoint.repository.upgradeableSchemaAction .:. stop
+Processing variable (MAP) ... midpoint.repository.jdbcUrl .:. jdbc:h2:tcp://localhost:5437/midpoint
+Version: 4.8-SNAPSHOT, rev. v4.8devel-1509-g8abd865, built by , 2023-09-27T07:05:44+0000
+----
+
+==== Upgrade procedure for container environment
+
+Upgrade procedure is very similar to non-container environment, differences will be described in following sections.
+
+Preparation phase is the same as for non-container environment:
+
+* <<Upgrade tasks to use activities>>
+* <<Verification & upgrade objects>>
+
+Upgrade phase can't be executed using simple `upgrade-distribution` command due to differences in handling of installation directory.
+Following steps has to be executed instead:
+
+* Stop current midPoint containers
+* <<Setup ninja using new midPoint image>>
+* <<Upgrade DB schema (container environment)>>
+* <<Initial objects (container environment)>>
+* <<Upgrade midPoint containers>>
+* Start new midPoint containers
+
+==== Setup ninja using new midPoint image
+
+New midPoint image has to be pulled from Docker Hub before upgrade procedure can be started.
+`$NEXT_VERSION` in following command is version of midPoint that is going to be used after upgrade.
+At the time of writing it's `4.8`.
+
+As previously mentioned <<Container environment upgrade, here>>, container used to run ninja has to be started with same parameters as midPoint containers in deployment.
+
+[source,bash]
+----
+docker pull evolveum/midpoint:$NEXT_VERSION
+
+docker run -ti --rm [-env VARIABLE=VALUE] -w=/opt/midpoint evolveum/midpoint:$NEXT_VERSION /bin/bash
+----
+
+Now we're presented with bash prompt, new version of ninja can be used to upgrade midPoint.
+
+==== Upgrade DB schema (container environment)
+
+Database schema has to be upgraded by starting new midPoint image in interactive mode and running `run-sql` command.
+
+[source,bash]
+----
+# upgrade DB schema of midPoint repository
+./bin/ninja.sh run-sql \
+  --mode repository \
+  --upgrade
+
+# upgrade DB schema of midPoint audit repository
+./bin/ninja.sh run-sql \
+  --mode audit \
+  --upgrade
+----
+
+==== Initial objects (container environment)
+
+Initial objects can be updated using ninja started withing new midPoint image in interactive mode.
+As for the update itself, <<Initial objects>> chapter describes how to review and update initial objects.
+
+==== Upgrade midPoint containers
+
+Now is the time to update definition of midPoint containers in deployment.
+This means we should update configuration in `docker-compose.yml` when using Docker compose command, or stateful set in Kubernetes or any other related container configuration for midPoint cluster.
+`$NEXT_VERSION` version of `evolveum/midpoint` image must be used.
+
+Containers can be started.
+MidPoint in new version should start.
+
+Please review logs of midPoint containers to make sure there are no errors.
