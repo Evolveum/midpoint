@@ -6,13 +6,10 @@
   -->
 <role oid="97f8d44a-cab5-11e7-9d72-fbe451f26988"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Predefined All</name>
     <inducement>
-        <construction >
+        <construction>
             <resourceRef oid="2b1c05f1-8b70-43e6-ac46-3e5ee621ee88" type="c:ResourceType"/> <!-- Dummy Resource Predefine All -->
             <kind>account</kind>
         </construction>

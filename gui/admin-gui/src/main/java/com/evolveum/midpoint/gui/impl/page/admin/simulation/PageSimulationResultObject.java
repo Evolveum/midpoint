@@ -340,12 +340,24 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                     @Override
                     protected Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> newCellItem(String id, int index, IModel<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> model) {
                         Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> item = super.newCellItem(id, index, model);
+                        if(index == 1) {
+                            item.add(AttributeAppender.append("style", "word-break:break-all"));
+                        }
                         item.add(AttributeAppender.append("class", "align-middle"));
+
 
                         return item;
                     }
 
+                    @Override
+                    protected boolean isBreakTextBehaviourEnabled(int index) {
+                        if (index == 1) {
+                            return false;
+                        }
+                        return super.isBreakTextBehaviourEnabled(index);
+                    }
                 };
+
         relatedObjects.add(new VisibleBehaviour(() -> relatedObjects.getRowCount() > 1));
         add(relatedObjects);
 

@@ -10,19 +10,22 @@
 <wicket:panel>
     <td class="align-middle" wicket:id="nameContainer"><span wicket:id="name"/></td>
     <td class="text-break" wicket:id="oldValueContainer">
-        <div class="d-flex align-items-center gap-1">
+        <div class="d-flex align-items-center gap-2">
             <i wicket:id="oldValueImage"/>
-            <div wicket:id="oldValue"/>
-
-            <a class="text-secondary" wicket:id="oldMetadata"/>
+            <div class="d-flex flex-wrap gap-1 align-items-center">
+                <div wicket:id="oldValue"/>
+                <a class="text-secondary" wicket:id="oldMetadata"/>
+            </div>
         </div>
     </td>
     <td class="text-break" wicket:id="newValueContainer">
-        <div class="d-flex align-items-center gap-1" wicket:id="newValueSubContainer">
+        <div class="d-flex align-items-center gap-2" wicket:id="newValueSubContainer">
             <i wicket:id="newValueImage"/>
-            <div wicket:id="newValue"/>
+            <div class="d-flex flex-wrap gap-1 align-items-center">
+                <div wicket:id="newValue"/>
+                <a class="text-secondary" wicket:id="newMetadata"/>
+            </div>
 
-            <a class="text-secondary" wicket:id="newMetadata"/>
         </div>
     </td>
 </wicket:panel>
