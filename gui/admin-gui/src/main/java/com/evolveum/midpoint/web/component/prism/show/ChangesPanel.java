@@ -112,6 +112,7 @@ public class ChangesPanel extends BasePanel<List<VisualizationDto>> {
                 onChangesViewClicked(target, item.getObject());
             }
         };
+        toggle.add(AttributeAppender.append("class","btn-group-sm"));
         toggle.add(changesViewVisible);
         add(toggle);
 
