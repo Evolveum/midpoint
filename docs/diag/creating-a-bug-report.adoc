@@ -41,8 +41,8 @@ MidPoint is an open source project and we gladly accept contributions.
 
 The easiest way for us to fix a problem is being able to replicate it.
 In such case we do not only fix the problem but we can also make sure it is gone.
-In most cases we create a test case in our automated test suite to make sure the problem will gone and it will not appear again.
-Therefore your best strategy to make sure that the problem is fixed quickly and does not appear again is to show us how to replicate it in our environment.
+In most cases we create a test case in our automated test suite to make sure the problem will be gone, and it will not appear again.
+Therefore, your best strategy to make sure that the problem is fixed quickly and does not appear again is to show us how to replicate it in our environment.
 
 We strongly prefer if you could replicate the problem using our link:https://github.com/Evolveum/midpoint/tree/master/samples[sample resources and objects] with minimal customization needed to replicate it.
 This saves you a lot of time describing your environment to us and it also saves us a lot of time to try to re-create your environment in our lab.
@@ -51,8 +51,8 @@ This approach also helps you to check your configuration and to make sure you ar
 == Non-replicable Problems
 
 If the problem cannot be easily replicated using samples or similar simple setup then we need to work with what we have.
-Therefore we either need to know quite a lot about your environment to be able to set it up in our lab.
-Or we need an access to your environment or your cooperation with diagnosing the problem.
+Therefore, we either need to know quite a lot about your environment to be able to set it up in our lab.
+Or we need access to your environment or your cooperation with diagnosing the problem.
 In such a case please use your common sense in what comes into the bug report.
 Please keep in mind that midPoint is open source project and the bug reports are public therefore please be careful when providing sensitive information in bug reports.
 
@@ -104,14 +104,15 @@ You can use the following fields in the *Create issue* form in Jira:
 * *Summary*: short description of the issue
 * *Priority*: please specify the issue priority level. Click "?" icon to provide more help. Please keep in mind that developers may update the issue priority.
 * *Subscription*: please indicate if you have a subscription
+* *Label*: in case you are an active subscriber, fill in the label appropriately. Otherwise, leave empty.
 * *Component/s*: please indicate if you know which component might be responsible for the behaviour. Leave empty if you have no idea.
 * *Affects Version/s*: specify on which version(s) the problem appears (multi-value option)
 * *Backport Version*: please indicate the version for backporting the fix, otherwise it will be fixed only in `master` branch. Example: if you are using LTS version `4.4.1`, select `4.4.2`.
-* *Fix Version/s*: this field will be set by developers
-* *Assignee*: this field will be set by developers
+* *Fix Version/s*: this field will be set by developers. Please, leave it empty.
+* *Assignee*: this field will be set by developers. Please, leave it empty.
 * *Git Revision*: please specify the git revision if using unreleased midPoint version (e.g. builds from one of the supported support branches)
 * *Environment*: please indicate your environment such as: Java version, operating system name and version, memory, number of nodes in case of cluster, JVM variables etc. Please anonymize the content before you submit the form.
-* *Description*: full description of the problem including the steps to reproduce it and error messages, stack trace etc. Please anonymize the content before you submit the form.
+* *Description*: full description of the problem including the *steps to reproduce* it and error messages, stack trace etc. Please anonymize the content before you submit the form.
 * *Attachment*: attach files if needed, e.g. log file(s), screenshots etc. Please anonymize the content before you submit the form.
 
 *Not all of the above is required in a bug report.*
