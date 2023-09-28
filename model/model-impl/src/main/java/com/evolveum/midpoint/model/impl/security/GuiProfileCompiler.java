@@ -102,12 +102,15 @@ public class GuiProfileCompiler {
 
         LOGGER.debug("Going to compile focus profile for {}", principal.getName());
 
-//        if (!supportGuiConfig) {
-//            collectAuthzOnly(principal, authorizationTransformer, task, result);
-//            return;
-//        }
+        if (options.isTryReusingSecurityPolicy()) {
+            MidPointPrincipal authPrincipal = AuthUtil.getMidpointPrincipal();
+            if (authPrincipal != null) {
+                principal.setApplicableSecurityPolicy(authPrincipal.getApplicableSecurityPolicy());
+            }
+        }
 
-        if (options.isLocateSecurityPolicy()) {
+        if (options.isLocateSecurityPolicy()
+                && (!options.isTryReusingSecurityPolicy() || principal.getApplicableSecurityPolicy() == null)) {
             principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getFocus().asPrismObject(),
                     null, systemConfiguration, task, result));
         }
@@ -223,7 +226,7 @@ public class GuiProfileCompiler {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
-        if(principal != null) {
+        if (principal != null) {
             LOGGER.debug("Going to compile focus profile (inner) for {}", principal.getName());
         }
         AdminGuiConfigurationType globalAdminGuiConfig = null;

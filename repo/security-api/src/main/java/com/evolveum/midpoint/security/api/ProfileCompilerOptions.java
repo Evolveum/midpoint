@@ -15,6 +15,8 @@ public class ProfileCompilerOptions {
 
     private boolean locateSecurityPolicy = true;
 
+    private boolean tryReusingSecurityPolicy = false;
+
     private ProfileCompilerOptions(){
     }
 
@@ -30,6 +32,11 @@ public class ProfileCompilerOptions {
 
     public ProfileCompilerOptions locateSecurityPolicy(boolean locateSecurityPolicy) {
         this.locateSecurityPolicy = locateSecurityPolicy;
+        return this;
+    }
+
+    public ProfileCompilerOptions tryReusingSecurityPolicy(boolean tryReusingSecurityPolicy) {
+        this.tryReusingSecurityPolicy = tryReusingSecurityPolicy;
         return this;
     }
 
@@ -54,5 +61,9 @@ public class ProfileCompilerOptions {
 
     public boolean isLocateSecurityPolicy() {
         return locateSecurityPolicy;
+    }
+
+    public boolean isTryReusingSecurityPolicy() {
+        return tryReusingSecurityPolicy;
     }
 }

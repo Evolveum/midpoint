@@ -24,7 +24,7 @@ import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecord
 import com.evolveum.midpoint.authentication.impl.channel.GuiAuthenticationChannel;
 import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
 
-import com.evolveum.midpoint.authentication.impl.filter.FinishingAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
@@ -111,7 +111,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private MessageSourceAccessor messages;
 
-    private FinishingAuthenticationFilter auditFilter;
+    private SequenceAuditFilter auditFilter;
 
     public abstract T getAuthenticationEvaluator();
     public abstract AC getAuthenticationContext(String username, V value, List<ObjectReferenceType> requiredAssignments);
@@ -250,7 +250,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             }
         });
 
-        auditFilter = new FinishingAuthenticationFilter(authenticationRecorder);
+        auditFilter = new SequenceAuditFilter(authenticationRecorder);
     }
 
     @Test

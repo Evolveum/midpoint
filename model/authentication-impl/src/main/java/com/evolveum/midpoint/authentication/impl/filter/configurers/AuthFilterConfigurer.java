@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.authentication.impl.filter.MidpointAuthFilter;
-import com.evolveum.midpoint.authentication.impl.filter.FinishingAuthenticationFilter;
+import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.TransformExceptionFilter;
 
 import org.springframework.context.ApplicationContext;
@@ -31,8 +31,6 @@ import org.springframework.web.accept.ContentNegotiationStrategy;
 public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         AbstractHttpConfigurer<SecurityContextConfigurer<H>, H> {
 
-//    @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
-
     @Override
     public void configure(H http) throws Exception {
 
@@ -48,8 +46,7 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         mpFilter.createFilterForAuthenticatedRequest();
         http.addFilterBefore(mpFilter, SessionManagementFilter.class);
 
-
-        http.addFilterAfter(postProcess(new FinishingAuthenticationFilter()), AnonymousAuthenticationFilter.class);
+        http.addFilterAfter(postProcess(new SequenceAuditFilter()), AnonymousAuthenticationFilter.class);
 
         http.addFilterAfter(new TransformExceptionFilter(), AnonymousAuthenticationFilter.class);
     }

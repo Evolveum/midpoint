@@ -7,57 +7,43 @@
 
 package com.evolveum.midpoint.authentication.impl.filter;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
-
-import com.evolveum.midpoint.util.exception.*;
-
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
-
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.io.IOException;
 
 /**
  * This filter has to run after login filter was run and the success and failure handlers
  * finished their evaluation. In those handlers, module state is set which is crucial for
  * correct evaluation.
  *
- * The aim of FinishingAuthenticationFilter is to check the overall authentication, authentication for
- * the whole sequence. While partial (module) authentication results are evaluated and
- * recorded by corresponding provider (plus evaluator), the overall status if the whole
- * sequence authentication was successful or not is recorded here. Also, if authentication is success
- * then class call gui compiler for compilation of admin gui configuration for authenticated principal.
- * It should be recoded only once per sequence, therefore the isAlreadyRecorded() check.
+ * The aim of OncePerSequenceFilter is to check the overall authentication, authentication for
+ * the whole sequence. It should be executed nly once per sequence, therefore the isAlreadyRecorded() check.
  *
  * The result is recorded to two places:
  *
  * - focus/behavior/authentication
  * - audit
  */
-public class FinishingAuthenticationFilter extends OncePerRequestFilter {
+public class OncePerSequenceFilter extends OncePerRequestFilter {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FinishingAuthenticationFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OncePerSequenceFilter.class);
 
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
@@ -70,11 +56,11 @@ public class FinishingAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean recordOnEndOfChain = true;
 
-    public FinishingAuthenticationFilter() {
+    public OncePerSequenceFilter() {
     }
 
     @VisibleForTesting
-    public FinishingAuthenticationFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
+    public OncePerSequenceFilter(FocusAuthenticationResultRecorder authenticationRecorder) {
         this.authenticationRecorder = authenticationRecorder;
     }
 
@@ -83,7 +69,8 @@ public class FinishingAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         LOGGER.trace("Running SequenceAuditFilter");
 
         if (recordOnEndOfChain) {
@@ -109,33 +96,11 @@ public class FinishingAuthenticationFilter extends OncePerRequestFilter {
         }
 
         writeRecord(request, mpAuthentication);
-        compileGuiProfile(mpAuthentication);
 
         if (!recordOnEndOfChain) {
             filterChain.doFilter(request, response);
         }
 
-    }
-
-    private void compileGuiProfile(MidpointAuthentication mpAuthentication) {
-        if (!mpAuthentication.isAuthenticated()) {
-            return;
-        }
-
-        AuthenticationChannel channel = mpAuthentication.getAuthenticationChannel();
-        boolean supportGuiConfig = channel == null || channel.isSupportGuiConfigByChannel();
-        try {
-            mpAuthentication.setPrincipal(
-                    focusProfileService.getPrincipal(
-                            ((MidPointPrincipal)mpAuthentication.getPrincipal()).getFocusPrismObject(),
-                            ProfileCompilerOptions.create()
-                                    .collectAuthorization(true)
-                                    .compileGuiAdminConfiguration(supportGuiConfig)
-                                    .locateSecurityPolicy(supportGuiConfig),
-                            new OperationResult("reload principal")));
-        } catch (CommonException e) {
-            LOGGER.debug("Couldn't reload principal after authentication", e);
-        }
     }
 
     @VisibleForTesting
