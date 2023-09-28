@@ -139,8 +139,7 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
             }
             path = path.append(itemPath);
 
-            PropertyDelta<Object> deltaItem = parentVisualization.getSourceDelta().findPropertyDelta(ItemPath.create(
-                    visualization.getSourceRelPath(), path));
+            PropertyDelta<Object> deltaItem = parentVisualization.getSourceDelta().findPropertyDelta(path);
 
             if (deltaItem != null && deltaItem.getItemNew() != null) {
                 return (ActivationStatusType) deltaItem.getItemNew().getRealValue();
