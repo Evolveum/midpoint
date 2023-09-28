@@ -1,12 +1,12 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearchItemWrapper> {
 
@@ -27,7 +27,7 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
         initLayout();
         setOutputMarkupId(true);
         add(AttributeAppender.append("style", "display: contents !important; background-color: white!important;"));
-        add(AttributeAppender.append("class", "d-flex gap-1 pl-1 bg-light rounded-sm align-items-center"));
+        add(AttributeAppender.append("class", "d-flex gap-2 px-2 bg-light rounded-sm align-items-center"));
     }
 
     private void initLayout() {

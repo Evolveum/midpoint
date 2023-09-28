@@ -13,36 +13,36 @@
     <div wicket:id="feedback"/>
 
     <wicket:enclosure child="type">
-        <div class="row form-group">
-            <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.targetType"/></label>
-            <div class="col-8">
-                <div wicket:id="type" />
+
+        <div class="d-flex flex-wrap mb-3">
+            <label class="col-form-label pt-0"><wicket:message key="ReferencePopupPanel.targetType"/></label>
+            <div class="col-12 px-0">
+                <div wicket:id="type" class=""/>
             </div>
         </div>
     </wicket:enclosure>
 
-
-    <div class="row form-group">
-        <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.name"/></label>
-        <div class="col-8">
+    <div class="d-flex flex-wrap mb-3">
+        <label class="col-form-label pt-0"><wicket:message key="ReferencePopupPanel.name"/></label>
+        <div class="col-12 px-0">
             <div wicket:id="name" />
         </div>
     </div>
 
-
-    <div wicket:id="relationContainer" class="row form-group">
-        <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.relation"/></label>
-        <div class="col-8">
+    <div wicket:id="relationContainer" class="d-flex flex-wrap mb-3">
+        <label class="col-form-label pt-0"><wicket:message key="ReferencePopupPanel.relation"/></label>
+        <div class="col-12 px-0">
             <div wicket:id="relation" />
         </div>
     </div>
 
-    <div class="row form-group">
-        <label class="col-form-label col-4"><wicket:message key="ReferencePopupPanel.oid"/></label>
-        <div class="col-8">
+    <div class="d-flex flex-wrap">
+        <label class="col-form-label pt-0"><wicket:message key="ReferencePopupPanel.oid"/></label>
+        <div class="col-12 px-0">
             <input wicket:id="oid" type="text" class="form-control form-control-sm"/>
         </div>
     </div>
+
 </wicket:extend>
 </body>
 </html>

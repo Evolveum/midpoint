@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.io.Serial;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serial;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author honchar
@@ -25,8 +25,8 @@ public class ItemPathSearchPanel extends PopoverSearchPanel<ItemPathType> {
     }
 
     @Override
-    protected PopoverSearchPopupPanel createPopupPopoverPanel() {
-        return new ItemPathSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, getModel()) {
+    protected PopoverSearchPopupPanel createPopupPopoverPanel(Popover popover) {
+        return new ItemPathSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, popover, getModel()) {
 
             @Serial private static final long serialVersionUID = 1L;
 

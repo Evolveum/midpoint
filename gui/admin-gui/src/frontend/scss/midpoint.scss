@@ -1599,7 +1599,7 @@ fieldset.objectButtons {
   order: 2;
   flex-basis: 83%;
   max-width: 83%;
-  padding: 5px 20px 5px 20px;
+  padding: 20px; //5px 20px 5px 20px;
 }
 
 .messagePanel ::-moz-selection { /* Code for Firefox */
@@ -1929,13 +1929,13 @@ th.debug-list-buttons {
       color: $value;
       background-color: mix(#ffffff, $value, 85%);
       border-color: $value;
+      border:1px solid;
 
       option {
         background: $white;
         color: $dark;
       }
-    }
-
+  }
 }
 
 #toastsContainerTopRight.toasts-top-right {

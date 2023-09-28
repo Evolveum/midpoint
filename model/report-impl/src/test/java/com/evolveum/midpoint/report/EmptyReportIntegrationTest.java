@@ -12,9 +12,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.report.impl.ReportManagerImpl;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestReport;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -152,16 +154,18 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             TEST_DIR_COMMON, "resource-dummy-outbound.xml", "846e4c54-cee5-4e45-b0cf-ce8914ecba54",
             "outbound", (c) -> c.extendSchemaPirate());
 
-    private static final TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC = TestObject.file(TEST_DIR_COMMON,
+    static final TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC = TestObject.file(TEST_DIR_COMMON,
             "archetype-task-report-export-classic.xml", "00000000-0000-0000-0000-000000000511");
     private static final TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_DISTRIBUTED = TestObject.file(TEST_DIR_COMMON,
             "archetype-task-report-export-distributed.xml", "00000000-0000-0000-0000-000000000512");
-    private static final TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_IMPORT_CLASSIC = TestObject.file(TEST_DIR_COMMON,
+    static final TestObject<ArchetypeType> ARCHETYPE_TASK_REPORT_IMPORT_CLASSIC = TestObject.file(TEST_DIR_COMMON,
             "archetype-task-report-import-classic.xml", "00000000-0000-0000-0000-000000000510");
 
     private static final File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
     private static final File ROLE_SUPERUSER_FILE = new File(TEST_DIR_COMMON, "role-superuser.xml");
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR_COMMON, "system-configuration.xml");
+
+    @Autowired protected ReportManagerImpl reportManager;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
