@@ -1,6 +1,6 @@
 = Using Axiom in Groovy
 :page-nav-title: Axiom in Groovy
-"display-order" : 300
+:display-order: 300
 
 You can use Axiom query language in Groovy expressions using `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
 
