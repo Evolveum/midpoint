@@ -109,11 +109,12 @@ public class ResourceSchemaFactory {
         }
     }
 
+    /** Returned schema is immutable. FIXME there is a lot of cloning if layer != MODEL! */
     public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource, LayerType layer)
             throws SchemaException, ConfigurationException {
         ResourceSchema schema = getCompleteSchema(resource);
         if (schema != null) {
-            return schema.forLayer(layer);
+            return schema.forLayerImmutable(layer);
         } else {
             return null;
         }
