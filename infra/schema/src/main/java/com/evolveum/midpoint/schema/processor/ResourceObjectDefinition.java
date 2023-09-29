@@ -407,9 +407,21 @@ public interface ResourceObjectDefinition
      */
     String getHumanReadableName();
 
+    /**
+     * Returns a mutable definition.
+     *
+     * BEWARE, the mutable {@link CompositeObjectDefinition} is significantly slower than its immutable counterpart.
+     * See MID-9156.
+     */
     @Override
     @NotNull ResourceObjectDefinition clone();
 
+    /**
+     * Returns a mutable definition.
+     *
+     * BEWARE, the mutable {@link CompositeObjectDefinition} is significantly slower than its immutable counterpart.
+     * See MID-9156.
+     */
     @Override
     @NotNull
     ResourceObjectDefinition deepClone(@NotNull DeepCloneOperation operation);
@@ -423,14 +435,14 @@ public interface ResourceObjectDefinition
     @NotNull ResourceObjectTypeDefinitionType getDefinitionBean();
 
     /**
-     * Creates a layer-specific version of this definition.
+     * Creates a layer-specific mutable version of this definition.
      */
-    ResourceObjectDefinition forLayer(@NotNull LayerType layer);
+    @NotNull ResourceObjectDefinition forLayerMutable(@NotNull LayerType layer);
 
     /**
-     * As {@link #forLayer(LayerType)} but returns immutable definition.
+     * As {@link #forLayerMutable(LayerType)} but returns immutable definition.
      */
-    ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer);
+    @NotNull ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer);
 
     /**
      * Replaces a definition for given item name with a provided one.

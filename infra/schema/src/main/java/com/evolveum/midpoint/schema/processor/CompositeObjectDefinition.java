@@ -46,13 +46,11 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
      * Returns immutable definition. Assumes component definitions are immutable.
      *
      * FIXME sometimes, the `structuralDefinition` is itself a composite definition. We should avoid wrapping it
-     *  into another composite definitions. Please fix this some day.
+     *  into another composite definitions. Please fix this some day. See MID-9156.
      */
     static CompositeObjectDefinitionImpl of(
             @NotNull ResourceObjectDefinition structuralDefinition,
             @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions) {
-        var def = new CompositeObjectDefinitionImpl(structuralDefinition, auxiliaryDefinitions);
-        def.freeze();
-        return def;
+        return CompositeObjectDefinitionImpl.immutable(structuralDefinition, auxiliaryDefinitions);
     }
 }
