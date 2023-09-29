@@ -1,10 +1,12 @@
-= Expressions in Axiom Query
+= Using Axiom in expressions
+:page-nav-title: Axiom in expressions
+:page-display-order: 200
 :page-since: "4.5"
 :page-toc: top
 
 :triple-backtick: ```
 
-Axiom Query language also provides special syntax support for most common
+Axiom query language provides special syntax support for most common
 expression types.
 
 NOTE: Expressions are not executed / supported for user entered queries in

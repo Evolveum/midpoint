@@ -1,7 +1,8 @@
 = Basic usage of Axiom
+:page-nav-title: Basic usage
+:page-display-order: 100
 :page-since: "4.4"
 :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
-:page-display-order: 100
 
 == Searching by Archetype Name
 
