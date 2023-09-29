@@ -35,10 +35,17 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
 
     @Override
     public boolean isAllowedAuthorization(Authorization autz) {
-        if (autz != null
-                && autz.getAction().contains(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL)) {
+        if (autz == null) {
+            return false;
+        }
+        if (autz.getAction().contains(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL)) {
             return true;
         }
+
+        if(!autz.getAction().stream().anyMatch(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI))) {
+            return true;
+        }
+
         return false;
     }
 
