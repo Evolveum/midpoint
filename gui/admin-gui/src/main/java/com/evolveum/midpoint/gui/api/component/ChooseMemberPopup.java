@@ -349,7 +349,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             @Override
             protected boolean isVisibleParameterPanel() {
                 if (getRelationIfIsStable() == null) {
-                    super.isVisibleParameterPanel();
+                    return super.isVisibleParameterPanel();
                 }
                 return false;
             }
