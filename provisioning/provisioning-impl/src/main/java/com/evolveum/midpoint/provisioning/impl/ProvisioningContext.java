@@ -282,10 +282,7 @@ public class ProvisioningContext {
             }
             auxiliaryObjectClassDefinitions.add(auxObjectClassDef);
         }
-        // FIXME the attribute lookup in this definition will be slow (iterating through all the definitions)
-        return new CompositeObjectDefinitionImpl(
-                getObjectDefinitionRequired(),
-                auxiliaryObjectClassDefinitions);
+        return CompositeObjectDefinition.of(getObjectDefinitionRequired(), auxiliaryObjectClassDefinitions);
     }
 
     /**

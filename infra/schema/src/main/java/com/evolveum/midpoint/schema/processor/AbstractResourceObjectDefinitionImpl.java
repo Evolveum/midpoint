@@ -703,6 +703,16 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
     }
 
+    public ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer) {
+        if (currentLayer == layer && !isMutable()) {
+            return this;
+        } else {
+            var clone = cloneInLayer(layer);
+            clone.freeze();
+            return clone;
+        }
+    }
+
     protected abstract AbstractResourceObjectDefinitionImpl cloneInLayer(@NotNull LayerType layer);
 
     @Override

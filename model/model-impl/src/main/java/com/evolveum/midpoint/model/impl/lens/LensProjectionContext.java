@@ -273,8 +273,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
     private transient Collection<ResourceObjectTypeDependencyType> dependencies;
 
+    /** This definition is always immutable. */
     private transient ResourceObjectDefinition structuralObjectDefinition;
+
+    /** These definitions are always immutable. */
     private transient Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions;
+
+    /** This definition is always immutable. */
     private transient CompositeObjectDefinition compositeObjectDefinition;
 
     private SecurityPolicyType projectionSecurityPolicy;
@@ -922,7 +927,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
     }
 
-    public ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException, ConfigurationException {
+    /** Returns immutable definition. */
+    public @Nullable ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException, ConfigurationException {
         if (structuralObjectDefinition == null) {
             ResourceSchema resourceSchema = getResourceSchema();
             if (resourceSchema == null) {
@@ -982,8 +988,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             ResourceObjectDefinition auxiliaryObjectClassDef =
                     schema.findObjectClassDefinition(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
-                throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+                throw new SchemaException("Auxiliary object class %s specified in %s does not exist".formatted(
+                        auxiliaryObjectClassQName, this));
             }
+            auxiliaryObjectClassDef.checkImmutable();
             auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
         }
         resetCompositeObjectDefinition();
@@ -999,9 +1007,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (compositeObjectDefinition == null) {
             ResourceObjectDefinition structuralDefinition = getStructuralObjectDefinition();
             if (structuralDefinition != null) {
-                compositeObjectDefinition = new CompositeObjectDefinitionImpl(
-                        structuralDefinition, getAuxiliaryObjectClassDefinitions());
-                compositeObjectDefinition.freeze();
+                compositeObjectDefinition =
+                        CompositeObjectDefinition.of(structuralDefinition, getAuxiliaryObjectClassDefinitions());
             }
             state.invalidate(); // composite OCD is a parameter for current object adjuster
         }

@@ -428,6 +428,11 @@ public interface ResourceObjectDefinition
     ResourceObjectDefinition forLayer(@NotNull LayerType layer);
 
     /**
+     * As {@link #forLayer(LayerType)} but returns immutable definition.
+     */
+    ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer);
+
+    /**
      * Replaces a definition for given item name with a provided one.
      */
     void replaceDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition);

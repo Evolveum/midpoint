@@ -10,6 +10,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents ad-hoc combination of definitions of structural and auxiliary object classes.
@@ -39,5 +40,19 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
     default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return getStructuralDefinition()
                 .getConfiguredAuxiliaryObjectClassNames();
+    }
+
+    /**
+     * Returns immutable definition. Assumes component definitions are immutable.
+     *
+     * FIXME sometimes, the `structuralDefinition` is itself a composite definition. We should avoid wrapping it
+     *  into another composite definitions. Please fix this some day.
+     */
+    static CompositeObjectDefinitionImpl of(
+            @NotNull ResourceObjectDefinition structuralDefinition,
+            @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions) {
+        var def = new CompositeObjectDefinitionImpl(structuralDefinition, auxiliaryDefinitions);
+        def.freeze();
+        return def;
     }
 }

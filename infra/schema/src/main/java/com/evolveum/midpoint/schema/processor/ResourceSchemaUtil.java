@@ -156,7 +156,7 @@ public class ResourceSchemaUtil {
             auxiliaryObjectClassDefinitions.add(
                     resourceSchema.findDefinitionForObjectClassRequired(auxiliaryObjectClassName));
         }
-        return new CompositeObjectDefinitionImpl(objectDefinition, auxiliaryObjectClassDefinitions);
+        return CompositeObjectDefinition.of(objectDefinition, auxiliaryObjectClassDefinitions);
     }
 
     /**

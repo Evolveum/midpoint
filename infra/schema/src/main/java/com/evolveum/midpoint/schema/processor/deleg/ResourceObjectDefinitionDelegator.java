@@ -181,6 +181,11 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
+    default ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer) {
+        return delegate().forLayerImmutable(layer);
+    }
+
+    @Override
     default ObjectReferenceType getSecurityPolicyRef() {
         return delegate().getSecurityPolicyRef();
     }
