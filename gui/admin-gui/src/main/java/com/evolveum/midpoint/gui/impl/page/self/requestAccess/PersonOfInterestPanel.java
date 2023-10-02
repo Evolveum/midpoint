@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
@@ -118,7 +117,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private IModel<SelectionState> selectionState;
 
-    private final IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
+    private IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers;
 
     public PersonOfInterestPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -217,6 +216,19 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 }
 
                 return SelectionState.TILES;
+            }
+        };
+
+        selectedGroupOfUsers = new LoadableModel<>(false) {
+
+            @Override
+            protected Map<ObjectReferenceType, List<ObjectReferenceType>> load() {
+                RequestAccess access = getModelObject();
+
+                Map<ObjectReferenceType, List<ObjectReferenceType>> map = new HashMap<>();
+                map.putAll(access.getExistingPoiRoleMemberships());
+
+                return map;
             }
         };
     }
