@@ -28,4 +28,9 @@
             <class name="com.evolveum.midpoint.gui.TestWrapperDelta"/>
         </classes>
     </test>
+    <test name="Features" preserve-order="true" parallel="none" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.web.RequestAccessTest"/>
+        </classes>
+    </test>
 </suite>
