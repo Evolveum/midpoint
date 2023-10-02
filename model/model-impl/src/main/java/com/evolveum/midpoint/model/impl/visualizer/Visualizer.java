@@ -952,14 +952,6 @@ public class Visualizer {
             name.setDisplayName(getOrig(((UserType) objectType).getFullName()));
         } else if (objectType instanceof AbstractRoleType) {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
-        } else if (objectType instanceof ShadowType shadow) {
-            if (object.getName() == null) {
-                ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
-                Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
-                if (realName != null) {
-                    name.setDisplayName(realName.toString());
-                }
-            }
         }
         return name;
     }
