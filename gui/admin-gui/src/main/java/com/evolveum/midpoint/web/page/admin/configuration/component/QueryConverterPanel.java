@@ -149,11 +149,13 @@ public class QueryConverterPanel extends BasePanel<QueryDto> {
         QueryType queryType = getPrismContext().parserFor(xmlQuery).language(dataLanguage).parseRealValue(QueryType.class);
         ObjectQuery objectQuery = getPrismContext().getQueryConverter().createObjectQuery(getClassFromObjectType(), queryType);
 
-        return ExpressionUtil.evaluateQueryExpressions(
-                    objectQuery, new VariablesMap(),
-                    MiscSchemaUtil.getExpressionProfile(),
-                    getPageBase().getExpressionFactory(),
-                    "evaluate query expressions", task, result);
+        // Do not evaluate queries to convert? Jus
+        return objectQuery;
+        // return ExpressionUtil.evaluateQueryExpressions(
+        //             objectQuery, new VariablesMap(),
+        //             MiscSchemaUtil.getExpressionProfile(),
+        //             getPageBase().getExpressionFactory(),
+        //             "evaluate query expressions", task, result);
     }
 
     private String getXmlQuery() {

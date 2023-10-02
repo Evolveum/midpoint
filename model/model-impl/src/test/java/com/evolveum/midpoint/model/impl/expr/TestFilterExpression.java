@@ -139,7 +139,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-constant-filter.xml",
-                null, EqualFilter.class, task, result);
+                null, EqualFilter.class, task, result,"extension/tales = @blabla" );
 
         var equalFilter = (EqualFilter<?>) filter;
         AssertJUnit.assertNotNull("Expected 1 value in filter", equalFilter.getValues());
@@ -154,7 +154,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-filter-defaults.xml",
-                null, EqualFilter.class, task, result);
+                null, EqualFilter.class, task, result, "subtype = $input");
 
         var equalFilter = (EqualFilter<?>) filter;
         AssertJUnit.assertNull("Expected NO values in filter, but found " + equalFilter.getValues(), equalFilter.getValues());
@@ -169,7 +169,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-employeeType-filter-defaults.xml",
-                "CAPTAIN", EqualFilter.class, task, result);
+                "CAPTAIN", EqualFilter.class, task, result,"subtype = $input");
 
         //noinspection unchecked
         var equalFilter = (EqualFilter<String>) filter;
@@ -279,7 +279,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectFilter filter = evaluateExpressionAssertFilter("expression-aql-name-value-filter.xml",
-                null, EqualFilter.class, task, result);
+                null, EqualFilter.class, task, result, "name = `return \"barbossa\";`");
 
         //noinspection unchecked
         var equalFilter = (EqualFilter<PolyString>) filter;
@@ -305,7 +305,13 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     private ObjectFilter evaluateExpressionAssertFilter(String filename,
             String input, Class<? extends ObjectFilter> expectedType,
-            Task task, OperationResult result) throws SchemaException, IOException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, IOException, PrismQuerySerialization.NotSupportedException {
+        return evaluateExpressionAssertFilter(filename, input, expectedType, task, result, null);
+    }
+
+    private ObjectFilter evaluateExpressionAssertFilter(String filename,
+            String input, Class<? extends ObjectFilter> expectedType,
+            Task task, OperationResult result, String axiomExpected) throws SchemaException, IOException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, PrismQuerySerialization.NotSupportedException {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         SearchFilterType filterType = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
@@ -317,6 +323,12 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
             pval = prismContext.itemFactory().createPropertyValue(input);
         }
 
+        displayValue("Filter", filter);
+        var axiom = PrismContext.get().querySerializer().serialize(filter);
+        displayValue("Axiom Variant",  axiom.filterText());
+        if (axiomExpected != null) {
+            assertEquals("Axiom serialization does not match", axiomExpected, axiom.filterText());
+        }
         VariablesMap variables = createVariables(
                 ExpressionConstants.VAR_INPUT, pval, PrimitiveType.STRING);
 
@@ -333,11 +345,14 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         return evaluatedFilter;
     }
 
-    private void executeFilter(ObjectFilter filter, int expectedNumberOfResults, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void executeFilter(ObjectFilter filter, int expectedNumberOfResults, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PrismQuerySerialization.NotSupportedException {
         ObjectQuery query = prismContext.queryFactory().createQuery(filter);
+
         SearchResultList<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);
         display("Found objects", objects);
         assertEquals("Wrong number of results (found: " + objects + ")", expectedNumberOfResults, objects.size());
+
+
     }
 
 }
