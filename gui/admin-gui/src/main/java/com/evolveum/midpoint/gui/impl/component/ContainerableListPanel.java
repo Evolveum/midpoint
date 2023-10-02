@@ -208,9 +208,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 .nameSearch(getSearchByNameParameterValue())
                 .isPreview(isPreview())
                 .isViewForDashboard(isCollectionViewPanelForWidget())
-                .additionalSearchContext(createAdditionalSearchContext());
+                .additionalSearchContext(createAdditionalSearchContext())
+                .setFullTextSearchEnabled(isFulltextEnabled());
 
         return searchBuilder.build();
+    }
+
+    protected boolean isFulltextEnabled() {
+        return true;
     }
 
     protected SearchContext createAdditionalSearchContext() {

@@ -368,4 +368,9 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
         initView();
         super.resetTable(target);
     }
+
+    @Override
+    protected boolean isFulltextEnabled() {
+        return false;
+    }
 }
