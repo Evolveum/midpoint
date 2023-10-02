@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.model.intest.mapping;
 
-import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
-import static com.evolveum.midpoint.test.DummyResourceContoller.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,11 +22,6 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DelayedDeleteEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.PreProvisionEvaluator;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.test.*;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,6 +29,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DelayedDeleteEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -39,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -47,9 +46,15 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -180,10 +185,14 @@ public class TestMapping extends AbstractMappingTest {
     private static final File ROLE_PREDEFINED_PPA_FILE = new File(PREDEFINED_DIR, "role-predefine-pre-provision.xml");
     private static final String ROLE_PREDEFINED_PPA_OID = "97f8d44a-cab5-11e7-9d72-fbe451f26977";
 
-    private static final File RESOURCE_DUMMY_PREDEFINED_ALL_FILE = new File(PREDEFINED_DIR,
-            "resource-dummy-predefine-all.xml");
-    private static final String RESOURCE_DUMMY_PREDEFINED_ALL_NAME = "predefine-all";
-    private static final String RESOURCE_DUMMY_PREDEFINED_ALL_OID = "2b1c05f1-8b70-43e6-ac46-3e5ee621ee88";
+    private static final DummyTestResource RESOURCE_DUMMY_PREDEFINED_ALL = new DummyTestResource(
+            PREDEFINED_DIR, "resource-dummy-predefine-all.xml", "2b1c05f1-8b70-43e6-ac46-3e5ee621ee88",
+            "predefine-all");
+
+    private static final DummyTestResource RESOURCE_DUMMY_LEGACY = new DummyTestResource(
+            PREDEFINED_DIR, "resource-dummy-legacy.xml", "47c7b626-2255-46f4-8d09-72e82add1894",
+            "legacy");
+
     private static final File ROLE_PREDEFINED_ALL_FILE = new File(PREDEFINED_DIR, "role-predefine-all.xml");
     private static final String ROLE_PREDEFINED_ALL_OID = "97f8d44a-cab5-11e7-9d72-fbe451f26988";
 
@@ -220,11 +229,8 @@ public class TestMapping extends AbstractMappingTest {
                 initTask,
                 initResult);
 
-        initDummyResource(RESOURCE_DUMMY_PREDEFINED_ALL_NAME,
-                RESOURCE_DUMMY_PREDEFINED_ALL_FILE,
-                RESOURCE_DUMMY_PREDEFINED_ALL_OID,
-                initTask,
-                initResult);
+        RESOURCE_DUMMY_PREDEFINED_ALL.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_LEGACY.initAndTest(this, initTask, initResult);
 
         // Do not we also want to test these resources?
         RESOURCE_DUMMY_SERVICES_OUTBOUND.init(this, initTask, initResult);
@@ -3713,7 +3719,7 @@ public class TestMapping extends AbstractMappingTest {
 
         then("account does not exist");
         assertSuccess(result);
-        assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME);
 
         when("time is moved to the future and user is recomputed");
         clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 0, 6, 0, 0, 0));
@@ -3721,14 +3727,14 @@ public class TestMapping extends AbstractMappingTest {
 
         then("account exists and is disabled");
         assertSuccess(result);
-        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
-        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, false);
+        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME, false);
 
         assertShadow(findShadowByNameViaModel(
                 ShadowKindType.ACCOUNT,
                 "default",
                 USER_SHELDON_USERNAME,
-                getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_ALL_NAME),
+                getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_ALL.name),
                 null,
                 task,
                 result), "shadow after")
@@ -3742,15 +3748,15 @@ public class TestMapping extends AbstractMappingTest {
 
         then("account exists and is enabled");
         assertSuccess(result);
-        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
-        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME, true);
 
         assertShadow(
                 findShadowByNameViaModel(
                         ShadowKindType.ACCOUNT,
                         "default",
                         USER_SHELDON_USERNAME,
-                        getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_ALL_NAME),
+                        getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_ALL.name),
                         null,
                         task,
                         result), "shadow after")
@@ -3763,14 +3769,22 @@ public class TestMapping extends AbstractMappingTest {
 
         then("account is still there, but disabled");
         assertSuccess(result);
-        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, false);
+        assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL.name, USER_SHELDON_USERNAME, false);
 
+        assertDelayDeletedAccount(RESOURCE_DUMMY_PREDEFINED_ALL, USER_SHELDON_USERNAME);
+    }
+
+    private void assertDelayDeletedAccount(DummyTestResource resource, String userName) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        then("shadow is disabled, with a pending deletion");
         var shadow = assertShadow(
                 findShadowByNameViaModel(
                         ShadowKindType.ACCOUNT,
                         "default",
-                        USER_SHELDON_USERNAME,
-                        getDummyResourceObject(RESOURCE_DUMMY_PREDEFINED_ALL_NAME),
+                        userName,
+                        getDummyResourceObject(resource.name),
                         null,
                         task,
                         result), "shadow after")
@@ -3786,7 +3800,7 @@ public class TestMapping extends AbstractMappingTest {
         var trigger = shadow.getTrigger().get(0);
         assertThat(trigger.getOriginDescription())
                 .as("trigger origin description")
-                .isEqualTo(DelayedDeleteEvaluator.class.getSimpleName());
+                .contains("Delayed"); // either "DelayedDeleteEvaluator" or "Delayed delete" (fragile)
 
         when("time is moved to the future and user is recomputed again");
         clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 2, 0, 0, 0, 0));
@@ -3794,7 +3808,95 @@ public class TestMapping extends AbstractMappingTest {
 
         then("account is gone, because of the delayed delete");
         assertSuccess(result);
-        assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
+        assertNoDummyAccount(resource.name, userName);
+
+        clock.resetOverride();
+    }
+
+    /**
+     * User has linked an account that is already disabled.
+     * The disable-instead-of-delete mappings shouldn't try to disable this account again.
+     *
+     * MID-9154
+     */
+    @Test
+    public void test810LinkingDisabledAccount() throws Exception {
+        executeLinkingDisabledAccount(RESOURCE_DUMMY_PREDEFINED_ALL);
+    }
+
+    /**
+     * As {@link #test810LinkingDisabledAccount()} but with a legacy configuration.
+     *
+     * MID-9154
+     */
+    @Test
+    public void test815LinkingDisabledAccountLegacy() throws Exception {
+        executeLinkingDisabledAccount(RESOURCE_DUMMY_LEGACY);
+    }
+
+    /**
+     * User has linked an enabled account.
+     * The disable-instead-of-delete and delayed-delete mappings should apply.
+     *
+     * MID-9154
+     */
+    @Test
+    public void test820LinkingEnabledAccount() throws Exception {
+        executeLinkingEnabledAccount(RESOURCE_DUMMY_PREDEFINED_ALL);
+    }
+
+    /**
+     * As {@link #test820LinkingEnabledAccount()} but with a legacy configuration.
+     *
+     * MID-9154
+     */
+    @Test
+    public void test825LinkingEnabledAccountLegacy() throws Exception {
+        executeLinkingEnabledAccount(RESOURCE_DUMMY_LEGACY);
+    }
+
+    private void executeLinkingDisabledAccount(DummyTestResource resource) throws Exception {
+        var shadow = linkExistingAccount(resource, false);
+
+        then("the account is there, disabled, but NOT delay-deleted");
+        assertModelShadow(shadow.getOid())
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertNoTrigger();
+    }
+
+    private void executeLinkingEnabledAccount(DummyTestResource resource) throws Exception {
+        var shadow = linkExistingAccount(resource, true);
+
+        assertDelayDeletedAccount(resource, shadow.getName().getOrig());
+    }
+
+    private PrismObject<ShadowType> linkExistingAccount(DummyTestResource resource, boolean enabled) throws Exception {
+        var task = getTestTask();
+        var result = getTestOperationResult();
+        var userName = getTestNameShort();
+
+        given("an account");
+        DummyAccount account = resource.controller.addAccount(userName);
+        account.setEnabled(enabled);
+
+        var matchingShadows = provisioningService.searchObjects(
+                ShadowType.class,
+                Resource.of(resource.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and().item(ShadowType.F_ATTRIBUTES, ICFS_NAME).eq(userName)
+                        .build(),
+                null,
+                task, result);
+        var shadow = MiscUtil.extractSingletonRequired(matchingShadows);
+
+        when("a disabled user with that account is created");
+        UserType user = new UserType()
+                .name(userName)
+                .activation(new ActivationType()
+                        .administrativeStatus(ActivationStatusType.DISABLED))
+                .linkRef(shadow.getOid(), ShadowType.COMPLEX_TYPE);
+        addObject(user, task, result);
+        return shadow;
     }
 
     private String rumFrom(String locality) {

@@ -63,7 +63,6 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.Objects;
@@ -74,8 +73,14 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 /**
  * The processor that takes care of user activation mapping to an account (outbound direction).
  *
- * Note: We use "old" state as the "before" state for mappings. It makes sense because we are dealing with projections,
+ * Notes:
+ *
+ * 1. We use "old" state as the "before" state for mappings. It makes sense because we are dealing with projections,
  * which are relative to the initial focus state. (What about projections in waves greater than 0? TODO think about this.)
+ *
+ * 2. {@link ProcessorExecution#focusRequired()} applies only to {@link #processLifecycle(LensContext, LensProjectionContext, String,
+ * XMLGregorianCalendar, Task, OperationResult)}, *not* to {@link #processProjectionsActivation(LensContext, String,
+ * XMLGregorianCalendar, Task, OperationResult)}.
  *
  * @author Radovan Semancik
  */
@@ -92,7 +97,13 @@ public class ActivationProcessor implements ProjectorProcessor {
     private static final ItemName FOCUS_EXISTS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "focusExists");
 
     private static final String OP_ACTIVATION = Projector.class.getName() + ".activation"; // for historical reasons
-    private static final String OP_PROJECTION_ACTIVATION = ActivationProcessor.class.getName() + ".projectionActivation";
+
+    private static final String CLASS_DOT = ActivationProcessor.class.getName() + ".";
+    private static final String OP_PROJECTION_ACTIVATION = CLASS_DOT + "projectionActivation";
+
+    private static final String OP_PROJECTION_ACTIVATION_MAPPINGS_CURRENT = CLASS_DOT + "projectionActivationMappingsCurrent";
+    private static final String OP_PROJECTION_ACTIVATION_MAPPINGS_FUTURE = CLASS_DOT + "projectionActivationMappingsFuture";
+    private static final String OP_PROJECTION_ACTIVATION_METADATA = CLASS_DOT + "projectionActivationMetadata";
 
     /**
      * Collection with classes of predefine mapping scenarios.
@@ -110,7 +121,10 @@ public class ActivationProcessor implements ProjectorProcessor {
     private PrismObjectDefinition<UserType> userDefinition;
     private PrismContainerDefinition<ActivationType> activationDefinition;
 
-    // not a "medic-managed" entry point
+    /**
+     * Not a "medic-managed" entry point, hence the focusContext may or may not be present here
+     * (i.e. `focusRequired` does not apply here).
+     */
     <F extends ObjectType> void processProjectionsActivation(LensContext<F> context, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
@@ -166,7 +180,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             LensFocusContext<O> focusContext = context.getFocusContext();
             if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 
-                processActivationMetadata(projectionContext, now);
+                processActivationMetadata(projectionContext, now, result);
 
             } else {
                 try {
@@ -174,7 +188,7 @@ public class ActivationProcessor implements ProjectorProcessor {
                     //noinspection unchecked
                     LensContext<F> contextCasted = (LensContext<F>) context;
                     processActivationMappingsCurrent(contextCasted, projectionContext, now, task, result);
-                    processActivationMetadata(projectionContext, now);
+                    processActivationMetadata(projectionContext, now, result);
                     processActivationMappingsFuture(contextCasted, projectionContext, now, task, result);
 
                 } catch (ObjectNotFoundException e) {
@@ -196,231 +210,246 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> void processActivationMappingsCurrent(LensContext<F> context, LensProjectionContext projCtx,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
-            ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+    private <F extends FocusType> void processActivationMappingsCurrent(
+            LensContext<F> context,
+            LensProjectionContext projCtx,
+            XMLGregorianCalendar now,
+            Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
-        String projCtxDesc = projCtx.toHumanReadableString();
-        SynchronizationPolicyDecision existingDecision = projCtx.getSynchronizationPolicyDecision();
-        SynchronizationIntent synchronizationIntent = projCtx.getSynchronizationIntent();
+        OperationResult result = parentResult.subresult(OP_PROJECTION_ACTIVATION_MAPPINGS_CURRENT)
+                .setMinor()
+                .build();
+        try {
+            assert context.hasFocusContext();
 
-        result.addContext("existingDecision", String.valueOf(existingDecision));
-        result.addContext("synchronizationIntent", String.valueOf(synchronizationIntent));
+            String projCtxDesc = projCtx.toHumanReadableString();
+            SynchronizationPolicyDecision existingDecision = projCtx.getSynchronizationPolicyDecision();
+            SynchronizationIntent synchronizationIntent = projCtx.getSynchronizationIntent();
 
-        LOGGER.trace("processActivationMappingsCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
-                projCtxDesc, existingDecision, synchronizationIntent);
+            result.addContext("existingDecision", String.valueOf(existingDecision));
+            result.addContext("synchronizationIntent", String.valueOf(synchronizationIntent));
 
-        if (existingDecision == SynchronizationPolicyDecision.BROKEN) {
-            LOGGER.trace("Broken projection {}, skipping further activation processing", projCtxDesc);
-            return;
-        }
+            LOGGER.trace("processActivationMappingsCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
+                    projCtxDesc, existingDecision, synchronizationIntent);
 
-        // Activation is computed on projector start but can be recomputed in the respective wave again.
-        // So we allow existingDecision to be non-null. An alternative would be to skip all activation processing
-        // in such a case. But the current approach is closer to the previous implementation and safer.
-
-        if (synchronizationIntent == SynchronizationIntent.UNLINK) {
-            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.UNLINK, result);
-            LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, "
-                    + "skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
-            return;
-        }
-
-        if (projCtx.isGone()) {
-            if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
-                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
-                LOGGER.trace("Evaluated decision for 'gone' {} to {} (force), skipping further activation processing",
-                        projCtxDesc, SynchronizationPolicyDecision.DELETE);
-            } else {
-                // Let's keep 'goners' linked until they expire. So we do not have shadows without owners.
-                // This is also needed for async delete operations.
-                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
-                LOGGER.trace("Evaluated decision for {} to {} because it is gone, skipping further activation processing",
-                        projCtxDesc, SynchronizationPolicyDecision.KEEP);
+            if (existingDecision == SynchronizationPolicyDecision.BROKEN) {
+                LOGGER.trace("Broken projection {}, skipping further activation processing", projCtxDesc);
+                return;
             }
-            return;
-        }
 
-        if (projCtx.isReaping()) {
-            // Projections being reaped (i.e. having pending DELETE actions) should be kept intact.
-            // This is based on assumption that it is not possible to cancel the pending DELETE operation.
-            // If it was, we could try to do that.
-            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
-            LOGGER.trace("Evaluated decision for {} to {} because it is reaping, skipping further activation processing",
-                    projCtxDesc, SynchronizationPolicyDecision.KEEP);
-            return;
-        }
+            // Activation is computed on projector start but can be recomputed in the respective wave again.
+            // So we allow existingDecision to be non-null. An alternative would be to skip all activation processing
+            // in such a case. But the current approach is closer to the previous implementation and safer.
 
-        if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
-            // TODO: is this OK?
-            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
-            LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", projCtxDesc,
-                    SynchronizationPolicyDecision.DELETE);
-            return;
-        }
+            if (synchronizationIntent == SynchronizationIntent.UNLINK) {
+                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.UNLINK, result);
+                LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, "
+                        + "skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
+                return;
+            }
 
-        LOGGER.trace("Evaluating intended existence of projection {} (legal={})", projCtxDesc, projCtx.isLegal());
-
-        boolean shadowShouldExist = evaluateExistenceMapping(context, projCtx, now, MappingTimeEval.CURRENT, task, result);
-
-        LOGGER.trace("Evaluated intended existence of projection {} to {} (legal={})", projCtxDesc, shadowShouldExist, projCtx.isLegal());
-
-        // Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
-
-        LensProjectionContext lowerOrderContext = context.findLowerOrderContext(projCtx);
-
-        SynchronizationPolicyDecision decision;
-        if (synchronizationIntent == null || synchronizationIntent == SynchronizationIntent.SYNCHRONIZE) {
-            if (shadowShouldExist) {
-                projCtx.setActive(true);
-                if (projCtx.isExists()) {
-                    if (lowerOrderContext != null && lowerOrderContext.isDelete()) {
-                        // HACK HACK HACK
-                        decision = SynchronizationPolicyDecision.DELETE;
-                    } else {
-                        decision = SynchronizationPolicyDecision.KEEP;
-                    }
+            if (projCtx.isGone()) {
+                if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
+                    setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
+                    LOGGER.trace("Evaluated decision for 'gone' {} to {} (force), skipping further activation processing",
+                            projCtxDesc, SynchronizationPolicyDecision.DELETE);
                 } else {
-                    if (lowerOrderContext != null) {
-                        if (lowerOrderContext.isDelete()) {
+                    // Let's keep 'goners' linked until they expire. So we do not have shadows without owners.
+                    // This is also needed for async delete operations.
+                    setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
+                    LOGGER.trace("Evaluated decision for {} to {} because it is gone, skipping further activation processing",
+                            projCtxDesc, SynchronizationPolicyDecision.KEEP);
+                }
+                return;
+            }
+
+            if (projCtx.isReaping()) {
+                // Projections being reaped (i.e. having pending DELETE actions) should be kept intact.
+                // This is based on assumption that it is not possible to cancel the pending DELETE operation.
+                // If it was, we could try to do that.
+                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
+                LOGGER.trace("Evaluated decision for {} to {} because it is reaping, skipping further activation processing",
+                        projCtxDesc, SynchronizationPolicyDecision.KEEP);
+                return;
+            }
+
+            if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
+                // TODO: is this OK?
+                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
+                LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", projCtxDesc,
+                        SynchronizationPolicyDecision.DELETE);
+                return;
+            }
+
+            LOGGER.trace("Evaluating intended existence of projection {} (legal={})", projCtxDesc, projCtx.isLegal());
+
+            boolean shadowShouldExist = evaluateExistenceMapping(context, projCtx, now, MappingTimeEval.CURRENT, task, result);
+
+            LOGGER.trace("Evaluated intended existence of projection {} to {} (legal={})", projCtxDesc, shadowShouldExist, projCtx.isLegal());
+
+            // Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
+
+            LensProjectionContext lowerOrderContext = context.findLowerOrderContext(projCtx);
+
+            SynchronizationPolicyDecision decision;
+            if (synchronizationIntent == null || synchronizationIntent == SynchronizationIntent.SYNCHRONIZE) {
+                if (shadowShouldExist) {
+                    projCtx.setActive(true);
+                    if (projCtx.isExists()) {
+                        if (lowerOrderContext != null && lowerOrderContext.isDelete()) {
                             // HACK HACK HACK
                             decision = SynchronizationPolicyDecision.DELETE;
                         } else {
-                            // If there is a lower-order context then that one will be ADD
-                            // and this one is KEEP. When the execution comes to this context
-                            // then the projection already exists
                             decision = SynchronizationPolicyDecision.KEEP;
                         }
                     } else {
-                        decision = SynchronizationPolicyDecision.ADD;
+                        if (lowerOrderContext != null) {
+                            if (lowerOrderContext.isDelete()) {
+                                // HACK HACK HACK
+                                decision = SynchronizationPolicyDecision.DELETE;
+                            } else {
+                                // If there is a lower-order context then that one will be ADD
+                                // and this one is KEEP. When the execution comes to this context
+                                // then the projection already exists
+                                decision = SynchronizationPolicyDecision.KEEP;
+                            }
+                        } else {
+                            decision = SynchronizationPolicyDecision.ADD;
+                        }
+                    }
+                } else {
+                    // Delete
+                    if (projCtx.isExists()) {
+                        decision = SynchronizationPolicyDecision.DELETE;
+                    } else {
+                        // we should delete the entire context, but then we will lose track of what
+                        // happened. So just ignore it.
+                        decision = SynchronizationPolicyDecision.IGNORE;
+                        // if there are any triggers then move them to focus. We may still need them.
+                        LensUtil.moveTriggers(projCtx, context.getFocusContext());
                     }
                 }
-            } else {
-                // Delete
-                if (projCtx.isExists()) {
-                    decision = SynchronizationPolicyDecision.DELETE;
+
+            } else if (synchronizationIntent == SynchronizationIntent.ADD) {
+                if (shadowShouldExist) {
+                    projCtx.setActive(true);
+                    if (projCtx.isExists()) {
+                        // Attempt to add something that is already there, but should be OK
+                        decision = SynchronizationPolicyDecision.KEEP;
+                    } else {
+                        decision = SynchronizationPolicyDecision.ADD;
+                    }
                 } else {
-                    // we should delete the entire context, but then we will lose track of what
-                    // happened. So just ignore it.
-                    decision = SynchronizationPolicyDecision.IGNORE;
-                    // if there are any triggers then move them to focus. We may still need them.
-                    LensUtil.moveTriggers(projCtx, context.getFocusContext());
+                    throw new PolicyViolationException("Request to add projection " + projCtxDesc + " but the activation policy decided that it should not exist");
                 }
+
+            } else if (synchronizationIntent == SynchronizationIntent.KEEP) {
+                if (shadowShouldExist) {
+                    projCtx.setActive(true);
+                    if (projCtx.isExists()) {
+                        decision = SynchronizationPolicyDecision.KEEP;
+                    } else {
+                        decision = SynchronizationPolicyDecision.ADD;
+                    }
+                } else {
+                    throw new PolicyViolationException("Request to keep projection " + projCtxDesc + " but the activation policy decided that it should not exist");
+                }
+
+            } else {
+                throw new IllegalStateException("Unknown sync intent " + synchronizationIntent);
             }
 
-        } else if (synchronizationIntent == SynchronizationIntent.ADD) {
-            if (shadowShouldExist) {
-                projCtx.setActive(true);
-                if (projCtx.isExists()) {
-                    // Attempt to add something that is already there, but should be OK
-                    decision = SynchronizationPolicyDecision.KEEP;
-                } else {
-                    decision = SynchronizationPolicyDecision.ADD;
-                }
-            } else {
-                throw new PolicyViolationException("Request to add projection " + projCtxDesc + " but the activation policy decided that it should not exist");
+            LOGGER.trace("Evaluated decision for projection {} to {}", projCtxDesc, decision);
+
+            setSynchronizationPolicyDecision(projCtx, decision, result);
+
+            PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
+            if (focusNew == null) {
+                // This must be a user delete or something similar. No point in proceeding
+                LOGGER.trace("focusNew is null, skipping activation processing of {}", projCtxDesc);
+                return;
             }
 
-        } else if (synchronizationIntent == SynchronizationIntent.KEEP) {
-            if (shadowShouldExist) {
-                projCtx.setActive(true);
-                if (projCtx.isExists()) {
-                    decision = SynchronizationPolicyDecision.KEEP;
-                } else {
-                    decision = SynchronizationPolicyDecision.ADD;
-                }
-            } else {
-                throw new PolicyViolationException("Request to keep projection " + projCtxDesc + " but the activation policy decided that it should not exist");
+            if (decision == SynchronizationPolicyDecision.DELETE) {
+                LOGGER.trace("Decision is {}, skipping activation properties processing for {}", decision, projCtxDesc);
+                return;
             }
 
-        } else {
-            throw new IllegalStateException("Unknown sync intent " + synchronizationIntent);
-        }
+            ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
+            if (resourceObjectDefinition == null) {
+                LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account {}", projCtxDesc);
+                return;
+            }
+            // [EP:M:OM] DONE, the bean is bound to the resource
+            ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
+            if (activationDefinitionBean == null) {
+                LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", projCtxDesc);
+                return;
+            }
 
-        LOGGER.trace("Evaluated decision for projection {} to {}", projCtxDesc, decision);
+            ActivationCapabilityType capActivation =
+                    resourceObjectDefinition.getEnabledCapability(ActivationCapabilityType.class, projCtx.getResource());
+            if (capActivation == null) {
+                LOGGER.trace("Skipping activation status and validity processing because {} has no activation capability", projCtx.getResource());
+                return;
+            }
 
-        setSynchronizationPolicyDecision(projCtx, decision, result);
+            ActivationStatusCapabilityType capStatus = CapabilityUtil.getEnabledActivationStatus(capActivation);
+            ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
+            ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
+            ActivationLockoutStatusCapabilityType capLockoutStatus = CapabilityUtil.getEnabledActivationLockoutStatus(capActivation);
 
-        PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
-        if (focusNew == null) {
-            // This must be a user delete or something similar. No point in proceeding
-            LOGGER.trace("focusNew is null, skipping activation processing of {}", projCtxDesc);
-            return;
-        }
+            if (capStatus != null) {
+                evaluateActivationMapping(context, projCtx, activationDefinitionBean,
+                        activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
+                        SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                        SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                        capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
+            } else {
+                LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", projCtx.getResource());
+            }
 
-        if (decision == SynchronizationPolicyDecision.DELETE) {
-            LOGGER.trace("Decision is {}, skipping activation properties processing for {}", decision, projCtxDesc);
-            return;
-        }
+            ResourceBidirectionalMappingType validFromMappingType = activationDefinitionBean.getValidFrom();
+            if (validFromMappingType == null || validFromMappingType.getOutbound() == null) {
+                LOGGER.trace("Skipping activation validFrom processing because {} does not have appropriate outbound mapping", projCtx.getResource());
+            } else if (capValidFrom == null && !ExpressionUtil.hasExplicitTarget(validFromMappingType.getOutbound())) {
+                LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability nor outbound mapping with explicit target", projCtx.getResource());
+            } else {
+                evaluateActivationMapping(context, projCtx, activationDefinitionBean,
+                        activationDefinitionBean.getValidFrom(), // [EP:M:OM] DONE
+                        SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+                        SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+                        null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+            }
 
-        ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
-        if (resourceObjectDefinition == null) {
-            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account {}", projCtxDesc);
-            return;
-        }
-        // [EP:M:OM] DONE, the bean is bound to the resource
-        ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
-        if (activationDefinitionBean == null) {
-            LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", projCtxDesc);
-            return;
-        }
+            ResourceBidirectionalMappingType validToMappingType = activationDefinitionBean.getValidTo();
+            if (validToMappingType == null || validToMappingType.getOutbound() == null) {
+                LOGGER.trace("Skipping activation validTo processing because {} does not have appropriate outbound mapping", projCtx.getResource());
+            } else if (capValidTo == null && !ExpressionUtil.hasExplicitTarget(validToMappingType.getOutbound())) {
+                LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", projCtx.getResource());
+            } else {
+                evaluateActivationMapping(context, projCtx, activationDefinitionBean,
+                        activationDefinitionBean.getValidTo(), // [EP:M:OM] DONE
+                        SchemaConstants.PATH_ACTIVATION_VALID_TO,
+                        SchemaConstants.PATH_ACTIVATION_VALID_TO,
+                        null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
+            }
 
-        ActivationCapabilityType capActivation =
-                resourceObjectDefinition.getEnabledCapability(ActivationCapabilityType.class, projCtx.getResource());
-        if (capActivation == null) {
-            LOGGER.trace("Skipping activation status and validity processing because {} has no activation capability", projCtx.getResource());
-            return;
-        }
-
-        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEnabledActivationStatus(capActivation);
-        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
-        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
-        ActivationLockoutStatusCapabilityType capLockoutStatus = CapabilityUtil.getEnabledActivationLockoutStatus(capActivation);
-
-        if (capStatus != null) {
-            evaluateActivationMapping(context, projCtx, activationDefinitionBean,
-                    activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
-                    SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                    SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                    capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
-        } else {
-            LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", projCtx.getResource());
-        }
-
-        ResourceBidirectionalMappingType validFromMappingType = activationDefinitionBean.getValidFrom();
-        if (validFromMappingType == null || validFromMappingType.getOutbound() == null) {
-            LOGGER.trace("Skipping activation validFrom processing because {} does not have appropriate outbound mapping", projCtx.getResource());
-        } else if (capValidFrom == null && !ExpressionUtil.hasExplicitTarget(validFromMappingType.getOutbound())) {
-            LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability nor outbound mapping with explicit target", projCtx.getResource());
-        } else {
-            evaluateActivationMapping(context, projCtx, activationDefinitionBean,
-                    activationDefinitionBean.getValidFrom(), // [EP:M:OM] DONE
-                    SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-                    SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-                    null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
-        }
-
-        ResourceBidirectionalMappingType validToMappingType = activationDefinitionBean.getValidTo();
-        if (validToMappingType == null || validToMappingType.getOutbound() == null) {
-            LOGGER.trace("Skipping activation validTo processing because {} does not have appropriate outbound mapping", projCtx.getResource());
-        } else if (capValidTo == null && !ExpressionUtil.hasExplicitTarget(validToMappingType.getOutbound())) {
-            LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", projCtx.getResource());
-        } else {
-            evaluateActivationMapping(context, projCtx, activationDefinitionBean,
-                    activationDefinitionBean.getValidTo(), // [EP:M:OM] DONE
-                    SchemaConstants.PATH_ACTIVATION_VALID_TO,
-                    SchemaConstants.PATH_ACTIVATION_VALID_TO,
-                    null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
-        }
-
-        if (capLockoutStatus != null) {
-            evaluateActivationMapping(context, projCtx, activationDefinitionBean,
-                    activationDefinitionBean.getLockoutStatus(), // [EP:M:OM] DONE
-                    SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
-                    capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
-        } else {
-            LOGGER.trace("Skipping activation lockout status processing because {} does not have activation lockout status capability", projCtx.getResource());
+            if (capLockoutStatus != null) {
+                evaluateActivationMapping(context, projCtx, activationDefinitionBean,
+                        activationDefinitionBean.getLockoutStatus(), // [EP:M:OM] DONE
+                        SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
+                        capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
+            } else {
+                LOGGER.trace("Skipping activation lockout status processing because {} does not have activation lockout status capability", projCtx.getResource());
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -430,67 +459,79 @@ public class ActivationProcessor implements ProjectorProcessor {
         result.addReturn("decision", String.valueOf(decision));
     }
 
-    private void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now) throws SchemaException {
-        ObjectDelta<ShadowType> projDelta = projCtx.getCurrentDelta();
-        if (projDelta == null) {
-            LOGGER.trace("No projection delta -> no activation metadata processing");
-            return;
-        }
+    private void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now, OperationResult parentResult)
+            throws SchemaException {
+        OperationResult result = parentResult.subresult(OP_PROJECTION_ACTIVATION_METADATA)
+                .setMinor()
+                .build();
 
-        LOGGER.trace("processActivationMetadata starting for {}", projCtx);
-
-        PropertyDelta<ActivationStatusType> statusDelta =
-                projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-
-        if (statusDelta != null && !statusDelta.isDelete()) {
-
-            // we have to determine if the status really changed
-            PrismObject<ShadowType> oldShadow = projCtx.getObjectOld();
-            ActivationStatusType statusOld;
-            if (oldShadow != null && oldShadow.asObjectable().getActivation() != null) {
-                statusOld = oldShadow.asObjectable().getActivation().getAdministrativeStatus();
-            } else {
-                statusOld = null;
+        try {
+            ObjectDelta<ShadowType> projDelta = projCtx.getCurrentDelta();
+            if (projDelta == null) {
+                LOGGER.trace("No projection delta -> no activation metadata processing");
+                return;
             }
 
-            PrismProperty<ActivationStatusType> statusPropNew =
-                    (PrismProperty<ActivationStatusType>) statusDelta.getItemNewMatchingPath(null);
-            ActivationStatusType statusNew = statusPropNew.getRealValue();
+            LOGGER.trace("processActivationMetadata starting for {}", projCtx);
 
-            if (statusNew == statusOld) {
-                LOGGER.trace("Administrative status not changed ({}), timestamp and/or reason will not be recorded", statusNew);
-            } else {
-                // timestamps
-                PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
-                        now, getActivationDefinition(), OriginType.OUTBOUND, prismContext);
-                projCtx.swallowToSecondaryDelta(timestampDelta);
+            PropertyDelta<ActivationStatusType> statusDelta =
+                    projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 
-                // disableReason
-                if (statusNew == ActivationStatusType.DISABLED) {
-                    PropertyDelta<String> disableReasonDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_DISABLE_REASON);
-                    if (disableReasonDelta == null) {
-                        String disableReason;
-                        ObjectDelta<ShadowType> projPrimaryDelta = projCtx.getPrimaryDelta();
-                        ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
-                        if (projPrimaryDelta != null
-                                && projPrimaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) != null
-                                && (projSecondaryDelta == null || projSecondaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) == null)) {
-                            disableReason = SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
-                        } else if (projCtx.isLegal()) {
-                            disableReason = SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
-                        } else {
-                            disableReason = SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
+            if (statusDelta != null && !statusDelta.isDelete()) {
+
+                // we have to determine if the status really changed
+                PrismObject<ShadowType> oldShadow = projCtx.getObjectOld();
+                ActivationStatusType statusOld;
+                if (oldShadow != null && oldShadow.asObjectable().getActivation() != null) {
+                    statusOld = oldShadow.asObjectable().getActivation().getAdministrativeStatus();
+                } else {
+                    statusOld = null;
+                }
+
+                PrismProperty<ActivationStatusType> statusPropNew =
+                        (PrismProperty<ActivationStatusType>) statusDelta.getItemNewMatchingPath(null);
+                ActivationStatusType statusNew = statusPropNew.getRealValue();
+
+                if (statusNew == statusOld) {
+                    LOGGER.trace("Administrative status not changed ({}), timestamp and/or reason will not be recorded", statusNew);
+                } else {
+                    // timestamps
+                    PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
+                            now, getActivationDefinition(), OriginType.OUTBOUND, prismContext);
+                    projCtx.swallowToSecondaryDelta(timestampDelta);
+
+                    // disableReason
+                    if (statusNew == ActivationStatusType.DISABLED) {
+                        PropertyDelta<String> disableReasonDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_DISABLE_REASON);
+                        if (disableReasonDelta == null) {
+                            String disableReason;
+                            ObjectDelta<ShadowType> projPrimaryDelta = projCtx.getPrimaryDelta();
+                            ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
+                            if (projPrimaryDelta != null
+                                    && projPrimaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) != null
+                                    && (projSecondaryDelta == null || projSecondaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) == null)) {
+                                disableReason = SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
+                            } else if (projCtx.isLegal()) {
+                                disableReason = SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
+                            } else {
+                                disableReason = SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
+                            }
+
+                            PrismPropertyDefinition<String> disableReasonDef =
+                                    activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
+                            disableReasonDelta = disableReasonDef.createEmptyDelta(
+                                    ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
+                            disableReasonDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(disableReason, OriginType.OUTBOUND, null));
+                            projCtx.swallowToSecondaryDelta(disableReasonDelta);
                         }
-
-                        PrismPropertyDefinition<String> disableReasonDef =
-                                activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
-                        disableReasonDelta = disableReasonDef.createEmptyDelta(
-                                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
-                        disableReasonDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(disableReason, OriginType.OUTBOUND, null));
-                        projCtx.swallowToSecondaryDelta(disableReasonDelta);
                     }
                 }
             }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -502,75 +543,90 @@ public class ActivationProcessor implements ProjectorProcessor {
             LensProjectionContext projCtx,
             XMLGregorianCalendar now,
             Task task,
-            OperationResult result)
+            OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        String accCtxDesc = projCtx.toHumanReadableString();
-        SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
 
-        LOGGER.trace("processActivationUserFuture starting for {}. Existing decision = {}", projCtx, decision);
+        OperationResult result = parentResult.subresult(OP_PROJECTION_ACTIVATION_MAPPINGS_FUTURE)
+                .setMinor()
+                .build();
 
-        if (projCtx.isGone()
-                || decision == SynchronizationPolicyDecision.BROKEN
-                || decision == SynchronizationPolicyDecision.IGNORE
-                || decision == SynchronizationPolicyDecision.UNLINK
-                || decision == SynchronizationPolicyDecision.DELETE) {
-            return;
-        }
+        try {
 
-        projCtx.recompute();
+            assert context.hasFocusContext();
 
-        evaluateExistenceMapping(context, projCtx, now, MappingTimeEval.FUTURE, task, result);
+            String accCtxDesc = projCtx.toHumanReadableString();
+            SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
 
-        PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
-        if (focusNew == null) {
-            // This must be a user delete or something similar. No point in proceeding
-            LOGGER.trace("focusNew is null, skipping activation processing of {}", accCtxDesc);
-            return;
-        }
+            LOGGER.trace("processActivationUserFuture starting for {}. Existing decision = {}", projCtx, decision);
 
-        ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
-        if (resourceObjectDefinition == null) {
-            return;
-        }
-        // [EP:M:OM] DONE, as the bean is bound to the resource
-        ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
-        if (activationDefinitionBean == null) {
-            return;
-        }
+            if (projCtx.isGone()
+                    || decision == SynchronizationPolicyDecision.BROKEN
+                    || decision == SynchronizationPolicyDecision.IGNORE
+                    || decision == SynchronizationPolicyDecision.UNLINK
+                    || decision == SynchronizationPolicyDecision.DELETE) {
+                return;
+            }
 
-        ActivationCapabilityType capActivation =
-                resourceObjectDefinition.getEnabledCapability(ActivationCapabilityType.class, projCtx.getResource());
-        if (capActivation == null) {
-            return;
-        }
+            projCtx.recompute();
 
-        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEnabledActivationStatus(capActivation);
-        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
-        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
+            evaluateExistenceMapping(context, projCtx, now, MappingTimeEval.FUTURE, task, result);
 
-        if (capStatus != null) {
-            evaluateActivationMapping(
-                    context, projCtx, activationDefinitionBean, // [EP:M:OM] DONE
-                    activationDefinitionBean.getAdministrativeStatus(),
-                    SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                    capActivation, now, MappingTimeEval.FUTURE, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
-        }
+            PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
+            if (focusNew == null) {
+                // This must be a user delete or something similar. No point in proceeding
+                LOGGER.trace("focusNew is null, skipping activation processing of {}", accCtxDesc);
+                return;
+            }
 
-        if (capValidFrom != null) {
-            evaluateActivationMapping(
-                    context, projCtx, activationDefinitionBean,
-                    activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
-                    SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-                    null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
-        }
+            ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
+            if (resourceObjectDefinition == null) {
+                return;
+            }
+            // [EP:M:OM] DONE, as the bean is bound to the resource
+            ResourceActivationDefinitionType activationDefinitionBean = resourceObjectDefinition.getActivationSchemaHandling();
+            if (activationDefinitionBean == null) {
+                return;
+            }
 
-        if (capValidTo != null) {
-            evaluateActivationMapping(
-                    context, projCtx, activationDefinitionBean,
-                    activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
-                    SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
-                    null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+            ActivationCapabilityType capActivation =
+                    resourceObjectDefinition.getEnabledCapability(ActivationCapabilityType.class, projCtx.getResource());
+            if (capActivation == null) {
+                return;
+            }
+
+            ActivationStatusCapabilityType capStatus = CapabilityUtil.getEnabledActivationStatus(capActivation);
+            ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
+            ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
+
+            if (capStatus != null) {
+                evaluateActivationMapping(
+                        context, projCtx, activationDefinitionBean, // [EP:M:OM] DONE
+                        activationDefinitionBean.getAdministrativeStatus(),
+                        SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                        capActivation, now, MappingTimeEval.FUTURE, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
+            }
+
+            if (capValidFrom != null) {
+                evaluateActivationMapping(
+                        context, projCtx, activationDefinitionBean,
+                        activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
+                        SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+                        null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+            }
+
+            if (capValidTo != null) {
+                evaluateActivationMapping(
+                        context, projCtx, activationDefinitionBean,
+                        activationDefinitionBean.getAdministrativeStatus(), // [EP:M:OM] DONE
+                        SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
+                        null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -603,7 +659,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             PredefinedActivationMappingEvaluator predefinedEvaluator = getPredefinedActivationMapping(
                     activationDefinitionBean, context, projCtx, task, now);
             if (predefinedEvaluator != null) {
-                LOGGER.trace("Using {} as predefined activation evaluator", predefinedEvaluator.getClass().getSimpleName());
+                LOGGER.trace("Using {} as predefined activation evaluator", predefinedEvaluator.getName());
                 return predefinedEvaluator.defineExistence(context, projCtx);
             }
         }
@@ -725,28 +781,16 @@ public class ActivationProcessor implements ProjectorProcessor {
         XMLGregorianCalendar nextRecomputeTime = null;
         String triggerOriginDescription = null;
 
-        for (Class<? extends PredefinedActivationMappingEvaluator> evaluatorClass : PREDEFINED_EVALUATORS) {
+        for (PredefinedActivationMappingEvaluator evaluator : getConfiguredEvaluators(activationDefinitionBean, task)) {
 
-            try {
-                Constructor<? extends PredefinedActivationMappingEvaluator> constructor =
-                        evaluatorClass.getConstructor(ResourceActivationDefinitionType.class);
-                PredefinedActivationMappingEvaluator evaluator = constructor.newInstance(activationDefinitionBean);
-
-                if (!evaluator.isConfigured(task)) {
-                    continue;
+            XMLGregorianCalendar currentNextRecomputeTime =
+                    evaluator.getNextRecomputeTime(context, projCtx, path, now);
+            if (currentNextRecomputeTime != null) {
+                if (nextRecomputeTime == null
+                        || nextRecomputeTime.compare(currentNextRecomputeTime) == DatatypeConstants.GREATER) {
+                    nextRecomputeTime = currentNextRecomputeTime;
+                    triggerOriginDescription = evaluator.getName();
                 }
-
-                XMLGregorianCalendar currentNextRecomputeTime =
-                        evaluator.defineTimeForTriggerOfActivation(context, projCtx, path, now);
-                if (currentNextRecomputeTime != null) {
-                    if (nextRecomputeTime == null
-                            || nextRecomputeTime.compare(currentNextRecomputeTime) == DatatypeConstants.GREATER) {
-                        nextRecomputeTime = currentNextRecomputeTime;
-                        triggerOriginDescription = evaluatorClass.getSimpleName();
-                    }
-                }
-            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-                LOGGER.trace("Couldn't create evaluator of predefined activation mappings", e);
             }
         }
 
@@ -756,32 +800,50 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
     }
 
+    private List<PredefinedActivationMappingEvaluator> getConfiguredEvaluators(
+            ResourceActivationDefinitionType activationDefinitionBean, Task task) {
+
+        if (activationDefinitionBean == null) {
+            return List.of();
+        }
+
+        List<PredefinedActivationMappingEvaluator> evaluators = new ArrayList<>();
+        for (Class<? extends PredefinedActivationMappingEvaluator> evaluatorClass : PREDEFINED_EVALUATORS) {
+
+            try {
+                PredefinedActivationMappingEvaluator evaluator = evaluatorClass
+                        .getConstructor(ResourceActivationDefinitionType.class)
+                        .newInstance(activationDefinitionBean);
+                if (evaluator.isConfigured(task)) {
+                    evaluators.add(evaluator);
+                }
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                throw SystemException.unexpected(e, "when creating evaluator of predefined activation mappings");
+            }
+        }
+        LOGGER.trace("Configured pre-defined evaluators: {}", evaluators);
+        return evaluators;
+    }
+
     private <F extends FocusType> PredefinedActivationMappingEvaluator getPredefinedActivationMapping(
-            ResourceActivationDefinitionType activationDefinitionBean, final LensContext<F> context,
-            final LensProjectionContext projCtx, Task task, XMLGregorianCalendar now)
+            ResourceActivationDefinitionType activationDefinitionBean,
+            LensContext<F> context, LensProjectionContext projCtx,
+            Task task,
+            XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
 
-        if (activationDefinitionBean != null) {
-            for (Class<? extends PredefinedActivationMappingEvaluator> evaluatorClass : PREDEFINED_EVALUATORS) {
+        for (PredefinedActivationMappingEvaluator evaluator : getConfiguredEvaluators(activationDefinitionBean, task)) {
+            LOGGER.trace("Determining applicability of {}", evaluator.getName());
+            boolean applicable = evaluator.isApplicable(context, projCtx, now);
+            LOGGER.trace("Conclusion: {} is {}", evaluator.getName(), applicable ? "applicable" : "not applicable");
 
-                try {
-                    Constructor<? extends PredefinedActivationMappingEvaluator> constructor =
-                            evaluatorClass.getConstructor(ResourceActivationDefinitionType.class);
-                    PredefinedActivationMappingEvaluator evaluator = constructor.newInstance(activationDefinitionBean);
-
-                    if (!evaluator.isConfigured(task)) {
-                        continue;
-                    }
-                    if (evaluator.isApplicable(context, projCtx, now)) {
-                        return evaluator;
-                    }
-                } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-                    LOGGER.trace("Couldn't create evaluator of predefined activation mappings", e);
-                }
+            if (applicable) {
+                // TODO can there be a situation where multiple predefined evaluators are applicable?
+                return evaluator;
             }
         }
 
-        LOGGER.trace("No predefined activation mapping is configured.");
+        LOGGER.trace("No predefined activation mapping is applicable");
         return null;
     }
 
@@ -799,15 +861,18 @@ public class ActivationProcessor implements ProjectorProcessor {
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
+        LOGGER.trace("Evaluating '{}' of projection {} ({})", projectionPropertyPath, projCtx, evaluationTime);
+
         if (evaluationTime == MappingTimeEval.FUTURE) {
             createTriggerForPredefinedActivationMapping(
                     activationDefinitionBean, context, projCtx, projectionPropertyPath, task, now);
         } else {
             PredefinedActivationMappingEvaluator predefinedEvaluator =
                     getPredefinedActivationMapping(activationDefinitionBean, context, projCtx, task, now);
-            if (predefinedEvaluator != null && predefinedEvaluator.supportsActivation(projectionPropertyPath)) {
-                LOGGER.trace("Using {} as predefined activation evaluator", predefinedEvaluator.getClass().getSimpleName());
-                predefinedEvaluator.defineActivation(context, projCtx, projectionPropertyPath);
+            if (predefinedEvaluator != null && predefinedEvaluator.supportsActivationProperty(projectionPropertyPath)) {
+                LOGGER.trace("Using {} as predefined activation evaluator for {}",
+                        predefinedEvaluator.getName(), projectionPropertyPath);
+                predefinedEvaluator.defineActivationProperty(context, projCtx, projectionPropertyPath, task, result);
                 return;
             }
         }
@@ -828,7 +893,6 @@ public class ActivationProcessor implements ProjectorProcessor {
 
                         // "Magic" computed status (tweaked admin status if validity is supported, effective status if not)
                         ItemDeltaItem<PrismPropertyValue<ActivationStatusType>, PrismPropertyDefinition<ActivationStatusType>> inputIdi;
-                        ItemPath sourcePath;
                         if (capValidFrom != null && capValidTo != null) {
                             LOGGER.trace("Native validFrom and validTo -> using adapted administrativeStatus as the implicit input");
                             // We have to convert ARCHIVED to DISABLED, to avoid passing it forward via "asIs" mapping (MID-9026)
@@ -864,6 +928,8 @@ public class ActivationProcessor implements ProjectorProcessor {
         evaluateOutboundMapping( // [EP:M:OM] DONE
                 context, projCtx, bidirectionalMappingBean, projectionPropertyPath, initializer,
                 now, evaluationTime, desc + " outbound activation mapping", task, result);
+
+        LOGGER.trace("Finished evaluation of '{}' of projection {} ({})", projectionPropertyPath, projCtx, evaluationTime);
     }
 
     private <F extends FocusType> ActivationStatusType getAdaptedAdministrativeStatus(PrismObject<F> object) {

@@ -16,11 +16,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluates time from offset and path to reference time item.
@@ -52,7 +51,7 @@ class TimeConstraintEvaluation implements Serializable {
         this.offset = offset;
     }
 
-    void evaluateFrom(ObjectDeltaObject parentOdo, XMLGregorianCalendar now) throws SchemaException {
+    void evaluateFrom(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
         if (parentOdo == null || path == null) {
             timeConstraintValid = true;
             return;
@@ -68,7 +67,7 @@ class TimeConstraintEvaluation implements Serializable {
             return;
         }
 
-        if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
+        if (timeFrom.compare(now) == DatatypeConstants.GREATER) {
             // before timeFrom
             nextRecomputeTime = timeFrom;
             timeConstraintValid = false;
@@ -79,7 +78,7 @@ class TimeConstraintEvaluation implements Serializable {
         timeConstraintValid = true;
     }
 
-    void evaluateTo(ObjectDeltaObject parentOdo, XMLGregorianCalendar now) throws SchemaException {
+    void evaluateTo(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
         if (parentOdo == null || path == null) {
             timeConstraintValid = true;
             return;
@@ -106,7 +105,7 @@ class TimeConstraintEvaluation implements Serializable {
         timeConstraintValid = false;
     }
 
-    private XMLGregorianCalendar parseTime(ObjectDeltaObject parentOdo) throws SchemaException {
+    private XMLGregorianCalendar parseTime(ObjectDeltaObject<?> parentOdo) throws SchemaException {
         XMLGregorianCalendar referenceTime = parseTimeSource(parentOdo);
         LOGGER.trace("reference time = {}", referenceTime);
 
@@ -123,7 +122,7 @@ class TimeConstraintEvaluation implements Serializable {
         return time;
     }
 
-    private XMLGregorianCalendar parseTimeSource(ObjectDeltaObject parentOdo) throws SchemaException {
+    private XMLGregorianCalendar parseTimeSource(ObjectDeltaObject<?> parentOdo) throws SchemaException {
         LOGGER.trace("parseTimeSource: path = {}, source object = {}", path, parentOdo);
 
         ItemDeltaItem<?, ?> sourceObject = parentOdo.findIdi(path);
@@ -136,11 +135,19 @@ class TimeConstraintEvaluation implements Serializable {
         return timeProperty != null ? timeProperty.getRealValue() : null;
     }
 
-    @Nullable Boolean isTimeConstraintValid() {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    boolean isTimeValidityEstablished() {
         if (timeConstraintValid == null) {
             LOGGER.trace("Time validity has not been established");
+            return false;
+        } else {
+            return true;
         }
-        return timeConstraintValid;
+    }
+
+    /** Assumes the validity was computed. */
+    boolean isTimeConstraintValid() {
+        return MiscUtil.stateNonNull(timeConstraintValid, "Time validity has not been established");
     }
 
     XMLGregorianCalendar getNextRecomputeTime() {
