@@ -303,10 +303,4 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         return AuthUtil.findAuthAttemptDataForModule(connectionEnvironment, principal);
     }
 
-    @Override
-    protected ProfileCompilerOptions createOptionForGettingPrincipal() {
-        return ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
-                .collectAuthorization(true)
-                .locateSecurityPolicy(true);
-    }
 }
