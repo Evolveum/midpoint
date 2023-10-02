@@ -30,4 +30,6 @@ public class RestAuthenticationChannel extends AuthenticationChannelImpl {
     public boolean isSupportGuiConfigByChannel() {
         return false;
     }
+
+
 }

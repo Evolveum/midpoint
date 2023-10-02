@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -48,7 +49,8 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
 
 
     @NotNull
-    protected <C extends AbstractAuthenticationContext> MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, C authCtx, boolean supportActivationCheck) {
+    protected <C extends AbstractAuthenticationContext> MidPointPrincipal getAndCheckPrincipal(
+            ConnectionEnvironment connEnv, C authCtx, boolean supportActivationCheck) {
         ObjectQuery query = authCtx.createFocusQuery();
         String username = authCtx.getUsername();
         if (query == null) {
@@ -59,7 +61,8 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         Class<? extends FocusType> clazz = authCtx.getPrincipalType();
         MidPointPrincipal principal;
         try {
-            principal = focusProfileService.getPrincipal(query, clazz, authCtx.isSupportGuiConfigByChannel());
+            principal = focusProfileService.getPrincipal(
+                    query, clazz, createOptionForGettingPrincipal());
         } catch (ObjectNotFoundException e) {
             recordModuleAuthenticationFailure(username, null, connEnv, null, "no focus");
             throw new UsernameNotFoundException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
@@ -90,6 +93,13 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
             throw new DisabledException("web.security.provider.disabled");
         }
         return principal;
+    }
+
+    private ProfileCompilerOptions createOptionForGettingPrincipal() {
+        return ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                .collectAuthorization(true)
+                .locateSecurityPolicy(true)
+                .tryReusingSecurityPolicy(true);
     }
 
     protected boolean hasNoAuthorizations(MidPointPrincipal principal) {

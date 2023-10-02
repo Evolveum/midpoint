@@ -34,29 +34,28 @@ public interface MidPointPrincipalManager extends OwnerResolver {
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
     // This method is used from many test cases, and some of them require GUI Config.
-    // Therefore, supportGuiConfig must be set to true.
     default MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        return getPrincipal(username, clazz, true);
+        return getPrincipal(username, clazz, ProfileCompilerOptions.create());
     }
 
     // TODO add OperationResult here
-    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, boolean supportGuiConfig)
+    MidPointPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
     // TODO add OperationResult here
-    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, boolean supportGuiConfig)
+    MidPointPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, ProfileCompilerOptions options)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
-    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, boolean supportGuiConfig, OperationResult result)
+    MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
     MidPointPrincipal getPrincipal(
-            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, boolean supportGuiConfig, OperationResult result)
+            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, ProfileCompilerOptions options, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -34,21 +35,21 @@ import org.jetbrains.annotations.NotNull;
 public interface GuiProfiledPrincipalManager extends MidPointPrincipalManager {
 
     @Override
-    GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz, ProfileCompilerOptions options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-    GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
-
-    @Override
-    GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, boolean supportGuiConfig) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    GuiProfiledPrincipal getPrincipal(ObjectQuery query, Class<? extends FocusType> clazz, ProfileCompilerOptions options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     @Override
-    GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, boolean supportGuiConfig, OperationResult result)
+    GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz, ProfileCompilerOptions options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+
+    @Override
+    GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
     @Override
     GuiProfiledPrincipal getPrincipal(
-            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, boolean supportGuiConfig, OperationResult result)
+            PrismObject<? extends FocusType> focus, AuthorizationTransformer authorizationTransformer, ProfileCompilerOptions options, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
@@ -61,4 +62,7 @@ public interface GuiProfiledPrincipalManager extends MidPointPrincipalManager {
 
     @NotNull
     CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal);
+
+    @NotNull
+    CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal, ProfileCompilerOptions options);
 }

@@ -340,11 +340,10 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                     @Override
                     protected Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> newCellItem(String id, int index, IModel<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> model) {
                         Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> item = super.newCellItem(id, index, model);
-                        if(index == 1) {
+                        if (index == 1) {
                             item.add(AttributeAppender.append("style", "word-break:break-all"));
                         }
                         item.add(AttributeAppender.append("class", "align-middle"));
-
 
                         return item;
                     }
@@ -471,9 +470,17 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     }
 
     private IModel<String> createTitleModel() {
-        return () ->
-                WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName())
-                        + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+        return () -> {
+            String name = WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName());
+
+            if (StringUtils.isEmpty(name)) {
+                SimulationResultProcessedObjectType object = objectModel.getObject();
+                ProcessedObject<?> processedObject = SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
+                name = SimulationsGuiUtil.getShadowNameFromAttribute(processedObject);
+            }
+
+            return name + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
+        };
     }
 
     @Override

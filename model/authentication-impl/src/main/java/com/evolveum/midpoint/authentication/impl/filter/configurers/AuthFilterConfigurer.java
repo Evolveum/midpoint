@@ -9,12 +9,10 @@ package com.evolveum.midpoint.authentication.impl.filter.configurers;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 import com.evolveum.midpoint.authentication.impl.filter.MidpointAuthFilter;
 import com.evolveum.midpoint.authentication.impl.filter.SequenceAuditFilter;
 import com.evolveum.midpoint.authentication.impl.filter.TransformExceptionFilter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.config.annotation.web.HttpSecurityBuilder;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -33,8 +31,6 @@ import org.springframework.web.accept.ContentNegotiationStrategy;
 public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         AbstractHttpConfigurer<SecurityContextConfigurer<H>, H> {
 
-//    @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
-
     @Override
     public void configure(H http) throws Exception {
 
@@ -49,7 +45,6 @@ public class AuthFilterConfigurer<H extends HttpSecurityBuilder<H>> extends
         MidpointAuthFilter mpFilter = postProcess(new MidpointAuthFilter(sharedObjects));
         mpFilter.createFilterForAuthenticatedRequest();
         http.addFilterBefore(mpFilter, SessionManagementFilter.class);
-
 
         http.addFilterAfter(postProcess(new SequenceAuditFilter()), AnonymousAuthenticationFilter.class);
 

@@ -55,6 +55,10 @@ public class SearchBuilder<C extends Serializable> {
 
     private boolean isViewForDashboard;
 
+    private boolean isFullTextSearchEnabled = true;
+
+    private boolean typeChanged = false;
+
     private PathKeyedMap<ItemDefinition<?>> allSearchableItems;
 
     private SearchContext additionalSearchContext;
@@ -95,6 +99,16 @@ public class SearchBuilder<C extends Serializable> {
 
     public SearchBuilder<C> additionalSearchContext(SearchContext additionalSearchContext) {
         this.additionalSearchContext = additionalSearchContext;
+        return this;
+    }
+
+    public SearchBuilder<C> setFullTextSearchEnabled(boolean fullTextSearchEnabled) {
+        isFullTextSearchEnabled = fullTextSearchEnabled;
+        return this;
+    }
+
+    public SearchBuilder<C> setTypeChanged(boolean typeChanged) {
+        this.typeChanged = typeChanged;
         return this;
     }
 
@@ -207,6 +221,7 @@ public class SearchBuilder<C extends Serializable> {
 
     private SearchBoxConfigurationType getMergedConfiguration() {
         SearchBoxConfigurationType configuredSearchBox = getConfiguredSearchBox();
+        resolveRealSearchType(configuredSearchBox);
         SearchBoxConfigurationType defaultSearchBoxConfig = new SearchBoxConfigurationBuilder()
                 .type(type)
                 .availableDefinitions(allSearchableItems)
@@ -216,6 +231,21 @@ public class SearchBuilder<C extends Serializable> {
                 .create();
 
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
+    }
+
+    private void resolveRealSearchType(SearchBoxConfigurationType configuredSearchBox) {
+        if (configuredSearchBox == null) {
+            return;
+        }
+        //if the search is loaded because of the changed type, the new selected type value
+        //should be used for search instead of configured default type value
+        if (typeChanged) {
+            QName searchType = WebComponentUtil.anyClassToQName(modelServiceLocator.getPrismContext(), type);
+            configuredSearchBox.setDefaultObjectType(searchType);
+            if (configuredSearchBox.getObjectTypeConfiguration() != null) {
+                configuredSearchBox.getObjectTypeConfiguration().setDefaultValue(searchType);
+            }
+        }
     }
 
     public ItemDefinition<?> getDefinitionOverride() {
@@ -328,6 +358,9 @@ public class SearchBuilder<C extends Serializable> {
     }
 
     private boolean isFullTextSearchEnabled() {
+        if (!isFullTextSearchEnabled) {
+            return false;
+        }
         //This is not entirely correct. however, there is no clever options for now for handling fullText for assignments
         // The main problem is the isFullTextSearchEnabled(type), since the fulltext for assignment is not actually for
         // AssignmentType, but for its targetRef. So, fulltext for AbstractRoleType has to be specified
@@ -367,5 +400,4 @@ public class SearchBuilder<C extends Serializable> {
         }
         return additionalSearchContext.getPanelType().getTypeForNull();
     }
-
 }

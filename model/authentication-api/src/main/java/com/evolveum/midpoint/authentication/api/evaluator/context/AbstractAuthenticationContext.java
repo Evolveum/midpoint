@@ -30,8 +30,6 @@ public abstract class AbstractAuthenticationContext {
 
     private final boolean supportActivationByChannel;
 
-    private final boolean supportGuiConfigByChannel;
-
     public AbstractAuthenticationContext(
             String username,
             Class<? extends FocusType> principalType,
@@ -41,7 +39,6 @@ public abstract class AbstractAuthenticationContext {
         this.requireAssignments = requireAssignment;
         this.principalType = principalType;
         this.supportActivationByChannel = channel == null || channel.isSupportActivationByChannel();
-        this.supportGuiConfigByChannel = channel == null || channel.isSupportGuiConfigByChannel();
     }
 
     public String getUsername() {
@@ -54,10 +51,6 @@ public abstract class AbstractAuthenticationContext {
 
     public boolean isSupportActivationByChannel() {
         return supportActivationByChannel;
-    }
-
-    public boolean isSupportGuiConfigByChannel() {
-        return supportGuiConfigByChannel;
     }
 
     public List<ObjectReferenceType> getRequireAssignments() {

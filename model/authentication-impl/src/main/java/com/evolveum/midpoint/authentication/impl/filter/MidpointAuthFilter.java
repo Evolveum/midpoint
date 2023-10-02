@@ -145,6 +145,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (mpAuthentication != null && authWrapper.getAuthModules().size() != mpAuthentication.getAuthModules().size()) {
             mpAuthentication.setAuthModules(authWrapper.getAuthModules());
         }
+
         int indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);
         boolean restartNeeded = needCreateNewAuthenticationToken(mpAuthentication, indexOfProcessingModule, httpRequest);
         if (restartNeeded) {

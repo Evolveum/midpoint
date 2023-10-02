@@ -138,6 +138,10 @@ public class RequestAccess implements Serializable {
 
     private List<Conflict> conflicts = new ArrayList<>();
 
+    public Map<ObjectReferenceType, List<ObjectReferenceType>> getExistingPoiRoleMemberships() {
+        return Collections.unmodifiableMap(existingPoiRoleMemberships);
+    }
+
     public Boolean isPoiMyself() {
         return poiMyself;
     }

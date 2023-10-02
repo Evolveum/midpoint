@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.channel;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -14,9 +13,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -38,11 +34,19 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
     }
 
     @Override
-    public Collection<Authorization> cleanupAuthorities(@NotNull Collection<Authorization> authorities) {
-        for (Authorization authzI : authorities) {
-            authzI.getAction().removeIf(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
+    public boolean isAllowedAuthorization(Authorization autz) {
+        if (autz == null) {
+            return false;
         }
-        return authorities;
+        if (autz.getAction().contains(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL)) {
+            return true;
+        }
+
+        if(!autz.getAction().stream().anyMatch(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI))) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

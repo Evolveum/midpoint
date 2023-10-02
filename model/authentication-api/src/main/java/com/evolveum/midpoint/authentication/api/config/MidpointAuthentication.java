@@ -9,7 +9,7 @@ package com.evolveum.midpoint.authentication.api.config;
 import java.util.*;
 import java.util.stream.Stream;
 
-import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -96,6 +96,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      */
     private String archetypeOid;
     private boolean archetypeSelected;
+
+    /**
+     * Indicates if the profile of midpoint principal was compiled after successful authentication.
+     * It should be recorded only for whole sequence and after the whole sequence
+     * was reliably evaluated. E.g. all modules run and authentication was successful.
+     */
+    private boolean alreadyCompiledGui;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -571,6 +578,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public boolean isLast(ModuleAuthentication moduleAuthentication) {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicyForPrincipal();
+        if (securityPolicy != null) {
+            int currentModulesSize = authModules.size();
+            AuthenticationSequenceType seq = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, sequence.getIdentifier());
+            if (seq != null && currentModulesSize != seq.getModule().size()) {
+                return false;
+            }
+        }
         if (getAuthentications().isEmpty()) {
             return false;
         }
@@ -653,15 +668,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return StringUtils.isNotEmpty(archetypeOid) || archetypeSelected;
     }
 
-    public Collection<? extends GrantedAuthority> resolveAuthorities(Authentication token) {
-        if (token.getPrincipal() instanceof MidPointPrincipal mpPrincipal) {
-            Collection<Authorization> newAuthorities = authenticationChannel.resolveAuthorities(mpPrincipal.getAuthorities());
-            newAuthorities.forEach(a -> mpPrincipal.addExtraAuthorizationIfMissing(a, true));
-            return newAuthorities;
-        }
-        return token.getAuthorities();
-    }
-
     public ModuleAuthentication getProcessingModuleOrThrowException() {
         ModuleAuthentication moduleAuthentication = getProcessingModuleAuthentication();
         if (moduleAuthentication == null) {
@@ -676,4 +682,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         moduleAuthentication.setAuthentication(token);
     }
 
+    public boolean isAlreadyCompiledGui() {
+        return alreadyCompiledGui;
+    }
+
+    public void setAlreadyCompiledGui(boolean alreadyCompiledGui) {
+        this.alreadyCompiledGui = alreadyCompiledGui;
+    }
 }

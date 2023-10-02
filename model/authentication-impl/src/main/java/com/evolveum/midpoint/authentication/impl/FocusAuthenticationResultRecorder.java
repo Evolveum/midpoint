@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -180,7 +181,8 @@ public class FocusAuthenticationResultRecorder {
         if (principal == null && StringUtils.isNotEmpty(username)) {
             try {
                 // For recording audit log, we don't need to support GUI config
-                principal = focusProfileService.getPrincipal(username, FocusType.class, false);
+                principal = focusProfileService.getPrincipal(
+                        username, FocusType.class, ProfileCompilerOptions.createOnlyPrincipalOption());
             } catch (CommonException e) {
                 //ignore error
             }

@@ -137,6 +137,15 @@ public class AuthUtil {
         return (MidpointAuthentication) authentication;
     }
 
+    @Nullable
+    public static MidpointAuthentication getMidpointAuthenticationNotRequired() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication)) {
+            return null;
+        }
+        return (MidpointAuthentication) authentication;
+    }
+
     public static ModuleAuthentication getAuthenticatedModule() {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

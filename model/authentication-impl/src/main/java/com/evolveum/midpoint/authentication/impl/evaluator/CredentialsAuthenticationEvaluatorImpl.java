@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.impl.evaluator;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -96,28 +98,6 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         recordModuleAuthenticationSuccess(principal, connEnv);
         return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
     }
-
-//    @Override
-//    @NotNull
-//    public FocusType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
-//            throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
-//            CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
-//
-//        checkEnteredCredentials(connEnv, authnCtx);
-//
-//        MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, false);
-//
-//        FocusType focusType = principal.getFocus();
-//        CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
-//
-//        if (!checkCredentials(principal, authnCtx, connEnv)) {
-//            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, credentialsPolicy, "password mismatch");
-//            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
-//        }
-//        checkAuthorizations(principal, connEnv, authnCtx);
-//        recordModuleAuthenticationSuccess(principal, connEnv, false);
-//        return focusType;
-//    }
 
     private void checkAuthorizations(MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv, T authnCtx) {
         if (supportsAuthzCheck()) {
@@ -319,27 +299,8 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         return authenticationAttemptData.getLastFailedAuthentication();
     }
 
-//    protected void recordModuleAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-//            boolean audit) {
-//        authenticationRecorder.recordModuleAuthenticationAttemptSuccess(principal, connEnv);
-//    }
-//
-//    protected void recordModuleAuthenticationFailure(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-//            CredentialPolicyType credentialsPolicy, String reason) {
-//        if (principal != null) {
-//            authenticationRecorder.recordModuleAuthenticationAttemptFailure(principal, credentialsPolicy, connEnv);
-//        }
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication instanceof MidpointAuthentication) {
-//            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-//            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-//            if (moduleAuthentication != null) {
-//                moduleAuthentication.setFailureData(new AutheticationFailedData(reason, username));
-//            }
-//        }
-//    }
-
     public AuthenticationAttemptDataType getAuthenticationData(MidPointPrincipal principal, ConnectionEnvironment connectionEnvironment) {
         return AuthUtil.findAuthAttemptDataForModule(connectionEnvironment, principal);
     }
+
 }

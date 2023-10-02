@@ -34,6 +34,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -123,15 +124,14 @@ public class OidcResourceServerModuleWebSecurityConfigurer<C extends RemoteModul
         http.authorizeRequests().accessDecisionManager(new MidpointHttpAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager, model));
         http.addFilterAt(filter, BasicAuthenticationFilter.class);
 
-        SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());
-        sequenceAuditFilter.setRecordOnEndOfChain(false);
-        http.addFilterAfter(sequenceAuditFilter, BasicAuthenticationFilter.class);
-
-
         http.formLogin().disable()
                 .csrf().disable();
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(entryPoint)
                 .authenticationTrustResolver(new MidpointAuthenticationTrustResolverImpl());
+
+        SequenceAuditFilter sequenceAuditFilter = getObjectPostProcessor().postProcess(new SequenceAuditFilter());
+        sequenceAuditFilter.setRecordOnEndOfChain(false);
+        http.addFilterAfter(getObjectPostProcessor().postProcess(sequenceAuditFilter), FilterSecurityInterceptor.class);
     }
 }
