@@ -1199,8 +1199,13 @@ public class ResourceObjectConverter {
                     }
                 }
                 if (!found) {
-                    LOGGER.warn("Attempting to remove a value of {} that is not in {}: {}",
-                            valueToDelete, propertyDelta.getElementName(), currentValues);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.warn("Attempting to remove a value of {} that is not in {}",
+                                valueToDelete, propertyDelta.getElementName());
+                    } else {
+                        LOGGER.warn("Attempting to remove a value of {} that is not in {}: {}",
+                                valueToDelete, propertyDelta.getElementName(), currentValues);
+                    }
                 }
             }
         }
