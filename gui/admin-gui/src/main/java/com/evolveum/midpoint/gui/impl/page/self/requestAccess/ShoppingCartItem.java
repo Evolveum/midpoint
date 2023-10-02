@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +27,19 @@ public class ShoppingCartItem implements Serializable, Comparable<ShoppingCartIt
 
     private int count;
 
-    public ShoppingCartItem(AssignmentType assignment, int count) {
+    private List<PolyStringType> poiNames;
+
+    public ShoppingCartItem(AssignmentType assignment, int count, List<PolyStringType> poiNames) {
         this.assignment = assignment;
         this.count = count;
+        this.poiNames = poiNames;
+    }
+
+    public List<PolyStringType> getPoiNames() {
+        if (poiNames == null) {
+            poiNames = new ArrayList<>();
+        }
+        return poiNames;
     }
 
     public AssignmentType getAssignment() {
@@ -89,5 +101,10 @@ public class ShoppingCartItem implements Serializable, Comparable<ShoppingCartIt
     @Override
     public int compareTo(@NotNull ShoppingCartItem o) {
         return String.CASE_INSENSITIVE_ORDER.compare(this.getName(), o.getName());
+    }
+
+    @Override
+    public String toString() {
+        return "SCI{" + assignment + ", count=" + count + '}';
     }
 }
