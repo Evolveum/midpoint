@@ -7,24 +7,25 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.util.exception.*;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPredefinedActivationMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * This evaluator change midpoint default behaviour and disable account.
@@ -38,74 +39,52 @@ public class DisableInsteadOfDeleteEvaluator extends PredefinedActivationMapping
         super(activationDefinitionBean);
     }
 
-    public <F extends FocusType> boolean defineExistence(final LensContext<F> context, final LensProjectionContext projCtx) {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            LOGGER.trace(
-                    "DisableInsteadDeleteEvaluator: couldn't find focus context, return legal {} for existence",
-                    projCtx.isLegal());
-            return projCtx.isLegal();
-        }
-
+    public <F extends FocusType> boolean defineExistence(LensContext<F> context, LensProjectionContext projCtx) {
+        LensFocusContext<F> focusContext = context.getFocusContextRequired();
         if (focusContext.isDelete()) {
-            LOGGER.trace("DisableInsteadDeleteEvaluator: focus is deleting, return false for existence");
+            LOGGER.trace("Focus is being deleted, returning 'false' for projection existence");
             return false;
+        } else {
+            LOGGER.trace("Focus is not being deleted, returning 'true' for projection existence");
+            return true;
         }
-        return true;
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition<?>, F extends FocusType> void defineAdministratorStatus(
-            LensContext<F> context, LensProjectionContext projCtx) throws SchemaException {
-        ItemDefinition<?> targetItemDefinition =
-                projCtx.getObjectDefinition().findItemDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-
-        //noinspection unchecked
-        ItemDelta<V, D> targetItemDelta =
-                (ItemDelta<V, D>) targetItemDefinition.createEmptyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-
-        V value = (V) PrismContext.get().itemFactory().createPropertyValue(ActivationStatusType.DISABLED);
-        targetItemDelta.setValuesToReplace(value);
-
-        LOGGER.trace("DisableInsteadDeleteEvaluator adds new delta for {}: {}", projCtx, targetItemDelta);
-        projCtx.swallowToSecondaryDelta(targetItemDelta);
+    public <F extends FocusType> void defineAdministratorStatus(
+            LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        setTargetPropertyValue(
+                projCtx,
+                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED,
+                task, result);
     }
 
     @Override
-    public <F extends FocusType> boolean isConfigured(Task task) {
-        if (getActivationDefinitionBean().getDisableInsteadOfDelete() == null) {
-            LOGGER.trace(
-                    "DisableInsteadDeleteEvaluator: non-exist configuration for disableInsteadDelete in: {}, skipping",
-                    getActivationDefinitionBean());
-            return false;
-        }
-
-        AbstractPredefinedActivationMappingType disableInsteadDeleteBean = getActivationDefinitionBean().getDisableInsteadOfDelete();
-        if (!task.canSee(disableInsteadDeleteBean.getLifecycleState())) {
-            LOGGER.trace("DisableInsteadDeleteEvaluator: not applicable to the execution mode, skipping");
-            return false;
-        }
-        return true;
+    @Nullable AbstractPredefinedActivationMappingType getConfiguration() {
+        return getActivationDefinitionBean().getDisableInsteadOfDelete();
     }
 
     @Override
     public <F extends FocusType> boolean isApplicable(
             LensContext<F> context, LensProjectionContext projCtx, XMLGregorianCalendar now) {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            LOGGER.trace("DisableInsteadDeleteEvaluator: couldn't find focus context in {}, skipping", context.debugDump());
+        if (Boolean.TRUE.equals(projCtx.isLegal())) { // actually, the null value should not be returned
+            LOGGER.trace("Projection is legal -> not applicable");
             return false;
+        } else {
+            LOGGER.trace("Projection is illegal -> applicable");
+            return true;
         }
-
-        if (Boolean.TRUE.equals(projCtx.isLegal())) {
-            LOGGER.trace("DisableInsteadDeleteEvaluator: focus is deleting, skipping");
-            return false;
-        }
-        return true;
     }
 
     @Override
     protected boolean supportsAdministratorStatus() {
         return true;
+    }
+
+    @Override
+    Trace getLogger() {
+        return LOGGER;
     }
 }

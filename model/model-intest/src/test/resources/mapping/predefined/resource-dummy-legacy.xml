@@ -6,15 +6,15 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- Resource with predefined (simple) pre-create, disable-instead-of-delete, and delayed-delete mappings. -->
+<!-- Resource with legacy (advanced) disable-instead-of-delete, and delayed-delete mappings. -->
 
-<resource oid="2b1c05f1-8b70-43e6-ac46-3e5ee621ee88"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+<resource oid="47c7b626-2255-46f4-8d09-72e82add1894"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>Dummy Resource Predefine All</name>
+    <name>resource-dummy-legacy</name>
 
     <connectorRef type="ConnectorType">
         <filter>
@@ -32,18 +32,10 @@
     </connectorRef>
 
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>predefine-all</icfi:instanceId>
-            <icfi:supportRunAs>false</icfi:supportRunAs>
-            <icfi:uselessString>
-                <expression>
-                    <const>useless</const>
-                </expression>
-            </icfi:uselessString>
+            <icfi:instanceId>legacy</icfi:instanceId>
         </icfc:configurationProperties>
-
     </connectorConfiguration>
 
     <schemaHandling>
@@ -91,23 +83,59 @@
             </attribute>
 
             <activation>
+                <existence>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>Delayed delete</name>
+                        <timeFrom>
+                            <referenceTime>
+                                <path>$shadow/activation/disableTimestamp</path>
+                            </referenceTime>
+                            <offset>P1M</offset>
+                        </timeFrom>
+                        <source>
+                            <path>$projection/activation/administrativeStatus</path>
+                        </source>
+                        <source>
+                            <path>$projection/activation/disableReason</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                    import com.evolveum.midpoint.schema.constants.SchemaConstants
+                                    administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
+                                            disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION
+                                </code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
                 <administrativeStatus>
                     <outbound>
                         <strength>strong</strength>
                         <expression>
-                            <asIs/>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                    if (legal) {
+                                        input
+                                    } else {
+                                        ActivationStatusType.DISABLED
+                                    }
+                                </code>
+                            </script>
                         </expression>
                     </outbound>
                 </administrativeStatus>
-                <disableInsteadOfDelete>
-                    <lifecycleState>active</lifecycleState>
-                </disableInsteadOfDelete>
-                <delayedDelete>
-                    <deleteAfter>P1M</deleteAfter>
-                </delayedDelete>
-                <preProvision>
-                    <createBefore>-P5D</createBefore>
-                </preProvision>
             </activation>
             <credentials>
                 <password>
@@ -121,5 +149,4 @@
             </credentials>
         </objectType>
     </schemaHandling>
-
 </resource>
