@@ -250,7 +250,7 @@ public class RequestAccess implements Serializable {
     }
 
     /**
-     * Matching will be done only based on targetRef (oid and relation)
+     * Matching will be done only based on targetRef (oid, type and relation)
      */
     private boolean matchAssignments(AssignmentType one, AssignmentType two) {
         return matchAssignments(one, two, false);
@@ -1050,20 +1050,20 @@ public class RequestAccess implements Serializable {
 
     private boolean canAddTemplateAssignment(ObjectReferenceType newTargetRef, AssignmentConstraintsType constraints) {
         boolean allowSameTarget = isAllowSameTarget(constraints);
-//        boolean allowSameRelation = isAllowSameRelation(constraints);
-//
-//        // if everyone in "shopping cart" has already this assignment, we can't add it again
-//        boolean allPoiHasMatching = true;
-//        for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
-//            boolean found = memberships.stream().anyMatch(m -> referencesEqual(newTargetRef, m, allowSameTarget, allowSameRelation));
-//            if (!found) {
-//                allPoiHasMatching = false;
-//            }
-//        }
-//
-//        if (allPoiHasMatching) {
-//            return false;
-//        }
+        boolean allowSameRelation = isAllowSameRelation(constraints);
+
+        // if everyone in "shopping cart" has already this assignment, we can't add it again
+        boolean allPoiHasMatching = true;
+        for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
+            boolean found = memberships.stream().anyMatch(m -> referencesEqual(newTargetRef, m, allowSameTarget, allowSameRelation));
+            if (!found) {
+                allPoiHasMatching = false;
+            }
+        }
+
+        if (allPoiHasMatching) {
+            return false;
+        }
 
         // if there's already "template" assignment (picked one by user in role catalog) we can't add it again
         return getTemplateAssignments().stream()
@@ -1105,12 +1105,16 @@ public class RequestAccess implements Serializable {
             return false;
         }
 
+        // oid & type already equal here
         if (!ignoreTarget) {
-            // we'll compare whole reference
             return true;
         }
 
-        return ignoreRelation || Objects.equals(one.getRelation(), two.getRelation());
+        if (ignoreRelation) {
+            return !ignoreTarget;
+        }
+
+        return Objects.equals(one.getRelation(), two.getRelation());
     }
 
     public int getPoiCount() {

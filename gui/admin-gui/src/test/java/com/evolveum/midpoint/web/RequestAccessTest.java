@@ -86,16 +86,16 @@ public class RequestAccessTest extends AbstractGuiIntegrationTest {
         access.addPersonOfInterest(POI_1, List.of(ROLE_EXISTING));
 
         // try to add assignment with same oid and relation -> should fail
-        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_DEFAULT, true, 1, 1);
+        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_DEFAULT, false, 0, 0);
 
         // try to add assignment with same oid but different relation -> should be ok
-        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_APPROVER, true, 2, 1);
+        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_APPROVER, true, 1, 1);
 
         // try to add assignment with different oid and same relation -> should be ok
-        addAndAssertAssignment(access, ROLE_1_OID, SchemaConstants.ORG_DEFAULT, true, 3, 1);
+        addAndAssertAssignment(access, ROLE_1_OID, SchemaConstants.ORG_DEFAULT, true, 2, 1);
 
         // try to add assignment with different oid and relation -> should be ok
-        addAndAssertAssignment(access, ROLE_2_OID, SchemaConstants.ORG_APPROVER, true, 4, 1);
+        addAndAssertAssignment(access, ROLE_2_OID, SchemaConstants.ORG_APPROVER, true, 3, 1);
     }
 
     private void addAndAssertAssignment(
@@ -135,16 +135,16 @@ public class RequestAccessTest extends AbstractGuiIntegrationTest {
         access.addPersonOfInterest(POI_1, List.of(ROLE_EXISTING));
 
         // try to add assignment with same oid and relation -> should fail
-        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_DEFAULT, true, 1, 1);
+        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_DEFAULT, false, 0, 0);
 
         // try to add assignment with same oid but different relation -> should be ok
-        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_APPROVER, false, 1, 0);
+        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_APPROVER, false, 0, 0);
 
         // try to add assignment with different oid and same relation -> should fail
-        addAndAssertAssignment(access, ROLE_1_OID, SchemaConstants.ORG_DEFAULT, true, 2, 1);
+        addAndAssertAssignment(access, ROLE_1_OID, SchemaConstants.ORG_DEFAULT, true, 1, 1);
 
         // try to add assignment with different oid and relation -> should be ok
-        addAndAssertAssignment(access, ROLE_2_OID, SchemaConstants.ORG_APPROVER, true, 3, 1);
+        addAndAssertAssignment(access, ROLE_2_OID, SchemaConstants.ORG_APPROVER, true, 2, 1);
     }
 
     @Test
@@ -156,18 +156,16 @@ public class RequestAccessTest extends AbstractGuiIntegrationTest {
         access.addPersonOfInterest(POI_1, List.of(ROLE_EXISTING));
 
         // try to add assignment with same oid and relation -> should fail
-        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_DEFAULT, true, 1, 1);
-
-        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_DEFAULT, false, 1, 1);
+        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_DEFAULT, false, 0, 0);
 
         // try to add assignment with same oid but different relation -> should fail
-        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_APPROVER, false, 1, 0);
+        addAndAssertAssignment(access, ROLE_EXISTING_OID, SchemaConstants.ORG_APPROVER, false, 0, 0);
 
         // try to add assignment with different oid and same relation -> should be ok
-        addAndAssertAssignment(access, ROLE_1_OID, SchemaConstants.ORG_DEFAULT, true, 2, 1);
+        addAndAssertAssignment(access, ROLE_1_OID, SchemaConstants.ORG_DEFAULT, true, 1, 1);
 
         // try to add assignment with different oid and relation -> should be ok
-        addAndAssertAssignment(access, ROLE_2_OID, SchemaConstants.ORG_APPROVER, true, 3, 1);
+        addAndAssertAssignment(access, ROLE_2_OID, SchemaConstants.ORG_APPROVER, true, 2, 1);
     }
 
     private void updateSystemConfiguration(Boolean allowSameRelation, Boolean allowSameTarget) throws Exception {
