@@ -458,6 +458,16 @@ public class GuiProfiledPrincipalManagerImpl
 
     @Override
     public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal principal) {
+        return refreshCompiledProfile(
+                principal,
+                ProfileCompilerOptions.create()
+                    .compileGuiAdminConfiguration(true)
+                    .collectAuthorization(true)
+                    .locateSecurityPolicy(true));
+    }
+
+    @Override
+    public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal principal, ProfileCompilerOptions options) {
         OperationResult result = new OperationResult("refreshCompiledProfile");
 
         // Maybe focus was also changed, we should probably reload it
@@ -483,7 +493,7 @@ public class GuiProfiledPrincipalManagerImpl
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Focus was deleted");
         } catch (SchemaException e) {
-             throw new SystemException("Encountered schema exception", e);
+            throw new SystemException("Encountered schema exception", e);
         }
         securityContextManager.setTemporaryPrincipalOid(focusOid);
         try {
@@ -496,10 +506,7 @@ public class GuiProfiledPrincipalManagerImpl
                     principal,
                     systemConfiguration,
                     null,
-                    ProfileCompilerOptions.create()
-                            .compileGuiAdminConfiguration(true)
-                            .collectAuthorization(true)
-                            .locateSecurityPolicy(true));
+                    options);
             principal.clearEffectivePrivilegesModification(); // we just recomputed them strictly from user's assignments
             return principal.getCompiledGuiProfile();
         } finally {

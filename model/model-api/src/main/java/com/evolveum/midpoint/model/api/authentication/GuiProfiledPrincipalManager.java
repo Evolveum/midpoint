@@ -62,4 +62,7 @@ public interface GuiProfiledPrincipalManager extends MidPointPrincipalManager {
 
     @NotNull
     CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal);
+
+    @NotNull
+    CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal, ProfileCompilerOptions options);
 }

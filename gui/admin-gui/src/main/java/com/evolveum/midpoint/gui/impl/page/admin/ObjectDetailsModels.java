@@ -65,6 +65,10 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             protected PrismObjectWrapper<O> load() {
                 PrismObject<O> prismObject = getPrismObject();//prismObjectModel.getObject();
 
+                if (prismObject == null) {
+                    return null;
+                }
+
                 PrismObjectWrapperFactory<O> factory = modelServiceLocator.findObjectWrapperFactory(prismObject.getDefinition());
                 Task task = modelServiceLocator.createSimpleTask("createWrapper");
                 OperationResult result = task.getResult();

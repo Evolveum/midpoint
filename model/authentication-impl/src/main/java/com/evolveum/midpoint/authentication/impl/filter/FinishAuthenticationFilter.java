@@ -10,6 +10,7 @@ package com.evolveum.midpoint.authentication.impl.filter;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -52,6 +54,9 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
     public void setPrincipalManager(GuiProfiledPrincipalManager focusProfileService) {
         this.focusProfileService = focusProfileService;
     }
+
+    @Autowired(required = false)
+    private SessionRegistry sessionRegistry;
 
     public FinishAuthenticationFilter() {
     }
@@ -85,8 +90,8 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!(mpAuthentication.getPrincipal() instanceof MidPointPrincipal)) {
-            LOGGER.trace("Skipping compile principal profile, because couldn't find MidPointPrincipal.");
+        if (!(mpAuthentication.getPrincipal() instanceof GuiProfiledPrincipal)) {
+            LOGGER.trace("Skipping compile principal profile, because couldn't find GuiProfiledPrincipal.");
             filterChain.doFilter(request, response);
             return;
         }
@@ -105,19 +110,13 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        try {
-            mpAuthentication.setPrincipal(
-                    focusProfileService.getPrincipal(
-                            principal.getFocusPrismObject(),
-                            ProfileCompilerOptions.create()
-                                    .collectAuthorization(true)
-                                    .compileGuiAdminConfiguration(supportGuiConfig)
-                                    .locateSecurityPolicy(supportGuiConfig)
-                                    .tryReusingSecurityPolicy(true),
-                            new OperationResult("reload principal")));
-            mpAuthentication.setAlreadyCompiledGui(true);
-        } catch (CommonException e) {
-            LOGGER.debug("Couldn't reload principal after authentication", e);
-        }
+        focusProfileService.refreshCompiledProfile(
+                (GuiProfiledPrincipal) principal,
+                ProfileCompilerOptions.create()
+                        .collectAuthorization(true)
+                        .compileGuiAdminConfiguration(supportGuiConfig)
+                        .locateSecurityPolicy(supportGuiConfig)
+                        .tryReusingSecurityPolicy(true));
+        mpAuthentication.setAlreadyCompiledGui(true);
     }
 }
