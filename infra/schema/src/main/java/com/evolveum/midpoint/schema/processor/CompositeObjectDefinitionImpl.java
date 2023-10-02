@@ -28,9 +28,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 /**
  * Represents ad-hoc combination of definitions of structural and auxiliary object classes.
  *
- * This is a simple implementation that caches the union of attribute definitions. Hence, it has to assume that
- * the individual definitions do not change, that means, they are immutable. (Which is currently the case for all parsed
- * resource schemas.)
+ * A specialty of this class is the caching of attribute definitions. It can be done but only if the object classes
+ * are immutable. (Which is currently the case for all parsed resource schemas, but sometimes it must be relaxed, namely
+ * when applying security constraints onto the definitions.)
+ *
+ * Not caching attribute definitions in the case of mutable definition is quite dangerous, as it can lead to silent
+ * loss of performance if the definitions are not frozen appropriately. See MID-9156.
  *
  * @author semancik
  */
@@ -45,36 +48,34 @@ public class CompositeObjectDefinitionImpl
     @NotNull private final ResourceObjectDefinition structuralDefinition;
     @NotNull private final Collection<ResourceObjectDefinition> auxiliaryDefinitions;
 
-    /** Lazily computed. */
+    /** Lazily computed, but only when this instance is immutable. */
     private volatile List<ResourceAttributeDefinition<?>> allAttributeDefinitions;
 
     private PrismObjectDefinition<ShadowType> prismObjectDefinition;
 
-    CompositeObjectDefinitionImpl(
+    private CompositeObjectDefinitionImpl(
+            @NotNull LayerType currentLayer,
             @NotNull ResourceObjectDefinition structuralDefinition,
-            @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions) {
-        this.currentLayer = DEFAULT_LAYER;
+            @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions,
+            boolean allowMutableDefinitions) {
+        this.currentLayer = currentLayer;
         this.structuralDefinition = structuralDefinition;
         this.auxiliaryDefinitions =
                 Objects.requireNonNullElseGet(auxiliaryDefinitions, ArrayList::new);
 
-        assertImmutability();
+        if (!allowMutableDefinitions) {
+            this.structuralDefinition.checkImmutable();
+            this.auxiliaryDefinitions.forEach(ComplexTypeDefinition::checkImmutable);
+        }
     }
 
-    private CompositeObjectDefinitionImpl(
-            @NotNull LayerType currentLayer,
+    static CompositeObjectDefinitionImpl immutable(
             @NotNull ResourceObjectDefinition structuralDefinition,
-            @NotNull Collection<ResourceObjectDefinition> auxiliaryDefinitions) {
-        this.currentLayer = currentLayer;
-        this.structuralDefinition = structuralDefinition;
-        this.auxiliaryDefinitions = auxiliaryDefinitions;
-
-        assertImmutability();
-    }
-
-    private void assertImmutability() {
-        this.structuralDefinition.checkImmutable();
-        this.auxiliaryDefinitions.forEach(ComplexTypeDefinition::checkImmutable);
+            @Nullable Collection<ResourceObjectDefinition> auxiliaryDefinitions) {
+        var definition = new CompositeObjectDefinitionImpl(
+                DEFAULT_LAYER, structuralDefinition, auxiliaryDefinitions, false);
+        definition.freeze();
+        return definition;
     }
 
     @NotNull
@@ -347,26 +348,39 @@ public class CompositeObjectDefinitionImpl
             return structuralDefinition.getAttributeDefinitions();
         }
 
-        if (allAttributeDefinitions == null) {
-            // Adds all attribute definitions from aux OCs that are not already known.
-            allAttributeDefinitions =
-                    new ArrayList<>(structuralDefinition.getAttributeDefinitions());
-            for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-                for (ResourceAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
-                    boolean shouldAdd = true;
-                    for (ResourceAttributeDefinition<?> def : allAttributeDefinitions) {
-                        if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case insensitiveness?
-                            shouldAdd = false;
-                            break;
-                        }
+        if (allAttributeDefinitions != null) {
+            return allAttributeDefinitions;
+        }
+
+        List<ResourceAttributeDefinition<?>> collectedDefinitions = collectDefinitions();
+        if (isImmutable()) {
+            allAttributeDefinitions = collectedDefinitions;
+        } else {
+            // it's not safe to cache the definitions if this instance is mutable
+        }
+
+        return collectedDefinitions;
+    }
+
+    private @NotNull List<ResourceAttributeDefinition<?>> collectDefinitions() {
+        // Adds all attribute definitions from aux OCs that are not already known.
+        ArrayList<ResourceAttributeDefinition<?>> collectedDefinitions =
+                new ArrayList<>(structuralDefinition.getAttributeDefinitions());
+        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
+            for (ResourceAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
+                boolean shouldAdd = true;
+                for (ResourceAttributeDefinition<?> def : collectedDefinitions) {
+                    if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case insensitiveness?
+                        shouldAdd = false;
+                        break;
                     }
-                    if (shouldAdd) {
-                        allAttributeDefinitions.add(auxRAttrDef);
-                    }
+                }
+                if (shouldAdd) {
+                    collectedDefinitions.add(auxRAttrDef);
                 }
             }
         }
-        return allAttributeDefinitions;
+        return collectedDefinitions;
     }
 
     @Override
@@ -490,15 +504,13 @@ public class CompositeObjectDefinitionImpl
     @Override
     public CompositeObjectDefinitionImpl clone() {
         ResourceObjectDefinition structuralClone = structuralDefinition.clone();
-        structuralClone.freeze();
         Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitionsClone =
                 new ArrayList<>(this.auxiliaryDefinitions.size());
         for (ResourceObjectDefinition auxDefinition : this.auxiliaryDefinitions) {
-            ResourceObjectDefinition auxClone = auxDefinition.clone();
-            auxClone.freeze();
-            auxiliaryObjectClassDefinitionsClone.add(auxClone);
+            auxiliaryObjectClassDefinitionsClone.add(auxDefinition.clone());
         }
-        return new CompositeObjectDefinitionImpl(structuralClone, auxiliaryObjectClassDefinitionsClone);
+        return new CompositeObjectDefinitionImpl(
+                currentLayer, structuralClone, auxiliaryObjectClassDefinitionsClone, true);
     }
 
     @Override
@@ -582,15 +594,10 @@ public class CompositeObjectDefinitionImpl
     public CompositeObjectDefinitionImpl deepClone(@NotNull DeepCloneOperation operation) {
         ResourceObjectDefinition structuralClone =
                 structuralDefinition.deepClone(operation);
-        structuralClone.freeze();
         List<ResourceObjectDefinition> auxiliaryClones = auxiliaryDefinitions.stream()
-                .map(def -> {
-                    var clone = def.deepClone(operation);
-                    clone.freeze();
-                    return clone;
-                })
+                .map(def -> def.deepClone(operation))
                 .toList();
-        return new CompositeObjectDefinitionImpl(structuralClone, auxiliaryClones);
+        return new CompositeObjectDefinitionImpl(currentLayer, structuralClone, auxiliaryClones, true);
     }
 
     @Override
@@ -599,32 +606,43 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public CompositeObjectDefinition forLayer(@NotNull LayerType layer) {
-        if (currentLayer == layer) {
+    public @NotNull CompositeObjectDefinition forLayerMutable(@NotNull LayerType layer) {
+        if (currentLayer == layer && isMutable()) {
             return this;
         } else {
-            return createNewForLayer(layer);
+            return createNewForLayerMutable(layer);
         }
     }
 
     @Override
-    public ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer) {
+    public @NotNull ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer) {
         if (currentLayer == layer && !isMutable()) {
             return this;
         } else {
-            var clone = createNewForLayer(layer);
+            var clone = createNewForLayerImmutable(layer);
             clone.freeze();
             return clone;
         }
     }
 
-    private @NotNull CompositeObjectDefinitionImpl createNewForLayer(@NotNull LayerType layer) {
+    private @NotNull CompositeObjectDefinitionImpl createNewForLayerMutable(@NotNull LayerType layer) {
+        return new CompositeObjectDefinitionImpl(
+                layer,
+                structuralDefinition.forLayerMutable(layer),
+                auxiliaryDefinitions.stream()
+                        .map(def -> def.forLayerMutable(layer))
+                        .toList(),
+                true);
+    }
+
+    private @NotNull CompositeObjectDefinitionImpl createNewForLayerImmutable(@NotNull LayerType layer) {
         return new CompositeObjectDefinitionImpl(
                 layer,
                 structuralDefinition.forLayerImmutable(layer),
                 auxiliaryDefinitions.stream()
                         .map(def -> def.forLayerImmutable(layer))
-                        .toList());
+                        .toList(),
+                false);
     }
 
     @Override

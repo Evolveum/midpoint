@@ -183,12 +183,12 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public ResourceObjectTypeDefinition forLayer(@NotNull LayerType layerType) {
-        return (ResourceObjectTypeDefinition) super.forLayer(layerType);
+    public @NotNull ResourceObjectTypeDefinition forLayerMutable(@NotNull LayerType layer) {
+        return (ResourceObjectTypeDefinition) super.forLayerMutable(layer);
     }
 
     @Override
-    protected ResourceObjectTypeDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
+    protected @NotNull ResourceObjectTypeDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
         ResourceObjectTypeDefinitionImpl clone = new ResourceObjectTypeDefinitionImpl(
                 layer, identification, refinedObjectClassDefinition, definitionBean, resourceOid);
         clone.copyDefinitionDataFrom(layer, this);

@@ -43,7 +43,6 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.ModelInteractionService.SearchSpec;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -56,7 +55,6 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.controller.tasks.ActivityExecutor;
@@ -378,7 +376,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.debug("No resource object definition for shadow {}, returning null", shadow.getOid());
             return null;
         }
-        ResourceObjectDefinition objectDefinition = rocd.forLayer(LayerType.PRESENTATION);
+
+        // We are going to modify attribute definitions list, hence we ask for a mutable instance.
+        ResourceObjectDefinition objectDefinition = rocd.forLayerMutable(LayerType.PRESENTATION);
 
         // TODO: maybe we need to expose owner resolver in the interface?
         ObjectSecurityConstraints securityConstraints =
@@ -406,11 +406,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}",
                 attributesReadDecision, attributesAddDecision, attributesModifyDecision);
 
-        /*
-         *  We are going to modify attribute definitions list.
-         *  So let's make a (shallow) clone here.
-         */
-        objectDefinition = objectDefinition.clone();
         // Let's work on the copied list, as we modify (replace = delete+add) the definitions in the object definition.
         List<? extends ResourceAttributeDefinition<?>> definitionsCopy =
                 new ArrayList<>(objectDefinition.getAttributeDefinitions());
@@ -449,6 +444,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         // TODO what about activation and credentials?
 
+        objectDefinition.freeze();
         return objectDefinition;
     }
 
