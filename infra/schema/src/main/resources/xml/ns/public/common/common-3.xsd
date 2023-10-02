@@ -18,10 +18,10 @@
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+            jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
