@@ -168,7 +168,7 @@ public class ConsolidationProcessor {
         // AUXILIARY OBJECT CLASSES
         PrismPropertyDefinition<QName> auxiliaryObjectClassPropertyDef = projCtx.getObjectDefinition().findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS);
         PropertyDelta<QName> auxiliaryObjectClassAPrioriDelta = null;
-        ResourceSchema refinedSchema = projCtx.getResourceSchema();
+        ResourceSchema resourceSchema = projCtx.getResourceSchema();
         List<QName> auxOcNames = new ArrayList<>();
         List<ResourceObjectDefinition> auxOcDefs = new ArrayList<>();
         ObjectDelta<ShadowType> projDelta = projCtx.getSummaryDelta(); // TODO check this
@@ -186,7 +186,7 @@ public class ConsolidationProcessor {
                     continue;
                 }
                 auxOcNames.add(auxObjectClassName);
-                ResourceObjectDefinition auxOcDef = refinedSchema.findObjectClassDefinition(auxObjectClassName);
+                ResourceObjectDefinition auxOcDef = resourceSchema.findObjectClassDefinition(auxObjectClassName);
                 if (auxOcDef == null) {
                     LOGGER.error("Auxiliary object class definition {} for {} not found in the schema, but it should be there, dumping context:\n{}",
                             auxObjectClassName, key, projCtx.getLensContext().debugDump());
@@ -235,7 +235,7 @@ public class ConsolidationProcessor {
                     + " but it should be there");
         }
 
-        return new CompositeObjectDefinitionImpl(structuralDefinition, auxOcDefs);
+        return CompositeObjectDefinition.of(structuralDefinition, auxOcDefs);
     }
 
     private void consolidateAttributes(

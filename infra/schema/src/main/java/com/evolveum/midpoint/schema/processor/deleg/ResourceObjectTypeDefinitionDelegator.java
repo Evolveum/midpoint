@@ -47,8 +47,8 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     }
 
     @Override
-    default ResourceObjectTypeDefinition forLayer(@NotNull LayerType layerType) {
-        return delegate().forLayer(layerType);
+    default @NotNull ResourceObjectTypeDefinition forLayerMutable(@NotNull LayerType layer) {
+        return delegate().forLayerMutable(layer);
     }
 
     @Override

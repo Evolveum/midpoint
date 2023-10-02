@@ -897,26 +897,24 @@ AS $$
 DECLARE
     flag_val text;
 BEGIN
-    SELECT value INTO flag_val FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
-    IF flag_val = 'true' OR force THEN
-        -- We use advisory session lock only for the check + refresh, then release it immediately.
-        -- This can still dead-lock two transactions in a single thread on the select/delete combo,
-        -- (I mean, who would do that?!) but works fine for parallel transactions.
-        PERFORM pg_advisory_lock(47);
-        BEGIN
-            SELECT value INTO flag_val FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
-            IF flag_val = 'true' OR force THEN
-                REFRESH MATERIALIZED VIEW m_org_closure;
-                DELETE FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
-            END IF;
-            PERFORM pg_advisory_unlock(47);
-        EXCEPTION WHEN OTHERS THEN
-            -- Whatever happens we definitely want to release the lock.
-            PERFORM pg_advisory_unlock(47);
-            RAISE;
-        END;
-    END IF;
-END; $$;
+    -- We use advisory session lock only for the check + refresh, then release it immediately.
+    -- This can still dead-lock two transactions in a single thread on the select/delete combo,
+    -- (I mean, who would do that?!) but works fine for parallel transactions.
+    PERFORM pg_advisory_lock(47);
+    BEGIN
+        SELECT value INTO flag_val FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+        IF flag_val = 'true' OR force THEN
+            REFRESH MATERIALIZED VIEW m_org_closure;
+            DELETE FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+        END IF;
+        PERFORM pg_advisory_unlock(47);
+    EXCEPTION WHEN OTHERS THEN
+        -- Whatever happens we definitely want to release the lock.
+        PERFORM pg_advisory_unlock(47);
+        RAISE;
+    END;
+END;
+$$;
 -- endregion
 
 -- region OTHER object tables
@@ -2220,4 +2218,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(24, $$ SELECT 1 $$, true);
+call apply_change(25, $$ SELECT 1 $$, true);

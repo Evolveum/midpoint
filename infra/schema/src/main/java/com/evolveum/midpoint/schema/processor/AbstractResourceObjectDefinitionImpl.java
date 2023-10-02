@@ -695,15 +695,26 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return findLocalItemDefinition(first.asSingleName(), clazz, false);
     }
 
-    public ResourceObjectDefinition forLayer(@NotNull LayerType layer) {
-        if (currentLayer == layer) {
+    public @NotNull ResourceObjectDefinition forLayerMutable(@NotNull LayerType layer) {
+        if (currentLayer == layer && isMutable()) {
             return this;
         } else {
             return cloneInLayer(layer);
         }
     }
 
-    protected abstract AbstractResourceObjectDefinitionImpl cloneInLayer(@NotNull LayerType layer);
+    public @NotNull ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer) {
+        if (currentLayer == layer && !isMutable()) {
+            return this;
+        } else {
+            var clone = cloneInLayer(layer);
+            clone.freeze();
+            return clone;
+        }
+    }
+
+    /** Returns mutable copy. */
+    @NotNull protected abstract AbstractResourceObjectDefinitionImpl cloneInLayer(@NotNull LayerType layer);
 
     @Override
     public @NotNull LayerType getCurrentLayer() {

@@ -282,8 +282,8 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     /** Returns an interface to mutate this schema. */
     MutableResourceSchema toMutable();
 
-    /** Returns a representation of the schema for given layer. */
-    ResourceSchema forLayer(LayerType layer);
+    /** Returns a representation of the schema for given layer (immutable). */
+    ResourceSchema forLayerImmutable(LayerType layer);
 
     @Override
     default @NotNull String getNamespace() {

@@ -488,7 +488,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                                             .type(object.asPrismObject().getDefinition().getTypeName())
                                             .relation(access.getRelation());
 
-                                    return !access.hasTemplateAssignment(newTargetRef);
+                                    return access.canAddTemplateAssignment(newTargetRef);
                                 }));
                                 return details;
                             }

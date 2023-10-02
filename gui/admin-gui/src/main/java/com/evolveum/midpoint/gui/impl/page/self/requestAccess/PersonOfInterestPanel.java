@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
@@ -118,7 +117,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private IModel<SelectionState> selectionState;
 
-    private final IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers = Model.ofMap(new HashMap<>());
+    private IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers;
 
     public PersonOfInterestPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -162,15 +161,18 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             protected List<Tile<PersonOfInterest>> load() {
                 List<Tile<PersonOfInterest>> list = new ArrayList<>();
 
+                RequestAccess access = getModelObject();
+
                 TargetSelectionType selection = getTargetSelectionConfiguration();
                 if (BooleanUtils.isNotFalse(selection.isAllowRequestForMyself())) {
-                    list.add(createDefaultTile(TileType.MYSELF));
+                    list.add(createDefaultTile(TileType.MYSELF, access.isPoiMyself()));
                 }
 
                 if (BooleanUtils.isNotFalse(selection.isAllowRequestForOthers())) {
                     List<GroupSelectionType> selections = selection.getGroup();
                     if (selections.isEmpty()) {
-                        list.add(createDefaultTile(TileType.GROUP_OTHERS));
+                        boolean selected = BooleanUtils.isNotTrue(access.isPoiMyself()) && access.getPoiCount() != 0;
+                        list.add(createDefaultTile(TileType.GROUP_OTHERS, selected));
                     } else {
                         for (GroupSelectionType gs : selections) {
                             list.add(createTile(gs));
@@ -178,21 +180,25 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                     }
                 }
 
-                if (list.size() == 1) {
-                    Tile<PersonOfInterest> tile = list.get(0);
-                    tile.setSelected(true);
-                } else if (list.size() > 1 && StringUtils.isNotEmpty(selection.getDefaultSelection())) {
-                    String identifier = selection.getDefaultSelection();
-                    if (RequestAccess.DEFAULT_MYSELF_IDENTIFIER.equals(identifier)) {
-                        list.stream()
-                                .filter(t -> TileType.MYSELF == t.getValue().type)
-                                .findFirst()
-                                .ifPresent(t -> t.setSelected(true));
-                    } else {
-                        list.stream()
-                                .filter(t -> identifier.equals(t.getValue().groupIdentifier))
-                                .findFirst()
-                                .ifPresent(t -> t.setSelected(true));
+                if (access.getPoiCount() == 0) {
+                    // if no POI was selected yet, we'll try to preselect one
+
+                    if (list.size() == 1) {
+                        Tile<PersonOfInterest> tile = list.get(0);
+                        tile.setSelected(true);
+                    } else if (list.size() > 1 && StringUtils.isNotEmpty(selection.getDefaultSelection())) {
+                        String identifier = selection.getDefaultSelection();
+                        if (RequestAccess.DEFAULT_MYSELF_IDENTIFIER.equals(identifier)) {
+                            list.stream()
+                                    .filter(t -> TileType.MYSELF == t.getValue().type)
+                                    .findFirst()
+                                    .ifPresent(t -> t.setSelected(true));
+                        } else {
+                            list.stream()
+                                    .filter(t -> identifier.equals(t.getValue().groupIdentifier))
+                                    .findFirst()
+                                    .ifPresent(t -> t.setSelected(true));
+                        }
                     }
                 }
 
@@ -210,6 +216,19 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 }
 
                 return SelectionState.TILES;
+            }
+        };
+
+        selectedGroupOfUsers = new LoadableModel<>(false) {
+
+            @Override
+            protected Map<ObjectReferenceType, List<ObjectReferenceType>> load() {
+                RequestAccess access = getModelObject();
+
+                Map<ObjectReferenceType, List<ObjectReferenceType>> map = new HashMap<>();
+                map.putAll(access.getExistingPoiRoleMemberships());
+
+                return map;
             }
         };
     }
@@ -238,9 +257,10 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return tile;
     }
 
-    private Tile<PersonOfInterest> createDefaultTile(TileType type) {
+    private Tile<PersonOfInterest> createDefaultTile(TileType type, Boolean selected) {
         Tile<PersonOfInterest> tile = new Tile<>(type.getIcon(), getString(type));
         tile.setValue(new PersonOfInterest(null, type));
+        tile.setSelected(BooleanUtils.isTrue(selected));
 
         return tile;
     }
@@ -623,8 +643,10 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             return false;
         }
 
-        TileType type = selected.getValue().type;
-        if (type == TileType.MYSELF) {
+        PersonOfInterest poi = selected.getValue();
+
+        RequestAccess access = getModelObject();
+        if (poi.type() == TileType.MYSELF) {
             try {
                 MidPointPrincipal principal = SecurityUtil.getPrincipal();
 
@@ -636,13 +658,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 List<ObjectReferenceType> memberships = principal.getFocus().getRoleMembershipRef()
                         .stream().map(o -> cloneObjectReference(o)).collect(Collectors.toList());
 
-                getModelObject().addPersonOfInterest(ref, memberships);
+                access.addPersonOfInterest(ref, memberships);
+                access.setPoiMyself(true);
             } catch (SecurityViolationException ex) {
                 LOGGER.debug("Couldn't get principal, shouldn't happen", ex);
             }
         } else {
             Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = selectedGroupOfUsers.getObject();
-            getModelObject().addPersonOfInterest(new ArrayList<>(userMemberships.keySet()), userMemberships);
+            access.addPersonOfInterest(new ArrayList<>(userMemberships.keySet()), userMemberships);
+            access.setPoiGroupSelectionIdentifier(poi.groupIdentifier());
         }
 
         return true;

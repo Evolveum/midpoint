@@ -16,6 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -445,6 +446,12 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                     return getString(key, count);
                 });
                 label.add(AttributeAppender.append("class", "badge badge-info"));
+                label.add(AttributeAppender.replace("title", () -> {
+                    ShoppingCartItem cartItem = model.getObject();
+
+                    return StringUtils.join(cartItem.getPoiNames(), "\n");
+                }));
+                label.add(new TooltipBehavior());
                 item.add(label);
             }
         });

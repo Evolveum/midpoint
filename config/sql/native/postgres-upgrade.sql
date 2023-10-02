@@ -434,6 +434,33 @@ call apply_change(24, $aa$
     ALTER TABLE m_connector ADD displayNameNorm TEXT;
 $aa$);
 
+
+call apply_change(25, $aa$
+CREATE OR REPLACE PROCEDURE m_refresh_org_closure(force boolean = false)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    flag_val text;
+BEGIN
+    -- We use advisory session lock only for the check + refresh, then release it immediately.
+    -- This can still dead-lock two transactions in a single thread on the select/delete combo,
+    -- (I mean, who would do that?!) but works fine for parallel transactions.
+    PERFORM pg_advisory_lock(47);
+    BEGIN
+        SELECT value INTO flag_val FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+        IF flag_val = 'true' OR force THEN
+            REFRESH MATERIALIZED VIEW m_org_closure;
+            DELETE FROM m_global_metadata WHERE name = 'orgClosureRefreshNeeded';
+        END IF;
+        PERFORM pg_advisory_unlock(47);
+    EXCEPTION WHEN OTHERS THEN
+        -- Whatever happens we definitely want to release the lock.
+        PERFORM pg_advisory_unlock(47);
+        RAISE;
+    END;
+END;
+$$;
+$aa$);
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

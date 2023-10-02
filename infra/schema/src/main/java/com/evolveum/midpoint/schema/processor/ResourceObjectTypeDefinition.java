@@ -83,7 +83,7 @@ public interface ResourceObjectTypeDefinition
      */
     boolean isDefaultForObjectClass();
 
-    ResourceObjectTypeDefinition forLayer(@NotNull LayerType layerType);
+    @NotNull ResourceObjectTypeDefinition forLayerMutable(@NotNull LayerType layer);
 
     /** Returns the configured capability of given class, if present. */
     @Nullable <T extends CapabilityType> T getConfiguredCapability(Class<T> capabilityClass);

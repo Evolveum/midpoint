@@ -17,9 +17,9 @@
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
             jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+            jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -39,7 +39,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
-    <!--  
+    <!--
     <xsd:complexType name="ValueMetadataExtensionType">
         <xsd:annotation>
             <xsd:appinfo>

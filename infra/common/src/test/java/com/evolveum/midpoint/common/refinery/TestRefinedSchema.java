@@ -124,7 +124,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
             LayerType sourceLayer,
             LayerType validationLayer) throws SchemaException {
         System.out.println("Refined schema: layer=" + sourceLayer);
-        ResourceSchema lrSchema = schema.forLayer(sourceLayer);
+        ResourceSchema lrSchema = schema.forLayerImmutable(sourceLayer);
         System.out.println(lrSchema.debugDump());
         assertResourceSchema(lrSchema, sourceLayer, validationLayer, true);
     }

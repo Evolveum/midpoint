@@ -16,11 +16,11 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+            jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>

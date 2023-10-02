@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <logging>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
+        </classLogger>
+        <classLogger>
+            <level>OFF</level>
+            <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
+        </classLogger>
+        <classLogger>
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
+        </classLogger>
+        <classLogger>
+            <level>OFF</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
+        </classLogger>
+        <classLogger>
+            <level>INFO</level>
+            <package>com.evolveum.midpoint.provisioning</package>
+        </classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+    <internals>
+        <focusConstraintsChecking>
+            <skipWhenNoChange>true</skipWhenNoChange>
+            <skipWhenNoIteration>true</skipWhenNoIteration>
+        </focusConstraintsChecking>
+        <projectionConstraintsChecking>
+            <skipWhenNoChange>true</skipWhenNoChange>
+            <skipWhenNoIteration>true</skipWhenNoIteration>
+        </projectionConstraintsChecking>
+        <synchronizationSituationUpdating>
+            <skipWhenNoChange>true</skipWhenNoChange>
+        </synchronizationSituationUpdating>
+        <operationExecutionRecording>
+            <skipWhenSuccess>true</skipWhenSuccess>
+        </operationExecutionRecording>
+        <shadowMetadataRecording>
+            <skipOnModify>true</skipOnModify>
+        </shadowMetadataRecording>
+        <caching>
+            <profile>
+                <global>true</global>
+                <globalRepoCache>
+                    <append>false</append>
+                    <timeToLive>60</timeToLive>
+                    <statistics>
+                        <classification>perCacheAndObjectType</classification>
+                    </statistics>
+                    <objectTypeSettings>
+                        <objectType>SystemConfigurationType</objectType>
+                        <objectType>ArchetypeType</objectType>
+                        <objectType>ObjectTemplateType</objectType>
+                        <objectType>SecurityPolicyType</objectType>
+                        <objectType>ValuePolicyType</objectType>
+                        <objectType>ResourceType</objectType>
+                        <objectType>RoleType</objectType>
+                        <objectType>ShadowType</objectType>
+                        <objectType>MarkType</objectType>
+                        <objectType>ConnectorType</objectType>
+                    </objectTypeSettings>
+                </globalRepoCache>
+                <localRepoCache>
+                    <statistics>
+                        <classification>perCacheAndObjectType</classification>
+                    </statistics>
+                </localRepoCache>
+            </profile>
+        </caching>
+        <repository>
+            <statistics>
+                <collection>globallyAndLocally</collection>
+                <classification>perOperationAndObjectType</classification>
+            </statistics>
+        </repository>
+    </internals>
+    <workflowConfiguration>
+        <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+    </workflowConfiguration>
+</systemConfiguration>

@@ -176,8 +176,13 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default ResourceObjectDefinition forLayer(@NotNull LayerType layer) {
-        return delegate().forLayer(layer);
+    default @NotNull ResourceObjectDefinition forLayerMutable(@NotNull LayerType layer) {
+        return delegate().forLayerMutable(layer);
+    }
+
+    @Override
+    default @NotNull ResourceObjectDefinition forLayerImmutable(@NotNull LayerType layer) {
+        return delegate().forLayerImmutable(layer);
     }
 
     @Override

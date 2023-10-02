@@ -309,7 +309,7 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    protected ResourceObjectClassDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
+    protected @NotNull ResourceObjectClassDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
         ResourceObjectClassDefinitionImpl clone =
                 new ResourceObjectClassDefinitionImpl(layer, objectClassName, definitionBean, rawObjectClassDefinition);
         clone.copyDefinitionDataFrom(layer, this);

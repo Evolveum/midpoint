@@ -89,39 +89,39 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ResourceSchemaImpl clone() {
-        return cloneForLayer(currentLayer);
-    }
-
-    private ResourceSchemaImpl cloneForLayer(@NotNull LayerType layer) {
-        ResourceSchemaImpl clone = new ResourceSchemaImpl(layer);
-        if (layer == currentLayer) {
-            super.copyContent(clone);
-        } else {
-            assertNoDelayedDefinitionsOnClone();
-            copyAllDefinitions(layer, clone);
-            // TODO what about substitutions?
-        }
+        ResourceSchemaImpl clone = new ResourceSchemaImpl(currentLayer);
+        super.copyContent(clone);
         return clone;
     }
 
     /**
-     * We re-add layer-modified versions of all our definitions.
+     * We re-add layer-modified immutable versions of all our definitions.
      *
      * We have to use this approach because otherwise the internal lookup structures would be hard to fill in correctly.
      */
-    private void copyAllDefinitions(LayerType layer, MutableResourceSchema target) {
-        for (Definition definition : getDefinitions()) {
+    private void copyAllDefinitionsImmutable(LayerType layer, MutableResourceSchema target) {
+        for (Definition definition : definitions) {
             stateCheck(definition instanceof ResourceObjectDefinition,
                     "Non-ResourceObjectDefinition in %s: %s (%s)", this, definition, definition.getClass());
-            target.add(((ResourceObjectDefinition) definition).forLayer(layer));
+            target.add(((ResourceObjectDefinition) definition).forLayerImmutable(layer));
         }
     }
 
     @Override
-    public ResourceSchema forLayer(@NotNull LayerType layer) {
-        return cloneForLayer(layer);
-    }
+    public ResourceSchema forLayerImmutable(@NotNull LayerType layer) {
+        if (isImmutable() && layer == currentLayer) {
+            return this;
+        }
 
+        assertNoDelayedDefinitionsOnClone();
+
+        ResourceSchemaImpl clone = new ResourceSchemaImpl(layer);
+        copyAllDefinitionsImmutable(layer, clone);
+        // TODO what about substitutions?
+
+        clone.freeze();
+        return clone;
+    }
 
     /** This is just a reminder - here we should put any freezing calls to own properties, should there be any. */
     @Override
