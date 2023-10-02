@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.api.config;
 import java.util.*;
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -577,6 +578,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public boolean isLast(ModuleAuthentication moduleAuthentication) {
+        SecurityPolicyType securityPolicy = resolveSecurityPolicyForPrincipal();
+        if (securityPolicy != null) {
+            int currentModulesSize = authModules.size();
+            AuthenticationSequenceType seq = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, sequence.getIdentifier());
+            if (seq != null && currentModulesSize != seq.getModule().size()) {
+                return false;
+            }
+        }
         if (getAuthentications().isEmpty()) {
             return false;
         }

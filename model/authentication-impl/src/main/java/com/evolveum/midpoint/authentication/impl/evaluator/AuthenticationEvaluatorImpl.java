@@ -95,8 +95,11 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         return principal;
     }
 
-    protected ProfileCompilerOptions createOptionForGettingPrincipal() {
-        return ProfileCompilerOptions.createOnlyPrincipalOption().collectAuthorization(true);
+    private ProfileCompilerOptions createOptionForGettingPrincipal() {
+        return ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                .collectAuthorization(true)
+                .locateSecurityPolicy(true)
+                .tryReusingSecurityPolicy(true);
     }
 
     protected boolean hasNoAuthorizations(MidPointPrincipal principal) {
