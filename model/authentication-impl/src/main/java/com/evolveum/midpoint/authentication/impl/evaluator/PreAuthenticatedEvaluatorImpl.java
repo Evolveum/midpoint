@@ -49,10 +49,10 @@ public class PreAuthenticatedEvaluatorImpl<C extends AbstractAuthenticationConte
         MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx, authnCtx.isSupportActivationByChannel());
 
         // Authorizations
-//        if (hasNoAuthorizations(principal)) {
-//            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no authorizations");
-//            throw new DisabledException("web.security.provider.access.denied");
-//        }
+        if (hasNoAuthorizations(principal)) {
+            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no authorizations");
+            throw new DisabledException("web.security.provider.access.denied");
+        }
 
         if (AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(principal.getFocus(), authnCtx.getRequireAssignments())) {
             PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());

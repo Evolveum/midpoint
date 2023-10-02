@@ -9,7 +9,6 @@ package com.evolveum.midpoint.authentication.api.config;
 import java.util.*;
 import java.util.stream.Stream;
 
-import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -96,6 +95,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      */
     private String archetypeOid;
     private boolean archetypeSelected;
+
+    /**
+     * Indicates if the profile of midpoint principal was compiled after successful authentication.
+     * It should be recorded only for whole sequence and after the whole sequence
+     * was reliably evaluated. E.g. all modules run and authentication was successful.
+     */
+    private boolean alreadyCompiledGui;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -667,4 +673,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         moduleAuthentication.setAuthentication(token);
     }
 
+    public boolean isAlreadyCompiledGui() {
+        return alreadyCompiledGui;
+    }
+
+    public void setAlreadyCompiledGui(boolean alreadyCompiledGui) {
+        this.alreadyCompiledGui = alreadyCompiledGui;
+    }
 }

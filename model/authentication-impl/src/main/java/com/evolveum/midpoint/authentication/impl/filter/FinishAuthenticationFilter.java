@@ -61,13 +61,12 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
         LOGGER.trace("Running FinishAuthenticationFilter");
 
         Authentication authentication = SecurityUtil.getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication)) {
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
             LOGGER.trace("No MidpointAuthentication present, continue with filter chain");
             filterChain.doFilter(request, response);
             return;
         }
 
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
         if (!mpAuthentication.isAuthenticated()) {
             LOGGER.trace("Skipping compile principal profile, failed authentication.");
             filterChain.doFilter(request, response);
@@ -80,14 +79,14 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!(mpAuthentication.getPrincipal() instanceof MidPointPrincipal)) {
-            LOGGER.trace("Skipping compile principal profile, because couldn't find MidPointPrincipal.");
+        if (mpAuthentication.isAlreadyCompiledGui()) {
+            LOGGER.trace("Skipping compile principal profile, already was compiled.");
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (!((MidPointPrincipal)mpAuthentication.getPrincipal()).getAuthorities().isEmpty()) {
-            LOGGER.trace("Skipping compile principal profile, already was compiled.");
+        if (!(mpAuthentication.getPrincipal() instanceof MidPointPrincipal)) {
+            LOGGER.trace("Skipping compile principal profile, because couldn't find MidPointPrincipal.");
             filterChain.doFilter(request, response);
             return;
         }
@@ -100,16 +99,23 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
     private void compileGuiProfile(MidpointAuthentication mpAuthentication) {
         AuthenticationChannel channel = mpAuthentication.getAuthenticationChannel();
         boolean supportGuiConfig = channel == null || channel.isSupportGuiConfigByChannel();
+        MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
+
+        if (!supportGuiConfig) {
+            return;
+        }
+
         try {
             mpAuthentication.setPrincipal(
                     focusProfileService.getPrincipal(
-                            ((MidPointPrincipal) mpAuthentication.getPrincipal()).getFocusPrismObject(),
+                            principal.getFocusPrismObject(),
                             ProfileCompilerOptions.create()
                                     .collectAuthorization(true)
                                     .compileGuiAdminConfiguration(supportGuiConfig)
                                     .locateSecurityPolicy(supportGuiConfig)
                                     .tryReusingSecurityPolicy(true),
                             new OperationResult("reload principal")));
+            mpAuthentication.setAlreadyCompiledGui(true);
         } catch (CommonException e) {
             LOGGER.debug("Couldn't reload principal after authentication", e);
         }

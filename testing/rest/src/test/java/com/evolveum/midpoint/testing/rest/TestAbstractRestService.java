@@ -261,7 +261,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         Response response = client.get();
 
         then();
-        assertStatus(response, 403);
+        assertStatus(response, 401);
 
         displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
