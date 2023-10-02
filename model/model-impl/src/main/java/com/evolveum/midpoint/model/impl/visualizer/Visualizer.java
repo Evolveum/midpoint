@@ -15,7 +15,11 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -104,7 +108,7 @@ public class Visualizer {
         visualization.setSourceDelta(null);
         visualizeItems(visualization, object.getValue().getItems(), false, context, task, result);
 
-        evaluateDescriptionHandlers(visualization, visualization, task, result);
+        evaluateDescriptionHandlers(visualization, owner, task, result);
 
         return visualization;
     }
@@ -282,7 +286,7 @@ public class Visualizer {
             throw new IllegalStateException("Object delta that is neither ADD, nor MODIFY nor DELETE: " + objectDelta);
         }
 
-        evaluateDescriptionHandlers(visualization, visualization, task, result);
+        evaluateDescriptionHandlers(visualization, null, task, result);
 
         return visualization;
     }
@@ -514,7 +518,7 @@ public class Visualizer {
 
         parentVisualization.addPartialVisualization(visualization);
 
-        evaluateDescriptionHandlers(visualization, visualization, task, result);
+        evaluateDescriptionHandlers(visualization, parentVisualization, task, result);
     }
 
     private void evaluateDescriptionHandlers(
@@ -948,6 +952,14 @@ public class Visualizer {
             name.setDisplayName(getOrig(((UserType) objectType).getFullName()));
         } else if (objectType instanceof AbstractRoleType) {
             name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
+        } else if (objectType instanceof ShadowType shadow) {
+            if (object.getName() == null) {
+                ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+                Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+                if (realName != null) {
+                    name.setDisplayName(realName.toString());
+                }
+            }
         }
         return name;
     }

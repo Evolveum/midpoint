@@ -57,6 +57,8 @@ import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -175,7 +177,7 @@ public class SimulationsGuiUtil {
     }
 
     public static String getProcessedObjectName(ProcessedObject<?> object, PageBase page) {
-        if (object == null || object.getName() == null) {
+        if (object == null) {
             return page.getString("ProcessedObjectsPanel.unnamed");
         }
 
@@ -214,6 +216,33 @@ public class SimulationsGuiUtil {
         }
 
         return name + " (" + displayName + ")";
+    }
+
+    @Nullable
+    public static String getShadowNameFromAttribute(ProcessedObject<?> object) {
+
+        if (object == null) {
+            return null;
+        }
+
+        ObjectType obj = ObjectProcessingStateType.DELETED.equals(object.getState()) ? object.getBefore() : object.getAfter();
+        if (obj == null) {
+            return null;
+        }
+
+        if (!(obj instanceof ShadowType)) {
+            return null;
+        }
+
+        String name = null;
+        try {
+            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) obj);
+            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+             name = realName != null ? realName.toString() : null;
+        } catch (SystemException e) {
+            LOGGER.debug("Couldn't create processed shadow name", e);
+        }
+        return name;
     }
 
     private static String getProcessedShadowName(ShadowType shadow, PageBase page) {
