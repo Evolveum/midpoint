@@ -16,7 +16,7 @@
     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
     elementFormDefault="qualified"
     jaxb:extensionBindingPrefixes="xjc"
-    git >
+    jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
