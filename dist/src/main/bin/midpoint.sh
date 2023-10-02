@@ -22,7 +22,37 @@ ENV_MAP_PREFIX="MP_SET_"
 ENV_UNMAP_PREFIX="MP_UNSET_"
 
 ######################
+#  Handling SIGnals
+######################
+#
+# Without this definition the signal received by bash (script) is silently
+# ignored - not passed to child processes.
+#
+######################
+_sigterm() {
+	echo " :SIGNAL PROCESSING: Receiving SIGTERM signal! Passing to the midPoint instance." >&2
+	if [ -s "${PID_FILE}" ]
+	then
+		kill -TERM $(cat "${PID_FILE}") 2>/dev/null
+	else
+		echo "Unfortunatelly the PID file is empty..." >&2
+	fi
+}
 
+trap _sigterm SIGTERM
+
+_sigkill() {
+	echo " : SIGNAL PROCESSING: Receiving SIGKILL signal! Passing to the midPoint instance." >&2
+	if [ -s "${PID_FILE}" ]
+	then
+		kill -KILL $(cat "${PID_FILE}") 2>/dev/null
+	else
+		echo "Unfortunatelly the PID file is empty..." >&2
+	fi
+}
+
+trap _sigkill SIGKILL
+######################
 set -eu
 
 if [[ -z ${1:-} ]]; then
@@ -426,14 +456,22 @@ if [[ "$1" == "container" ]]; then
   if [ "${1:-}" = "" ]; then
     eval "\"${_RUNJAVA}\"" \
       ${JAVA_OPTS} \
-      -jar "\"${BASE_DIR}/lib/midpoint.jar\"" 2>&1
+      -jar "\"${BASE_DIR}/lib/midpoint.jar\"" "&" 2>&1
   else
     eval "\"${_RUNJAVA}\"" \
       ${JAVA_OPTS} \
       -jar "\"${BASE_DIR}/lib/midpoint.jar\"" \
-      "$@" 2>&1
+      "$@" "&" 2>&1
   fi
 
+  if [[ -n "${PID_FILE}" ]]; then
+    echo $! >"${PID_FILE}"
+    wait $(cat ${PID_FILE})
+  else
+    wait $!
+  fi
+
+  echo "The midPoint process has been terminated..." >&2
 fi
 # ----- Execute The Requested Command -----------------------------------------
 
