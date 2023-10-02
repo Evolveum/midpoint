@@ -157,25 +157,21 @@ export default class MidPointTheme {
         });
     }
 
-    breakLongerTextInTableCell(cellId) {
-        $("#" + cellId).css("word-break", function (index, origValue) {
-            var textOfColumn = document.getElementById(cellId).innerText.trim();
-            var permittedChars = "@" //Just add other permitted chars to string if needed
-            if (textOfColumn != '' && textOfColumn != ' ' && !Array.from(permittedChars).some(char => textOfColumn.includes(char)))
-            {
-                var numberOfChars = 16;
+breakLongerTextInTableCell(cellId) {
+    $("#" + cellId).css("word-break", function (index, origValue) {
+        var textOfColumn = document.getElementById(cellId).innerText.trim();
+        if (textOfColumn != '' && textOfColumn != ' ') {
+            var numberOfChars = 15;
+            var regex = new RegExp(`[^\\s]{${numberOfChars}}`);
 
-                if (textOfColumn.length >= numberOfChars) {
-                    var indexOfSpace = textOfColumn.indexOf(' ');
-
-                    if (indexOfSpace === -1 || indexOfSpace >= numberOfChars) {
-                        return "break-all";
-                    }
-                }
+            // Check if there are 15 consecutive non-whitespace characters anywhere in the string
+            if (regex.test(textOfColumn)) {
+                return "break-all";
             }
-            return "inherit";
-        });
-    }
+        }
+        return "inherit";
+    });
+}
 
     // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
     fixContentHeight() {
@@ -579,7 +575,9 @@ export default class MidPointTheme {
             component = div.querySelector('table');
         } else if (containerId === '#imageScaleContainer') {
             component = div.querySelector('img');
-        }
+        } else if (containerId === '#chartScaleContainer') {
+            component = div.querySelector('canvas');
+                     }
 
         if (component) {
             div.addEventListener('wheel', handleZoom);

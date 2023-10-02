@@ -208,7 +208,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         result.addContext("existingDecision", String.valueOf(existingDecision));
         result.addContext("synchronizationIntent", String.valueOf(synchronizationIntent));
 
-        LOGGER.trace("processActivationUserCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
+        LOGGER.trace("processActivationMappingsCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
                 projCtxDesc, existingDecision, synchronizationIntent);
 
         if (existingDecision == SynchronizationPolicyDecision.BROKEN) {
@@ -574,10 +574,12 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> boolean evaluateExistenceMapping(final LensContext<F> context,
-            final LensProjectionContext projCtx, final XMLGregorianCalendar now, final MappingTimeEval current,
+    private <F extends FocusType> boolean evaluateExistenceMapping(
+            LensContext<F> context, LensProjectionContext projCtx,
+            XMLGregorianCalendar now, MappingTimeEval evaluationTime,
             Task task, final OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         final String projCtxDesc = projCtx.toHumanReadableString();
 
         final Boolean legal = projCtx.isLegal();
@@ -594,7 +596,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             return legal;
         }
 
-        if (MappingTimeEval.FUTURE.equals(current)) {
+        if (evaluationTime == MappingTimeEval.FUTURE) {
             createTriggerForPredefinedActivationMapping(
                     activationDefinitionBean, context, projCtx, SchemaConstants.PATH_ACTIVATION_EXISTENCE, task, now);
         } else {
@@ -628,7 +630,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setMappingDesc("outbound existence mapping in projection " + projCtxDesc);
         params.setNow(now);
         params.setAPrioriTargetObject(projCtx.getObjectOld());
-        params.setEvaluateCurrent(current);
+        params.setEvaluateCurrent(evaluationTime);
         params.setTargetContext(projCtx);
         params.setFixTarget(true);
         params.setContext(context);
@@ -792,12 +794,12 @@ public class ActivationProcessor implements ProjectorProcessor {
             ItemPath projectionPropertyPath,
             ActivationCapabilityType capActivation,
             XMLGregorianCalendar now,
-            MappingTimeEval current,
+            MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        if (MappingTimeEval.FUTURE.equals(current)) {
+        if (evaluationTime == MappingTimeEval.FUTURE) {
             createTriggerForPredefinedActivationMapping(
                     activationDefinitionBean, context, projCtx, projectionPropertyPath, task, now);
         } else {
@@ -861,7 +863,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         evaluateOutboundMapping( // [EP:M:OM] DONE
                 context, projCtx, bidirectionalMappingBean, projectionPropertyPath, initializer,
-                now, current, desc + " outbound activation mapping", task, result);
+                now, evaluationTime, desc + " outbound activation mapping", task, result);
     }
 
     private <F extends FocusType> ActivationStatusType getAdaptedAdministrativeStatus(PrismObject<F> object) {
@@ -877,7 +879,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             ItemPath projectionPropertyPath,
             MappingInitializer<PrismPropertyValue<T>, PrismPropertyDefinition<T>> initializer,
             XMLGregorianCalendar now,
-            MappingTimeEval evaluateCurrent,
+            MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -928,7 +930,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
         params.setTargetContext(projCtx);
         params.setDefaultTargetItemPath(projectionPropertyPath);
-        params.setEvaluateCurrent(evaluateCurrent);
+        params.setEvaluateCurrent(evaluationTime);
         params.setEvaluateWeak(true);
         params.setContext(context);
         params.setHasFullTargetObject(projCtx.hasFullShadow());
@@ -936,7 +938,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap =
                 projectionMappingSetEvaluator.evaluateMappingsToTriples(params, task, result);
 
-        LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent,
+        LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluationTime,
                 DebugUtil.debugDumpLazily(outputTripleMap, 1));
 
         if (projCtx.isDoReconciliation()) {

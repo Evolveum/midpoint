@@ -117,12 +117,13 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
             return false;
         }
 
+        // We want to delete only those accounts that were disabled because of de-provisioning
+        // (e.g. using disable-instead-of-delete feature). Not those that were simply deactivated.
+        // See MID-9143. In the future, the list of reasons may be configurable.
         if (!isExpectedValueOfItem(
                 projCtx.getObjectDeltaObject(),
                 ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
-                List.of(
-                        SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION,
-                        SchemaConstants.MODEL_DISABLE_REASON_MAPPED))) {
+                List.of(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION))) {
             return false;
         }
 

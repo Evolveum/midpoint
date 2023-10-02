@@ -7,9 +7,20 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
-import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -19,25 +30,10 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-
-import java.util.List;
-import java.util.Optional;
 
 public class LifecycleStateBadgeColumn<C extends Containerable> extends AbstractColumn<SelectableBean<C>, String> {
 
@@ -97,7 +93,8 @@ public class LifecycleStateBadgeColumn<C extends Containerable> extends Abstract
                 new BadgeListPanel(
                         componentId,
                         () -> List.of(new Badge(
-                                state.getCssClass() + " alert px-1 py-0 m-0",
+                                state.getCssClass() +
+                                " badge my-1",
                                 LocalizationUtil.translatePolyString(rowBean.getLabel())))));
 
         item.add(AttributeAppender.remove("class"));

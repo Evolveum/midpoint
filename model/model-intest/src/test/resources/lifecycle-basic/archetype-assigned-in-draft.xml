@@ -1,0 +1,69 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="54f3eb91-b90b-4391-b3bf-244ec7fe920e">
+    <name>archetype-assigned-in-draft</name>
+    <documentation>Archetype that is always assigned by an assignment in `draft` LC state.</documentation>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignmentState>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.intest.TestLifecycleBasic
+
+                                TestLifecycleBasic.ASSIGNMENT_CONSTRAINTS.add('archetype-assigned-in-draft')
+                                false
+                            </code>
+                        </script>
+                    </expression>
+                </assignmentState>
+            </policyConstraints>
+        </policyRule>
+    </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <expression>
+                    <value>archetype-assigned-in-draft</value>
+                </expression>
+                <target>
+                    <path>organization</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.model.intest.TestLifecycleBasic
+
+                                TestLifecycleBasic.OBJECT_CONSTRAINTS.add('archetype-assigned-in-draft')
+                                false
+                            </code>
+                        </script>
+                    </expression>
+                </objectState>
+            </policyConstraints>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="b32ee8bc-6d83-487d-88af-1cefdd0fba59"/>
+        </construction>
+    </inducement>
+    <authorization>
+        <action>http://test.evolveum.com/authorization#archetype-assigned-in-draft</action>
+    </authorization>
+    <archetypeType>auxiliary</archetypeType>
+</archetype>

@@ -3708,18 +3708,18 @@ public class TestMapping extends AbstractMappingTest {
                 validFrom);
         recomputeUser(USER_SHELDON_OID);
 
-        when("assign role");
+        when("role 'predefined all' is assigned");
         assignRole(USER_SHELDON_OID, ROLE_PREDEFINED_ALL_OID, task, result);
 
-        then("expected that account non-exists");
+        then("account does not exist");
         assertSuccess(result);
         assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
 
-        when("override time to future and recompute user");
+        when("time is moved to the future and user is recomputed");
         clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 0, 6, 0, 0, 0));
         recomputeUser(USER_SHELDON_OID);
 
-        then("expected that account exist and is disabled");
+        then("account exists and is disabled");
         assertSuccess(result);
         assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
         assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, false);
@@ -3736,11 +3736,11 @@ public class TestMapping extends AbstractMappingTest {
                 .asShadow()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED);
 
-        when("override time to future after enabling and recompute user");
+        when("time is moved to the future and user is recomputed again");
         clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 0, 11, 0, 0, 0));
         recomputeUser(USER_SHELDON_OID);
 
-        then("expected that account exist and is enabled");
+        then("account exists and is enabled");
         assertSuccess(result);
         assertDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
         assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, true);
@@ -3758,14 +3758,14 @@ public class TestMapping extends AbstractMappingTest {
                 .asShadow()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-        when("unassign role");
+        when("role is unassigned");
         unassignRole(USER_SHELDON_OID, ROLE_PREDEFINED_ALL_OID, task, result);
 
-        then("expected that account is disabled");
+        then("account is still there, but disabled");
         assertSuccess(result);
         assertDummyAccountActivation(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME, false);
 
-        assertShadow(
+        var shadow = assertShadow(
                 findShadowByNameViaModel(
                         ShadowKindType.ACCOUNT,
                         "default",
@@ -3776,16 +3776,23 @@ public class TestMapping extends AbstractMappingTest {
                         result), "shadow after")
                 .display()
                 .triggers()
-                .assertTriggers(2)
+                .assertTriggers(1)
                 .end()
                 .asShadow()
-                .assertAdministrativeStatus(ActivationStatusType.DISABLED);
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
+                .getObjectable();
 
-        when("override time to future after enabling and recompute user");
+        var trigger = shadow.getTrigger().get(0);
+        assertThat(trigger.getOriginDescription())
+                .as("trigger origin description")
+                .isEqualTo(DelayedDeleteEvaluator.class.getSimpleName());
+
+        when("time is moved to the future and user is recomputed again");
         clock.overrideDuration(XmlTypeConverter.createDuration(true, 0, 2, 0, 0, 0, 0));
         runTriggerScannerOnDemand(result);
 
-        then("expected that account non-exist");
+        then("account is gone, because of the delayed delete");
         assertSuccess(result);
         assertNoDummyAccount(RESOURCE_DUMMY_PREDEFINED_ALL_NAME, USER_SHELDON_USERNAME);
     }

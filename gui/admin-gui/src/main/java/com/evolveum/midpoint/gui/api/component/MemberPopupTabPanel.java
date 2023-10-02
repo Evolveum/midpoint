@@ -80,27 +80,14 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     protected void initParametersPanel(Fragment parametersPanel) {
         RelationDropDownChoice relation = new RelationDropDownChoice(ID_RELATION, getDefaultRelation(),
                 getSupportedRelations(), false);
-        relation.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return CollectionUtils.isNotEmpty(getSupportedRelations());
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return CollectionUtils.isNotEmpty(getSupportedRelations())
-                        && getSupportedRelations().size() > 1;
-            }
-        });
         parametersPanel.add(relation);
-
-        parametersPanel.add(new VisibleBehaviour(() -> isVisibleParameterPanel()));
+        parametersPanel.add(new VisibleEnableBehaviour(
+                () -> isVisibleParameterPanel(),
+                () -> CollectionUtils.isNotEmpty(getSupportedRelations()) && getSupportedRelations().size() > 1));
     }
 
     protected boolean isVisibleParameterPanel() {
-        return getSupportedRelations().size() > 1;
+        return CollectionUtils.isNotEmpty(getSupportedRelations());
     }
 
     protected QName getDefaultRelation() {

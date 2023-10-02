@@ -6,21 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-
-import com.evolveum.midpoint.web.util.DateValidator;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.datatype.XMLGregorianCalendar;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.DatePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.util.DateValidator;
 
 public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
@@ -35,8 +34,8 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
     private IModel<XMLGregorianCalendar> fromDateModel;
     private IModel<XMLGregorianCalendar> toDateModel;
 
-    public DateIntervalSearchPopupPanel(String id, IModel<XMLGregorianCalendar> fromDateModel, IModel<XMLGregorianCalendar> toDateModel) {
-        super(id);
+    public DateIntervalSearchPopupPanel(String id, Popover popover, IModel<XMLGregorianCalendar> fromDateModel, IModel<XMLGregorianCalendar> toDateModel) {
+        super(id, popover);
         this.fromDateModel = fromDateModel;
         this.toDateModel = toDateModel;
     }

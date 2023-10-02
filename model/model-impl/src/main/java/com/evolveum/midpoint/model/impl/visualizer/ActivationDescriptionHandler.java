@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.visualizer;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -49,10 +50,19 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
             if (existDelta(visualization, parentVisualization, ActivationType.F_ADMINISTRATIVE_STATUS)) {
                 return true;
             }
-
         }
 
-        return false;
+        if (ChangeType.ADD != visualization.getChangeType()) {
+            return false;
+        }
+
+        if (ActivationType.class.equals(value.getCompileTimeClass())) {
+            // if there's effective status
+            return value.findProperty(ActivationType.F_EFFECTIVE_STATUS) != null;
+        }
+
+        // we're modifying/deleting effective status
+        return ActivationType.F_EFFECTIVE_STATUS.equivalent(value.getPath());
     }
 
     private boolean existDelta(VisualizationImpl visualization, VisualizationImpl parentVisualization, ItemName path) {
@@ -65,7 +75,7 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
 
     @Override
     public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
-        ActivationStatusType status = null;
+        ActivationStatusType status;
 
         status = getRealValueForDelta(visualization, parentVisualization, ActivationType.F_EFFECTIVE_STATUS);
 
@@ -73,11 +83,16 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
             status = getRealValueForDelta(visualization, parentVisualization, ActivationType.F_ADMINISTRATIVE_STATUS);
         }
 
+        PrismContainerValue<?> value = visualization.getSourceValue();
+
+        if (status == null) {
+            PrismProperty<ActivationStatusType> effectiveStatus = value.findProperty(ActivationType.F_EFFECTIVE_STATUS);
+            status = effectiveStatus.getRealValue();
+        }
+
         if (status == null) {
             return;
         }
-
-        PrismContainerValue<?> value = visualization.getSourceValue();
 
         PrismContainerValue root = value.getRootValue();
         PrismContainerDefinition rootDef = root.getDefinition();
@@ -124,8 +139,7 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
             }
             path = path.append(itemPath);
 
-            PropertyDelta<Object> deltaItem = parentVisualization.getSourceDelta().findPropertyDelta(ItemPath.create(
-                    visualization.getSourceRelPath(), path));
+            PropertyDelta<Object> deltaItem = parentVisualization.getSourceDelta().findPropertyDelta(path);
 
             if (deltaItem != null && deltaItem.getItemNew() != null) {
                 return (ActivationStatusType) deltaItem.getItemNew().getRealValue();

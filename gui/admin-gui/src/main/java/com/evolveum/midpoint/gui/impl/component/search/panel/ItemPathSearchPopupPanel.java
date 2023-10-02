@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 public class ItemPathSearchPopupPanel extends PopoverSearchPopupPanel {
 
@@ -23,8 +22,8 @@ public class ItemPathSearchPopupPanel extends PopoverSearchPopupPanel {
 
     IModel<ItemPathType> itemPathModel;
 
-    public ItemPathSearchPopupPanel(String id, IModel<ItemPathType> itemPathModel) {
-        super(id);
+    public ItemPathSearchPopupPanel(String id, Popover popover, IModel<ItemPathType> itemPathModel) {
+        super(id, popover);
         this.itemPathModel = itemPathModel;
     }
 

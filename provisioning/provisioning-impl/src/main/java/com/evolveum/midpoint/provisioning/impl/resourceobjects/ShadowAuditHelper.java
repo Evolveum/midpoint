@@ -99,7 +99,7 @@ public class ShadowAuditHelper {
 
         auditRecord.setOutcome(clone.getStatus());
 
-        ObjectDeltaOperation<ShadowType> delta = createDelta(event, shadow, operationsWave, clone);
+        ObjectDeltaOperation<ShadowType> delta = createDelta(event, shadow, operationsWave, clone, ctx);
         if (delta != null) {
             auditRecord.addDelta(delta);
         }
@@ -132,7 +132,12 @@ public class ShadowAuditHelper {
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);
     }
 
-    private ObjectDeltaOperation<ShadowType> createDelta(AuditEventType event, ShadowType shadow, Collection<Operation> operations, OperationResult result) {
+    private ObjectDeltaOperation<ShadowType> createDelta(
+            AuditEventType event,
+            ShadowType shadow,
+            Collection<Operation> operations,
+            OperationResult result,
+            @NotNull ProvisioningContext ctx) {
         if (shadow == null) {
             return null;
         }
@@ -158,7 +163,16 @@ public class ShadowAuditHelper {
             }
         }
 
-        return delta != null ? new ObjectDeltaOperation<>(delta, result) : null;
+        if (delta != null) {
+            ObjectDeltaOperation deltaOperation = new ObjectDeltaOperation<>(delta, result);
+            deltaOperation.setObjectName(object.getName());
+            if (ctx != null) {
+                deltaOperation.setResourceName(ctx.getResource().getName().toPolyString());
+            }
+            return deltaOperation;
+        }
+
+        return null;
     }
 
     private boolean isRecordResourceStageEnabled(SystemConfigurationType config) {

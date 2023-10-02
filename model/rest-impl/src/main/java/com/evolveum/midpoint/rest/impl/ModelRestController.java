@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -467,28 +468,32 @@ public class ModelRestController extends AbstractRestController {
         Task task = initRequest();
         OperationResult result = task.getResult().createSubresult("deleteObject");
 
-        Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
-        try {
-            if (clazz.isAssignableFrom(TaskType.class)) {
-                taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, result);
-                result.computeStatus();
-                finishRequest(task, result);
-                if (result.isSuccess()) {
-                    return ResponseEntity.noContent().build();
+        Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
+        if (ObjectType.class.equals(clazz)) {
+            result.recordFatalError("Type object ( path /objects/) does not supported deletion, use concrete type.");
+            response = createResponse(HttpStatus.METHOD_NOT_ALLOWED, result);
+        } else {
+            try {
+                if (clazz.isAssignableFrom(TaskType.class)) {
+                    taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, result);
+                    result.computeStatus();
+                    finishRequest(task, result);
+                    if (result.isSuccess()) {
+                        return ResponseEntity.noContent().build();
+                    }
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(result.getMessage());
                 }
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(result.getMessage());
+
+                ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+
+                model.deleteObject(clazz, id, modelExecuteOptions, task, result);
+                response = createResponse(HttpStatus.NO_CONTENT, result);
+            } catch (Exception ex) {
+                response = handleException(result, ex);
             }
-
-            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-
-            model.deleteObject(clazz, id, modelExecuteOptions, task, result);
-            response = createResponse(HttpStatus.NO_CONTENT, result);
-        } catch (Exception ex) {
-            response = handleException(result, ex);
         }
-
         result.computeStatus();
         finishRequest(task, result);
         return response;
@@ -512,21 +517,25 @@ public class ModelRestController extends AbstractRestController {
 
         logger.debug("model rest service for modify operation start");
 
+        Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
+
         Task task = initRequest();
         OperationResult result = task.getResult().createSubresult("modifyObjectPatch");
-
-        Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
-        try {
-            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-            Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
-            model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
-            response = createResponse(HttpStatus.NO_CONTENT, result);
-        } catch (Exception ex) {
-            result.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
-            response = handleException(result, ex);
+        if (ObjectType.class.equals(clazz)) {
+            result.recordFatalError("Type 'object' (path /objects/) does not supported modifications, use concrete type.");
+            response = createResponse(HttpStatus.METHOD_NOT_ALLOWED, result);
+        } else {
+            try {
+                ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+                Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
+                model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
+                response = createResponse(HttpStatus.NO_CONTENT, result);
+            } catch (Exception ex) {
+                result.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
+                response = handleException(result, ex);
+            }
         }
-
         result.computeStatus();
         finishRequest(task, result);
         return response;

@@ -31,4 +31,11 @@ public class RunFlag {
     public void assertNotSet() {
         assertThat(value).as("'set' was run").isFalse();
     }
+
+    @Override
+    public String toString() {
+        return "RunFlag{" +
+                "value=" + value +
+                '}';
+    }
 }

@@ -886,10 +886,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
                     .end()
                 .assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
-                .roleMembershipRefs()
-                    .assertRoleMemberhipRefs(1)
-                    .assertArchetype(ARCHETYPE_CONTRACTOR_OID)
-                    .end()
+                .assertRoleMembershipRefs(0) // archetype is active but does not function as a role
                 .assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
         // @formatter:on
     }

@@ -436,7 +436,7 @@ public class RoleAnalysisObjectUtils {
 
             modifications.add(pageBase.getPrismContext().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS, AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC)
-                    .replace(0)
+                    .replace(0.0)
                     .asItemDelta());
 
             ref = new ObjectReferenceType();

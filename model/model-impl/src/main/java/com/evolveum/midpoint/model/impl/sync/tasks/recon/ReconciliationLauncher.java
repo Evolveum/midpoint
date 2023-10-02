@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +55,8 @@ public class ReconciliationLauncher {
      * Launch an import. Calling this method will start import in a new
      * thread, possibly on a different node.
      */
+    @VisibleForTesting
+    @Deprecated
     public void launch(ResourceType resource, QName objectclass, Task task, OperationResult parentResult) {
 
         LOGGER.info("Launching reconciliation for resource {} as asynchronous task", ObjectTypeUtil.toShortString(resource));

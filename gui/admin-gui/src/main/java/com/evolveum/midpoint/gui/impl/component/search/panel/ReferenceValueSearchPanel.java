@@ -75,8 +75,8 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
     }
 
     @Override
-    protected PopoverSearchPopupPanel createPopupPopoverPanel() {
-        return new ReferenceValueSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, ReferenceValueSearchPanel.this.getModel()) {
+    protected PopoverSearchPopupPanel createPopupPopoverPanel(Popover popover) {
+        return new ReferenceValueSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, popover, ReferenceValueSearchPanel.this.getModel()) {
 
             @Override
             protected List<QName> getAllowedRelations() {

@@ -47,7 +47,7 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
     private void initLayout() {
         setOutputMarkupId(true);
-        add(AttributeAppender.append("class", "d-flex align-items-center"));
+        add(AttributeAppender.append("class", "d-flex align-items-center gap-1"));
 
         TextPanel<String> textField = new TextPanel<>(ID_TEXT_FIELD, getTextValue());
         textField.setOutputMarkupId(true);
@@ -77,13 +77,13 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         add(edit);
 
 
-        WebMarkupContainer searchPopupPanel = createPopupPopoverPanel();
+        WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(popover);
         popover.add(searchPopupPanel);
     }
 
     protected abstract IModel<String> getTextValue();
 
-    protected abstract PopoverSearchPopupPanel createPopupPopoverPanel();
+    protected abstract PopoverSearchPopupPanel createPopupPopoverPanel(Popover popover);
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
         String script = "MidPointTheme.toggleSearchPopover('"
