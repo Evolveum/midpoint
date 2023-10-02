@@ -68,8 +68,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
     private static final String ID_REPORT_TABLE = "reportTable";
 
     private static final String DOT_CLASS = PageReport.class.getName() + ".";
-    protected static final String OPERATION_SAVE_AND_RUN_REPORT = DOT_CLASS + "saveAndRunReport";
-    protected static final String OPERATION_RUN_REPORT = DOT_CLASS + "saveAndRunReport";
+    protected static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
     private boolean processingOfSaveAndRun =false;
 
     public PageReport() {
@@ -219,15 +218,14 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
 
     private void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> reportParam) {
         Task task = createSimpleTask(OPERATION_RUN_REPORT);
-        OperationResult saveAndRunResult = task.getResult();
+        OperationResult runResult = task.getResult();
         try {
-            getReportManager().runReport(report, reportParam, task, saveAndRunResult);
+            getReportManager().runReport(report, reportParam, task, runResult);
         } catch (Exception ex) {
-            saveAndRunResult.recordFatalError(ex);
+            runResult.recordFatalError(ex);
         } finally {
-            saveAndRunResult.computeStatusIfUnknown();
-            saveAndRunResult.setBackgroundTaskOid(task.getOid());
-            showResult(saveAndRunResult);
+            runResult.computeStatusIfUnknown();
+            showResult(runResult);
             redirectBack();
         }
     }
