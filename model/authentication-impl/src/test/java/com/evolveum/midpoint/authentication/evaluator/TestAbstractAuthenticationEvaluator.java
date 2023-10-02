@@ -248,6 +248,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal) {
                 return guiProfiledPrincipal.getCompiledGuiProfile();
             }
+
+            @Override
+            public @NotNull CompiledGuiProfile refreshCompiledProfile(GuiProfiledPrincipal guiProfiledPrincipal, ProfileCompilerOptions options) {
+                return guiProfiledPrincipal.getCompiledGuiProfile();
+            }
         });
 
         auditFilter = new SequenceAuditFilter(authenticationRecorder);
