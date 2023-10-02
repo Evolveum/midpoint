@@ -11,12 +11,14 @@ import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public interface VisualizationDescriptionHandler {
 
-    boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization);
+    boolean match(VisualizationImpl visualization, @Nullable VisualizationImpl parentVisualization);
 
-    void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result);
+    void apply(VisualizationImpl visualization, @Nullable VisualizationImpl parentVisualization, Task task, OperationResult result);
 }

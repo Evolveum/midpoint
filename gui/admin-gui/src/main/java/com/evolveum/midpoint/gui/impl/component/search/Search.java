@@ -527,6 +527,10 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
     }
 
     public boolean isForceReload() {
+        return isTypeChanged();
+    }
+
+    public boolean isTypeChanged() {
         return type.isTypeChanged();
     }
 

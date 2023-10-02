@@ -57,8 +57,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -209,13 +207,23 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 .isPreview(isPreview())
                 .isViewForDashboard(isCollectionViewPanelForWidget())
                 .additionalSearchContext(createAdditionalSearchContext())
-                .setFullTextSearchEnabled(isFulltextEnabled());
+                .setFullTextSearchEnabled(isFulltextEnabled())
+                .setTypeChanged(isTypeChanged());
 
         return searchBuilder.build();
     }
 
     protected boolean isFulltextEnabled() {
         return true;
+    }
+
+    private <T extends Serializable> boolean isTypeChanged() {
+        PageStorage storage = getPageStorage();
+        if (storage != null && storage.getSearch() != null) {
+            Search<T> search = storage.getSearch();
+            return search.isTypeChanged();
+        }
+        return false;
     }
 
     protected SearchContext createAdditionalSearchContext() {
