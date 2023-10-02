@@ -4,6 +4,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import com.evolveum.midpoint.util.ClassPathUtil;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
@@ -67,6 +69,15 @@ public interface NinjaTestMixin {
         // This tells Ninja to use the right config XML for Native repo.
         // Ninja tests don't support test.config.file property as other midPoint tests.
         String testConfigFile = System.getProperty("test.config.file");
+        if (testConfigFile == null) {
+            testConfigFile = "test-config.xml"; // since this is by default set in tests directly to StartupConfiguration instance
+
+            String mpHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+            File config = new File(mpHome, testConfigFile);
+            if (!config.exists()) {
+                ClassPathUtil.extractFileFromClassPath(testConfigFile, config.getPath());
+            }
+        }
         if (testConfigFile != null) {
             System.setProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY, testConfigFile);
         }

@@ -13,6 +13,7 @@ import net.ttddyy.dsproxy.listener.ChainListener;
 import net.ttddyy.dsproxy.support.ProxyConfigSpringXmlSupport;
 import net.ttddyy.dsproxy.support.ProxyDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.*;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
@@ -44,6 +45,17 @@ public class TestSqlRepositoryBeanConfig {
         return new TestInterceptor();
     }
 
+    /**
+     * This conditional on missing bean "ninja" is just nasty hack to fix initialization of ninja spring context in tests.
+     * Currently, when tests for ninja are initialized - spring context for test class alone is initialized correctly.
+     * However, when ninja is started in test via {@link NinjaTestMixin#executeTest}, ninja starts loading it's own spring
+     * context internally to initialize repository service - and if generic repository (e.g. for mssql) is being initialized,
+     * class path scan also finds this {@link TestSqlRepositoryBeanConfig} and initializes it - meaning, underlying database is
+     * cleaned because of this bean post processor.
+     *
+     * @see ctx-ninja.xml (bean "ninja")
+     */
+    @ConditionalOnMissingBean(name = "ninja")
     @Bean
     public TestSqlRepositoryBeanPostProcessor testSqlRepositoryBeanPostProcessor() {
         return new TestSqlRepositoryBeanPostProcessor();

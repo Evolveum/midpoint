@@ -169,9 +169,14 @@ public class NinjaContext implements Closeable {
             throw new InputParameterException("Midpoint home directory '" + midpointHome + "' doesn't exist or is not a directory");
         }
 
-        File config = new File(file, StartupConfiguration.DEFAULT_CONFIG_FILE_NAME);
+        String configFile = StartupConfiguration.DEFAULT_CONFIG_FILE_NAME;
+        if (System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY) != null) {
+            configFile = System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY);
+        }
+
+        File config = new File(file, configFile);
         if (!config.exists() || config.isDirectory()) {
-            throw new InputParameterException("Midpoint home config.xml file '" + config.getAbsolutePath() + "' doesn't exist");
+            throw new InputParameterException("Midpoint home config xml file '" + config.getAbsolutePath() + "' doesn't exist");
         }
     }
 
