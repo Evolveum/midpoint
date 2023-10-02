@@ -19,6 +19,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -118,7 +120,14 @@ public class SimulationsGuiUtil {
             protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
                 SimulationResultProcessedObjectType object = model.getObject().getValue();
                 ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
-                if (obj == null || obj.asPrismObject() == null) {
+                if (obj == null) {
+                    return new DisplayType()
+                            .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultColoredIcon(object.getType())));
+                }
+                if (obj.asPrismObject() == null) {
+                    obj = ObjectTypeUtil.fix(obj);
+                }
+                if (obj.asPrismObject() == null) {
                     return new DisplayType()
                             .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultColoredIcon(object.getType())));
                 }
