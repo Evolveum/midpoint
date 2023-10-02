@@ -16,7 +16,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +25,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -57,6 +57,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -91,6 +92,10 @@ public class RequestAccess implements Serializable {
     public static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";
 
     public static final String DEFAULT_MYSELF_IDENTIFIER = "myself";
+
+    private Boolean poiMyself;
+
+    private String poiGroupSelectionIdentifier;
 
     /**
      * This map contains real list of assignments that are requested for specific users.
@@ -131,7 +136,28 @@ public class RequestAccess implements Serializable {
 
     private boolean conflictsDirty;
 
-    private List<Conflict> conflicts;
+    private List<Conflict> conflicts = new ArrayList<>();
+
+    public Boolean isPoiMyself() {
+        return poiMyself;
+    }
+
+    public void setPoiMyself(Boolean poiMyself) {
+        this.poiMyself = poiMyself;
+
+        if (poiMyself) {
+            poiGroupSelectionIdentifier = null;
+        }
+    }
+
+    public String getPoiGroupSelectionIdentifier() {
+        return poiGroupSelectionIdentifier;
+    }
+
+    public void setPoiGroupSelectionIdentifier(String poiGroupSelectionIdentifier) {
+        this.poiGroupSelectionIdentifier = poiGroupSelectionIdentifier;
+        poiMyself = false;
+    }
 
     public Object getSelectedValidity() {
         return selectedValidity;
@@ -224,10 +250,13 @@ public class RequestAccess implements Serializable {
     }
 
     /**
-     * Matching will be done only based on targetRef
+     * Matching will be done only based on targetRef (oid and relation)
      */
-
     private boolean matchAssignments(AssignmentType one, AssignmentType two) {
+        return matchAssignments(one, two, false);
+    }
+
+    private boolean matchAssignments(AssignmentType one, AssignmentType two, boolean ignoreRelation) {
         if (one == null && two == null) {
             return true;
         }
@@ -239,18 +268,26 @@ public class RequestAccess implements Serializable {
         ObjectReferenceType oneTarget = one.getTargetRef();
         ObjectReferenceType twoTarget = two.getTargetRef();
 
-        return Objects.equals(oneTarget, twoTarget);
+        return referencesEqual(oneTarget, twoTarget, ignoreRelation);
     }
 
     /**
-     * Matching will be done only based on targetRef
+     * @param assignments list of assignments to search from
+     * @param assignment assignment used to find matching one
+     * @param ignoreRelation if true, relation will be ignored during matching
+     * @return assignment from list that matches given assignment (based on targetRef)
      */
-    private AssignmentType findMatchingAssignment(Collection<AssignmentType> assignments, AssignmentType assignment) {
+    private AssignmentType findMatchingAssignment(
+            Collection<AssignmentType> assignments, AssignmentType assignment, boolean ignoreRelation) {
+
         if (assignments == null || assignment == null) {
             return null;
         }
 
-        return assignments.stream().filter(a -> matchAssignments(a, assignment)).findFirst().orElse(null);
+        return assignments.stream()
+                .filter(a -> referencesEqual(a.getTargetRef(), assignment.getTargetRef(), ignoreRelation))
+                .findFirst()
+                .orElse(null);
     }
 
     private AssignmentConstraintsType getDefaultAssignmentConstraints() {
@@ -273,23 +310,64 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        AssignmentConstraintsType assignmentConstraints = getDefaultAssignmentConstraints();    // todo use this also use this on role catalog panel
+        AssignmentConstraintsType constraints = getDefaultAssignmentConstraints();
+//        boolean allowSameRelation = isAllowSameRelation(constraints);
+//        boolean allowSameTarget = isAllowSameTarget(constraints);
 
         // we can't use selectedAssignments.contains(a) here because selectedAssignments can contain items other than targetRef
+        // we'll also take assignment constraints into account
         List<AssignmentType> filterNotYetSelected = assignments.stream()
-                .filter(a -> findMatchingAssignment(templateAssignments, a) == null).collect(Collectors.toList());
+                .filter(a -> canAddTemplateAssignment(a.getTargetRef(), constraints))
+                .toList();
 
         if (filterNotYetSelected.isEmpty()) {
             return;
         }
 
+        // we'll add new assignments to templates (that would be added to all POIs added afterward)
         filterNotYetSelected.forEach(a -> templateAssignments.add(a.clone()));
+
+//        boolean changed = false;
+//        for (Map.Entry<ObjectReferenceType, List<AssignmentType>> entry : requestItems.entrySet()) {
+//            ObjectReferenceType poi = entry.getKey();
+//            List<ObjectReferenceType> existingAssignmentRefs = existingPoiRoleMemberships.get(poi);
+//
+//            for (AssignmentType newOne : filterNotYetSelected) {
+//                // we'll check if user has the same assignment already assigned
+//                boolean alreadyAssigned = containsReference(existingAssignmentRefs, newOne.getTargetRef(), allowSameRelation);
+//                if (alreadyAssigned && !allowSameTarget) {
+//                    // skip adding the same one, if it's not allowed
+//                    continue;
+//                }
+//
+//                for (List<AssignmentType> list : requestItems.values()) {
+//                    AssignmentType existing = findMatchingAssignment(list, newOne, allowSameRelation);
+//                    if (existing == null) {
+//                        list.add(newOne.clone());
+//                        changed = true;
+//                    }
+//                }
+//            }
+//
+//        }
+//
+//        if (changed) {
+//            markConflictsDirty();
+//        }
 
         for (List<AssignmentType> list : requestItems.values()) {
             filterNotYetSelected.forEach(a -> list.add(a.clone()));
         }
 
         markConflictsDirty();
+    }
+
+    private boolean isAllowSameRelation(AssignmentConstraintsType constraints) {
+        return constraints == null || BooleanUtils.isNotFalse(constraints.isAllowSameRelation());
+    }
+
+    private boolean isAllowSameTarget(AssignmentConstraintsType constraints) {
+        return constraints == null || BooleanUtils.isNotFalse(constraints.isAllowSameTarget());
     }
 
     /**
@@ -302,7 +380,7 @@ public class RequestAccess implements Serializable {
         }
 
         for (AssignmentType a : assignments) {
-            AssignmentType matching = findMatchingAssignment(templateAssignments, a);
+            AssignmentType matching = findMatchingAssignment(templateAssignments, a, false);
             this.templateAssignments.remove(matching);
 
             for (ObjectReferenceType ref : requestItems.keySet()) {
@@ -339,28 +417,26 @@ public class RequestAccess implements Serializable {
     }
 
     public List<ShoppingCartItem> getShoppingCartItems() {
-        return getShoppingCartAssignmentCounts().entrySet().stream()
-                .map(e -> new ShoppingCartItem(e.getKey(), e.getValue()))
-                .sorted()
-                .collect(Collectors.toUnmodifiableList());
-    }
-
-    private Map<AssignmentType, Integer> getShoppingCartAssignmentCounts() {
         Map<AssignmentType, Integer> counts = new HashMap<>();
+        Map<AssignmentType, List<PolyStringType>> poiNames = new HashMap<>();
 
         templateAssignments.forEach(a -> counts.put(a.clone(), 0));
 
-        for (List<AssignmentType> list : requestItems.values()) {
-            for (AssignmentType real : list) {
-                Integer count = counts.get(real);
-                if (count == null) {
-                    count = 0;
-                }
+        for (Map.Entry<ObjectReferenceType, List<AssignmentType>> entry : requestItems.entrySet()) {
+            ObjectReferenceType poi = entry.getKey();
+
+            for (AssignmentType real : entry.getValue()) {
+                int count = counts.computeIfAbsent(real, k -> 0);
                 counts.replace(real, count + 1);
+
+                poiNames.computeIfAbsent(real, k -> new ArrayList<>()).add(poi.getTargetName());
             }
         }
 
-        return counts;
+        return counts.entrySet().stream()
+                .map(e -> new ShoppingCartItem(e.getKey(), e.getValue(), poiNames.get(e.getKey())))
+                .sorted()
+                .collect(Collectors.toUnmodifiableList());
     }
 
     public QName getRelation() {
@@ -390,6 +466,9 @@ public class RequestAccess implements Serializable {
     }
 
     public void clearCart() {
+        poiMyself = null;
+        poiGroupSelectionIdentifier = null;
+
         requestItems.clear();
         requestItemsExistingToRemove.clear();
         existingPoiRoleMemberships.clear();
@@ -647,7 +726,7 @@ public class RequestAccess implements Serializable {
 
         // check if we didn't remove last instance of assignment for specific role from requestedItems
         // if so we have to remove it from selectedAssignments as well
-        AssignmentType selected = findMatchingAssignment(templateAssignments, toRemove.getAssignment());    // selected from role catalog
+        AssignmentType selected = findMatchingAssignment(templateAssignments, toRemove.getAssignment(), false);    // selected from role catalog
         boolean found = false;
         for (List<AssignmentType> list : requestItems.values()) {
             if (list.stream().anyMatch(a -> matchAssignments(a, selected))) {
@@ -936,7 +1015,7 @@ public class RequestAccess implements Serializable {
     }
 
     public void updateSelectedAssignment(AssignmentType updated) {
-        AssignmentType matching = findMatchingAssignment(templateAssignments, updated);
+        AssignmentType matching = findMatchingAssignment(templateAssignments, updated, false);
         if (matching == null) {
             return;
         }
@@ -956,8 +1035,85 @@ public class RequestAccess implements Serializable {
         }
     }
 
-    public boolean hasTemplateAssignment(ObjectReferenceType newTargetRef) {
+    /**
+     * This method checks if there is already assignment for specific role in shopping cart - matching is
+     * done based on targetRef oid and relation.
+     * Matching takes into account {@link AssignmentConstraintsType}.
+     *
+     * @param newTargetRef
+     * @return
+     */
+    public boolean canAddTemplateAssignment(ObjectReferenceType newTargetRef) {
+        AssignmentConstraintsType constraints = getDefaultAssignmentConstraints();
+        return canAddTemplateAssignment(newTargetRef, constraints);
+    }
+
+    private boolean canAddTemplateAssignment(ObjectReferenceType newTargetRef, AssignmentConstraintsType constraints) {
+        boolean allowSameTarget = isAllowSameTarget(constraints);
+//        boolean allowSameRelation = isAllowSameRelation(constraints);
+//
+//        // if everyone in "shopping cart" has already this assignment, we can't add it again
+//        boolean allPoiHasMatching = true;
+//        for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
+//            boolean found = memberships.stream().anyMatch(m -> referencesEqual(newTargetRef, m, allowSameTarget, allowSameRelation));
+//            if (!found) {
+//                allPoiHasMatching = false;
+//            }
+//        }
+//
+//        if (allPoiHasMatching) {
+//            return false;
+//        }
+
+        // if there's already "template" assignment (picked one by user in role catalog) we can't add it again
         return getTemplateAssignments().stream()
-                .anyMatch(a -> Objects.equals(newTargetRef, a.getTargetRef()));
+                .noneMatch(a -> {
+                    ObjectReferenceType aTargetRef = a.getTargetRef();
+
+                    // we do care about relation in shopping cart, since we don't want to have multiple equals assignments for same role
+                    // that would fully mess up shopping cart handling (removing, modification of assignments) - if assignments aren't unique
+                    return referencesEqual(newTargetRef, aTargetRef, allowSameTarget, false);
+                });
+    }
+
+    private boolean containsReference(List<ObjectReferenceType> references, ObjectReferenceType ref, boolean ignoreRelation) {
+        if (references == null) {
+            return false;
+        }
+
+        return references.stream().anyMatch(r -> referencesEqual(r, ref, ignoreRelation));
+    }
+
+    private boolean referencesEqual(ObjectReferenceType one, ObjectReferenceType two) {
+        return referencesEqual(one, two, false, false);
+    }
+
+    private boolean referencesEqual(ObjectReferenceType one, ObjectReferenceType two, boolean ignoreRelation) {
+        return referencesEqual(one, two, false, ignoreRelation);
+    }
+
+    private boolean referencesEqual(ObjectReferenceType one, ObjectReferenceType two, boolean ignoreTarget, boolean ignoreRelation) {
+        if (one == null && two == null) {
+            return true;
+        }
+
+        if (one == null || two == null) {
+            return false;
+        }
+
+        if (!Objects.equals(one.getOid(), two.getOid()) || !Objects.equals(one.getType(), two.getType())) {
+            return false;
+        }
+
+        if (!ignoreTarget) {
+            // we'll compare whole reference
+            return true;
+        }
+
+        return ignoreRelation || Objects.equals(one.getRelation(), two.getRelation());
+    }
+
+    public int getPoiCount() {
+        return getPersonOfInterest().size();
     }
 }
