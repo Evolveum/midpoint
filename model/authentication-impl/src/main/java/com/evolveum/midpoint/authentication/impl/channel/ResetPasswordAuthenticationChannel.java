@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.channel;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -40,7 +37,7 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
         }
         Authorization retAutz = autz.clone();
         retAutz.getAction().removeIf(action ->
-                !action.equals(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL)
+                !AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL.equals(action)
                         && action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
 
         if (retAutz.getAction().isEmpty()) {
