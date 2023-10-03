@@ -12,10 +12,13 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.prism.impl.query.OrFilterImpl;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -252,7 +255,38 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
 //        }
         query = mergeQueries(query, customizeContentQuery);
         LOGGER.debug("Created query: {}", query);
+
+        ObjectFilter allowedSearchTypesFilter = createAllowedSearchTypesFilter(pageBase);
+        if (allowedSearchTypesFilter != null) {
+            query.addFilter(allowedSearchTypesFilter);
+        }
+
         return query;
+    }
+
+    private ObjectFilter createAllowedSearchTypesFilter(PageBase pageBase) {
+        if (!isSearchTypeAvailable()) {
+            List<ObjectFilter> typeFilters = new ArrayList<>();
+            type.getAvailableValues()
+                    .forEach(t -> {
+                        Class cl = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), t);
+                        typeFilters.add(PrismContext.get().queryFor(cl).type(t).buildFilter());
+                    });
+            return OrFilterImpl.createOr(typeFilters);
+
+        }
+        return null;
+    }
+
+    private boolean isSearchTypeAvailable() {
+        if (type != null && CollectionUtils.isNotEmpty(type.getAvailableValues())) {
+            Class<? extends ObjectType> searchTypeClass = (Class<? extends ObjectType>) getTypeClass();
+            QName typeQname = WebComponentUtil.classToQName(searchTypeClass);
+            return type.getAvailableValues()
+                    .stream()
+                    .anyMatch(t -> QNameUtil.match(typeQname, t));
+        }
+        return true;
     }
 
     private QueryWrapper determineQueryWrapper() {
