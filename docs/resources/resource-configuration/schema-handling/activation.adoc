@@ -252,6 +252,30 @@ Predefined activation mapping are available from midpoint 4.8. We can use simple
 
 If an account is unassigned and there is no other existing assignment for an account midPoint will de-provisioning that account. Which means that the account will be deleted. This is the default behavior. But it can be changed by predefined mappings configuration.
 
+All predefined mapping work only for one purpose. When we want mapping for administrative status, then we need add inbound or outbound mapping configuration.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
 Now we can use three predefined configurations.
 
 === Disable instead of delete
@@ -264,6 +288,7 @@ This configuration change default behavior and account will be disabled instead 
 		<objectType>
 			...
 			<activation>
+                <administrativeStatus>...</administrativeStatus>
                 <disableInsteadOfDelete/>
 			</activation>
 			...
@@ -275,7 +300,7 @@ This configuration change default behavior and account will be disabled instead 
 === Delayed delete
 This configuration change default behavior and account will delete with delay and meanwhile account will be disabled.
 
-We use activation/disableTimestamp from shadow object as reference attribute for time when was account disabled. As disable reason we use de-provision or mapped.
+We use activation/disableTimestamp from shadow object as reference attribute for time when was account disabled. As disable reason we use de-provision, so it mean that focus lost assignment for resource.
 
 [source,xml]
 ----
@@ -284,6 +309,7 @@ We use activation/disableTimestamp from shadow object as reference attribute for
 		<objectType>
 			...
 			<activation>
+                <administrativeStatus>...</administrativeStatus>
                 <delayedDelete>
                     <deleteAfter>P1M</deleteAfter>
                 <delayedDelete/>
@@ -305,6 +331,7 @@ This configuration will pre-provision a disabled account defined by time before 
 		<objectType>
 			...
 			<activation>
+                <administrativeStatus>...</administrativeStatus>
                 <preProvision>
                     <createBefore>-P5D</createBefore>
                 <preProvision/>
