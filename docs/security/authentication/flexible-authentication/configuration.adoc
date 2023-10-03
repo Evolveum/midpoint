@@ -1003,7 +1003,7 @@ Required attribute is only `issuerUri`, because midPoint gets configuration for 
 </securityPolicy>
 ----
 
-For the identification of the user, midPoint uses the claim value with the name from _nameOfUsernameAttribute_. The claim is primarily obtained from the ID token. When a claim is missing in the ID token, midPoint looks for it in the access token. Finally, if the claim is missing in the access token, midPoint uses the user info endpoint to retrieve the claim.
+WARNING: Since version 4.8, the flow for identifying a user logged in via the GUI has been changed. MidPoint uses the claim value with the name from the _nameOfUsernameAttribute_. The claim is primarily obtained from the ID token. When a claim is missing in the ID token, midPoint looks for it in the access token. Finally, if the claim is missing in the access token, midPoint uses the user info endpoint to retrieve the claim. Only the last step applies to Midpoint 4.7
 
 If Midpoint is located behind a reverse proxy it may be useful to set the _publicHttpUrlPattern_ setting to the right value in order for the OIDC Redirect URI to point to a valid public URL (see below).
 
