@@ -88,7 +88,6 @@ final class RemainingShadowsActivityRun
                         ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP :
                         ShadowType.F_SYNCHRONIZATION_TIMESTAMP;
 
-        // TODO maybe we should filter on kind/intent here as well, and not rely on objectsFilter?
         searchSpecification.setQuery(
                 getBeans().prismContext.queryFor(ShadowType.class)
                         .block()
@@ -97,6 +96,7 @@ final class RemainingShadowsActivityRun
                             .endBlock()
                         .and().item(ShadowType.F_RESOURCE_REF).ref(processingScope.getResourceOid())
                         .and().item(ShadowType.F_OBJECT_CLASS).eq(processingScope.getResolvedObjectClassName())
+                        .and().filter(processingScope.getKindIntentFilter())
                         .build());
     }
 
