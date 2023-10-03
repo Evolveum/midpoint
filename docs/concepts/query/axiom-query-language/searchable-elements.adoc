@@ -2,5 +2,262 @@
 :page-nav-title: Searchable elements
 :page-display-order: 400
 
+This document provides comprehensive list of all searchable attributes in midPoint for each object type that can be used in preparation of queries.
 
-//TODO - which elements can be searched
+It also provides easily searchable translation table between elements display name that users can see in GUI and the element name that is being used in AXIOM queries.
+
+NOTE: Column Display Name displays actual English translation of the element. It is different in different languages. It can be even modified in your implementation.
+
+== Searchable items
+
+Each object type has different set of searchable items.
+Display name contains element identification in GUI.
+Item name contains name of the element according the schema.
+Item constant code displays constant by which is the element referenced in midPoint source code.
+
+NOTE: Use names in the Item name column for preparation of AXIOM queries 
+
+Please keep in mind inheritance of objects - each object inherit search elements also from its parents.
+//TODO - link to inheritance  - lebo nie je jasne, ktore dedia od koho
+
+=== ObjectType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Name | name | ObjectType.F_NAME 
+| Lifecycle State | lifecycleState | ObjectType.F_LIFECYCLE_STATE 
+| Subtype | subtype | ObjectType.F_SUBTYPE 
+| /Created at | metadata/createTimestamp | ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP 
+| /Modified at | metadata/modifyTimestamp | ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP 
+|===
+
+=== FocusType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Role membership | roleMembershipRef | FocusType.F_ROLE_MEMBERSHIP_REF 
+| Activation/Administrative status | activation/administrativeStatus | FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS 
+| Activation/Effective status | activation/effectiveStatus | FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS 
+| Activation/ | activation/lockoutStatus | FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS 
+| Activation/Valid from | activation/validFrom | FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM 
+| Activation/Valid to | activation/validTo | FocusType.F_ACTIVATION, ActivationType.F_VALID_TO 
+|===
+
+=== UserType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Title | title | UserType.F_TITLE 
+| Given name | givenName | UserType.F_GIVEN_NAME 
+| Family name | familyName | UserType.F_FAMILY_NAME 
+| Full name | fullName | UserType.F_FULL_NAME 
+| Additional Name | additionalName | UserType.F_ADDITIONAL_NAME 
+| Cost Center | costCenter | UserType.F_COST_CENTER 
+| Email | emailAddress | UserType.F_EMAIL_ADDRESS 
+| Telephone Number | telephoneNumber | UserType.F_TELEPHONE_NUMBER 
+| Employee Number | employeeNumber | UserType.F_EMPLOYEE_NUMBER 
+| Organizational Unit | organizationalUnit | UserType.F_ORGANIZATIONAL_UNIT 
+| Locality | locality | UserType.F_LOCALITY 
+| Personal Number | personalNumber | UserType.F_PERSONAL_NUMBER 
+|===
+
+=== RoleType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Name | name | RoleType.F_NAME 
+|===
+
+=== ServiceType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Name | name | ServiceType.F_NAME 
+| URL | url | ServiceType.F_URL 
+|===
+
+=== ConnectorHostType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+|  | hostname | ConnectorHostType.F_HOSTNAME 
+|===
+
+=== ConnectorType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+|  | connectorBundle | ConnectorType.F_CONNECTOR_BUNDLE 
+| Connector version | connectorVersion | ConnectorType.F_CONNECTOR_VERSION 
+| Connector type | connectorType | ConnectorType.F_CONNECTOR_TYPE 
+|===
+
+=== AbstractRoleType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Identifier | identifier | AbstractRoleType.F_IDENTIFIER 
+| Requestable | requestable | AbstractRoleType.F_REQUESTABLE 
+|  | displayName | RoleType.F_DISPLAY_NAME 
+|===
+
+=== OrgType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Cost center | costCenter | OrgType.F_COST_CENTER 
+| Tenant | tenant | OrgType.F_TENANT 
+|  | parentOrgRef | OrgType.F_PARENT_ORG_REF 
+|  | locality | OrgType.F_LOCALITY 
+|===
+
+=== NodeType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Node identifier | nodeIdentifier | NodeType.F_NODE_IDENTIFIER 
+|===
+
+=== TaskType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Task identifier | taskIdentifier | TaskType.F_TASK_IDENTIFIER 
+| Executing at (indicative) | node | TaskType.F_NODE 
+| Result status | resultStatus | TaskType.F_RESULT_STATUS 
+| Execution state | executionState | TaskType.F_EXECUTION_STATE 
+| Handler URI | handlerUri | TaskType.F_HANDLER_URI 
+| Object | objectRef | TaskType.F_OBJECT_REF 
+|===
+
+=== AssignmentType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+|  | targetRef | AssignmentType.F_TARGET_REF 
+| Construction/ | construction/resourceRef | AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF 
+| Activation/Administrative status | activation/administrativeStatus | AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS 
+| Activation/Effective status | activation/effectiveStatus | AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS 
+|===
+
+=== CaseWorkItemType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Name | name | AbstractWorkItemType.F_NAME 
+|  | assigneeRef | CaseWorkItemType.F_ASSIGNEE_REF 
+|  | originalAssigneeRef | CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF 
+| / | parent/state | PrismConstants.T_PARENT, CaseType.F_STATE 
+| / | parent/objectRef | PrismConstants.T_PARENT, CaseType.F_OBJECT_REF 
+|  | performerRef | CaseWorkItemType.F_PERFORMER_REF 
+|===
+
+=== CaseType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+|  | state | CaseType.F_STATE 
+| Parent reference | parentRef | CaseType.F_PARENT_REF 
+| Requestor reference | requestorRef | CaseType.F_REQUESTOR_REF 
+|  | targetRef | CaseType.F_TARGET_REF 
+|  | objectRef | CaseType.F_OBJECT_REF 
+|===
+
+=== ObjectPolicyConfigurationType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Subtype | subtype | ObjectPolicyConfigurationType.F_SUBTYPE 
+| Object policy | objectTemplateRef | ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF 
+|===
+
+=== AuditEventRecordType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Time | timestamp | AuditEventRecordType.F_TIMESTAMP 
+| Initiator | initiatorRef | AuditEventRecordType.F_INITIATOR_REF 
+| Event type | eventType | AuditEventRecordType.F_EVENT_TYPE 
+| Target owner | targetOwnerRef | AuditEventRecordType.F_TARGET_OWNER_REF 
+| Changed item | changedItem | AuditEventRecordType.F_CHANGED_ITEM 
+| Outcome | outcome | AuditEventRecordType.F_OUTCOME 
+| Channel | channel | AuditEventRecordType.F_CHANNEL 
+| Host identifier | hostIdentifier | AuditEventRecordType.F_HOST_IDENTIFIER 
+| Request identifier | requestIdentifier | AuditEventRecordType.F_REQUEST_IDENTIFIER 
+| Reference | reference | AuditEventRecordType.F_REFERENCE 
+| Task identifier | taskIdentifier | AuditEventRecordType.F_TASK_IDENTIFIER 
+|===
+
+=== ClassLoggerConfigurationType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+|  | appender | ClassLoggerConfigurationType.F_APPENDER 
+| Package | package | ClassLoggerConfigurationType.F_PACKAGE 
+|===
+
+=== SimulationResultType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Started | startTimestamp | SimulationResultType.F_START_TIMESTAMP 
+| Finished | endTimestamp | SimulationResultType.F_END_TIMESTAMP 
+| Task | rootTaskRef | SimulationResultType.F_ROOT_TASK_REF 
+|===
+
+=== SimulationResultProcessedObjectType
+
+[options="header", cols="20, 20, 40, width=80%]
+|===
+| Display name | Item name | Item constant code
+| Name | name | SimulationResultProcessedObjectType.F_NAME 
+| State | state | SimulationResultProcessedObjectType.F_STATE 
+| Type | type | SimulationResultProcessedObjectType.F_TYPE 
+| Oid | oid | SimulationResultProcessedObjectType.F_OID 
+| Event mark | eventMarkRef | SimulationResultProcessedObjectType.F_EVENT_MARK_REF 
+| Object Class | objectClass | ShadowType.F_OBJECT_CLASS 
+| Resource | resourceRef | ShadowType.F_RESOURCE_REF 
+| Dead | dead | ShadowType.F_DEAD 
+| Intent | intent | ShadowType.F_INTENT 
+| Kind | kind | ShadowType.F_KIND 
+| Exists | exists | ShadowType.F_EXISTS 
+| Situation | synchronizationSituation | ShadowType.F_SYNCHRONIZATION_SITUATION 
+| Dead | dead | ShadowType.F_DEAD 
+| Intent | intent | ShadowType.F_INTENT 
+| Kind | kind | ShadowType.F_KIND 
+| Exists | exists | ShadowType.F_EXISTS 
+| Situation | synchronizationSituation | ShadowType.F_SYNCHRONIZATION_SITUATION 
+| Object Class | objectClass | ShadowType.F_OBJECT_CLASS 
+| Resource | resourceRef | ShadowType.F_RESOURCE_REF 
+| Intent | intent | ShadowType.F_INTENT 
+| Kind | kind | ShadowType.F_KIND 
+| Exists | exists | ShadowType.F_EXISTS 
+| Situation | synchronizationSituation | ShadowType.F_SYNCHRONIZATION_SITUATION 
+| Dead | dead | ShadowType.F_DEAD 
+| Exists | exists | ShadowType.F_EXISTS 
+| Situation | synchronizationSituation | ShadowType.F_SYNCHRONIZATION_SITUATION 
+|  | targetRef | AssignmentType.F_TARGET_REF 
+|  | tenantRef | AssignmentType.F_TENANT_REF 
+|  | orgRef | AssignmentType.F_ORG_REF 
+| Construction/ | construction/resourceRef | AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF 
+| Policy rule/Name | policyRule/name | AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME 
+|===
+
