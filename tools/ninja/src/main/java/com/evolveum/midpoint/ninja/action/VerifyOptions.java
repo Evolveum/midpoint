@@ -69,7 +69,7 @@ public class VerifyOptions extends ExportOptions {
 
     @Parameter(names = { P_REPORT_STYLE }, descriptionKey = "verify.reportStyle",
             converter = ReportStyleConverter.class, validateWith = ReportStyleConverter.class)
-    private ReportStyle reportStyle = ReportStyle.PLAIN;
+    private ReportStyle reportStyle;
 
     @Parameter(names = { P_STOP_ON_CRITICAL_ERROR }, descriptionKey = "verify.stopOnCriticalError")
     private boolean stopOnCriticalError;
