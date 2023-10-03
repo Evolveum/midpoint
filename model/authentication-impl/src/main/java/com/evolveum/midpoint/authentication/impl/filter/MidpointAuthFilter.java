@@ -134,7 +134,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
             }
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
-            executeAuthenticationFilter(mpAuthentication, authWrapper, httpRequest, response, chain);
+
+            if (!response.isCommitted()) {
+                executeAuthenticationFilter(mpAuthentication, authWrapper, httpRequest, response, chain);
+            }
         } finally {
             removingFiltersAfterProcessing(mpAuthentication, httpRequest);
         }
@@ -325,18 +328,21 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private void processingOfAuthenticatedRequest(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        if(AuthSequenceUtil.isUrlForAuthProcessing(httpRequest)) {
+            new DefaultRedirectStrategy().sendRedirect(httpRequest, (HttpServletResponse) response, "/");
+            return;
+        }
+
+        int i = 1;
         for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
             if (AuthenticationModuleState.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
-                if(AuthSequenceUtil.isUrlForAuthProcessing(httpRequest)) {
-                    new DefaultRedirectStrategy().sendRedirect(httpRequest, (HttpServletResponse) response, "/");
-                    return;
-                }
-                int i = mpAuthentication.getIndexOfModule(moduleAuthentication);
-                VirtualFilterChain vfc = new VirtualFilterChain(chain,
-                        ((AuthModuleImpl) mpAuthentication.getAuthModules().get(i)).getSecurityFilterChain().getFilters());
-                vfc.doFilter(httpRequest, response);
+                i = mpAuthentication.getIndexOfModule(moduleAuthentication);
             }
         }
+
+        VirtualFilterChain vfc = new VirtualFilterChain(chain,
+                ((AuthModuleImpl) mpAuthentication.getAuthModules().get(i)).getSecurityFilterChain().getFilters());
+        vfc.doFilter(httpRequest, response);
     }
 
     private static class VirtualFilterChain implements FilterChain {
