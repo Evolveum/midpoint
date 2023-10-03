@@ -13,7 +13,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint.testing</groupId>
-        <version>4.7.2-SNAPSHOT</version>
+        <version>4.7.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>story</artifactId>
@@ -290,8 +290,8 @@
         </dependency>
         <!-- Needed for import test, used for resource, not for repository -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
