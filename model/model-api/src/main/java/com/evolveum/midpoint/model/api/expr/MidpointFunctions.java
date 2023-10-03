@@ -1316,6 +1316,9 @@ public interface MidpointFunctions {
      */
     Boolean isEvaluateNew();
 
+    /** Just a convenience method to allow writing `midpoint.evaluateNew` even after Groovy upgrade in 4.8. */
+    Boolean getEvaluateNew();
+
     /**
      * Returns all non-negative values from all focus mappings (targeted to given path)
      * from all non-negative evaluated assignments.

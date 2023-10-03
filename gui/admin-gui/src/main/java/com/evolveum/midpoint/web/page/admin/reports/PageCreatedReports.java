@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -330,6 +331,9 @@ public class PageCreatedReports extends PageAdmin {
     }
 
     private void resolveReportTypeName(ObjectReferenceType reportRef) {
+        if (reportRef == null) {
+            return;
+        }
         if (reportRef.getTargetName() != null && StringUtils.isNotEmpty(reportRef.getTargetName().getOrig())) {
             return;
         }
@@ -638,17 +642,16 @@ public class PageCreatedReports extends PageAdmin {
 
     public static String getReportFileName(ReportDataType currentReport) {
         try {
-            OperationResult result = new OperationResult(OPERATION_GET_REPORT_FILENAME);
-//            ReportOutputType reportOutput = WebModelServiceUtils.loadObject(ReportOutputType.class, currentReport.getOid(), getPageBase(),
-//                    null, result).asObjectable();
-            String fileName = currentReport.getFilePath();
-            if (fileName.contains("/")) {
-                fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+            String filePath = currentReport.getFilePath();
+            if (filePath != null) {
+                var fileName = new File(filePath).getName();
+                if (StringUtils.isNotEmpty(fileName)) {
+                    return fileName;
+                }
             }
-            return fileName;
-        } catch (Exception ex) {
-            //nothing to do
+        } catch (RuntimeException ex) {
+            // ignored
         }
-        return null;
+        return "report"; // A fallback - this should not really occur
     }
 }

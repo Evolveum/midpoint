@@ -49,7 +49,7 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     }
 
     public void setCorrelators(List<CorrelationModuleConfigurationType> correlators) {
-        this.correlators = correlators;
+        this.correlators = new ArrayList<>(correlators);
         sortCorrelators();
     }
 

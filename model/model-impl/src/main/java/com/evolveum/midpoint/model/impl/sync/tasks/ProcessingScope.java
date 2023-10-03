@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
 import com.evolveum.midpoint.provisioning.api.LiveSyncOptions;
@@ -187,6 +188,17 @@ public class ProcessingScope implements DebugDumpable {
 
     public @NotNull PostSearchFilter getPostSearchFilter() {
         return new PostSearchFilterImpl();
+    }
+
+    public @NotNull ObjectFilter getKindIntentFilter() {
+        var builder = PrismContext.get().queryFor(ShadowType.class).all();
+        if (kind != null) {
+            builder = builder.and().item(ShadowType.F_KIND).eq(kind);
+        }
+        if (intent != null) {
+            builder = builder.and().item(ShadowType.F_INTENT).eq(intent);
+        }
+        return builder.buildFilter();
     }
 
     public String getContextDescription() {

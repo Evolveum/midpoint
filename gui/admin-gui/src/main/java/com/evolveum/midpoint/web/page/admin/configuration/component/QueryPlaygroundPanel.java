@@ -428,6 +428,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         } catch (Exception e) {
             result.recordFatalError(getString("PageRepositoryQuery.message.couldNotParseQuery", e.getMessage()), e);
             showResult(result);
+            target.add(getFeedbackPanel());
             target.add(this);
         }
     }
@@ -510,6 +511,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         }
 
         showResult(result);
+        target.add(getFeedbackPanel());
         target.add(this);
     }
 

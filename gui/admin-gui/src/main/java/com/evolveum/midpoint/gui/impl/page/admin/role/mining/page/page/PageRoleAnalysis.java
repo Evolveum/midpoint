@@ -81,6 +81,7 @@ public class PageRoleAnalysis extends PageAdmin {
     private static final String DOT_CLASS = PageRoleAnalysis.class.getName() + ".";
     private static final String OP_DELETE_SESSION = DOT_CLASS + "deleteSession";
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_CHART_PANEL = "chartPanel";
     private static final String ID_TABLE = "table";
 
     public PageRoleAnalysis(PageParameters params) {
@@ -91,10 +92,6 @@ public class PageRoleAnalysis extends PageAdmin {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-
-        RoleAnalysisChartPanel roleAnalysisChartPanel = new RoleAnalysisChartPanel("chartPanel");
-        roleAnalysisChartPanel.setOutputMarkupId(true);
-        add(roleAnalysisChartPanel);
     }
 
     private InlineMenuItem createDeleteInlineMenu() {
@@ -154,15 +151,19 @@ public class PageRoleAnalysis extends PageAdmin {
     }
 
     protected void initLayout() {
-
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         if (!isNativeRepo()) {
-            mainForm.add(new ErrorPanel(ID_TABLE,
-                    () -> getString("PageRoleAnalysis.menu.nonNativeRepositoryWarning")));
+            mainForm.add(new ErrorPanel(ID_TABLE, createStringResource("RoleAnalysis.menu.nonNativeRepositoryWarning")));
+            add(new EmptyPanel(ID_CHART_PANEL));
             return;
         }
+
+        RoleAnalysisChartPanel roleAnalysisChartPanel = new RoleAnalysisChartPanel(ID_CHART_PANEL);
+        roleAnalysisChartPanel.setOutputMarkupId(true);
+        add(roleAnalysisChartPanel);
+
         MainObjectListPanel<RoleAnalysisSessionType> table = new MainObjectListPanel<>(ID_TABLE, RoleAnalysisSessionType.class) {
 
             @Override
