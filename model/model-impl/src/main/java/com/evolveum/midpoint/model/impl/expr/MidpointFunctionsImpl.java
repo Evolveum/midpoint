@@ -2083,6 +2083,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public Boolean getEvaluateNew() {
+        return isEvaluateNew();
+    }
+
+    @Override
     @NotNull
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
