@@ -155,4 +155,18 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-11";
     }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return false;
+    }
+
+    @Override
+    protected boolean isBackButtonVisible() {
+        return true;
+    }
+
+    protected IModel<String> getExitLabel() {
+        return getPageBase().createStringResource("PageBase.button.back");
+    }
 }
