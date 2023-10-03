@@ -2630,7 +2630,7 @@ public final class WebComponentUtil {
             if (isColumn) {
                 builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
             } else {
-                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_MAX_ICON_STYLE);
             }
         }
     }
@@ -2745,8 +2745,8 @@ public final class WebComponentUtil {
         if (StringUtils.isNotEmpty(GuiDisplayTypeUtil.getIconCssClass(objectTypeDisplay))) {
             builder.setBasicIcon(objectTypeDisplay.getIcon(), IconCssStyle.IN_ROW_STYLE)
                     .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(objectTypeDisplay))
-                    .appendLayerIcon(actionButtonIcon, IconCssStyle.BOTTOM_RIGHT_STYLE)
-                    .appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_STYLE);
+                    .appendLayerIcon(actionButtonIcon, IconCssStyle.BOTTOM_RIGHT_MAX_ICON_STYLE)
+                    .appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_MAX_ICON_STYLE);
         } else {
             builder.setBasicIcon(actionButtonIcon, IconCssStyle.IN_ROW_STYLE)
                     .appendColorHtmlValue(actionButtonIcon.getColor());

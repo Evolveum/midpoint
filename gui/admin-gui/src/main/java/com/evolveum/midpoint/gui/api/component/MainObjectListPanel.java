@@ -203,7 +203,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             IconType plusIcon = new IconType();
             plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
             plusIcon.setColor("green");
-            builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+            builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_MAX_ICON_STYLE);
         }
         String iconTitle = GuiDisplayTypeUtil.getDisplayTypeTitle(newObjectButtonDisplayType);
         AjaxCompositedIconButton createNewObjectButton = new AjaxCompositedIconButton(buttonId, builder.build(),
