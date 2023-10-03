@@ -1,5 +1,8 @@
 = Axiom Query
 :toc:
+:page-visibility: hidden
+:page-obsolete: true
+:page-replaced-by: midpoint/guides/search-with-axiom-examples/
 
 == Introduction
 

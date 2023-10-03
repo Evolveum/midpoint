@@ -59,7 +59,7 @@ First start of midPoint generates a initial encryption key.
 However it generates a short encryption key that is suitable both for use by export-limited and full-strength cryptography modules which is 128-bit AES key by default.
 Therefore is full-strength JCE extension was installed it is recommended to change the encryption key to a full-strength key.
 
-
+[#_adding_new_encryption_key]
 === Adding New Encryption Key
 
 To add a new encryption key follow this procedure:
@@ -103,6 +103,8 @@ Start web container again:
 ----
 /etc/init.d/tomcat start
 ----
+
+NOTE: When changing the encryption key, you may need to reencrypt the protected data already stored in the database with the new key. To do so, please follow the procedure xref:./migrating-encryption-keys.adoc[migrating encryption keys] after the new encryption key is added.
 
 
 == Migrating Keys Between Servers

@@ -255,7 +255,7 @@ The following properties within `SearchBoxConfigurationType` can be configured:
 advanced +
 fulltext +
 oid +
-queryDsl
+axiomQuery
 | Basic search mode. Ability to select the items and specify values for them. +
 Advanced search mode.Ability to create complex query using a query language. +
 Fulltext search mode. Single input field used to search over several fields. +
@@ -269,7 +269,7 @@ Value of 'defaultMode' have to be in 'allowedMode', otherwise value will be igno
 
 
 | allowedMode
-| basic, advanced, fulltext, oid, queryDsl
+| basic, advanced, fulltext, oid, axiomQuery
 | Configuration for allowed search modes for search.
 
 All search mode are allowed by default.
@@ -390,19 +390,18 @@ The example of search panel configuration for Users list page:
         <searchItems>
             <searchItem>
                 <filter>
-                    <q:or>
-                        <q:substring>
-                            <q:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:emailAddress</q:path>
-                            <q:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">emailtest</q:value>
-                        </q:substring>
-                    </q:or>
+                    <q:text>emailAddress contains "emailtest"</q:text>
                 </filter>
-                <displayName>Email address filter</displayName>
+                <display>
+                    <label>Email address filter</label>
+                </display>
             </searchItem>
             <searchItem>
                 <path>telephoneNumber</path>
                 <description>Search item for search by telephone number</description>
-                <displayName>Tel. number</displayName>
+                <display>
+                    <label>Tel. number</label>
+                </display>
             </searchItem>
         </searchItems>
     </searchBoxConfiguration>
@@ -449,6 +448,30 @@ The example of search panel configuration for Org member panel:
 ----
 
 image::image2021-1-19_9-37-5.png[]
+
+The example of the search panel configuration which adds fulltext search item to the Basic search mode panel. Be aware that fulltext search must be enabled as well to make it work.
+Use case for such search configuration is described more detailed xref:/midpoint/reference/admin-gui/admin-gui-config/index.adoc#configure-fullText-search-item-on-the-members-basic-search-panel[here].
+
+[source,xml]
+----
+        <searchBoxConfiguration>
+            <defaultMode>basic</defaultMode>
+            <searchItems>
+                <searchItem>
+                    <filter>
+                        <q:text>. fullText $valueParam</q:text>
+                    </filter>
+                    <display>
+                        <label>Fulltext filter</label>
+                    </display>
+                    <parameter>
+                        <name>valueParam</name>
+                        <type>string</type>
+                    </parameter>
+                </searchItem>
+            </searchItems>
+        </searchBoxConfiguration>
+----
 
 == Limitations
 

@@ -1575,6 +1575,44 @@ Set another panel as `basic` panel to be shown as a default panel after opening 
 </adminGuiConfiguration>
 ----
 
+=== Configure fullText search item on the members basic search panel
+
+Search configuration will be applied on the organization members panel. Such configuration gives the possibility to use fullText search together with specific member filters (such as scope, relation, direct/indirect etc.)
+Be aware that fullText must be enabled to make this configuration work.
+
+[source,xml]
+----
+    <adminGuiConfiguration>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>c:OrgType</type>
+                <panel>
+                    <identifier>orgMembers</identifier>
+                    <listView>
+                        <searchBoxConfiguration>
+                            <defaultMode>basic</defaultMode>
+                            <searchItems>
+                                <searchItem>
+                                    <filter>
+                                        <q:text>. fullText $valueParam</q:text>
+                                    </filter>
+                                    <display>
+                                        <label>Fulltext filter</label>
+                                    </display>
+                                    <parameter>
+                                        <name>valueParam</name>
+                                        <type>string</type>
+                                    </parameter>
+                                </searchItem>
+                            </searchItems>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
+----
+
 === New Custom Form in a Role
 
 TODO:

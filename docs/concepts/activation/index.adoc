@@ -80,15 +80,19 @@ It is usually used for an employee on parental leave, sabbatical, temporarily di
 
 | The entity is inactive.
 It has been disabled by an administrative action. +
-This indicates *permanent* inactivation and there is no intent to enabled the entity later. +
+This indicates *permanent* inactivation and there is no intent to enable the entity later. +
 This state is used to keep the user record or account around for archival purposes.
 E.g. some systems require that the account exists to maintain referential consistency of historical data, audit records, etc.
 It may also be used to "blocks" the user or account identifier to avoid their reuse. +
-It is usualy used for retired employees and similar cases.
+It is usually used for retired employees and similar cases.
 
 
 |===
 
+NOTE: Since 4.8, the `archived` state is deprecated.
+It will be no longer put into `effectiveState` property, and it is recommended to avoid using it in `administrativeStatus` as well.
+It is replaced by the lifecycle state.
+Its removal is planned for 4.9.
 
 == Validity
 
@@ -115,7 +119,7 @@ Activation is also influenced by xref:/midpoint/reference/concepts/object-lifecy
 In these states the object activation is determined by the administrative status and validity.
 Object is considered to be non-active in any other lifecycle states (`draft`, `proposed`, `archived`, `failed` and any other custom state).
 If the object is in any of these states then the setting of the administrative status and validity does not matter at all.
-The object is always seen as effectively _disabled_ or _archived_.
+The object is always seen as effectively _disabled_ or _archived_ (since 4.8 only _disabled_).
 
 
 == Effective Status
@@ -151,6 +155,7 @@ Should not happen under normal circumstances.
 
 | `archived`
 | The entity is inactive (permanent deactivation).
+Starting with 4.8, this value is not used here.
 
 |===
 

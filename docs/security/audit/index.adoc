@@ -173,7 +173,8 @@ See xref:/midpoint/architecture/archive/subsystems/model/workflow-3/workflow-aud
 
 | `DISCOVER_OBJECT`
 | 14
-| Created shadow after discovering object on resource.
+| Created shadow after discovering object on resource. +
+See xref:#_auditing_of_resource_object_changes[Auditing of Resource Object Changes] chapter.
 
 |===
 
@@ -206,9 +207,10 @@ The record shows operation details (e.g. deltas) in the form as it was executed.
 
 | `RESOURCE`
 | 2
-| Stage which contains events that were recorded on provisioning level.
+| Stage which contains events that were recorded on provisioning level (objects on resources).
 Both before and after something happened in provisioning, e.g. when auditing operations executed through provisioning
-on managed resource as well as getting changes through live synchronization process.
+on managed resource as well as getting changes through live synchronization process. +
+See xref:#_auditing_of_resource_object_changes[Auditing of Resource Object Changes] chapter.
 
 |===
 
@@ -225,6 +227,9 @@ Therefore, the accounts that can be created immediately will be audited in a fir
 The second batch of accounts will be audited when they are later approved and created.
 This goes to the second audit record.
 This situation may also happen even if there are no approvals, e.g. in case of resource dependencies or even complex inbound-outbound-template interactions.
+
+Auditing of `RESOURCE` stage is enabled by default.
+This feature can be turned off in system configuration (`systemConfiguration/audit/eventRecording/recordResourceStageChanges`).
 
 === Event Outcomes
 
@@ -350,7 +355,7 @@ under _logging->auditing_ like this:
 +
 [source,xml]
 ----
-<systemConfiguration ...>
+<systemConfiguration>
     ...
     <logging>
         ...
@@ -427,11 +432,9 @@ This feature is not covered by midPoint support.
 In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
-[TIP]
-.MidPoint 4.2 and later
-====
-This feature is available only in midPoint 4.2 and later.
-====
+++++
+{% include since.html since="4.2" %}
+++++
 
 If we need work with resource oid in reporting, we can allow store resource oid for audit record to database.
 For that we need to add the next snippet of code to the xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration object].
@@ -469,11 +472,9 @@ This feature is not covered by midPoint support.
 In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
 ====
 
-[TIP]
-.MidPoint 4.2 and later
-====
-This feature is available only in midPoint 4.2 and later.
-====
+++++
+{% include since.html since="4.2" %}
+++++
 
 When we need some other information in the audit table, we can store custom properties in additional custom columns in the database.
 This configuration is useful only when SQL audit trail is used.
@@ -486,31 +487,61 @@ see xref:/midpoint/reference/repository/generic/generic-audit/#custom-column[Cus
 
 == Auditing of create/termination session event for channels rest and actuator
 
-[TIP]
-.MidPoint 4.2 and later
-====
-This feature is available only in midPoint 4.2 and later.
-====
+++++
+{% include since.html since="4.2" %}
+++++
 
-From version 4.2 channels for _rest_ and _actuator_ do not create audit records about session creation or termination by default.
+Since version 4.2 channels for _rest_ and _actuator_ do not create audit records about session creation or termination by default.
 You can turn it on via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
 
 == Separate repository configuration for audit
 
-[TIP]
-.MidPoint 4.2 and later
-====
-This feature is available only in midPoint 4.2 and later.
-====
+++++
+{% include since.html since="4.2" %}
+++++
 
 By default, audit uses the same data source like the main repository.
-From version 4.2 it is possible to set up audit in different database.
+Since version 4.2 it is possible to set up audit in different database.
 
 * If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
 see xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[Audit to separate database] in the Native SQL Audit Trail.
 
 * If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
 see xref:/midpoint/reference/repository/generic/generic-audit/#audit-to-separate-database[Audit to separate database] in the Generic SQL Audit Trail.
+
+[#_auditing_of_resource_object_changes]
+== Auditing of Resource Object Changes
+
+++++
+{% include since.html since="4.8" %}
+++++
+
+Since version 4.8 midPoint audits also all operations performed on provisioning level - changes of resource objects.
+It means all provisioning operations, object discovery operations, ...
+
+This feature enhances readability of the audit and displays some resource operations what were not yet audited (e.g. object discovery).
+For each resource operation midPoint adds new record to the audit with `eventStage="resource"`.
+
+*Target name* in the resource audit record is the name of the resource object, e.g. *name of the account*. So administrators can see which accounts were modified on the resources directly from the view.
+
+.Enabled by default
+The feature is enabled by default. It can significantly increase audit log size, especially when the deployment manages a lot of resources.
+
+If you need, you can disable auditing of resource object changes in SystemConfiguration.xml:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <audit>
+        <eventRecording>
+            <recordResourceStageChanges>false</recordResourceStageChanges>
+        </eventRecording>
+    </audit>
+    ...
+</systemConfiguration>
+----
+
 
 == Configuration examples
 

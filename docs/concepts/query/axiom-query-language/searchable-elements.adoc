@@ -1,0 +1,6 @@
+= Searchable elements in midPoint
+:page-nav-title: Searchable elements
+:page-display-order: 400
+
+
+//TODO - which elements can be searched

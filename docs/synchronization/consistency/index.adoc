@@ -127,10 +127,26 @@ If set to 0 then operation re-tries are disabled.
 
 | `deadShadowRetentionPeriod`
 | 7 days
-| Duration for which the system will keep dead shadows.
+a| Duration for which the system will keep dead shadows.
 After this interval has passed the dead shadows are deleted.
 Note: this may also be influenced by `pendingOperationGracePeriod`.
 Dead shadow may be kept for longer than the interval specified in `deadShadowRetentionPeriod` if that is needed to for evaluation of grace period.
+
+[NOTE]
+====
+Since midPoint 4.8
+
+Shadow `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
+This changes behaviour for resources which have non-zero `deadShadowRetentionPeriod` in consistency defined.
+Previously shadows without such timestamps were removed right away if there were no pending operations, since midPoint couldn't compute _last activity timestamp_.
+Last shadow activity taken into account:
+
+* `pendingOperation/requestTimestamp`
+* `pendingOperation/lastAttemptTimestamp`
+* `pendingOperation/completionTimestamp`
+* `metadata/createTimestamp`
+* `metadata/modifyTimestamp`
+====
 
 | `reshreshOnRead`
 | false

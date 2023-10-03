@@ -208,6 +208,8 @@ Administrative status mapping maps xref:/midpoint/reference/concepts/activation/
 | *"Magic" computed status* that is most suitable for the account.
 It is either an `administrativeStatus` if the resource supports validity time constraints (validFrom, validTo) or it is `effectiveStatus` if the resource does not.
 In the later case this effectively simulates the validity time constraints using just the activation status.
+Note that since 4.8, the `archived` value is not present here.
+It is automatically changed into `disabled`.
 
 
 | `administrativeStatus`

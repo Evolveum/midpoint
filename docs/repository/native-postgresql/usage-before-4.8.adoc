@@ -1,10 +1,10 @@
-= Using Native PostgreSQL Repository
+= Using Native PostgreSQL Repository in versions 4.4 to 4.7
 :page-toc: top
-:page-display-order: 1
-:page-nav-title: Usage
+:page-display-order: 6
+:page-nav-title: Usage before 4.8
 :page-since: "4.4"
 
-NOTE: For version 4.4 to 4.7  see xref:/midpoint/reference/repository/native-postgresql/usage-before-4.8/[Using Native PostgreSQL Repository in versions 4.4 to 4.7]
+NOTE: For version 4.8 and newer see xref:/midpoint/reference/repository/native-postgresql/usage/[Using Native PostgreSQL Repository]
 
 == Overview
 
@@ -20,19 +20,20 @@ including a complete example of `config.xml` for Native repository.
 
 == Database setup
 
-PostgreSQL versions 14 and newer are supported.
-We always recommend using the latest stable version, which as of writing this document is 16.x.
+PostgreSQL versions 13 and newer are supported.
+We always recommend using the latest stable version, which as of writing this document is 14.x.
 
 === Installation and configuration
 
 This guide does not cover the installation process as there are many possible combinations.
+To install PG 13 on Ubuntu 20.04 one can use https://gist.github.com/luizomf/1a7994cf4263e10dce416a75b9180f01[these steps] for an inspiration.
 Adjust the setup in `pg_hba.conf` to the real IP address of the server.
 Setup can be different if PG is used only on localhost, but we assume host-to-host communication
 which is typical for production setup.
 
 The short checklist:
 
-* Install PostgreSQL 16 on your OS or server or VM.
+* Install PostgreSQL 14 on your OS or server or VM.
 * Setup `listen_addresses = '*'` in `postgresql.conf`.
 * While in `postgresql.conf` it's also good to add statements statistics extension and query logging
 for better visibility (the latter may not be a good option for production and small disks).
@@ -124,15 +125,15 @@ of `en_US.UTF-8`.
 
 To initialize the database connect to `midpoint` database as `midpoint` user and execute
 the content of the following schema files provided with the distribution package
-under the `doc/config/sql/native` directory:
+under the `doc/config/sql/native-new` directory:
 
-* `postgres.sql` is the content of the main repository schema without audit tables.
+* `postgres-new.sql` is the content of the main repository schema without audit tables.
 This file also creates `public` schema if missing - dropping the whole `public` schema is often
 the fastest way to replace any previous schema (obviously, not recommended for production).
-* `postgres-audit.sql` is the content of audit schema.
+* `postgres-new-audit.sql` is the content of audit schema.
 It can be applied on top of the main repository schema or separately to another database.
 If both schemas are to be applied, first apply main repository schema followed by audit schema.
-* `postgres-quartz.sql` is the script with tables necessary for midPoint scheduler (using
+* `postgres-new-quartz.sql` is the script with tables necessary for midPoint scheduler (using
 http://www.quartz-scheduler.org/[Quartz Schduler]).
 These tables are optional, but it is recommended to create them in case you need them.
 The tables must be created in the main repository schema.
@@ -152,7 +153,7 @@ We recommend using `psql` for database initialization like this:
 export PGPASSWORD=password # password for psql, you can skip it and enter it interactively
 # If you want to replace any previous tables in the schema, uncomment this drop too:
 #psql -h localhost -d midpoint -U midpoint -c "drop schema public cascade"
-psql -h localhost -d midpoint -U midpoint -f postgres.sql -f postgres-audit.sql -f postgres-quartz.sql
+psql -h localhost -d midpoint -U midpoint -f postgres-new.sql -f postgres-new-audit.sql -f postgres-new-quartz.sql
 ----
 
 If you want to use different schema name than `public` you have to adjust the initialization commands.
@@ -251,14 +252,14 @@ Check the create script for all occurrenes of `CREATE EXTENSION` and run them ma
 +
 [source,bash]
 ----
-psql -h localhost -d midpoint -U midpoint -f doc/config/sql/native/postgres.sql
+psql -h localhost -d midpoint -U midpoint -f doc/config/sql/native-new/postgres-new.sql
 ----
 +
 There may be errors indicating problems with creating database extensions, caused by the script attempting to execute a privileged operation.
 You can ignore such errors, as the extensions were created by superuser in previous step.
 
-. Continue installation process normally, which means executing the audit SQL script `postgres-audit.sql`
-and script for Quartz tables `postgres-quartz.sql`.
+. Continue installation process normally, which means executing the audit SQL script `postgres-new-audit.sql`
+and script for Quartz tables `postgres-new-quartz.sql`.
 
 [WARNING]
 With this setup you have to be careful with upgrade scripts as well.
@@ -279,12 +280,12 @@ More details on running midPoint are mentioned in the xref:/midpoint/install/dis
 
 == Versioning and upgrading
 
-Long story short, just run the provided `postgres-upgrade.sql` anytime, it should be safe.
+Long story short, just run the provided `postgres-new-upgrade.sql` anytime, it should be safe.
 It always runs only the missing parts of the upgrade process.
 Be sure you're running the upgrade script provided with the version you're actually using, see
 xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postgresql-repository[database schema upgrade].
 
-You can find further details in the source code documentation for `apply_change` procedure at the end of the `postgres.sql` script.
+You can find further details in the source code documentation for `apply_change` procedure at the end of the `postgres-new.sql` script.
 
 == Troubleshooting
 

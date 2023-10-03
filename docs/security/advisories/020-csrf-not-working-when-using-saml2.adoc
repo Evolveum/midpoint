@@ -1,0 +1,31 @@
+= Security Advisory: CSRF protection was not working if user logged using SAML2 or OIDC
+:page-display-order: 20
+:page-upkeep-status: green
+
+*Date:* 20. 9. 2023
+
+*Severity:* High (CVSS 8.0)
+
+*Affected versions:* All midPoint versions prior to 4.4.6, 4.7.2, 4.8
+
+*Fixed in versions:* 4.8, 4.7.2, 4.4.6
+
+
+== Description
+
+CSRF vulnerability exists if midPoint is configured to use remote authentication using *SAML 2* or *OIDC* and user was authorized using these providers. Users authenticated using built-in login form are not affected.
+
+== Severity and Impact
+
+This is High Severity Issue
+
+Normal built-in midPoint login is not affected, but 
+it is possible to construct CSRF attack for logged-in user if remote authentication via *SAML 2* or *OIDC* was used to log in.
+
+== Mitigation
+
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest maintenance release.
+
+== Discussion and Explanation
+
+During remote authentication sequence token-based CSRF protection (provided by Spring Framework) needs to be disabled for session, but the issue was that it was not automatically re-enabled once authentication was completed. The fixed code contains improved conditions and token based CSRF is enforced once remote authentication is completed. 

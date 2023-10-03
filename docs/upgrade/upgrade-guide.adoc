@@ -87,7 +87,7 @@ Following command will show warnings about planned removal of items used by all 
 
 [source,bash]
 ----
-ninja.sh verify -w plannedRemoval
+ninja.sh verify --verification-category planned_removal
 ----
 
 The best practice is to avoid use of any deprecated functionality as soon as possible.

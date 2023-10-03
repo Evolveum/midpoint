@@ -69,6 +69,7 @@ image::step-1-group-manual-selection.png[Manual selection from group of users,10
 image::step-1-group-user-selected.png[User selected,100%]
 
 If user can request only for himself then this step is not visible (and skipped).
+Restarting _Request access_ wizard and going through _Person of interest_ step again will overwrite previously selected users.
 
 == Relation
 
