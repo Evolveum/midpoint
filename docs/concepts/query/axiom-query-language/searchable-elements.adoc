@@ -2,7 +2,7 @@
 :page-nav-title: Searchable elements
 :page-display-order: 400
 
-This document provides comprehensive list of all searchable attributes in midPoint for each object type that can be used in preparation of queries.
+This document provides comprehensive list of all searchable elements (items) in midPoint for each object type that can be used in preparation of queries.
 
 It also provides easily searchable translation table between elements display name that users can see in GUI and the element name that is being used in AXIOM queries.
 
@@ -17,7 +17,7 @@ Item constant code displays constant by which is the element referenced in midPo
 
 NOTE: Use names in the Item name column for preparation of AXIOM queries 
 
-Please keep in mind inheritance of objects - each object inherit search elements also from its parents.
+Please keep in mind inheritance of objects - each object inherits search elements also from its parents.
 //TODO - link to inheritance  - lebo nie je jasne, ktore dedia od koho
 
 === ObjectType
@@ -28,8 +28,8 @@ Please keep in mind inheritance of objects - each object inherit search elements
 | Name | name | ObjectType.F_NAME 
 | Lifecycle State | lifecycleState | ObjectType.F_LIFECYCLE_STATE 
 | Subtype | subtype | ObjectType.F_SUBTYPE 
-| /Created at | metadata/createTimestamp | ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP 
-| /Modified at | metadata/modifyTimestamp | ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP 
+| Metadata/Created at | metadata/createTimestamp | ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP 
+| Metadata/Modified at | metadata/modifyTimestamp | ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP 
 |===
 
 === FocusType
@@ -40,7 +40,7 @@ Please keep in mind inheritance of objects - each object inherit search elements
 | Role membership | roleMembershipRef | FocusType.F_ROLE_MEMBERSHIP_REF 
 | Activation/Administrative status | activation/administrativeStatus | FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS 
 | Activation/Effective status | activation/effectiveStatus | FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS 
-| Activation/ | activation/lockoutStatus | FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS 
+| Activation/Lockout Status | activation/lockoutStatus | FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS 
 | Activation/Valid from | activation/validFrom | FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM 
 | Activation/Valid to | activation/validTo | FocusType.F_ACTIVATION, ActivationType.F_VALID_TO 
 |===
@@ -106,7 +106,7 @@ Please keep in mind inheritance of objects - each object inherit search elements
 | Display name | Item name | Item constant code
 | Identifier | identifier | AbstractRoleType.F_IDENTIFIER 
 | Requestable | requestable | AbstractRoleType.F_REQUESTABLE 
-|  | displayName | RoleType.F_DISPLAY_NAME 
+| Display Name | displayName | RoleType.F_DISPLAY_NAME 
 |===
 
 === OrgType
