@@ -330,6 +330,9 @@ public class PageCreatedReports extends PageAdmin {
     }
 
     private void resolveReportTypeName(ObjectReferenceType reportRef) {
+        if (reportRef == null) {
+            return;
+        }
         if (reportRef.getTargetName() != null && StringUtils.isNotEmpty(reportRef.getTargetName().getOrig())) {
             return;
         }
