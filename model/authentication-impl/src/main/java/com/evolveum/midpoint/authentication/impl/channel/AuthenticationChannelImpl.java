@@ -88,8 +88,8 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
         return Boolean.TRUE.equals(this.channel.isDefault());
     }
 
-    protected Collection<String> getAdditionalAuthoritiesList() {
-        return Collections.emptyList();
+    public Authorization getAdditionalAuthority() {
+        return null;
     }
 
     @Override
@@ -122,7 +122,7 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     }
 
     @Override
-    public boolean isAllowedAuthorization(Authorization autz) {
-        return true;
+    public Authorization resolveAuthorization(Authorization autz) {
+        return autz;
     }
 }

@@ -159,6 +159,13 @@ public class GuiProfileCompiler {
         MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
+        if(channel != null) {
+            @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
+            if (additionalAuth != null) {
+                addAuthorizationToPrincipal(principal, additionalAuth, authorizationTransformer);
+            }
+        }
+
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
                 if (options.isCompileGuiAdminConfiguration()) {
@@ -200,15 +207,24 @@ public class GuiProfileCompiler {
             @NotNull Collection<Authorization> sourceCollection,
             @Nullable AuthorizationTransformer authorizationTransformer) {
         for (Authorization autz : sourceCollection) {
-            if (channel != null && !channel.isAllowedAuthorization(autz)) {
-                continue;
-            }
-            if (authorizationTransformer == null) {
-                principal.addAuthorization(autz.clone());
-            } else {
-                for (Authorization transformedAutz : emptyIfNull(authorizationTransformer.transform(autz))) {
-                    principal.addAuthorization(transformedAutz);
+            Authorization resolvedAutz = autz;
+            if (channel != null) {
+                resolvedAutz = channel.resolveAuthorization(autz);
+                if (resolvedAutz == null) {
+                    continue;
                 }
+            }
+            addAuthorizationToPrincipal(principal, resolvedAutz, authorizationTransformer);
+        }
+    }
+
+    private void addAuthorizationToPrincipal(
+            MidPointPrincipal principal, Authorization autz, AuthorizationTransformer authorizationTransformer) {
+        if (authorizationTransformer == null) {
+            principal.addAuthorization(autz.clone());
+        } else {
+            for (Authorization transformedAutz : emptyIfNull(authorizationTransformer.transform(autz))) {
+                principal.addAuthorization(transformedAutz);
             }
         }
     }

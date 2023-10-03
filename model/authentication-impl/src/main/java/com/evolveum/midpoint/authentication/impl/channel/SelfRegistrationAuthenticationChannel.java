@@ -10,8 +10,10 @@ import java.util.Collection;
 import java.util.Collections;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
 /**
  * @author skublik
@@ -46,7 +48,7 @@ public class SelfRegistrationAuthenticationChannel extends AuthenticationChannel
     }
 
     @Override
-    protected Collection<String> getAdditionalAuthoritiesList() {
-        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_SELF_REGISTRATION_FINISH_URL);
+    public Authorization getAdditionalAuthority() {
+        return new Authorization(new AuthorizationType().action(AuthorizationConstants.AUTZ_UI_SELF_REGISTRATION_FINISH_URL));
     }
 }

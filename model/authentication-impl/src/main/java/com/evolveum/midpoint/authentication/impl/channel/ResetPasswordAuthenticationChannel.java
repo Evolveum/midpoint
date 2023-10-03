@@ -34,23 +34,14 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
     }
 
     @Override
-    public boolean isAllowedAuthorization(Authorization autz) {
+    public Authorization resolveAuthorization(Authorization autz) {
         if (autz == null) {
-            return false;
+            return null;
         }
-        if (autz.getAction().contains(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL)) {
-            return true;
-        }
-
-        if(!autz.getAction().stream().anyMatch(action -> action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI))) {
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    protected Collection<String> getAdditionalAuthoritiesList() {
-        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL);
+        Authorization retAutz = autz.clone();
+        retAutz.getAction().removeIf(action ->
+                action != AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL
+                        && action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
+        return retAutz;
     }
 }

@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.authentication.impl.channel;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -51,10 +48,10 @@ public class GuiAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     @Override
-    protected Collection<String> getAdditionalAuthoritiesList() {
+    public Authorization getAdditionalAuthority() {
         if (isPostAuthenticationEnabled()) {
-            return Collections.singletonList(AuthorizationConstants.AUTZ_UI_SELF_POST_AUTHENTICATION_URL);
+            return new Authorization(new AuthorizationType().action(AuthorizationConstants.AUTZ_UI_SELF_POST_AUTHENTICATION_URL));
         }
-        return super.getAdditionalAuthoritiesList();
+        return super.getAdditionalAuthority();
     }
 }

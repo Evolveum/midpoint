@@ -35,14 +35,16 @@ public class ActuatorAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     @Override
-    public boolean isAllowedAuthorization(Authorization autz) {
-        for (String action : autz.getAction()) {
-            if (action.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
-                    || action.equals(AuthorizationConstants.AUTZ_ALL_URL)
-                    || action.equals(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
-                return true;
-            }
+    public Authorization resolveAuthorization(Authorization autz) {
+        if (autz == null) {
+            return null;
         }
-        return false;
+
+        Authorization retAutz = autz.clone();
+        retAutz.getAction().removeIf(action ->
+                !action.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
+                        && !action.equals(AuthorizationConstants.AUTZ_ALL_URL)
+                        && !action.equals(AuthorizationConstants.NS_AUTHORIZATION_UI));
+        return retAutz;
     }
 }

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.api;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Wrapper for define channel of authentication, channel define scope of authentication etc. rest, gui, reset password ...
  *
@@ -45,5 +47,7 @@ public interface AuthenticationChannel {
 
     boolean isPostAuthenticationEnabled();
 
-    boolean isAllowedAuthorization(Authorization autz);
+    @Nullable Authorization resolveAuthorization(Authorization autz);
+
+    @Nullable Authorization getAdditionalAuthority();
 }

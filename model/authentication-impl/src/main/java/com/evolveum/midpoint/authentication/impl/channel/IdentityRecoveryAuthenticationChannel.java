@@ -59,10 +59,4 @@ public class IdentityRecoveryAuthenticationChannel extends AuthenticationChannel
     public String getPathAfterSuccessfulAuthentication() {
         return "/identityRecovery";
     }
-
-//    @Override
-//    protected Collection<String> getAdditionalAuthoritiesList() {
-//        return Collections.singletonList(AuthorizationConstants.AUTZ_UI_IDENTITY_RECOVERY_URL);
-//    }
-
 }
