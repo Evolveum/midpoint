@@ -16,6 +16,13 @@
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
         default-lazy-init="false">
 
+    <!--
+        // todo remove & improve test initialization
+        This is just a marker bean, that fixes ninja initialization in tests.
+        For more info see {@link TestSqlRepositoryBeanConfig}.
+    -->
+    <bean id="ninja" class="java.lang.Object"/>
+
     <bean id="dummyAuditServiceFactory" class="com.evolveum.midpoint.test.DummyAuditServiceFactory"/>
 
 </beans>
