@@ -130,9 +130,16 @@ public class AuthUtil {
      * TODO: maybe we wll need to change exception to return null
      */
     public static MidpointAuthentication getMidpointAuthentication() {
+        return getMidpointAuthentication(true);
+    }
+
+    public static MidpointAuthentication getMidpointAuthentication(boolean required) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof MidpointAuthentication)) {
-            throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
+            if (required) {
+                throw new AuthenticationServiceException("web.security.flexAuth.auth.wrong.type");
+            }
+            return null;
         }
         return (MidpointAuthentication) authentication;
     }
@@ -149,13 +156,13 @@ public class AuthUtil {
     public static ModuleAuthentication getAuthenticatedModule() {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            MidpointAuthentication mpAuthentication = getMidpointAuthentication();
-            for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
-                if (AuthenticationModuleState.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
-                    return moduleAuthentication;
-                }
+        MidpointAuthentication mpAuthentication = getMidpointAuthentication();
+        for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
+            if (AuthenticationModuleState.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
+                return moduleAuthentication;
             }
-            return null;
+        }
+        return null;
 //        } else {
 //            String message = "Unsupported type " + (authentication == null ? null : authentication.getClass().getName())
 //                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
@@ -176,13 +183,16 @@ public class AuthUtil {
 
     private static ModuleAuthentication getProcessingModule(boolean required) {
 
-        MidpointAuthentication mpAuthentication = getMidpointAuthentication();
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            if (required && moduleAuthentication == null) {
-                LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
-                throw new AuthenticationServiceException("web.security.flexAuth.module.null");
-            }
-            return moduleAuthentication;
+        MidpointAuthentication mpAuthentication = getMidpointAuthentication(required);
+        ModuleAuthentication moduleAuthentication = null;
+        if (mpAuthentication != null) {
+            moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+        }
+        if (required && moduleAuthentication == null) {
+            LOGGER.error("Couldn't find processing module authentication {}", mpAuthentication);
+            throw new AuthenticationServiceException("web.security.flexAuth.module.null");
+        }
+        return moduleAuthentication;
     }
 
     public static String stripEndingSlashes(String s) {
@@ -222,7 +232,7 @@ public class AuthUtil {
         MidpointAuthentication oldAuthentication = getMidpointAuthentication();
 //        Authentication oldAuthentication = SecurityContextHolder.getContext().getAuthentication();
 //        if (oldAuthentication instanceof MidpointAuthentication
-                if (oldAuthentication.getAuthenticationChannel() != null
+        if (oldAuthentication.getAuthenticationChannel() != null
                 && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(oldAuthentication.getAuthenticationChannel().getChannelId())) {
             RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(
                     oldAuthentication.getAuthModules());
@@ -261,7 +271,7 @@ public class AuthUtil {
     }
 
     public static AuthenticationBehavioralDataType getBehavioralDataForSequence(FocusType focus, String sequenceId) {
-        if (focus.getBehavior() == null){
+        if (focus.getBehavior() == null) {
             focus.setBehavior(new BehaviorType());
         }
         return focus.getBehavior().getAuthentication()
@@ -272,7 +282,7 @@ public class AuthUtil {
     }
 
     public static AuthenticationBehavioralDataType getOrCreateBehavioralDataForSequence(FocusType focus, String sequenceId) {
-        if (focus.getBehavior() == null){
+        if (focus.getBehavior() == null) {
             focus.setBehavior(new BehaviorType());
         }
         AuthenticationBehavioralDataType authenticationData = focus.getBehavior().getAuthentication()
@@ -281,15 +291,17 @@ public class AuthUtil {
                 .findFirst()
                 .orElse(null);
 
-        if (authenticationData == null){
+        if (authenticationData == null) {
             authenticationData = new AuthenticationBehavioralDataType().sequenceIdentifier(sequenceId);
             focus.getBehavior().getAuthentication().add(authenticationData);
         }
         return authenticationData;
     }
+
     public static AuthenticationAttemptDataType findOrCreateAuthenticationAttemptDataFoModule(ConnectionEnvironment connectionEnvironment, MidPointPrincipal principal) {
         return findOrCreateAuthenticationAttemptDataFoModule(connectionEnvironment, principal.getFocus());
     }
+
     public static AuthenticationAttemptDataType findOrCreateAuthenticationAttemptDataFoModule(ConnectionEnvironment connectionEnvironment, FocusType focus) {
         AuthenticationAttemptDataType data = findAuthAttemptDataForModule(connectionEnvironment, focus);
         if (data == null) {
@@ -315,14 +327,14 @@ public class AuthUtil {
             return defaultPrefix + SchemaConstants.CHANNEL_RESET_PASSWORD_QNAME.getLocalPart() + "." + defaultSuffix;
         }
         return defaultPrefix + defaultSuffix;
-   }
+    }
 
-   private static boolean isPasswordResetAuthChannel(MidpointAuthentication authentication) {
+    private static boolean isPasswordResetAuthChannel(MidpointAuthentication authentication) {
         if (authentication.getAuthenticationChannel() == null) {
             return false;
         }
-       return SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(authentication.getAuthenticationChannel().getChannelId());
-   }
+        return SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(authentication.getAuthenticationChannel().getChannelId());
+    }
 
     public static boolean isClusterAuthentication(MidpointAuthentication authentication) {
         if (authentication.getAuthModules().size() != 1) {

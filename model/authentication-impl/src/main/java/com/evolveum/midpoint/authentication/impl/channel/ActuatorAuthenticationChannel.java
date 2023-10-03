@@ -45,6 +45,11 @@ public class ActuatorAuthenticationChannel extends AuthenticationChannelImpl {
                 !action.startsWith(AuthorizationConstants.NS_AUTHORIZATION_ACTUATOR)
                         && !action.equals(AuthorizationConstants.AUTZ_ALL_URL)
                         && !action.equals(AuthorizationConstants.NS_AUTHORIZATION_UI));
+
+        if (retAutz.getAction().isEmpty()) {
+            return null;
+        }
+
         return retAutz;
     }
 }

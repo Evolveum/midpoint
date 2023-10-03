@@ -159,7 +159,7 @@ public class GuiProfileCompiler {
         MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
-        if(channel != null) {
+        if(!options.isRunAsRunner() && channel != null) {
             @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
             if (additionalAuth != null) {
                 addAuthorizationToPrincipal(principal, additionalAuth, authorizationTransformer);
@@ -174,7 +174,7 @@ public class GuiProfileCompiler {
                 }
 
                 if (options.isCollectAuthorization()) {
-                    addAuthorizations(principal, channel, assignment.getAuthorizations(), authorizationTransformer);
+                    addAuthorizations(principal, channel, assignment.getAuthorizations(), authorizationTransformer, options);
                 }
                 if (options.isCompileGuiAdminConfiguration()) {
                     adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
@@ -205,10 +205,11 @@ public class GuiProfileCompiler {
             @NotNull MidPointPrincipal principal,
             @Nullable AuthenticationChannel channel,
             @NotNull Collection<Authorization> sourceCollection,
-            @Nullable AuthorizationTransformer authorizationTransformer) {
+            @Nullable AuthorizationTransformer authorizationTransformer, ProfileCompilerOptions options) {
         for (Authorization autz : sourceCollection) {
             Authorization resolvedAutz = autz;
-            if (channel != null) {
+
+            if (!options.isRunAsRunner() && channel != null) {
                 resolvedAutz = channel.resolveAuthorization(autz);
                 if (resolvedAutz == null) {
                     continue;

@@ -29,7 +29,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivi
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests various combinations of `runAsRef`, `runAsPrivileged`, and `taskOwnerRef` (in `executeScript` policy action).
+ * Tests various combinations of `runAsRef`, `runAsRunner`, and `taskOwnerRef` (in `executeScript` policy action).
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

@@ -40,8 +40,13 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
         }
         Authorization retAutz = autz.clone();
         retAutz.getAction().removeIf(action ->
-                action != AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL
+                !action.equals(AuthorizationConstants.AUTZ_UI_RESET_PASSWORD_URL)
                         && action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
+
+        if (retAutz.getAction().isEmpty()) {
+            return null;
+        }
+
         return retAutz;
     }
 }

@@ -48,6 +48,11 @@ public class SelfRegistrationAuthenticationChannel extends AuthenticationChannel
     }
 
     @Override
+    public Authorization resolveAuthorization(Authorization autz) {
+        return null;
+    }
+
+    @Override
     public Authorization getAdditionalAuthority() {
         return new Authorization(new AuthorizationType().action(AuthorizationConstants.AUTZ_UI_SELF_REGISTRATION_FINISH_URL));
     }

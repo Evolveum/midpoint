@@ -16,6 +16,8 @@ public class ProfileCompilerOptions {
     private boolean locateSecurityPolicy = true;
 
     private boolean tryReusingSecurityPolicy = false;
+    private boolean runAsRunner = false;
+    private boolean terminateDisabledUserSession = true;
 
     private ProfileCompilerOptions(){
     }
@@ -37,6 +39,16 @@ public class ProfileCompilerOptions {
 
     public ProfileCompilerOptions tryReusingSecurityPolicy(boolean tryReusingSecurityPolicy) {
         this.tryReusingSecurityPolicy = tryReusingSecurityPolicy;
+        return this;
+    }
+
+    public ProfileCompilerOptions runAsRunner(boolean runAsRunner) {
+        this.runAsRunner = runAsRunner;
+        return this;
+    }
+
+    public ProfileCompilerOptions terminateDisabledUserSession(boolean terminateDisabledUserSession) {
+        this.terminateDisabledUserSession = terminateDisabledUserSession;
         return this;
     }
 
@@ -65,5 +77,13 @@ public class ProfileCompilerOptions {
 
     public boolean isTryReusingSecurityPolicy() {
         return tryReusingSecurityPolicy;
+    }
+
+    public boolean isRunAsRunner() {
+        return runAsRunner;
+    }
+
+    public boolean terminateDisabledUserSession() {
+        return terminateDisabledUserSession;
     }
 }

@@ -86,6 +86,13 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
+    public void setupPreAuthenticatedSecurityContext(
+            PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        securityContextManager.setupPreAuthenticatedSecurityContext(focus, options, result);
+    }
+
+    @Override
     public void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal) {
         securityContextManager.setupPreAuthenticatedSecurityContext(principal);
     }

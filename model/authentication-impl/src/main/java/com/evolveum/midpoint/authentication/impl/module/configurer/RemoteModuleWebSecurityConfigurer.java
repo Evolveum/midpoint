@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
+import java.util.Map;
 import java.util.UUID;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -111,10 +112,11 @@ public abstract class RemoteModuleWebSecurityConfigurer<C extends RemoteModuleWe
     protected abstract LogoutSuccessHandler getLogoutRequestSuccessHandler();
 
     @Override
-    protected AnonymousAuthenticationFilter createAnonymousFilter() {
-        AnonymousAuthenticationFilter filter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, PrismContext.get(),
+    protected AnonymousAuthenticationFilter createAnonymousFilter(Map<Class<?>, Object> sharedObjects) {
+        AnonymousAuthenticationFilter filter = new MidpointAnonymousAuthenticationFilter(
+                authRegistry, authChannelRegistry, PrismContext.get(),
                 UUID.randomUUID().toString(), "anonymousUser",
-                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")){
+                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"), sharedObjects){
             @Override
             protected void processAuthentication(ServletRequest req) {
                 if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {

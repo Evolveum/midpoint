@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.security;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.util.CheckedCommonRunnable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -82,7 +83,12 @@ public class RunAsRunner implements AutoCloseable {
             ExpressionEvaluationException {
         Class<? extends FocusType> clazz = getObjectClass(typeName);
         PrismObject<? extends FocusType> focus = beans.repositoryService.getObject(clazz, oid, null, parentResult);
-        beans.securityContextManager.setupPreAuthenticatedSecurityContext(focus, parentResult);
+        beans.securityContextManager.setupPreAuthenticatedSecurityContext(
+                focus,
+                ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                        .locateSecurityPolicy(false)
+                        .runAsRunner(true),
+                parentResult);
     }
 
     @NotNull

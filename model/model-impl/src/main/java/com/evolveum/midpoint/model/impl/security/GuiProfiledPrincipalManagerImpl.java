@@ -481,7 +481,7 @@ public class GuiProfiledPrincipalManagerImpl
         try {
             focus = repositoryService.getObject(principal.getFocus().getClass(), focusOid, null, result);
             principal.setOrReplaceFocus(focus.asObjectable());
-            if (!principal.isEnabled()) {
+            if (options.terminateDisabledUserSession() && !principal.isEnabled()) {
                 // User is disabled
                 var terminate = new TerminateSessionEvent();
                 terminate.setPrincipalOids(Collections.singletonList(principal.getOid()));

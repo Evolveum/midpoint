@@ -116,7 +116,8 @@ public class FinishAuthenticationFilter extends OncePerRequestFilter {
                         .collectAuthorization(true)
                         .compileGuiAdminConfiguration(supportGuiConfig)
                         .locateSecurityPolicy(supportGuiConfig)
-                        .tryReusingSecurityPolicy(true));
+                        .tryReusingSecurityPolicy(true)
+                        .terminateDisabledUserSession(false));
         mpAuthentication.setAlreadyCompiledGui(true);
     }
 }

@@ -53,6 +53,11 @@ public class InvitationAuthenticationChannel extends AuthenticationChannelImpl {
     }
 
     @Override
+    public Authorization resolveAuthorization(Authorization autz) {
+        return null;
+    }
+
+    @Override
     public Authorization getAdditionalAuthority() {
         return new Authorization(new AuthorizationType().action(AuthorizationConstants.AUTZ_UI_INVITATION_URL));
     }

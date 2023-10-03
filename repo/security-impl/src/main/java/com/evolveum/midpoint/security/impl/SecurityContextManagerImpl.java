@@ -100,6 +100,18 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
     public void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
+        setupPreAuthenticatedSecurityContext(
+                focus,
+                ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                        .locateSecurityPolicy(false),
+                result);
+    }
+
+    @Override
+    public void setupPreAuthenticatedSecurityContext(
+            PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
         MidPointPrincipal principal;
         if (userProfileService == null) {
             LOGGER.warn("No user profile service set up in SecurityEnforcer. "
@@ -109,8 +121,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
             // For expression using runAsRef, task execution, etc., we don't need to support GUI config
             principal = userProfileService.getPrincipal(
                     focus,
-                    ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
-                            .locateSecurityPolicy(false),
+                    options,
                     result);
         }
         principal.checkEnabled();
@@ -133,7 +144,12 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
         Authentication origAuthentication = getCurrentAuthentication();
         try {
             if (newPrincipalObject != null) {
-                setupPreAuthenticatedSecurityContext(newPrincipalObject, result);
+                setupPreAuthenticatedSecurityContext(
+                        newPrincipalObject,
+                        ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
+                                .locateSecurityPolicy(false)
+                                .runAsRunner(true),
+                         result);
             }
             if (privileged) {
                 loginAsPrivileged(getCurrentAuthentication());

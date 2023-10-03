@@ -75,6 +75,10 @@ public interface SecurityContextManager {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException;
 
+    void setupPreAuthenticatedSecurityContext(PrismObject<? extends FocusType> focus, ProfileCompilerOptions options, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException;
+
     /** Runs the provided code (within {@link ResultAwareProducer}) as a specific user and/or with elevated privileges. */
     <T> T runAs(
             @NotNull ResultAwareProducer<T> producer,
