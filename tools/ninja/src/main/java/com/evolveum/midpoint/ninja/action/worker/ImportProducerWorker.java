@@ -157,6 +157,10 @@ public class ImportProducerWorker<T extends Containerable>
             public EventResult postMarshall(
                     T object, Element objectElement, OperationResult objectResult) {
                 try {
+                    if (operation.isFinished()) {
+                        return EventResult.stop("Operation already finished");
+                    }
+
                     if (filter != null) {
                         boolean match = ObjectQuery.match(object, filter, matchingRuleRegistry);
 

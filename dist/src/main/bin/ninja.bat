@@ -26,19 +26,6 @@ IF NOT "%1"=="" (
     GOTO :argloop
 )
 
-if "%MIDPOINT_HOME%" == "" (
-    if not exist "%VAR_DIR%" (
-        echo Error: Default midpoint.home directory "%VAR_DIR%" does not exist.
-        goto end
-    )
-    set MIDPOINT_HOME=%VAR_DIR%
-)
-
-if not "%MIDPOINT_HOME%" == "%MIDPOINT_HOME:;=%" (
-    echo Error: Unable to start as MIDPOINT_HOME contains a semicolon ";" character
-    goto end
-)
-
 echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
 
 if not exist "%NINJA_JAR_PATH%" (

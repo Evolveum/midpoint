@@ -36,10 +36,10 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
     public void run() {
         Log log = context.getLog();
 
-        init();
-
         Writer writer = null;
         try {
+            init();
+
             writer = createWriter();
 
             while (!shouldConsumerStop()) {
@@ -63,8 +63,12 @@ public abstract class AbstractWriterConsumerWorker<O extends BasicExportOptions,
             finalizeWriter(writer);
         } catch (IOException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
+
+            operation.finish();
         } catch (NinjaException ex) {
             log.error(ex.getMessage(), ex);
+
+            operation.finish();
         } finally {
             if (options.getOutput() != null) {
                 // we don't want to close stdout, e.g. only if we were writing to file

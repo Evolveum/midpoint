@@ -7,10 +7,8 @@
 package com.evolveum.midpoint.ninja;
 
 import java.io.File;
-import java.util.Objects;
 
 import org.assertj.core.api.Assertions;
-import org.h2.Driver;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.SkipException;
@@ -39,7 +37,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
     @Override
     public void beforeClass() throws Exception {
         RepositoryDiag diag = repository.getRepositoryDiag();
-        if (Objects.equals(Driver.class.getName(), diag.getDriverShortName())) {
+        if (diag.isEmbedded()) {
             throw new SkipException("Skipping test because H2 is used as repository.");
         }
 
@@ -84,7 +82,7 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         executeTest(
                 out -> Assertions.assertThat(out.size()).isEqualTo(8),
                 EMPTY_STREAM_VALIDATOR,
-                 "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
+                "-m", getMidpointHome(), "import", "-f", "<equal><path>name</path><value>F0002</value></equal>",
                 "-i", PATH_MONKEY_ISLAND_SIMPLE_ZIP, "-z");
 
         then();

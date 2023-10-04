@@ -48,14 +48,18 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
             return new ActionResult<>(false, 1);
         }
 
-        if (!options.isSkipNodesVersionCheck() && !checkNodesVersion(repository)) {
-            return new ActionResult<>(false, 2);
+        if (!options.isSkipNodesVersionCheck()) {
+            if (!checkNodesVersion(repository)) {
+                return new ActionResult<>(false, 2);
+            }
         } else {
             log.warn("Skipping nodes version check");
         }
 
-        if (!options.isSkipDatabaseVersionCheck() && !checkDatabaseSchemaVersion(repository)) {
-            return new ActionResult<>(false, 3);
+        if (!options.isSkipDatabaseVersionCheck()) {
+            if (!checkDatabaseSchemaVersion(repository)) {
+                return new ActionResult<>(false, 3);
+            }
         } else {
             log.warn("Skipping database schema version check");
         }
