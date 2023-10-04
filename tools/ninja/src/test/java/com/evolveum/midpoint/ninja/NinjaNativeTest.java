@@ -16,7 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
 
-import jakarta.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
