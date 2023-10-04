@@ -11,6 +11,7 @@
     <description>Operation that changed the focus role membership</description>
     <documentation>This mark deals with `roleMembershipRef` value.</documentation>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>160</displayOrder>

@@ -43,8 +43,8 @@ oid="00000000-0000-0000-0000-000000000380">
         </tokenExpression>
     </iterationSpecification>
     <mapping id="1">
-        <name>Generate unique name for users using jsmith and iterator suitable for sAMAccountName (8 + up to 2 characters)</name>
-        <description>Generate login name - only once. Does not change the login name when user is renamed. Example: John Smith-Baker, jsmithba or jsmithba2</description>
+        <name>generate-name-jsmith-8-2</name>
+        <description>Generate unique login name using jsmith and iterator suitable for sAMAccountName (8 + up to 2 characters). Does not change the login name when user is renamed. Example: John Smith-Baker, jsmithba or jsmithba2</description>
         <documentation>
             Generate a login based on "jsmith" convention. Maximum length of login is 10 characters (8 + up-to 2-digit iterator).
 
@@ -81,7 +81,7 @@ oid="00000000-0000-0000-0000-000000000380">
         </target>
     </mapping>
     <mapping id="2">
-        <name>Generate fullName</name>
+        <name>generate-fullname</name>
         <description>Generate fullName (enforcing on renames because of strong mapping)</description>
         <strength>strong</strength>
         <source>

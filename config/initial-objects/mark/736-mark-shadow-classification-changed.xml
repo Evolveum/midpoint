@@ -10,6 +10,7 @@
     <name>Shadow classification changed</name>
     <description>Classification of a shadow was changed</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>500</displayOrder>
