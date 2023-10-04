@@ -56,6 +56,10 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, ObjectType> 
 
             ResultHandler<?> handler = (object, parentResult) -> {
                 try {
+                    if (operation.isFinished()) {
+                        return false;
+                    }
+
                     queue.put(object.asObjectable());
                 } catch (InterruptedException ex) {
                     log.error("Couldn't queue object {}, reason: {}", ex, object, ex.getMessage());
