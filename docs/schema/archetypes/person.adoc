@@ -15,7 +15,7 @@ This archetype includes also a reference to *Person Object Template*, which is a
 *System configuration* includes an xref:/midpoint/reference/admin-gui/collections-views/[object collection view] for users with this archetype.
 
 .Example screenshot when using Person archetype
-image::person-example.png[]
+image::person-example.png[Person archetype screenshot,width="800"]
 
 == Configuration
 
