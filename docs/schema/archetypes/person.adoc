@@ -12,7 +12,7 @@ We have created this archetype as a part of xref:/midpoint/methodology/first-ste
 
 This archetype includes also a reference to *Person Object Template*, which is also a midPoint initial object.
 
-*System configuration* includes an xref:midpoint/reference/admin-gui/collections-views/[object collection view] for users with this archetype.
+*System configuration* includes an xref:/midpoint/reference/admin-gui/collections-views/[object collection view] for users with this archetype.
 
 == Configuration
 
