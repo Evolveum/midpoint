@@ -69,7 +69,6 @@
         </focusMappings>
     </inducement>
     <inducement>
-        <identifier>handlerMapping</identifier>
         <focusMappings>
             <mapping>
                 <strength>weak</strength>
