@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -16,6 +18,16 @@ import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class PreUpgradeCheckTest extends NinjaSpringTest {
+
+    @BeforeClass
+    @Override
+    public void beforeClass() throws Exception {
+        if (!repository.isNative()) {
+            throw new SkipException("Skipping test because repository not using native PostgreSQL implementation.");
+        }
+
+        super.beforeClass();
+    }
 
     @Test
     public void test100TestNoNodes() throws Exception {
