@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
@@ -24,14 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
 
 @SuppressWarnings("unused")
 public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor<ResourceType> {
-
-    private static final ItemPath PATH_NATIVE = ItemPath.create(
-            ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, CapabilityCollectionType.F_ADD_REMOVE_ATTRIBUTE_VALUES);
-
-    private static final ItemPath PATH_CONFIGURED = ItemPath.create(
-            ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED, CapabilityCollectionType.F_ADD_REMOVE_ATTRIBUTE_VALUES);
-
-    private static final List<ItemPath> PATHS = Arrays.asList(PATH_NATIVE, PATH_CONFIGURED);
 
     @Override
     public UpgradePhase getPhase() {
@@ -50,17 +39,12 @@ public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        if (!ResourceType.class.equals(object.getCompileTimeClass())) {
-            return false;
-        }
-
-        return PATHS.stream().anyMatch(p -> p.equivalent(path));
+        return matchParentTypeAndItemName(object, path, CapabilityCollectionType.class, CapabilityCollectionType.F_ADD_REMOVE_ATTRIBUTE_VALUES);
     }
 
     @Override
     public boolean process(PrismObject<ResourceType> object, ItemPath path) {
-        ItemPath collectionPath = path.allExceptLast();
-        CapabilityCollectionType collection = object.findContainer(collectionPath).getRealValue(CapabilityCollectionType.class);
+        CapabilityCollectionType collection = getItemParent(object, path);
 
         AddRemoveAttributeValuesCapabilityType addRemoveValues = collection.getAddRemoveAttributeValues();
         collection.setAddRemoveAttributeValues(null);
