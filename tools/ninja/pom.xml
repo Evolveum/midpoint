@@ -252,6 +252,11 @@
             <artifactId>ojdbc11</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
