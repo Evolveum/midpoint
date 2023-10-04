@@ -78,6 +78,8 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
 
             writeAuthentication(processingAuthentication, actualAuthentication, token);
 
+            postAuthenticationProcess();
+
             return actualAuthentication;
 
         } catch (AuthenticationException e) {
@@ -88,6 +90,9 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
             LOGGER.error("Unexpected exception during authentication: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    void postAuthenticationProcess() {
     }
 
     private boolean isAnonymous(Authentication originalAuthentication) {

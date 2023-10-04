@@ -11,8 +11,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -31,8 +29,8 @@ import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -97,7 +95,6 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
         NonceAuthenticationContext authContext = new NonceAuthenticationContext(enteredUsername,
                 focusType, nonce, noncePolicy, requireAssignment, channel);
         Authentication token = getEvaluator().authenticate(connEnv, authContext);
-        removeNonceAfterSuccessullAuthentication(user);
 
         MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 
@@ -105,6 +102,14 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
                 authentication.getClass().getSimpleName(), principal.getAuthorities());
         return token;
 
+    }
+
+    @Override
+    void postAuthenticationProcess() {
+        @Nullable MidPointPrincipal principal = AuthUtil.getMidpointPrincipal();
+        if (principal != null) {
+            removeNonceAfterSuccessfulAuthentication(principal.getFocus());
+        }
     }
 
     private UserType searchUser(String enteredUsername) {
@@ -119,17 +124,17 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
         return user;
     }
 
-    private void removeNonceAfterSuccessullAuthentication(UserType user) {
+    private void removeNonceAfterSuccessfulAuthentication(FocusType user) {
         securityContextManager.runPrivileged((Producer<Void>) () -> removeNonce(user));
     }
 
-    private Void removeNonce(UserType user) {
+    private Void removeNonce(FocusType user) {
         try {
             NonceType nonce = user.getCredentials().getNonce();
-            ObjectDelta<UserType> deleteNonce = PrismContext.get().deltaFactory()
+            ObjectDelta<FocusType> deleteNonce = PrismContext.get().deltaFactory()
                     .object()
-                    .createModificationDeleteContainer(UserType.class, user.getOid(),
-                            ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
+                    .createModificationDeleteContainer(FocusType.class, user.getOid(),
+                            ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_NONCE),
                             nonce.clone());
 
             Task task = taskManager.createTaskInstance("Remove nonce from user");
