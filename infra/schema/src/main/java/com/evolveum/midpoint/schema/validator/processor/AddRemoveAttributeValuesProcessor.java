@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import java.util.Arrays;
-import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -19,7 +17,6 @@ import com.evolveum.midpoint.schema.validator.UpgradeObjectProcessor;
 import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
@@ -27,14 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
 
 @SuppressWarnings("unused")
 public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor<ResourceType> {
-
-    private static final ItemPath PATH_NATIVE = ItemPath.create(
-            ResourceType.F_CAPABILITIES, CapabilitiesType.F_NATIVE, SchemaConstantsGenerated.R_CAP_ADD_REMOVE_ATTRIBUTE_VALUES);
-
-    private static final ItemPath PATH_CONFIGURED = ItemPath.create(
-            ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED, SchemaConstantsGenerated.R_CAP_ADD_REMOVE_ATTRIBUTE_VALUES);
-
-    private static final List<ItemPath> PATHS = Arrays.asList(PATH_NATIVE, PATH_CONFIGURED);
 
     @Override
     public UpgradePhase getPhase() {
@@ -53,14 +42,12 @@ public class AddRemoveAttributeValuesProcessor implements UpgradeObjectProcessor
 
     @Override
     public boolean isApplicable(PrismObject<?> object, ItemPath path) {
-        return matchObjectTypeAndPathTemplate(object, path, ResourceType.class, PATH_NATIVE)
-                || matchObjectTypeAndPathTemplate(object, path, ResourceType.class, PATH_CONFIGURED);
+        return matchParentTypeAndItemName(object, path, CapabilityCollectionType.class, SchemaConstantsGenerated.R_CAP_ADD_REMOVE_ATTRIBUTE_VALUES);
     }
 
     @Override
     public boolean process(PrismObject<ResourceType> object, ItemPath path) {
-        ItemPath collectionPath = path.allExceptLast();
-        CapabilityCollectionType collection = object.findContainer(collectionPath).getRealValue(CapabilityCollectionType.class);
+        CapabilityCollectionType collection = getItemParent(object, path);
 
         JAXBElement<AddRemoveAttributeValuesCapabilityType> addRemoveValuesElement =
                 findElement(collection, SchemaConstantsGenerated.R_CAP_ADD_REMOVE_ATTRIBUTE_VALUES, AddRemoveAttributeValuesCapabilityType.class);
