@@ -42,7 +42,7 @@ Feel free to add any additional mappings or change the existing ones; just remem
 
 The following fragment is used to display users with `Person` archetypes assigned as a menu item and to add a different search configuration.
 
-.Default Person-related configuration in System Configuration
+.Default Person-related configuration in System Configuration (objectCollectionView)
 [source,xml]
 ----
 <objectCollectionView id="80">
