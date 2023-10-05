@@ -124,25 +124,26 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
         return user;
     }
 
-    private void removeNonceAfterSuccessfulAuthentication(FocusType user) {
-        securityContextManager.runPrivileged((Producer<Void>) () -> removeNonce(user));
+    private void removeNonceAfterSuccessfulAuthentication(FocusType focus) {
+        securityContextManager.runPrivileged((Producer<Void>) () -> removeNonce(focus));
     }
 
-    private Void removeNonce(FocusType user) {
+    private Void removeNonce(FocusType focus) {
+        Task task = taskManager.createTaskInstance("Remove nonce from focus");
         try {
-            NonceType nonce = user.getCredentials().getNonce();
+            NonceType nonce = focus.getCredentials().getNonce();
             ObjectDelta<FocusType> deleteNonce = PrismContext.get().deltaFactory()
                     .object()
-                    .createModificationDeleteContainer(FocusType.class, user.getOid(),
+                    .createModificationDeleteContainer(FocusType.class, focus.getOid(),
                             ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_NONCE),
                             nonce.clone());
 
-            Task task = taskManager.createTaskInstance("Remove nonce from user");
+
             modelService.executeChanges(MiscSchemaUtil.createCollection(deleteNonce), null, task, task.getResult());
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't remove nonce from user {}", user, e);
+            LOGGER.error("Couldn't remove nonce from focus {}", focus, e);
         }
         return null;
     }

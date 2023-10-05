@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
@@ -982,7 +983,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     : createStringResource("abstractRoleMemberPanel.unassignSelectedMembersConfirmationLabel",
                     getSelectedObjectsCount());
 
-            executeSimpleUnassignedOperation(rowModel, relation, confirmModel, target);
+            showConfirmDialog(rowModel, relation, confirmModel, target);
         } else {
             confirmModel = createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel");
 
@@ -1128,7 +1129,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         getPageBase().showMainPopup(dialog, target);
     }
 
-    protected void executeSimpleUnassignedOperation(
+    private void showConfirmDialog(
             IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
         ConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
 
@@ -1149,25 +1150,31 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                AssignmentHolderType object = getAssignmentHolderFromRow(rowModel);
-                if (object != null) {
-                    executeUnassign(object, relation, target);
-
-                } else {
-                    var pageBase = getPageBase();
-                    var taskCreator = new MemberOperationsTaskCreator.Unassign(
-                            AbstractRoleMemberPanel.this.getModelObject(),
-                            getMemberSearchType(),
-                            getMemberQuery(rowModel, getMemberQueryScope(), getSupportedRelations()),
-                            getMemberQueryScope(),
-                            getSupportedRelations(),
-                            pageBase);
-                    pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
-                            .runVoid(taskCreator::createAndSubmitTask);
-                }
+                executeUnassignedOperationAfterConfirm(rowModel, relation, target);
             }
         };
         getPageBase().showMainPopup(dialog, target);
+    }
+
+    protected void executeUnassignedOperationAfterConfirm(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
+        AssignmentHolderType object = getAssignmentHolderFromRow(rowModel);
+        if (object != null) {
+            executeUnassign(object, relation, target);
+
+        } else {
+            var pageBase = getPageBase();
+            var taskCreator = new MemberOperationsTaskCreator.Unassign(
+                    AbstractRoleMemberPanel.this.getModelObject(),
+                    getMemberSearchType(),
+                    getMemberQuery(rowModel, getMemberQueryScope(), getSupportedRelations()),
+                    getMemberQueryScope(),
+                    getSupportedRelations(),
+                    pageBase);
+            pageBase.taskAwareExecutor(target, taskCreator.getOperationName())
+                    .withOpResultOptions(OpResult.Options.create()
+                            .withHideTaskLinks(shouldHideTaskLink()))
+                    .runVoid(taskCreator::createAndSubmitTask);
+        }
     }
 
     protected void executeDelete(AssignmentHolderType object, AjaxRequestTarget target) {
@@ -1398,6 +1405,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         AssignmentHolderType assignmentHolder = getAssignmentHolderFromRow(rowModel);
         if (assignmentHolder != null) {
             return MemberOperationsQueryUtil.createSelectedObjectsQuery(List.of(assignmentHolder));
+        } if (!getSelectedRealObjects().isEmpty()) {
+            return MemberOperationsQueryUtil.createSelectedObjectsQuery(getSelectedRealObjects());
         } else {
             return getMemberQuery(scope, relations);
         }
