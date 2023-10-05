@@ -2,13 +2,12 @@ package com.evolveum.midpoint.ninja;
 
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.testng.annotations.BeforeClass;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -33,9 +32,15 @@ public abstract class NinjaSpringTest extends AbstractSpringTest implements Infr
     @Autowired
     protected PrismContext prismContext;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void beforeClass() throws Exception {
         setupMidpointHome();
+    }
+
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
+    @Override
+    protected void springTestContextPrepareTestInstance() throws Exception {
+        super.springTestContextPrepareTestInstance();
 
         clearMidpointTestDatabase(applicationContext);
 

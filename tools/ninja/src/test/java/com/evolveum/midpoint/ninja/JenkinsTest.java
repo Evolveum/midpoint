@@ -30,13 +30,6 @@ public class JenkinsTest extends NinjaSpringTest {
         LOGGER.info("springTestContextPrepareTestInstance finished");
     }
 
-    @BeforeClass(alwaysRun = true, dependsOnMethods = "springTestContextPrepareTestInstance")
-    protected void custom() throws Exception {
-        LOGGER.info("custom started");
-        super.springTestContextPrepareTestInstance();
-        LOGGER.info("custom finished");
-    }
-
     @BeforeClass
     @Override
     public void beforeClass() throws Exception {
