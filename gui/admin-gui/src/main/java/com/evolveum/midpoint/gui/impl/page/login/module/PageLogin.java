@@ -104,7 +104,7 @@ public class PageLogin extends PageAbstractAuthenticationModule<ModuleAuthentica
         if (authentication instanceof MidpointAuthentication mpAuthentication) {
             int loginFormModulesCount = (int) mpAuthentication.getAuthModules()
                     .stream()
-                    .filter(module -> isModuleApplicable(module.getBaseModuleAuthentication()))
+                    .filter(module -> module != null && isModuleApplicable(module.getBaseModuleAuthentication()))
                     .count();
             return loginFormModulesCount > 1;
         }
