@@ -557,9 +557,10 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     @Override
-    protected void executeSimpleUnassignedOperation(IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
-        super.executeSimpleUnassignedOperation(rowModel, relation, confirmModel, target);
+    protected void executeUnassignedOperationAfterConfirm(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
+        super.executeUnassignedOperationAfterConfirm(rowModel, relation, target);
         unselectAllPerformed(target);
+        target.add(getFeedback());
     }
 
     @Override
