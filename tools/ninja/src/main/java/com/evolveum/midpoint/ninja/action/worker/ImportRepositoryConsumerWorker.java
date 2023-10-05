@@ -64,6 +64,10 @@ public class ImportRepositoryConsumerWorker extends BaseWorker<ImportOptions, Ob
                     operation.incrementError();
                 }
             }
+        } catch (Exception ex) {
+            operation.finish();
+
+            throw ex;
         } finally {
             markDone();
 

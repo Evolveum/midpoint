@@ -11,11 +11,13 @@
         xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
     <name>Execute deltas task (background processing for change execution)</name>
     <assignment id="1">
+        <identifier>holderType</identifier>
         <assignmentRelation id="2">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
     <inducement id="3">
+        <identifier>nameMapping</identifier>
         <focusMappings>
             <mapping id="4">
                 <strength>weak</strength>

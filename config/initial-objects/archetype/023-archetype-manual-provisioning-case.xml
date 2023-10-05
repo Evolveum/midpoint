@@ -49,6 +49,7 @@
         </adminGuiConfiguration>
     </archetypePolicy>
     <assignment id="1">
+        <identifier>holderType</identifier>
         <assignmentRelation id="2">
             <holderType>CaseType</holderType>
         </assignmentRelation>
