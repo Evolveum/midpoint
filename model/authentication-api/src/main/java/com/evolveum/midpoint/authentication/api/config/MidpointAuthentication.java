@@ -382,7 +382,36 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     public boolean isFinished() {
         int actualSize = getAuthentications().size();
         int endSize = getAuthModules().size();
-        return processingModuleIsRequisiteAndFailure() || (actualSize == endSize && allModulesAreProcessed());
+        return successfulProcessedSufficientModule() || processingModuleIsRequisiteAndFailure() || (actualSize == endSize && allModulesAreProcessed());
+    }
+
+    private boolean successfulProcessedSufficientModule() {
+        boolean successOneSufficientModule = false;
+
+        for (AuthenticationSequenceModuleType module : getSequence().getModule()) {
+            if (AuthenticationSequenceModuleNecessityType.REQUISITE == module.getNecessity()
+                    || AuthenticationSequenceModuleNecessityType.OPTIONAL == module.getNecessity()) {
+                continue;
+            }
+            if (AuthenticationSequenceModuleNecessityType.REQUIRED == module.getNecessity()) {
+                ModuleAuthentication authentication = getAuthenticationByIdentifier(module);
+                if (authentication == null
+                        || AuthenticationModuleState.SUCCESSFULLY != authentication.getState()) {
+                    return false;
+                }
+            }
+            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT == module.getNecessity()) {
+                ModuleAuthentication authentication = getAuthenticationByIdentifier(module);
+                if (authentication == null) {
+                    continue;
+                }
+                if (AuthenticationModuleState.SUCCESSFULLY == authentication.getState()) {
+                    successOneSufficientModule = true;
+                }
+            }
+        }
+
+        return successOneSufficientModule;
     }
 
     private boolean processingModuleIsRequisiteAndFailure() {
