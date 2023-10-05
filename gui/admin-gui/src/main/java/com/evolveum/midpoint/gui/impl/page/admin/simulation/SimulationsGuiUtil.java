@@ -121,7 +121,7 @@ public class SimulationsGuiUtil {
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<SimulationResultProcessedObjectType>> model) {
                 SimulationResultProcessedObjectType object = model.getObject().getValue();
-                ObjectType obj = object.getBefore() != null ? object.getBefore() : object.getAfter();
+                ObjectType obj = object.getAfter() != null ? object.getAfter() : object.getBefore();
                 if (obj == null) {
                     return new DisplayType()
                             .icon(new IconType().cssClass(IconAndStylesUtil.createDefaultColoredIcon(object.getType())));

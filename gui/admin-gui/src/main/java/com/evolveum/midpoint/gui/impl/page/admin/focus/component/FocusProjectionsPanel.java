@@ -121,7 +121,9 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
         IModel<Integer> deadShadows = this::countDeadShadows;
         Label label = new Label(ID_DEAD_SHADOWS, deadShadows);
-        label.add(new VisibleBehaviour(() -> deadShadows.getObject() > 0));
+        label.add(new VisibleBehaviour(() ->
+                deadShadows.getObject() > 0 && getMultivalueContainerListPanel().isListPanelVisible()));
+        label.setOutputMarkupId(true);
         add(label);
 
         MultivalueContainerListPanelWithDetailsPanel<ShadowType> multivalueContainerListPanel =
@@ -235,7 +237,17 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                                 }
                             });
                         }
+
+                        refreshDeadMessage(target);
+
                         super.editItemPerformed(target, rowModel, listItems);
+                    }
+
+                    @Override
+                    protected void cancelItemDetailsPerformed(AjaxRequestTarget target) {
+                        refreshDeadMessage(target);
+
+                        super.cancelItemDetailsPerformed(target);
                     }
 
                     @Override
@@ -250,9 +262,21 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         ctx.setPanelType(CollectionPanelType.PROJECTION_SHADOW);
                         return ctx;
                     }
+
+                    @Override
+                    public void refreshTable(AjaxRequestTarget target) {
+                        refreshDeadMessage(target);
+                        super.refreshTable(target);
+                    }
                 };
+        multivalueContainerListPanel.setItemDetailsVisible(false);
         add(multivalueContainerListPanel);
         setOutputMarkupId(true);
+    }
+
+    private void refreshDeadMessage(AjaxRequestTarget target) {
+        target.add(get(ID_SHADOW_TABLE));
+        target.add(FocusProjectionsPanel.this);
     }
 
     private IColumn<PrismContainerValueWrapper<ShadowType>, String> createProjectionNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
