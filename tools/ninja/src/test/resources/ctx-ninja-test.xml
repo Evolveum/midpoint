@@ -15,7 +15,7 @@
             http://www.springframework.org/schema/context/spring-context-3.0.xsd"
         default-lazy-init="false">
 
-    <context:annotation-config/>
+    <bean class="com.evolveum.midpoint.ninja.LogBeanPostProcessor"/>
 
     <bean id="lightweightIdentifierGenerator"
             class="com.evolveum.midpoint.repo.sql.testing.LightweightIdentifierGeneratorMock"/>
