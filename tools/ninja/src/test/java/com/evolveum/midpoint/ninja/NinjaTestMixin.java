@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.util.ClassPathUtil;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
@@ -65,7 +66,7 @@ public interface NinjaTestMixin {
      * This is not enough to support tests on other DB (it doesn't run dbtest profile properly)
      * or for Native repository, but {@link #clearMidpointTestDatabase(ApplicationContext)} can be used in the preExecute block.
      */
-    default void setupMidpointHome() {
+    default void setupMidpointHome() throws IOException {
         // This tells Ninja to use the right config XML for Native repo.
         // Ninja tests don't support test.config.file property as other midPoint tests.
         String testConfigFile = System.getProperty("test.config.file");
@@ -75,6 +76,7 @@ public interface NinjaTestMixin {
             String mpHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
             File config = new File(mpHome, testConfigFile);
             if (!config.exists()) {
+                FileUtils.forceMkdirParent(config);
                 ClassPathUtil.extractFileFromClassPath(testConfigFile, config.getPath());
             }
         }
