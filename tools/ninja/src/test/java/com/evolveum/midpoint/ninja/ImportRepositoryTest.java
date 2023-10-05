@@ -33,7 +33,9 @@ public class ImportRepositoryTest extends NinjaSpringTest {
 
     private static final String PATH_MONKEY_ISLAND_SIMPLE_ZIP = "./target/org-monkey-island-simple.zip";
 
-    @BeforeClass
+    @BeforeClass(
+            dependsOnMethods = {"springTestContextPrepareTestInstance"}
+    )
     @Override
     public void beforeClass() throws Exception {
         RepositoryDiag diag = repository.getRepositoryDiag();
