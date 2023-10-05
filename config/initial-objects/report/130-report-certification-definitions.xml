@@ -12,6 +12,7 @@
     <name>Certification definitions report</name>
     <description>All certification definitions with basic information on related campaigns.</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType" />
     </assignment>
     <objectCollection>

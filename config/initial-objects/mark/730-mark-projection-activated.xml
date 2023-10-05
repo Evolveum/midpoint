@@ -14,6 +14,7 @@
         (So, previously it was either non-existent or effectively disabled.)
     </documentation>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>300</displayOrder>

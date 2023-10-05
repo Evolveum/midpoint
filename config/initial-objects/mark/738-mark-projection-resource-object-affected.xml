@@ -10,6 +10,7 @@
     <name>Resource object affected</name>
     <description>Operation that made any change (addition, modification, deletion) to a resource object</description>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>360</displayOrder>

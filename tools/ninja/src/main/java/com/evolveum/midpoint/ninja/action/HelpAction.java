@@ -8,11 +8,23 @@
 package com.evolveum.midpoint.ninja.action;
 
 import com.beust.jcommander.JCommander;
+
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
 public class HelpAction extends Action<HelpOptions, ActionResult<Void>> {
+
+    @Override
+    public @NotNull NinjaApplicationContextLevel getApplicationContextLevel(List<Object> allOptions) {
+        return NinjaApplicationContextLevel.NONE;
+    }
 
     @Override
     public String getOperationName() {

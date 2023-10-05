@@ -11,6 +11,7 @@
     <description>Operation that changed the focus parent organization reference</description>
     <documentation>This mark deals with `parentOrgRef` value.</documentation>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>150</displayOrder>

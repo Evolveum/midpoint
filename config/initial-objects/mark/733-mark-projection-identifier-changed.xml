@@ -13,6 +13,7 @@
         This is an operation that changed the identifier (primary or secondary) of a projection.
     </documentation>
     <assignment id="1">
+        <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>330</displayOrder>
