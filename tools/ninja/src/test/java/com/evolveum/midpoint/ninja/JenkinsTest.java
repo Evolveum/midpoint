@@ -7,8 +7,13 @@
 
 package com.evolveum.midpoint.ninja;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -19,29 +24,32 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @ContextConfiguration(locations = "classpath:ctx-ninja-test.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class JenkinsTest extends NinjaSpringTest {
+public class JenkinsTest extends AbstractSpringTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(JenkinsTest.class);
+    @Autowired
+    private RepositoryService repositoryService;
 
-    @BeforeClass(alwaysRun = true, dependsOnMethods = "springTestContextBeforeTestClass")
-    protected void springTestContextPrepareTestInstance() throws Exception {
-        LOGGER.info("springTestContextPrepareTestInstance started");
-        super.springTestContextPrepareTestInstance();
-        LOGGER.info("springTestContextPrepareTestInstance finished");
-    }
-
-    @BeforeClass
-    @Override
-    public void beforeClass() throws Exception {
-        LOGGER.info("beforeClass started");
-        super.beforeClass();
-        LOGGER.info("beforeClass finished");
-    }
-
-    @BeforeClass
+//    private static final Trace LOGGER = TraceManager.getTrace(JenkinsTest.class);
+//
+//    @BeforeClass(alwaysRun = true, dependsOnMethods = "springTestContextBeforeTestClass")
+//    protected void springTestContextPrepareTestInstance() throws Exception {
+//        LOGGER.info("springTestContextPrepareTestInstance started");
+//        super.springTestContextPrepareTestInstance();
+//        LOGGER.info("springTestContextPrepareTestInstance finished");
+//    }
+//
+//    @BeforeClass
+//    @Override
+//    public void beforeClass() throws Exception {
+//        LOGGER.info("beforeClass started");
+//        super.beforeClass();
+//        LOGGER.info("beforeClass finished");
+//    }
 
     @Test
     public void emptyTest() throws Exception {
-
+        if (!repositoryService.isNative()) {
+            throw new SkipException("skipped");
+        }
     }
 }
