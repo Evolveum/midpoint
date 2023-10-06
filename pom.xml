@@ -261,8 +261,8 @@
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
         but M5 doesn't work for us anymore either (failing test initialization). -->
-        <surefire.version>3.1.0</surefire.version>
-        <failsafe.version>3.1.0</failsafe.version>
+        <surefire.version>3.1.2</surefire.version>
+        <failsafe.version>3.1.2</failsafe.version>
 
         <asciidoclet.version>1.5.6</asciidoclet.version>
     </properties>
