@@ -47,6 +47,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -231,7 +232,7 @@ public class NodeRegistrar implements Cache, SystemConfigurationChangeListener {
     @NotNull
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
         XMLGregorianCalendar currentTime = XmlTypeConverter.createXMLGregorianCalendar();
-        NodeType node = prismContext.createKnownObjectable(NodeType.class);
+        NodeType node = new NodeType();
         String nodeId = configuration.getNodeId();
         node.setNodeIdentifier(nodeId);
         node.setName(new PolyStringType(nodeId));
