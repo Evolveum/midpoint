@@ -265,7 +265,7 @@ public class ClusterManager {
     }
 
     private boolean isRemoteNode(NodeType node) {
-        return !taskManager.getNodeId().equals(node.getNodeIdentifier());
+        return !configuration.getNodeId().equals(node.getNodeIdentifier());
     }
 
     private boolean shouldBeMarkedAsDown(NodeType node) {
