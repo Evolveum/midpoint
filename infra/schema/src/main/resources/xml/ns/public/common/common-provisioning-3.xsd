@@ -2330,13 +2330,25 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Lifecycle state mapping. This mapping influences how shadow lifecycle state and focus
-                        lifecycle state are mapped.
-                        Default outbound lifecycleState mapping is somehow smart algorithm that will consider
-                        presence of the focus password, resource password capability, operation and so on.
-                        It is defined to work well with hashed passwords.
-                        Default inbound lifecycle mapping is empty: no mapping at all. In midPoint 3.6 the inbound
-                        lifecycle mapping is not implemented.
+                        lifecycle state are mapped. Reserved for future use.
+
+                        Note that the original outbound mapping for shadow lifecycle (from 3.6 up to 4.7) was
+                        transformed into the "purpose" mapping in 4.8. To avoid confusion, it is considered
+                        a configuration error if the outbound mappings are here in 4.8.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="purpose" type="tns:ResourceBidirectionalMappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The outbound mapping for shadow purpose.
+                        The default mapping is somehow smart algorithm that will consider presence of the focus password,
+                        resource password capability, operation and so on, in order to determine whether the purpose
+                        of the resource object is "regular" or "incomplete".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: validation for each individual lifecycle state.

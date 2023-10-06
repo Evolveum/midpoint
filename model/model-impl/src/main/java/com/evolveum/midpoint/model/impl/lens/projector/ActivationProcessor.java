@@ -815,7 +815,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             LensProjectionContext projCtx,
             ResourceActivationDefinitionType activationDefinitionBean,
             ResourceBidirectionalMappingType bidirectionalMappingBean, // [EP:M:OM] DONE 8/8
-            ItemPath focusPropertyPath,
+            @Nullable ItemPath focusPropertyPath,
             ItemPath projectionPropertyPath,
             ActivationCapabilityType capActivation,
             XMLGregorianCalendar now,
@@ -847,38 +847,42 @@ public class ActivationProcessor implements ProjectorProcessor {
 
                     // Source: administrativeStatus, validFrom or validTo
                     LensFocusContext<F> focusContext = context.getFocusContext();
-                    ObjectDeltaObject<F> focusOdoAbsolute = focusContext.getObjectDeltaObjectAbsolute();
-                    ItemDeltaItem<PrismPropertyValue<T>, PrismPropertyDefinition<T>> sourceIdi = focusOdoAbsolute.findIdi(focusPropertyPath);
 
-                    if (capActivation != null && focusPropertyPath.equivalent(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
-                        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
-                        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
+                    if (focusPropertyPath != null) {
 
-                        // "Magic" computed status (tweaked admin status if validity is supported, effective status if not)
-                        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>, PrismPropertyDefinition<ActivationStatusType>> inputIdi;
-                        if (capValidFrom != null && capValidTo != null) {
-                            LOGGER.trace("Native validFrom and validTo -> using adapted administrativeStatus as the implicit input");
-                            // We have to convert ARCHIVED to DISABLED, to avoid passing it forward via "asIs" mapping (MID-9026)
-                            inputIdi = createIdi(
-                                    ADAPTED_ADMINISTRATIVE_STATUS_PROPERTY_NAME, SchemaConstants.C_ACTIVATION_STATUS_TYPE,
-                                    getAdaptedAdministrativeStatus(focusContext.getObjectOld()),
-                                    getAdaptedAdministrativeStatus(focusContext.getObjectNew()));
-                            // Marking the source as "administrativeStatus" is not entirely correct, because we actually use
-                            // a derived value. Fortunately, the implicit source path is only for tracing purposes; moreover,
-                            // this should be a temporary solution until ARCHIVED is removed in 4.9.
-                            builder.implicitSourcePath(focusPropertyPath);
+                        ObjectDeltaObject<F> focusOdoAbsolute = focusContext.getObjectDeltaObjectAbsolute();
+                        ItemDeltaItem<PrismPropertyValue<T>, PrismPropertyDefinition<T>> sourceIdi = focusOdoAbsolute.findIdi(focusPropertyPath);
+
+                        if (capActivation != null && focusPropertyPath.equivalent(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
+                            ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEnabledActivationValidFrom(capActivation);
+                            ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEnabledActivationValidTo(capActivation);
+
+                            // "Magic" computed status (tweaked admin status if validity is supported, effective status if not)
+                            ItemDeltaItem<PrismPropertyValue<ActivationStatusType>, PrismPropertyDefinition<ActivationStatusType>> inputIdi;
+                            if (capValidFrom != null && capValidTo != null) {
+                                LOGGER.trace("Native validFrom and validTo -> using adapted administrativeStatus as the implicit input");
+                                // We have to convert ARCHIVED to DISABLED, to avoid passing it forward via "asIs" mapping (MID-9026)
+                                inputIdi = createIdi(
+                                        ADAPTED_ADMINISTRATIVE_STATUS_PROPERTY_NAME, SchemaConstants.C_ACTIVATION_STATUS_TYPE,
+                                        getAdaptedAdministrativeStatus(focusContext.getObjectOld()),
+                                        getAdaptedAdministrativeStatus(focusContext.getObjectNew()));
+                                // Marking the source as "administrativeStatus" is not entirely correct, because we actually use
+                                // a derived value. Fortunately, the implicit source path is only for tracing purposes; moreover,
+                                // this should be a temporary solution until ARCHIVED is removed in 4.9.
+                                builder.implicitSourcePath(focusPropertyPath);
+                            } else {
+                                LOGGER.trace("No native validFrom and validTo -> using effectiveStatus as the implicit input");
+                                inputIdi = focusOdoAbsolute.findIdi(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
+                                builder.implicitSourcePath(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
+                            }
+
+                            builder.defaultSource(new Source<>(inputIdi, ExpressionConstants.VAR_INPUT_QNAME));
+                            builder.additionalSource(new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS_QNAME));
+
                         } else {
-                            LOGGER.trace("No native validFrom and validTo -> using effectiveStatus as the implicit input");
-                            inputIdi = focusOdoAbsolute.findIdi(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
-                            builder.implicitSourcePath(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
+                            builder.defaultSource(new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT_QNAME));
+                            builder.implicitSourcePath(focusPropertyPath);
                         }
-
-                        builder.defaultSource(new Source<>(inputIdi, ExpressionConstants.VAR_INPUT_QNAME));
-                        builder.additionalSource(new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS_QNAME));
-
-                    } else {
-                        builder.defaultSource(new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT_QNAME));
-                        builder.implicitSourcePath(focusPropertyPath);
                     }
 
                     builder.additionalSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
@@ -1147,49 +1151,50 @@ public class ActivationProcessor implements ProjectorProcessor {
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        ResourceBidirectionalMappingType lifecycleStateMapping = getLifecycleStateMapping(projCtx); // [EP:M:OM] DONE
-        if (lifecycleStateMapping == null || lifecycleStateMapping.getOutbound() == null) {
+        ResourceBidirectionalMappingType purposeMappings = getPurposeMappings(projCtx); // [EP:M:OM] DONE
+        if (purposeMappings == null) {
 
             if (!projCtx.isAdd()) {
-                LOGGER.trace("Skipping lifecycle evaluation because this is not an add operation (default expression)");
+                LOGGER.trace("Skipping purpose evaluation because this is not an add operation (default expression)");
                 return;
             }
 
             PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
             if (focusNew == null) {
-                LOGGER.trace("Skipping lifecycle evaluation because there is no new focus (default expression)");
+                LOGGER.trace("Skipping purpose evaluation because there is no new focus (default expression)");
                 return;
             }
 
             PrismObject<ShadowType> projectionNew = projCtx.getObjectNew();
             if (projectionNew == null) {
-                LOGGER.trace("Skipping lifecycle evaluation because there is no new projection (default expression)");
+                LOGGER.trace("Skipping purpose evaluation because there is no new projection (default expression)");
                 return;
             }
 
-            String lifecycle = midpointFunctions.computeProjectionLifecycle(
+            ShadowPurposeType purpose = midpointFunctions.computeDefaultProjectionPurpose(
                     focusNew.asObjectable(), projectionNew.asObjectable(), projCtx.getResource());
 
-            LOGGER.trace("Computed projection lifecycle (default expression): {}", lifecycle);
+            LOGGER.trace("Computed projection purpose (default expression): {}", purpose);
 
-            if (lifecycle != null) {
-                PrismPropertyDefinition<String> propDef = projCtx.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_LIFECYCLE_STATE);
-                PropertyDelta<String> lifeCycleDelta = propDef.createEmptyDelta(SchemaConstants.PATH_LIFECYCLE_STATE);
-                PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(lifecycle);
+            if (purpose != null) {
+                PrismPropertyDefinition<ShadowPurposeType> propDef =
+                        projCtx.getObjectDefinition().findPropertyDefinition(ShadowType.F_PURPOSE);
+                PropertyDelta<ShadowPurposeType> purposeDelta = propDef.createEmptyDelta(ShadowType.F_PURPOSE);
+                PrismPropertyValue<ShadowPurposeType> pval = prismContext.itemFactory().createPropertyValue(purpose);
                 pval.setOriginType(OriginType.OUTBOUND);
                 //noinspection unchecked
-                lifeCycleDelta.setValuesToReplace(pval);
-                projCtx.swallowToSecondaryDelta(lifeCycleDelta);
+                purposeDelta.setValuesToReplace(pval);
+                projCtx.swallowToSecondaryDelta(purposeDelta);
             }
 
         } else {
 
-            LOGGER.trace("Computing projection lifecycle (using mapping): {}", lifecycleStateMapping);
+            LOGGER.trace("Computing projection purpose (using mapping): {}", purposeMappings);
             evaluateActivationMapping(
                     context, projCtx, null,
-                    lifecycleStateMapping, // [EP:M:OM] DONE
-                    SchemaConstants.PATH_LIFECYCLE_STATE, SchemaConstants.PATH_LIFECYCLE_STATE,
-                    null, now, MappingTimeEval.CURRENT, ObjectType.F_LIFECYCLE_STATE.getLocalPart(), task, result);
+                    purposeMappings, // [EP:M:OM] DONE
+                    null, ShadowType.F_PURPOSE,
+                    null, now, MappingTimeEval.CURRENT, ShadowType.F_PURPOSE.getLocalPart(), task, result);
         }
 
         context.checkConsistenceIfNeeded();
@@ -1199,22 +1204,36 @@ public class ActivationProcessor implements ProjectorProcessor {
 
     // [EP:M:OM] DONE, the bean is obtained from the resource
     @Nullable
-    private ResourceBidirectionalMappingType getLifecycleStateMapping(LensProjectionContext projCtx)
+    private ResourceBidirectionalMappingType getPurposeMappings(LensProjectionContext projCtx)
             throws SchemaException, ConfigurationException {
-        ResourceObjectLifecycleDefinitionType lifecycleDef;
-        ResourceObjectDefinition resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
-        if (resourceObjectDefinition != null) {
-            lifecycleDef = resourceObjectDefinition.getDefinitionBean().getLifecycle();
-        } else {
-            lifecycleDef = null;
+        var resourceObjectDefinition = projCtx.getStructuralDefinitionIfNotBroken();
+        if (resourceObjectDefinition == null) {
+            return null;
         }
-        ResourceBidirectionalMappingType lifecycleStateMapping;
-        if (lifecycleDef != null) {
-            lifecycleStateMapping = lifecycleDef.getLifecycleState();
-        } else {
-            lifecycleStateMapping = null;
+        var lifecycleDefinitions = resourceObjectDefinition.getDefinitionBean().getLifecycle();
+        if (lifecycleDefinitions == null) {
+            return null;
         }
-        return lifecycleStateMapping;
+        assertNoLifecycleStateOutboundMappings(lifecycleDefinitions);
+        return lifecycleDefinitions.getPurpose();
+    }
+
+    /**
+     * Lifecycle state outbound mappings were there since 3.6. In 4.8, they were migrated to the "purpose" mappings.
+     * We should tell the user if they are still there.
+     */
+    private void assertNoLifecycleStateOutboundMappings(ResourceObjectLifecycleDefinitionType lifecycleDefinitions)
+            throws ConfigurationException {
+        var stateMappings = lifecycleDefinitions.getLifecycleState();
+        if (stateMappings == null) {
+            return;
+        }
+        var outbound = stateMappings.getOutbound();
+        if (outbound.isEmpty()) {
+            return;
+        }
+        throw new ConfigurationException(
+                "Outbound mappings for 'lifecycleState' are no longer supported. Please migrate them to 'purpose' mappings.");
     }
 
     private PrismObjectDefinition<UserType> getUserDefinition() {

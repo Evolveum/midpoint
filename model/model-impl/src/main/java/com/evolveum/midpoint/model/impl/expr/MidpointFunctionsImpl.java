@@ -1532,7 +1532,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource) {
+    public <F extends FocusType> ShadowPurposeType computeDefaultProjectionPurpose(F focus, ShadowType shadow, ResourceType resource) {
         if (focus == null || shadow == null) {
             return null;
         }
@@ -1558,7 +1558,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (passwordCapabilityType.isEnabled() == Boolean.FALSE) {
             return null;
         }
-        return SchemaConstants.LIFECYCLE_PROPOSED;
+        return ShadowPurposeType.INCOMPLETE;
     }
 
     public MidPointPrincipal getPrincipal() throws SecurityViolationException {
@@ -1590,7 +1590,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 ObjectDelta<ShadowType> shadowDelta = executedOperation.getObjectDelta();
                 if (isAdd(shadowDelta) && executedOperation.getStatus() == OperationResultStatus.SUCCESS) {
                     ShadowType shadow = shadowDelta.getObjectToAdd().asObjectable();
-                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
+                    if (shadow.getPurpose() == ShadowPurposeType.INCOMPLETE) {
                         shadows.add(shadow);
                     }
                 }

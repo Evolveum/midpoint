@@ -100,6 +100,11 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertPurpose(ShadowPurposeType expected) {
+        assertThat(getObjectable().getPurpose()).as("purpose").isEqualTo(expected);
+        return this;
+    }
+
     public ShadowAsserter<RA> assertObjectClass() {
         assertNotNull("No objectClass in " + desc(), getObject().asObjectable().getObjectClass());
         return this;
