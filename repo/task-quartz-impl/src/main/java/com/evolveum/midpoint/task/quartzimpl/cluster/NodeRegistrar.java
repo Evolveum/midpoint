@@ -72,6 +72,7 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
  *
  * TODO finish review of this class
  */
+@DependsOn("taskManagerConfiguration")
 @Component
 public class NodeRegistrar implements Cache {
 
