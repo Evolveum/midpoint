@@ -28,6 +28,8 @@ import org.apache.wicket.core.util.objects.checker.IObjectChecker;
 import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
+import org.apache.wicket.csp.CSPDirective;
+import org.apache.wicket.csp.CSPDirectiveSrcValue;
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
@@ -227,7 +229,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     public void init() {
         super.init();
 
-        getCspSettings().blocking().disabled();
+        getCspSettings().blocking().clear()
+                .unsafeInline()
+                .add(CSPDirective.IMG_SRC, "data:")
+                .add(CSPDirective.FONT_SRC, "data:");
 
         // This is needed for wicket to work correctly. Also jQuery version in webjars should match AdminLTE jQuery version.
         // We'll try to use npm/webpack to create this jquery resource directly, without webjars [todo lazyman]
