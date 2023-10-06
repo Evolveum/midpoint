@@ -141,7 +141,7 @@ public class ClusterManager {
             if (node.asObjectable().getOperationalState() == NodeOperationalStateType.UP) {
                 clusterState.getNodeUp().add(nodeIdentifier);
             }
-            if (taskManager.isUpAndAlive(node.asObjectable())) {
+            if (isUpAndAlive(node.asObjectable())) {
                 clusterState.getNodeUpAndAlive().add(nodeIdentifier);
             }
         }
