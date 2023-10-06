@@ -17,7 +17,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -45,7 +47,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -72,7 +73,7 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
  * TODO finish review of this class
  */
 @Component
-public class NodeRegistrar implements Cache, SystemConfigurationChangeListener {
+public class NodeRegistrar implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(NodeRegistrar.class.getName() + ".content");
@@ -83,9 +84,7 @@ public class NodeRegistrar implements Cache, SystemConfigurationChangeListener {
     private static final String OP_REFRESH_CACHED_LOCAL_NODE_OBJECT_ON_INVALIDATION =
             NodeRegistrar.class.getName() + ".refreshCachedLocalNodeObjectOnInvalidation";
 
-
-    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
-
+    @Autowired private TaskManagerQuartzImpl taskManager;
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private ClusterManager clusterManager;
     @Autowired private LocalNodeState localNodeState;
@@ -123,18 +122,14 @@ public class NodeRegistrar implements Cache, SystemConfigurationChangeListener {
     private String discoveredUrlScheme;
     private Integer discoveredHttpPort;
 
-    private String intraClusterHttpUrlPattern;
-
     @PostConstruct
     public void initialize() {
         discoverUrlSchemeAndPort();
-        systemConfigurationChangeDispatcher.registerListener(this);
         cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     void preDestroy() {
-        systemConfigurationChangeDispatcher.unregisterListener(this);
         cacheRegistry.unregisterCache(this);
     }
 
@@ -620,6 +615,7 @@ public class NodeRegistrar implements Cache, SystemConfigurationChangeListener {
         }
 
         String path = webContextPath;
+        String intraClusterHttpUrlPattern = taskManager.getIntraClusterHttpUrlPattern();
         if (intraClusterHttpUrlPattern != null) {
             String url = intraClusterHttpUrlPattern.replace("$host", getMyHostname());
             if (url.contains("$port")) {
@@ -796,11 +792,5 @@ public class NodeRegistrar implements Cache, SystemConfigurationChangeListener {
     @Override
     public void dumpContent() {
         LOGGER_CONTENT.info("Current node:\n{}", DebugUtil.debugDumpLazily(cachedLocalNodeObject));
-    }
-
-    @Override
-    public void update(@Nullable SystemConfigurationType value) {
-        var infraConf = value != null ? value.getInfrastructure() : null;
-        this.intraClusterHttpUrlPattern = infraConf != null ? infraConf.getIntraClusterHttpUrlPattern() : null;
     }
 }

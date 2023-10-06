@@ -58,6 +58,7 @@ public class ClusterManager {
     private static final String CLASS_DOT = ClusterManager.class.getName() + ".";
     private static final String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_DOT + "checkSystemConfigurationChanged";
 
+    @Autowired private TaskManagerQuartzImpl taskManager;
     @Autowired private NodeRegistrar nodeRegistrar;
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private StalledTasksWatcher stalledTasksWatcher;
@@ -65,10 +66,6 @@ public class ClusterManager {
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private TaskStateManager taskStateManager;
     @Autowired private LocalScheduler localScheduler;
-
-
-    @Autowired private RepositoryService repositoryService;
-    @Autowired private PrismContext prismContext;
 
     private ClusterManagerThread clusterManagerThread;
 
@@ -144,7 +141,7 @@ public class ClusterManager {
             if (node.asObjectable().getOperationalState() == NodeOperationalStateType.UP) {
                 clusterState.getNodeUp().add(nodeIdentifier);
             }
-            if (isUpAndAlive(node.asObjectable())) {
+            if (taskManager.isUpAndAlive(node.asObjectable())) {
                 clusterState.getNodeUpAndAlive().add(nodeIdentifier);
             }
         }
@@ -268,7 +265,7 @@ public class ClusterManager {
     }
 
     private boolean isRemoteNode(NodeType node) {
-        return !configuration.getNodeId().equals(node.getNodeIdentifier());
+        return !taskManager.getNodeId().equals(node.getNodeIdentifier());
     }
 
     private boolean shouldBeMarkedAsDown(NodeType node) {
@@ -316,7 +313,7 @@ public class ClusterManager {
     }
 
     private RepositoryService getRepositoryService() {
-        return repositoryService;
+        return taskManager.getRepositoryService();
     }
 
     public String dumpNodeInfo(NodeType node) {
@@ -338,8 +335,9 @@ public class ClusterManager {
 
     public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
         try {
-            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, nodeIdentifier);
-            List<PrismObject<NodeType>> nodes =getRepositoryService().searchObjects(NodeType.class, q, null, result);
+            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
+            List<PrismObject<NodeType>> nodes =
+                    taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {
                 throw new ObjectNotFoundException(
                         "A node with identifier " + nodeIdentifier + " does not exist.",
