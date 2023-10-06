@@ -1140,10 +1140,10 @@ public interface MidpointFunctions {
             ObjectNotFoundException, ExpressionEvaluationException;
 
     /**
-     * Default function used to compute projection lifecycle. It is provided here so it can be explicitly
+     * Default function used to compute projection purpose. It is provided here so it can be explicitly
      * invoked from a custom expression and then the result can be changed for special cases.
      */
-    <F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource);
+    <F extends FocusType> ShadowPurposeType computeDefaultProjectionPurpose(F focus, ShadowType shadow, ResourceType resource);
 
     /**
      * Returns principal representing the user whose identity is used to execute the expression.
@@ -1163,6 +1163,7 @@ public interface MidpointFunctions {
 
     /**
      * Used for account activation notifier to collect all shadows which are going to be activated.
+     * Currently it simply collects all accounts with the purpose of {@link ShadowPurposeType#INCOMPLETE}.
      */
     List<ShadowType> getShadowsToActivate(Collection<? extends ModelProjectionContext> projectionContexts);
 

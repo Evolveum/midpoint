@@ -1040,6 +1040,7 @@
                     <display>
                         <label>Application.panel.applications</label>
                     </display>
+                    <applicableForOperation>modify</applicableForOperation>
                     <panelType>roleMemberships</panelType>
                     <listView>
                         <identifier>applications</identifier>

@@ -2330,13 +2330,25 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Lifecycle state mapping. This mapping influences how shadow lifecycle state and focus
-                        lifecycle state are mapped.
-                        Default outbound lifecycleState mapping is somehow smart algorithm that will consider
-                        presence of the focus password, resource password capability, operation and so on.
-                        It is defined to work well with hashed passwords.
-                        Default inbound lifecycle mapping is empty: no mapping at all. In midPoint 3.6 the inbound
-                        lifecycle mapping is not implemented.
+                        lifecycle state are mapped. Reserved for future use.
+
+                        Note that the original outbound mapping for shadow lifecycle (from 3.6 up to 4.7) was
+                        transformed into the "purpose" mapping in 4.8. To avoid confusion, it is considered
+                        a configuration error if the outbound mappings are here in 4.8.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="purpose" type="tns:ResourceBidirectionalMappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The outbound mapping for shadow purpose.
+                        The default mapping is somehow smart algorithm that will consider presence of the focus password,
+                        resource password capability, operation and so on, in order to determine whether the purpose
+                        of the resource object is "regular" or "incomplete".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.8</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: validation for each individual lifecycle state.
@@ -4214,6 +4226,36 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="purpose" type="tns:ShadowPurposeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Purpose for existence (or non-existence) of a resource object referenced by the shadow.
+                                E.g. it specifies whether the resource object is fully operational, whether it is not completely prepared yet,
+                                it may indicate why we are keeping the resource object instead of deleting it, and so on.
+                                It can be thought of as a "business lifecycle", specifying the reason for this object or shadow.
+
+                                This information is maintained by midPoint, it is not directly projected to the resource.
+                                This information supplements the resource object data, it keeps additional information that the resource does not have.
+                                It is different from shadowLifecycleState, as shadowLifecycleState specifies the technical state in which resource object is
+                                (e.g. not created yet, not deleted yet).
+                                On the other hand, purpose represents the business information, the reason or intention that we have with the object.
+                                For example, "incomplete" purpose describes an account that is technically in a perfect shape, technically fully operation,
+                                yet user is not able to use that account yet.
+
+                                This is also different from the regular lifecycleState.
+                                The lifecycleState of a shadow is meant to be reflected directly to resource object.
+                                E.g. lifecycleState of a shadow should be taken from lifecycle state of account, from one of its attributes
+                                (similarly to administrativeStatus).
+                                On the other hand, "purpose" is an information kept only by midPoint, not directly synchronized to the resource.
+                                The "purpose" will work for all resources, regardless of whether they support lifecycle state (and its fidelity),
+                                activation or any other details.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ShadowType.purpose</a:displayName>
+                                <a:since>4.8</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="dead" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4650,6 +4692,68 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="TOMBSTONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ShadowPurposeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Purpose for existence (or non-existence) of a resource object referenced by the shadow.
+                E.g. it specifies whether the resource object is fully operational, whether it is not completely prepared yet,
+                it may indicate why we are keeping the resource object instead of deleting it, and so on.
+                It can be thought of as a "business lifecycle", specifying the reason for this object or shadow.
+
+                Purposes considered to the future:
+
+                * reserved: Resource object exists for the sole purpose of reserving identifiers or other resources.
+                E.g. account that exists only to make sure the username is not taken by any other account, or that a username is not re-used.
+                It can be used both for existing and non-existing resource objects.
+                I.e. it may be only a shadow, reserving identifier at midPoint level,
+                or it may be an account (probably inactive), reserving identifier at resource level.
+                May also be used for (non-existent or disabled) accounts that are yet to be "claimed" by the user.
+                (Question: do we need separate "thombstone" state for accounts that were deleted?)
+
+                * suspended: Resource object is inactivated (disabled) for a longer period of time.
+                E.g. used for maternal leave or sabbatical.
+                This purpose may be used to avoid deleting such accounts, e.g. in delayed delete scenarios.
+
+                * lingering: Resource object is still there, even though it should be gone already.
+                E.g. account exists (although it is disabled), even though it should be deleted.
+                This can be used to mark shadows that are kept due to disable-instead-of-delete scenarios.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="regular">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Regular, completely ordinary resource object.
+                        It is in full working condition, everything works normally.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REGULAR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="incomplete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object is not complete, it is not yet fully usable.
+                        Some kind of action is necessary to complete the process.
+
+                        May be used for shadows that are technically in perfect working conditions, however user is not able to fully use them.
+                        For example, an account that was created with random password, the password was not delivered to the user.
+                        The user is expected to "activate" the account by resetting the password.
+                        However, technically, the account is in perfect working condition, enabled, password is set and so on.
+                        This "purpose" value is stored by midPoint to remember that additional action is needed to make this account fully operation on user level.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INCOMPLETE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

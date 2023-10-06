@@ -7,17 +7,10 @@
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -137,7 +130,8 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
     protected LookupTableType getLookupTable() {
         if (lookupTableOid != null) {
-            return WebComponentUtil.loadLookupTable(lookupTableOid, getPageBase());
+            PageAdminLTE parentPage = WebComponentUtil.getPage(AutoCompleteTextPanel.this, PageAdminLTE.class);
+            return WebComponentUtil.loadLookupTable(lookupTableOid, parentPage);
         }
         return null;
     }

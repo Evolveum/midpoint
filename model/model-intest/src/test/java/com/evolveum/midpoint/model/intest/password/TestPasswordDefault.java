@@ -41,8 +41,8 @@ public class TestPasswordDefault extends AbstractPasswordTest {
     }
 
     @Override
-    protected void assertShadowLifecycle(PrismObject<ShadowType> shadow, boolean focusCreated) {
-        assertShadowLifecycle(shadow, null);
+    protected void assertShadowPurpose(PrismObject<ShadowType> shadow, boolean focusCreated) {
+        assertShadowPurpose(shadow, null);
     }
 
     /**

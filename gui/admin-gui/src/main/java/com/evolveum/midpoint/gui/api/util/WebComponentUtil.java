@@ -4024,13 +4024,13 @@ public final class WebComponentUtil {
         return session.getSessionStorage().getMode() == SessionStorage.Mode.DARK;
     }
 
-    public static LookupTableType loadLookupTable(String lookupTableOid, PageBase pageBase) {
-        Task task = pageBase.createSimpleTask("Load lookup table");
+    public static LookupTableType loadLookupTable(String lookupTableOid, PageAdminLTE parentPage) {
+        Task task = parentPage.createSimpleTask("Load lookup table");
         OperationResult result = task.getResult();
         Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                .createLookupTableRetrieveOptions(pageBase.getSchemaService());
+                .createLookupTableRetrieveOptions(parentPage.getSchemaService());
         PrismObject<LookupTableType> prismLookupTable =
-                WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, pageBase, task, result);
+                WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableOid, options, parentPage, task, result);
         if (prismLookupTable != null) {
             return prismLookupTable.asObjectable();
         }

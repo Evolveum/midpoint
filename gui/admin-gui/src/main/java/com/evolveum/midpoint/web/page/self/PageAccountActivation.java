@@ -13,6 +13,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -275,7 +277,7 @@ public class PageAccountActivation extends PageBase {
             ObjectDelta<ShadowType> shadowDelta = getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE,
                             passwordValue);
-            shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+            shadowDelta.addModificationReplaceProperty(ShadowType.F_PURPOSE, ShadowPurposeType.REGULAR);
             passwordDeltas.add(shadowDelta);
         }
 
@@ -308,16 +310,15 @@ public class PageAccountActivation extends PageBase {
 
     }
 
-    private List<ShadowType> getShadowsToActivate(){
+    private List<ShadowType> getShadowsToActivate() {
         UserType userType = userModel.getObject();
         List<ShadowType> shadowsToActivate = new ArrayList<>();
         for (ObjectReferenceType linkRef : userType.getLinkRef()) {
             ShadowType shadow = (ShadowType) linkRef.asReferenceValue().getObject().asObjectable();
-            if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
+            if (shadow.getPurpose() == ShadowPurposeType.INCOMPLETE) {
                 shadowsToActivate.add(shadow);
             }
         }
         return shadowsToActivate;
     }
-
 }

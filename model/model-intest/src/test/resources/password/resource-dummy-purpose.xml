@@ -8,16 +8,13 @@
 
 <resource oid="519f131a-147b-11e7-a270-c38e2b225751"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <!-- Resource with explicit lifecycle expression -->
+    <!-- Resource with explicit purpose expression -->
 
-    <name>Dummy Resource Lifecycle</name>
+    <name>resource-dummy-purpose</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -36,7 +33,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>lifecycle</icfi:instanceId>
+            <icfi:instanceId>purpose</icfi:instanceId>
         </icfc:configurationProperties>
 
     </connectorConfiguration>
@@ -70,26 +67,27 @@
                 </password>
             </credentials>
             <lifecycle>
-                <lifecycleState>
+                <purpose>
                     <outbound>
-                        <name>lifecycle-lifecycle</name>
                         <source>
                             <path>subtype</path>
                         </source>
                         <expression>
                             <script>
                                 <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType
+
                                     if (subtype == 'WRECK') {
-                                        return 'archived';
+                                        return ShadowPurposeType.INCOMPLETE
                                     } else {
                                         // default algorithm
-                                        return midpoint.computeProjectionLifecycle(focus, shadow, resource);
+                                        return midpoint.computeDefaultProjectionPurpose(focus, shadow, resource)
                                     }
                                 </code>
                             </script>
                         </expression>
                     </outbound>
-                </lifecycleState>
+                </purpose>
             </lifecycle>
         </objectType>
     </schemaHandling>
