@@ -69,6 +69,7 @@ import java.util.*;
  *
  * TODO finish review of this class
  */
+@DependsOn("taskManagerConfiguration")
 @Component
 public class NodeRegistrar implements Cache {
 

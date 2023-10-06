@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonTyp
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -52,6 +53,7 @@ import java.util.Set;
  *
  * TODO finish review of this class
  */
+@DependsOn("nodeRegistrar")
 @Component
 public class ClusterManager {
 
