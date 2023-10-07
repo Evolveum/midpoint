@@ -314,7 +314,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
                             ShadowType.F_ACTIVATION, // admin status + timestamp (by a mapping) - present only in
-                            ShadowType.F_LIFECYCLE_STATE); // "proposed" - hopefully this one will go away one day
+                            ShadowType.F_PURPOSE); // midPoint assumes the password is not known to the user
         } else {
             assertThat(projectionContext.getSecondaryDelta()).as("projection secondary delta").isNull();
         }
