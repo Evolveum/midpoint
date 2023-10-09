@@ -246,15 +246,20 @@ Set to `true` if the resource object is linked to an existing focal object.
 
 TODO
 
-== Predefined activation mapping
+== Predefined activation mappings
 
-NOTE: Available from 4.8.
+NOTE: Since 4.8.
 
-Predefined activation mapping are available from midpoint 4.8. We can use simple configuration for predefined mappings without long and complicated configuration for existence and administrative mappings.
+Predefined activation mappings are available since midpoint 4.8.
+We can use simple configuration for predefined mappings without long and complicated configuration for existence and administrative mappings.
 
-If an account is unassigned and there is no other existing assignment for an account midPoint will de-provisioning that account. Which means that the account will be deleted. This is the default behavior. But it can be changed by predefined mappings configuration.
+If an account is unassigned and there is no other existing assignment for an account, midPoint will de-provisioning that account.
+Which means that the account will be deleted.
+This is the default behavior.
+But it can be changed by predefined mappings configuration.
 
-All predefined mapping work only for one purpose. When we want mapping for administrative status, then we need add inbound or outbound mapping configuration.
+All predefined mapping work only for one purpose.
+When we want mapping for administrative status, then we need to add inbound or outbound mapping configuration.
 
 [source,xml]
 ----
@@ -281,7 +286,7 @@ All predefined mapping work only for one purpose. When we want mapping for admin
 Now we can use three predefined configurations.
 
 === Disable instead of delete
-This configuration change default behavior and account will be disabled instead of delete.
+This configuration changes default behavior and account will be disabled instead of being deleted.
 
 [source,xml]
 ----
@@ -300,9 +305,11 @@ This configuration change default behavior and account will be disabled instead 
 ----
 
 === Delayed delete
-This configuration change default behavior and account will delete with delay and meanwhile account will be disabled.
+This configuration changes default behavior and account will be deleted with the delay.
+Until the account is deleted, it is disabled.
 
-We use activation/disableTimestamp from shadow object as reference attribute for time when was account disabled. As disable reason we use de-provision, so it mean that focus lost assignment for resource.
+We use `activation/disableTimestamp` from shadow object as reference attribute for time when the account was disabled.
+As a disable reason we use de-provision, which means that the assignment for resource was removed from the focus (e.g. user).
 
 [source,xml]
 ----
@@ -321,7 +328,7 @@ We use activation/disableTimestamp from shadow object as reference attribute for
 	</schemaHandling>
 </resource>
 ----
-We need set only one attribute _deleteAfter_, that define time after which the account will be deleted.
+We need to set only one attribute `deleteAfter`, that defines time after which the account will be deleted.
 
 === Pre provision
 This configuration will pre-provision a disabled account defined by time before focus’s activation/validFrom date.
@@ -344,7 +351,7 @@ This configuration will pre-provision a disabled account defined by time before 
 </resource>
 ----
 
-We need set only one attribute _createBefore_, that define time determines how long before date, from activation/validFrom attribute, disabled account will be created.
+We need to set only one attribute `createBefore`, that defines time determines how long before date, from activation/validFrom attribute, disabled account will be created.
 
 
 == Examples
