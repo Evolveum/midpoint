@@ -161,7 +161,7 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
         }
 
         http.headers().disable();
-        http.headers().frameOptions().sameOrigin();
+        http.headers().frameOptions().deny();
     }
 
     protected AnonymousAuthenticationFilter createAnonymousFilter(Map<Class<?>, Object> sharedObjects) {

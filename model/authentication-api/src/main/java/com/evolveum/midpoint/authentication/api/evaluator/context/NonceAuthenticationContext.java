@@ -16,26 +16,17 @@ import java.util.List;
 public class NonceAuthenticationContext extends AbstractAuthenticationContext {
 
     private final String nonce;
-    private final NonceCredentialsPolicyType policy;
+    private NonceCredentialsPolicyType policy;
+
 
     public NonceAuthenticationContext(
             String username,
             Class<? extends FocusType> principalType,
             String nonce,
-            NonceCredentialsPolicyType policy) {
-        this(username, principalType, nonce, policy, null, null);
-    }
-
-    public NonceAuthenticationContext(
-            String username,
-            Class<? extends FocusType> principalType,
-            String nonce,
-            NonceCredentialsPolicyType policy,
             List<ObjectReferenceType> requireAssignment,
             AuthenticationChannel channel) {
         super(username, principalType, requireAssignment, channel);
         this.nonce = nonce;
-        this.policy = policy;
     }
 
     public String getNonce() {
@@ -44,6 +35,10 @@ public class NonceAuthenticationContext extends AbstractAuthenticationContext {
 
     public NonceCredentialsPolicyType getPolicy() {
         return policy;
+    }
+
+    public void setPolicy(NonceCredentialsPolicyType policy) {
+        this.policy = policy;
     }
 
     @Override
