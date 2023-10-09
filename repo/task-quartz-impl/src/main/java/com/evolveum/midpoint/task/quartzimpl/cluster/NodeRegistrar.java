@@ -70,6 +70,11 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 /**
  * Takes care about registration of the local node in repository.
  *
+ * @DependsOn was added to ensure that this bean is initialized after {@link NodeRegistrar}.
+ * Without it there were NPEs during initialization under some circumstances (on jenkins in tests).
+ * Problem is caused by spring bean circular dependencies and @PostConstruct methods using autowired
+ * fields that aren't always initialized at the time of execution.
+ *
  * TODO finish review of this class
  */
 @DependsOn("taskManagerConfiguration")
