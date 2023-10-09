@@ -84,15 +84,24 @@ If the bundled scripts are used, you can specify the path to the driver with `-j
 
 Ninja currently supports these operations:
 
-* import
-* export
-* verify (midPoint 3.9 or later)
-* keys
 * count
 * delete
-* import-audit (midPoint 4.4.1 or later)
+* download-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* export
 * export-audit (midPoint 4.4.1 or later)
-* mining-export (midPoint 4.4.4 or later)
+* export-mining (midPoint 4.4.4 or later)
+* help (midPoint 4.8 or later)
+* import
+* import-audit (midPoint 4.4.1 or later)
+* info
+* keys
+* pre-upgrade-check (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* run-sql (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* trace (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* upgrade-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* upgrade-installation (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* upgrade-objects (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* verify (midPoint 3.9 or later)
 
 === Import
 
