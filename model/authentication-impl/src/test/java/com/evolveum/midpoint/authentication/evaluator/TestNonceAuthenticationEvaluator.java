@@ -40,7 +40,7 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
     @Override
     public NonceAuthenticationContext getAuthenticationContext(
             String username, String value, List<ObjectReferenceType> requiredAssignments) {
-        return new NonceAuthenticationContext(username, UserType.class, value, null, requiredAssignments, null);
+        return new NonceAuthenticationContext(username, UserType.class, value, requiredAssignments, null);
     }
 
     @Override
