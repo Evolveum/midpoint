@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -129,13 +131,21 @@ public class Resolver {
                 }
             }
             for (ItemDelta itemDelta : objectDelta.getModifications()) {
-                if (objectDefinition != null && !managedByProvisioning) {
+                // We need to know if delta represents type not present in system
+                // If delta contains them, we need to preserve definitions from item delta.
+                boolean isLegacyDelta = DeltaConvertor.isLegacyDelta(itemDelta);
+
+                // If delta is legacy delta (type was removed), we want to keep "finctional" runtime definition, so nobody will try
+                // to convert it to any sensible value during visualisation, since we can not reason about it contents
+                if (objectDefinition != null && !managedByProvisioning && !isLegacyDelta) {
                     ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
                     if (def != null) {
                         itemDelta.applyDefinition(def);
                     }
                 }
-                if (itemDelta.getEstimatedOldValues() == null) {
+                // Also  if we are dealing with legacy delta, we do not want to fetch estimated old value from system,
+                // because it may have different definition (eg. property vs container)
+                if (!isLegacyDelta && itemDelta.getEstimatedOldValues() == null) {
                     final String oid = objectDelta.getOid();
                     if (!originalObjectFetched && oid != null && includeOriginalObject) {
                         try {
