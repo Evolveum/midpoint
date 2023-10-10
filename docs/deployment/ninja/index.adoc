@@ -227,13 +227,13 @@ ninja.sh export-mining -o role-mining-export.xml -fr '% name != "Superuser"'
 .Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oids`.
 [source,bash]
 ----
-ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --businessRoleArchetypeOid "e9c4654e-c146-4b5f-8336-2065c65060df" --applicationRoleArchetypeOid "52b8361a-c955-4132-97a4-77ff3820beeb"
+ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --business-role-archetype-oid "e9c4654e-c146-4b5f-8336-2065c65060df" --application-role-archetype-oid "52b8361a-c955-4132-97a4-77ff3820beeb"
 ----
 
 .Example: role mining export with `disable organization` structure export.
 [source,bash]
 ----
-ninja.sh export-mining -o role-mining-export.xml --disableOrg
+ninja.sh export-mining -o role-mining-export.xml --disable-org
 ----
 
 .Example: role mining import.
