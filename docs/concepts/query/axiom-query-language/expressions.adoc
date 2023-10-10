@@ -1,5 +1,5 @@
-= Using Axiom in expressions
-:page-nav-title: Axiom in expressions
+= Using expressions in Query Language
+:page-nav-title: Expressions
 :page-display-order: 200
 :page-since: "4.5"
 :page-toc: top
@@ -9,7 +9,7 @@
 Axiom query language provides special syntax support for most common
 expression types.
 
-NOTE: Expressions are not executed / supported for user entered queries in
+IMPORTANT: Expressions are not executed / supported for user entered queries in
 search box in midPoint GUI, since that would allow users to execute code and
 may pose additional security risks.
 

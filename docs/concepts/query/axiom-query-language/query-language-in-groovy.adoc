@@ -1,5 +1,5 @@
-= Using Axiom in Groovy
-:page-nav-title: Axiom in Groovy
+= Using Query Langauge in Groovy
+:page-nav-title: Use in Groovy
 :page-display-order: 300
 
 You can use Axiom query language in Groovy expressions using `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
