@@ -39,6 +39,9 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
@@ -162,6 +165,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         panelCtx.setVisibleEnableBehaviour(createVisibleEnableBehavior());
         panelCtx.setExpressionValidator(createExpressionValidator());
         panelCtx.setFeedback(feedback);
+        panelCtx.setAttributeValuesMap(getAttributeValuesMap());
 
         Component component;
         try {
@@ -329,5 +333,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private ValueMetadataWrapperImpl getValueMetadata() {
         return getModelObject().getValueMetadata();
+    }
+
+    protected Map<String, String> getAttributeValuesMap() {
+        return new HashMap<>();
     }
 }

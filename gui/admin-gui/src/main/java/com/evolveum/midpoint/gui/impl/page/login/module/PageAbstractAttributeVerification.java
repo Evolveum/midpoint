@@ -8,7 +8,9 @@
 package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -34,6 +36,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -58,7 +61,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
     private static final Trace LOGGER = TraceManager.getTrace(PageAbstractAttributeVerification.class);
     private static final String DOT_CLASS = PageAbstractAttributeVerification.class.getName() + ".";
     protected static final String OPERATION_CREATE_ITEM_WRAPPER = DOT_CLASS + "createItemWrapper";
-    private static final String ID_ATTRIBUTE_VALUES = "attributeValues";
+//    private static final String ID_ATTRIBUTE_VALUES = "attributeValues";
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ATTRIBUTE_NAME = "attributeName";
     private static final String ID_ATTRIBUTE_PANEL = "attributePanel";
@@ -87,9 +90,9 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
     @Override
     protected void initModuleLayout(MidpointForm form) {
-        HiddenField<String> verified = new HiddenField<>(ID_ATTRIBUTE_VALUES, attrValuesModel);
-        verified.setOutputMarkupId(true);
-        form.add(verified);
+//        HiddenField<String> verified = new HiddenField<>(ID_ATTRIBUTE_VALUES, attrValuesModel);
+//        verified.setOutputMarkupId(true);
+//        form.add(verified);
 
         initAttributesLayout(form);
     }
@@ -119,23 +122,30 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
             @Serial private static final long serialVersionUID = 1L;
 
+//            @Override
+//            protected AjaxEventBehavior createEventBehavior() {
+//                return new AjaxFormComponentUpdatingBehavior("blur") {
+//
+//                    @Serial private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    protected void onUpdate(AjaxRequestTarget target) {
+//                        attrValuesModel.setObject(generateAttributeValuesString());
+//                        target.add(getVerifiedField());
+//                    }
+//
+//                    @Override
+//                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
+//                        target.add(getFeedback());
+//                    }
+//                };
+//            }
+
             @Override
-            protected AjaxEventBehavior createEventBehavior() {
-                return new AjaxFormComponentUpdatingBehavior("blur") {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        attrValuesModel.setObject(generateAttributeValuesString());
-                        target.add(getVerifiedField());
-                    }
-
-                    @Override
-                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                        target.add(getFeedback());
-                    }
-                };
+            protected Map<String, String> getAttributeValuesMap() {
+                Map<String, String> nameAttribute = new HashMap<>();
+                nameAttribute.put("name", AuthConstants.ATTR_VERIFICATION_PARAMETER_START + itemWrapper.getPath());
+                return nameAttribute;
             }
 
             @Override
@@ -197,25 +207,25 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         return ctx;
     }
 
-    private String generateAttributeValuesString() {
-        JSONArray attrValues = new JSONArray();
-        attributePathModel.getObject().forEach(entry -> {
-            PrismPropertyValueWrapper value = (PrismPropertyValueWrapper) entry.getValue();
-            if (value == null || value.getRealValue() == null) {
-                return;
-            }
-            JSONObject json = new JSONObject();
-            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getItemPath());
-            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, value.getRealValue());
-            attrValues.put(json);
-        });
-        if (attrValues.length() == 0) {
-            return null;
-        }
-        return attrValues.toString();
-    }
+//    private String generateAttributeValuesString() {
+//        JSONArray attrValues = new JSONArray();
+//        attributePathModel.getObject().forEach(entry -> {
+//            PrismPropertyValueWrapper value = (PrismPropertyValueWrapper) entry.getValue();
+//            if (value == null || value.getRealValue() == null) {
+//                return;
+//            }
+//            JSONObject json = new JSONObject();
+//            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getItemPath());
+//            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, value.getRealValue());
+//            attrValues.put(json);
+//        });
+//        if (attrValues.length() == 0) {
+//            return null;
+//        }
+//        return attrValues.toString();
+//    }
 
-    private Component getVerifiedField() {
-        return getForm().get(ID_ATTRIBUTE_VALUES);
-    }
+//    private Component getVerifiedField() {
+//        return getForm().get(ID_ATTRIBUTE_VALUES);
+//    }
 }
