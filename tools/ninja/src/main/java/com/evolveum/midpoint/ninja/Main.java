@@ -19,6 +19,8 @@ import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.InputParameterException;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -177,8 +179,25 @@ public class Main {
         }
     }
 
+    private Exception checkAndUnwrapException(Exception ex) {
+        Throwable throwable = ex;
+        while (throwable != null && !Objects.equals(throwable.getCause() , throwable)) {
+            throwable = throwable.getCause();
+            if (throwable instanceof SystemException) {
+                break;
+            }
+        }
+        if (throwable instanceof SystemException && throwable.getMessage().contains("repository context")) {
+            ex = (Exception) throwable;
+        }
+
+        return ex;
+    }
+
     private void handleException(BaseOptions opts, Exception ex) {
         if (!opts.isSilent()) {
+            ex = checkAndUnwrapException(ex);
+
             err.println(ConsoleFormat.formatLogMessage(
                     LogLevel.ERROR, "Unexpected exception occurred (" + ex.getClass() + "), reason: " + ex.getMessage()));
         }
