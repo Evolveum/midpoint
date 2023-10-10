@@ -1709,8 +1709,7 @@ However, not all configuration options are currently supported.
 * It is unlikely that midPoint could be used as a member of identity federation directly.
 Identity proxy or a similar technology may be needed.
 
-* Support for authentication module _necessity_ is limited.
-We support only SUFFICIENT modules in 4.1. However, since 4.7 full _necessity_ is supported.
+* Support for authentication module _necessity_ is fully supported since 4.8.
 
 * Authentication modules for SOAP web services are not supported because SOAP is deprecated and it will be removed soon.
 
