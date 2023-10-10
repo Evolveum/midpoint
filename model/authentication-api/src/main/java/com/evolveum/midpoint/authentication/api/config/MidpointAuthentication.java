@@ -263,7 +263,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     private boolean allModulesAreProcessed() {
-        return allModulesStateMatch(AuthenticationModuleState.SUCCESSFULLY, AuthenticationModuleState.FAILURE, AuthenticationModuleState.CALLED_OFF);
+        return allModulesStateMatch(
+                AuthenticationModuleState.SUCCESSFULLY,
+                AuthenticationModuleState.FAILURE,
+                AuthenticationModuleState.CALLED_OFF,
+                AuthenticationModuleState.FAILURE_CONFIGURATION);
     }
 
     private boolean atLeastOneSuccessfulModuleExists() {

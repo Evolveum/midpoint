@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public enum AuthenticationModuleState {
     LOGIN_PROCESSING,
     FAILURE,
+    FAILURE_CONFIGURATION,
     SUCCESSFULLY,
     LOGOUT_PROCESSING,
     CALLED_OFF
