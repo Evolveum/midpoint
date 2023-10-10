@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
@@ -26,8 +28,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -35,6 +38,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
     private static final String DOT_CLASS = RoleAnalysisSessionWizardPanel.class.getName() + ".";
     private static final String OP_PROCESS_CLUSTERING = DOT_CLASS + "processClustering";
+
+    public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisSessionWizardPanel.class);
 
     public RoleAnalysisSessionWizardPanel(String id, WizardPanelHelper<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> helper) {
         super(id, helper);
@@ -116,17 +121,22 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                 Collection<ObjectDelta<? extends ObjectType>> deltas;
                 try {
                     deltas = getHelper().getDetailsModel().collectDeltas(result);
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
+
+                    Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
+                            .executeChanges(deltas, false, task, result, target);
+
+                    String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
+                            RoleAnalysisSessionType.class);
+
+                    executeClusteringTask(result, task, sessionOid);
+
                 }
-
-                Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
-                        .executeChanges(deltas, false, task, result, target);
-
-                String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
-                        RoleAnalysisSessionType.class);
-
-                executeClusteringTask(result, task, sessionOid);
+                catch (Throwable e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);
+                    result.recordFatalError(
+                            createStringResource("RoleAnalysisSessionWizardPanel.message.clustering.error").getString()
+                                    , e);
+                }
 
                 setResponsePage(PageRoleAnalysis.class);
                 ((PageBase) getPage()).showResult(result);
