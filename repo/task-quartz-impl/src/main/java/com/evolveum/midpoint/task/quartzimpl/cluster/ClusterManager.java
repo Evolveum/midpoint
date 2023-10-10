@@ -49,6 +49,11 @@ import java.util.Set;
 /**
  * Responsible for keeping the cluster consistent.
  *
+ * @DependsOn was added to ensure that this bean is initialized after {@link NodeRegistrar}.
+ * Without it there were NPEs during initialization under some circumstances (on jenkins in tests).
+ * Problem is caused by spring bean circular dependencies and @PostConstruct methods using autowired
+ * fields that aren't always initialized at the time of execution.
+ *
  * TODO finish review of this class
  */
 @DependsOn("nodeRegistrar")
