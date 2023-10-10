@@ -1128,7 +1128,15 @@ WARNING: This panels are available since midPoint 4.7
 
 | Outbound mappings basic information
 | `arw-construction-mapping`
-| Basic information about outbound mapping created in panel `Outbound mappings`
+| Basic information about outbound mapping created in panel `Outbound mappings`. Panel was removed from 4.8.
+
+| Main configuration of outbound mapping
+| `arw-construction-mapping-main`
+| Available from 4.8. Definition of the resource attribute from which the data wil be provisioned, and midPoint attribute which they will be provisioned to. Contains attributes name, source, target, ref (resource attribute), strength, expression and condition
+
+| Optional configuration of outbound mapping
+| `arw-construction-mapping-optional`
+| Available from 4.8. Definition of the resource attributes description, exclusive, authoritative, channel and except channel
 |===
 
 

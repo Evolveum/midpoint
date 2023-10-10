@@ -10,6 +10,16 @@
 :page-alias: { "parent" : "/midpoint/tools/" }
 :page-toc: top
 
+[NOTE]
+====
+Since midPoint 4.8. Also in 4.4.6, 4.7.2 and later.
+
+* Commands and options names realigned:
+** All command and option names are kebab cased
+** File output is now `-o, --output`
+** `-O, --overwrite` for all commands
+====
+
 Ninja is a command line tool bundled with midPoint.
 Implemented features are based on "repo-ninja", but code was rewritten from the ground up.
 This tool comes in handy when one needs to export or import objects from/to midPoint.
@@ -68,28 +78,30 @@ If the bundled scripts are used, you can specify the path to the driver with `-j
 <midpoint>/bin/ninja.sh -j <JDBC_DRIVER_JAR> [general options] [command] [command options]
 ----
 
-=== REST connection
-
-[NOTE]
-====
-Not yet implemented.
-====
-
 // TODO: mention python CLI
 
 == Supported operations
 
 Ninja currently supports these operations:
 
-* import
-* export
-* verify (midPoint 3.9 or later)
-* keys
 * count
 * delete
-* importAudit (midPoint 4.4.1 or later)
-* exportAudit (midPoint 4.4.1 or later)
-* miningExport (midPoint 4.4.4 or later)
+* download-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* export
+* export-audit (midPoint 4.4.1 or later)
+* export-mining (midPoint 4.4.4 or later)
+* help (midPoint 4.8 or later)
+* import
+* import-audit (midPoint 4.4.1 or later)
+* info
+* keys
+* pre-upgrade-check (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* run-sql (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* trace (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* upgrade-distribution (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* upgrade-installation (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* upgrade-objects (midPoint 4.4.6, 4.7.2, 4.8 or later)
+* verify (midPoint 3.9 or later)
 
 === Import
 
@@ -215,13 +227,13 @@ ninja.sh export-mining -o role-mining-export.xml -fr '% name != "Superuser"'
 .Example: role mining export using `ORIGINAL` name mode, identifiers Application and Business role `prefixes/suffixes` and specific `archetypes oids`.
 [source,bash]
 ----
-ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --businessRoleArchetypeOid "e9c4654e-c146-4b5f-8336-2065c65060df" --applicationRoleArchetypeOid "52b8361a-c955-4132-97a4-77ff3820beeb"
+ninja.sh export-mining -o role-mining-export.xml  -nm ORIGINAL -arp "APP_ROLE_, AR-" -ars "_Apr" -brp "BUS_ROLE_" -brs "_BR" --business-role-archetype-oid "e9c4654e-c146-4b5f-8336-2065c65060df" --application-role-archetype-oid "52b8361a-c955-4132-97a4-77ff3820beeb"
 ----
 
 .Example: role mining export with `disable organization` structure export.
 [source,bash]
 ----
-ninja.sh export-mining -o role-mining-export.xml --disableOrg
+ninja.sh export-mining -o role-mining-export.xml --disable-org
 ----
 
 .Example: role mining import.
