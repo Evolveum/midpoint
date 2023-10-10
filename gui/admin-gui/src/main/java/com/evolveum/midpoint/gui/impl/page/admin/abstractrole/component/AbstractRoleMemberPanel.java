@@ -925,7 +925,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> getWarningMessageModel() {
+            protected IModel<String> createWarningMessageModel() {
                 if (isSubtreeScope()) {
                     return createStringResource("abstractRoleMemberPanel.recompute.warning.subtree");
                 }
@@ -1134,7 +1134,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         ConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
 
             @Override
-            protected IModel<String> getWarningMessageModel() {
+            protected IModel<String> createWarningMessageModel() {
                 if (isSubtreeScope() && rowModel == null) {
                     return createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
                 } else if (isIndirect() && rowModel == null) {
