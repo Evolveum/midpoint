@@ -121,7 +121,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
             @Override
             protected AjaxEventBehavior createEventBehavior() {
-                return new AjaxFormComponentUpdatingBehavior("change") {
+                return new AjaxFormComponentUpdatingBehavior("blur") {
 
                     @Serial private static final long serialVersionUID = 1L;
 

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -37,13 +38,14 @@ public class SimpleObjectMergeOperation extends BaseMergeOperation<ObjectType> {
     );
 
     public SimpleObjectMergeOperation(
+            @Nullable OriginMarker originMarker,
             @NotNull ObjectType target,
             @NotNull ObjectType source) {
 
         super(target,
                 source,
                 new GenericItemMerger(
-                        OriginMarker.forOid(source.getOid(), SecurityPolicyType.COMPLEX_TYPE),
+                        originMarker,
                         createPathMap(Map.of())));
     }
 
@@ -67,6 +69,6 @@ public class SimpleObjectMergeOperation extends BaseMergeOperation<ObjectType> {
     public static <O extends ObjectType> void merge(@NotNull PrismObject<O> target, @NotNull PrismObject<O> source)
             throws ConfigurationException, SchemaException {
 
-        new SimpleObjectMergeOperation(target.asObjectable(), source.asObjectable()).execute();
+        new SimpleObjectMergeOperation(null, target.asObjectable(), source.asObjectable()).execute();
     }
 }

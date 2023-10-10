@@ -84,8 +84,23 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
                 .collect(Collectors.toSet());
     }
 
-    public void addOwner(ObjectType owner) {
+    public void rewriteOwner(ObjectType owner) {
+        owners.clear();
         owners.add(owner);
+    }
+
+    public void addOwnerIfNotExist(ObjectType owner) {
+        if (owner == null) {
+            return;
+        }
+        if (!ownerAlreadyExist(owner)) {
+            owners.add(owner);
+        }
+    }
+
+    private boolean ownerAlreadyExist(ObjectType owner) {
+        return owners.stream()
+                .anyMatch(o -> owner.getOid().equals(o.getOid()));
     }
 
     public List<ObjectType> getOwners() {

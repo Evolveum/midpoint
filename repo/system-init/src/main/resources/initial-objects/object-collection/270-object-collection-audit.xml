@@ -55,7 +55,7 @@
 
                             ret = new ArrayList();
                             for (ObjectDeltaOperationType deltaType : input) {
-                                delta = DeltaConvertor.createObjectDeltaOperation(deltaType, prismContext);
+                                delta = DeltaConvertor.createObjectDeltaOperation(deltaType, true);
                                 ret.add(ReportUtils.printDelta(delta));
                             }
                             return ret

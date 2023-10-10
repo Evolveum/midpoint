@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.common.mining.utils;
 
-import static com.evolveum.midpoint.util.ClassPathUtil.LOGGER;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -26,9 +24,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.util.roles.RoleManagementUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisUtils {
+
+    public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisUtils.class);
 
     public static List<String> extractOid(List<PrismObject<UserType>> roleMembers) {
         List<String> membersOids = new ArrayList<>();

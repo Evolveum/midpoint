@@ -15,6 +15,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
  * @author semancik
  */
 public class DeltaConvertor {
+
+    static final QName LEGACY_DELTA = new QName(SchemaConstants.NS_MIDPOINT_PUBLIC_COMMON, "AnnotationLegacyDelta");
 
     /**
      * Object delta: XML (api-types-3) -> native
@@ -100,6 +105,10 @@ public class DeltaConvertor {
     @NotNull
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(@NotNull ObjectDeltaType objectDeltaBean)
             throws SchemaException {
+        return createObjectDelta(objectDeltaBean, false);
+    }
+    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(@NotNull ObjectDeltaType objectDeltaBean, boolean convertUnknownTypes)
+            throws SchemaException {
         PrismContext prismContext = PrismContext.get();
         QName objectTypeName =
                 requireNonNull(objectDeltaBean.getObjectType(),
@@ -107,6 +116,7 @@ public class DeltaConvertor {
 
         PrismObjectDefinition<T> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(objectTypeName);
         Class<T> objectJavaType = objDef.getCompileTimeClass();
+
 
         if (objectDeltaBean.getChangeType() == ChangeTypeType.ADD) {
             ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(objectJavaType, ChangeType.ADD);
@@ -118,7 +128,7 @@ public class DeltaConvertor {
             ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(objectJavaType, ChangeType.MODIFY);
             objectDelta.setOid(objectDeltaBean.getOid());
             for (ItemDeltaType propMod : objectDeltaBean.getItemDelta()) {
-                objectDelta.addModification(createItemDelta(propMod, objDef));
+                objectDelta.addModification(createItemDelta(propMod, objDef, convertUnknownTypes));
             }
             return objectDelta;
         } else if (objectDeltaBean.getChangeType() == ChangeTypeType.DELETE) {
@@ -137,6 +147,26 @@ public class DeltaConvertor {
             PrismContext prismContext) throws SchemaException {
         ObjectDeltaOperation<?> odo = new ObjectDeltaOperation<>(
                 createObjectDelta(odoBean.getObjectDelta(), prismContext));
+        if (odoBean.getExecutionResult() != null) {
+            odo.setExecutionResult(OperationResult.createOperationResult(odoBean.getExecutionResult()));
+        }
+        if (odoBean.getObjectName() != null) {
+            odo.setObjectName(odoBean.getObjectName().toPolyString());
+        }
+        odo.setResourceOid(odoBean.getResourceOid());
+        if (odoBean.getResourceName() != null) {
+            odo.setObjectName(odoBean.getResourceName().toPolyString());
+        }
+        odo.setObjectOid(odoBean.getObjectOid());
+        odo.setShadowIntent(odoBean.getShadowIntent());
+        odo.setShadowKind(odoBean.getShadowKind());
+        return odo;
+    }
+
+    public static ObjectDeltaOperation<?> createObjectDeltaOperation(ObjectDeltaOperationType odoBean,
+            boolean convertUnknownTypes) throws SchemaException {
+        ObjectDeltaOperation<?> odo = new ObjectDeltaOperation<>(
+                createObjectDelta(odoBean.getObjectDelta(), convertUnknownTypes));
         if (odoBean.getExecutionResult() != null) {
             odo.setExecutionResult(OperationResult.createOperationResult(odoBean.getExecutionResult()));
         }
@@ -356,7 +386,26 @@ public class DeltaConvertor {
      */
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> ItemDelta<IV, ID> createItemDelta(
             @NotNull ItemDeltaType propMod, @NotNull PrismContainerDefinition<?> rootPcd) throws SchemaException {
-        return new ItemDeltaBeanToNativeConversion<IV, ID>(propMod, rootPcd)
+        return createItemDelta(propMod, rootPcd, false);
+    }
+
+    /**
+     * Item delta: ItemDeltaType -> native.
+     *
+     * @param propMod The "XML" form.
+     * @param rootPcd Root prism container definition. The root is where the delta path starts.
+     * @param convertUnknownTypes If enabled and unknown type is detected (does not have definition in schema registry) returns delta as PPV with RawType
+     */
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>> ItemDelta<IV, ID> createItemDelta(
+            @NotNull ItemDeltaType propMod, @NotNull PrismContainerDefinition<?> rootPcd,boolean convertUnknownTypes) throws SchemaException {
+        // We can enable unknown type conversion for any objects, which are not shadows or resources, since they
+        // contain type definitions not present in static schema registry, so we fallback to original behaviour
+        // For other types - we can convert unknown types in delta to raw types, so we have chance to properly
+        // visualize them..
+        boolean shouldConvertUnknown = convertUnknownTypes && !ResourceType.COMPLEX_TYPE.equals(rootPcd.getTypeName())
+                && !ShadowType.COMPLEX_TYPE.equals(rootPcd.getTypeName());
+
+        return new ItemDeltaBeanToNativeConversion<IV, ID>(propMod, rootPcd, shouldConvertUnknown)
                 .convert();
     }
 
@@ -467,5 +516,9 @@ public class DeltaConvertor {
             retval.add(createObjectDelta(deltaType, prismContext));
         }
         return retval;
+    }
+
+    public static boolean isLegacyDelta(ItemDelta itemDelta) {
+        return itemDelta.getDefinition() != null && itemDelta.getDefinition().getAnnotation(LEGACY_DELTA) != null;
     }
 }
