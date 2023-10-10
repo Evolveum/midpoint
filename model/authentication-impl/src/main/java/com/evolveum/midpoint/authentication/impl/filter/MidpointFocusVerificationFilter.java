@@ -83,13 +83,14 @@ public abstract class MidpointFocusVerificationFilter extends AbstractAuthentica
     }
 
     protected Map<ItemPath, String> obtainAttributeValues(HttpServletRequest request) {
+        Map<ItemPath, String> attributeValuesMap = new HashMap<>();
+
         String attrValuesString = request.getParameter(SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY);
         if (StringUtils.isEmpty(attrValuesString)) {
-            return null;
+            return attributeValuesMap;
         }
 
         JSONArray attributeValuesArray = new JSONArray(attrValuesString);
-        Map<ItemPath, String> attributeValuesMap = new HashMap<>();
         for (int i = 0; i < attributeValuesArray.length(); i++) {
             JSONObject entry = attributeValuesArray.getJSONObject(i);
 
