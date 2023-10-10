@@ -7,41 +7,37 @@
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-10-14T10:12:43.521+02:00
 :page-since: "4.4"
+:page-since-improved: [ "4.5", "4.7", "4.8" ]
 :page-toc: top
+:sectnums:
+:sectnumlevels: 4
 
 
-Basic idea of flexible authentication is described on xref:..[Flexible Authentication] page.
-Before we describe configuration of flexible authentication, we have to become acquainted with a few terms.
-
-TODO it would be nice to warn the user who starts flexible authentication configuration about the risk not to have an access to midPoint GUI part. E.g. in case of incorrect LoginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another way to restore midPoint environment.
-
-TODO please, add a sample of urlSuffix attribute usage. There is a sample with explanation "Midpoint searches authentication sequence base-on next part of URL, in this case 'emergency'". But it's not clear here that 'emergency' is a value of urlSuffix attribute. I would suggest to paste url sample right to the table with attribute description.
+.Test your configuration prior deploying.
+WARNING: In case of incorrect loginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another way to restore midPoint environment. +
+The emergency `urlSuffix` configuration can help in such case. See xref:#_example_of_sequence_for_administrator_login[example of sequence for administrator login].
 
 == Basic concepts
 
+To better understand the configuration of flexible authentication, it is essential to familiarize ourselves with a few key terms.
 
 === Authentication module
 
-Authentication module is basic building unit of flexible authentication.
-The easiest example of authentication module is classic login form, which we can find on every application.
-Login form contains field for username or email and password.
-Login form represent one authentication module, next modules can be authentication by LDAP, HTTP basic authentication, authentication via Identity Provider server, etc.
-Every Authentication module contains some configuration properties, which define configuration for this kind of authentication module.
+Authentication modules are the basic building blocks of flexible authentication.
+The easiest example of authentication module is the classic login form, found on many websites.
+An example is the classic login form found on many websites, which typically includes fields for a username or email and a password.
+This login form represents just one authentication module.
+There are others like LDAP, HTTP basic authentication, or Identity Provider server authentication, each with its own configuration settings.
 
+=== Authentication sequence and channel
 
-=== Authentication sequence
+An authentication sequence consists of a chain of authentication modules, each with its specific order and configuration requirements within the sequence. These sequences are defined by channels.
 
-Authentication sequence is made up of authentication modules, so it contains chain of authentication modules.
-Each module has its order and necessity configuration for the sequence.
-Sequence is defined by channel.
-Channel represents part of Midpoint, for which this authentication sequence is valid, for example GUI, REST service, etc.
-Also channel contains url suffix for this authentication sequence.
-So channel defines, which authentication sequence will be used for http request.
+A channel represents a portion of Midpoint for which a particular authentication sequence is applicable. For instance, a channel can be associated with the GUI or a REST service. Additionally, each channel includes a URL suffix, which further specifies when this authentication sequence should be used.
 
+In essence, a channel determines which authentication sequence will be employed for an HTTP request.
 
-=== Authentication channel
-
-Flexible authentication knows following channels:
+Flexible authentication encompasses the following channels:
 
 [%autowidth]
 |===
@@ -76,30 +72,29 @@ No suffix specified.
 |===
 
 Channels for _rest_ and _actuator_ default don't create audit records about session creation or termination.
-You can turn on it via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
+You can turn it on via setting _System Configuration_ ->  _audit_ -> _eventRecording_ -> _recordSessionlessAccess_.
 
 
-=== Choosing of Authentication sequence
+=== Selecting the authentication sequence
 
-We can describe flow on two examples.
-
+We can illustrate the authentication sequence flow with two examples.
 
 ==== First example
 
-Midpoint receives HTTP request with URL 'http:localhost:8080/midpoint/actuator/metrics'.
-Midpoint obtains suffix 'actuator' from URL and it gets channel from table base-on suffix.
-Obtained channel is used for searching default sequence for channel.
-Next midpoint initialize found authentication sequence.
-After successful authentication Midpoint sends request to actuator service.
+MidPoint receives an HTTP request with the URL `http:localhost:8080/midpoint/actuator/metrics`.
 
+It extracts the suffix 'actuator' from the URL and by it determines the channel (see table above).
+This channel is then used to search for the default authentication sequence associated with that channel.
+Once found, midPoint initializes the authentication sequence and, upon successful authentication, sends a request to the actuator service.
 
 ==== Second example
 
-Midpoint receives HTTP request with URL 'http:localhost:8080/midpoint/auth/emergency/users'.
-Midpoint obtains suffix 'auth' from URL, this suffix defines using of specific authentication sequence.
-Midpoint searches authentication sequence base-on next part of URL, in this case 'emergency'.
-After successful authentication Midpoint sends request to service, which defines channel in sequence configuration.
-Let's say it is GUI for this example, so request is redirect to users page in GUI.
+In the second scenario, midPoint receives an HTTP request with the URL `http:localhost:8080/midpoint/auth/emergency/users`.
+
+Here, it extracts the 'auth' suffix from the URL, which signifies the use of a specific authentication sequence.
+MidPoint then proceeds to search for the appropriate authentication sequence based on the next part of the URL, which, in this case, is 'emergency'.
+After successfully authenticating, midPoint sends a request to the service defined in the sequence configuration.
+For example, if it is a GUI, the request would be redirected to the users page in the GUI.
 
 
 == Basic configuration
@@ -118,17 +113,19 @@ Element `sequence` defines a sequence of authentication modules.
 The modules are invoked in order as they are specified in the sequence.
 The purpose of the sequence is to guide user through a complete authentication process.
 
-*IMPORTANT*
 
-*Midpoint GUI authentication form:* To be able to use Midpoint GUI, an authentication sequence for formLogin module should be configured.
-In case when no authentication is configured in the security policy at all or there is no sequence in the configured authentication, midPoint will use standard (built-in) login form for the user GUI authentication.
-In case when at least one /not formLogin/ sequence is configured in the authentication configuration, a sequence for formLogin module should be evidently specified in the authentication configuration to make midPoint GUI work.
-To see the default formLogin sequence configuration, please use security policy from the Midpoint initial objects (015-security-policy.xml).
+.Midpoint GUI authentication form
+WARNING: In order to utilize the Midpoint GUI, it is necessary to configure an authentication sequence for the `loginForm` module. +
+If no authentication is configured in the security policy or if there is no sequence defined in the configured authentication, midPoint will default to using the standard (built-in) login form for user GUI authentication.
+However, if there is at least one sequence configured that is not related to loginForm in the authentication configuration, it is imperative to explicitly specify a sequence for the loginForm module in the authentication configuration. This is essential to ensure the proper functioning of the Midpoint GUI. +
+To view the default configuration for the loginForm sequence, please refer to the security policy found in the Midpoint initial objects (015-security-policy.xml).
 
 === Module configuration
 
-The following modules are supported now: `formLogin`, `saml2`, `httpHeader`, `httpBasic`, `httpSecQ`, `securityQuestionsForm`, `mailNonce`, `ldap`, `focusIdentification`, `attributeVerification`, `hint`.
-Each element contains common attributes:
+The following modules are supported in version 4.8:
+`loginForm`, `httpBasic`, `httpHeader`,  `saml2`, `oidc`, `mailNonce`, `smsNonce`, `securityQuestionsForm`, `httpSecQ`, `ldap`, `attributeVerification`, `focusIdentification`, `hint`, `other`, `archetypeSelection`, `correlation`, `duo`
+
+Each module definition contains following common attributes:
 
 [%autowidth]
 |===
@@ -175,12 +172,12 @@ E.g UserType, RoleType, OrgType, ...
 |===
 
 
-==== Module formLogin
+==== Module loginForm
 
-FormLogin module is used for interactive log-in of a user by using HTML forms.
+LoginForm module is used for interactive log-in of a user by using HTML forms.
 
 
-.Example of formLogin module
+.Example of loginForm module
 [source,xml]
 ----
 <loginForm>
@@ -763,18 +760,16 @@ Such properties were tagged as _deprecated_ in schema of saml2 authentication mo
 
 ==== Module oidc
 
-[TIP]
-.MidPoint 4.5 and later
+++++
+{% include since.html since="4.5" %}
+++++
 
-This feature is available only in midPoint 4.5 and later.
+OIDC authentication module supports authentication via Identity provider that supports OpenID connect.
 
+OIDC Authentication module contains two different types of configuration:
 
-OIDC authentication module supports authentication via Identity provider that support OpenID connect.
-
-OIDC Authentication module contains two different kinds of configuration:
-
-. for GUI with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user_, that was defined by attribute _client_,
-. for REST with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest_, that was defined by attribute _resourceServer_.
+. *GUI* with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user_, that was defined by attribute _client_,
+. *REST* with channel _http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest_, that was defined by attribute _resourceServer_.
 
 ===== Configuration for GUI
 
@@ -818,7 +813,7 @@ Identifier of algorithm for digitally sign or create a MAC of the content. (RFC7
 
 
 | `scope`
-| OpenID Connect Clients use scope values as defined in 3.3 of OAuth 2.0 [RFC6749] to specify what access privileges are being requested for Access Tokens. Scope contains 'openid'.
+| OpenID Connect Clients use scope values as defined in 3.3 of OAuth 2.0 [RFC6749] to specify what access privileges are being requested for Access Tokens. Scope contains 'openid', so we don't need set it. Scope is multivalue attribute, so please set every value of scope to separate tags.
 | false
 | _String_
 
@@ -982,6 +977,8 @@ Required attribute is only `issuerUri`, because midPoint gets configuration for 
                             <clearValue>password</clearValue>
                         </keyPassword>
                     </keyStoreProofKey>
+                    <scope>profile</scope>
+                    <scope>user</scope>
                 </client>
             </oidc>
         </modules>
@@ -1031,57 +1028,75 @@ Resource server contains following attributes:
 
 [%autowidth]
 |===
-| Name | Description | Required | Type
+| Name | Description | Required | Type | Note
 
 | `jwt`
-| Define that resource server expect token in format JWT. Since midPint 4.8.
+| Define that resource server expect token in format JWT.
 | false
 | _JwtOidcResourceServerType_
+| Since midPoint 4.8.
 
 | `opaqueToken`
-| Define that resource server expect opaque token, which have to be verified by user info endpoint. Since midPint 4.8.
+| Define that resource server expect opaque token, which have to be verified by user info endpoint.
 | false
 | _OpaqueTokenOidcResourceServerType_
+| Since midPoint 4.8.
 
 | `realm`
-| Realm which Midpoint use for WWW-Authentication header. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| Realm which midPoint use for WWW-Authentication header.
 | false
 | _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 | `issuerUri`
-| Issuer identifier URI for the OpenID Connect provider. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| Issuer identifier URI for the OpenID Connect provider.
 | false
 | _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 | `jwkSetUri`
-| URI for the JSON Web Key (JWK) Set endpoint. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| URI for the JSON Web Key (JWK) Set endpoint.
 | false
 | _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 | `nameOfUsernameClaim`
-| Name of claim in JWT, which value define name of user in midPoint. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| Name of claim in JWT, which value define name of user in midPoint.
 | false
 | _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 | `singleSymmetricKey`
-| Trusting a Single Asymmetric Key. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| Trusting a Single Asymmetric Key.
 | false
 | _ProtectedStringType_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 | `trustedAlgorithm`
-| Trusted Algorithms. (RFC7518 section-3.1). Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| Trusted Algorithms. (RFC7518 section-3.1).
 | false
 | _String_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 | `trustingAsymmetricCertificate`
-| Certificate of trusting a single asymmetric RSA public key. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| Certificate of trusting a single asymmetric RSA public key.
 | false
 | _ProtectedStringType_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 | `keyStoreTrustingAsymmetricKey`
-| Key store with trusting a single asymmetric RSA public key. Deprecated from midPoint 4.8 use attribute in token definition instead. Planned removal in midPoint 4.9.
+| Key store with trusting a single asymmetric RSA public key.
 | false
 | _AbstractKeyStoreKeyType_
+| Deprecated since midPoint 4.8. Use attribute in token definition instead. +
+Planned removal in midPoint 4.9.
 
 |===
 
@@ -1592,8 +1607,10 @@ There is one hard-coded behavior for the modules which defines if the module its
 </sequence>
 ----
 
-
+[#_example_of_sequence_for_administrator_login]
 .Example of sequence for administrator login
+This configuration allows *emergency backup* access via url /emergency. It accepts only users with role `superuser`.
+
 [source,xml]
 ----
 <sequence>
@@ -1621,11 +1638,11 @@ There is one hard-coded behavior for the modules which defines if the module its
 
 == Necessity Configuration
 
-[TIP]
-.MidPoint 4.7 and later
-This feature is available only in midPoint 4.7 and later.
+++++
+{% include since.html since="4.7" %}
+++++
 
-Each module defined in sequence can define its necessity. Since 4.7 following necessity levels are available:
+Each module defined in sequence can define its necessity. Following necessity levels are available:
 
 * `SUFFICIENT` - The module is sufficient for authentication to succeed.
 It is NOT required to succeed.
@@ -1707,8 +1724,7 @@ However, not all configuration options are currently supported.
 * It is unlikely that midPoint could be used as a member of identity federation directly.
 Identity proxy or a similar technology may be needed.
 
-* Support for authentication module _necessity_ is limited.
-We support only SUFFICIENT modules in 4.1. However, since 4.7 full _necessity_ is supported.
+* Support for authentication module _necessity_ is fully supported since 4.8.
 
 * Authentication modules for SOAP web services are not supported because SOAP is deprecated and it will be removed soon.
 
