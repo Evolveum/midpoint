@@ -9,6 +9,7 @@
 :page-since: "4.4"
 :page-since-improved: [ "4.5", "4.7", "4.8" ]
 :page-toc: top
+:toclevels: 3
 :sectnums:
 :sectnumlevels: 4
 
@@ -81,7 +82,7 @@ We can illustrate the authentication sequence flow with two examples.
 
 ==== First example
 
-MidPoint receives an HTTP request with the URL `http:localhost:8080/midpoint/actuator/metrics`.
+MidPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/actuator/metrics`.
 
 It extracts the suffix 'actuator' from the URL and by it determines the channel (see table above).
 This channel is then used to search for the default authentication sequence associated with that channel.
@@ -89,7 +90,7 @@ Once found, midPoint initializes the authentication sequence and, upon successfu
 
 ==== Second example
 
-In the second scenario, midPoint receives an HTTP request with the URL `http:localhost:8080/midpoint/auth/emergency/users`.
+In the second scenario, midPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/auth/emergency/users`.
 
 Here, it extracts the 'auth' suffix from the URL, which signifies the use of a specific authentication sequence.
 MidPoint then proceeds to search for the appropriate authentication sequence based on the next part of the URL, which, in this case, is 'emergency'.
@@ -1502,9 +1503,9 @@ It specifies whether this sequence is usable for a specific channel (user/GUI, R
 
 
 | `default`
-| Specifies whether this sequence is the default sequence for a specified channel.
+| Specifies whether this sequence is the default sequence for a specified channel. +
 The default sequence will be chosen in case that specific sequence was not requested, e.g. by using URL suffix.
-If this element is not present and only a single sequence is defined for a channel, then such sequence is considered to be the default.
+If this element is not present and only a single sequence is defined for a channel, then such sequence is considered to be the default. +
 If more than one sequence is specified then none of them is considered to be default.
 In that case this element must be used explicitly.
 | false
@@ -1576,7 +1577,7 @@ In case the module can be skipped, accept empty must be set to `true`. When such
 
 |===
 
-There is one hard-coded behavior for the modules which defines if the module itself is strong enough for authentication to succeed. FocusIdentification, Hint and AttributeVerification module are three specific modules, which are marked as not enough when exist on their own. Even when the sequence consist of other modules (sufficient) which were evaluated as failed and only those three (combination or one of them) succeed, the result of the authentication is failure.
+There is one hard-coded behavior for modules which defines if the module itself is strong enough for authentication to succeed. FocusIdentification, Hint and AttributeVerification module are three specific modules, which are marked as not enough when exist on their own. Even when the sequence consist of other modules (sufficient) which were evaluated as failed and only those three (combination or one of them) succeed, the result of the authentication is failure.
 
 .Example of default sequence
 [source,xml]
@@ -1609,7 +1610,9 @@ There is one hard-coded behavior for the modules which defines if the module its
 
 [#_example_of_sequence_for_administrator_login]
 .Example of sequence for administrator login
-This configuration allows *emergency backup* access via url /emergency. It accepts only users with role `superuser`.
+This configuration allows *emergency backup access* via url /emergency. It accepts only users with role `superuser`.
+
+Example of URL: https://localhost/midpoint/auth/emergency .
 
 [source,xml]
 ----
@@ -1629,7 +1632,7 @@ This configuration allows *emergency backup* access via url /emergency. It accep
     <!-- Superuser -->
     </requireAssignmentTarget>
     <module>
-    	<identifier>internalLoginForm</identifier>
+    	<identifier>loginForm</identifier>
         <order>1</order>
         <necessity>sufficient</necessity>
     </module>
