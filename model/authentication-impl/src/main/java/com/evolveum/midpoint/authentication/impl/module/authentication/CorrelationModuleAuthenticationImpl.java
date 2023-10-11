@@ -73,7 +73,8 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         return CollectionUtils.isEmpty(correlators);
     }
 
-    public void addCandidateOwners(CandidateOwnersMap map) {
+    public void rewriteCandidateOwners(CandidateOwnersMap map) {
+        candidateOwners.clear();
         candidateOwners.mergeWith(map);
     }
 
