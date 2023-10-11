@@ -10,10 +10,8 @@ def verbose = params.VERBOSE ?: '0'
 podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 21600, // 6h total build limit
-        idleMinutes: 1,
-        // Secret volume with maven settings.xml for deploy, see also sim-link in "build" stage.
-        volumes: [ secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus")],
-        // workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
         workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "ninja-tests"),
         containers: [
                 containerTemplate(name: 'jnlp',
@@ -23,6 +21,21 @@ podTemplate(
                         resourceLimitCpu: '1',
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'postgres',
+                        image: params.POSTGRES_IMAGE ?: 'postgres:13-alpine',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                            envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
+                            envVar(key: 'POSTGRES_USER', value: 'midtest'),
+                            envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
+                            // TODO is separate mount for data necessary?
+                        ],
+                        ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
                         image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
                         runAsUser: '0',
@@ -40,52 +53,76 @@ podTemplate(
                 git branch: params.BRANCH ?: 'feature/ninja-jenkins-tests',
                         url: 'https://github.com/Evolveum/midpoint.git'
             }
-            stage("build") {
+            stage("db-init") {
+                container('postgres') {
+                    if (!params.DB_UPGRADE_FROM_TAG) {
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres.sql \
+                                -f config/sql/native/postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    } else {
+                        // In the future, when the path changes, this may require either some logic, or make it part of the parameter.
+                        // This expects upgrade from 4.4.4 github repository
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new-audit.sql
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f postgres.sql \
+                                -f postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+
+                            echo -e "\n*** UPGRADING DB ***\n"
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres-upgrade.sql \
+                                -f config/sql/native/postgres-upgrade-audit.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    }
+                }
+            }
+            stage("build-with-tests") {
                 container('maven') {
                     sh """#!/bin/bash -ex
-                        # .m2 is mutable and short-term, we just sym-link the settings.xml there.
-                        mkdir -p /root/.m2
-                        ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
-
-                        if [ "${verbose}" -ge 1 ]; then
+                        if [ "${verbose}" -ge 1 ]
+                        then
                             env | sort
                             mvn --version
                             df -h
                         fi
 
-                        if [ "${verbose}" -ge 1 ]; then
+                        mvn -B -ntp -U clean install -DskipTests -P sqale,dbtest,-docs,-dist -am -pl :ninja \
+                            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest
+
+                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P sqale,dbtest,-docs,-dist -DintegrationTestSuite=fast -pl :ninja \
+                            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest
+
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
                             df -h
                         fi
                     """
                 }
             }
-            stage("tests-default") {
-                container('maven') {
-                    sh """#!/bin/bash -ex
-                        mvn -B -ntp -U clean install -DskipTests -P -docs,-dist -am -pl :ninja
-
-                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P -docs,-dist -DintegrationTestSuite=fast -pl :ninja
-
-
-                        if [ "${verbose}" -ge 1 ]; then
-                            df -h
-                        fi
-                    """
-                }
-            }
-
         } catch (Exception e) {
             currentBuild.result = 'FAILURE' // error below will not set result for mailer!
-            error 'Marking build as FAILURE because of: ' + e
+            error "Marking build as FAILURE because of: ${e}"
         } finally {
+            if (verbose > '0') {
+                echo "Build: ${currentBuild}"
+                echo "Result: ${currentBuild.currentResult}"
+            }
+
             try {
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
                 step([$class: 'Mailer',
                     notifyEveryUnstableBuild: true,
                     recipients: env.DEFAULT_MAIL_RECIPIENT,
                     sendToIndividuals: false])
 
                 sh """#!/bin/bash -ex
-                    if [ "${verbose}" -ge 1 ]; then
+                    if [ "${verbose}" -ge 1 ]
+                    then
                         df -h
                     fi
                 """
