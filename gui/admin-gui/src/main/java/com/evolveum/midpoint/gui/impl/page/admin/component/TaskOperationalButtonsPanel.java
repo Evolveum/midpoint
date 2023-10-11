@@ -332,7 +332,14 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         }
 
         ActivitySimulationStateType simulation = activityState.getActivity().getSimulation();
-        return simulation != null ? simulation.getResultRef() : null;
+        if (simulation == null || simulation.getResultRef() == null) {
+            return null;
+        }
+
+        ObjectReferenceType ref = simulation.getResultRef();
+        // this extra check is there because model object (task) can contain empty reference because of
+        // prism wrappers preparing it for editing (a lot of empty prism items with null values).
+        return ref.getOid() != null ? ref : null;
     }
 
     private void showSimulationResultPerformed(AjaxRequestTarget target) {
