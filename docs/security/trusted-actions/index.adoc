@@ -68,7 +68,7 @@ It will be filled-in based on the objects selected.
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-    oid="a801db00-cd4b-4998-a08b-3b964b9d7cf1">
+    oid="a8fa6004-1ad7-445b-a546-bdc1a83e4b2b">
     <name>template-reset-ad-password</name>
     <assignment> <!--3-->
         <targetRef oid="a314bb8c-969a-4836-b9b5-53c13567faec" type="ArchetypeType"/>
@@ -179,7 +179,7 @@ Let us have a look at such a profile:
                 <type>path</type>
                 <decision>allow</decision>
             </evaluator>
-            <functionLibraryProfile>trusted-functions-only</functionLibraryProfile> <!--4-->
+            <functionLibrariesProfile>trusted-functions-only</functionLibrariesProfile> <!--4-->
         </expressionProfile>
         <functionLibrariesProfile>
             <identifier>trusted-functions-only</identifier> <!--4-->
