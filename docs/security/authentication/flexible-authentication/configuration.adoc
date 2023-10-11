@@ -123,7 +123,7 @@ To view the default configuration for the loginForm sequence, please refer to th
 === Module configuration
 
 The following modules are supported in version 4.8:
-`loginForm`, `httpBasic`, `httpHeader`,  `saml2`, `oidc`, `mailNonce`, `smsNonce`, `securityQuestionsForm`, `httpSecQ`, `ldap`, `attributeVerification`, `focusIdentification`, `hint`, `other`, `archetypeSelection`, `correlation`, `duo`
+`loginForm`, `httpBasic`, `httpHeader`,  `saml2`, `oidc`, `mailNonce`, `smsNonce`, `securityQuestionsForm`, `httpSecQ`, `ldap`, `attributeVerification`, `focusIdentification`, `hint`, `other`, `archetypeSelection`, `correlation`, `duo`.
 
 Each module definition contains following common attributes:
 
@@ -181,7 +181,7 @@ LoginForm module is used for interactive log-in of a user by using HTML forms.
 [source,xml]
 ----
 <loginForm>
-	<identifier>internalLoginForm</identifier>
+    <identifier>internalLoginForm</identifier>
     <description>Internal username/password authentication, default user password, login form</description>
 </loginForm>
 ----
@@ -195,7 +195,7 @@ Definition of HTTP BASIC authentication module (RFC 7617).
 [source,xml]
 ----
 <httpBasic>
-	<identifier>internalHttpBasic</identifier>
+    <identifier>internalHttpBasic</identifier>
     <description>Http basic username/password authentication, default user password</description>
 </httpBasic>
 ----
@@ -211,7 +211,7 @@ The HTTP SecQ mechanism is similar to HTTP BASIC mechanism, but it is using secu
 [source,xml]
 ----
 <httpSecQ>
-	<identifier>httpSecurityQuestions</identifier>
+    <identifier>httpSecurityQuestions</identifier>
 </httpSecQ>
 ----
 
@@ -226,7 +226,7 @@ The module is used for interactive log-in of a user by answering a set of securi
 [source,xml]
 ----
 <securityQuestionsForm>
-	<identifier>securityQuestions</identifier>
+    <identifier>securityQuestions</identifier>
 </securityQuestionsForm>
 ----
 
@@ -255,8 +255,8 @@ If not specified then default password definition is used.
 [source,xml]
 ----
 <mailNonce>
-	<identifier>mailNonce</identifier>
-	<credentialName>mailNonceCredential</credentialName>
+    <identifier>mailNonce</identifier>
+    <credentialName>mailNonceCredential</credentialName>
 </mailNonce>
 ----
 
@@ -334,10 +334,10 @@ Example: `(uid=\{0})`
 [source,xml]
 ----
 <ldap>
-	<identifier>ldapAuth</identifier>
-	<host>ldap://localhost:389/dc=example,dc=com</host>
-	<userDn>cn=admin,dc=example,dc=com</userDn>
-	<userPassword>
+    <identifier>ldapAuth</identifier>
+    <host>ldap://localhost:389/dc=example,dc=com</host>
+    <userDn>cn=admin,dc=example,dc=com</userDn>
+    <userPassword>
         <t:clearValue>secret</t:clearValue>
     </userPassword>
     <dnPattern>uid={0},ou=people</dnPattern>
@@ -380,9 +380,9 @@ Default is '/'.
 [source,xml]
 ----
 <httpHeader>AuthenticationModuleSaml2ProviderMetadataType
-	<identifier>httpHeader</identifier>
-    	<logoutUrl>http://localhost:8081/Identity_provider/Logout</logoutUrl>
-        <usernameHeader>uid</usernameHeader>
+    <identifier>httpHeader</identifier>
+    <logoutUrl>http://localhost:8081/Identity_provider/Logout</logoutUrl>
+    <usernameHeader>uid</usernameHeader>
 </httpHeader>
 ----
 
@@ -550,9 +550,9 @@ Possible values are SIGNING, UNSPECIFIED and DECRYPTION.
 [source,xml]
 ----
 <activeSimpleKey>
-	<name>sp-signing-key</name>
+    <name>sp-signing-key</name>
     <privateKey>
-    	<t:clearValue>"primary key"</t:clearValue>
+        <t:clearValue>"primary key"</t:clearValue>
     </privateKey>
     <passphrase>
         <t:clearValue>"password"</t:clearValue>
@@ -609,13 +609,13 @@ Possible values are SIGNING, UNSPECIFIED and DECRYPTION.
 [source,xml]
 ----
 <activeKeyStoreKey>
-	<keyStorePath>/home/lskublik/keyStore</keyStorePath>
+    <keyStorePath>/home/lskublik/keyStore</keyStorePath>
     <keyStorePassword>
-		<t:clearValue>"password of keyStore"</t:clearValue>
+        <t:clearValue>"password of keyStore"</t:clearValue>
     </keyStorePassword>
     <keyAlias>sp-signing-key-1</keyAlias>
     <keyPassword>
-		<t:clearValue>"password of private key"</t:clearValue>
+        <t:clearValue>"password of private key"</t:clearValue>
     </keyPassword>
 </activeKeyStoreKey>
 ----
@@ -702,20 +702,20 @@ You can choose from one definition for metadata: _metadataUrl_, _xml_ and _pathT
 [source,xml]
 ----
 <saml2>
-	<identifier>mySamlSso</identifier>
+    <identifier>mySamlSso</identifier>
     <description>My internal enterprise SAML-based SSO system.</description>
     <serviceProvider>
-    	<entityId>sp_midpoint</entityId>
+        <entityId>sp_midpoint</entityId>
         <signRequests>true</signRequests>
         <keys>
             .
-			.
-			.
+            .
+            .
         </keys>
         <identityProvider>
-        	<entityId>https://idptestbed/idp/shibboleth</entityId>
+            <entityId>https://idptestbed/idp/shibboleth</entityId>
             <metadata>
-		<xml>PD94bWwgdmVyc2lvbj0iMS4wI...</xml>
+                <xml>PD94bWwgdmVyc2lvbj0iMS4wI...</xml>
             </metadata>
             <linkText>Shibboleth</linkText>
             <authenticationRequestBinding>urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST</authenticationRequestBinding>
@@ -737,7 +737,7 @@ If Midpoint is located behind a reverse proxy it may be useful to set the _publi
 [source,xml]
 ----
 <systemConfiguration>
-	.
+    .
     .
     .
     <infrastructure>
@@ -951,7 +951,7 @@ Required attribute is only `issuerUri`, because midPoint gets configuration for 
 [source,xml]
 ----
 <securityPolicy>
-	<authentication>
+    <authentication>
         ...
         <modules>
             <oidc>
@@ -1008,7 +1008,7 @@ If Midpoint is located behind a reverse proxy it may be useful to set the _publi
 [source,xml]
 ----
 <systemConfiguration>
-	.
+    .
     .
     .
     <infrastructure>
@@ -1192,7 +1192,7 @@ _OpaqueTokenOidcResourceServerType_ contains following attributes:
 [source,xml]
 ----
 <securityPolicy>
-	<authentication>
+    <authentication>
         ...
         <modules>
             <oidc>
@@ -1582,25 +1582,25 @@ There is one hard-coded behavior for the modules which defines if the module its
 [source,xml]
 ----
 <sequence>
-	<identifier>admin-gui-default</identifier>
+    <identifier>admin-gui-default</identifier>
     <description>
-    	Default GUI authentication sequence.
+        Default GUI authentication sequence.
         We want to try company SSO, federation and internal. In that order.
         Just one of then need to be successful to let user in.
     </description>
     <channel>
-    	<channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+        <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
         <default>true</default>
-		<urlSuffix>default</urlSuffix>
+        <urlSuffix>default</urlSuffix>
     </channel>
-	<nodeGroup oid="05b6933a-b7fc-4543-b8fa-fd8b278ff9ee" relation="org:default" type="c:ArchetypeType"/>
+    <nodeGroup oid="05b6933a-b7fc-4543-b8fa-fd8b278ff9ee" relation="org:default" type="c:ArchetypeType"/>
     <module>
-    	<identifier>mySamlSso</identifier>
+        <identifier>mySamlSso</identifier>
         <order>30</order>
         <necessity>sufficient</necessity>
     </module>
     <module>
-    	<identifier>internalLoginForm</identifier>
+        <identifier>internalLoginForm</identifier>
         <order>20</order>
         <necessity>sufficient</necessity>
     </module>
@@ -1614,14 +1614,14 @@ This configuration allows *emergency backup* access via url /emergency. It accep
 [source,xml]
 ----
 <sequence>
-	<identifier>admin-gui-emergency</identifier>
+    <identifier>admin-gui-emergency</identifier>
     <description>
-    	Special GUI authentication sequence that is using just the internal user password.
+        Special GUI authentication sequence that is using just the internal user password.
         It is used only in emergency. It allows to skip SAML authentication cycles, e.g. in case
         that the SAML authentication is redirecting the browser incorrectly.
     </description>
     <channel>
-    	<channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+        <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
         <default>false</default>
         <urlSuffix>emergency</urlSuffix>
     </channel>
@@ -1629,7 +1629,7 @@ This configuration allows *emergency backup* access via url /emergency. It accep
     <!-- Superuser -->
     </requireAssignmentTarget>
     <module>
-    	<identifier>internalLoginForm</identifier>
+        <identifier>internalLoginForm</identifier>
         <order>1</order>
         <necessity>sufficient</necessity>
     </module>
@@ -1692,11 +1692,11 @@ For example:
 [source]
 ----
 <authentication>
-	.
-	.
-	.
-	<ignoredLocalPath>/actuator</ignoredLocalPath>
-	<ignoredLocalPath>/actuator/health</ignoredLocalPath>
+    .
+    .
+    .
+    <ignoredLocalPath>/actuator</ignoredLocalPath>
+    <ignoredLocalPath>/actuator/health</ignoredLocalPath>
 </authentication>
 ----
 
