@@ -46,6 +46,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.WebAttributes;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -184,7 +185,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private void executeAuthenticationFilter(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest, ServletResponse response,
+    private void executeAuthenticationFilter(
+            MidpointAuthentication mpAuthentication,
+            AuthenticationWrapper authWrapper,
+            HttpServletRequest httpRequest,
+            ServletResponse response,
             FilterChain chain) throws ServletException, IOException {
         if (mpAuthentication != null && authWrapper.getAuthModules().size() != mpAuthentication.getAuthModules().size()) {
             mpAuthentication.setAuthModules(authWrapper.getAuthModules());
@@ -196,7 +201,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         boolean restartNeeded = needCreateNewAuthenticationToken(mpAuthentication, indexOfProcessingModule, httpRequest);
         if (restartNeeded) {
-            indexOfProcessingModule = initNewAuthenticationToken(authWrapper, httpRequest);
+            indexOfProcessingModule = initNewAuthenticationToken(authWrapper, httpRequest, (HttpServletResponse) response);
             mpAuthentication = AuthUtil.getMidpointAuthentication();
         }
 
@@ -247,12 +252,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private int initNewAuthenticationToken(AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
+    private int initNewAuthenticationToken(
+            AuthenticationWrapper authWrapper, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         if (AuthSequenceUtil.isClusterSequence(httpRequest)) {
             createMpAuthentication(httpRequest, authWrapper);
             return 0;
         } else {
-            return restartAuthFlow(httpRequest, authWrapper);
+            return restartAuthFlow(httpRequest, authWrapper, httpResponse);
         }
     }
 
@@ -347,10 +353,20 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return ((MidPointPrincipal) principal).getFocus() == null;
     }
 
-    private int restartAuthFlow(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
+    private int restartAuthFlow(
+            HttpServletRequest httpRequest, AuthenticationWrapper authWrapper, HttpServletResponse httpResponse) {
         createMpAuthentication(httpRequest, authWrapper);
         MidpointAuthentication mpAuthentication = AuthUtil.getMidpointAuthentication();
+        if (!AuthSequenceUtil.isRecordSessionLessAccessChannel(httpRequest)) {
+            saveAuthenticationContext(httpRequest, httpResponse);
+        }
         return mpAuthentication.resolveParallelModules(httpRequest, 0);
+    }
+
+    private void saveAuthenticationContext(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        SecurityContextRepository contextRepository =
+                (SecurityContextRepository) sharedObjects.get(SecurityContextRepository.class);
+        contextRepository.saveContext(SecurityContextHolder.getContext(), httpRequest, httpResponse);
     }
 
     private void createMpAuthentication(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
