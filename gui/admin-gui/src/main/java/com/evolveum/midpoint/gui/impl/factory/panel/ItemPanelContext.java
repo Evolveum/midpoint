@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.Component;
@@ -42,6 +44,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     private FeedbackAlerts feedback;
 
     private FormPanelType formType = FormPanelType.getDefault();
+    private Map<String, String> attributeValuesMap = new HashMap<>();
 
     public ItemPanelContext(IModel<IW> itemWrapper) {
         this.itemWrapper = itemWrapper;
@@ -145,6 +148,14 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
 
     public FeedbackAlerts getFeedback() {
         return feedback;
+    }
+
+    public void setAttributeValuesMap(Map<String, String> attributeValuesMap) {
+        this.attributeValuesMap = attributeValuesMap;
+    }
+
+    public Map<String, String> getAttributeValuesMap() {
+        return attributeValuesMap;
     }
 
     /**
