@@ -10,6 +10,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 
@@ -36,12 +37,12 @@ public class PageSamlSelect extends AbstractPageRemoteAuthenticationSelect imple
 
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
-        return createStringResource("PageSamlSelect.title");
+        return createStringResource("PageSamlSelect.select.identity.provider");
     }
 
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
-        return createStringResource("PageSamlSelect.title.description");
+        return Model.of();
     }
 
     @Override

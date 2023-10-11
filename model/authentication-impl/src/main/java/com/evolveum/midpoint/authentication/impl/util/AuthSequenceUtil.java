@@ -264,16 +264,30 @@ public class AuthSequenceUtil {
 
     private static AuthenticationSequenceType searchSequenceComparingUrlSuffix(String urlSuffix, List<AuthenticationSequenceType> sequences) {
         Validate.notBlank(urlSuffix, "UrlSuffix for searching of sequence is blank");
+        AuthenticationSequenceType foundSequence = null;
         for (AuthenticationSequenceType sequence : sequences) {
             if (sequence != null && sequence.getChannel() != null && urlSuffix.equals(sequence.getChannel().getUrlSuffix())) {
                 if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
                     LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
                     return null;
                 }
+                foundSequence = sequence;
+                break;
+            }
+        }
+        if (foundSequence != null
+                && foundSequence.getChannel().isDefault() == null
+                && foundSequence.getChannel().getChannelId() != null) {
+            AuthenticationSequenceType finalFoundSequence = foundSequence;
+            long count = sequences.stream().filter(sequence -> sequence.getChannel() != null
+                    && finalFoundSequence.getChannel().getChannelId().equals(sequence.getChannel().getChannelId())).count();
+            if (count == 1) {
+                AuthenticationSequenceType sequence = foundSequence.clone();
+                sequence.getChannel().setDefault(true);
                 return sequence;
             }
         }
-        return null;
+        return foundSequence;
     }
 
     public static boolean isPermitAll(HttpServletRequest request) {

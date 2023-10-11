@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 import java.io.Serial;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 
@@ -35,12 +36,12 @@ public class PageOidcSelect extends AbstractPageRemoteAuthenticationSelect {
 
     @Override
     protected IModel<String> getLoginPanelTitleModel() {
-        return createStringResource("PageOidcSelect.title");
+        return createStringResource("PageOidcSelect.select.identity.provider");
     }
 
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
-        return createStringResource("PageOidcSelect.title.description");
+        return Model.of();
     }
 
     @Override
