@@ -8,9 +8,12 @@ package com.evolveum.midpoint.authentication.impl.util;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 
+import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -80,6 +83,16 @@ public class AuthModuleImpl<MA extends ModuleAuthentication> implements AuthModu
         module.setSecurityFilterChain(securityFilterChain);
         module.setConfiguration(configuration);
         module.setBaseModuleAuthentication(baseModuleAuthentication);
+        return module;
+    }
+
+    public static AuthModule buildFailedConfigurationModule(AuthenticationSequenceModuleType sequenceModule) {
+        Validate.notNull(sequenceModule, "Couldn't build failed AuthModuleImpl, because sequence module type is null");
+        AuthModuleImpl module = new AuthModuleImpl();
+        ModuleAuthenticationImpl authentication = new ModuleAuthenticationImpl("FailedModule", sequenceModule);
+        authentication.setState(AuthenticationModuleState.FAILURE_CONFIGURATION);
+        authentication.setNameOfModule(sequenceModule.getIdentifier());
+        module.setBaseModuleAuthentication(authentication);
         return module;
     }
 }
