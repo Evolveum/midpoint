@@ -316,7 +316,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showSimulationResultPerformed();
+                showSimulationResultPerformed(target);
             }
         };
         download.add(new VisibleBehaviour(this::isSimulationResultAvailable));
@@ -335,8 +335,13 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         return simulation != null ? simulation.getResultRef() : null;
     }
 
-    private void showSimulationResultPerformed() {
+    private void showSimulationResultPerformed(AjaxRequestTarget target) {
         ObjectReferenceType resultRef = getSimulationResultReference();
+        if (resultRef == null) {
+            getPageBase().warn(getString("TaskOperationalButtonsPanel.noResultAvailable"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
 
         PageParameters params = new PageParameters();
         params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, resultRef.getOid());
