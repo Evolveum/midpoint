@@ -73,6 +73,10 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                     focusType);
             ObjectType owner = correlationResult.getOwner();
 
+            if (owner == null && !candidateOwnerExist(correlationResult)) {
+                throw new AuthenticationServiceException("No identity is found.");
+            }
+
             correlationModuleAuthentication.addAttributes(correlationVerificationToken.getDetails());
 
             correlationModuleAuthentication.setPreFocus(correlationVerificationToken.getPreFocus(focusType,
@@ -82,7 +86,9 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
                 return authentication;
             } else if (correlationModuleAuthentication.isLastCorrelator()) {
                 if (candidateOwnerExist(correlationResult)) {
-                    writeCandidatesToOwners(correlationResult.getCandidateOwnersMap(), correlationModuleAuthentication);
+                    rewriteCandidatesToOwners(correlationResult.getCandidateOwnersMap(), correlationModuleAuthentication);
+                } else {
+                    correlationModuleAuthentication.clearOwners();
                 }
 
                 isOwnersNumberUnderRestriction(correlationModuleAuthentication);
@@ -91,7 +97,7 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             }
 
             CandidateOwnersMap ownersMap = correlationResult.getCandidateOwnersMap();
-            correlationModuleAuthentication.addCandidateOwners(ownersMap);
+            correlationModuleAuthentication.rewriteCandidateOwners(ownersMap);
 
             return authentication;
         } catch (Exception e) {
@@ -113,8 +119,9 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
         return correlationResult.getCandidateOwnersMap() != null && !correlationResult.getCandidateOwnersMap().isEmpty();
     }
 
-    private void writeCandidatesToOwners(@NotNull CandidateOwnersMap candidateOwnersMap,
+    private void rewriteCandidatesToOwners(@NotNull CandidateOwnersMap candidateOwnersMap,
             CorrelationModuleAuthenticationImpl correlationModuleAuthentication) {
+        correlationModuleAuthentication.clearOwners();
         candidateOwnersMap.values()
                 .forEach(c -> correlationModuleAuthentication.addOwnerIfNotExist(c.getObject()));
     }

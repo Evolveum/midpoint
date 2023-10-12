@@ -73,7 +73,8 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         return CollectionUtils.isEmpty(correlators);
     }
 
-    public void addCandidateOwners(CandidateOwnersMap map) {
+    public void rewriteCandidateOwners(CandidateOwnersMap map) {
+        candidateOwners.clear();
         candidateOwners.mergeWith(map);
     }
 
@@ -85,8 +86,18 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
     }
 
     public void rewriteOwner(ObjectType owner) {
+        rewriteOwners(Collections.singletonList(owner));
+    }
+
+   public void rewriteOwners(List<ObjectType> owners) {
+       clearOwners();
+       if (owners != null) {
+           owners.forEach(this::addOwnerIfNotExist);
+       }
+    }
+
+    public void clearOwners() {
         owners.clear();
-        owners.add(owner);
     }
 
     public void addOwnerIfNotExist(ObjectType owner) {

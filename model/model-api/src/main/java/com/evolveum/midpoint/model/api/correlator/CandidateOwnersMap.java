@@ -70,4 +70,8 @@ public class CandidateOwnersMap implements Serializable, DebugDumpable {
             }
         }
     }
+
+    public void clear() {
+        map.clear();
+    }
 }
