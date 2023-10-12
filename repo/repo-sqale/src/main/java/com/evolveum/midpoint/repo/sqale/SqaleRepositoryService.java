@@ -2122,9 +2122,15 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // Modified code from SqlQueryExecutor.list()
             SimulatedSqlQuery<Object> simulatedQuery = new SimulatedSqlQuery<>(
                     sqlRepoContext.getQuerydslConfiguration(), jdbcSession.connection(), request.isTranslateOnly());
-            SqaleQueryContext<S, Q, R> context =
-                    SqaleQueryContext.from(type, sqlRepoContext, simulatedQuery, null);
 
+            // Special handling for references?
+            SqaleQueryContext<S, Q, R> context;
+            if (ObjectReferenceType.class.isAssignableFrom(type)) {
+                SqaleTableMapping mapping = determineMapping(request.getQuery().getFilter());
+                context = SqaleQueryContext.from(mapping, sqlRepoContext, simulatedQuery, null);
+            } else {
+                context = SqaleQueryContext.from(type, sqlRepoContext, simulatedQuery, null);
+            }
             ObjectQuery query = request.getQuery();
             if (query != null) {
                 context.processFilter(query.getFilter());
@@ -2139,7 +2145,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 result = context.executeQuery(jdbcSession);
                 PageOf<S> transformedResult = context.transformToSchemaType(result, jdbcSession);
                 //noinspection unchecked
-                resultList = transformedResult.map(o -> (PrismContainerValue<S>) o.asPrismContainerValue()).content();
+                if (ObjectReferenceType.class.isAssignableFrom(type)) {
+                    resultList = transformedResult.content();
+                } else {
+                    resultList = transformedResult.map(o -> (PrismContainerValue<S>) o.asPrismContainerValue()).content();
+                }
             } catch (RuntimeException e) {
                 if (e != SimulatedSqlQuery.SIMULATION_EXCEPTION) {
                     throw e; // OK, this was unexpected, so rethrow it

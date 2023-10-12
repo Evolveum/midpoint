@@ -1,5 +1,5 @@
 <query>
     <filter>
-        <text>(costCenter > '100000' and costCenter < '999999') or (costCenter >= 'X100' and costCenter <= 'X999')</text>
+        <text>(costCenter &gt; '100000' and costCenter &lt; '999999') or (costCenter &gt;= 'X100' and costCenter &lt;= 'X999')</text>
     </filter>
 </query>

@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLi
  * - SHOULD NOT update task objects themselves.
  * - Even it SHOULD NOT query task state. All of this has to be done by callers.
  */
+@DependsOn("quartzInitializationHelper")
 @Component
 public class LocalScheduler {
 

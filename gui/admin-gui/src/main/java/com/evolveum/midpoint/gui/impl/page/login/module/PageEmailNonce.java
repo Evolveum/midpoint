@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.page.error.PageError;
 
 import org.apache.wicket.RestartResponseException;
@@ -128,8 +129,13 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     private void validateUserNotNullOrFail(UserType user) {
         if (user == null) {
+            LOGGER.error("Couldn't find principal user, you probably use wrong configuration. "
+                    + "Please confirm order of authentication modules "
+                    + "and add module for identification of user before 'mailNonce' module, "
+                    + "for example 'focusIdentification' module.",
+                    new IllegalArgumentException("principal user is null"));
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
-            throw new RestartResponseException(PageError.class);
+            throw new RestartResponseException(PageBase.class);
         }
     }
 
