@@ -1,0 +1,134 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+def verbose = params.VERBOSE ?: '0'
+
+podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
+        workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "ninja-tests"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'postgres',
+                        image: params.POSTGRES_IMAGE ?: 'postgres:14-alpine',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                            envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
+                            envVar(key: 'POSTGRES_USER', value: 'midtest'),
+                            envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
+                            // TODO is separate mount for data necessary?
+                        ],
+                        ports: [portMapping(name: 'postgres', containerPort: 5432)]),
+                containerTemplate(name: 'maven',
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // see also -Xmx flag lower
+        ]
+) {
+    node(POD_LABEL) {
+        try {
+            stage("checkout") {
+                git branch: params.BRANCH ?: 'feature/ninja-jenkins-tests',
+                        url: 'https://github.com/Evolveum/midpoint.git'
+            }
+            stage("db-init") {
+                container('postgres') {
+                    if (!params.DB_UPGRADE_FROM_TAG) {
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres.sql \
+                                -f config/sql/native/postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    } else {
+                        // In the future, when the path changes, this may require either some logic, or make it part of the parameter.
+                        // This expects upgrade from 4.4.4 github repository
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new-audit.sql
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f postgres.sql \
+                                -f postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+
+                            echo -e "\n*** UPGRADING DB ***\n"
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres-upgrade.sql \
+                                -f config/sql/native/postgres-upgrade-audit.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    }
+                }
+            }
+            stage("build-with-tests") {
+                container('maven') {
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            env | sort
+                            mvn --version
+                            df -h
+                        fi
+
+                        mvn -B -ntp -U clean install -DskipTests -P sqale,dbtest,-docs,-dist -am -pl :ninja \
+                            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest
+
+                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P sqale,dbtest,-docs,-dist -DintegrationTestSuite=fast -pl :ninja \
+                            -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest
+
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
+            }
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
+            error "Marking build as FAILURE because of: ${e}"
+        } finally {
+            if (verbose > '0') {
+                echo "Build: ${currentBuild}"
+                echo "Result: ${currentBuild.currentResult}"
+            }
+
+            try {
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
+                step([$class: 'Mailer',
+                    notifyEveryUnstableBuild: true,
+                    recipients: env.DEFAULT_MAIL_RECIPIENT,
+                    sendToIndividuals: false])
+
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            } catch (Exception e) {
+                println 'Could not send email: ' + e
+            }
+        }
+    }
+}
