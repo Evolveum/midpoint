@@ -97,12 +97,31 @@ This authorization covers all sub-items of `workItem`, except for the `createTim
 </authorization>
 ----
 
+=== Notes
+
+- The `#read` (or `#search`) authorization targeting sub-object values (e.g., case work items) does _not_ authorize the user to search for embedding objects, i.e., cases.
+For that, a separate `#search` authorization with `type` set to `CaseType` has to be provided.
+
+=== Limitations
+
+Currently, the following items are supported by this clause:
+
+- case work items,
+- certification cases,
+- certification cases work items,
+- operation execution records,
+- assignments (partially - not for searching),
+- simulation-related processed objects records (partially - not for searching).
+
+Other items should work as well, but with no guarantees.
+In particular, it is possible to e.g. specify `name` in `UserType` as authorization object, but there is currently no way of specifying filter for the value.
+
+=== Open Questions
+
+How should we call this selector?
+In the query language we use `ownedBy` for this concept.
+However, in selectors we already have `owner` selector.
+
 == Default
 
 If neither `type` nor `parent` clause is specified, a type of `ObjectType` is assumed.
-
-== Open Questions
-
-#How should we call this selector?#
-In the query language we use `ownedBy` for this concept.
-However, in selectors we already have `owner` selector.
