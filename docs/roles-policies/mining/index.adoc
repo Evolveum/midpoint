@@ -37,6 +37,7 @@ It suggests business roles that allow assigning similar permissions to groups of
 By conducting role mining, organizations can move from a chaotic, role permission model to a more organized, business role-based model.
 This transition not only enhances security by reducing the risk of access escalation but also makes the entire IAM process more understandable and manageable.
 
+[#_benefits]
 == Benefits
 
 // TODO: these are benefits of RBAC, not role mining. Move to RBAC page later.
