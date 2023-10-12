@@ -234,6 +234,8 @@ The module is used for interactive log-in of a user by answering a set of securi
 [#_mailNonce]
 ==== Module mailNonce
 
+WARNING: From midPoint version 4.8, `mailNonce` module can't be the first module in the sequence. Before `mailNonce` module, we need to use authentication module for identification of the user, for example `focusIdentification`.
+
 Mail nonce authentication module.
 Module that sends randomly generated nonce in URL in mail message.
 This module contains next attribute:
