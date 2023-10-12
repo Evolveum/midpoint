@@ -13,15 +13,19 @@ import java.util.List;
 public class CorrelatorConfigDto implements Serializable {
 
     public static final String CORRELATOR_IDENTIFIER = "correlatorIdentifier";
+    public static final String CORRELATOR_INDEX = "correlatorIndex";
 
     private String correlatorIdentifier;
     private List<VerificationAttributeDto> attributeDtoList;
     private String archetypeOid;
+    private int correlatorIndex;
 
-    public CorrelatorConfigDto(String correlatorIdentifier, String archetypeOid, List<VerificationAttributeDto> attributeDtoList) {
+    public CorrelatorConfigDto(String correlatorIdentifier, String archetypeOid, List<VerificationAttributeDto> attributeDtoList,
+            int correlatorIndex) {
         this.correlatorIdentifier = correlatorIdentifier;
         this.archetypeOid = archetypeOid;
         this.attributeDtoList = attributeDtoList;
+        this.correlatorIndex = correlatorIndex;
     }
 
     public List<VerificationAttributeDto> getAttributeDtoList() {

@@ -20,4 +20,5 @@ public interface CorrelationModuleAuthentication extends ModuleAuthentication {
 
     FocusType getPreFocus();
 
+    int getCurrentCorrelatorIndex();
 }
