@@ -401,7 +401,7 @@ use #selfRequestAssignments instead
 |===
 | Action | Allowed access to page | Note
 
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItems
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#allWorkItems
 | List work items
 |
 
