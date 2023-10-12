@@ -72,3 +72,7 @@ management:
         - env
         - info
         - metrics
+
+wicket:
+  request-cycle:
+    timeout: 1m
