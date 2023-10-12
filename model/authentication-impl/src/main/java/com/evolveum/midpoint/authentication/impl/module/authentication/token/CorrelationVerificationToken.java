@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 import java.util.Map;
@@ -71,8 +72,11 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
         }
         for (Map.Entry<ItemPath, String> entry : attributes.entrySet()) {
             try {
-                PrismProperty item = newObject.findOrCreateProperty(entry.getKey());
-                item.addRealValue(convertValueIfNecessary((PrismPropertyDefinition) item.getDefinition(), entry.getValue()));
+                String attributeValue = entry.getValue();
+                if (StringUtils.isNotEmpty(attributeValue)) { // Necessary for MID-9233; TODO is this correct?
+                    PrismProperty item = newObject.findOrCreateProperty(entry.getKey());
+                    item.addRealValue(convertValueIfNecessary((PrismPropertyDefinition) item.getDefinition(), attributeValue));
+                }
             } catch (SchemaException e) {
                 System.out.println("Error while adding attributes to object");
                 //throw new RuntimeException(e);

@@ -53,4 +53,8 @@ public class CorrelatorDiscriminator {
         }
         return Objects.equals(correlator.getName(), correlatorIdentifier);
     }
+
+    public @NotNull CorrelationUseType getUse() {
+        return use;
+    }
 }

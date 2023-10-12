@@ -217,7 +217,15 @@ public class CorrelationItem implements DebugDumpable {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        SearchSpec searchSpec = createSearchSpec(task, result);
+        if (getRealValue() == null) {
+            var searchSpec = createSearchSpecWithoutValue();
+            LOGGER.trace("Will look for null {}", searchSpec);
+            return builder
+                    .item(searchSpec.itemPath, searchSpec.itemDef)
+                    .isNull();
+        }
+
+        var searchSpec = createSearchSpecWithValue(task, result);
         LOGGER.trace("Will look for {}", searchSpec);
 
         FuzzyMatchingMethod fuzzyMatchingMethod = getFuzzyMatchingMethod();
@@ -233,20 +241,31 @@ public class CorrelationItem implements DebugDumpable {
         }
     }
 
-    private SearchSpec createSearchSpec(Task task, OperationResult result)
+    private SearchSpec.WithValue createSearchSpecWithValue(Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (indexingItemConfiguration != null) {
             assert valueNormalizer != null;
-            return new SearchSpec(
+            return new SearchSpec.WithValue(
                     valueNormalizer.getIndexItemPath(),
                     valueNormalizer.getIndexItemDefinition(),
                     valueNormalizer.normalize(getValueToFind(), task, result));
         } else {
-            return new SearchSpec(
+            return new SearchSpec.WithValue(
                     itemPath,
                     null, // will be found by the query builder
                     getValueToFind());
+        }
+    }
+
+    private SearchSpec createSearchSpecWithoutValue() {
+        if (indexingItemConfiguration != null) {
+            assert valueNormalizer != null;
+            return new SearchSpec.WithoutValue(
+                    valueNormalizer.getIndexItemPath(),
+                    valueNormalizer.getIndexItemDefinition());
+        } else {
+            return new SearchSpec.WithoutValue(itemPath, null); // def will be found by the query builder
         }
     }
 
@@ -291,10 +310,16 @@ public class CorrelationItem implements DebugDumpable {
     /**
      * Can we use this item for correlation?
      *
-     * Temporary implementation: We can, if it's non-null. (In future we might configure the behavior in such cases.)
+     * Temporary implementation:
+     *
+     * . For synchronization: We can, if it's non-null. (In future we might configure the behavior in such cases.)
+     * . For identity recovery: We always can.
      */
-    public boolean isApplicable() throws SchemaException {
-        return getRealValue() != null;
+    public boolean isApplicable(@NotNull CorrelationUseType use) throws SchemaException {
+        return switch (use) {
+            case SYNCHRONIZATION -> getRealValue() != null;
+            case IDENTITY_RECOVERY -> true;
+        };
     }
 
     public @NotNull String getName() {
@@ -353,7 +378,11 @@ public class CorrelationItem implements DebugDumpable {
     private @NotNull List<Double> computeMatchMetricValues(ObjectType candidate, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        SearchSpec searchSpec = createSearchSpec(task, result);
+        if (getRealValue() == null) {
+            return List.of();
+        }
+
+        var searchSpec = createSearchSpecWithValue(task, result);
         String sourceValue = convertToString(searchSpec.value);
         Collection<PrismValue> allValues = candidate.asPrismContainerValue().getAllValues(searchSpec.itemPath);
         MatchMetricValueComputer matchMetricValueComputer = getMatchMetricValueComputer();
@@ -456,22 +485,42 @@ public class CorrelationItem implements DebugDumpable {
 
     /** What we are looking for, when correlating according to this item? */
     private static class SearchSpec {
-        @NotNull private final ItemPath itemPath;
-        @Nullable private final ItemDefinition<?> itemDef;
-        @NotNull private final Object value;
+        @NotNull final ItemPath itemPath;
+        @Nullable final ItemDefinition<?> itemDef;
 
         private SearchSpec(
-                @NotNull ItemPath itemPath, @Nullable ItemDefinition<?> itemDef, @NotNull Object value) {
+                @NotNull ItemPath itemPath, @Nullable ItemDefinition<?> itemDef) {
             this.itemPath = itemPath;
             this.itemDef = itemDef;
-            this.value = value;
         }
 
         @Override
         public String toString() {
             return "path='" + itemPath + "'" +
-                    ", def='" + itemDef + "'" +
-                    ", value='" + value + "'";
+                    ", def='" + itemDef + "'";
+        }
+
+        private static class WithValue extends SearchSpec {
+            @NotNull private final Object value;
+
+            private WithValue(
+                    @NotNull ItemPath itemPath, @Nullable ItemDefinition<?> itemDef, @NotNull Object value) {
+                super(itemPath, itemDef);
+                this.value = value;
+            }
+
+            @Override
+            public String toString() {
+                return super.toString() +
+                        ", value=" + value + "}";
+            }
+        }
+
+        private static class WithoutValue extends SearchSpec {
+
+            private WithoutValue(@NotNull ItemPath itemPath, @Nullable ItemDefinition<?> itemDef) {
+                super(itemPath, itemDef);
+            }
         }
     }
 

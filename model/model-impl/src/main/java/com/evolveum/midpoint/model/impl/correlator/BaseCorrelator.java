@@ -215,6 +215,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException {
         CorrelatorContext<?> childContext = CorrelatorContextCreator.createChildContext(
+                getUse(),
                 childConfiguration,
                 correlatorContext.getCorrelationDefinitionBean(),
                 correlatorContext.getTemplateCorrelationConfiguration(),
@@ -303,6 +304,10 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
                     Double.class,
                     output.getRealValue());
         }
+    }
+
+    @NotNull public CorrelationUseType getUse() {
+        return correlatorContext.getUse();
     }
 
     @FunctionalInterface

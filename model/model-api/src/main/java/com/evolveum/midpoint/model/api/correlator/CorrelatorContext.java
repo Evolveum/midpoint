@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,10 +21,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationConfidenceThresholdsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Overall context in which the correlator works.
@@ -53,12 +51,17 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
     /** System configuration, used to look for correlator configurations. */
     @Nullable private final SystemConfigurationType systemConfiguration;
 
+    /** EXPERIMENTAL. MID-9233. */
+    @NotNull private final CorrelationUseType use;
+
     public CorrelatorContext(
+            @NotNull CorrelationUseType use,
             @NotNull CorrelatorConfiguration configuration,
             @NotNull AbstractCorrelatorType originalConfigurationBean,
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @NotNull TemplateCorrelationConfiguration templateCorrelationConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
+        this.use = use;
         //noinspection unchecked
         this.configurationBean = (C) configuration.getConfigurationBean();
         this.configuration = configuration;
@@ -124,6 +127,10 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
         } catch (SchemaException e) {
             return e.getMessage();
         }
+    }
+
+    public @NotNull CorrelationUseType getUse() {
+        return use;
     }
 
     // TODO improve

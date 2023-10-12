@@ -467,6 +467,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 .parseRealValue(AbstractCorrelatorType.class);
         correlator.correlatorContext =
                 new CorrelatorContext<>(
+                        CorrelationUseType.SYNCHRONIZATION,
                         CorrelatorConfiguration.typed(configBean),
                         configBean,
                         getSynchronizationPolicy().getCorrelationDefinition(), // it is OK that there's no correlator info here

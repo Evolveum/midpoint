@@ -123,7 +123,7 @@ class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             assert !correlationItems.isEmpty();
 
             for (CorrelationItem item : correlationItems.getItems()) {
-                if (!item.isApplicable()) {
+                if (!item.isApplicable(correlatorContext.getUse())) {
                     LOGGER.trace("Correlation item {} forbids us to use this correlator", item);
                     return false;
                 }

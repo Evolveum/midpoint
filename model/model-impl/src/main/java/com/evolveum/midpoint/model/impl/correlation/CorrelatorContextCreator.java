@@ -36,6 +36,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class CorrelatorContextCreator {
 
+    /** EXPERIMENTAL */
+    @NotNull private final CorrelationUseType use;
+
     /** The original configuration we start with. */
     @NotNull private final CorrelatorConfiguration originalConfiguration;
 
@@ -57,10 +60,12 @@ public class CorrelatorContextCreator {
     @Nullable private final SystemConfigurationType systemConfiguration;
 
     private CorrelatorContextCreator(
+            @NotNull CorrelationUseType use,
             @NotNull CorrelatorConfiguration originalConfiguration,
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @NotNull TemplateCorrelationConfiguration templateCorrelationConfiguration,
             @Nullable SystemConfigurationType systemConfiguration) {
+        this.use = use;
         this.originalConfiguration = originalConfiguration;
         this.originalConfigurationBean = originalConfiguration.getConfigurationBean();
         this.correlationDefinitionBean = correlationDefinitionBean;
@@ -85,6 +90,7 @@ public class CorrelatorContextCreator {
             correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate, correlatorDiscriminator);
         }
         return new CorrelatorContextCreator(
+                correlatorDiscriminator.getUse(),
                 getConfiguration(correlators),
                 correlationDefinitionBean,
                 TemplateCorrelationConfigurationImpl.of(objectTemplate),
@@ -93,12 +99,14 @@ public class CorrelatorContextCreator {
     }
 
     public static CorrelatorContext<?> createChildContext(
+            @NotNull CorrelationUseType use,
             @NotNull CorrelatorConfiguration childConfiguration,
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @NotNull TemplateCorrelationConfiguration templateCorrelationConfiguration,
             @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
         return new CorrelatorContextCreator(
+                use,
                 childConfiguration,
                 correlationDefinitionBean,
                 templateCorrelationConfiguration,
@@ -110,6 +118,7 @@ public class CorrelatorContextCreator {
         if (originalConfiguration.isUntyped()) {
             // We don't support merging for untyped configurations (yet).
             return new CorrelatorContext<>(
+                    use,
                     originalConfiguration,
                     originalConfigurationBean,
                     correlationDefinitionBean,
@@ -120,6 +129,7 @@ public class CorrelatorContextCreator {
         AbstractCorrelatorType mergedConfig = resolveSuperReferences(originalConfigurationBean, new HashSet<>());
 
         return new CorrelatorContext<>(
+                use,
                 new CorrelatorConfiguration.TypedCorrelationConfiguration(mergedConfig),
                 originalConfigurationBean,
                 correlationDefinitionBean,
