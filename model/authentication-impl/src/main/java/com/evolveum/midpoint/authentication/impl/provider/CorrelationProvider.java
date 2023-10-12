@@ -84,7 +84,7 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             if (owner != null) {
                 correlationModuleAuthentication.rewriteOwner(owner);
                 return authentication;
-            } else if (correlationModuleAuthentication.isLastCorrelator()) {
+            } else if (isLastCorrelatorProcessing(correlationModuleAuthentication, correlationVerificationToken)) {
                 if (candidateOwnerExist(correlationResult)) {
                     rewriteCandidatesToOwners(correlationResult.getCandidateOwnersMap(), correlationModuleAuthentication);
                 } else {
@@ -105,6 +105,12 @@ public class CorrelationProvider extends MidpointAbstractAuthenticationProvider 
             throw new AuthenticationServiceException("web.security.provider.unavailable");
         }
 
+    }
+
+    private boolean isLastCorrelatorProcessing(CorrelationModuleAuthenticationImpl correlationModuleAuthentication,
+            CorrelationVerificationToken token) {
+        return correlationModuleAuthentication.isLastCorrelator()
+                && correlationModuleAuthentication.currentCorrelatorIndexEquals(token.getCurrentCorrelatorIndex());
     }
 
     private String determineArchetypeOid() {
