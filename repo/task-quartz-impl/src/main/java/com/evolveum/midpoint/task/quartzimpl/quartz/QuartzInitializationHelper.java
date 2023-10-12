@@ -22,6 +22,7 @@ import org.quartz.SchedulerListener;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.listeners.SchedulerListenerSupport;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 /**
  * Helps with Quartz starting and stopping.
  */
+@DependsOn("taskManagerConfiguration")
 @Component
 class QuartzInitializationHelper {
 
