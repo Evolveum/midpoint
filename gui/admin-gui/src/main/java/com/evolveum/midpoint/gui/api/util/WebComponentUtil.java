@@ -2598,7 +2598,7 @@ public final class WebComponentUtil {
         if (isColumn) {
             builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
         } else {
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_MAX_ICON_STYLE);
         }
         builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
                 + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
