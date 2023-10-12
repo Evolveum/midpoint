@@ -74,6 +74,29 @@ For example, certification work item is part of a certification case, which is a
 <!-- ... some conditions on certification work items here -->
 ----
 
+=== Concrete Example
+
+The following authorization allows the logged-in user to read the content of all values in `workItem` container in any `CaseType` object, where they are an assignee or deputy assignee.
+This authorization covers all sub-items of `workItem`, except for the `createTimestamp` property.
+
+.Listing 6. Complete authorization with `<parent>` selector
+[source,xml]
+----
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <object>
+        <parent>
+            <type>CaseType</type>
+            <path>workItem</path>
+        </parent>
+        <assignee>
+            <special>self</special>
+        </assignee>
+    </object>
+    <exceptItem>createTimestamp</exceptItem>
+</authorization>
+----
+
 == Default
 
 If neither `type` nor `parent` clause is specified, a type of `ObjectType` is assumed.
