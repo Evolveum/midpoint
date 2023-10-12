@@ -324,7 +324,17 @@ These filters operate on object as a whole, so item path must be `.`
 
 === Using Axiom Query in GUI
 
-Axiom Query is still experimental feature, so it needs to be explicitly enabled in GUI.
+==== midPoint 4.8 and never
+
+you could click on down arrow in search fields to select `Advanced` (or `Axiom query`) as one of the search options.
+
+==== midPoint 4.5, 4.6, 4.7
+
+You could click on down arrow in search fields to select `Axiom query` as one of the search options.
+
+==== midPoint 4.4
+
+Query language is experimental feature in midPoint 4.4, so it needs to be explicitly enabled in GUI.
 
 . In Admin GUI, navigate to Configuration -> System -> Admin GUI
 . Click Show Empty fields in Admin GUI Configuration section
