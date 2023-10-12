@@ -383,19 +383,12 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         Task task = getPageBase().createSimpleTask(OPERATION_CHECK_QUERY);
         OperationResult result = task.getResult();
         try {
-            updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, dto.isDistinct(), dto.getMidPointQueryScript(), task, result); // just to parse the query
 
-            ObjectFilter parsedFilter = request.getQuery().getFilter();
-            String filterAsString;
-            if (parsedFilter != null) {
-                SearchFilterType filterType = getPageBase().getQueryConverter().createSearchFilterType(parsedFilter);
-                filterAsString = getPrismContext().xmlSerializer().serializeRealValue(filterType, SchemaConstantsGenerated.Q_FILTER);
-                // TODO remove extra xmlns from serialized value
-            } else {
-                filterAsString = "";
+            ExpressionType scriptQuery = null;
+            if (dto.isScriptEnabled()) {
+                scriptQuery = dto.getMidPointQueryScript();
             }
-
-            // TODO add containerable option too (or split the code sooner?)
+            updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), dto.isDistinct(), scriptQuery, task, result);
             //noinspection unchecked
             Class<? extends PageBase> listPageClass = DetailsPageUtil.getObjectListPage((Class<? extends ObjectType>) request.getType());
             String storageKey = listPageClass != null ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart()) : null;
@@ -413,9 +406,10 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             }
             // TODO add containerable option too
             Search search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(getPageBase()).build();
-            search.addAllowedModelType(SearchBoxModeType.ADVANCED);
-            search.setSearchMode(SearchBoxModeType.ADVANCED);
-            search.setAdvancedQuery(filterAsString);
+            search.addAllowedModelType(SearchBoxModeType.AXIOM_QUERY);
+            search.setSearchMode(SearchBoxModeType.AXIOM_QUERY);
+            // Use query from model object, call of updateRequestWithMidpointQuery may updated it with new Query Language text.
+            search.setDslQuery(getModelObject().getMidPointQuery());
 
             if (!search.isAdvancedQueryValid(getPageBase())) {
                 // shouldn't occur because the query was already parsed
