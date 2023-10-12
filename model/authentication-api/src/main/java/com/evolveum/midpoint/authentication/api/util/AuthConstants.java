@@ -21,4 +21,6 @@ public class AuthConstants {
     public static final String SEC_QUESTION_J_QTXT = "qtxt";
     public static final String ATTR_VERIFICATION_J_PATH = "path";
     public static final String ATTR_VERIFICATION_J_VALUE = "value";
+
+    public static final String ATTR_VERIFICATION_PARAMETER_START = "attributeValue.";
 }

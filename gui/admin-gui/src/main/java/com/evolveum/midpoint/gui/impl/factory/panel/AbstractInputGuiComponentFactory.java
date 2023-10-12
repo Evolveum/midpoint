@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.util.ExpressionValidator;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -64,6 +65,10 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             }
             formComponent.add(panelCtx.getAjaxEventBehavior());
             formComponent.add(panelCtx.getVisibleEnableBehavior());
+            if (panelCtx.getAttributeValuesMap() != null) {
+                panelCtx.getAttributeValuesMap().keySet().stream()
+                        .forEach(a -> formComponent.add(AttributeAppender.replace(a, panelCtx.getAttributeValuesMap().get(a))));
+            }
         }
 
         ExpressionValidator ev = panelCtx.getExpressionValidator();

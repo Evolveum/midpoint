@@ -3183,7 +3183,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:composite>true</a:composite>
-                        <a:objectReferenceTargetType>FocusType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3233,7 +3233,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:composite>true</a:composite>
-                                <a:objectReferenceTargetType>ObjectType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

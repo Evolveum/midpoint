@@ -22,7 +22,7 @@ public class LogBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName)
             throws BeansException {
-        LOGGER.info("Bean before initialization with name {} and class {}", beanName, bean.getClass().getSimpleName());
+        LOGGER.info("{}: {} before initialization", beanName, bean.getClass().getSimpleName());
 
         return bean;
 
@@ -31,7 +31,7 @@ public class LogBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName)
             throws BeansException {
-        LOGGER.info("Bean after initialization with name {} and class {}", beanName, bean.getClass().getSimpleName());
+        LOGGER.info("{}: {} after initialization", beanName, bean.getClass().getSimpleName());
 
         return bean;
     }
