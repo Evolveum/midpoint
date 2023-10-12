@@ -18,6 +18,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 
 import org.apache.commons.io.IOUtils;
@@ -122,7 +123,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             "ObjectType_AllObjectsInASubtree",
             "ObjectType_AllObjectsInAnOrg",
             "ShadowType_ShadowsOnGivenResource",
-            "UserType_UsersWithShadowOnGivenResource"
+            "UserType_UsersWithShadowOnGivenResource",
+            "ObjectReferenceType_RoleMembershipRefsTargetingSuperuser"
     );
     private static final Set<QName> USE_IN_OBJECT_LIST_AVAILABLE_FOR = new HashSet<>(Arrays.asList(
             UserType.COMPLEX_TYPE,
@@ -404,7 +406,6 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             if (storage == null) {
                 storage = sessionStorage.initPageStorage(storageKey);
             }
-            // TODO add containerable option too
             Search search = storage.getSearch() != null ? storage.getSearch() : new SearchBuilder(request.getType()).modelServiceLocator(getPageBase()).build();
             search.addAllowedModelType(SearchBoxModeType.AXIOM_QUERY);
             search.setSearchMode(SearchBoxModeType.AXIOM_QUERY);
@@ -472,10 +473,9 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
                 if (action != Action.TRANSLATE_ONLY) {
                     // not an admin, so have to fetch objects via model
-                    // TODO add containerable option too
+                    queryResult = performModelSearch(request, task, result);
                     //noinspection unchecked
-                    queryResult = getPageBase().getModelService().searchObjects((Class<? extends ObjectType>) request.getType(), request.getQuery(),
-                            createRawCollection(), task, result);
+
                 } else {
                     queryResult = null;
                 }
@@ -509,6 +509,21 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         target.add(this);
     }
 
+    private List<?> performModelSearch(RepositoryQueryDiagRequest request, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        if (ObjectType.class.isAssignableFrom(request.getType())) {
+            return getPageBase().getModelService().searchObjects((Class<? extends ObjectType>) request.getType(), request.getQuery(),
+                    createRawCollection(), task, result);
+        }
+        if (Containerable.class.isAssignableFrom(request.getType())) {
+            return getPageBase().getModelService().searchContainers((Class<? extends Containerable>) request.getType(), request.getQuery(),
+                    createRawCollection(), task, result);
+        }
+        if (ObjectReferenceType.class.isAssignableFrom(request.getType())) {
+            return getPageBase().getModelService().searchReferences(request.getQuery(), createRawCollection(), task, result);
+        }
+        throw new SchemaException("Unknown type " + request.getType() + "for search.");
+    }
+
     private void warnNoQuery(AjaxRequestTarget target) {
         warn(getString("PageRepositoryQuery.message.emptyString"));
         target.add(getFeedbackPanel());
@@ -526,9 +541,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             objectType = ObjectType.COMPLEX_TYPE;
         }
         @SuppressWarnings("unchecked")
-        Class<? extends ObjectType> clazz = (Class<? extends ObjectType>)
-                prismContext.getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
-
+        Class<? extends Containerable> clazz =
+                prismContext.getSchemaRegistry().determineClassForTypeRequired(objectType);
         ObjectQuery queryWithExprEvaluated = null;
         if (midPointQueryScript != null) {
             PrismPropertyValue<?> filterValue = ExpressionUtil.evaluateExpression(new VariablesMap(), null, midPointQueryScript,
