@@ -3,6 +3,8 @@
 :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 :page-toc: top
 :toclevels: 3
+:sectnums:
+:sectnumlevels: 3
 
 //User-friendly documentation of a user-friendly language.
 //This should NOT be a language specification, rather a user-oriented reference documentation with a dash of tutorial on top.

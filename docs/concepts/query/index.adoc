@@ -1,14 +1,17 @@
 ---
 scripts: [ 'multi-source.js' ]
 ---
-= midPoint Query
+= Query in midPoint
 :page-nav-title: Query
 :page-toc: top
 :toclevels: 3
+:sectnums:
+:sectnumlevels: 3
 
 == Introduction
 
-MidPoint works with *objects* of various types, which can be part of the running process (in memory),
+MidPoint works with *objects* of various types.
+These objects can be part of the running process (in memory),
 stored persistently in xref:/midpoint/reference/repository/[midPoint Repository], or can represent
 objects on the xref:/midpoint/reference/resources/[Resources].
 
@@ -46,11 +49,14 @@ container values, or even references - which affects the form of the query resul
 You can also query various subsystems - like repository or provisioning.
 It is possible to narrow down your search with various filters.
 And this all can be specified using various representations, like
-xref:/midpoint/reference/concepts/query/axiom-query-language[Axiom query language] or XML.
+*xref:/midpoint/reference/concepts/query/midpoint-query-language[midPoint query language]* (formerly known as Axiom) or *XML*.
+
+NOTE: The new query language is undergoing rename from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8. As the Axiom name is well known, it can be still for some time referenced also with this name. Please consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
+
 
 To start with an example, here is a simple filter in two very distinct forms:
 
-[source,axiom]
+[source,midpoint-query]
 ----
 name = "jack"
 ----
@@ -141,18 +147,18 @@ Query can be represented in multiple ways and formats:
 * Many configuration objects contain queries or filters in many places.
 These are typically written in the same format as the object, for instance XML.
 * Some places (advanced GUI filters or query playground mentioned below) allow input in various serialization formats, e.g. XML, YAML or JSON.
-* Filters can be also written in xref:/midpoint/reference/concepts/query/axiom-query-language[Axiom query language]
+* Filters can be also written in xref:/midpoint/reference/concepts/query/midpoint-query-language[midPoint query language]
 which can be used on GUI or embedded in other filters via `text` element.
 * Finally, filters and queries can be written using fluent Java-based API, which is useful not only for
 hard-core customizations (e.g. with xref:/midpoint/reference/deployment/maven-overlay-project.adoc[midPoint Overlay] mechanism)
 but also for xref:/midpoint/reference/expressions/expressions/script/[script expressions] written typically in Groovy language.
 
 [IMPORTANT]
-Axiom query language is experimentally available since 4.3 and fully supported since 4.5.
+MidPoint Query Language is experimentally available since 4.3 and fully supported since 4.5.
 
 Here is an example of the same filter in various representations:
 
-[source,axiom]
+[source,midpoint-query]
 ----
 ( costCenter > "100000" and costCenter < "999999" )
 or
@@ -827,7 +833,7 @@ When the `filter` element is present, it is applied as an additional test for ea
 
 With fluent API it is also possible to construct a ref filter without any value, only with the nested target filter - this works fine in repository queries.
 // TODO remove the note, if/when fixed
-Currently, it is not possible to construct such a filter with XML/JSON/YAML or Axiom query language.
+Currently, it is not possible to construct such a filter with XML/JSON/YAML or in midPoint Query Language.
 As a workaround, it is possible to use `value` element with `type` attribute only.
 Alternatively, `exists` with path of the ref followed by the dereference segment (`@`) can be used, e.g. `assignment/targetRef/@`.
 
@@ -870,7 +876,7 @@ for the target of the same reference value we can use the complex `ref` filter t
 target `filter` as part of the `ref` filter.
 For example, we can filter users that are members of roles with names starting with the specified string like this:
 
-[source,axiom]
+[source,midPoint-query]
 ----
 roleMembershipRef matches (
     targetType = RoleType
@@ -955,9 +961,6 @@ match any of the provided values (that is `ANY IN` semantics).
 With the target filter added, the reference value (or any of the values of the multi-value reference)
 must match any of the provided values *and* the target object for the matching reference value must also match the target filter.
 
-// TODO some clear example? Describe two objects with roleMembershipRef, one matching, one narrowly not?
-// TODO Axiom syntax described? Or link to axiom-query-language page?
-
 ==== OwnedBy filter
 
 ++++
@@ -994,7 +997,7 @@ OwnedBy filter allows to specify necessary basic information about the owner obj
 
 Let's start with an example of filtering assignments for a user with specified name:
 
-[source,axiom]
+[source,midPoint-query]
 ----
 . ownedBy (
     @type = UserType
@@ -1055,7 +1058,7 @@ filter:
 ----
 
 Example demonstrates unique features of the `ownedBy` filter - that is the embedded `path`
-and `type` information - note that these are prefixed with `@` in the Axiom query.
+and `type` information - note that these are prefixed with `@` in the midPoint query language.
 
 ===== Container path in the owning object
 
@@ -1087,8 +1090,7 @@ When searching by owner ID (object OID, unless the containers are deeply nested 
 one can use `inOid` filter in the inner `filter`:
 
 ////
-TODO: how to do this in Axiom?
-[source,axiom]
+[source,midPoint-query]
 ----
 . ownedBy (
     @type = UserType
@@ -1288,7 +1290,7 @@ to the object (access certification) with the specified OID (`inOid` with `consi
 ===== OwnedBy summarization
 
 * OwnedBy filter is similar to `exists` with `..` (`T_PARENT` in Java API) with a few extensions.
-* It allows to narrow the `type` (`@type` in Axiom) which is more efficient than adding a `type` filter
+* It allows to narrow the `type` (`@type` in midPoint query) which is more efficient than adding a `type` filter
 inside the `exists ..` filter.
 * It allows to specify the item path for the owned container (the path from the owning object/container).
 This is a unique feature that allows to distinguish between assignments and inducements
@@ -1359,7 +1361,7 @@ filter is related to the type of the referencing object (and implies subtypes as
 Let's see a realistic example now - we want to find organizations having a particular user assigned.
 Relation is not specified, which means that it does not matter:
 
-[source,axiom]
+[source,midPoint-query]
 ----
 . referencedBy (
     @type = UserType
@@ -1398,7 +1400,7 @@ Any legal filter is allowed inside the `referencedBy` filter.
 
 ////
 TODO more examples, .id above is a true nested filter, but rather simple:
-.Axiom Query using `UserType` as referencedBy
+.midPoint Query using `UserType` as referencedBy
 ----
 . referencedBy (
   @type = UserType
@@ -1407,7 +1409,7 @@ TODO more examples, .id above is a true nested filter, but rather simple:
 )
 ----
 
-.Axiom Query using `AssignmentType` for referencedBy
+.midPoint Query using `AssignmentType` for referencedBy
 ----
 . referencedBy (
    @type = AssignmentType
@@ -1943,7 +1945,7 @@ ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
 
 ==== Expression filter
 
-// TODO Axiom expression example
+// TODO midPoint query expression example
 
 .XML
 [source,xml]
@@ -2166,7 +2168,7 @@ Reference query is not just any query with a `ref` filter - it is a special quer
 This is useful for multi-value references or references inside multi-value containers.
 Let's start with an example of the simplest reference search:
 
-[source,axiom]
+[source,midPoint-query]
 ----
 . ownedBy (
     @type = UserType
@@ -2201,7 +2203,7 @@ e.g. only for users with name starting with "a" - see xref:#ownedby-filter[Owned
 * Additional `ref` filters can be added for the searched reference.
 In this case, the top level filter must be `and`, it has to contain exactly one `ownedBy` filter
 specifying the path to the reference.
-** All the `ref` filters must use "self" path represented by `.` in the Axiom query language.
+** All the `ref` filters must use "self" path represented by `.` in the midPoint Query Language.
 In XML you can use either `<path>.</path>`, but empty path `<path/>` is technically the more
 proper representation of the self path in XML - and is also shorter.
 ** Ref filters can contain the target filter - see xref:#ref-filter-with-target-filter[this section] for more.
@@ -2230,7 +2232,7 @@ Let's say we have two users with the following ``roleMembershipRef``s:
 
 If we want to process all the indirect assignments with `default` relation we can use this filter:
 
-[source,axiom]
+[source,midPoint-query]
 ----
 . ownedBy (
     @type = UserType
@@ -2302,7 +2304,7 @@ ObjectQuery query = prismContext
 ----
 
 Path segment `..` designates the owning container, which is the user object in this case.
-There is no Axiom example, because the ordering is not part of the Axiom query language, only filter is.
+There is no midPoint query example, because the ordering is not part of the midPoint Query Language, only filter is.
 
 ==== How to get to the owning object?
 
@@ -2343,7 +2345,7 @@ The following example shows search for users' ``roleMembershipRef``s where:
 * Target role name starts with "super".
 * Unspecified reference relation implies `c:default` - use `c:any` if you want any relation.
 
-[source,axiom]
+[source,midPoint-query]
 ----
 . ownedBy (
     @type = UserType

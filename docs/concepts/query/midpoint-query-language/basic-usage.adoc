@@ -4,6 +4,11 @@
 :page-since: "4.4"
 :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 
+
+This document provides information and examples of queries in midPoint Query Language, mainly used in objects while configuration of midPoint itself.
+
+Additional examples how to use the midPoint query in GUI can be found in xref:/midpoint/guides/gui-mipoint-query-examples[Advanced search - EXAMPLES].
+
 == Searching by Archetype Name
 
 Search for reports with archetype specified by its name
