@@ -1,4 +1,4 @@
-= Basic usage of Axiom
+= Basic usage of midPoint Query Language
 :page-nav-title: Basic usage
 :page-display-order: 100
 :page-since: "4.4"
@@ -8,7 +8,7 @@
 
 Search for reports with archetype specified by its name
 
-.Axiom Query
+.midPoint Query
 ----
 archetypeRef/@/name = "Report export task"
 ----
@@ -32,7 +32,7 @@ Where:
 
 == Search by Assigned Role Name
 
-.Axiom Query
+.midPoint Query
 ----
 assignment/targetRef/@/name = "Role Name"
 ----
@@ -42,13 +42,12 @@ Where:
 * `assignment/targetRef/@` -specifies that we are not matching reference value, but it's target. In this case it is assigned role.
 
 
-
 == Users with account on specific resource
 NOTE: This filter was tested to be working since midPoint 4.4
 
 Search for users, which have account specified resource, with default intent.
 
-.Axiom Query
+.midPoint Query
 ----
 linkRef/@ matches (
   . type ShadowType
@@ -65,7 +64,6 @@ Where:
 ** `. type ShadowType`, we are searching for shadows on resource, this is necessary in order to be able to use shadow properties for filter
 ** `resourceRef matches (oid = "..." )` - matches specific resource, to which shadow belongs
 ** `intent = "default"` - matches shadow with default intent
-
 
 
 .XML equivalent
@@ -112,7 +110,7 @@ limit ?
 NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
 
 // All roles which are assigned to system users
-.Axiom Query using `UserType` as referencedBy
+.midPoint Query using `UserType` as referencedBy
 ----
 . referencedBy (
   @type = UserType
@@ -121,7 +119,7 @@ NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository o
 )
 ----
 
-.Axiom Query using `AssignmentType` for referencedBy
+.midPoint Query using `AssignmentType` for referencedBy
 ----
 . referencedBy (
    @type = AssignmentType
@@ -138,7 +136,7 @@ NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository o
 NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
 
 // All roles which are assigned using inducement
-.Axiom Query
+.midPoint Query
 ----
 . referencedBy (
   @type = AbstractRoleType
@@ -159,7 +157,7 @@ NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository o
 
 === All roles, which are assigned to administrator using full text serach
 
-.Axiom Query
+.midPoint Query
 ----
 . referencedBy (
    @type = UserType
@@ -186,7 +184,7 @@ NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository o
 
 === Search on assigned role using fullText
 
-.Axiom Query
+.midPoint Query
 ----
 assignment/targetRef/@ matches (
    . fullText "secret"

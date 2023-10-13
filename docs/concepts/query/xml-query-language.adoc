@@ -8,7 +8,7 @@
 
 This is a XML-based query language that was used in midPoint for years.
 It is still a supported option.
-However, it is gradually replaced by xref:axiom-query-language/[Axiom query language].
+However, it is gradually replaced by xref:midpoint-query-language/[Axiom query language].
 
 == Examples
 
@@ -167,8 +167,8 @@ There was even a SOAP web service interface, therefore the XML-based query langu
 
 However, as midPoint evolved to be independent of particular data representation format (XML, JSON, YAML), the XML-based query language did not make much sense any more.
 It was also not entirely user-friendly.
-Therefore it was replaced by xref:axiom-query-language/[Axiom Query Language]
+Therefore it was replaced by xref:midpoint-query-language/[Axiom Query Language]
 
 == See Also
 
-* xref:axiom-query-language/[Axiom Query Language]
+* xref:midpoint-query-language/[Axiom Query Language]

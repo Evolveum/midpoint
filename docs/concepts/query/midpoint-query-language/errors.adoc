@@ -1,5 +1,5 @@
-= Errors while using Axiom query
-:page-nav-title: Errors while using Axiom
+= Errors While Querying with midPoint Query Language
+:page-nav-title: Errors while querying
 :page-display-order: 500
 
 

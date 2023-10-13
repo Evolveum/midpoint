@@ -1,8 +1,8 @@
-= Using Query Langauge in Groovy
+= Using MidPoint Query Language in Groovy
 :page-nav-title: Use in Groovy
 :page-display-order: 300
 
-You can use Axiom query language in Groovy expressions using `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
+You can use midPoint Query Language in Groovy expressions using `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
 
 == Creating and using Queries
 .Using midpoint functions

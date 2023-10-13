@@ -1,4 +1,4 @@
-= Using expressions in Query Language
+= Using expressions in midPoint Query Language
 :page-nav-title: Expressions
 :page-display-order: 200
 :page-since: "4.5"
@@ -6,7 +6,7 @@
 
 :triple-backtick: ```
 
-Axiom query language provides special syntax support for most common
+MidPoint Query Language provides special syntax support for most common
 expression types.
 
 IMPORTANT: Expressions are not executed / supported for user entered queries in
@@ -89,7 +89,7 @@ The language name is same as you would use in XML filter script expressions.
 == Other expression types
 
 If you plan to use expression type, which does not have simplified syntax,
-you can use `yaml` expression (`yaml` language is only available in Axiom Queries).
+you can use `yaml` expression (`yaml` language is only available in midPoint queries).
 
 `yaml` expression allows you to pass-thru standard `expression` element
 serialized in YAML format.

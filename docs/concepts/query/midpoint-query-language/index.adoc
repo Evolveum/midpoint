@@ -1,38 +1,41 @@
-= Axiom Query Language
+= midPoint Query Language
 :page-since: "4.4"
 :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 :page-toc: top
+:toclevels: 3
 
 //User-friendly documentation of a user-friendly language.
 //This should NOT be a language specification, rather a user-oriented reference documentation with a dash of tutorial on top.
 
-Axiom query language is a language used to query objects in midPoint repository.
-It is a universal language used to search for objects in the repository, filter objects, set up object references and so on.
-It is used in all the places where we need to look for an object.
+_MidPoint Query Language_ is designed to query objects in midPoint repository.
+It is a universal language used to search for objects in the repository, filter objects, set up object references and so on. It is used in all the places where we need to look for an object, not only in GUI.
 
 The language closely follows midPoint data model.
 Names of the properties, attributes and all the data items are directly taken from midPoint xref:/midpoint/reference/schema/[data model].
 
-This document provides introduction to the Axiom Query language for the users.
-Some details are omitted, and there are some simplifications for clarity.
-Exact developers specification of the query language will be provided in xref:/midpoint/devel/axiom/[Axiom section of this site].
+Not all items in midPoint objects are searchable. The list of searchable items (elements) in midPoint is provided  xref:./searchable-items.adoc[here].
 
-NOTE: The Axiom query language is undergoing rename to Midpoint Query Language since midPoint version 4.8. As the Axiom name is well known, it can and will be still referenced also with this name. Please consider _Axiom query language_ and _Midpoint query language_ as synonyms.
+
+NOTE: The new query language is undergoing rename from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8. As the Axiom name is well known, it can be still for some time referenced also with this name. Please consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
+
+This document provides introduction to the _midPoint Query Language_ for the users.
+Some details are omitted, and there are some simplifications for clarity.
+Detail developer specification of the query language is provided in xref:/midpoint/devel/axiom/[Axiom section of this site].
 
 == The Basics
 
-The query language is designed to allow specification of a complex queries.
+The midPoint Query Language is designed to allow specification of a complex queries.
 Yet the basic structure of the language is relative simple and easy to understand.
 
-The query is a combination of a _filter_ with additional parts such as paging and sorting.
+The _query_ is a combination of a _filter_ with additional parts such as paging and sorting.
 It is the _filter_ part that attracts most attention.
 
 Simple filter usually take the usual form of `item filterName value` triple, where:
 
 item::
-  Item Path - specifies on which item filter matching should be applied
+  Item Path - specifies the xref:./searchable-items.adoc[searchable item] on which should be the filter applied. +
 filterName::
-  Name of filter to be used
+  Name of filter to be used.
 value::
   Value literal or Item Path which should be matched according filter specification.
   String needs to be enclosed in quotes (`'`) or double-qoutes (`"`)
@@ -59,6 +62,7 @@ Following tables summarizes common property filters:
 
 ==== Comparison filters
 
+[options="header", cols="15,10,30", width=70]
 |====
 | Name | Alias | Description
 
@@ -83,6 +87,7 @@ For example `activation/validFrom > activation/validTo` should return all object
 
 ==== String filters
 
+[options="header", cols="15,10,30", width=70]
 |====
 | Name | Value | Description
 
@@ -91,8 +96,6 @@ For example `activation/validFrom > activation/validTo` should return all object
 | `endsWith` | | Matches string property if it ends with specified substring.
 | `fullText` | | Performs full text search. Item path must be dot (.)
 |====
-
-
 
 === Value
 
@@ -111,14 +114,15 @@ Numeric values and QNames does not need double quotes.
 Logical filters are used to combine several sub-filters into one filter or to
 negate filter.
 
-[source,axiom-query]
+[source,midpoint-query]
 ----
 givenName = "John" and familyName = "Doe"
 ----
 
 There is a usual set of logic operators:
 
-.Logic Operators
+.Logical Operators
+[options="header", cols="10,40,30", width=80]
 |====
 | Operator | Example | Description
 
@@ -257,7 +261,7 @@ reference it. Since object as whole is referenced the item path
 In order to use `referencedBy` filter you must also specify `type` of objects, which references it,
 and `path` of object reference, which is used for reference (e.g. `assignment/targetRef` or `inducement/targetRef`)
 
-The short Axiom syntax is:
+The short query syntax is:
 
 .Find all roles which are assigned to Administrator
 ----
@@ -280,11 +284,11 @@ ownedBy filter allows for matching indexed containers based on properties of the
 
 The syntax is similar to referencedBy. ownedBy filter can only be applied on self path (`.`). The properties of ownedBy filter are:
 
-type:: (Required) Type of parent / owner
+type:: (Required) Type of parent / owner.
 
-path:: (Optional) name / location of container inside parent
+path:: (Optional) Name / location of container inside parent.
 
-filter:: (Optional) filter, to which parent needs to conform, filter is explicit element in XML/YAML/JSON. In Axiom any filter which is not special property of ownedBy is automaticly nested in filter.
+filter:: (Optional) Filter, to which parent needs to conform, filter is explicit element in XML/YAML/JSON. In midPoint query any filter which is not special property of ownedBy is automatically nested in filter.
 
 .Using searchContainers, find all inducements
 ----
@@ -294,8 +298,9 @@ filter:: (Optional) filter, to which parent needs to conform, filter is explicit
 === Organization Filters
 
 Organization filters are used to filter objects based on their organization membership.
-These filters operate on object as a whole, so item path must be `.`
+These filters operate on object as a whole, so item path must be `.` (the dot).
 
+[options="header", cols="10,10,30", width=70]
 |===
 | Name | Value | Description
 
@@ -311,43 +316,40 @@ These filters operate on object as a whole, so item path must be `.`
 
 === Other filters
 
+[options="header", cols="10,10,30", width=70]
 |===
 | Name | Value | Description
 | exists | N/A | Matches if item exists (has any value). Filter does not have value.
 | type | object type | Matches if object is of specified type. Usually used in combination with `and` filter for dereferenced objects, or it is needed to match on property defined in more specific type.
-
 |===
 
+== Using midPoint Query Language in midPoint
 
+=== Using in GUI
 
-== Using Axiom Query Language in midPoint
+.midPoint 4.8 and never
 
-=== Using Axiom Query in GUI
+Basic search query is shown above each view by default. User can switch to advanced query by clicking the query button and selecting the `Advanced` option.
 
-==== midPoint 4.8 and never
+.midPoint 4.5, 4.6, 4.7
 
-you could click on down arrow in search fields to select `Advanced` (or `Axiom query`) as one of the search options.
+Basic search query is shown above each view by default. User can switch to advanced query by clicking the query button and selecting the `Axiom query` as one of the search options.
 
-==== midPoint 4.5, 4.6, 4.7
+.midPoint 4.4
 
-You could click on down arrow in search fields to select `Axiom query` as one of the search options.
-
-==== midPoint 4.4
-
-Query language is experimental feature in midPoint 4.4, so it needs to be explicitly enabled in GUI.
+New query language is experimental feature in midPoint 4.4, so it needs to be explicitly enabled in GUI.
 
 . In Admin GUI, navigate to Configuration -> System -> Admin GUI
 . Click Show Empty fields in Admin GUI Configuration section
 . Select True in Enable experimental features
-. Save configuration changes, logout and login in order to changes
-to be applied.
+. Save configuration changes, logout and login in order to changes to be applied.
 
-After reload, you could click on down arrow in search fields to select `Axiom query` as one of the search options.
+After logout and back login to GUI, you can click on down arrow in search field to select `Axiom query` as one of the search options.
 
-=== Using Axiom Query in XML
+=== Using in XML
 
-Axiom Query filters are usable in any configuration place, normal XML filters
-would be used. Axiom Query filter is wrapped inside `<text>`
+Advanced query filters are usable in any configuration place, normal XML filters
+would be used. Advanced query filter is wrapped inside `<text>`
 element inside `<filter>` element.
 
 .Example XML
@@ -365,21 +367,20 @@ filter:
   text: roleMembershipRef matches (relation = manager)
 ----
 
-
 == Motivation, Origin and Future
 
-Axiom Query Language was developed during xref:/midpoint/projects/midscale[midScale] project.
+MidPoint Query Language was developed during xref:/midpoint/projects/midscale[midScale] project. It was formerly known as Axiom query language.
 The concepts of the language are based on xref:/midpoint/devel/axiom/[Axiom data modeling].
-Axiom Query Language is replacing an old xref:../xml-query-language/[XML-based query language].
+MidPoint Query Language is replacing an old xref:../xml-query-language/[XML-based query language].
 The new language is more natural, user-friendly and better aligned with foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
 
-Axiom query language is a relative new development, introduced in midPoint 4.3.
+MidPoint Query Language is a relative new development, introduced in midPoint 4.3.
 It was almost fully supported in midPoint 4.4 LTS, except for embedded expression.
-Since midPoint 4.5, Axiom query language is fully supported and recommended option.
+Since midPoint 4.5, midPoint Query Language is fully supported and recommended option.
 
-The Axiom query language is a full replacement for XML-based language.
+The midPoint Query Language is a full replacement for XML-based language.
 The XML-based language will be still supported for some time, but it will be dropped eventually.
-Users of XML-based query language should migrate to Axiom query language as soon as possible.
+Users of XML-based query language should migrate to midPoint Query Language as soon as possible.
 
 == See Also
 

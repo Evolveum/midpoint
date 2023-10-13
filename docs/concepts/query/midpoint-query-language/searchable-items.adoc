@@ -1,12 +1,11 @@
-= Searchable elements in midPoint
-:page-nav-title: Searchable elements
+= Searchable Items in midPoint
+:page-nav-title: Searchable items
 :page - since: 4.8
 :page-display-order: 400
 
-This document provides list of searchable elements (items) in midPoint.
-These elements can be used in preparation of queries.
+This document provides list of searchable items (elements) in midPoint that can be used while querying data with _MidPoint Query Language_.
 
-It also provides easily searchable translation table between elements display name that users can see in GUI and the element name that is being used in AXIOM queries.
+It also provides easily searchable translation table between displayName that users can see in GUI and the item name that is being used in queries.
 
 NOTE: Column Display Name displays actual English translation of the element. It can be even modified in your implementation.
 NOTE: This list is not comprehensive at this moment.
@@ -18,7 +17,7 @@ Display name contains element identification in GUI.
 Item name contains name of the element according the schema.
 Item constant code displays constant by which is the element referenced in midPoint source code.
 
-NOTE: Use names in the Item name column for preparation of AXIOM queries 
+NOTE: Use names in the Item name column for preparation of queries in midPoint Query Language
 
 Please keep in mind inheritance of objects - each object inherits search elements also from its parents.
 //TODO - link to inheritance  - lebo nie je jasne, ktore dedia od koho
