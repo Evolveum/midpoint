@@ -34,13 +34,13 @@ Therefore simple `asIs` expression is all that is usually needed:
 [source,xml]
 ----
 <activation>
-   <existence>
-	   <outbound>
-		   <expression>
-			   <asIs/>
-		   </expression>
-	   </outbound>
-   </existence>
+    <existence>
+        <outbound>
+            <expression>
+                <asIs/>
+            </expression>
+        </outbound>
+    </existence>
    ...
 </activation>
 ----
@@ -105,68 +105,68 @@ E.g. the account should normally exists all the times, even if it is not _legal_
 E.g. we in fact want to delete the account if it is left in illegal state for too long.
 Like this:
 
-[source]
+[source,xml]
 ----
-            <activation>
-                <!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.
-                     The accounts are deleted after 1 month -->
-                <existence>
-                    <outbound>
-                        <name>default existence</name>
-                        <strength>weak</strength>
-                        <expression>
-                            <path>$focusExists</path>
-                        </expression>
-                    </outbound>
-                    <outbound>
-                        <name>delayed delete</name>
-                        <timeFrom>
-                            <referenceTime>
-                                <path>$shadow/activation/disableTimestamp</path>
-                            </referenceTime>
-                            <offset>P1M</offset>
-                        </timeFrom>
-                        <source>
-                            <path>$shadow/activation/administrativeStatus</path>
-                        </source>
-                        <source>
-                            <path>$shadow/activation/disableReason</path>
-                        </source>
-                        <expression>
-                            <value>false</value>
-                        </expression>
-                        <condition>
-                            <script>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                                    import com.evolveum.midpoint.schema.constants.SchemaConstants;
-                                    administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
-                                        // do not delete explicitly disabled accounts
-                                        (disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
-                                         disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
-                                </code>
-                            </script>
-                        </condition>
-                    </outbound>
-                </existence>
-                <administrativeStatus>
-                    <outbound>
-                        <strength>strong</strength>
-                        <expression>
-                            <script>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                                    if (legal) {
-                                        input;
-                                    } else {
-                                        ActivationStatusType.DISABLED;
-                                    }
-                                </code>
-                            </script>
-                        </expression>
-                    </outbound>
-                </administrativeStatus>
-            </activation>
+<activation>
+    <!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.
+         The accounts are deleted after 1 month -->
+    <existence>
+        <outbound>
+            <name>default existence</name>
+            <strength>weak</strength>
+            <expression>
+                <path>$focusExists</path>
+            </expression>
+        </outbound>
+        <outbound>
+            <name>delayed delete</name>
+            <timeFrom>
+                <referenceTime>
+                    <path>$shadow/activation/disableTimestamp</path>
+                </referenceTime>
+                <offset>P1M</offset>
+            </timeFrom>
+            <source>
+                <path>$shadow/activation/administrativeStatus</path>
+            </source>
+            <source>
+                <path>$shadow/activation/disableReason</path>
+            </source>
+            <expression>
+                <value>false</value>
+            </expression>
+            <condition>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                        import com.evolveum.midpoint.schema.constants.SchemaConstants;
+                        administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
+                            // do not delete explicitly disabled accounts
+                            (disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
+                             disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+                    </code>
+                </script>
+            </condition>
+        </outbound>
+    </existence>
+    <administrativeStatus>
+        <outbound>
+            <strength>strong</strength>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                        if (legal) {
+                            input;
+                        } else {
+                            ActivationStatusType.DISABLED;
+                        }
+                    </code>
+                </script>
+            </expression>
+        </outbound>
+    </administrativeStatus>
+</activation>
 ----
 
 In this the "default existence" weak mapping is applied in normal circumstances.
@@ -191,11 +191,11 @@ Administrative status mapping maps xref:/midpoint/reference/concepts/activation/
 [source,xml]
 ----
 <administrativeStatus>
-	<outbound>
-		<expression>
-			<asIs/>
-		</expression>
-	</outbound>
+    <outbound>
+        <expression>
+            <asIs/>
+        </expression>
+    </outbound>
 </administrativeStatus>
 ----
 
@@ -246,6 +246,7 @@ Set to `true` if the resource object is linked to an existing focal object.
 
 TODO
 
+[#_predefined_activation_mappings]
 == Predefined activation mappings
 
 NOTE: Since 4.8.
@@ -264,10 +265,10 @@ When we want mapping for administrative status, then we need to add inbound or o
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
                 <administrativeStatus>
                     <outbound>
                         <strength>strong</strength>
@@ -276,10 +277,10 @@ When we want mapping for administrative status, then we need to add inbound or o
                         </expression>
                     </outbound>
                 </administrativeStatus>
-			</activation>
-			...
-		</objectType>
-	</schemaHandling>
+            </activation>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 
@@ -291,16 +292,16 @@ This configuration changes default behavior and account will be disabled instead
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
                 <administrativeStatus>...</administrativeStatus>
                 <disableInsteadOfDelete/>
-			</activation>
-			...
-		</objectType>
-	</schemaHandling>
+            </activation>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 
@@ -314,18 +315,18 @@ As a disable reason we use de-provision, which means that the assignment for res
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
                 <administrativeStatus>...</administrativeStatus>
                 <delayedDelete>
                     <deleteAfter>P1M</deleteAfter>
-                <delayedDelete/>
-			</activation>
-			...
-		</objectType>
-	</schemaHandling>
+                </delayedDelete>
+            </activation>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 We need to set only one attribute `deleteAfter`, that defines time after which the account will be deleted.
@@ -336,18 +337,18 @@ This configuration will pre-provision a disabled account defined by time before 
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
                 <administrativeStatus>...</administrativeStatus>
                 <preProvision>
                     <createBefore>-P5D</createBefore>
-                <preProvision/>
-			</activation>
-			...
-		</objectType>
-	</schemaHandling>
+                </preProvision>
+            </activation>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 
@@ -365,28 +366,28 @@ It uses only `asIs` mappings.
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
-				<existence>
-					<outbound>
-						<expression>
-							<asIs/>
-						</expression>
-					</outbound>
-				</existence>
-				<administrativeStatus>
-					<outbound>
-						<expression>
-							<asIs/>
-						</expression>
-					</outbound>
-				</administrativeStatus>
-			</activation>
-			...
-		</objectType>
-	</schemaHandling>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
+                <existence>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 
@@ -407,37 +408,37 @@ It may be changed to a fixed `true` value if the account should stay there even 
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
-				<existence>
-					<outbound>
-						<expression>
-							<path>$focusExists</path>
-						</expression>
-					</outbound>
-				</existence>
-				<administrativeStatus>
-					<outbound>
-						<expression>
-							<script>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
+                <existence>
+                    <outbound>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                        <expression>
+                            <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
                                     if (legal &amp;&amp; assigned) {
-                                        input;
+                                        input
                                     } else {
-                                        ActivationStatusType.DISABLED;
+                                        ActivationStatusType.DISABLED
                                     }
                                 </code>
                             </script>
-						</expression>
-					</outbound>
-				</administrativeStatus>
-			</activation>
-			...
-		</objectType>
-	</schemaHandling>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 
@@ -455,17 +456,17 @@ E.g. following set of existence mappings will cause that accounts that are disab
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
                 <existence>
                     <outbound>
                         <name>Default existence</name>
-						<description>
-							Default existence mapping needs to specified explicitly here.
-							It is also set to be weak therefore the other mapping will take precedence.
-						</description>
+                        <description>
+                            Default existence mapping needs to specified explicitly here.
+                            It is also set to be weak therefore the other mapping will take precedence.
+                        </description>
                         <strength>weak</strength>
                         <expression>
                             <asIs/>
@@ -473,10 +474,10 @@ E.g. following set of existence mappings will cause that accounts that are disab
                     </outbound>
                     <outbound>
                         <name>Delayed delete</name>
-						<description>
-							This mapping will be used only one month after the account is disabled.
-							It result is constant "false" which causes the account to stop existing.
-						</description>
+                        <description>
+                            This mapping will be used only one month after the account is disabled.
+                            It result is constant "false" which causes the account to stop existing.
+                        </description>
                         <timeFrom>
                             <referenceTime>
                                 <path>$shadow/activation/disableTimestamp</path>
@@ -492,17 +493,17 @@ E.g. following set of existence mappings will cause that accounts that are disab
                         <condition>
                             <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                                    administrativeStatus == ActivationStatusType.DISABLED;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                    administrativeStatus == ActivationStatusType.DISABLED
                                 </code>
                             </script>
                         </condition>
                     </outbound>
                 </existence>
-			</activation>
-			...
-		</objectType>
-	</schemaHandling>
+            </activation>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 
@@ -512,18 +513,18 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 [source,xml]
 ----
 <resource>
-	<schemaHandling>
-		<objectType>
-			...
-			<activation>
+    <schemaHandling>
+        <objectType>
+            ...
+            <activation>
                 <existence>
                     <outbound>
                         <name>Basic existence</name>
-						<description>
-							The default for account existence in this case is the existence of focus object (user).
-							Is user exists, account should exist too. Also note that this mapping is weak which
-							lets the other mapping to take precedence.
-						</description>
+                        <description>
+                            The default for account existence in this case is the existence of focus object (user).
+                            Is user exists, account should exist too. Also note that this mapping is weak which
+                            lets the other mapping to take precedence.
+                        </description>
                         <strength>weak</strength>
                         <expression>
                             <path>$focusExists</path>
@@ -531,11 +532,11 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
                     </outbound>
                     <outbound>
                         <name>Pre-create</name>
-						<description>
-							The mapping above would cause the account to exist as soon as user appears.
-							But we want to override that and prohibit account existence all the way up to
-							5 days before user's validFrom. This mapping does right that.
-						</description>
+                        <description>
+                            The mapping above would cause the account to exist as soon as user appears.
+                            But we want to override that and prohibit account existence all the way up to
+                            5 days before user's validFrom. This mapping does right that.
+                        </description>
                         <timeTo>
                             <referenceTime>
                                 <path>$focus/activation/validFrom</path>
@@ -549,33 +550,33 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
                             <value>false</value>
                         </expression>
                         <condition>
-							<description>
-								This condition is not really necessary if all the uses will have a validFrom timestamp.
-								But if there is a user without validFrom then this mapping will be applied
-								indefinitely and the account will never be created. We want to avoid that.
-							</description>
+                            <description>
+                                This condition is not really necessary if all the uses will have a validFrom timestamp.
+                                But if there is a user without validFrom then this mapping will be applied
+                                indefinitely and the account will never be created. We want to avoid that.
+                            </description>
                             <script>
                                 <code>validFrom != null</code>
                             </script>
                         </condition>
                     </outbound>
-				</existence>
+                </existence>
                 <administrativeStatus>
                     <outbound>
-						<description>
-							This mapping will make sure that if an account is created without a valid assignment
-							(legal=false) then such account will be disabled. We need that because we are pre-provisioning
-							accounts and we want them disabled when they are pre-provisioned.
-						</description>
+                        <description>
+                            This mapping will make sure that if an account is created without a valid assignment
+                            (legal=false) then such account will be disabled. We need that because we are pre-provisioning
+                            accounts and we want them disabled when they are pre-provisioned.
+                        </description>
                         <strength>strong</strength>
                         <expression>
                             <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
                                     if (legal &amp;&amp; assigned) {
-                                        input;
+                                        input
                                     } else {
-                                        ActivationStatusType.DISABLED;
+                                        ActivationStatusType.DISABLED
                                     }
                                 </code>
                             </script>
@@ -583,9 +584,9 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
                     </outbound>
                 </administrativeStatus>
             </activation>
-			...
-		</objectType>
-	</schemaHandling>
+            ...
+        </objectType>
+    </schemaHandling>
 </resource>
 ----
 
