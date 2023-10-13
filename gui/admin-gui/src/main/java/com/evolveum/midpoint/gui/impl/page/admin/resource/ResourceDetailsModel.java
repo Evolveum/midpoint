@@ -94,7 +94,8 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         PrismObject<ResourceType> resource = getPrismObject();
         PrismReference connector = resource.findReference(ResourceType.F_CONNECTOR_REF);
         String connectorOid = connector != null ? connector.getOid() : null;
-        return getModelServiceLocator().getCompiledGuiProfile().findResourceDetailsConfiguration(connectorOid);
+        GuiResourceDetailsPageType resourceDetailsConfiguration = getModelServiceLocator().getCompiledGuiProfile().findResourceDetailsConfiguration(connectorOid);
+        return applyArchetypePolicy(resourceDetailsConfiguration);
     }
 
     public IModel<List<ObjectClassWrapper>> getObjectClassesModel() {

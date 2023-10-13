@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
@@ -54,6 +55,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 @PanelType(name = "resourceUncategorized")
@@ -64,7 +66,6 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
-
 
     public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -89,10 +90,15 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
     }
 
     private void createObjectTypeChoice() {
+        boolean templateCategory = WebComponentUtil.isTemplateCategory(getObjectWrapperObject().asObjectable());
+
         var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
                 Model.of(getDefaultObjectClass()),
-                () -> getObjectDetailsModels().getResourceObjectClassesDefinitions(),
-                new ResourceObjectClassChoiceRenderer(), false);
+                () -> {
+                    List<QName> resourceObjectClassesDefinitions = getObjectDetailsModels().getResourceObjectClassesDefinitions();
+                    return Objects.requireNonNullElseGet(resourceObjectClassesDefinitions, ArrayList::new);
+                },
+                new ResourceObjectClassChoiceRenderer(), templateCategory);
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -139,7 +145,6 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
                 searchContext.setResourceObjectDefinition(getObjectDetailsModels().findResourceObjectClassDefinition(getSelectedObjectClass()));
                 return searchContext;
             }
-
 
             @Override
             public CompiledObjectCollectionView getObjectCollectionView() {
@@ -246,7 +251,6 @@ public class ResourceUncategorizedPanel extends AbstractObjectMainPanel<Resource
         }
         return null;
     }
-
 
     private DropDownChoicePanel<QName> getObjectTypeSelector() {
         return (DropDownChoicePanel<QName>) get(ID_OBJECT_TYPE);

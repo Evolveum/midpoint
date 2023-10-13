@@ -17,8 +17,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceTemplates;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -422,9 +420,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
 
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
-
-        resourceMenu.addMenuItemAtIndex(new MenuItem("PageAdmin.menu.top.resource.templates.list",
-                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResourceTemplates.class), 1);
 
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));

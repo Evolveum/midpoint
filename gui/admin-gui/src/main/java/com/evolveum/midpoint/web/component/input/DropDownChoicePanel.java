@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
+import java.io.Serial;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
  */
 public class DropDownChoicePanel<T> extends InputPanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final String ID_INPUT = "input";
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices) {
@@ -36,7 +37,6 @@ public class DropDownChoicePanel<T> extends InputPanel {
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer) {
         this(id, model, choices, renderer, false);
     }
-
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer,
             boolean allowNull) {
         super(id);
@@ -44,7 +44,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
         DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model,
                 choices, renderer) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {

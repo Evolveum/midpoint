@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -204,8 +205,15 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private void createObjectTypeChoice() {
         var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
                 Model.of(getObjectDetailsModels().getDefaultObjectType(getKind())),
-                () -> getObjectDetailsModels().getResourceObjectTypesDefinitions(getKind()),
-                new ResourceObjectTypeChoiceRenderer(), true);
+                () -> {
+                    List<? extends ResourceObjectTypeDefinition> choices = getObjectDetailsModels()
+                            .getResourceObjectTypesDefinitions(getKind());
+                    return choices != null ? choices : Collections.emptyList();
+                },
+                new ResourceObjectTypeChoiceRenderer(), true) {
+
+        };
+
         objectTypes.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
