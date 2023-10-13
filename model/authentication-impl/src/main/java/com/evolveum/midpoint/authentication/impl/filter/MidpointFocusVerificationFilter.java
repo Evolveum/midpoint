@@ -38,7 +38,7 @@ import java.util.Map;
 
 public abstract class MidpointFocusVerificationFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final String SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY = "attributeValues";
+    protected static final String SPRING_SECURITY_FORM_ATTRIBUTE_VALUES_KEY = "attributeValues";
 
     protected MidpointFocusVerificationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
         super(requiresAuthenticationRequestMatcher);
