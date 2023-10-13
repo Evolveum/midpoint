@@ -1376,6 +1376,11 @@
                                 Deprecated use attribute in token definition instead
                             </p>
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:deprecated/>
+                            <a:deprecatedSince>4.8</a:deprecatedSince>
+                            <a:plannedRemoval>4.9</a:plannedRemoval>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="keyStoreTrustingAsymmetricKey" type="tns:AbstractKeyStoreKeyType" minOccurs="0">
