@@ -5,6 +5,7 @@
 :toclevels: 3
 :sectnums:
 :sectnumlevels: 3
+:page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/
 
 //User-friendly documentation of a user-friendly language.
 //This should NOT be a language specification, rather a user-oriented reference documentation with a dash of tutorial on top.
