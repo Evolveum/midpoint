@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.init.InitialDataImport;
+import com.evolveum.midpoint.init.PostInitialDataImport;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -44,7 +45,7 @@ public class FactoryResetHelper {
 
     private static final String OPERATION_INITIAL_IMPORT = DOT_CLASS + "initialImport";
 
-    private ModelServiceLocator locator;
+    private final ModelServiceLocator locator;
 
     public FactoryResetHelper(@NotNull ModelServiceLocator locator) {
         this.locator = locator;
@@ -65,17 +66,26 @@ public class FactoryResetHelper {
                     .end();
             // @formatter:on
 
+            // we'll skip delete of system configuration and user administrator, to avoid unnecessary errors.
+            // They will be overridden during initial import anyway.
+
             List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
             // delete all objects (indestructible objects will be skipped)
             for (ObjectTypes type : createSortedTypesForDeleteAll()) {
-                activities.add(createDeleteActivityForType(type.getTypeQName(), createAllQuery(type.getClassDefinition()), activities.size() + 1));
+                ObjectQuery query = createAllQuery(type.getClassDefinition());
+                activities.add(createDeleteActivityForType(type.getTypeQName(), createQueryType(query), activities.size() + 1));
             }
 
             // delete indestructible objects (all but currently executing task)
             for (ObjectTypes type : createSortedTypesForDeleteAllIndestructible()) {
-                QueryType query = TASK == type ? createTaskQuery(taskOid) : null;
+                ObjectQuery query;
+                switch (type) {
+                    case TASK -> query = createTaskQuery(taskOid);
+                    case USER -> query = createUserQuery();
+                    default -> query = null;
+                }
 
-                activities.add(createDeleteIndestructibleActivityForType(type.getTypeQName(), query, activities.size() + 1));
+                activities.add(createDeleteIndestructibleActivityForType(type.getTypeQName(), createQueryType(query), activities.size() + 1));
             }
 
             // run initial object import + model restart/post-init
@@ -155,42 +165,41 @@ public class FactoryResetHelper {
         return activity;
     }
 
-    private <T extends ObjectType> QueryType createAllQuery(Class<T> type) throws SchemaException {
-        PrismContext prismContext = locator.getPrismContext();
-
-        return prismContext.getQueryConverter().createQueryType(
-                prismContext.queryFor(type)
-                        .all()
-                        .build());
+    private QueryType createQueryType(ObjectQuery query) throws SchemaException {
+        return query != null ? locator.getPrismContext().getQueryConverter().createQueryType(query) : null;
     }
 
-    private QueryType createTaskQuery(String taskOid) throws SchemaException {
-        PrismContext prismContext = locator.getPrismContext();
-        // @formatter:off
-        final ObjectQuery query = prismContext.queryFor(TaskType.class)
+    private <T extends ObjectType> ObjectQuery createAllQuery(Class<T> type) {
+        return locator.getPrismContext().queryFor(type)
+                .all()
+                .build();
+    }
+
+    private ObjectQuery createUserQuery() {
+        return locator.getPrismContext().queryFor(TaskType.class)
+                .not().ownerId(SystemObjectsType.USER_ADMINISTRATOR.value()).build();
+    }
+
+    private ObjectQuery createTaskQuery(String taskOid) {
+        return locator.getPrismContext().queryFor(TaskType.class)
                 .not().ownerId(taskOid).build();
-        // @formatter:on
-        return prismContext.getQueryConverter().createQueryType(query);
     }
 
     private List<ObjectTypes> createSortedTypesForDeleteAllIndestructible() {
-        return createSortedTypes(Arrays.asList(), Arrays.asList(ARCHETYPE, USER, SYSTEM_CONFIGURATION), Arrays.asList(NODE));
+        return createSortedTypes(List.of(), Arrays.asList(ARCHETYPE, USER), Arrays.asList(NODE, SYSTEM_CONFIGURATION));
     }
 
     private List<ObjectTypes> createSortedTypesForDeleteAll() {
         final List<ObjectTypes> head = Arrays.asList(SHADOW, USER, ROLE, ORG, SERVICE);
 
         final List<ObjectTypes> tail = Arrays.asList(
-                RESOURCE, CONNECTOR, MARK, OBJECT_TEMPLATE, OBJECT_COLLECTION, SECURITY_POLICY, PASSWORD_POLICY,
-                SYSTEM_CONFIGURATION);
+                RESOURCE, CONNECTOR, MARK, OBJECT_TEMPLATE, OBJECT_COLLECTION, SECURITY_POLICY, PASSWORD_POLICY);
 
-        return createSortedTypes(head, tail, Arrays.asList(NODE, ARCHETYPE));
+        return createSortedTypes(head, tail, Arrays.asList(NODE, ARCHETYPE, SYSTEM_CONFIGURATION));
     }
 
     private List<ObjectTypes> createSortedTypes(List<ObjectTypes> head, List<ObjectTypes> tail, List<ObjectTypes> skip) {
-        final List<ObjectTypes> result = new ArrayList<>();
-
-        result.addAll(head);
+        final List<ObjectTypes> result = new ArrayList<>(head);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (head.contains(type) || tail.contains(type) || skip.contains(type)) {
@@ -249,12 +258,19 @@ public class FactoryResetHelper {
         MidpointConfiguration midpointConfiguration = context.getBean(MidpointConfiguration.class);
 
         try {
-            InitialDataImport initialDataImport = new InitialDataImport();
-            initialDataImport.setModel(modelService);
-            initialDataImport.setTaskManager(taskManager);
-            initialDataImport.setPrismContext(prismContext);
-            initialDataImport.setConfiguration(midpointConfiguration);
-            initialDataImport.init(true);
+            InitialDataImport initial = new InitialDataImport();
+            initial.setModel(modelService);
+            initial.setTaskManager(taskManager);
+            initial.setPrismContext(prismContext);
+            initial.setConfiguration(midpointConfiguration);
+            initial.init(true);
+
+            PostInitialDataImport postInitial = new PostInitialDataImport();
+            postInitial.setModel(modelService);
+            postInitial.setTaskManager(taskManager);
+            postInitial.setPrismContext(prismContext);
+            postInitial.setConfiguration(midpointConfiguration);
+            postInitial.init();
 
             // TODO consider if we need to go clusterwide here
             cacheDispatcher.dispatchInvalidation(null, null, true, null);
