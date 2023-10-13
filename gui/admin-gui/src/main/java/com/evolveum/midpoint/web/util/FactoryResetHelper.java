@@ -57,7 +57,7 @@ public class FactoryResetHelper {
         try {
             // @formatter:off
             ActivityDefinitionType definition = new ActivityDefinitionType()
-                    .identifier("Delete all")
+                    .identifier("Factory reset")
                     .beginComposition()
                     .<ActivityDefinitionType>end()
                     .beginDistribution()
@@ -88,9 +88,7 @@ public class FactoryResetHelper {
                                     .oid(taskOid)
                                     .name("Factory reset " + WebComponentUtil.formatDate(new Date()))
                                     .indestructible(true)
-                                    .cleanupAfterCompletion(XmlTypeConverter.createDuration("P1D")))
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
+                                    .cleanupAfterCompletion(XmlTypeConverter.createDuration("P1D"))),
                     task, result);
         } catch (Exception ex) {
             result.computeStatusIfUnknown();
@@ -121,7 +119,7 @@ public class FactoryResetHelper {
         // @formatter:off
         ActivityDefinitionType activity = new ActivityDefinitionType()
                 .order(order)
-                .identifier(order + ": Delete all " + type.getLocalPart())
+                .identifier(order + ": Delete all indestructible " + type.getLocalPart())
                 .beginDistribution()
                 .<ActivityDefinitionType>end()
                 .beginWork()
@@ -176,14 +174,14 @@ public class FactoryResetHelper {
     }
 
     private List<ObjectTypes> createSortedTypesForDeleteAllIndestructible() {
-        return createSortedTypes(Arrays.asList(), Arrays.asList(ARCHETYPE, SYSTEM_CONFIGURATION, USER), Arrays.asList(NODE));
+        return createSortedTypes(Arrays.asList(), Arrays.asList(ARCHETYPE, USER, SYSTEM_CONFIGURATION), Arrays.asList(NODE));
     }
 
     private List<ObjectTypes> createSortedTypesForDeleteAll() {
         final List<ObjectTypes> head = Arrays.asList(SHADOW, USER, ROLE, ORG, SERVICE);
 
         final List<ObjectTypes> tail = Arrays.asList(
-                RESOURCE, CONNECTOR, MARK, OBJECT_TEMPLATE, OBJECT_COLLECTION, ARCHETYPE, SECURITY_POLICY, PASSWORD_POLICY,
+                RESOURCE, CONNECTOR, MARK, OBJECT_TEMPLATE, OBJECT_COLLECTION, SECURITY_POLICY, PASSWORD_POLICY,
                 SYSTEM_CONFIGURATION);
 
         return createSortedTypes(head, tail, Arrays.asList(NODE, ARCHETYPE));
