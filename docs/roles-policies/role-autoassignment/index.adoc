@@ -35,6 +35,7 @@ Perhaps the most convenient way to automatically assign a role is to use autoass
                 <type>UserType</type>
             </selector>
             <mapping>
+                <strength>strong</strength>
                 <source>
                     <path>employeeType</path>
                 </source>

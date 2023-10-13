@@ -24,7 +24,7 @@ Each role can have a condition when it should be assigned:
     <autoassign>
         <enabled>true</enabled>
         <focus>
-            <selector>.  <!-- Since 4.2 -->
+            <selector>  <!-- Since 4.2 -->
                 <type>UserType</type>
             </selector>
             <mapping>
