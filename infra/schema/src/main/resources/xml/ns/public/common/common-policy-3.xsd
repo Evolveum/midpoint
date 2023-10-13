@@ -1160,8 +1160,6 @@
             <xsd:documentation>
                 Custom ways of evaluating a policy constraint. Used typically for transitional constraints.
                 (State-based custom ones can always be evaluated using `objectState` constraint.)
-
-                TODO reconsider the name
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

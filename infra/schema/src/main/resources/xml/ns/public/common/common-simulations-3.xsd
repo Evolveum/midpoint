@@ -716,7 +716,6 @@
                             no        |        yes        |         no
                            yes        |        yes        |        yes
                 </pre>
-                NOT IMPLEMENTED YET, THE STRUCTURE MAY CHANGE
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -753,7 +752,6 @@
                             no        |        yes        |         no
                            yes        |        yes        |        yes
                 </pre>
-                NOT IMPLEMENTED YET, THE STRUCTURE MAY CHANGE
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -831,10 +829,9 @@
 
     <xsd:complexType name="SimulationMetricPartitionType">
         <xsd:annotation>
+            <!-- TODO reconsider type name -->
             <xsd:documentation>
                 Partial or total aggregation of values for given metric.
-
-                TODO type name
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1344,10 +1341,9 @@
 
     <xsd:complexType name="EventMarkDomainType">
         <xsd:annotation>
+            <!-- TODO decide on this - maybe we won't need it for simulations at all, but who knows about the audit? -->
             <xsd:documentation>
                 Domain of a given event mark.
-
-                TODO decide on this -- maybe we won't need it for simulations at all, but who knows about the audit?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>

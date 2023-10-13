@@ -4281,8 +4281,6 @@
                         How should the computed changes of this item be regarded? (Applied, recorded, ignored.)
 
                         Currently supported only for resource object attributes.
-
-                        TODO better name
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ItemRefinedDefinitionType.changeApplication</a:displayName>
@@ -4729,10 +4727,9 @@
 
     <xsd:simpleType name="ItemChangeApplicationModeType">
         <xsd:annotation>
+            <!-- TODO nouns or verbs for the modes? -->
             <xsd:documentation>
                 What to do with the changes computed for the given item?
-
-                TODO nouns or verbs for the modes?
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -8317,13 +8314,11 @@
     <xsd:complexType name="ObjectParentSelectorType">
         <xsd:annotation>
             <xsd:documentation>
-                Position of an object (more precisely, an item) within midPoint objects structure.
+                Position of an object (an item in the language of prism) within midPoint objects structure.
                 For example a case work item can be specified as having type=CaseType, path=workItem.
 
-                TODO we should perhaps find a better name
-
-                TODO technically this derives from OwnedObjectSelectorType, but not all the features may be available
-                in all contexts (e.g., sometimes only ObjectSelectorType features may be available)
+                Note that although technically this derives from OwnedObjectSelectorType, not all the features may be available
+                in all contexts (e.g., sometimes only ObjectSelectorType features may be available).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -9104,9 +9099,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of handling of the data in "multi-source" mode.
-
-                                TODO better explanation
-                                TODO think of a better name
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
@@ -9206,8 +9198,6 @@
                                 (Where identity[x] is the value assigned to the given source.) Then there may be special
                                 mapping or mappings devoted to the selection of the value or values to be stored right
                                 to the "main" place of the focus item.
-
-                                TODO better name for this configuration item
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
@@ -11803,7 +11793,7 @@
             <xsd:element name="defaults" type="tns:DefaultExpressionProfilesConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Default expression profiles to be used in specific situations.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationExpressionsType.defaults</a:displayName>
@@ -12058,7 +12048,7 @@
     <xsd:complexType name="AbstractSecurityProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Abstract supertype for various expression and related profiles.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12310,7 +12300,7 @@
     <xsd:complexType name="DefaultExpressionProfilesConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Default expression profiles to be used in specific situations.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12476,7 +12466,7 @@
     <xsd:complexType name="FunctionLibraryProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                What functions in a given function library can be called?
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

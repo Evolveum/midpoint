@@ -6796,7 +6796,7 @@
     <xsd:complexType name="BasicObjectSetType">
         <xsd:annotation>
             <xsd:documentation>
-
+                Specifies the basic features of a repository-based object set.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.8</a:since>

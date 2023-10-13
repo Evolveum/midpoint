@@ -3324,7 +3324,7 @@
     <xsd:complexType name="AdditionalAuthorizationsType">
         <xsd:annotation>
             <xsd:documentation>
-                HACK, FIXME document
+                Authorizations to be applied in addition to or instead of the ones of current/selected subject.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
