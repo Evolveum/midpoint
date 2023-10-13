@@ -319,7 +319,7 @@ For users of the support-4.4 version or later, exporting anonymized role mining 
 
 // TODO
 
-By sharing your data, you can help us develop new futures like "Role mining". The goal of this export is to obtain data structures representing relationships from a real deployment.
+By sharing your data, you can help us develop new features like "Role mining". The goal of this export is to obtain data structures representing relationships from a real deployment.
 If you have imported data that you can share, please consider contributing to this project. If you have performed an anonymized export, you can make sure that the data does not contain any confidential information.
 
 To submit export, follow these steps:
