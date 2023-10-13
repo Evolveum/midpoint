@@ -149,7 +149,7 @@ The search filter language definition is part of Query Schema. See the `FilterTy
     	    		</c:expression>
     	    	</q:equals>
     	    </q:filter>
-        <q:query>
+        </q:query>
     </q:ref>
     <q:maxDepth>unbounded</q:maxDepth>
 </q:org>

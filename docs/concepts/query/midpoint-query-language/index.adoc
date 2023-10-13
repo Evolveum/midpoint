@@ -251,7 +251,7 @@ assignment/targetRef matches ( <1>
 <5> Name of role archetype should be `Business Role`. This is done by dereferencing `archetypeRef` using `@` in item path.
 
 
-==== referencedBy Filter
+==== referencedBy filter
 
 NOTE: Filter is currently supported in midPoint 4.6 Postgres native repository only
 
