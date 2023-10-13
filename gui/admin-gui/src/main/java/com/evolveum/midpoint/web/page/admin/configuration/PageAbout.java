@@ -9,15 +9,9 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-
-import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 
 import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -29,35 +23,27 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.init.StartupConfiguration;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -65,11 +51,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.midpoint.web.util.FactoryResetHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReindexingWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author lazyman
@@ -544,164 +529,13 @@ public class PageAbout extends PageAdminConfiguration {
         };
     }
 
-    private ActivityDefinitionType createDeleteActivityForType(QName type, QueryType query, int order) {
-        // @formatter:off
-        return new ActivityDefinitionType()
-                .order(order)
-                .identifier("Delete all " + type.getLocalPart())
-                .beginDistribution()
-                .<ActivityDefinitionType>end()
-                .beginWork()
-                .beginDeletion()
-                .beginObjects()
-                .type(type)
-                .query(query)
-                .<DeletionWorkDefinitionType>end()
-                .<WorkDefinitionsType>end()
-                .end();
-        // @formatter:on
-    }
-
-    private QueryType createTaskQuery(String taskIdentifier) throws SchemaException {
-        // @formatter:off
-        final ObjectQuery query = getPrismContext().queryFor(TaskType.class)
-                .not().item(TaskType.F_TASK_IDENTIFIER).eq(taskIdentifier)
-                .and()
-                .not().item(TaskType.F_PARENT).eq(taskIdentifier).build();
-        // @formatter:on
-        return getPrismContext().getQueryConverter().createQueryType(query);
-    }
-
-    private <T extends ObjectType> QueryType createAllQuery(Class<T> type) throws SchemaException {
-        return getPrismContext().getQueryConverter().createQueryType(
-                getPrismContext().queryFor(type)
-                        .all()
-                        .build());
-    }
-
-    private List<ObjectTypes> createSortedTypes() {
-        final List<ObjectTypes> first = new ArrayList<>();
-        first.add(ObjectTypes.SHADOW);
-        first.add(ObjectTypes.USER);
-        first.add(ObjectTypes.ROLE);
-        first.add(ObjectTypes.ORG);
-
-        final List<ObjectTypes> last = new ArrayList<>();
-        last.add(ObjectTypes.RESOURCE);
-        last.add(ObjectTypes.CONNECTOR);
-        last.add(ObjectTypes.MARK);
-        last.add(ObjectTypes.OBJECT_TEMPLATE);
-        last.add(ObjectTypes.OBJECT_COLLECTION);
-        last.add(ObjectTypes.ARCHETYPE);
-        last.add(ObjectTypes.SECURITY_POLICY);
-        last.add(ObjectTypes.PASSWORD_POLICY);
-        last.add(ObjectTypes.SYSTEM_CONFIGURATION);
-
-        final List<ObjectTypes> types = new ArrayList<>();
-
-        types.addAll(first);
-
-        for (ObjectTypes type : ObjectTypes.values()) {
-            if (first.contains(type) || last.contains(type)) {
-                continue;
-            }
-
-            if (Modifier.isAbstract(type.getClassDefinition().getModifiers())) {
-                continue;
-            }
-
-            if (ObjectTypes.NODE == type) {
-                continue;
-            }
-
-            types.add(type);
-        }
-
-        types.addAll(last);
-
-        return types;
-    }
-
-    private void createAndRunDeleteAllTask() {
-        Task task = createSimpleTask(OPERATION_DELETE_ALL_OBJECTS);
-        OperationResult result = task.getResult();
-
-        try {
-            // @formatter:off
-            ActivityDefinitionType definition = new ActivityDefinitionType()
-                    .identifier("Delete all")
-                    .beginComposition()
-                    .<ActivityDefinitionType>end()
-                    .beginDistribution()
-                    .workerThreads(4)
-                    .end();
-            // @formatter:on
-
-            List<ActivityDefinitionType> activities = definition.getComposition().getActivity();
-            int order = 1;
-            for (ObjectTypes type : createSortedTypes()) {
-                QueryType query;
-                if (ObjectTypes.TASK == type) {
-                    query = createTaskQuery(task.getTaskIdentifier());
-                } else {
-                    query = createAllQuery(type.getClassDefinition());
-                }
-
-                activities.add(createDeleteActivityForType(type.getTypeQName(), query, order));
-                order++;
-            }
-
-            activities.add(createInitialImportActivity(order));
-
-            getModelInteractionService().submit(
-                    definition,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(new TaskType()
-                                    .name("Delete all objects")
-                                    .indestructible(true)
-                                    .cleanupAfterCompletion(XmlTypeConverter.createDuration("P1D")))
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
-                                    SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value()),
-                    task, result);
-        } catch (Exception ex) {
-            result.computeStatusIfUnknown();
-            result.recordFatalError("Couldn't create delete all task", ex);
-        }
-
-        showResult(result);
-    }
-
-    private ActivityDefinitionType createInitialImportActivity(int order) {
-        ExecuteScriptActionExpressionType execute = new ExecuteScriptActionExpressionType();
-        ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
-        script.setCode("\n"
-                + PageAbout.class.getName() + ".runInitialDataImport(\n"
-                + "\tcom.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder.getApplicationContext(),\n"
-                + "\tmidpoint.getCurrentTask().getResult())\n"
-                + "log.info(\"Repository factory reset finished\")\n"
-        );
-        execute.setScript(script);
-        execute.setForWholeInput(true);
-
-        ExecuteScriptType executeScript = new ExecuteScriptType()
-                .scriptingExpression(new ObjectFactory().createExecute(execute));
-
-        return new ActivityDefinitionType()
-                .identifier("Initial import")
-                .order(order)
-                .beginWork()
-                .beginNonIterativeScripting()
-                .scriptExecutionRequest(executeScript)
-                .<WorkDefinitionsType>end()
-                .end();
-    }
-
     private void resetStateToInitialConfig(AjaxRequestTarget target) {
         hideMainPopup(target);
 
-        createAndRunDeleteAllTask();
+        Task task = createSimpleTask(OPERATION_DELETE_ALL_OBJECTS);
+        new FactoryResetHelper(this).createAndRunDeleteAllTask(task);
 
+        showResult(task.getResult());
         target.add(getFeedbackPanel());
         // scroll page up
         target.appendJavaScript("$(function() { window.scrollTo(0, 0); });");
@@ -716,38 +550,5 @@ public class PageAbout extends PageAdminConfiguration {
     @Deprecated
     public String getDescribe() {
         return getString("PageAbout.unknownBuildNumber");
-    }
-
-    /**
-     * Used in delete all task as last activity. Do not remove!
-     */
-    public static void runInitialDataImport(ApplicationContext context, OperationResult parent) {
-        OperationResult result = parent.createSubresult(OPERATION_INITIAL_IMPORT);
-
-        ModelService modelService = context.getBean(ModelService.class);
-        CacheDispatcher cacheDispatcher = context.getBean(CacheDispatcher.class);
-        TaskManager taskManager = context.getBean(TaskManager.class);
-        PrismContext prismContext = context.getBean(PrismContext.class);
-        MidpointConfiguration midpointConfiguration = context.getBean(MidpointConfiguration.class);
-
-        try {
-            InitialDataImport initialDataImport = new InitialDataImport();
-            initialDataImport.setModel(modelService);
-            initialDataImport.setTaskManager(taskManager);
-            initialDataImport.setPrismContext(prismContext);
-            initialDataImport.setConfiguration(midpointConfiguration);
-            initialDataImport.init(true);
-
-            // TODO consider if we need to go clusterwide here
-            cacheDispatcher.dispatchInvalidation(null, null, true, null);
-
-            modelService.shutdown();
-
-            modelService.postInit(result);
-
-            result.recomputeStatus();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't run initial data import", ex);
-        }
     }
 }
