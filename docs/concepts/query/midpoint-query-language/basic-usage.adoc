@@ -7,7 +7,7 @@
 
 This document provides information and examples of queries in midPoint Query Language, mainly used in objects while configuration of midPoint itself.
 
-Additional examples how to use the midPoint query in GUI can be found in xref:/midpoint/guides/gui-mipoint-query-examples[Advanced search - EXAMPLES].
+Additional examples how to use the midPoint query in GUI can be found in xref:/midpoint/guides/gui-midpoint-query-examples[Advanced search - EXAMPLES].
 
 == Searching by Archetype Name
 
