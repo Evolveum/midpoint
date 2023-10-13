@@ -199,6 +199,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired(required = false) private List<WicketConfigurator> wicketConfigurators = new ArrayList<>();
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
+    @Value("${wicket.request-cycle.timeout:60s}") private java.time.Duration requestCycleTimeout;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -228,6 +229,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Override
     public void init() {
         super.init();
+
+        getRequestCycleSettings().setTimeout(requestCycleTimeout);
 
         getCspSettings().blocking().clear()
                 .unsafeInline()

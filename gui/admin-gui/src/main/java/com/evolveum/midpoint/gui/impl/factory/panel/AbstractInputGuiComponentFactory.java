@@ -63,7 +63,9 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
-            formComponent.add(panelCtx.getAjaxEventBehavior());
+            if (panelCtx.getAjaxEventBehavior() != null) {
+                formComponent.add(panelCtx.getAjaxEventBehavior());
+            }
             formComponent.add(panelCtx.getVisibleEnableBehavior());
             if (panelCtx.getAttributeValuesMap() != null) {
                 panelCtx.getAttributeValuesMap().keySet().stream()

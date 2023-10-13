@@ -28,11 +28,13 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
 
     private String correlatorName;
     private Map<ItemPath, String> attributes;
+    private int currentCorrelatorIndex;
 
-    public CorrelationVerificationToken(Map<ItemPath, String> attributes, String correlatorName) {
+    public CorrelationVerificationToken(Map<ItemPath, String> attributes, String correlatorName, int currentCorrelatorIndex) {
         super(null);
         this.attributes = attributes;
         this.correlatorName = correlatorName;
+        this.currentCorrelatorIndex = currentCorrelatorIndex;
     }
 
     @Override
@@ -89,5 +91,9 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
             return new PolyString(value);
         }
         return value;
+    }
+
+    public int getCurrentCorrelatorIndex() {
+        return currentCorrelatorIndex;
     }
 }

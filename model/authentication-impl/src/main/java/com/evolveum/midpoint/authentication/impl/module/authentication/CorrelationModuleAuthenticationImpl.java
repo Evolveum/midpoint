@@ -65,6 +65,10 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
         return currentProcessingCorrelator == correlators.size() - 1;
     }
 
+    public boolean currentCorrelatorIndexEquals(int expectedValue) {
+        return currentProcessingCorrelator == expectedValue;
+    }
+
     public void setNextCorrelator() {
         currentProcessingCorrelator++;
     }
@@ -132,6 +136,10 @@ public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImp
 
     public FocusType getPreFocus() {
         return preFocus;
+    }
+
+    public int getCurrentCorrelatorIndex() {
+        return currentProcessingCorrelator;
     }
 
     public boolean isCorrelationMaxUsersNumberSet() {

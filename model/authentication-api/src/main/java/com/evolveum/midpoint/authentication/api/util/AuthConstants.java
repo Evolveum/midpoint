@@ -23,4 +23,6 @@ public class AuthConstants {
     public static final String ATTR_VERIFICATION_J_VALUE = "value";
 
     public static final String ATTR_VERIFICATION_PARAMETER_START = "attributeValue.";
+    public static final String ATTR_VERIFICATION_CORRELATOR_NAME = "correlatorName";
+    public static final String ATTR_VERIFICATION_CORRELATOR_INDEX = "correlatorIndex";
 }
