@@ -311,7 +311,7 @@ If no, the particular archetype should be selected during Archetype selection mo
 [#_correlation]
 ==== Module correlation
 
-Correlation module gives the possibility to find identity(es) (user object(s) for now) in midpoint using xref:midpoint/reference/correlation/index.adoc[correlation] mechanism within authentication process.
+Correlation module gives the possibility to find identity(es) (user object(s) for now) in midpoint using xref:/midpoint/reference/correlation/index.adoc[correlation] mechanism within authentication process.
 This module is used during xref:/midpoint/reference/security/credentials/identity-recovery/index.adoc[Identity recovery] flow as the second authentication module.
 
 The specified in the module correlators are processed one by one till the only identity is found by the correlators, or till the last correlator is proceeded. In case no identity is found after the last correlator, the list of candidates from the correlators results are considered to be a list of found identities.
