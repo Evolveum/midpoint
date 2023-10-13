@@ -8,17 +8,18 @@
 :page-since: "4.1"
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
-Authentication used to be quite simple back in 20th century.
+Authentication used to be quite simple back in 20^th^ century.
 Username and password was all that was needed.
-But the world is a different place now.
+The world is a different place now.
 There are single sign-on (SSO) systems, multi-factor authentication (MFA) mechanisms, authentication sequences, social login, identity federations and many more forms of authentication.
 Simple username and password is just not enough anymore.
 
-MidPoint 4.1 introduced a concept of _flexible authentication_. MidPoint authentication mechanisms can be configured in a flexible way.
+MidPoint 4.1 introduced a concept of _flexible authentication_.
+MidPoint authentication mechanisms can be configured in a variety of ways.
 The usual password-based authentication is still the default authentication mechanism.
-But many authentication mechanisms can be configured and combined in a flexible way.
+However, many authentication mechanisms can be configured and combined in a flexible way.
 There are several authentication modules that are integral part of midPoint.
 Those modules can be combined into sequences, associated with user interface or the REST service and so on.
 There are many options to choose from.
@@ -40,19 +41,21 @@ Such as:
 
 * MidPoint using SAML or OpenID Connect as a primary authentication mechanism, but having an emergency option for administrator log-in using a simple password-based authentication.
 
-Direct support for multi-factor authentication (MFA), adaptive or risk-based authentication or any similar mechanism is *not* the goal of _flexible authentication_ feature.
+* Special multi-factor authentication scenarios, mostly for purposes of credential recovery.
+
+Although some multi-factor authentication scenarios are supported (see below), full support for multi-factor authentication (MFA), adaptive or risk-based authentication or any similar mechanism is *not* the goal of _flexible authentication_ feature.
 There are many access management systems, single sign-on mechanisms and sophisticated authentication servers that can do that much better that midPoint ever could.
 MidPoint is an identity management and governance system.
 We see no point in reinventing the authentication wheel.
 Therefore, the primary goal of _flexible authentication_ feature in midPoint is to allow straightforward and reliable integration with existing authentication providers.
-Of course, midPoint is the right tool to _manage_ multi-factor authentication credentials.
+Of course, midPoint is the right tool to _manage_ multi-factor authentication _credentials_.
 MidPoint is designed to distribute passwords, PINs, asymmetric key pairs, public keys, certificates, shared secrets, seeds and any other authentication credentials.
-But it is not a responsibility of midPoint to _validate_ them.
+However, it is not a responsibility of midPoint to _validate_ them.
 Other systems should do that.
 
 This is also a reason that midPoint authentication modules are directly "pluggable".
 Our approach is to support standard digital identity protocols such as SAML or OpenID Connect.
-Therefore, need to a ZOO of third-party authentication modules is greatly reduced.
+Therefore, need for a ZOO of third-party authentication modules is greatly reduced.
 Making the modules non-pluggable means that our authentication system can be simpler, more straightforward and seamlessly integrated with the ordinary midPoint infrastructure.
 
 Therefore, following approach is recommended to use multi-factor authentication (MFA) with midPoint:
@@ -66,6 +69,33 @@ Enable a standard protocol on the server (e.g. SAML).
 Currently, midPoint can only manage the passwords.
 But there are plans to extend that functionality in the future.
 
+Overall, it is usually not a good idea to set up multi-factor authentication in midPoint - except for few special cases:
+
+* *User registration:* Users that are self-registered need to be verified in some way.
+The usual routine is to verify e-mail address provided by the user by sending a _magic link_ to provided e-mail address.
+This is technically implemented as an _authentication_ in midPoint.
+This can be supplemented by additional authentication steps, e.g. sending test message to user's phone (provided that the required authentication module is available).
+More authentication steps mean (technically) that there is multi-factor authentication sequence.
+
+* *Credentials recovery*: The notorious case of forgotten password.
+Perhaps the simplest method to recover a lost password is _magic link_ sent to user's e-mail.
+However, there may be variety of other mechanisms: security questions, asking for user's birthday or some similar personal detail, referring to a different identity provider ... each deployment has a slightly different combination of the techniques.
+Once again, this is (technically) implemented as a multi-factor authentication sequence in midPoint.
+
+* *Identifier recovery*: The case of lost username, less infamous, yet still interesting.
+This is once again implemented as a sequence of several authentication modules.
+Even though it does not really look like authentication, it is technically a multi-factor authentication sequence.
+
+This is not what you would consider as "authentication", yet authentication it is.
+MidPoint provides multi-factor authentication capabilities that are targeted at use cases that do not look very much like authentication.
+These are all identity management special cases, cases that are not handled well by other systems, cases where midpoint can add significant value.
+In such cases, interaction flow is much different that the usual day-to-day authentication flow.
+
+Overall, we recommend to use specialized dedicated authentication system for the usual day-to-day authentication of users.
+There is a lot of access management, single sign-on and authentication servers that can support variety of authentication systems and provide adaptive and risk-based authentication.
+MidPoint would be happy to rely on such authentication, using SAML or OpenID Connect protocols - as a client.
+However, there are special cases where the authentication flow has to be different.
+MidPoint can shine with its flexible authentication in such cases, even if it includes multiple steps using multiple authentication factors.
 
 == Configuration
 
