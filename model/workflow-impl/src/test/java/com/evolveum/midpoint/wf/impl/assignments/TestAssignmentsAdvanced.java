@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2023 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -108,6 +108,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final File USER_SECURITY_APPROVER_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy.xml");
     private static final File USER_SECURITY_APPROVER_DEPUTY_LIMITED_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy-limited.xml");
 
+    private static final TestResource<RoleType> METAROLE_SELECTIVE_APPROVAL = new TestResource<>(TEST_RESOURCE_DIR, "metarole-selective-approval.xml", "f3f31769-4b1e-401c-8db4-22914cee1550");
+    private static final TestResource<RoleType> ROLE_SELECTIVE_A = new TestResource<>(TEST_RESOURCE_DIR, "role-selective-a.xml", "e67e973e-cc54-47da-9369-8b483b677aaa");
+    private static final TestResource<RoleType> ROLE_SELECTIVE_B = new TestResource<>(TEST_RESOURCE_DIR, "role-selective-b.xml", "81f4f09c-263b-45fe-b2a7-e09f02de6348");
+
     private String userSecurityApproverOid;
     private String userSecurityApproverDeputyOid;
     private String userSecurityApproverDeputyLimitedOid;
@@ -171,6 +175,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         // import this one last to avoid approvals at this stage
         addObject(USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED, initTask, initResult);
+
+        repoAdd(METAROLE_SELECTIVE_APPROVAL, initResult);
+        repoAdd(ROLE_SELECTIVE_A, initResult);
+        repoAdd(ROLE_SELECTIVE_B, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_JSON);
     }
@@ -1292,6 +1300,53 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         assertUser(userJackOid, "after")
                 .assertAssignments(1);
+    }
+
+    /**
+     * Assigning two roles: the first with auto-completion result of "skip", the second with standard approval.
+     * After approval, both roles should be assigned.
+     *
+     * MID-9234
+     */
+    @Test
+    public void test950AutocompleteAndApprovalCombined() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user");
+        UserType user = new UserType()
+                .name(userName);
+        addObject(user.asPrismObject(), task, result);
+
+        when("roles are assigned to the user");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(
+                                ROLE_SELECTIVE_A.assignmentTo(),
+                                ROLE_SELECTIVE_B.assignmentTo())
+                        .asObjectDelta(user.getOid()),
+                null, task, result);
+
+        then("there are two subcases");
+        String ref = result.findAsynchronousOperationReference();
+        assertNotNull("No async operation reference", ref);
+        String rootCaseOid = OperationResult.referenceToCaseOid(ref);
+        List<CaseType> subcases = getSubcases(rootCaseOid, null, result);
+        displayCollection("subcases", subcases);
+        assertThat(subcases).as("subcases").hasSize(2);
+
+        when("case is approved");
+        var openCase = getOpenCaseRequired(subcases);
+        approveCase(openCase, task, result);
+
+        then("both roles are assigned");
+        waitForCaseClose(getCase(rootCaseOid));
+        assertUser(user.getOid(), "after")
+                .assignments()
+                .assertRole(ROLE_SELECTIVE_A.oid)
+                .assertRole(ROLE_SELECTIVE_B.oid);
     }
 
     private void executeAssignRoles123ToJack(boolean immediate,

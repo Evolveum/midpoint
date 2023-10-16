@@ -334,6 +334,13 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
                 task, result);
     }
 
+    /** Assumes single open work item. */
+    protected void approveCase(CaseType aCase, Task task, OperationResult result) throws CommonException {
+        approveWorkItem(
+                getOpenWorkItemRequired(aCase),
+                task, result);
+    }
+
     protected void rejectWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
