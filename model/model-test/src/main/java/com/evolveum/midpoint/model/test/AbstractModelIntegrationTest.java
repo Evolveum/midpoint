@@ -38,6 +38,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
@@ -7649,5 +7650,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .markRef(markOid, MarkType.COMPLEX_TYPE)
                 .type(PolicyStatementTypeType.APPLY);
         modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+    }
+
+    protected @NotNull CaseType getOpenCaseRequired(List<CaseType> cases) {
+        var openCases = cases.stream()
+                .filter(c -> QNameUtil.matchUri(c.getState(), CASE_STATE_OPEN_URI))
+                .toList();
+        return MiscUtil.extractSingletonRequired(
+                openCases,
+                () -> new AssertionError("More than one open case: " + openCases),
+                () -> new AssertionError("No open case in: " + cases));
+    }
+
+    protected @NotNull CaseWorkItemType getOpenWorkItemRequired(CaseType aCase) {
+        var openWorkItems = aCase.getWorkItem().stream()
+                .filter(wi -> CaseTypeUtil.isCaseWorkItemNotClosed(wi))
+                .toList();
+        return MiscUtil.extractSingletonRequired(
+                openWorkItems,
+                () -> new AssertionError("More than one open work item: " + openWorkItems),
+                () -> new AssertionError("No open work items in: " + aCase));
     }
 }
