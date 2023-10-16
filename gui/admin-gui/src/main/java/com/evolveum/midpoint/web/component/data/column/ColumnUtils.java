@@ -423,9 +423,9 @@ public class ColumnUtils {
             public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
                 List<ObjectReferenceType> parentOrgRefs = getParentOrgRefs(rowModel);
                 return () ->
-                    parentOrgRefs.stream()
-                            .map(parentRef -> WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true))
-                            .collect(Collectors.joining(", "));
+                        parentOrgRefs.stream()
+                                .map(parentRef -> WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true))
+                                .collect(Collectors.joining(", "));
             }
 
         });
@@ -594,7 +594,9 @@ public class ColumnUtils {
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
                     String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType workItem = unwrapRowModel(rowModel);
-                cellItem.add(new Label(componentId, workItem.getCloseTimestamp() != null ? SchemaConstants.CASE_STATE_CLOSED : SchemaConstants.CASE_STATE_OPEN));
+                cellItem.add(new Label(componentId, workItem.getCloseTimestamp() != null
+                        ? createStringResource("Case.state.closed")
+                        : createStringResource("Case.state.open")));
             }
 
             @Override

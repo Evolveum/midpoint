@@ -17,7 +17,12 @@
     <archetypePolicy>
         <display>
             <label>Application</label>
-            <pluralLabel>Applications</pluralLabel>
+            <pluralLabel>
+                <orig>Applications</orig>
+                <translation>
+                    <key>Applications.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-cloud</cssClass>
                 <color>blue</color>
