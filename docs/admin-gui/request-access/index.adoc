@@ -32,6 +32,8 @@ Concrete search behaviour can be customized using `group/searchFilterTemplate` w
 Search result labels can be also configured using expression defined in `group/userDisplayName`.
 Minimum number of characters needed to start autocomplete can be configured using `group/autocompleteMinChars`.
 
+NOTE: Since 4.8 search behaviour configuration was moved to `autoCompleteConfiguration` configuration option.
+
 In following example filter template will create substring search `givenName like '%King *<VALUE>*%'`.
 Results will be displayed in format `<USER_NAME> (<USER_OID>)`
 
@@ -121,8 +123,11 @@ Menu in role catalog consists of 3 types of items also defined in configuration:
 === Role catalog
 
 Role catalog is defined via reference to organization tree.
-Org. tree is then used to load hierarchical menu (up to 3 levels), all roles on deeper levels are shown in that 3rd level menu.
+Org. tree is then used to load hierarchical menu.
+By default, up to 3 levels, all roles on deeper levels are shown in that 3rd level menu.
 Assignable roles have to be part of this org. tree.
+
+NOTE: In 4.8 or later number of levels can be configured using `roleCatalogDepth` configuration option.
 
 === Collection of objects
 
@@ -133,7 +138,9 @@ Collection of objects can be used to create custom menu item representing specif
 This is custom menu item that uses search for another user and list his assignments.
 Roles of teammate option can be disabled via configuration.
 
-Search for teammate will create filter using `user/name` property with `norm` poly-string matcher by default.
+Search for teammate will by default create filter using `user/name` property with `norm` poly-string matcher by default.
+
+NOTE: Since 4.8 search behaviour can be customized using `autoCompleteConfiguration` configuration option.
 
 .Roles of teammate
 image::step-3-roles-of-teammate.png[Roles of teammate,100%]
