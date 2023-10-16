@@ -211,15 +211,15 @@ All files that would be replaced can be backed up if necessary using `--backup-i
 This is the last step of upgrade procedure while midPoint is still down.
 It is necessary to update initial objects to make sure that they are compatible with new version of midPoint and midPoint can start and work properly.
 
-IMPORTANT: When upgrading LTS (from 4.4 -> 4.8) it is necessar y to upgrade at least securityPolicy object.
+IMPORTANT: When upgrading LTS (from 4.4 -> 4.8) it is necessary to upgrade at least securityPolicy object.
 Reason for this is that there were changes in authentication/authorization processing for different channels and configuration related to it, hence securityPolicy.
 See <<Important updates>> for more details.
 
 Ninja contains command `initial-objects` to help you update set of initial objects (see `ninja.sh help initial-objects` for more details).
 Initial objects command will help add, update or replace existing objects in repository.
 
-All necessary objects are bundled in directly in ninja, however, it is possible to use custom set of objects using `--file` option.
-`--file` options can be used multiple times or have multiple values separated by comma to specify multiple files.
+All necessary objects are bundled in directly in ninja, however, it is possible to use custom set of new initial objects using `--file` option.
+`--file` options can be used multiple times or have multiple values separated by comma to specify multiple directories/files.
 
 Ninja also supports filtered processing using `--type`, `--oid` and `--reverse-oid-filter`/`--reverse-type-filter`.
 Such options give you possibility to process only subset of objects using this command.
@@ -234,6 +234,9 @@ There's also standard set of options to send output to file (`-o, --output`) and
 NOTE: Initial objects that are new in upgraded version of midPoint are not added to repository by ninja automatically.
 By default, these objects will be properly imported during first start of upgraded midPoint.
 If one wants to import them before first start, it is possible to use `--force-add` option.
+
+WARNING: Merging algorithm used in this ninja command is experimental and might not work properly in all cases.
+Please review all changes proposed by ninja using `--dry-run` before applying them to repository.
 
 There are two main scenarios that can be followed:
 
