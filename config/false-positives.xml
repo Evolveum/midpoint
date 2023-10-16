@@ -5,6 +5,45 @@
 
   <suppress>
     <notes>
+      False Positive. CVE was withdrawn from NVD NIST, since investigation of original CVE showed it was not a security issue, but tooling still reports it as issue. 
+    </notes>
+    <cve>CVE-2021-23334</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. MidPoint uses AdminLTE library, which depends on pdfmake, but does not use any functionality related to pdfmake.
+    </notes>
+    <cve>CVE-2022-46161</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. MidPoint binaries does not contain or use BCEL in deployment. BCEL is used only in unit testing libraries.
+    </notes>
+    <cve>CVE-2022-42920</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. MidPoint binaries does not contain or use Berkeley DB Java Edition in deployment. It is only used in unit testing libraries.  
+    </notes>
+    <cve>CVE-2017-3604</cve>
+    <cve>CVE-2017-3605</cve>
+    <cve>CVE-2017-3606</cve>
+    <cve>CVE-2017-3607</cve>
+    <cve>CVE-2017-3608</cve>
+    <cve>CVE-2017-3609</cve>
+    <cve>CVE-2017-3610</cve>
+    <cve>CVE-2017-3611</cve>
+    <cve>CVE-2017-3612</cve>
+    <cve>CVE-2017-3613</cve>
+    <cve>CVE-2017-3614</cve>
+    <cve>CVE-2017-3615</cve>
+    <cve>CVE-2017-3616</cve>
+    <cve>CVE-2017-3617</cve>
+    <cve>CVE-2020-2981</cve>
+    <cve>CVE-2019-2708</cve>
+  </suppress>
+  <suppress>
+    <notes>
       False Positive. midPoint uses Spring Security, but does not use Spring WebFlux, so it is unaffected.
     </notes>
     <cve>CVE-2023-34034</cve>

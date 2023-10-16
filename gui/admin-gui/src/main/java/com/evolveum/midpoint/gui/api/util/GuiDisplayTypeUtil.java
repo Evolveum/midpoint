@@ -174,7 +174,7 @@ public class GuiDisplayTypeUtil {
                         relationValue = relation.getLocalPart();
                     }
                 }
-                displayType.setLabel(new PolyStringType(typeValue + " " + relationValue));
+                displayType.setLabel(new PolyStringType(typeValue + " (" + relationValue + ")"));
 
                 relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
 
@@ -195,7 +195,7 @@ public class GuiDisplayTypeUtil {
             displayType = createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", "");
         }
 
-        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null){
+        if (displayType.getIcon() == null || displayType.getIcon().getCssClass() == null) {
             MiscSchemaUtil.mergeDisplay(displayType, createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", ""));
         }
 
@@ -276,17 +276,17 @@ public class GuiDisplayTypeUtil {
     }
 
     public static boolean existsIconDisplay(CompiledObjectCollectionView view) {
-        if (view == null){
+        if (view == null) {
             return false;
         }
         return existsIconDisplay(view.getDisplay());
     }
 
     private static boolean existsIconDisplay(DisplayType display) {
-        if (display == null){
+        if (display == null) {
             return false;
         }
-        if (display.getIcon() == null){
+        if (display.getIcon() == null) {
             return false;
         }
         return StringUtils.isNotBlank(display.getIcon().getCssClass());

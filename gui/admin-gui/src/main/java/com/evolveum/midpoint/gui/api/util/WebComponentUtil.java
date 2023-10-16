@@ -201,7 +201,6 @@ public final class WebComponentUtil {
     private static final String KEY_BOOLEAN_TRUE = "Boolean.TRUE";
     private static final String KEY_BOOLEAN_FALSE = "Boolean.FALSE";
 
-
     public static RestartResponseException restartOnLoginPageException() {
         return new RestartResponseException(PageLogin.class);
     }
@@ -2682,11 +2681,23 @@ public final class WebComponentUtil {
             return;
         }
 
-        if (title.length() > 0) {
+        if (!title.isEmpty()) {
             title.append("\n");
         }
         String lockedStatus = LockoutStatusType.LOCKED == activation.getLockoutStatus() ? activation.getLockoutStatus().value() : "";
         String effectiveStatus = activation.getEffectiveStatus() != null ? activation.getEffectiveStatus().value() : "";
+
+        if (!effectiveStatus.isEmpty()) {
+            String localeEffectiveStatus = pageBase
+                    .createStringResource("ActivationDescriptionHandler.ActivationStatusType."
+                            + effectiveStatus.toUpperCase())
+                    .getString();
+
+            if (localeEffectiveStatus != null) {
+                effectiveStatus = localeEffectiveStatus;
+            }
+        }
+
         title.append(pageBase.createStringResource("CapabilitiesType.activationStatus").getString())
                 .append(": ")
                 .append(StringUtils.isNotEmpty(lockedStatus) ? lockedStatus : effectiveStatus);

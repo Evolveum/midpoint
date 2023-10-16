@@ -941,7 +941,12 @@
                 <panel id="85">
                     <identifier>advanced-options-panel</identifier>
                     <display>
-                        <label>Advanced options</label>
+                        <label>
+                            <orig>Advanced options</orig>
+                            <translation>
+                                <key>TaskType.advancedOptions</key>
+                            </translation>
+                        </label>
                     </display>
                     <panelType>formPanel</panelType>
                     <container id="87">
@@ -967,7 +972,12 @@
                 <panel id="86">
                     <identifier>operational-attributes-panel</identifier>
                     <display>
-                        <label>Operational attributes</label>
+                        <label>
+                            <orig>Operational attributes</orig>
+                            <translation>
+                                <key>TaskType.operationalAttributes</key>
+                            </translation>
+                        </label>
                     </display>
                     <panelType>formPanel</panelType>
                     <container id="92">
