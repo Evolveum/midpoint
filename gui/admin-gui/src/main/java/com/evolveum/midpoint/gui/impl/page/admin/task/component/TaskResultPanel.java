@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 @PanelType(name = "results")
 @PanelInstance(identifier = "results", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.result.title", icon = GuiStyleConstants.CLASS_ICON_TASK_RESULTS, order = 70))
+        display = @PanelDisplay(label = "pageTask.result.title", icon = GuiStyleConstants.CLASS_ICON_TASK_RESULTS, order = 80))
 public class TaskResultPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
