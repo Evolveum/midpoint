@@ -41,7 +41,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 /**
  * Initializes the task manager and brings it down.
  */
-@DependsOn("midpointConfiguration")
+@DependsOn({"midpointConfiguration", "taskManagerConfiguration"})
 @Component
 public class UpAndDown implements BeanFactoryAware {
 
