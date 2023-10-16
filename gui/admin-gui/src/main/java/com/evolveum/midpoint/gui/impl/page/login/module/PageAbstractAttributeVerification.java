@@ -14,10 +14,10 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -108,10 +108,21 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
     }
 
     private void createAttributePanel(ListItem<VerificationAttributeDto> item) {
-        Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
-        item.add(attributeNameLabel);
-
         PrismPropertyWrapper<?> itemWrapper = item.getModelObject().getItemWrapper();
+
+        PrismPropertyHeaderPanel<?> attributeNameLabel = new PrismPropertyHeaderPanel(ID_ATTRIBUTE_NAME, Model.of(itemWrapper)) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean isRequired() {
+                if (areAllItemsMandatory(itemWrapper)) {
+                    return true;
+                }
+                return super.isRequired();
+            }
+        };
+        item.add(attributeNameLabel);
 
         if (QNameUtil.match(DOMUtil.XSD_STRING, itemWrapper.getTypeName()) ||
                 QNameUtil.match(PolyStringType.COMPLEX_TYPE, itemWrapper.getTypeName())) {
@@ -137,7 +148,7 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
 
         PropertyModel<PrismPropertyValueWrapper> valueModel = new PropertyModel<PrismPropertyValueWrapper>(itemWrapper, "value");
         var valuePanel = new PrismPropertyValuePanel(ID_ATTRIBUTE_VALUE,
-                valueModel, new ItemPanelSettingsBuilder().build()) {
+                valueModel, createItemPanelSettings()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -258,6 +269,16 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         Task task = createAnonymousTask(OPERATION_CREATE_ITEM_WRAPPER);
         WrapperContext ctx = new WrapperContext(task, task.getResult());
         return ctx;
+    }
+
+    private ItemPanelSettings createItemPanelSettings() {
+        return new ItemPanelSettingsBuilder()
+                .mandatoryHandler(this::areAllItemsMandatory)
+                .build();
+    }
+
+    protected boolean areAllItemsMandatory(ItemWrapper<?,?> itemWrapper) {
+        return false;
     }
 
 }
