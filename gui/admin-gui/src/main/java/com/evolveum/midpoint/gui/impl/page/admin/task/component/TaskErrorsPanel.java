@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @SuppressWarnings("unused")
 @PanelType(name = "taskErrors")
 @PanelInstance(identifier = "taskErrors", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.errors.title", icon = GuiStyleConstants.CLASS_TASK_ERRORS_ICON, order = 50))
+        display = @PanelDisplay(label = "pageTask.errors.title", icon = GuiStyleConstants.CLASS_TASK_ERRORS_ICON, order = 85))
 public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 

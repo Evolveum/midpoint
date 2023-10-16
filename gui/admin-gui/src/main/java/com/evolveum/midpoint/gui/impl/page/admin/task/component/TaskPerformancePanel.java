@@ -29,7 +29,7 @@ import java.util.Collections;
  * @author semancik
  */
 @PanelInstance(identifier = "performance", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
-        display = @PanelDisplay(label = "pageTask.performance.title", icon = GuiStyleConstants.CLASS_ICON_PERFORMANCE, order = 50))
+        display = @PanelDisplay(label = "pageTask.performance.title", icon = GuiStyleConstants.CLASS_ICON_PERFORMANCE, order = 65))
 public class TaskPerformancePanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
