@@ -9,23 +9,23 @@ package com.evolveum.midpoint.init;
 import java.io.File;
 import java.util.Arrays;
 
-import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
-import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
-
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.context.SecurityContext;
 
+import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.api.BulkActionExecutionResult;
 import com.evolveum.midpoint.model.api.BulkActionsService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -50,6 +50,8 @@ public class PostInitialDataImport extends DataImport {
     private static final String SUFFIX_FOR_IMPORTED_FILE = "done";
     private static final String XML_SUFFIX = "xml";
 
+    public static final String POST_INITIAL_OBJECTS_DIRECTORY = "post-initial-objects";
+
     private BulkActionsService scripting;
 
     public void setScripting(BulkActionsService scripting) {
@@ -58,6 +60,17 @@ public class PostInitialDataImport extends DataImport {
     }
 
     public void init() throws SchemaException {
+        init(false);
+    }
+
+    /**
+     * If overwrite is true, then all files will be imported (even the ones with ".done" suffix).
+     * Used during factory reset.
+     *
+     * @param overwrite
+     * @throws SchemaException
+     */
+    public void init(boolean overwrite) throws SchemaException {
         LOGGER.info("Starting initial object import (if necessary).");
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
@@ -75,7 +88,16 @@ public class PostInitialDataImport extends DataImport {
         for (File file : files) {
             String fileExtension = FilenameUtils.getExtension(file.getName());
             if (fileExtension.equals(SUFFIX_FOR_IMPORTED_FILE)) {
-                continue;
+                if (!overwrite) {
+                    continue;
+                }
+
+                String path = StringUtils.left(file.getPath(), file.getPath().length() - SUFFIX_FOR_IMPORTED_FILE.length() - 1);
+                File renamed = new File(path);
+                file.renameTo(renamed);
+
+                file = renamed;
+                fileExtension = FilenameUtils.getExtension(file.getName());
             }
             if (!fileExtension.equals(XML_SUFFIX)) {
                 LOGGER.warn("Post-initial import support only xml files. Actual file: " + file.getName());
@@ -182,56 +204,37 @@ public class PostInitialDataImport extends DataImport {
         File[] files = new File[0];
         String midpointHomePath = configuration.getMidpointHome();
 
-        if (checkDirectoryExistence(midpointHomePath)) {
-            if (!midpointHomePath.endsWith("/")) {
-                midpointHomePath = midpointHomePath + "/";
-            }
-            String postInitialObjectsPath = midpointHomePath + "post-initial-objects";
-            if (checkDirectoryExistence(postInitialObjectsPath)) {
-                File folder = new File(postInitialObjectsPath);
-                files = listFiles(folder);
-                sortFiles(files);
-            } else {
-                LOGGER.info("Directory " + postInitialObjectsPath + " does not exist. Creating.");
-                File dir = new File(postInitialObjectsPath);
-                if (!dir.exists() || !dir.isDirectory()) {
-                    boolean created = dir.mkdirs();
-                    if (!created) {
-                        LOGGER.error("Unable to create directory " + postInitialObjectsPath + " as user " + System.getProperty("user.name"));
-                    }
+        if (midpointHomePath != null && !checkDirectoryExistence(new File(midpointHomePath))) {
+            LOGGER.debug("Directory " + midpointHomePath + " does not exist.");
+            return new File[0];
+        }
+
+        File postInitDir = new File(new File(midpointHomePath), POST_INITIAL_OBJECTS_DIRECTORY);
+        if (checkDirectoryExistence(postInitDir)) {
+            files = FileUtils.listFiles(postInitDir, null, true).stream()
+                    .filter(f -> !f.isDirectory()).toArray(File[]::new);
+            sortFiles(files);
+        } else {
+            LOGGER.info("Directory " + postInitDir.getPath() + " does not exist. Creating.");
+            if (!postInitDir.exists() || !postInitDir.isDirectory()) {
+                boolean created = postInitDir.mkdirs();
+                if (!created) {
+                    LOGGER.error("Unable to create directory " + postInitDir.getPath() + " as user " + System.getProperty("user.name"));
                 }
             }
-        } else {
-            LOGGER.debug("Directory " + midpointHomePath + " does not exist.");
         }
+
         return files;
     }
 
-    private File[] listFiles(File folder) {
-        File[] files = folder.listFiles();
-        File[] retFiles = new File[0];
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile()) {
-                    retFiles = ArrayUtils.add(retFiles, file);
-                    continue;
-                }
-                if (file.isDirectory()) {
-                    retFiles = ArrayUtils.addAll(retFiles, listFiles(file));
-                }
-            }
-        }
-        return retFiles;
-    }
-
-    private boolean checkDirectoryExistence(String dir) {
-        File d = new File(dir);
+    private boolean checkDirectoryExistence(File d) {
         if (d.isFile()) {
-            LOGGER.error(dir + " is file and NOT a directory.");
-            throw new SystemException(dir + " is file and NOT a directory !!!");
+            LOGGER.error(d.getPath() + " is file and NOT a directory.");
+            throw new SystemException(d.getPath() + " is file and NOT a directory !!!");
         }
+
         if (d.isDirectory()) {
-            LOGGER.info("Directory " + dir + " exists. Using it.");
+            LOGGER.info("Directory " + d.getPath() + " exists. Using it.");
             return true;
         } else {
             return false;

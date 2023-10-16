@@ -270,7 +270,7 @@ public class FactoryResetHelper {
             postInitial.setTaskManager(taskManager);
             postInitial.setPrismContext(prismContext);
             postInitial.setConfiguration(midpointConfiguration);
-            postInitial.init();
+            postInitial.init(true);
 
             // TODO consider if we need to go clusterwide here
             cacheDispatcher.dispatchInvalidation(null, null, true, null);
