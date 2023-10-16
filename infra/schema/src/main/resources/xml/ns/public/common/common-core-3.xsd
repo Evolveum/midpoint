@@ -142,10 +142,7 @@
                 <p>
                     Lifecycle state of the object. This property defines whether the
                     object represents a draft, proposed definition, whether it is active,
-                    deprecated, archived, and so on.
-                </p>
-                <p>
-                    See https://docs.evolveum.com/midpoint/reference/concepts/object-lifecycle/ for more information.
+                    deprecated, archived, and so on. See "Object Lifecycle" in the documentation.
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -386,10 +383,7 @@
                         <p>
                             Lifecycle state of the object. This property defines whether the
                             object represents a draft, proposed definition, whether it is active,
-                            deprecated, archived, and so on.
-                        </p>
-                        <p>
-                            See https://docs.evolveum.com/midpoint/reference/concepts/object-lifecycle/ for more information.
+                            deprecated, archived, and so on. See "Object Lifecycle" in the documentation.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2967,10 +2961,7 @@
                         <p>
                             Lifecycle state of the assignment. This property defines whether the
                             assignment represents a draft, proposed definition, whether it is active,
-                            deprecated, archived, and so on.
-                        </p>
-                        <p>
-                            See https://docs.evolveum.com/midpoint/reference/concepts/object-lifecycle/ for more information.
+                            deprecated, archived, and so on. See "Object Lifecycle" in the documentation.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
