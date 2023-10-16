@@ -1548,6 +1548,11 @@
             </dependency>
 
             <dependency>
+               <groupId>net.bytebuddy</groupId>
+               <artifactId>byte-buddy</artifactId>
+               <version>1.14.9</version>
+            </dependency>
+            <dependency>
                 <groupId>jakarta.xml.ws</groupId>
                 <artifactId>jakarta.xml.ws-api</artifactId>
                 <version>3.0.1</version>
