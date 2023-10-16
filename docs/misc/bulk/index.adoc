@@ -1,0 +1,538 @@
+= Bulk Actions (midPoint scripting language)
+:page-nav-title: Bulk Actions
+:page-wiki-name: Bulk actions (midPoint scripting language)
+:page-wiki-id: 13991970
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-02-19T23:20:19.958+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-05-22T09:49:49.794+02:00
+:page-toc: top
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+
+== An introduction
+
+There are some situations when administrator needs to carry out actions on a set of objects.
+Some examples:
+
+. recompute all users without fullName,
+
+. delete all users that have no accounts,
+
+. disable all users with passwords older than 100 days,
+
+. assign an account on a resource to a people meeting given criteria,
+
+. assign a role to a people meeting given criteria.
+
+MidPoint provides a specialized language to define such bulk actions.
+It is based on pipes-and-filters architectural pattern, where execution components (responsible for gathering data and acting on them) are connected into chains, pushing an output of an upstream action to be an input of the action that lies downstream.
+Just like good old Unix pipelines.
+
+The scripts are currently represented using standard midPoint prism structures, externalized as XML, JSON or YAML documents.
+A specialized text-based language was once conceived (and experimentally implemented), but it is not currently available.
+Hoping its time will come it is described xref:/midpoint/devel/design/bulk-actions-notes-/[here].
+
+.Example 1: Recomputing all users without full name
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:type>UserType</s:type>
+    <s:searchFilter>
+        <q:equal>
+            <q:path>fullName</q:path>
+        </q:equal>
+    </s:searchFilter>
+    <s:action>
+        <s:type>recompute</s:type>
+    </s:action>
+</s:search>
+
+----
+
+.Example 2: Deleting all users that have no accounts
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:type>UserType</s:type>
+    <s:searchFilter>
+        <q:ref>
+            <q:path>linkRef</q:path>
+        </q:ref>
+    </s:searchFilter>
+    <s:action>
+        <s:type>delete</s:type>
+    </s:action>
+</s:search>
+----
+
+.Example 3: Disabling selected users
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:type>c:UserType</s:type>
+    <s:searchFilter>
+       <q:inOid>
+          <q:value>5e0735fa-afee-4fd8-96a5-43eaf945adba</q:value>
+          <q:value>b87eb285-b4ae-43c0-9e4c-7ba651de81fa</q:value>
+          <q:value>469fd663-4492-4c24-8ce3-3907df7ac7ec</q:value>
+       </q:inOid>
+    </s:searchFilter>
+    <s:action>
+        <s:type>disable</s:type>
+    </s:action>
+</s:search>
+----
+
+.Example 4a: Assigning an account on a resource to a people meeting given criteria
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:type>c:UserType</s:type>
+    <...>
+    <s:action>
+        <s:type>assign</s:type>
+        <s:parameter>
+            <s:name>resource</s:name>
+            <c:value>ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:value>
+        </s:parameter>
+    </s:action>
+</s:search>
+----
+
+.Example 4b: Assigning an account on a resource (specified by name) to a people meeting given criteria (not yet implemented)
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:type>c:UserType</s:type>
+    <...>
+    <s:action>
+        <s:type>assign</s:type>
+        <s:parameter>
+            <s:name>resource</s:name>
+            <c:value>Exchange Server</c:value>		<!-- not implemented yet -->
+        </s:parameter>
+    </s:action>
+</s:search>
+----
+
+It is possible to specify the target resource by OID (example 4a). In the future it might be possible to specify it also by name (example 4b), or using arbitrary filter.
+
+.Example 5: Assigning a role to a people meeting given criteria
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <s:type>c:UserType</s:type>
+    <...>
+    <s:action>
+        <s:type>assign</s:type>
+        <s:parameter>
+            <s:name>role</s:name>
+            <c:value xsi:type="xsd:string">00000000-0000-0000-0000-000000000008</c:value>
+        </s:parameter>
+    </s:action>
+</s:search>
+----
+
+.Example 6: Unassigning a role from a people meeting given criteria (supported since midPoint 4.0)
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <s:type>c:UserType</s:type>
+    <...>
+    <s:action>
+        <s:type>unassign</s:type>
+        <s:parameter>
+            <s:name>role</s:name>
+            <c:value xsi:type="xsd:string">00000000-0000-0000-0000-000000000008</c:value>
+        </s:parameter>
+		<s:parameter>
+            <s:name>relation</s:name>
+            <c:value xsi:type="xsd:anyURI">default</c:value>
+        </s:parameter>
+    </s:action>
+</s:search>
+----
+
+== The language and its execution model
+
+=== Scripting expressions
+
+The basic building block of the language is *a scripting expression*. The expression is a piece of code that may have an input, does some processing, and (optionally) produces an output.
+Currently there are the following kinds of expressions:
+
+[%autowidth]
+|===
+| Name | Meaning
+
+| action
+| An action that can be carried out on a given piece of data that comes at its input.
+Typical actions are add, modify, delete, enable, disable, assign, resolve, log, search, ...
+
+
+| xref:/midpoint/reference/misc/bulk/select/[select]
+| Selects a given item (container, reference, property) from the input data and copies its value(s) into output.
+For example, accepts a list of users and selects only their accounts.
+
+
+| xref:/midpoint/reference/misc/bulk/filter-content/[filterContent]
+| Removes selected items from the input data.
+For example, give a list of users, removes all the data except for names and password values.
+(Since 3.6.)
+
+
+| xref:/midpoint/reference/misc/bulk/pipeline/[pipeline]
+| Chains a set of expression together.
+They are executed one after another; input sent to the pipeline as a whole is sent to the first expression.
+Output of the last expression is considered to be the output of the whole pipeline.
+
+
+| xref:/midpoint/reference/misc/bulk/sequence/[sequence]
+| Sequence of command expressions.
+They are executed one after another; input sent to the sequence as a whole is then sent individually to each expression.
+Output of the last expression is considered to be the output of the whole sequence.
+
+
+|===
+
+Other planned expression types: are constant expressions, initialization and use of variables, or filtering input values.
+
+[#_actions]
+=== Actions
+
+An action modifies the input data (or acts on it in any other way).
+
+In addition to the input data, an action may have one or more parameters.
+For example, `assign` action must know the role or resource to be assigned; `modify` action must have the delta that has to be applied.
+
+The following table presents currently implemented actions.
+Note that each action has a (primary) name, under which it can be called in the traditional (dynamic) way.
+The majority of actions also have "modern name", allowing them to be invoked in a more type-safe way, static way.
+Correspondingly, the parameter kind means either `dynamic` - older, pre-4.2 way of specifying the parameter dynamically in `<parameter>` element - or `static`, newer, 4.2+ way of specifying the parameter in the simplified form.
+Please see xref:actions/index.adoc[] for more information.
+
+[%autowidth]
+|===
+| Primary name | Modern name | Description | Parameter | Kind | Description
+
+| add
+| add
+| Adds an object coming as input to the repository, which must be a PrismObject.
+(++***++)
+|
+|
+|
+
+
+| modify
+| modify
+| Modifies an object coming as input, which must be a PrismObject.
+(++*++) (++***++)
+| delta
+|
+| Delta to be applied to the object.
+
+
+| delete
+| delete
+| Deletes an object coming as input, which must be a PrismObject.
+(++*++) (++***++)
+|
+|
+|
+
+
+| enable, disable
+| enable, disable
+| Enables or disables an object coming as input (must be a FocusType or ShadowType).
+(++*++) (++***++)
+|
+|
+|
+
+
+.6+| assign
+.6+| assign
+.6+| Assigns a role or a resource account to a FocusType.
+(++*++) (++***++)
+| resource
+| dynamic
+| Resource(s) on which account(s) have to be assigned.
+++**++
+
+| role
+| dynamic
+| Role(s) to be assigned. ++**++
+
+| relation
+| dynamic
+| Relation of role, which to be assigned.
+
+| targetRef (multi)
+| static
+| Target(s) to be assigned.
+May contain filters.
+If such filters are present, they are evaluated at action execution time.
+(This behavior may change in the future!)
+If relations other than default are to be used, they should be provided within the reference(s).
+
+| resourceRef (multi)
+| static
+| Resource(s) to be assigned.
+May contain filters.
+If such filters are present, they are evaluated at action execution time.
+(This behavior may change in the future!)
+
+| construction (multi)
+| static
+| Resource object constructions to be assigned.
+These are assigned "as is", with no filter evaluation.
+(This behavior may change in the future!)
+
+.4+| unassign
+.4+| unassign
+.4+| Unassigns a role or a resource account from a FocusType.
+(++*++) (++***++)
+| resource
+| dynamic
+| Resource(s) to be unassigned.  ++**++
+
+
+| role
+| dynamic
+| Role(s) to be unassigned.
+++**++
+
+
+| relation
+| dynamic
+| Relation(s) defines the relation to the assignee, e.g. default, manager, any, ...
+
+| filter
+| static
+| Filter matching assignments to be deleted.
+Expressions are supported here, but only as an experimental feature.
+
+| xref:actions/recompute.adoc[recompute]
+| recompute
+| Recomputes an object (must be PrismObject<AssignmentHolderType>). (++*++) (++***++)
+| triggered
+| static
+| see the detailed docs
+
+| xref:actions/script-and-expression.adoc['execute-script, evaluate-expression']
+| execute, evaluateExpression
+| Executes a script (since 3.4.1) or evaluates an expression (since 4.8) against the input data.
+3+| see the detailed docs
+
+| resume
+| resumeTask
+| Resumes a suspended task.
+Since 3.7.2.
+|
+|
+|
+
+
+.2+| resolve
+.2+| resolveReference
+.2+| Resolves a reference, e.g. data coming from a c:linkRef, into a PrismObject.
+| noFetch
+| dynamic
+| Whether noFetch option has to be applied (default: false).
+
+| options
+| static
+| Options to use when getting the object(s).
+
+| apply-definition
+| applyDefinition
+| Applies a definition to a `ShadowType` or `ResourceType` object.
+|
+|
+|
+
+| purge-schema
+| purgeSchema
+| Removes all schema information from a given resource(s) coming as input (PrismObject<ResourceType>).
+|
+|
+|
+
+
+| discover-connectors
+| -
+| Discovers all connectors on a given connector host(s), given as PrismObject<ConnectorHostType>.
+| rebindResources
+| dynamic
+| Searches for all resources using now-outdated versions of newly discovered connectors and re-links them to current connectors.
+
+
+| test-resource
+| testResource
+| Tests a given resource(s) coming as input (PrismObject<ResourceType>).
+|
+|
+|
+
+
+| validate
+| -
+| Validates a resource - i.e. provides a set of issues just like in Resource Wizard (since 3.5)
+|
+|
+|
+
+
+| xref:/midpoint/reference/misc/bulk/actions/generate-value/[generate-value]
+| generateValue
+| Generates value(s) for object(s) coming as input.
+| items
+|
+| Description of what and how to generate.
+
+
+.5+| notify
+.5+| notify
+.5+| Sends a notification event for each of objects at input (since 3.5) - i.e. it generates a custom Event with the content driven by action parameters.
+| subtype
+|
+| Subtype of the event created.
+
+
+| handler
+|
+| Ad-hoc event handler that should be used to process the event.
+Normally this parameter should not be needed, because event handling should be driven by the system configuration.
+However, for ad-hoc events we can specify handler directly within the event.
+
+
+| forWholeInput
+|
+| Whole input (i.e. all items in the pipeline) should be sent as event object.
+The default behavior is to generate one event for each input object.
+
+
+| status
+|
+| Status to be put into event (success, failure, inProgress, alsoSuccess, onlyFailure).
+Default is "success".
+
+
+| operation
+|
+| Operation to be put into event (add, modify, delete).
+Default is "add".
+
+
+.2+| log
+.2+| log
+.2+| Logs debugDump form of the data.
+| level
+|
+| info (the default), debug or trace
+
+| message
+|
+| Custom message that is prepended to the data.
+
+| xref:/midpoint/reference/misc/bulk/actions/search/[search]
+| search
+| Retrieves a set of objects from the repository or a resource.
+3+| see the description
+|
+|
+
+|===
+
+(++*++) In the future these actions will support also PrismReferences instances as their input.
+
+(++**++) These are to be specified as PrismObjects, PrismReferences, or PrismProperties encapsulating either ObjectReferenceTypes or Strings (understood as OIDs - in the future, string containing resource/role names could be accepted as well).
+Since 3.7 it is possible to specify queries or search filters here, so it is possible to assign role/resource by its name (see link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/assign-enduser-role-to-selected-users-no-approval.xml[this sample]).
+
+(++***++) Since 3.5, these actions support `dryRun` parameter that (if set to "true") causes executing "preview changes" instead of real modifications.
+They also (except for recompute) support `raw` parameter for applying the operation in raw mode.
+And since 3.7 these actions (again except for recompute) support `skipApprovals` parameter, and `options` parameter, as a generalization of these two (`raw`, `skipApprovals`) that can be used to set arbitrary model execution options (see link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/assign-enduser-role-to-selected-users-no-approval.xml[this sample]).
+
+[NOTE]
+====
+*Since 4.8:* When dealing with authorizations, the primary name should be used.
+For example, `http://midpoint.evolveum.com/xml/ns/public/security/authorization-bulk-3#generate-value`.
+
+When dealing with expression profiles, either primary or modern name can be used.
+For example, `generate-value` or `generateValue`.
+====
+
+Some simple examples of scripts in XML form can be found in *resources/scripting directory* in *model-intest* module and in *tasks/bulk-actions directory* in the *samples* module.
+
+[TIP]
+====
+Since 3.6, `executeScript` action and `notify` action (that contains custom handler) require superuser authorization, because they allow direct execution of user-supplied scripts (groovy, JavaScript, and so on).
+This is valid up to 4.7.
+Since 4.8, xref:/midpoint/reference/expressions/expressions/profiles/index.adoc[expression profiles] can be used to fine-tune what actions can be used in a given context.
+====
+
+== Other features
+
+=== Embedding in tasks
+
+Scripts can be run within tasks.
+That is extremely useful for long-running scripts.
+More information is on this page.
+
+=== Data being passed
+
+The common data format to be passed between expressions, accepted as script input, or provided as script output is the list of prism values (corresponding to objects, containers, references, or properties).
+For example an output of a `search` command is the list of PrismObjectValues.
+Or, the output from `search UserType | select linkRef` command is the list of PrismReferenceValues.
+Each of these values can be accompanied by an `OperationResult` depicting the state of processing that value.
+So, for example, after selecting 100 users and attempting to disable them, one can easily determine what users were processed correctly and what were not.
+
+Serialization of the data is described here.
+(TODO)
+
+=== Console output
+
+As in other scripting languages, midPoint scripting also provides an easily-understandable text output of individual commands.
+An example:
+
+TODO
+
+Of course, detailed trace of commands executed along with their results is available in the form of OperationResult objects mentioned above.
+However, the "console output" feature is meant to be a quick and easy way to convey the administrator the result of the script execution.
+In current implementation, each action puts there information on actions taken (users enabled, disabled, deleted, modified, ...), along with warnings and errors.
+For any other information, the operation result should be analyzed and displayed.
+
+=== Error handling
+
+Currently, the policy is "stop on any exception".
+For example, when a "modify" or "delete" operation throws an ObjectNotFoundException, the script execution simply stops at that moment.
+This is for safety reasons.
+
+TODO configuration
+
+Note that actions themselves are also a bit picky.
+When they get an object they cannot act upon (e.g. a PrismPropertyValue in situations where they expect PrismObjectValue, or a ResourceType when they expect UserType), they treat this like a fatal error and stop the execution of the whole script.
+Also this behavior could be made configurable in the future.
+
+== Tools
+
+TODO (GUI, Eclipse plugin, command-line client)

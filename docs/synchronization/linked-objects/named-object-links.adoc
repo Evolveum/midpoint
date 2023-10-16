@@ -1,0 +1,88 @@
+= Named object links
+:page-wiki-name: Named object links
+:page-wiki-id: 52002926
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2020-06-01T22:55:47.937+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2020-06-02T11:38:07.236+02:00
+:page-experimental: true
+:page-toc: top
+
+
+== Motivation
+
+In a xref:/midpoint/reference/synchronization/linked-objects/[linked objects] scenario one has to reference objects linked to current focus (link sources and/or link targets):
+
+. First, when he or she needs linked objects to provide data to mappings evaluated; using methods like `midpoint.findLinkedSource(s)` and `midpoint.findLinkedTarget(s)`.
+
+. And then when one wants to recompute linked sources/targets as a reaction to modifications in the focus object, he or she has again to specify these objects in `<linkSource>` and `<linkTarget>` clauses in `<executeScript>` policy actions.
+
+When referencing objects linked it has to be specified somehow.
+As minimum information, object type has to be given.
+However, more often, archetype OID needs to be provided as well.
+And if one is unfortunate enough, other, more complex, search filters have to be used.
+
+What if we would be able to specify the _link type_ in a single place, and then reference the type in all the situations that need to refer to objects linked to the current focus by given type of link?
+
+Then one can imagine full scale of improvements stemming from this kind of definition, for example:
+
+. As part of the link definition one could specify the _cardinality_ of the link: is it one-to-one, one-to-many, or any other? Is one or both the ends mandatory?
+
+. What action should be taken if cardinality is broken (too many or too few linked objects)? This is not a new concept.
+But instead of writing policy rules independently of the link type specification, why not put policy actions directly into the link spec?
+
+. Should links other than explicitly specified be allowed? What if one tries to create such a link? What if such a link exists but it should not?
+
+. GUI presentation: Should be the linked objects displayed in a special way? How?
+
+. GUI actions: Can be the link created (i.e. link source/target assigned) directly via GUI? What should be the GUI representation? (Icon, label, color, ...)
+
+
+== Current status
+
+In midPoint 4.2-M1 (milestone 1) we have implemented a proof of concept code for named object links.
+
+For a set of self-explaining examples, please see xref:/midpoint/reference/synchronization/linked-objects/scenario-2-devices-owned-by-users/[Linked objects scenario 2: Devices owned by users] and xref:/midpoint/reference/synchronization/linked-objects/scenario-3-projects/[Linked objects scenario 3: Projects].
+
+In midPoint 4.0 and 4.1 there are data structures related to GUI actions, namely `assignmentRelation` items in assignments and `assignmentHolderRelationApproach` in archetype policy.
+These should be integrated somehow with the link type definitions.
+
+
+== Planned improvements
+
+Named links are currently very limited in scope.
+So there is a lot of room for improvements:
+
+
+=== Link definition features
+
+First of all, use of link type definitions is limited to `findLinkedSources` / `findLinkedTargets` methods and `<linkSource>` / `<linkTarget>` scripting policy actions elements.
+There is no support for cardinality specification, policy rules, nor GUI aspects in links definition.
+
+These could be gradually implemented.
+
+
+=== Object-wide link definitions
+
+Each definition is currently bound to a single archetype and is visible only in objects having this archetype.
+The first extension is to apply the definitions to archetype-less objects by means of object policy configuration in system configuration.
+
+
+=== Global (bidirectional) link definitions
+
+Then links could be made visible _globally_. For example, target link AB defined in archetype A will be visible as a source link BA in archetype B. Such global links could be definable also in the system configuration.
+
+
+=== Flexible link participants specification
+
+Finally, links could be made configurable for _subsets_ of archetyped objects by using object selectors not only for the other side of the links but also for the defining side.
+
+(This opens up a lot of questions, like applicability of link type definitions in situations when object is modified, and so enters/exits ranges of individual link type definitions.
+But we'll be able to sort these questions out eventually.)
+
+
+== Conclusion
+
+We seem to be approaching the state where assignments (and links as their execution-time counterparts) will be first-class citizens in midPoint, just like objects are.
+
+_Named object links_ feature is a step towards this goal.

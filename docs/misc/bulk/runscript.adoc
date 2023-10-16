@@ -1,0 +1,126 @@
+= runscript command line tool
+:page-wiki-name: runscript command line tool
+:page-wiki-id: 14286852
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-03-06T12:02:26.672+01:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:47:26.391+01:00
+:page-upkeep-status: yellow
+
+== Intro / Examples
+
+In model-client-sample project there is a RunScript tool that allows to remotely execute a given script.
+
+Scripts and their outputs are currently in XML format only.
+In future, other formats (JSON, YAML, MSL) will be supported.
+
+An example:
+
+[source]
+----
+c:\midpoint\scripts> runscript.bat -s purge-schema.xml -Dname="Exchange" -hd
+
+Script to execute:
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- ... -->
+
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <s:type>c:ResourceType</s:type>
+    <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+        <path>c:name</path>
+        <value>Exchange</value>
+    </equal>
+    <s:action>
+        <s:type>purge-schema</s:type>
+    </s:action>
+</s:search>
+=================================================================
+Endpoint URL: http://localhost:8080/midpoint/model/model-1
+mar 06, 2014 11:59:04 AM org.apache.cxf.service.factory.ReflectionServiceFactoryBean buildServiceFromWSDL
+INFO: Creating Service {http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl}modelService from WSDL: jar:file:/D:/temp/midp/lib/model-client-2.3-SNAPSHOT.jar!/xml/ns/private/model/modelWrapper.wsdl
+=================================================================
+Console output:
+Purged schema information from resource:0917445e-057d-470c-875f-1959b489f94a(Exchange)
+
+=================================================================
+Operation result: SUCCESS
+----
+
+*purge-schema.xml* is one of several *script templates*, that become actual scripts by replacing given set of parameters with actual values.
+In this case, the template expects a parameter *name*, which is a name of a resource whose schema has to be purged.
+
+Parameter -hd means "hide output data", because the output of this script is a XML dump of a resource(s) that were dealt with.
+It is, of course, possible to show or hide and/or redirect any of the outputs (data, console output, operation result) to a file.
+
+Available options are:
+
+[source]
+----
+ -D <property=value>            use value for given property
+ -fc,--file-for-console <arg>   Name of the file to write resulting console output into
+ -fd,--file-for-data <arg>      Name of the file to write resulting XML data into
+ -fr,--file-for-result <arg>    Name of the file to write operation result into
+ -h,--help                      Print this help information
+ -hc,--hide-console             Don't display console output
+ -hd,--hide-data                Don't display data output
+ -hr,--hide-result              Don't display detailed operation result (default: showing if not SUCCESS)
+ -hs,--hide-script              Don't display input script
+ -s,--script <arg>              Script file (XML for the moment)
+ -sr,--show-result              Always show detailed operation result (default: showing if not SUCCESS)
+ -u,--user <arg>                User name (default: administrator)
+ -p,--password <arg>            Password
+ -url <arg>                     Endpoint URL (default: http://localhost:8080/midpoint/model/model-1)
+----
+
+
+
+Another useful script is the one that *discovers all new connectors on a given connector host*, and rebinds any resources that were bound to old connectors to new ones.
+(Beware: experimental implementation!)
+
+[source]
+----
+c:\midpoint\scripts> runscript.bat -s discover-rebind.xml -Dhostname=158.195.x.y -hd
+
+Script to execute:
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- ... -->
+
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
+ xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <s:type>c:ConnectorHostType</s:type>
+    <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+        <path>c:hostname</path>
+        <value>158.195.x.y</value>
+    </equal>
+    <s:action>
+        <s:type>discover-connectors</s:type>
+        <s:parameter>
+            <s:name>rebindResources</s:name>
+            <s:constant>
+                <s:value>true</s:value>
+            </s:constant>
+        </s:parameter>
+    </s:action>
+</s:search>
+
+=================================================================
+Endpoint URL: http://localhost:8080/midpoint/model/model-1
+mar 06, 2014 12:13:34 PM org.apache.cxf.service.factory.ReflectionServiceFactoryBean buildServiceFromWSDL
+INFO: Creating Service {http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl}modelService from WSDL: jar:file:/D:/temp/midp/lib/model-client-2.3-SNAPSHOT.jar!/xml/ns/private/model/modelWrapper.wsdl
+=================================================================
+Console output:
+Discovered 2 new connector(s) from connectorHost:91919191-76e0-59e2-86d6-44cc44cc4400(ICF Connector server on 158.195.x.y:8759)
+Rebound resource resource:ef2bc95b-76e0-48e2-86d6-3d4f02d30000(FED2) from connector 1868825b-c24e-4da9-9170-7c12681dcd5a to new one: 1616a282-e6c1-4bc4-b35f-1e971cefd226
+
+=================================================================
+Operation result: SUCCESS
+----
+
+
+== How to build and run
+
+Just take model-client-sample-2.3-SNAPSHOT-bin.zip from the directory samples/model-client-sample/target (after building midpoint via maven), unzip it into any directory, and run runscript.bat or runscript.sh file.
+
+Enjoy.
+☺

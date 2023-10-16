@@ -1,0 +1,122 @@
+= Role Request and Shopping Cart Configuration
+:page-nav-title: Configuration
+:page-wiki-name: Role Request and Shopping Cart Configuration
+:page-wiki-id: 24674672
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-07-10T14:26:50.466+02:00
+:page-wiki-metadata-modify-user: rpudil
+:page-wiki-metadata-modify-date: 2018-08-29T14:47:31.137+02:00
+:page-since: "3.5"
+:page-since-improved: [ "3.6" ]
+:page-upkeep-status: yellow
+
+== Role Catalog Configuration
+
+The prerequisite for a good user experience is usually proper configuration of xref:/midpoint/reference/admin-gui/role-catalog/configuration/[role catalog] and xref:/midpoint/reference/security/authorization/[authorizations]. The end-user role selection page will display only those roles that the currently-logged-in user can assign to himself.
+Therefore especially the proper use of `assign` authorization is crucial for proper functioning of this page.
+
+== Role Catalog Collections
+
+++++
+{% include since.html since="3.6" %}
+++++
+
+The role catalog has several _views_ or _collections_ that control the way what the end-user role catalog page displays the role catalog content.
+The specific view can be selected in the role request page.
+By default all the available views are displayed.
+But this may be too confusing for deployments that do not use all the midPoint capabilities.
+Therefore there is a way how to configure only a subset of the views.
+This can be controlled in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object] like this:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <roleManagement>
+        <roleCatalogCollections>
+            <collection>
+                <collectionUri>http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#roleCatalog</collectionUri>
+            </collection>
+            <collection>
+                <collectionUri>http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles</collectionUri>
+            </collection>
+        </roleCatalogCollections>
+        <defaultCollection>
+            <collectionUri>http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#roleCatalog</collectionUri>
+        </defaultCollection>
+    </roleManagement>
+   ...
+</systemConfiguration>
+----
+
+The configuration above will enable only the "Role catalog" and "All roles" views.
+
+[%autowidth]
+|===
+| Collection uri | View
+
+| link:http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles[http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#roleCatalog]
+|  Role catalog view
+
+
+| link:http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles[http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles]
+|  All roles view
+
+
+| link:http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles[http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allOrgs]
+|  All organizations view
+
+
+| link:http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles[http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allServices]
+|  All services view
+
+
+| link:http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles[http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#userAssignments]
+|  User's assignments view
+
+
+|===
+
+[TIP]
+.Object collections feature
+====
+This configuration is just a very simple way how to configure _object collections_ feature.
+The object collections feature is a planned feature that will enable grouping objects in an arbitrary way and then reuse the groupings in role catalog, menu, dashboards and so on.
+This features development can be put forward by means of link:https://evolveum.com/services/professional-support/?target=platform-subscription[Platform subscription]. (bug:MID-3517[]). If you are interested in becoming a subscriber, please contact Evolveum.
+====
+
+== Assignment Constraints
+
+Assignment constraints are often used to constraint role assignment multiplicity, e.g. whether it is possible to request the same role several times.
+Default assignment constraints are specified in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. These constraints are applied globally to the entire system.
+The constraint is composed from two boolean flags:
+
+* `*allowSameTarget*`: Constraint all assignments that have the same target.
+I.e. multiple assignments of the same (abstract) role.
+If allowSameTarget=true then multiple assignments of the same role are allowed.
+If allowSameTarget=false then multiple assignments of the same role are prohibited (but see also below).
+
+* `*allowSameRelation*`: Constraint all assignments that have the same relation.
+E.g. if allowSameTarget=true and allowSameRelation=false then multiple assignments of the same role are allowed as long as they have different relation.
+
+The constraints can be used to enforce single-assignment role policy like this:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <roleManagement>
+        <defaultAssignmentConstraints>
+            <allowSameTarget>false</allowSameTarget>
+            <allowSameRelation>false</allowSameRelation>
+        </defaultAssignmentConstraints>
+    </roleManagement>
+   ...
+</systemConfiguration>
+----
+
+== See Also
+
+* xref:/midpoint/reference/admin-gui/role-catalog/configuration/[Role Catalog Configuration]
+
+* xref:/midpoint/reference/admin-gui/role-request/[Role Request and Shopping Cart]

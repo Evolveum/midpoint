@@ -1,0 +1,253 @@
+= Unique Account Username HOWTO
+:page-wiki-name: Unique Account Username HOWTO
+:page-wiki-id: 13074619
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-10-29T16:40:58.991+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-04-13T10:41:36.958+02:00
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-toc: top
+:page-upkeep-status: yellow
+
+
+One of the typical identity management requirement is to find an unique identifier for an account, e.g. to find account username.
+The requirement is usually to append numbers to the original username until an unique identifier is found.
+E.g. the following sequence may be tried:
+
+* `jack` - found existing account, trying again
+
+* `jack1` - found existing account, trying again
+
+* `jack2` - no existing account, use this for the new account
+
+MidPoint has a built-in functionality to support this method.
+The feature is called _iteration_ and it can be enabled for any resource in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. Two steps are required to configure this feature:
+
+* Enable the iteration by setting the maximum number of iteration attempts.
+This is done by setting the `iteration` property in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling].
+
+* Use one of the iteration variables (`iteration` or `iterationToken`) in appropriate outbound mappings.
+
+When enabled the midPoint will do the following when a new account is created or existing account is renamed:
+
+. MidPoint sets iteration variables to initial values (see below)
+
+. MidPoint evaluates the mappings
+
+. MidPoint checks if mapping results for account identifiers are unique
+
+.. If yes: we have the final values, midPoint continues to account provisioning
+
+.. If no: iteration variables are changed to the next iteration and the process is retried until the maximum number of iterations is reached
+
+
+
+[TIP]
+====
+Be sure to use iteration/iterationToken variables in all required attributes.
+For example, with directory servers such as OpenDJ or OpenLDAP you if you use iterationToken in link:http://icfsname[icfs:name] (DN), you need to use it also in the attribute that is used as the naming attribute in the DN itself (e.g. uid or cn).
+
+====
+
+
+== Iteration Variables
+
+There are two iteration variables that can be used in mappings:
+
+* Variable `iteration`: Numeric variable contains the number of current iteration.
+It starts with `0` and increments on every iteration.
+
+* Variable `iterationToken`: String variable that contains the portion of the identifier that is changed in each iteration.
+It can be derived from the iteration number using a special expression.
+A default value is supplied if no expression is used.
+See the example below.
+
+[%autowidth]
+|===
+| Iteration number | The value of iteration variable | The default value of iterationToken variable
+
+| 0
+| 0
+| "" (empty string)
+
+
+| 1
+| 1
+| "1"
+
+
+| 2
+| 2
+| "2"
+
+
+|===
+
+The iteration variables can be used in outbound mappings:
+
+[source,xml]
+----
+<resource>
+	....
+	<schemaHandling>
+        <objectType>
+            ...
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+			...
+----
+
+This example is the most basic use of `iterationToken` variable.
+The effect of this mapping is to suffix the username of the created account by a unique suffix.
+Default value of `iterationToken` variable is used in this example.
+This token has an empty value on the first iteration.
+Therefore if the `name` of the user object is unique then an account without any suffix is created (e.g. `jack`). However if the name is not unique then a suffix is appended to the username until an unique value is found (e.g. `jack3`).
+
+
+== Unique Username and Mail Address
+
+It is also typical that the username should be aligned with other attributes, e.g. an e-mail address.
+The iteration variables can be used in several mappings, even in non-identifier attributes.
+MidPoint recomputes all the mappings in each iteration to make sure that the account structure is consistent.
+E.g. the following code snippet makes sure that the username matches account e-mail address:
+
+[source,xml]
+----
+<resource>
+	....
+	<schemaHandling>
+        <objectType>
+            ...
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+			<attribute>
+                <ref>ri:email</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken + "@example.com"
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+			...
+----
+
+
+== Iteration Token Expression
+
+The expression that transforms numeric value of variable `iteration` to the string value of variable `iterationToken` is configurable.
+
+[source,xml]
+----
+<resource>
+	....
+	<schemaHandling>
+        <objectType>
+            ...
+            <attribute>
+               ...
+            </attribute>
+			<attribute>
+                ...
+            </attribute>
+			...
+			<iteration>
+                <maxIterations>5</maxIterations>
+                <tokenExpression>
+                    <script>
+                        <code>
+                            if (iteration == 0) {
+                                return "";
+                            } else {
+                                return sprintf("%03d", iteration);
+                            }
+                        </code>
+                    </script>
+                </tokenExpression>
+			</iteration>
+			...
+----
+
+This expression will result in the following username sequence:
+
+* `jack`
+
+* `jack001`
+
+* `jack002`
+
+* ...
+
+
+== Iteration Conditions
+
+There are two conditions that can be used to fine-tune and customize the iteration process.
+
+The `preIterationCondition` is executed prior to iteration.
+If it returns true then the iteration will continue.
+If it returns false then the iteration will be skipped (as if there is an conflict).
+
+The `postIterationCondition` is executed after the iteration.
+If it returns true then the iteration will be accepted as valid.
+If it returns false then the iteration will be skipped (as if there is an conflict).
+
+If any of the conditions throws an error (exception) then the whole operation ends with an error.
+
+Example:
+
+[source,xml]
+----
+                <postIterationCondition>
+                    <variable>
+                        <name>quote</name>
+                        <path>$shadow/attributes/ri:quote</path>
+                    </variable>
+                    <script>
+                        <code>
+                            log.debug("quote={}, user={}", quote, user);
+                            if (user != null &amp;&amp; quote == null &amp;&amp; user.getName() != null &amp;&amp; user.getName().getOrig().equals("drake")) {
+                                // Make sure it fails if executed without quote, this should not happen for user drake
+                                throw new IllegalStateException("Kaboom!");
+                            }
+                            if (quote == null) {
+                                // This may happen for users without description. If we let it go the method below fails
+                                // But null quote is OK, no need to check uniqueness for this
+                                return true;
+                            }
+                            return midpoint.isUniqueAccountValue(resource, shadow, 'quote', quote);
+                        </code>
+                    </script>
+                </postIterationCondition>
+----

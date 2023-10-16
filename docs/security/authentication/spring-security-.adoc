@@ -1,0 +1,159 @@
+= Authentication Configuration (Spring Security)
+:page-wiki-name: Authentication Configuration (Spring Security)
+:page-wiki-id: 23167000
+:page-wiki-metadata-create-user: restapi
+:page-wiki-metadata-create-date: 2016-08-08T15:30:07.352+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2020-02-17T16:00:15.392+01:00
+:page-since: 3.7
+:page-obsolete: true
+:page-obsolete-since: 4.0
+:page-upkeep-status: green
+:page-toc: top
+
+[WARNING]
+.Unofficial functionality
+====
+This functionality requires modification of midPoint build, or even modification of midPoint source code.
+Therefore it is not officially supported - unless the support is explicitly negotiated in xref:/support/subscription-sponsoring/[subscription]. +
+This configuration is unsupported from version 4.1. For the solution to this problem see xref:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication] and xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication Configuration].
+====
+
+midPoint provides different types of authentication mechanisms.
+You can use default authentication (against local midPoint DB) or LDAP (AD) authentication.
+It can be also configured as a part of your xref:/midpoint/reference/legacy/sso/[SSO] solution.
+Default authentication mechanism uses midPoint database for authentication and no additional configuration is needed.
+
+midPoint uses link:http://projects.spring.io/spring-security/[Spring Security framework] for authentication.
+Configuration classes can be found in `gui/admin-gui` project in package `com.evolveum.midpoint.web.boot`, namely:
+
+* WebSecurityConfig.java
+
+* LdapSecurityConfig.java
+
+* CasSecurityConfig.java
+
+
+== Enabling concrete authentication mechanism
+
+Mechanism used for authentication is configured via spring boot profiles, e.g. via `-Dspring.profiles.active=...` JVM command-line option.
+
+
+=== LDAP authentication
+
+In this case "ldap" profile needs to be activated using comand-line option:
+
+[source,bash]
+----
+-Dspring.profiles.active=ldap
+----
+
+MidPoint also needs information about LDAP connection configuration.
+This configuration must be located inside `midpoint.home/application.yml` file.
+Example of such configuration:
+
+[source,yaml]
+----
+auth:
+  ldap:
+    host: ldap://localhost:389/dc=example,dc=com
+    manager: cn=admin,dc=example,dc=com
+    password: secret
+	# dn pattern or search pattern configuration is needed
+    dn:
+      pattern: uid={0},ou=people
+
+    search:
+      pattern: (uid={0})
+      subtree: true
+----
+
+==== LDAP authentication via explicit attribute (e.g. email)
+
+++++
+{% include since.html since="3.9" %}
+++++
+
+MidPoint authentication implicitly logs users under the same username as they typed-in in the midPoint's login form. For example, user types "jack" and if LDAP authenticates user successfully, "jack" is logged into midPoint.
+
+This feature allows specifying explicit LDAP attribute (using "naming-attr" yml property) that is retrieved from user's LDAP account and contains value that matches midPoint's username. Combining this with custom LDAP filter ("pattern" property) allows users to authenticate with arbitrary unique attribute. For example, user types "jack@example.com" into login form, LDAP finds corresponding entry and return its naming attribute value - "jack". MidPoint logs in "jack" - if such UserType exists.
+
+Following example authenticates users based on "mail" attribute. User is then correlated to midPoint's username by LDAP attribute "uid".
+
+[source,yaml]
+----
+auth:
+  ldap:
+    host: ldap://localhost:389/dc=example,dc=com
+    manager: cn=admin,dc=example,dc=com
+    password: secret
+
+    search:
+      pattern: (mail={0})
+      naming-attr: uid
+      subtree: true
+----
+
+=== Cas Authentication
+
+In this case "cas" profile needs to be activated using comand-line option:
+
+[source,bash]
+----
+-Dspring.profiles.active=cas
+----
+
+++++
+{% include since.html since="3.4.1" %}
+++++
+
+midPoint provides different types of authentication mechanisms.
+You can use default authentication (against local midPoint DB) or LDAP (AD) authentication.
+It can be also configured as a part of your xref:/midpoint/reference/legacy/sso/[SSO] solution.
+Default authentication mechanism uses midPoint database for authentication and no additional configuration is needed.
+
+
+midPoint uses link:http://projects.spring.io/spring-security/[Spring Security framework] for authentication.
+Configuration files for authentication can be found in gui/admin-gui project.
+In the src/main/webapp/WEB-INF folder you can find different context files, namely:
+
+* ctx-webapp.xml - configuration for gui component initialization.
+In this configuration file you can also find configuration for properties placeholder files.
+The reference to the properties file needs to be change here.
+
+* ctx-web-security.xml - configuration for spring security initialisation, e.g. filters for URLs, default login/logout page configuration etc.
+Unless midPoint is a part of a xref:/midpoint/reference/legacy/sso/midpoint-as-cas-client-java-jasig-cas-client-libraries-/[CAS SSO solution], no modifications are needed to this file.
+
+* ctx-web-security-basic.xml - configuration for authentication against (local) midPoint database.
+
+* ctx-web-security-cas.xml - CAS login/logout authentication configuration
+
+* ctx-web-security-ldap.xml - LDAP authentication configuration
+
+
+==== Enabling concrete authentication mechanism
+
+Mechanism used for authentication is configured as environmental variable.
+The configuration depends on the application server or web container that is used to run midPoint, e.g. for the Tomcat application server it is done using JVM command-line option:
+
+[source]
+----
+-Dauth.method.type=ldap
+----
+
+Possible values for the option are (for now) ldap and cas.
+According to this configuration one of the `++ctx-web-security-*.xml++` configuration is applied.
+If this option is not specified, the default (ctx-web-security-basic.xml) is used.
+
+==== Configuration properties
+
+In addition to the JVM command-line option used to defined authentication mechanism which will be used, it is also needed to change the values of property placeholders according to your environment.
+The property placeholder file (midpoint-config.properties) is located in the gui/admin-gui project in the src/main/resources folder.
+The default location of this file can be changed according to your need, just set the path to the .properties file in the ctx-webapp.xml.
+Then, in the midpoint-config.properties set up the concrete values, e.g. the hostname of you LDAP server, service account used to search records in LDAP server etc.
+
+== See also
+
+* xref:/midpoint/reference/legacy/sso/midpoint-as-cas-client-apache-cas-agent-method-/[MidPoint as CAS Client (Apache CAS Agent Method)]
+
+* xref:/midpoint/reference/legacy/sso/midpoint-as-cas-client-java-jasig-cas-client-libraries-/[MidPoint as CAS Client (Java Jasig CAS Client libraries)]

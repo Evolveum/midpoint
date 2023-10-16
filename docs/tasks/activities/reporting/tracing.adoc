@@ -1,0 +1,27 @@
+= Tracing
+:page-experimental: true
+
+Here we configure the xref:/midpoint/reference/diag/troubleshooting/troubleshooting-with-traces/[tracing feature] for the activity.
+
+TIP: Unlike 4.3 and earlier, we can now provide more tracing configurations, e.g. brief tracing for each 10-th item, and in-depth
+tracing for each 100-th item.
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Default
+| `order` | Order in which this configuration is to be considered. Nulls go last. | -
+| `beforeItemCondition` (multi) | Conditions that must be fulfilled (any of them) before this configuration is applied. | Start tracing.
+| `afterItemCondition` (multi) | Conditions that must be fulfilled (any of them) for the result of this tracing be written to the file.
+
+*BEWARE:* This condition is checked only for traces with the root of `iterativeTaskObjectProcessing`,
+i.e. those that were started right on the level of the iterative activity.
+| Write the trace.
+| `tracingProfile` | Tracing profile to be used. | Obligatory.
+| `tracingPoint` (multi) | Point(s) to be traced. | `iterativeTaskObjectProcessing`
+|===
+
+A combination of `beforeItemCondition` and `afterItemCondition` can be used e.g. to selectively write traces
+for items that took too long or ended with a failure.
+
+#TODO some examples#

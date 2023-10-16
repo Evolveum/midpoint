@@ -1,0 +1,36 @@
+= Groovy Expressions
+:page-nav-title: Groovy
+:page-wiki-name: Groovy Expressions
+:page-wiki-id: 4423696
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-17T19:12:08.185+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-10-01T12:39:11.464+02:00
+:page-upkeep-status: green
+:page-toc: top
+
+Groovy is a supported expression language in midPoint.
+Its language URL is:
+
+ http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy
+
+
+== Examples
+
+=== User name
+
+Following code returns a `name` property of a user.
+It is using groovy safe dereference operator (`?.`) to make sure this code works as expected even if user is `null`. User can be `null` is some situations, such as when evaluating outbound expression for a deleted user.
+Therefore the use of safe dereference operator is advised in almost all situations.
+
+[source,groovy]
+----
+user?.getName();
+----
+
+=== Create fullName
+
+[source,groovy]
+----
+user.getGivenName() + " " + user.getFamilyName();
+----

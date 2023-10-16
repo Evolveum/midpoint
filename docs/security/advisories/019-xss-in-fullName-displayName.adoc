@@ -1,0 +1,41 @@
+= Security Advisory: XSS Vulnerability In fullName and displayName
+:page-nav-title: XSS Vulnerability In fullName and displayName
+:page-display-order: 19
+:page-upkeep-status: green
+
+*Date:* 20. 9. 2023
+
+*Severity:* High (CVSS 8.0)
+
+*Affected versions:* 4.7, 4.7.1
+
+*Fixed in versions:* 4.8, 4.7.2
+
+
+== Description
+
+Cross-site scripting (XSS) vulnerability exists in change preview and audit log of midPoint user interface, namely via organization displayName and user fullName.
+
+
+== Severity and Impact
+
+Malicious user can execute arbitrary scripts (e.g. Java Script) as part of midPoint web-based user interface.
+This vulnerability exists in displayName for all objects, including name of the organization/organizational unit.
+Exploiting this vulnerability requires administrative privileges.
+
+
+== Mitigation
+
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest maintenance release.
+
+== Discussion and Explanation
+
+MIdPoint user interface is based on Apache Wicket web framework.
+Proper use of Wicket web framework protects against most XSS-related vulnerabilities.
+However, one part of midPoint code was using the Wicket framework improperly, therefore opening XSS vulnerability.
+The vulnerability could be exploited by fabricating displayName of organizational unit, or in fact any display name of a multi-value container.
+
+
+== Credit
+
+This issue was reported by Radically Open Security as part of NGI Zero Review program.

@@ -1,0 +1,64 @@
+= Security Advisory: Authorizations not applied properly to preview changes
+:page-wiki-name: Security Advisory: Authorizations not applied properly to preview changes
+:page-wiki-id: 36569102
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-07-30T14:55:19.898+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-07-30T15:09:30.748+02:00
+:page-nav-title: Authorizations not applied properly to preview changes
+:page-display-order: 10
+:page-upkeep-status: green
+
+*Date:* 30 July 2019
+
+*Severity:* Medium (CVSS 4.3)
+
+*Affected versions:* all released midPoint versions
+
+*Fixed in versions:* 4.0 (unreleased), 3.9.1 (unreleased)
+
+
+== Description
+
+Authorizations not applied properly to the results of "preview changes" functionality.
+
+
+== Severity and Impact
+
+In the "preview changes" screen user can see information that that user is not authorized to see.
+Authorizations are not properly applied to preview deltas.
+Therefore if user's actions results in a computed value such value is displayed in the "preview changes" even if user is not authorized to see it.
+
+
+== Mitigation
+
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches]. Users of midPoint 3.8 and earlier are advised to upgrade to midPoint 3.9.
+
+As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
+The fix is provided in support branch for midPoint 3.9.x. The fix is *not*  provided in support branches of midPoint 3.8.x and earlier due to a code incompatibility.
+Fix for midPoint 3.8.x and earlier will be provided on an explicit request of midPoint subscriber.
+
+
+== Discussion and Explanation
+
+MidPoint provides "preview changes" functionality that can be used to see changes that are about to be executed before actual execution.
+This "preview" consists of several parts, e.g. the state of the objects before the change, state of the objects after the change, deltas that represent the change and so on.
+Authorizations were applied to the objects in the preview section, but the authorizations were not applied to the deltas.
+Therefore in case that user's change caused a different change in items that the user cannot see, that information may be leaked in the deltas.
+
+The fix for this vulnerability was not provided for midPoint 3.8.x and earlier.
+The code has changed since the release of midPoint 3.8 and backport of the fix is not straightforward.
+As this is not a serious vulnerability and the impact is very limited, we have chosen to prioritize more serious issues and not spend development resource to fix this issue in an old code.
+Users of midPoint 3.8.x and earlier are advised to upgrade to midPoint 3.9. In a case that this vulnerability is considered to be a serious risk for midPoint subscribers running 3.8.x and 3.7.x that are not possible to upgrade, such subscribers are advised to contact Evolveum and request backport of this fix.
+
+
+== Credit
+
+This issue was reported by Petr Gašpark by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* bug:MID-5595[]
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]

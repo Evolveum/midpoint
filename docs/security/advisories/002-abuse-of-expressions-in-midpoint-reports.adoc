@@ -1,0 +1,108 @@
+= Security Advisory: Abuse of expressions in midPoint reports
+:page-nav-title: Abuse of expressions in midPoint reports
+:page-display-order: 2
+:page-upkeep-status: green
+:page-wiki-name: Security Advisory: Abuse of expressions in midPoint reports
+:page-wiki-id: 30245354
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-08T16:00:42.996+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-08T16:46:05.667+02:00
+
+*Date:* 8 Apr 2019
+
+*Severity:* Medium (CVSS 4-6.9)
+
+*Affected versions:* all midPoint versions
+
+*Fixed in versions:* 4.0 (unreleased) - partial fix; workaround exists for all midPoint versions
+
+
+== Description
+
+MidPoint expressions embedded in midPoint reports can be used to gain unauthorized access to the system.
+
+
+== Severity and Impact
+
+There is a critical potential damage that an attacker can cause.
+By using a scripting expression the attacker can gain the same access as the midPoint application itself, including ability to read files, access database or execute sub-processes.
+However, the issue can be completely mitigated by a conservative configuration.
+Therefore, we consider this to be a medium-severity issue.
+
+Most midPoint deployment are not affected by this issue at all.
+Default midPoint configuration does not allow access that would open this vulnerability to anyone else than system administrator.
+The configuration needs to be changed in a dramatic way to open this vulnerability.
+
+
+== Mitigation
+
+The recommended mitigation is to maintain best practices of midPoint deployment: never allow untrusted person to specify any kind of expression, especially scripting expression.
+
+However, adhering to that practice will practically prohibit delegation of any expression-related tasks to administrators with reduced privileges.
+For most of the cases, this can be mitigated by using alternative techniques:
+
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
+Meta roles can be setup by a trusted administrator.
+Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
+However, even this method is not yet fully supported in midPoint user interface.
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
+This can be used to make sure that expressions used in the roles are safe.
+
+This mitigation is applicable for almost all practical cases in midPoint deployment - with a notable exception of reports.
+The metarole-based approach is not applicable to reports at all.
+Lifecycle-based method may be applicable, but it may not be practical.
+Therefore planned midPoint 4.0 release provides partial solution to limit the power of expression by using xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles].
+
+Users of midPoint 3.9 or earlier are advised to strictly restrict ability to specify expressions only to the most trusted users.
+Any user with the ability to specify an expression can gain privileges of midPoint superuser (system administrator).
+This applies to reports as well as any other use of expressions in midPoint.
+
+Users that plan to deploy midPoint 4.0 can use the ability to restrict reporting expression by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles]. However, this ability is only applicable to reports and it can only be configured globally.
+The same advice as above applies to all other midPoint expressions.
+
+
+== Discussion and Explanation
+
+This is a variation of an issue that is obvious to midPoint community for a very long time.
+It can be even argued that this is not an issue _per se_, but it is an inherent consequence of use of scripting expressions in midPoint and therefore it is part of midPoint design.
+Our point of view is that both arguments are true.
+As this issue is entwined in midPoint design, it will be difficult to resolve it completely.
+But that does not mean that we should not try to resolve it eventually.
+
+This is not a characteristic that is unique to midPoint.
+Almost all systems that can be extended by a general-purpose scripting mechanisms are affected in the same way.
+The unrestricted capabilities of the expressions may even be required for midPoint deployments to be practical, as midPoint developers cannot predict all the possible use cases for midPoint.
+
+Experience from practical midPoint deployments suggests, that having powerful expressions that need to be strictly controlled is not a critical problem.
+This applies to all the parts of midPoint except for reporting.
+Reporting is a special case for several reasons.
+Firstly, reporting expressions are not executed by midPoint directly.
+The expressions are executed by JasperReport library, therefore it was difficult to properly control expression environment.
+Secondly, report definition is one of the task that is often delegated to users with restricted privileges.
+However, it is almost impossible to create a meaningful report without the use of any expression.
+When it comes to roles, organizational units and services, metarole-based method can be used.
+But there is no such option for reports.
+Therefore we have decided, that there is a need for a solution that can address at least the problem with reports.
+Such solution is being developed for midPoint 4.0. However, even for midPoint 4.0 this solution will be very limited.
+Please see xref:/midpoint/reference/expressions/expressions/profiles/configuration/[Expression Profile Configuration] for the details and xref:/midpoint/features/planned/expression-profiles/[Expression Profiles: Full Implementation] for description of the future plans.
+
+One of the reasons that contributed to the decision to address this issue was a lack of clear documentation.
+While the danger of generic expressions is very obvious to any experienced software engineer, users that lack deep technical knowledge may get confused.
+Therefore improvement of the documentation was also a part of mitigation of this issue.
+The documentation now clearly indicates the risk associated with the use of expressions.
+
+
+== Credit
+
+This bug was reported by Martin Lizner by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* bug:MID-5265[]
+
+* bug:MID-5193[]
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]

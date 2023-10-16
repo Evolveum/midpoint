@@ -1,0 +1,23 @@
+= Ports 80 and 443
+:page-wiki-name: Ports 80 and 443
+:page-wiki-id: 39584010
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-10-22T08:53:05.563+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-10-22T08:59:42.348+02:00
+:page-upkeep-status: yellow
+
+MidPoint is often deployed as a xref:/midpoint/reference/deployment/stand-alone-deployment/[stand-alone server] with an embedded Apache Tomcat container.
+It is expected that such a server will listen on ports 80 (HTTP) and 443 (HTTPS).
+However, those are privileged ports.
+Only a privileged (root) process can bind to those ports in UNIX-like environments.
+Therefore this can be achieved by changing midPoint configuration (application.yml file) and running midPoint as root.
+But that is *not a good security practice*  as in that case midPoint process will get too much privileges in the operating system.
+
+The best practice for use of privileged ports in UNIX environment is to start the server process in a privileged mode, the server process binds to the ports and then drops the privileges.
+However, there is no platform-independent support for this in the Java platform.
+And we would like to avoid mixing platform-dependent components into midPoint.
+Therefore midPoint does not support this method.
+
+Recommended solution is to let midPoint run on non-privileged ports and use a reverse proxy, e.g. Apache HTTP Server or NGINX.
+There is also an added value as those servers provide much better network robustness and network access control mechanisms than Apache Tomcat.

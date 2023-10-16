@@ -1,0 +1,30 @@
+= Bucket Size Analysis
+:page-experimental: true
+
+== Introduction
+
+Specifying the correct bucketing is the key to successful activity execution in large-scale deployments.
+If the buckets are too large (and too few), the distribution to worker tasks is inefficient, the progress
+reporting is rough, and restarting the execution has to re-process too many items. On the other hand,
+if the buckets are too small (and too many), the overhead of their management is unnecessarily large.
+And if the buckets are unevenly distributed, some worker tasks have to process big amount of data, while
+others have literally nothing to do.
+
+To aid with this, midPoint provides the ability to:
+
+1. report on bucket processing, to allow to analyze the bucket distribution ex-post;
+2. analyze the bucket distribution ex-ante, i.e. without actually executing the activity.
+
+The former can be set up simply by enabling xref:../execution-reports[bucket-level reports].
+The latter is the topic of this document.
+
+== Set-Up
+
+There are two key elements of the process, and a single optional one:
+
+1. Setting `bucketAnalysis` execution mode. It turns off item fetching and processing.
+2. Enabling `buckets` execution report. Otherwise, the data would be collected but written nowhere.
+3. Enabling sampling. This will select only a (hopefully) representative subset of all buckets,
+in order to speed up the processing.
+
+#TODO#

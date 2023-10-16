@@ -1,0 +1,237 @@
+= Search
+:page-wiki-name: Search
+:page-wiki-id: 24086040
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-05-11T18:04:23.244+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2018-02-27T17:06:03.050+01:00
+:page-upkeep-status: yellow
+:page-toc: top
+
+== Description
+
+The `search` action retrieves a set of objects via `searchObjects` or `searchObjectsIterative` model call.
+
+
+== Input
+
+The input is ignored.
+
+
+== Output
+
+Objects fetched, or results of embedded scripting expression.
+(See Processing fetched objects below.)
+
+
+== Properties
+
+[%autowidth]
+|===
+| Property name | Meaning
+
+| type
+| Type of objects to be retrieved
+
+
+| query
+| Query to be executed (optional)
+
+
+| searchFilter
+| Search filter to be used (optional).
+It is mutually exclusive with query, suitable when there's no paging to be applied.
+If no query nor filter is used, all objects of a given type are fetched.
+
+
+| options
+| Options to be used when searching.
+Since 3.6.
+
+
+| (scriptingExpression)
+| Expression to be executed for each object found (optional).
+See Processing fetched objects section below.
+
+
+|===
+
+
+== Parameters
+
+Parameters do not have static schema.
+Currently only one is supported:
+
+[%autowidth]
+|===
+| Parameter name | Meaning
+
+| noFetch
+| If set to true, suppresses fetching account data from a resource.
+Overrides "noFetch" option in "options" property if present.
+
+
+|===
+
+
+== Examples
+
+.Retrieve the user named 'jack'
+[source,xml]
+----
+<s:search>
+    <s:type>UserType</s:type>
+    <s:searchFilter>
+        <q:equal>
+            <q:path>name</q:path>
+            <q:value>jack</q:value>
+        </q:equal>
+    </s:searchFilter>
+</s:search>
+----
+
+.Search for account shadows for a given resource (without actually fetching them) and delete them
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:type>ShadowType</s:type>
+    <s:searchFilter>
+        <and xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+            <ref>
+                <path>resourceRef</path>
+                <value xsi:type="c:ObjectReferenceType" oid="10000000-0000-0000-0000-000000000004"/>
+            </ref>
+            <equal>
+                <path>objectClass</path>
+                <value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</value>
+            </equal>
+        </and>
+    </s:searchFilter>
+    <s:parameter>
+        <s:name>noFetch</s:name>
+        <c:value>true</c:value>
+    </s:parameter>
+    <s:action>
+        <s:type>delete</s:type>
+    </s:action>
+</s:search>
+----
+
+.Using query instead of searchFilter
+[source,xml]
+----
+<s:search>
+  <s:type>UserType</s:type>
+  <s:query>
+    <q:filter>
+      <q:substring>
+        <q:matching>polyStringNorm</q:matching>
+        <q:path>name</q:path>
+        <q:value>b</q:value>
+        <q:anchorStart>true</q:anchorStart>
+      </q:substring>
+    </q:filter>
+    <q:paging>
+      <q:orderBy>name</q:orderBy>
+    </q:paging>
+  </s:query>
+</s:search>
+----
+
+.Returns users, with the names of roleMembershipRef references resolved (and operation results hidden)
+[source,xml]
+----
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:search>
+        <s:type>UserType</s:type>
+        <s:options>
+            <c:option>
+                <c:selector>
+                    <c:path>roleMembershipRef</c:path>
+                </c:selector>
+                <c:options>
+                    <c:resolveNames>true</c:resolveNames>
+                </c:options>
+            </c:option>
+        </s:options>
+    </s:search>
+    <s:options>
+        <s:hideOperationResults>true</s:hideOperationResults>
+    </s:options>
+</s:executeScript>
+----
+
+
+== Processing fetched objects
+
+There are two options how to process data fetched by the `search` expression.
+
+. Process each object individually, just like in `seachObjectsIterative` method (in fact, this method is used to fetch the data).
+
+
+. Process all objects at once - i.e. extract them into a list of PrismObjects, and pass this list as a whole to subsequent expressions.
+
+As an example, let us take a simple command that takes all users and enables them.
+
+The first option is written in XML form in the following way:
+
+.Iterative search
+[source,xml]
+----
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <s:type>c:UserType</s:type>
+    <s:action>
+        <s:type>enable</s:type>
+    </s:action>
+</s:search>
+----
+
+During execution, the `search` expression will call `searchObjectsIterative`, and for each PrismObject found, it creates one-item `PipelineData` instance (`PipelineData` is the class encapsulating the data being exchanged between expressions), and passes it to to `enable` action expression.
+Results of the called expression (if there would be any) would be collected and then passed as an output of the `search` expression.
+
+Second option, i.e. taking all data together and processing them at once, is written in the following way:
+
+.Search with bulk processing
+[source,xml]
+----
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <s:search xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <s:type>c:UserType</s:type>
+    </s:search>
+    <s:action>
+        <s:type>enable</s:type>
+    </s:action>
+</s:pipeline>
+----
+
+In this case, `search` expression will take all users in one `PipelineData` object, and hands them over to the `enable`_ action. Because common actions (_`enable` among them) can act not only upon individual objects, but also on lists of objects, the result is that all users will be enabled.
+
+[NOTE]
+====
+This "bulk processing" model will be changed in the future, reducing the memory requirements and enabling parallelization.
+After that change, there will be no run-time differences between the two processing options, only syntactical ones.
+====
+
+Both options (using embedded action or using pipeline) have the same result.
+The difference is mainly in the memory requirements for executing the script on large data: The second option (pipeline) is more memory-consuming, because there a need to construct a list containing all processed objects.
+However, if there would be any need to work with all objects at once (e.g. to select a user with maximum number of accounts), the second option is preferable.
+
+In usual conditions, i.e. no special requirements, and reasonably-sized data, you can use any of the options.
+
+== Limitations
+
+This action cannot be invoked in the form of
+
+[source,xml]
+----
+<action>
+    <type>search</type>
+</action>
+----
+
+(Because of the conflict in `type` parameter.)
+
+However, the "static" form, i.e. using `<search>` element, is more readable and useful.

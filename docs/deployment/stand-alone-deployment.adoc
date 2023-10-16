@@ -1,0 +1,187 @@
+= Stand-Alone Deployment
+:page-wiki-name: Stand-Alone Deployment
+:page-wiki-id: 24675998
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-12-06T11:39:00.501+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-12-08T14:05:11.986+01:00
+:page-since: "3.7"
+:page-toc: top
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+
+== Introduction
+
+MidPoint is deployed as a stand-alone server process.
+MidPoint distribution package contains everything that is needed to start up and run midPoint.
+Web container (Apache Tomcat) and all the necessary components are bundled inside midPoint distribution.
+In addition to that, midPoint is a Java application therefore it is platform-independent.
+Therefore all that is needed to run midPoint is to download it, unpack it and start it.
+MidPoint server process will start up.
+It will listen on HTTP port 8080.
+
+[NOTE]
+The distribution archive contains a single directory (e.g. `midpoint-4.4`) which is safe to rename after unpacking.
+This directory is referred to as *midPoint installation directory* or simply *installation directory*.
+This is distinct from xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
+or `midpoint.home`, which contains runtime configuration, logs, etc.
+
+Please have a look at the xref:/midpoint/quickstart/[] page for basic installation instruction for the purposes of midPoint evaluation or demo.
+See xref:/midpoint/install/distribution/[Installing MidPoint Server] page for full installation instructions.
+
+== Run Control
+
+MidPoint distribution package provides convenient scripts to start and stop midPoint service.
+Those scripts are located in the `bin` directory.
+
+=== Linux (UNIX)
+
+.Starting midPoint (Linux)
+[source,bash]
+----
+bin/start.sh
+----
+
+.Stopping midPoint (Linux)
+[source,bash]
+----
+bin/stop.sh
+----
+
+The `start.sh` and `stop.sh` scripts are just simple wrappers for `midpoint.sh` script.
+The `midpoint.sh` script is where all the action happens.
+This script can also be invoked directly:
+
+.Using midpoint.sh script (Linux)
+[source,bash]
+----
+bin/midpoint.sh start
+bin/midpoint.sh stop
+----
+
+The `midpoint.sh` script may provide more run control and diagnostics capabilities in the future.
+See also xref:/midpoint/install/midpoint-sh/[midpoint.sh page].
+
+=== Windows
+
+.Starting midPoint (Windows)
+[source]
+----
+bin\start.bat
+----
+
+.Stopping midPoint (Windows)
+[source]
+----
+bin\stop.bat
+----
+
+== Installation Directory
+
+The entire midPoint system lives inside the *installation directory* unless it is configured otherwise.
+Therefore the choice of installation directory is important.
+Those are recommended locations for midPoint installation directory:
+
+[%autowidth]
+|===
+| Operating system | Location
+
+| Linux, UNIX
+| `/opt/midpoint`
+
+
+| Windows
+| `C:\Program Files\midpoint`
+
+
+|===
+
+=== Installation Directory Layout
+
+The installation directory has the following layout:
+
+[%autowidth]
+|===
+| Directory | Content | Access | Description
+
+| `bin`
+| Start/stop scripts and other "binaries"
+| Read only
+| The scripts are platform-dependent.
+There are separate scripts for UNIX-like systems (Linux) and Windows.
+
+
+| `doc`
+| Documentation, samples, ...
+| No access needed
+| Those files are not required to run midPoint at all.
+The files just provide additional information.
+Those files may be removed if not needed.
+
+
+| `lib`
+| Library files (JAR/WAR)
+| Read only
+| Files in this directory contain bulk of compiled midPoint code.
+The compiled files are platform-independent.
+
+
+| `var`
+| Default xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory], also known as `midpoint.home`.
+Initial configuration, cryptographic keys, log files and similar "variable" content.
+| Read-write
+| See xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory].
+
+
+|
+| `INSTALL`, `NEWS`, `NOTICE`, ...
+| No access needed
+| Those files are not required to run midPoint at all.
+The files just provide additional information.
+Those files may be removed if not needed.
+
+
+|===
+
+The "Access" column specifies what access to the directory is needed by midPoint itself.
+This information can be used to set up proper file system permission, e.g. in case of system hardening.
+
+== MidPoint Repository (Database)
+
+MidPoint comes with an embedded database engine (H2) that is perfectly suitable for testing and demo installations.
+This database will be used by midPoint after the installation.
+Therefore there is no need to set up a separate database if installing midPoint for the first time.
+The database files will be stored in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+
+The database can later be changed to a full-scale database engine.
+The xref:/midpoint/reference/repository/configuration/[Repository Configuration] page provides the instructions.
+
+== Java Memory Setting and Other Options
+
+Java memory setting and other JVM options are controlled by the scripts that start midPoint process.
+
+In Linux (UNIX) environment it is the `midpoint.sh` script where it all happens.
+Java options are specified at the beginning of the script.
+The easiest option to control the options is to directly edit the script.
+Better options may be implemented in the future.
+
+In Windows there is a similar `midpoint.bat` script.
+This script is somehow limited in capabilities, but it is sufficient for the purpose.
+Java option can be changed by modifying this script.
+
+== History
+
+Stand-alone deployment is a primary deployment mode now.
+However, stand-alone deployment was introduced in midPoint 3.7.
+Before that midPoint was distributed in Java web application form (WAR) and required deployment to a web container (application server) to run.
+
+WAR-based still supported as an alternative deployment model.
+However, it is deprecated, and it may be removed soon.
+
+== See Also
+
+* xref:/midpoint/quickstart/[]
+* xref:/midpoint/install/[]
+* xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]

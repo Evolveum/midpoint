@@ -1,0 +1,467 @@
+= Generic SQL Audit Trail
+:page-nav-title: SQL Audit
+:page-display-order: 15
+:page-deprecated-since: "4.4"
+:page-toc: top
+
+[IMPORTANT]
+This page documents the audit trail based on the old Generic SQL Repository.
+For the new Native PostgreSQL audit trail see xref:/midpoint/reference/repository/native-audit/[this page].
+
+== Configuration overview
+
+SQL auditing is configured in `config.xml` inside
+xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
+also known as `midpoint.home`.
+
+See xref:/midpoint/reference/security/audit/[Auditing] for more general information about auditing
+and some other configuration options, not specific for the SQL trail implementation.
+These options, often realized via *SystemConfiguration* object customizations, are not covered in this document.
+
+SQL audit trail for the old Generic Repository is enabled in `audit` configuration element by
+adding `auditService` element containing `auditServiceFactoryClass` element with the value
+`com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory`.
+
+For example, the `audit` section may look like this (the first `auditService` is not related to the repository):
+
+[source,xml]
+----
+<audit>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+    <auditService>
+</audit>
+----
+
+Without further configuration, audit uses the same datasource as the main repository.
+The audit tables (see below) must be part of the repository database - which is the default.
+
+== Configuration options
+
+=== Basic connection options
+
+The following table lists the basic configuration options for the `repository` element:
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `jdbcUrl`
+| URL for JDBC connection.
+This must be used (unless non-recommended `dataSource` is present) and can optionally conatain username and password.
+See https://jdbc.postgresql.org/documentation/head/connect.html[Connecting to the Database] from PostgreSQL JDBC Driver documentation for more.
+| `jdbc:postgresql://localhost:5432/midpoint`
+
+| `jdbcUsername`
+| Username for JDBC connection.
+Can be empty, if username is not needed or provided in JDBC URL or otherwise.
+
+Example: `midpoint`
+|
+
+| `jdbcPassword`
+| Password for JDBC connection.
+Can be empty, if password is not needed or provided in JDBC URL or otherwise.
+
+Example: `password`
+|
+
+| `database`
+| Ignored by the Native repository and cannot be changed - do not use it.
+| `postgresql`
+
+| `driverClassName`
+| Ignored by the Native repository and cannot be changed - do not use it.
+| `org.postgresql.Driver`
+
+// TODO remove when 4.4 support ends
+| `dataSource`
+| Uses JNDI DataSource loading, when this option is defined in configuration.
+This is only relevant for WAR deployment which is not recommended anyway.
+`jdbcUrl`, `jdbcUsername`, `jdbcPassword`, and `driverClassName` is ignored and should not be used.
+Example: `<dataSource>java:comp/env/jdbc/midpoint</dataSource>`
+
+*WARNING:
+This is obsolete functionality that is no longer supported or maintained.*
+It is relevant only for WAR deployments on Tomcat and even there we recommend using explicit configuration using options above.
+|
+|===
+
+==== Using empty username and password
+
+It is possible to connect to the database without specifying password or username or both.
+Examples are:
+
+* Providing the username and password in JDBC URL.
+
+* Using PostgreSQL trust authentication - though this is definitely not recommended for serious deployments.
+
+Simply skip configuration elements *jdbcUsername* and *jdbcPassword*.
+If everything is configured as expected, connection will be successful, otherwise JDBC driver will throw an exception and midPoint will not start.
+
+=== Other connection pool options
+
+All these options are optional, but can be used to fine-tune the repository setup.
+
+MidPoint uses https://github.com/brettwooldridge/HikariCP[HikariCP] as a connection pool (version 4.x).
+Detailed descriptions of connection pool related options can be found in
+https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby[Hikari configuration documentation].
+Names used below are the same as names used in HikariCP unless stated otherwise in the description.
+
+All time values are in milliseconds (ms).
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `minPoolSize`
+| Minimal # of connections in connection pool, if connection pool is not provided through dataSource.
+
+This option is called `minimumIdle` in HikariCP.
+It is always set by midPoint, so HikariCP default is never used.
+
+The value cannot be lower than 2 for midPoint, and - if set so, minimum value 2 will be used.
+| `8`
+
+| `maxPoolSize`
+| Maximum # of connections in connection pool, if connection pool is not provided through dataSource.
+Please, be aware that for the multi-node setup the total number of connections *must not* go above
+the `max_connections` in the Postgres configuration, so this is a good default only up to 2 nodes.
+See xref:../native-postgresql/postgresql-configuration/[PostgreSQL Configuration] for more tips.
+
+When midPoint needs another connection from the pool it will wait for it.
+The time is determined by the default value for HikariCP `connectionTimeout` option, which is 30s.
+Currently, this cannot be changed in midPoint config, but it is a reasonable time.
+But if the pool is oversized and HikariCP asks for the connection from the DB, and there is no free
+connection available, the request fails immediately.
+
+It is better to lower the pool size on the nodes to  that case.
+Don't raise the `max_connections` in PostgreSQL without https://www.enterprisedb.com/postgres-tutorials/why-you-should-use-connection-pooling-when-setting-maxconnections-postgres[testing it first]!
+It has far-reaching consequences and can actually hurt performance badly.
+
+This option is called `maximumPoolSize` in HikariCP.
+It is always set by midPoint, so HikariCP default is never used.
+
+This value cannot be lower than `minPoolSize` - if set so, effective `minPoolSize` value is used.
+| `40`
+
+| `maxLifetime`
+| Time after which the connection is retired from the pool.
+This should be lower than any connection time limit used by the DB or the network infrasctructure.
+
+The minimum allowed value is 30000ms (30 seconds).
+| none, HikariCP sets 1800000 (30 minutes) by default
+
+| `idleTimeout`
+| Time after which an idle connection may be retired if current number of connections is higher than `minPoolSize`.
+
+The minimum allowed value is 10000ms (10 seconds).
+| none, HikariCP sets 600000 (10 minutes) by default
+
+| `keepaliveTime`
+| Controls the frequency for keepalive check on idle connections.
+Keepalive ping contacts the DB backend, so it can prevent connection failures if some network infrastructure drops idle connections.
+
+The minimum allowed value is 30000ms (30 seconds), 0 disables this feature.
+| none, HikariCP sets 0 (disabled)
+
+| `leakDetectionThreshold`
+| If the connection is out of the pool (used by the application) for longer than the threshold, the message is logged
+to indicate possible connection leak, including the stacktrace where the connection was obtained.
+
+The minimum allowed value is 2000 (2 seconds), 0 disables this feature.
+| none, HikariCP sets 0 (disabled)
+
+| `initializationFailTimeout`
+| Hikari pool initialization failure timeout, in milliseconds.
+It is there to allow midPoint to wait until the repository is up and running and therefore to avoid failing prematurely.
+| `1`
+
+|===
+
+=== Other repository configuration options
+
+[%autowidth]
+|===
+| Option | Description | Default
+
+| `fullObjectFormat`
+| Property specifies format (language) used to store serialized object representation into
+`m_object.fullObject` and other columns storing serialized object or container representation.
+Supported values are `json` and `xml`.
+This is safe to change any time, objects are read properly regardless of the format they are stored in.
+| `json`
+
+| `iterativeSearchByPagingBatchSize`
+| The size of the "page" for iterative search, that is the maximum number of results returned by a single iteration.
+This is a rather internal setting and the default value is reasonable balance between query overhead and
+time to process the results.
+
+It can be raised if the iterative search overhead (executing the select)
+is too high compared to the time used for processing the page results.
+| `100`
+
+|===
+
+There are no options for compression as this is left to PostgreSQL.
+This also makes the inspection of the values in the columns easier.
+
+== Audit tables
+
+Audit logs are stored in five tables whose structure is described in code block below (part of DB script for H2 database).
+You can find table structures for different DB vendors in out link:https://github.com/Evolveum/midpoint/tree/master/config/sql/generic-old[git],
+or in the distribution packages in the folder `doc/config/sql/generic-old`.
+
+* `id` column in `m_audit_event` table is now generated by default (auto increment).
+
+* Columns `delta` and `fullResult` in `m_audit_delta` table are optionally compressed using GZIP.
+
+.Audit tables in H2 database
+[source,sql]
+----
+CREATE TABLE m_audit_delta (
+  checksum          VARCHAR(32) NOT NULL,
+  record_id         BIGINT      NOT NULL,
+  delta             BLOB,
+  deltaOid          VARCHAR(36),
+  deltaType         INTEGER,
+  fullResult        BLOB,
+  objectName_norm   VARCHAR(255),
+  objectName_orig   VARCHAR(255),
+  resourceName_norm VARCHAR(255),
+  resourceName_orig VARCHAR(255),
+  resourceOid       VARCHAR(36),
+  status            INTEGER,
+  PRIMARY KEY (record_id, checksum)
+);
+CREATE TABLE m_audit_event (
+  id                BIGINT GENERATED BY DEFAULT AS IDENTITY,
+  attorneyName      VARCHAR(255),
+  attorneyOid       VARCHAR(36),
+  channel           VARCHAR(255),
+  eventIdentifier   VARCHAR(255),
+  eventStage        INTEGER,
+  eventType         INTEGER,
+  hostIdentifier    VARCHAR(255),
+  initiatorName     VARCHAR(255),
+  initiatorOid      VARCHAR(36),
+  initiatorType     INTEGER,
+  message           VARCHAR(1024),
+  nodeIdentifier    VARCHAR(255),
+  outcome           INTEGER,
+  parameter         VARCHAR(255),
+  remoteHostAddress VARCHAR(255),
+  result            VARCHAR(255),
+  sessionIdentifier VARCHAR(255),
+  targetName        VARCHAR(255),
+  targetOid         VARCHAR(36),
+  targetOwnerName   VARCHAR(255),
+  targetOwnerOid    VARCHAR(36),
+  targetOwnerType   INTEGER,
+  targetType        INTEGER,
+  taskIdentifier    VARCHAR(255),
+  taskOID           VARCHAR(255),
+  timestampValue    TIMESTAMP,
+  PRIMARY KEY (id)
+);
+CREATE TABLE m_audit_item (
+  changedItemPath VARCHAR(255) NOT NULL,
+  record_id       BIGINT       NOT NULL,
+  PRIMARY KEY (record_id, changedItemPath)
+);
+CREATE TABLE m_audit_prop_value (
+  id        BIGINT GENERATED BY DEFAULT AS IDENTITY,
+  name      VARCHAR(255),
+  record_id BIGINT,
+  value     VARCHAR(1024),
+  PRIMARY KEY (id)
+);
+CREATE TABLE m_audit_ref_value (
+  id              BIGINT GENERATED BY DEFAULT AS IDENTITY,
+  name            VARCHAR(255),
+  oid             VARCHAR(36),
+  record_id       BIGINT,
+  targetName_norm VARCHAR(255),
+  targetName_orig VARCHAR(255),
+  type            VARCHAR(255),
+  PRIMARY KEY (id)
+);
+----
+
+== Custom column
+
+[WARNING]
+.EXPERIMENTAL
+====
+This feature is *xref:/midpoint/versioning/experimental/[experimental]*.
+It means that it is not intended for production use.
+The feature is not finished.
+It is not stable.
+The implementation may contain bugs, the configuration may change at any moment without any warning and it may not work at all.
+Use at your own risk.
+This feature is not covered by midPoint support.
+In case that you are interested in xref:/support/subscription-sponsoring/[supporting] development of this feature, please consider purchasing link:https://evolveum.com/services/professional-support/[midPoint Platform subscription].
+====
+
+[TIP]
+.MidPoint 4.2 and later
+====
+This feature is available only in midPoint 4.2 and later.
+====
+
+When we need some other information in the audit table, we can add custom columns to the table in the database.
+We can use new column to tag some special audit records for reporting.
+
+Custom column have three parts of configuration:
+
+. Creating column of `m_audit_event` table in database using SQL command.
+
+. Adding of configuration for every custom column to `config.xml` file in Midpoint home directory.
+
+. Adding of configuration of details how an audit event record property is created to system configuration file.
+
+.1. Creating column of m_audit_event (H2 database)
+[source,sql]
+----
+ALTER TABLE m_audit_event ADD custFoo VARCHAR(255);
+
+CREATE INDEX iAuditEventCustFoo
+    ON m_audit_event (custFoo);
+----
+
+When we want search by our column, we add index for it.
+Please for name of our new column use 'custXXX' where XXX represents your name.
+It is important in order to we obviate conflict with already exist columns.
+
+.2. Adding of configuration for every custom column to config.xml file
+[source]
+----
+<configuration>
+    <midpoint>
+        ...
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <customColumn>
+                    <columnName>custFoo</columnName>
+                    <eventRecordPropertyName>foo</eventRecordPropertyName>
+                </customColumn>
+            </auditService>
+        </audit>
+        ...
+    </midpoint>
+</configuration>
+----
+
+After adding of this configuration is needed restart of midpoint.
+
+.3. Details how an audit event record property is created
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <audit>
+        <eventRecording>
+            <property>
+                <name>foo</name>
+                <expression>
+                    <path>$target/extension/foo</path>
+                </expression>
+            </property>
+        </eventRecording>
+    </audit>
+    ...
+</systemConfiguration>
+----
+
+We can use a script in expression for obtaining some special information.
+In the script we can use variable `target`, which represent target object of audit record, and `auditRecord`, which represent audit record itself (type `AuditEventRecord`).
+
+An example with custom column is available link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/audit[in the samples].
+
+== Configuration examples
+
+=== Audit to main repository + logs
+
+SQL repository + auditing to PostgreSQL, audit also to logs.
+If *auditService* for *SqlAuditServiceFactory* does not contain any other configuration, main repository configuration is used - in fact, the same data source (connection pool, etc.) is shared.
+
+[source,xml]
+----
+<repository>
+    <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+    <embedded>false</embedded>
+    <driverClassName>org.postgresql.Driver</driverClassName>
+    <hibernateHbm2ddl>update</hibernateHbm2ddl>
+    <hibernateDialect>org.hibernate.dialect.PostgreSQLDialect</hibernateDialect>
+    <jdbcPassword>midpoint</jdbcPassword>
+    <jdbcUsername>midpoint</jdbcUsername>
+    <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
+</repository>
+<audit>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+    <auditService>
+</audit>
+----
+
+=== Audit to separate database
+
+++++
+{% include since.html since="4.2" %}
+++++
+
+Configuration element *auditService* for *SqlAuditServiceFactory* can contain any element from *repository* configuration - see xref:/midpoint/reference/repository/generic/configuration/[Repository Configuration] for more.
+
+* One of *jdbcUrl* or *dataSource* must be used - otherwise any repository configuration in *auditService* is ignored and only main *repository* configuration is used.
+
+* The recommended way is to use *jdbcUrl* with *jdbcUsername*, *jdbcPassword* and *driverClassName* and *database*.
+
+// TODO remove when 4.4 support ends
+* Preconfigured *dataSource* for WAR deployment on application server or Tomcat is also possible - but this is not recommended anymore and not officially supported.
+
+* In both cases the right value for *database* element should be used, e.g. *postgresql*.
+
+* If the separate repository for audit is used, [.underline]#do not use H2# - this option is not supported.
+Use only production-like settings.
+It is however possible to use other database for audit while main repository is set to embedded H2, mostly for development/testing purposes.
+
+* Separate database must be prepared in a similar way to the main database with tables, indexes and foreing keys containing "audit" created.
+For PostgreSQL example, see xref:/midpoint/reference/repository/generic/postgresql/[PostgreSQL] page, section *Separate audit database*.
+
+Example configuration with default H2 for main repository and PostgreSQL on localhost for audit:
+
+[source,xml]
+----
+<repository>
+    <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+    <baseDir>${midpoint.home}</baseDir>
+    <asServer>true</asServer>
+</repository>
+<audit>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+    </auditService>
+    <auditService>
+        <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+        <jdbcUrl>jdbc:postgresql://localhost/midaudit</jdbcUrl>
+        <database>postgresql</database>
+        <jdbcUsername>midaudit</jdbcUsername>
+        <jdbcPassword>password</jdbcPassword>
+    </auditService>
+</audit>
+----
+
+== See Also
+
+* xref:../generic/[Generic SQL Repository]
+* xref:../native-postgresql/[Native PostgreSQL Repository]

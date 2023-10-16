@@ -1,0 +1,13 @@
+= MidPoint Organizational Structure
+:page-nav-title: Organizational Structure
+:page-display-order: 320
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe mechanism that deal with organizational hierarchies, team and project structures and organizational management concepts.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

@@ -1,0 +1,151 @@
+= Expression and Mapping Trace
+:page-wiki-name: Expression Trace
+:page-wiki-id: 4423897
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-05-11T16:40:09.549+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-08-08T14:58:17.417+02:00
+
+MidPoint has ability to trace mappings, expressions and scripts.
+These three mechanism for a hierarchy: mappings may contain expressions, expressions may contain scripts.
+Therefore enabling each level gradually gives more details but also floods the logs with more information.
+Each level is summarized in the following table:
+
+[%autowidth]
+|===
+| Level | Logger | Description
+
+| Mapping trace
+| `com.evolveum.midpoint.model.common.mapping.Mapping`
+| Gives information about the whole mapping.
+It describes what were the mapping sources, what was the final result (as xref:/midpoint/devel/prism/concepts/triple/[triple]). The output is usually quite compact. +
+Note: does not work for filter or correlation expressions as there are not mappings.
+
+
+| Expression trace
+| `com.evolveum.midpoint.model.common.expression.Expression`
+| Gives information about every expression that is evaluated in the system.
+It provides details about expression inputs (variables) and outputs.
+This is still quite general and it still works with relative information (xref:/midpoint/devel/prism/concepts/triple/[triples] and xref:/midpoint/devel/prism/concepts/deltas/[deltas]). This provides a lot of output.
+
+
+| Scrip trace
+| `com.evolveum.midpoint.model.common.expression.script.ScriptExpression`
+| Gives information about every script expression that is evaluated.
+It provides very detailed information about each script run (script expressions are often evaluated twice in relativistic situations: with old values and with new values).
+This provides a lot of very detailed information.
+
+|===
+
+
+== Loggers and Explicit Traces
+
+Mapping, expression and script tracing can be enabled by setting their respective loggers to the TRACE level.
+This will enable tracing of all the mappings, expressions or scripts respectively.
+The messages will be logged at TRACE level.
+
+Since midPoint 3.4.1 and 3.5 there is a way how to enable tracing of each individual mapping, expression or tracing.
+Simple set configuration property `trace` to true value:
+
+[source,xml]
+----
+<mapping>
+    ....
+    <trace>true</trace>
+    ...
+    <expression>
+        ....
+        <trace>true</trace>
+        ...
+        <script>
+            ....
+            <trace>true</trace>
+            ....
+        </script>
+   </expression>
+</mapping>
+----
+
+
+== Example
+
+Expression trace looks like this:
+
+[source]
+----
+---[ EXPRESSION outbound expression for {...connector/icf-1/resource-schema-1.xsd}name in resource: Localhost OpenDJ(OID:ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2)]---------------------------
+Language: XPath 2.0
+Return type: class java.lang.String (scalar)
+Variables:
+  {...common/common-1.xsd}user:
+    PO: {http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd}user, 58abc847-de00-465e-ba68-46bbfc12176c def({http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd}UserType)
+        .......................
+  null:
+    PO: {http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd}user, 58abc847-de00-465e-ba68-46bbfc12176c def({http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd}UserType)
+        .......................
+  {...common/common-1.xsd}iteration: 0
+  {...common/common-1.xsd}iterationToken:
+  {...common/common-1.xsd}input: null
+Code:
+<c:code xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+        xmlns:gen855="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+        xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+        xmlns:my="http://whatever.com/my"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+							concat('uid=', $c:user/c:name, $c:iterationToken, ',ou=people,dc=example,dc=com')
+						</c:code>
+Result: PPV(String:uid=morgan,ou=people,dc=example,dc=com)
+----
+
+The trace shows each execution of each expression.
+The meaning of individual fields is a follows:
+
+[%autowidth]
+|===
+| Field | Description
+
+| Language
+| Human-readable name of the expression language
+
+
+| Return type
+| Expected expression return type.
+Also indication whether it is scalar (single value) or list (multiple values).
+This may affect the way how some expression languages evaluate the expression and interpret the result.
+
+
+| Variables
+| Detailed dump of variable content.
+Each variable dump starts with variable name.
+The dump format of prism objects is usual Prism Dump Format.
+Variable names are QNames and they are dumped as such.
+However, some expression languages may use only the local part of the variable name.
+Variable with `null` name is a _root node_ variable.
+It is used by expression languages that support a kind of default variable or context (such as XPath).
+In fact it is ignored by most expression languages.
+
+
+| Code
+| Expression code in a raw form with all applicable namespace prefix declarations.
+
+
+| Result
+| Expression evaluation result in a Prism Dump Format.
+
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/diag/diagnostics-abbreviations/[Diagnostics Abbreviations]

@@ -1,0 +1,37 @@
+= Delegator Clause
+
+The object matches this selector clause if it has an active delegation assignment to the object specified by inner object selector.
+
+An example:
+
+When a subject want so see what are their delegates (i.e., users that are given some authorities of the subject), it needs to have a read authorization against these users.
+The reason is that the delegation assignments are _not_ stored in the delegator object, but in the delegate objects.
+So we must select all users whose delegator is the current subject.
+
+.Listing 1. Authorization that allows reading selected items from delegates of the current user
+[source,xml]
+----
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <object>
+        <type>UserType</type>
+        <delegator>
+            <special>self</special>
+        </delegator>
+    </object>
+    <item>assignment</item>
+    <item>roleMembershipRef</item>
+    <item>delegatedRef</item>
+</authorization>
+----
+
+So, for example, if `joe`, `ann`, and `mary` are delegates of `jack`, then `jack` should have the above authorization to allow him to see `assignment`, `roleMembershipRef`, and `delegatedRef` items of those three users.
+
+NOTE: The `delegator` clause in the above example should be read like this:
+"I am a `delegator` for the `object`"; or, in other words, "The `object` has a delegator and that's me (`self`)".
+
+== Limitations
+
+. Currently, only `self` clause can be specified as the inner object selector.
+. Objects considered by this selector are limited to `UserType` type.
+. This clause is not supported for search pre-processing (e.g. `#search` authorization).

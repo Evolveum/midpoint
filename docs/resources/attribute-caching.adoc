@@ -1,0 +1,106 @@
+= Attribute Caching
+:page-wiki-name: Attribute Caching
+:page-wiki-id: 23691354
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-10-26T18:11:44.898+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-10-26T18:11:44.898+02:00
+:page-since: "3.5"
+:page-experimental: true
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+MidPoint usually works with fresh data.
+When midPoint needs to get data about an account then the data will be retrieved on-demand from the resource.
+This is usually the best method.
+But there are cases when this approach is problematic.
+There may be resources that are often down.
+There may be resources that are very slow.
+Therefore midPoint has an ability to cache the values of resource objects.
+
+
+== Enabling Caching
+
+The caching is turned off by default.
+It can be turned on in xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]:
+
+[source,xml]
+----
+<resource>
+    ...
+    <caching>
+        <cachingStategy>passive</cachingStategy>
+    </caching>
+    ...
+</resource>
+----
+
+The only supported caching method is *passive* caching: Caches are maintained with minimal impact on normal operations.
+Generally the data are cached only if they are retrieved for other reasons.
+There is no read-ahead.
+The writes are always going to the resource (synchronously): read-through, write-through.
+There is no cache eviction (but old information is overwritten if newer information is available).
+
+If caching is turned on then midPoint will start to cache the data in xref:/midpoint/reference/resources/shadow/[Shadow Objects]. The caches are build gradually as midPoint reads the objects.
+If you need to populate the caches with information you have to make an operation that is searching all the objects.
+E.g. reconciliation or similar operation should do the trick.
+
+
+== Impact on Operations
+
+The cached data are accessible by using the ususal xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface]. There are two operation options that provide access to the cached data:
+
+* *`noFetch` option*: This option returns the data from midPoint repository.
+Therefore if there are data cached in the repository then the `noFetch` option returns them.
+
+* *`staleness` option*: Requirement how stale or fresh the retrieved data should be.
+It specifies maximum age of the value in millisecods.
+The default value is zero, which means that a fresh value must always be returned.
+This means that caches that do not guarantee fresh value cannot be used.
+If non-zero value is specified then such caches may be used.
+In case that Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
+This option was added in midPoint 3.5.
+
+Both options can be used to get cached data.
+The primary difference is that the `noFetch` option never goes to the resource and it returns whatever data it has.
+On the other hand the `staleness` option is smarter and it determines whether it has to go to the resource or not.
+In case that the "maximum" staleness option is used it will result in an error if cached data is not available.
+
+Those options can be used both with getObject operations and search operations.
+For getObject the staleness option work as expected.
+But there is one special consideration for the search operations.
+The search operations cannot easily determine how fresh the data in the repository are.
+E.g. there may be new objects on the resource that are not in the repository.
+Therefore to be on the safe side the search operations will always make search on the resource even if `staleness` option is specified.
+There is just one exception: the maximum staleness option will force repository search.
+However if the search discovers any object that does not have cached data then it will result in an error (specified in the `fetchResult` object property).
+
+
+== Caching Metadata in Shadows
+
+xref:/midpoint/reference/resources/shadow/[Shadow Objects] contain `cachingMetadata` property.
+This property can be used to determine whether the returned shadow represents fresh or cached data:
+
+* If no `cachingMetadata` property is present in the shadow then the data are fresh.
+They have been just retrieved from the resource.
+
+* If `cachingMetadata` property is present then the data are taken from the cache.
+The `cachingMetadata` property specified how fresh the data are (when they were originally retrieved).
+
+
+== Limitations
+
+MidPoint is building and maintaining (updating) the cache as necessary.
+However currently (midPoint 3.5) the caches are not directly used by midPoint core or the user interface.
+The caches are available for special-purpose midPoint extensions.
+
+This feature is considered to be *EXPERIMENTAL*. As far as we know it should have no negative impact on normal midPoint operation (except for the overhead of storing cached data in the midPoint repository).
+We also do not expect any major changes in configuration, interfaces or behavior.
+But this is still a very young feature and some adjustments might be necessary.
+Therefore use this feature with care.
+
+
+== See Also
+
+* xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]

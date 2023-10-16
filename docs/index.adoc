@@ -1,0 +1,38 @@
+= MidPoint Configuration Reference
+:page-nav-title: Configuration Reference
+:page-wiki-name: Administration and Configuration Guide
+:page-wiki-id: 6881597
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-01-11T19:38:42.700+01:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T16:09:12.144+01:00
+:page-display-order: 90
+:page-upkeep-status: green
+:page-liquid:
+
+This is a reference documentation for midPoint administration and configuration.
+Following documents describe the details of midPoint configuration, behavior, customization options and all the other details that are necessary to use midPoint to its full potential.
+
+This is a *reference* documentation.
+Its purpose is depth and breath of information.
+Each page is dedicated to a particular topic.
+However, the pages are not ordered in a logical, easy-to-read ordering.
+Therefore it may be confusing for people that are new to midPoint.
+
+For an easy-to-read introduction to midPoint we highly recommend starting with xref:/book/[MidPoint Book] or https://www.youtube.com/channel/UCSDs8qBlv7MgRKRLu1rU_FQ[videos on Evolveum YouTube channel].
+High-level description of midPoint features can be found in xref:/midpoint/features/current/[] part of this site.
+Instructions for handling particular tasks may also be found in xref:/midpoint/guides/[] section.
+
+== Reference Documentation Sections
+
+++++
+{% children %}
+++++
+
+== See Also
+
+* xref:/book/[MidPoint Book]
+* https://www.youtube.com/channel/UCSDs8qBlv7MgRKRLu1rU_FQ[Evolveum YouTube channel]
+* xref:/midpoint/features/current/[]
+* xref:/midpoint/guides/[]
+* xref:/support/[Subscription and Support]

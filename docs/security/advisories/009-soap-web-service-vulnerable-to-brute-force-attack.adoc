@@ -1,0 +1,60 @@
+= Security Advisory: SOAP Web Service Vulnerable To Brute Force Attack
+:page-wiki-name: Security Advisory: SOAP Web Service Vulnerable To Brute Force Attack
+:page-wiki-id: 34570341
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-07-09T15:24:20.720+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-07-09T15:39:33.654+02:00
+:page-nav-title: SOAP Web Service Vulnerable To Brute Force Attack
+:page-display-order: 9
+:page-upkeep-status: green
+
+*Date:* 9 July 2019
+
+*Severity:* Medium (CVSS 4.9)
+
+*Affected versions:* all released midPoint versions
+
+*Fixed in versions:* 4.0 (unreleased), 3.9.1 (unreleased), 3.8.1 (unreleased), 3.7.3 (unreleased), 3.6.2 (unreleased)
+
+
+== Description
+
+SOAP-based web service interface of midPoint does not limit authentication attempts.
+
+
+== Severity and Impact
+
+An attacker with access to midPoint SOAP web service can issue numerous operation requests without any limitation of wrong authentication attempts.
+This can be used by an attacker for brute force attacks on user passwords.
+
+
+== Mitigation
+
+Users of affected MidPoint versions are advised to upgrade their deployments to the latest builds from the xref:/midpoint/install/using-support-branch/[support branches].
+
+As this is a medium severity issue, it is not forcing official maintenance releases of midPoint.
+However, the fix is provided in all the support branches.
+
+
+== Discussion and Explanation
+
+MidPoint is using custom authentication module for SOAP web services.
+Although authentication attempts were properly limited in midPoint user interface and REST service, such limitation was not applied to SOAP web service.
+
+As SOAP web service is usually not accessible to public use, impact of this security vulnerability is limited.
+Even though the SOAP interface is becoming obsolete and it is going to be deprecated in midPoint 4.0, this security vulnerability was fixed in all supported versions of midPoint.
+
+RESTful interface is not affected by this vulnerability.
+
+
+== Credit
+
+This issue was reported by tester known as nistr by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* bug:MID-5496[]
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]

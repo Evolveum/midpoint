@@ -1,0 +1,33 @@
+= Org closure migration and diagnostics HOWTO
+:page-wiki-name: Org closure migration and diagnostics HOWTO
+:page-wiki-id: 17760468
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2014-11-10T10:54:52.204+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2014-11-10T10:55:47.317+01:00
+:page-obsolete: true
+
+Organization closure, or "org closure" for short, is an auxiliary data structure residing in midPoint repository.
+It maintains information on _who belongs to which organizational unit_, across one or multiple _is-parent-of_ links.
+(Mathematicians would call it "transitive closure of organizational units graph", hence the "closure" in its name.) It is physically stored in the _M_ORG_CLOSURE_ database table.
+
+In order to increase the speed of carrying out org-related operations in the repository, we have applied an advanced algorithm for maintaining the org closure.
+It has been introduced in midPoint *v3.0.1devel-554-gee3dd98*. For those upgrading to this or later version of midPoint, here are some useful notes:
+
+. The repository structure has changed.
+What you have to do depends on whether you want to let midPoint to apply the change (usual for development/testing environments) or you want to do it yourself (usual for production environments).
+
+. So, if you have your *<hibernateHbm2ddl>* config flag set to *update* (the former case), midPoint detects it is using old version of the closure table, drops it, and re-creates it anew.
+
+. In all other cases, you have to manually apply a migration script.
+For example, for H2 the script is in the *config\sql\midpoint\3.0\h2\h2-3.0-closure-upgrade.sql* file.
+However, midPoint will automatically fill-in the closure table with necessary information for you.
+
+If you'd ever need to *downgrade*, you have to drop the "new" closure table and either manually restore its original structure, or let midPoint do it (if hibernateHbm2ddl=update).
+In either case, however, the table will be empty, and there is no automatic procedure that would fill it in.
+One possible solution then is to export all organizations and reimport them.
+The closure will be recomputed during that process.
+
+TODO some notes on configuring closure-related actions at startup (checking, rebuilding)
+
+TODO about manual check/recomputation of the closure (About->xxx menu item).

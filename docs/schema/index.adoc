@@ -1,0 +1,19 @@
+= MidPoint Schema and Archetypes
+:page-nav-title: Schema and Archetypes
+:page-wiki-name: Data Model
+:page-wiki-id: 655389
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:59:21.868+02:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:44:52.987+01:00
+:page-display-order: 250
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe concepts related to schema, data model, object structure, types and archetypes.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

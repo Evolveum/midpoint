@@ -1,0 +1,228 @@
+= Approvals examples (legacy)
+:page-wiki-name: Approvals examples (legacy)
+:page-wiki-id: 4882466
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2012-07-30T11:09:56.277+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-01-13T15:34:14.127+01:00
+:page-obsolete: true
+:page-obsolete-since: "3.5"
+
+[WARNING]
+====
+Examples mentioned here use legacy (pre-3.5) approach to approvals configuration.
+For a more up-to-date samples please visit xref:/midpoint/reference/cases/approval/examples/[this page].
+====
+
+== Basic how-to
+
+You can test the workflow module e.g. by importing the following files:
+
+* samples/roles/users-for-approval-processes.xml (the following users: boss1, boss2, security, referenced from approval scheme for Sensitive Role 2),
+
+* samples/roles/sensitive-role-1.xml (a role with simple approval by the Administrator),
+
+* samples/roles/sensitive-role-2.xml (a role that needs to be first approved by either boss1 or boss2, and then by both administrator and security manager),
+
+* samples/roles/sensitive-role-3.xml (a role that needs to be approved by managers of all organizational units of a user to which the role is to be assigned),
+
+Then you can try to add one of the sensitive roles to any user and see what happens.
+Details are described in the following sections.
+
+== Configuring approval processes
+
+A role can have assigned one of the following (from simple to complex):
+
+. a set of approvers (`approverRef` element, each reference pointing to a user) - all of these users must approve creation of the assignment,
+
+. an expression specifying a set of approvers (`approverExpression` element),
+
+. `approvalSchema` element, describing multi-level approval structure - see later,
+
+. `approvalProcess` element, carrying the name of custom Activiti BPMN process, which is to be used to manage approvals (this one is not implemented yet).
+
+
+=== Simple example - Sensitive Role 1
+
+[source]
+----
+<role oid="12345678-d34d-b33f-f00d-000187987988"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Sensitive Role 1</name>
+    <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                 oid="00000000-0000-0000-0000-000000000002"
+                 type="c:UserType">
+        <description>Approval by the administrator</description>
+    </approverRef>
+</role>
+
+----
+
+When this role is to be added to a user, the administrator (oid 00000000-0000-0000-0000-000000000002) has to approve such an assignment.
+
+Now let's have a look at more complex scenario.
+
+=== Multi-level approval structure - Sensitive Role 2
+
+A multi-level approval structure splits an approval process into one or more _levels_. These are passed through sequentially, from the first to the last; and at each level, participants in that level must approve creation of the assignment (otherwise, the assignment is rejected).
+
+Each level then contains a set of approvers, along with the _level evaluation strategy_, describing how to deal with approvers' reactions.
+Currently, there are two strategies:
+
+. `allMustApprove` meaning that all approvers at a particular level must approve creation of an assignment (otherwise it will be rejected).
+This is the default.
+
+. `firstDecides` meaning that the approver that answers first, decides the whole level.
+
+[source]
+----
+<role oid="12345678-d34d-b33f-f00d-000287987988"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Sensitive Role 2</name>
+    <description>Security-sensitive role, whose assignment to a user must be approved by various persons, as described by the approval schema.</description>
+    <approvalSchema>
+        <name>Sample Complex Schema 1</name>
+        <description>A sample complex approval schema, involving the security administrator</description>
+        <level>
+            <name>Bosses</name>
+            <description>At this level, either one of the company directors has to approve the assignment.</description>
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
+                         type="c:UserType">
+                <description>Big boss #1 approval</description>
+            </approverRef>
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
+                         type="c:UserType">
+                <description>Big boss #2 approval</description>
+            </approverRef>
+            <evaluationStrategy>firstDecides</evaluationStrategy>
+        </level>
+        <level>
+            <name>Administrators</name>
+            <description>At this level, system administrator as well as security manager must approve.</description>
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="00000000-0000-0000-0000-000000000002"
+                         type="c:UserType">
+                <description>Administrator approval</description>
+            </approverRef>
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
+                         type="c:UserType">
+                <description>Security Manager approval</description>
+            </approverRef>
+            <evaluationStrategy>allMustApprove</evaluationStrategy>
+        </level>
+    </approvalSchema>
+</role>
+
+----
+
+The approval process here has two levels:
+
+. First, either of two bosses (boss1, boss2) has to approve the assignment.
+The first one who responds, decides.
+I.e. if he approves, the level is approved.
+If he rejects, the level (and the whole process) is terminated without approval.
+
+. Second, _both_ system administrator and security manager have to approve the assignment.
+If one of them rejects, the whole process is terminated (even without waiting to get the opinion of the other one).
+
+=== Dynamically defined approvers - Sensitive Role 3
+
+What if we would want to state that a request must be approved by a boss of the person who is to be assigned a role? In that case we have to use an expression to specify the approver, like in the following example.
+
+[source]
+----
+<role oid="12345678-d34d-b33f-f00d-000387987988"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Sensitive Role 3</name>
+    <approverExpression>
+        <description>Get user's managers (except the user itself)</description>
+        <script>
+            <code>midpoint.getManagersOidsExceptUser(object)</code>
+        </script>
+    </approverExpression>
+    <automaticallyApproved>
+        <description>If the user works in F0006 (Scumm Bar), the assignment of this role is automatically approved for him.</description>
+        <script>
+            <code>midpoint.isMemberOf(object, midpoint.getOrgByName("F0006").getOid())</code>
+        </script>
+    </automaticallyApproved>
+</role>
+----
+
+Actually, we show two independent features in this example:
+
+. The ability to dynamically specify approver(s) by an expression or expressions.
+In this case, we designate a user boss(es) as approvers of requests for this role.
+
+. The ability to skip approval altogether when specific conditions are met.
+In this case, approval is automatically granted if user works for department F0006.
+
+In order to test this example, it would be best to import an organization structure from samples/org/org-monkey-island-simple.xml and then:
+
+. Assign this role to Carla.
+You will see that her manager in Ministry of Rum, namely Guybrush Threepwood, gets a work item asking him to approve the role.
+
+. Assign this role to Scumm Bar Chef.
+Because he is a member of F0006, you will see that even if approval process starts, it quickly finishes, and the role gets assigned to the user.
+
+Now let's have a look at expressions.
+
+Expression can be of any supported type, be it xref:/midpoint/reference/expressions/expressions/script/[script expression] or xref:/midpoint/reference/expressions/expressions/[any other expression type].
+
+Concerning script expressions, there are the following variables available:
+
+[%autowidth]
+|===
+| Variable | Meaning
+
+| *object +
+*
+| An object (typically, a user) that is to be modified by the operation that is being approved.
+If the whole operation is an ADD operation, the value of this variable is the object that is to be added.
+However, if the operation is the MODIFY one, the value of this variable is the state of the object BEFORE the change (or, more precisely, it is the current object state at the moment of expression evaluation).
+
+
+| *requester*
+| The user who requested the operation (UserType object).
+
+
+| *actor*
+| Currently logged in user (should be the same as requester).
+
+
+| *objectDelta*
+| Focus delta that is being approved.
+(Note that projection deltas - e.g. when approving entitlements - are not yet supported here.)
+
+
+| *target*
+| For assignment-related approvals this is the target of the assignment.
+E.g. the role that is being assigned.
+
+
+|===
+
+There is a special variable *midpoint* pointing to a library of useful functions.
+For their description, please see https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/expr/MidpointFunctions.java[MidpointFunctions] class.
+
+A couple of notes about approving by "user's manager":
+
+. In real life it is often required that a request has to be approved by a particular user's manager.
+If a user is working for more departments, a request is probably connected to user's duties in one of them.
+Therefore, an information about the related department should be perhaps present when asking for a role, in order to point to the right manager who would approve the request.
+This is planned to be implemented.
+
+. Another related question is what if the user is himself the manager of its org.
+unit.
+There are more possibilities in this case, e.g. automatically approve the role assignment (as it is implemented in this example), or approve by a manager of the parent org.
+unit.
+
+. The last question is what to do if a user is not part of any org.
+unit, or what if his org.
+unit has no manager.
+In this example, the role addition is automatically approved in such cases.
+The final answer depends on the concrete circumstances of particular midPoint deployment.

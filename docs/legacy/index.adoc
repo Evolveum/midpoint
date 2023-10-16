@@ -1,0 +1,17 @@
+= MidPoint Legacy Functionality
+:page-nav-title: Legacy
+:page-display-order: 990
+:page-upkeep-status: green
+:page-liquid:
+
+Following pages describe legacy functionality.
+This is functionality that was used in midPoint in the past.
+This functionality is no longer present in midPoint, or it is deprecated and it should not be used any more.
+This documentation is provided only for historical reference.
+It is no longer updated.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

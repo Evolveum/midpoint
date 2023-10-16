@@ -1,0 +1,196 @@
+= MidPoint as CAS Client (Java Jasig CAS Client libraries)
+:page-wiki-name: MidPoint as CAS Client (Java Jasig CAS Client libraries)
+:page-wiki-id: 17760854
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2015-02-05T15:35:23.553+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-03T15:12:28.774+02:00
+:page-obsolete: true
+
+
+[WARNING]
+.Unofficial functionality
+====
+This functionality requires modification of midPoint build, or even modification of midPoint source code.
+Therefore it is not officially supported - unless the support is explicitly negotiated in xref:/support/subscription-sponsoring/[subscription]. +
+The real solution to this problem would be xref:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication]. MidPoint xref:/support/subscription-sponsoring/[platform subscription] could be used to fund improvements in midPoint authentication mechanisms.
+====
+
+[NOTE]
+====
+CAS Client integration is available from revision v3.2devel-12-g06fc76c
+====
+
+
+[TIP]
+====
+The following steps are tested with Tomcat 7, JDK 7, CAS 4.x and CAS Client 3.3.3. Please let us know if you encounter any problems with these versions.
+====
+
+
+MidPoint is able to be a part of CAS SSO solution.
+Configuration for integrating midPoint with CAS using CAS Client libraries is prepared and can be found directly in the midPoint's configuration files.
+There are three possible places, where you can modify the files:
+
+* admin-gui component (when working with midPoint sources)
+
+* midpoint.war (when modifying downloaded/built WAR file)
+
+* midPoint's WEB-INF subdirectory (when modifying already deployed midPoint configuration)
+
+The files to be modified are:
+
+* *web.xml*
+
+* *ctx-web-security.xml*
+
+* *pom.xml* (only in admin-gui component when building from sources).
+
+If you are not building midPoint with the CAS configuration (pom.xml), you need to put CAS libraries to WEB-INF/lib folder :
+
+cas-client-core-3.3.3.jar +
+cas-client-integration-tomcat-common-3.3.3.jar +
+cas-client-integration-tomcat-v7-3.3.3.jar +
+spring-security-cas-3.2.5.RELEASE.jar
+
+By default, this configuration is disabled and the standard authentication mechanism is used.
+For enabling CAS SSO integration please do following steps.
+
+
+== pom.xml
+
+In the pom.xml (admin-gui component) find and uncomment following
+
+[source]
+----
+<!-- SSO CAS Client dependencies -->
+<dependency>
+	<groupId>org.jasig.cas.client</groupId>
+	<artifactId>cas-client-integration-tomcat-v7</artifactId>
+	<version>${cas.client.version}</version>
+</dependency>
+<dependency>
+	<groupId>org.jasig.cas.client</groupId>
+	<artifactId>cas-client-core</artifactId>
+	<version>${cas.client.version}</version>
+<exclusions>
+	<exclusion>
+		<artifactId>xercesImpl</artifactId>
+		<groupId>xerces</groupId>
+	</exclusion>
+	<exclusion>
+		<artifactId>xmltooling</artifactId>
+		<groupId>org.opensaml</groupId>
+	</exclusion>
+	<exclusion>
+		<artifactId>velocity</artifactId>
+		<groupId>velocity</groupId>
+	</exclusion>
+</exclusions>
+</dependency>
+<dependency>
+	<groupId>org.springframework.security</groupId>
+	<artifactId>spring-security-cas</artifactId>
+	<version>${spring.security.version}</version>
+</dependency>
+----
+
+This will add Java CAS Client libraries needed for the CAS integration to the midPoint. Or you can also put the libraries directly to the midPoint's "WEB-INF/lib" folder if you work with already built/deployed midPoint.
+
+
+== ctx-web-security.xml
+
+Find ctx-web-security.xml (admin-gui component) and follow instruction for enabling CAS SSO integration:
+
+* add _entry-point-ref="casEntryPoint"_ between _<http_ and _create-session="never"_
+
+If you work with already built/deployed midPoint, the file the ctx-web-security.xml can be found in the WEB-INF subdirectory.
+
+
+== web.xml
+
+Enable Single Logout - in the web.xml find and uncomment following
+
+[source]
+----
+ <filter>
+    <filter-name>characterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>characterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <listener>
+    <listener-class>org.jasig.cas.client.session.SingleSignOutHttpSessionListener</listener-class>
+  </listener>
+----
+
+You can also do it after midPoint has been deployed.
+In this case, web.xml can be found in the WEB-INF subdirectory.
+
+
+After these steps you need to deploy new midPoint.war or restart the server.
+
+
+== Single Log Out
+
+Instructions below address following cases:
+
+. How to issue logout on CAS server side, when user logouts of midPoint (typically by pressing Log Out button)
+
+** thus logging user out of all applications managed by CAS server -> Single Log Out.
+
+
+
+. How to get back to midPoint after logging out of CAS server
+
+** in the end, user will face CAS server login screen,
+
+** with redirect to midPoint after successfull authentizationů
+
+
+=== 1. midPoint logout -> CAS logout
+
+LogoutHandler needs to be modified.
+
+Simply point defaultTargetUrl to https://CASSERVER/cas/logout as following (where CASSERVER is real URL of CAS server):
+
+[source]
+----
+<beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler">
+    <beans:property name="defaultTargetUrl" value="https://CASSERVER/cas/logout"/>
+</beans:bean>
+----
+
+
+=== 2. CAS logout -> midPoint app
+
+Two things has to happen.
+
+* First, CAS server needs to be configured to use "service" parameter on logout action,
+
+* and second "service" parameter needs to be added to defaultTargetUrl.
+
+How to configure logout action of CAS server: see link:http://jasig.github.io/cas/4.2.x/installation/Logout-Single-Signout.html#cas-logout[Apereo wiki] + link:http://jasig.github.io/cas/4.2.x/protocol/CAS-Protocol-Specification.html#logout[technical background].
+
+Example of logoutHandler for cas server on foo.com and midPoint on xyz.com:
+
+[source]
+----
+<beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler">
+    <beans:property name="defaultTargetUrl" value="https://foo.com/cas/logout?service=https%3A%2F%2Fxyz.com%2Fmidpoint"/>
+</beans:bean>
+----
+
+
+== Troubleshooting
+
+
+=== Java PKIX path building error
+
+You must have the CA Certificate for the CAS server in midpoints keystore file, not in the Java keystore file.

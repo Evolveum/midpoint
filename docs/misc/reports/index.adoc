@@ -1,0 +1,17 @@
+= Reports Configuration
+:page-nav-title: Reports
+:page-wiki-name: Reporting
+:page-wiki-id: 655423
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:15:51.162+02:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2016-10-19T10:04:33.028+02:00
+:page-upkeep-status: orange
+
+Following pages describe configuration of midPoint reports.
+
+// Describe status of Jasper
+
+++++
+{% children %}
+++++

@@ -1,0 +1,202 @@
+= Variables in bulk actions
+:page-wiki-name: Variables in bulk actions
+:page-wiki-id: 24675674
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-10-20T13:34:12.705+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-10-24T12:21:13.069+02:00
+:page-since: "3.7"
+:page-upkeep-status: yellow
+
+[NOTE]
+====
+Some parts (namely, defining variables using expressions other than path-based) are, however, considered experimental.
+====
+
+== Introduction
+
+Bulk actions (midPoint scripts) work in so called _pipes and filters_ model, just like e.g. traditional UNIX shell scripts.
+They consist of a number of primitive activities chained together into a sequence or sometimes into a more complex structure.
+Input from each activity is fed into the activity that immediately follows.
+
+However, sometimes it is useful to keep a _global context_ for execution of these activities.
+It is available in each activity execution.
+It is split when execution is split, for example when a search is executed and an execution "branch" is created for each object found.
+
+Currently this context contains a set of _variables_. For the time being, these variables are initialized when the midPoint script starts, and are considered read-only during the execution of the whole script.
+In the future we might consider allowing additions or modifications into these variables, making the processing much more flexible (at the cost of deviation from pure pipes and filters model).
+
+The main use of the current implementation is easy parameterization of bulk actions: for example if we want to find all users of employeeType X and set their employeeType to Y, values for X and Y can be stored in bulk action variables.
+
+
+== Default variables
+
+There are the following variables available by default:
+
+[%autowidth]
+|===
+| Variable name | Type | Meaning | Availability
+
+| task
+| TaskType
+| The current task (transient for synchronous execution or persistent for asynchronous one).
+| Always.
+
+
+| ruleEvaluationContext
+| PolicyRuleEvaluationContext
+| Context for policy rule evaluation.
+| When using bulk action in to evaluate object state constraint.
+
+
+|===
+
+
+== Additional variables
+
+It is possible to define additional variables within the `<executeScript>` element.
+
+
+=== Example 1: Apply some action on user whose name is configurable
+
+.Using userName variable taken from task extension
+[source,xml]
+----
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:pipeline>
+        <s:search>
+            <s:type>c:UserType</s:type>
+            <s:query>
+                <q:filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <c:expression>
+                            <c:path>$userName</c:path>
+                        </c:expression>
+                    </q:equal>
+                </q:filter>
+            </s:query>
+        </s:search>
+        <s:action>
+          ...
+        </s:action>
+    </s:pipeline>
+    <s:variables>
+        <s:variable>
+            <s:name>userName</s:name>
+            <s:expression>
+                <c:path>$task/extension/userName</c:path>
+            </s:expression>
+        </s:variable>
+    </s:variables>
+</s:executeScript>
+----
+
+The `<variables>` section defines a single variable (userName).
+Its value is taken from task's extension.
+It is then used in the search filter.
+
+
+=== Example 2: Define variables as constants or expressions
+
+In the `<variables>` section we can use not only path expressions but any other suitable ones.
+However, this feature is considered to be an *experimental* one.
+
+Note that this sample is artificial one, used for testing this mechanism.
+We define 5 variables.
+Some of them are path-based (userName, groups); some are defined as literal values (academicYear, calendarYear) and one is computed by an expression (deadline).
+
+For expression-based variables it is necessary to specify their type.
+For value-based the type is derived from the literal value xsi:type (if present).
+
+.Various mechanisms for defining bulk action variables
+[source,xml]
+----
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <s:action>
+        <s:type>execute-script</s:type>
+        <s:parameter>
+            <s:name>script</s:name>
+            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                <c:code>
+                    log.info('=== Variables ===')
+                    this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+
+                    if (userName != 'user1') {
+                        return 'Wrong username: ' + userName
+                    }
+                    if (new java.util.HashSet(groups) != ['group1', 'group2', 'group3'] as Set) {
+                        return 'Wrong groups: ' + groups
+                    }
+                    if (academicYear != '2017/2018') {
+                        return 'Wrong academic year: ' + academicYear
+                    }
+                    if (calendarYear != 2017) {
+                        return 'Wrong calendar year: ' + calendarYear
+                    }
+                    if (!(deadline instanceof javax.xml.datatype.XMLGregorianCalendar)) {
+                        return 'deadline missing or of wrong type: ' + deadline?.class
+                    }
+                    return 'ok'
+                </c:code>
+            </c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>forWholeInput</s:name>
+            <c:value>true</c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>outputItem</s:name>	<!-- for testing purposes: for the calling Java code to be able to check the result of the bulk action -->
+            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#description</c:value>       <!-- just a plain string -->
+        </s:parameter>
+    </s:action>
+    <s:variables>
+        <s:variable>
+            <s:name>userName</s:name>
+            <s:expression>
+                <c:path>$task/extension/userName</c:path>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>groups</s:name>
+            <s:expression>
+                <c:path>$task/extension/studyGroup</c:path>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>academicYear</s:name>
+            <s:expression>
+                <c:value>2017/2018</c:value>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>calendarYear</s:name>
+            <s:expression>
+                <c:value xsi:type="xsd:int">2017</c:value>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>deadline</s:name>
+            <s:type>xsd:dateTime</s:type>
+            <s:expression>
+                <c:script>
+                    <c:code>
+                        basic.fromNow("P3D")
+                    </c:code>
+                </c:script>
+            </s:expression>
+        </s:variable>
+    </s:variables>
+</s:executeScript>
+
+----
+
+Available since v3.7devel-714-ga4ad63b (October 20th, 2017).
+
+See also xref:/midpoint/reference/tasks/task-template/[Task template HOWTO] to see how these feature can be used to execute parameterized bulk actions in ad-hoc tasks, created from a task template.

@@ -1,0 +1,67 @@
+= Security Advisory: User changes and user session updates
+:page-wiki-name: Security Advisory: User changes and user session updates
+:page-wiki-id: 36569404
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-09-09T18:01:43.275+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-09-09T18:24:01.149+02:00
+:page-nav-title: User changes and user session updates
+:page-display-order: 12
+:page-upkeep-status: green
+
+*Date:* 9 September 2019
+
+*Severity:* Low (CVSS 0.1 - 3.9)
+
+*Affected versions:* all released midPoint versions before 4.0
+
+*Fixed in versions:* 4.0
+
+
+== Description
+
+Sessions of users logged-in to midPoint user interface are unaffected by the change of user profiles - until users log in again.
+E.g. Logged-in user will stay active even if user profile is disabled.
+Logged-in user can use privileges even if a role is revoked during validity of user session.
+
+
+== Severity and Impact
+
+As user privileges and not revoked immediately, there is an "interval of vulnerability" during which user could use privileges that are no longer valid for that user.
+
+
+== Mitigation
+
+Partial solution for the problem is provided in xref:/midpoint/release/4.0/[midPoint 4.0]: administrator can explicitly delete sessions of affected user.
+There is a new "Logged-in users" page under "Internals configuration".
+
+
+== Discussion and Explanation
+
+At the time when midPoint started such handling of user sessions was a common practice in almost all web applications.
+Therefore this request is, strictly speaking, not a bug report.
+It is closer to a feature request.
+And up until now there was no request from any of midPoint subscribers or users to change this behavior.
+And that was the reason that midPoint works like it worked many years ago.
+
+However, we fully acknowledge that time are changing and that there is now a need to a higher standard of security and convenience.
+Therefore we have decided that even though this feature was not explicitly request by any midPoint subscriber, we will plan to integrate it into midPoint roadmap.
+Unfortunately there is no simple solution at the moment.
+MidPoint deployments are often clustered, which means that user sessions are distributed across several nodes.
+The situation is further complicated by frequent changes to user objects.
+Aggressive implementation of session invalidation would cause a severe performance impact.
+Therefore we have decided to provide a partial stop-gap solution in midPoint 4.0, which will be followed by improvements in subsequent midPoint releases.
+
+
+== Credit
+
+This issue was reported by Tauheed Khan by the means of link:https://joinup.ec.europa.eu/collection/eu-fossa-2/about[EU-Free and Open Source Software Auditing (EU-FOSSA2) project].
+
+
+== See Also
+
+* bug:MID-5650[]
+
+* bug:MID-5737[]
+
+* link:https://hackerone.com/midpoint_h1c?view_policy=true[MidPoint page at Hackerone]

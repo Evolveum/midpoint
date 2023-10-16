@@ -1,0 +1,153 @@
+= Using ConnId Connectors in MidPoint
+:page-nav-title: Using ConnId Connectors
+:page-wiki-name: ConnId
+:page-wiki-id: 20086811
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-08-05T15:09:05.249+02:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2019-01-29T13:54:46.148+01:00
+:page-upkeep-status: green
+:page-toc: top
+
+== ConnId
+
+ConnId is a framework that does most of the provisioning operations in midPoint.
+
+Please see xref:/connectors/connid/[] page for introduction to ConnId framework, basic concepts and framework history.
+
+NOTE: This page is targeted at connector developers, or engineers that are using custom connectors.
+For general advice on using stock connectors in midPoint, please see xref:/midpoint/reference/resources/connector-setup/[].
+
+== Connector Identification
+
+ConnId connector is identified by a triple consisting of:
+
+* *Bundle name* which is usually in a form of maven group or java package name, such as `com.evolveum.polygon.connector-ldap`.
+
+* *Bundle version* which is usually a "dotted decimal" notation.
+ConnId is using four version numbers (e.g. `1.4.2.0`).
+First three numbers are usual version numbers following semantic versioning conventions.
+The last number in version number indicates a "build" of a connector.
+This is derived from the source code control system.
+Official releases have the last number set to zero.
+
+* *Connector type* which is usually in a form of fully qualified Java class name, e.g. `com.evolveum.polygon.connector.ldap.LdapConnector`.
+
+
+== Connector Configuration Schema
+
+Each connector has its configuration.
+The configuration can be discovered by the ConnId framework.
+When midPoint detects the connector, it reads the connector configuration schema, transforms it to xref:/midpoint/devel/prism/schema/[Prism schema] format and stores it in midPoint xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/connectortype/[ConnectorType] object.
+The schema is used by midPoint to configure connector instances.
+
+Please see xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for the details.
+
+
+== Connectors and Resource Schema
+
+The `schema` operation of the connector produces connector schema, in a ConnId-specific language.
+MidPoint transforms the result into xref:/midpoint/devel/prism/schema/[Prism schema], and stores it in the resource object.
+Such _resource schema_ describes _object classes_ and _attributes_ that can be handled by the connector.
+
+Please see xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for the details.
+
+
+=== ConnId pass:[__NAME__] and pass:[__UID__]
+
+There are some peculiarities when it comes original Identity Connector Framework (ICF) developed by Sun Microsystems back in 2000s.
+As ConnId framework is built on Sun ICF, we have to live with it.
+ICF mandates that all resource objects *must* have two special attributes: `pass:[__NAME__]` and `pass:[__UID__]`.
+We do not like the underscores, and therefore we usually refer to them as _ICF NAME_ and _ICF UID_.
+Their meaning is as follows:
+
+[%autowidth,cols="h,1,1,1,1,1"]
+|===
+|   | Description | Required for | Typical usage | ICF representation | XML representation
+
+| ICF NAME
+| Represents user-friendly identifier of an object on a target resource.
+It should be human-readable, and it is used to create a resource object (e.g. account username).
+It is the name of the object that humans usually care about.
+| create
+| username,  +
+ LDAP DN
+| `pass:[__NAME__]`
+| `icfs:name`
+
+
+| ICF UID
+| Represents the unique identifier of an object within the name-space of the target resource.
+Should be immutable if possible.
+It is returned from the _create_ operation and must be used for other operations to identify the object.
+This may not be human-readable and is often (pseudo-randomly) generated.
+This is the identifier of an object that machines usually care about.
+| get, modify, delete
+| Entry UUID, +
+ auto-generated ID column, +
+ record number
+| `pass:[__UID__]`
+| `icfs:uid`
+
+|===
+
+For some simple resources the `pass:[__UID__]` and `pass:[__NAME__]` may be the same.
+Also do not confuse the ICF `pass:[__UID__]` with other attributes that may be named "uid" such as LDAP `uid` which is a part of `inetOrgPerson` schema.
+ICF `pass:[__UID__]` is a separate and quite powerful concept which needs some time to get used to.
+In the early phases of the learning curve it helps to think about it simply as an _identifier_ of a resource object.
+
+Confusingly enough, ICF `pass:[__NAME__]` and `pass:[__UID__]` usually take place of another account attributes.
+E.g. in "smart" LDAP deployment, the ICF `pass:[__NAME__]` usually contains distinguished name (`dn`) and ICF `pass:[__UID__]` usually contains the data from `entryUuid` LDAP attribute.
+This is an excellent setup to support object renames and moves which are surprisingly common in IDM deployments.
+It also means that there will be no `dn` and `entryUuid` attributes seen in the legacy resource schema.
+There will be `icfs:name` and `icfs:uid` instead.
+This "hiding" of such very important attributes is very difficult to get used to.
+
+TIP: XML representation of the objects is using URIs instead of arbitrary prefixes (such as underscores) to denote namespaces.
+Therefore the XML representation of ICF NAME and UID is `icfs:name` and `icfs:uid` (`icfs` is a namespace prefix that xref:/midpoint/devel/xml-namespace-list/[refers to actual URL]).
+Please take care not to confuse this with an actual _attribute_ named "uid" such as LDAP uid.
+The attribute is using a xref:/midpoint/devel/xml-namespace-list/[different namespace] and is usually denoted `ri:uid`.
+
+Luckily, Evolveum team has improved the ConnId framework to support "native" attribute names.
+Due to the Sun's legacy, the connector must still use the `pass:[__NAME__]` and `pass:[__UID__]` monstrosities.
+However, the connector can indicate that the real name of the `pass:[__NAME__]` name attribute is different.
+E.g. LDAP connector can indicate that the `pass:[__NAME__]` in fact means `dn`.
+MidPoint will take the hint, and it will use `dn` instead of the `pass:[__NAME__]`.
+Therefore, the `pass:[__NAME__]` and `pass:[__UID__]` ugliness can be hidden from the end users.
+Unfortunately, connector developer still needs to be aware of it, and live with it.
+
+This is still not used by all the connectors.
+Therefore, there still can be `icfs:name` and `icfs:uid` in the schema for some connectors.
+However, there is at least a mechanism that can hide the old mistakes.
+
+TIP: ICF NAME and ICF UID attributes may be "renamed" to a more user-friendly names using `displayName` clause in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. This does not change the true nature of the attributes nor does it change the XML representation.
+It may improve user experience.
+
+
+== ConnId Issues
+
+Although there are several xref:/connectors/connid/1.x/icf-issues/[known and painful issues in Identity Connector Framework design], they are not critical.
+There are many exiting ICF-comaptible connectors developed by several independent companies in the scope of several projects.
+The benefits of ICF compatibility greatly outweighs the drawbacks.
+Therefore we have chosen to stick with ConnId as the primary provisioning framework in midPoint, and keeping ConnId 1.x strictly compatible with the original Sun Identity Connector Framework.
+
+Evolveum is actively contributing to ConnId development, being one of the most prominent contributors.
+Our goal is to evolve the framework and resolve most of the original ICF issues.
+There is already a plan for xref:/connectors/connid/2.x/[ConnId version 2].
+
+
+== ConnId Framework Logging
+
+Useful information may also be provided by the logging the operations of the ConnId connector framework.
+This is very useful in cases that a suspected problem is in the interpretation of the values (e.g. data type conversions).
+This logs all the communication between connector, connector framework and midPoint.
+It can be enabled by setting the logging to:
+
+`*org.identityconnectors.framework.api: TRACE*`
+
+
+== See Also
+
+* xref:/connectors/connid/[]
+
+* xref:/connectors/connid/1.x/connector-development-guide/[]

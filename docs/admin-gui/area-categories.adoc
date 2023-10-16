@@ -1,0 +1,66 @@
+= User Interface Area Categories
+:page-nav-title: Area Categories
+:page-wiki-name: User Interface Area Categories
+:page-wiki-id: 26411137
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-07-13T10:49:08.177+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-07-13T11:06:55.455+02:00
+
+++++
+{% include missing-incomplete.html %}
+++++
+
+MidPoint user interface is getting more and more complex as midPoint functionality increases.
+MidPoint user interface is also getting more and more customizable. This means that it may be quite confusing if all parts of the user interface dealt with complete set of midPoint functionality.
+For example, there are several types of xref:/midpoint/reference/concepts/relation/[relations] used in midPoint.
+The relation mechanism is a generic reusable mechanism used by almost all parts of midPoint.
+But we do not want all parts of user interface to deal with all the relation types.
+For example pages and components that are focused on identity governance only care about governance-related relations such as `owner` or `approver`. Organizational structure pages do not really care about these, but `manager` relation is very important for them.
+While the relations were hardcoded then it was also easy to hardcode the beahvior of the user interface.
+But as relations are customizable, user interface behavior cannot be hardcoded any longer.
+And similar principles may apply also to other midPoint concepts in the future: xref:/midpoint/reference/roles-policies/policy-rules/[policy rules], roles, organizational units, services (unified indirectly through xref:/midpoint/reference/schema/archetypes/[archetypes]), and so on.
+
+For now the list of categories is pre-defined (hardcoded) in midPoint:
+
+[%autowidth]
+|===
+| Category | Description | Example UI elements
+
+| administration
+| General identity administration (IDM).
+Functionality available to a common identity administrator.
+| Object details tab (e.g. user details), assignments/inducements tab, role assignment popup, general object lists (e.g. "All users" list)
+
+
+| organization
+| Organizational management category: management of organizational trees, organizational unit membership, unit managers, etc.
+| Organizational tree, list of organizational units
+
+
+| governance
+| Identity governance: approvers, owners, governance policies, remediation.
+| "Governance" tab in user details, approval processes, lifecycle management
+
+
+| policy
+| General policy management: RBAC, provisioning policies, policy rules, etc.
+| Policy rules and policies tabs
+
+
+| selfService
+| End-user self service
+| Profile update, password change, role request (shopping cart)
+
+
+| dataProtection
+| Data protection: management of consent, lawful bases, data regulation compliance, etc.
+| "Data protection" tab in user details, consent management pages
+
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/reference/concepts/relation/relation-configuration/[Relation Configuration]

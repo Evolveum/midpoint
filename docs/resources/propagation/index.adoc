@@ -1,0 +1,34 @@
+= Provisioning Propagation
+:page-wiki-name: Provisioning Propagation
+:page-wiki-id: 24676289
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-01-05T15:46:25.794+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-01-05T16:00:16.907+01:00
+:page-since: "3.7.1"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: green
+
+MidPoint is quite an eager system.
+Every time there is a need to change something on the resource midPoint executes it immediately.
+This is the best option with quick, efficient on-line resources.
+However, the world is not a perfect place.
+Therefore there are resources that are neither quick nor efficient.
+And then there is a broad class of xref:/midpoint/reference/resources/manual/[manual resources]. Both cases have one thing in common: resource operations are expensive.
+And while midPoint eagerness is a good thing in a normal case it can cause a lot of troubles if resource operations are slow and expensive.
+
+Therefore there is a way to reduce midPoint eagerness by using a propagation task.
+In this case midPoint will *not* execute operation on a resource immediately.
+Requested changes will get queued for (reasonably short) time.
+Then midPoint will execute all the changes at once in a single operation.
+This approach can significantly reduce the number of executed operations - especially in scenarios where many roles are requested and approved in short periods of time.
+
+See xref:configuration/[] page for configuration details.
+
+
+== See Also
+
+* xref:configuration/[]
+
+* xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]

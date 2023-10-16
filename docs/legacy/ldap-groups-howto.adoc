@@ -1,0 +1,111 @@
+= LDAP Groups HOWTO (Obsolete)
+:page-wiki-name: LDAP Groups HOWTO
+:page-wiki-id: 7667719
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-15T16:58:55.475+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2015-09-03T16:00:38.570+02:00
+:page-obsolete: true
+
+[NOTE]
+.Entitlements
+====
+This HOWTO applies only to midPoint versions 2.2 and earlier.
+Version 3.0 will introduced the mechanism of xref:/midpoint/reference/resources/entitlements/[Entitlements] which makes handling of groups much easier.
+====
+
+Setup for LDAP Groups are quite difficult to figure out because they are slightly unlinke the groups in most other systems.
+LDAP groups are (almost) ordinary LDAP objects.
+But the group membership is an attribute of an group, not an attribute of an account.
+This makes it quite difficult to manage group membership just by looking at the user attributes.
+The membership information will not be there.
+
+There is hack in the LDAP connector to make the group management feasible even by looking at LDAP account.
+The LDAP connector has a hidden attribute `ldapGroups` that contains a list of groups that the use belongs to.
+This is compiled by the connector by actually searching for all the groups in LDAP.
+It can also be used to modify the group membership.
+Adding or removing an value of this attribute will result in modification of the group membership list.
+
+The `ldapGroups` attribute is hidden and connector does not even reveal it in resource schema.
+Therefore the resource schema needs to be manually modified to make this attribute "exist".
+Open the resource in XML editor, scroll down to `<schema>` element and find a definition for `AccountObjectClass` object class.
+Add a definition of the `ldapGroups` attribute as follows:
+
+[source,xml]
+----
+<resource>
+  ...
+  <schema>
+    ...
+    <definition>
+      <xsd:schema>
+        ...
+        <xsd:complexType name="AccountObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                     <ra:account/>
+                     <ra:default/>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element minOccurs="0" ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ICF UID</a:displayName>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="ldapGroups" type="xsd:string"/>
+                  ...
+
+----
+
+Note: Due to some glitches in the existing code the system may need a restart to make sure that this schema change is applied.
+Sorry for the inconvenience, we are working hard on the solution.
+
+Now the `ldapGroups` attribute may be used as a ordinary account attribute.
+It is mult-valued attribute that contains DNs of the LDAP groups that the account should be a member of.
+The LDAP connector assumes that these will be `groupOfUniqueName` and therefore the membership attribute will be `uniqueMember`. If other grouping mechanism is used the membership attribute can be changed using `groupMemberAttribute` connector configuration parameter.
+
+The `ldapGroups` attribute is not fetched by default by the connector.
+Therefore it will not appear in the account form even if it has some values.
+This makes it impractical for manual management of the group membership.
+But the attribute works as expected when used in a role definition which is also the most common form us usage:
+
+[source,xml]
+----
+<role>
+    <name>Full Time Employee</name>
+    <assignment>
+    	<accountConstruction>
+    		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
+		<attribute>
+                    <ref>ri:ldapGroups</ref>
+                    <outbound>
+                    	<expression>
+                    		<value>cn=employees,ou=Groups,dc=example,dc=com</value>
+                    	</expression>
+                    </outbound>
+                </attribute>
+    	</accountConstruction>
+    </assignment>
+</role>
+
+----
+
+Also make sure that you have correctly set up the group membership attribute in connector configuration:
+
+[source]
+----
+<connectorConfiguration>
+        <icfc:configurationProperties>
+            ....
+            <icfcldap:groupMemberAttribute>member</icfcldap:groupMemberAttribute>
+----

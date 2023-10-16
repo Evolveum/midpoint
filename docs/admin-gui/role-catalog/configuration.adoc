@@ -1,0 +1,51 @@
+= Role Catalog Configuration
+:page-nav-title: Configuration
+:page-wiki-name: Role Catalog Configuration
+:page-wiki-id: 24085516
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-16T16:27:01.292+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-07-10T14:32:51.290+02:00
+:page-since: "3.5"
+:page-upkeep-status: yellow
+:page-toc: top
+
+
+For an introduction to the role catalog concept please see xref:/midpoint/reference/admin-gui/role-catalog/[Role Catalog] page.
+
+
+== Role Catalog Implementation
+
+Simply speaking, role catalog is just an xref:/midpoint/reference/org/organizational-structure/[organizational structure] structure.
+However, instead of divisions and sections the role catalog is composed of _categories_. And instead of member users there are _roles_. But apart from that the role catalog is just ordinary organizational structure.
+The categories are ordinary xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org objects]. The roles are assigned to the categories in exactly the same way as users are assigned to organizational structure.
+Remember: MidPoint can have any number of organizational structures and the role catalog is just one of them.
+There may even be several role catalogs at the same time as any midPoint object can be assigned to any number of orgs.
+However, the current limitation is that only one role catalog will be presented to end users.
+
+== Role Catalog Root
+
+The root of this role catalog needs to be configured in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object] like this:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <roleManagement>
+      <roleCatalogRef oid="8fbbe7b4-f422-11e6-b00e-e3483e7a1051"/>
+    </roleManagement>
+    ...
+</systemConfiguration>
+----
+
+The roleCatalogRef reference above points to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[org] which is the root of the role catalog.
+
+== See Also
+
+* xref:/midpoint/reference/admin-gui/role-catalog/[Role Catalog]
+
+* xref:/midpoint/reference/admin-gui/role-request/configuration/[Role Request and Shopping Cart Configuration]
+
+* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

@@ -1,0 +1,92 @@
+= Report Configuration Tips
+:page-wiki-name: Report Configuration Tips
+:page-wiki-id: 52003161
+:page-wiki-metadata-create-user: mmacik
+:page-wiki-metadata-create-date: 2020-09-23T13:35:05.973+02:00
+:page-wiki-metadata-modify-user: mmacik
+:page-wiki-metadata-modify-date: 2020-09-23T13:59:12.532+02:00
+
+
+== Collection Set Up
+
+In configuring the object collections for reports you might want to keep in mind that the resulting collections will be stored in memory for the evaluation of the report.
+
+[TIP]
+====
+*tl;dr* noFetch=false in collections might end up in large heap consumption and OOMs.
+====
+
+In case you are using the option *noFetch* set to *false* then this might lead to higher consumption heap space.
+The reason is that midpoint is trying to fetch the whole representation of the object as currently present on the resource.
+In case of some resources as CSVs with a couple of columns this might be no problem, but directory services for instance Active Directory might store really large objects.
+These might contain a lot of parameters with a lot of data.
+
+[source,xml]
+----
+<objectCollection>
+...
+    <getOptions>
+        <option>
+            <options>
+                <noFetch>false</noFetch>
+            </options>
+        </option>
+    </getOptions>
+...
+</objectCollection>
+----
+
+The *noFetch=false* option motivation would be in most cases the possibility to filter out the objects which we would like to analyze for our report directly in the object collection, using the native attributes directly.
+
+To *workaround* this limitation we can use the option *raw=true* to fetch only the accounts shadows as stored in midpoint repository.
+The downside is that we might lack attributes which we could use to filter out the set of accounts which we might need for the report, because the account shadow normally contains only unique values needed for account identification.
+We can remedy this by fetching the attributes we need directly from the *condition* block of the report.
+Here we can fetch the full account information via the getObject() midpoint function.
+
+[source,groovy]
+----
+def tmpFullShadow = midpoint.getObject(ShadowType.class, object.getOid(), null)
+// same as midpoint.getObject(ShadowType.class, object.getOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch().noFetch(false)));
+----
+
+== Report Task Fails on Error
+
+
+[TIP]
+====
+*tl;dr* We often might need error handling to report expression scripts.
+====
+
+We don't have an option yet to let the tasks continue on errors which might occur on evaluation.
+Additionally, we might want to react to some errors in some kind of way (e.g. error message in report column, row in report will not be printed, etc.). A good example is a situation when a collection lists account shadows but a concurrent process removes them from the repository, in this case we might end with an error because the object was not found.
+We then might want to react in for instance not printing the row in the report because we don't need to report on already deleted objects.
+
+[source,xml]
+----
+<report>
+    <objectCollection>
+    ....
+        <condition>
+            <script>
+                <code>
+                    try{
+
+                        // Insert code
+
+                    } catch (ObjectNotFoundException onf ) {
+
+                        log.warn("Evaluated object was not found, possibly shadow object deletion {}", onf.getMessage())
+                        // Return false so condition will skip this object in evaluation and thus no row will be printed in the report.
+                        return false
+                    }
+                </code>
+            </script>
+        </condition>
+    ....
+    </objectCollection>
+</report>
+----
+
+The errors will still be present in the Errors and Result tabs of the task.
+
+TODO add more ...

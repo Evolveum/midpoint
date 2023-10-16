@@ -1,0 +1,26 @@
+= Authorization Roles
+:page-wiki-name: Authorization Roles
+:page-wiki-id: 15859852
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-06-30T19:29:07.917+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2019-09-02T11:54:23.714+02:00
+
+To create administrators in midPoint, you need to:
+
+. create a role(s) with required privileges.
+You can combine the authorizations specified above.
+Although you could add the "Home page" authorization to each role, we prefer and recommend to assign "End User" role to users instead.
+
+. assign the role(s) to midPoint users.
+Do not forget to assign "End User" role to allow users to log in to their "Home" tab.
+
+. allow users to log in by setting "Admin GUI Access" to "enabled"
+
+[TIP]
+====
+Default roles for the most commonly used authorizations will be created and included in midPoint.
+Meanwhile you can check samples in link:https://github.com/Evolveum/midpoint-samples[samples repository]. For midPoint master, see link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/roles/authorization-roles.xml[authorization-roles.xml].
+====
+
+// TODO: Default roles

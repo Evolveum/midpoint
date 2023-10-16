@@ -1,0 +1,179 @@
+= Database Schema Upgrade
+:page-wiki-name: Database Schema Upgrade
+:page-wiki-id: 17761220
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-04-16T19:47:06.934+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-10-27T17:08:38.510+01:00
+:page-alias: { "parent" : "/midpoint/reference/repository/", "display-order" : 800 }
+:page-upkeep-status: orange
+:page-toc: top
+
+== Introduction
+
+New midPoint releases usually bring new features.
+New features usually require the extension of midPoint xref:/midpoint/reference/schema/[data model] to use them.
+The changes of data model usually require extension of the schema of the database that stores midPoint objects.
+This is the usual routine for most midPoint xref:/midpoint/reference/upgrade/upgradeability/[upgrades].
+
+MidPoint distributions come with the database upgrade scripts.
+These scripts contain a set of SQL commands (usually `ALTER TABLE` commands) that extend the schema of existing database.
+The scripts are designed to be non-desctructive, therefore they can safely be executed over a database that is populated with data.
+(Of course, the usual backup routine is strongly recommended.)
+
+=== The right process for the right repository
+
+Since version 4.4, midPoint features two SQL repository implementations and these have different upgrade procedures.
+It is absolutely critical to use the right upgrade script for the right repository.
+While the upgrade uses upgrade scripts in both cases, there are small differences for each repository.
+To make it simpler, there are separate sections for each repository implementation below.
+
+.How do I know what repository I'm using?
+[TIP]
+====
+One should know what repo is used.
+But just in case, there is a couple of ways to find out:
+
+* In GUI go to *About* page and check *Repository* panel.
+If *Implementation name* says *Native*, you are using the new xref:/midpoint/reference/repository/native-postgresql/[Native repository] recommended from version 4.4 on.
+Old Generic repo says *SQL* instead.
+
+* If in your `config.xml` the content of `repository/type` element is `native` (or `sqale`, or `scale`, casing does not matter), you are using the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
+If there is `generic` (or `sql`) instead, or there is no `type` element under `repository`, but `repositoryServiceFactoryClass`
+is used instead, you are using the old repository.
+
+* If you are connected to the database, there are some differences in tables.
+Try `select * from m_uri limit 1` - if it works without any error (even if it does not return anything),
+you are using the new xref:/midpoint/reference/repository/native-postgresql/[Native repository].
+If it doesn't work - and `select * from m_object_text_info limit 1` on the other hand does - then
+you are using the old repository.
+====
+
+== Upgrading Native PostgreSQL Repository
+
+This section describes how to upgrade the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
+There is no need to "upgrade" to 4.4 - but we encourage you to xref:/midpoint/reference/repository/native-postgresql/migration/[migrate to the new repository].
+For future releases, the process should be similar to previous upgrades.
+
+=== Upgrade Script Location
+
+[%autowidth,cols="h,1"]
+|===
+| Distribution | Script location
+
+| Binary
+| <distribution root>/doc/config/sql/native-new/
+
+| Source
+| <source code root>/config/sql/native-new/
+
+|===
+
+[IMPORTANT]
+Always use the scripts from the version you want to upgrade to - either from distribution or from sources.
+Do not use the upgrade scripts from the `master` branch, e.g. downloaded directly from GitHub, as these may
+contain development changes already (unless you really want to try the cutting edge development version).
+
+=== Executing the script
+
+The Native repository has separate upgrade scripts for the main portion of the repository
+(`postgres-new-upgrade.sql`) and for the audit tables (`postgres-new-upgrade-audit.sql`).
+This makes the process easier for deployments with separate audit database - you simply use the right udgrade script on each database.
+If both repository and audit is in the same database, use both scripts on the same database.
+
+The scripts do not contain any version number and are safe to run repeatedly - only the missing changes are applied.
+
+[IMPORTANT]
+====
+If you created the schema objects as non-superuser as described xref:/midpoint/reference/repository/native-postgresql/usage/#installing-as-non-superuser[here],
+be sure to run all the missing `CREATE EXTENSION` commands as a superuser first!
+This is also a good reason to use `-v ON_ERROR_STOP=1` flag with the `psql` - as shown below.
+This stops the upgrade when the first such problem occurs, but works fine if the extension already exists.
+====
+
+To upgrade the main repository run this command:
+[source,bash]
+----
+psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint -f postgres-new-upgrade.sql
+----
+
+To upgrade the audit database (here on the same server, but different database) run:
+[source,bash]
+----
+psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit -f postgres-new-upgrade-audit.sql
+----
+
+To upgrade database containing both, use multiple `-f` options:
+[source,bash]
+----
+psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint \
+  -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
+----
+
+The scripts store their internal version information in the `m_global_metadata` table.
+Please, do not modify this table manually.
+
+[IMPORTANT]
+====
+You can use other client than `psql`, but the client must send the commands to the server separately.
+E.g. IDEA Ultimate Edition or DataGrip from JetBrains work fine.
+
+Some clients, notably https://www.pgadmin.org/[pgAdmin], send the whole content in a single request.
+Please, do not use them to run upgrade scripts!
+====
+
+
+== Upgrading Generic Repository
+
+This section describes how to upgrade the xref:/midpoint/reference/repository/generic/[Generic repository].
+
+=== Upgrade Script Location
+
+[%autowidth,cols="h,1"]
+|===
+| Distribution | Script location
+
+| Binary
+| <distribution root>/doc/config/sql/generic-old/
+
+| Source
+| <source code root>/config/sql/generic-old/
+
+|===
+
+The script file name is constructed in a form:
+
+<database>-upgrade-<from version>-<to version>.sql
+
+e.g. `postgresql-upgrade-4.3-4.4.sql` is an upgrade script for PostgreSQL database that upgrades midPoint 4.3 to midPoint 4.4.
+
+== Executing the script
+
+The scripts should be executed by the usual way the SQL script is executed for any particular database.
+Perhaps the best way is to use command-line tools.
+Please refer to the documentation of your database system for the details.
+E.g., the upgrade script for PostgreSQL database is usually executed like this:
+
+[source,bash]
+----
+psql -h localhost -U midpoint -W -d midpoint -f postgresql-upgrade-4.3-4.4.sql
+----
+
+The scripts are designed to be run only once - unlike upgrade scripts for the Native repository, they are not idempotent.
+
+[TIP]
+====
+Strictly speaking, the _version_ term above refers to the _database schema version_, not the midPoint version.
+These are the same for the majority of cases.
+A notable exception is midPoint 4.1 that uses database schema version 4.0.
+So, in that particular case, upgrade scripts are named like `postgresql-upgrade-4.0-4.2.sql`.
+See xref:/midpoint/reference/repository/generic/database-schema-versioning/[Database schema versioning] for more information.
+====
+
+== See Also
+
+* xref:/midpoint/reference/upgrade/upgradeability/[Upgradeability]
+
+* xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade HOWTO]
+
+* xref:/midpoint/reference/repository/generic/database-schema-versioning/[Database schema versioning] (Generic repository)

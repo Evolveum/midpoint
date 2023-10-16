@@ -1,0 +1,5 @@
+= FAQ, issues during upgrade
+
+This document is a collection of frequently asked questions and answers about the upgrade process.
+It is intended to help you to solve problems that may occur during the upgrade process.
+

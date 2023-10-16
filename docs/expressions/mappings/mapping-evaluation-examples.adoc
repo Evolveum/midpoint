@@ -1,0 +1,226 @@
+= Mapping Evaluation Examples
+:page-display-order: 600
+:page-wiki-name: Mapping Evaluation Examples
+:page-wiki-id: 24674741
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-07-13T14:59:26.975+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-07-13T14:59:26.975+02:00
+:page-upkeep-status: orange
+
+// Needs update, or at least a better description
+
+== Resource and Role Attribute Mappings
+
+Resource attribute can be set by several means: manually specified in midPoint user interface, produced by a mapping in a role or in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling]. MidPoint is designed to automatically merge all the values produced by mappings.
+This approach is quite clear when applied to multi-valued attributes, where all the results of all mappings are combined together.
+But it is a different story for single-valued attributes.
+Only one value can be a result and it is not that obvious how several mappings are combined to produce the value.
+The following table provides a summary of the values are produced.
+The table corresponds to the following scenario:
+
+* CSV resource
+
+* Resource schema mapping to an attribute setting the value to False
+
+* Role schema mapping to the same attribute setting the value to True
+
+* Resource assigned to a user thus creating an account on the CSV resource
+
+* Role assigned to user
+
+* Role unassigned from user
+
+The Resource and Role columns show the strength and authoritative settings for the attribute.
+The Resultant Value columns show the attribute value on the resource after adding the role and removing the role.
+
+[%autowidth]
+|===
+2+| Resource 3+| Role 2+| Resultant Value
+
+h| Strength
+h| Expression
+h| Strength
+h| Expression
+h| Authoritative
+h| Add Role
+h| Remove Role
+
+
+| Weak
+| FALSE
+| Weak
+| TRUE
+| TRUE
+| FALSE
+| FALSE
+
+
+| Weak
+| FALSE
+| Normal
+| TRUE
+| TRUE
+| TRUE
+| Value Erased
+
+
+| Weak
+| FALSE
+| Strong
+| TRUE
+| TRUE
+| TRUE
+| FALSE
+
+
+| Normal
+| FALSE
+| Weak
+| TRUE
+| TRUE
+| FALSE
+| FALSE
+
+
+| Normal
+| FALSE
+| Normal
+| TRUE
+| TRUE
+| TRUE
+| Value Erased
+
+
+| Normal
+| FALSE
+| Strong
+| TRUE
+| TRUE
+| TRUE
+| FALSE
+
+
+| Strong
+| FALSE
+| Weak
+| TRUE
+| TRUE
+| FALSE
+| FALSE
+
+
+| Strong
+| FALSE
+| Normal
+| TRUE
+| TRUE
+| FALSE
+| FALSE
+
+
+| Strong
+| FALSE
+| Strong
+| TRUE
+| TRUE
+| FALSE
+| FALSE
+
+
+| Weak
+| FALSE
+| Weak
+| TRUE
+| FALSE
+| FALSE
+| FALSE
+
+
+| Weak
+| FALSE
+| Normal
+| TRUE
+| FALSE
+| TRUE
+| TRUE
+
+
+| Weak
+| FALSE
+| Strong
+| TRUE
+| FALSE
+| TRUE
+| TRUE
+
+
+| Normal
+| FALSE
+| Weak
+| TRUE
+| FALSE
+| FALSE
+| FALSE
+
+
+| Normal
+| FALSE
+| Normal
+| TRUE
+| FALSE
+| TRUE
+| TRUE
+
+
+| Normal
+| FALSE
+| Strong
+| TRUE
+| FALSE
+| TRUE
+| TRUE
+
+
+| Strong
+| FALSE
+| Weak
+| TRUE
+| FALSE
+| FALSE
+| FALSE
+
+
+| Strong
+| FALSE
+| Normal
+| TRUE
+| FALSE
+| FALSE
+| FALSE
+
+
+| Strong
+| FALSE
+| Strong
+| TRUE
+| FALSE
+| FALSE
+| FALSE
+
+
+|===
+
+[TIP]
+====
+This table was contribute by Adam Davenport from Western University.
+All contributions are appreciated.
+See xref:/community/[community section of this site] to see how the community can improve midPoint project.
+====
+
+
+== See Also
+
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
+
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

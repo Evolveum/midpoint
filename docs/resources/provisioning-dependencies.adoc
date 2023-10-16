@@ -1,0 +1,80 @@
+= Provisioning Dependencies
+:page-wiki-name: Provisioning Dependencies
+:page-wiki-id: 6586381
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-11-08T15:59:48.886+01:00
+:page-wiki-metadata-modify-user: vera
+:page-wiki-metadata-modify-date: 2020-01-22T10:08:31.217+01:00
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+Usually each resource can be provisioned independently.
+E.g. LDAP account and database account in application X are not in any way related to each other.
+MidPoint assumes that they are independent and may take advantage of that e.g. by provisioning these two accounts in parallel.
+
+However, there are some cases in which the accounts are *not* independent.
+E.g. an operating system account must exist before an application account can be created.
+Or one of the resources generates attribute value (e.g. e-mail address) that is required to create another account.
+That is the case of *dependent* accounts: one account must be provisioned before the other.
+
+MidPoint by default assumes that accounts are independent.
+If the accounts are dependent, then such a dependency must be specified in the resource configuration:
+
+[source,xml]
+----
+<resource oid="xxxxx">
+  ...
+  <schemaHandling>
+    ...
+    <objectType>
+      ...
+      <dependency>
+        <resourceRef oid="yyyyy"/>
+        <strictness>strict</strictness>
+
+<!-- the following is default -->
+     <!--
+     <kind>account</kind>
+     <intent>default</intent>
+      -->
+
+       </dependency>
+      ...
+    </objectType>
+    ...
+  </schemaHandling>
+  ...
+</resource>
+----
+
+The definition above specifies that the account on resource `xxxxx` depends on a default account on resource `yyyyy`. It means that if both accounts are to be created or modified at the same time then the account on resource `yyyyy` will be processed before account on resource `xxxxx`. You can specify kind/intent combination if necessary.
+You can also have provisioning dependency within the same resource - in that case you don't need to specify resourceRef, but you need to specify kind and intent.
+
+
+== Dependency Strictness
+
+There are three modes of "strictness" setting (copied from the common schema documentation):
+
+* *strict*: If the object that we depend on is not provisioned then the dependent object will not be provisioned either.
+Attempt to provision it will end up with an error. +
+If the object that we depend on is being provisioned in the same operation (context) as the dependent object then they will be provisioned in order: independent first, dependent second.
++
+Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
+
+* *relaxed*: If the object that we depend on is being provisioned in the same operation (context) as the dependent object then they will be provisioned in order: independent first, dependent second. +
+Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
+But no error is thrown if the dependent object is provisioned without the other object. +
+If both objects are being provisioned in the same operation (context) and provisioning of the object that we depend on fails the provisioning of the dependent object will be skipped. +
+The relaxed strictness guarantees ordering in case that both objects are being provisioned in the same operation (context) and delaying of the operation on dependent resource in case the operation on independent resource fails.
+
+* *lax*: If the object that we depend on is being provisioned in the same operation (context) as the dependent object then they will be provisioned in order: independent first, dependent second. +
+Proper inbound-template-outbound sequence of mapping will be executed between the provisionings.
+But NO ERROR is thrown if the dependent object is provisioned without the other object.
+Not even if they are provisioned in the same operation (context) an the independent object fails. +
+The lax strictness only guarantees ordering in case that both objects are being (successfully) provisioned.
+It does not guarantee anything else.
+
+Note that dependency *does not imply assignment*. It means that if account on resource `xxxxx` will be assigned to the user is *does not* mean that also account on resource `yyyyy` is also assigned to the user.
+Dependencies are mechanism for ordering operations and do not duplicate policy mechanisms such as assignments and roles.
+If such automatic assignment is desired then we recommend using xref:/midpoint/reference/roles-policies/rbac/[roles] for this purpose.

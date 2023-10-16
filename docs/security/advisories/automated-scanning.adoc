@@ -1,0 +1,19 @@
+= Automated Vulnerability Scanning
+
+== OWASP Dependency Check
+
+MidPoint builds are periodically scanned by https://owasp.org/www-project-dependency-check/[OWASP Dependency Check] tool using Jenkins to detect known common vulnerabilities in dependencies of midPoint. 
+
+You can find latest results in https://jenkins.evolveum.com/job/midpoint-master-security/[Evolveum Jenkins - midpoint-master-security job].
+
+
+=== False Positives
+
+Not all common vulnerabilities reported by dependency scan are exploitable vulnerabilities.
+Some findings may be false positives - mdPoint does not use vulnerable dependencies in a deployment or in a way described in vulnerability.
+
+We maintain suppression file, which consists only of known false positives `https://github.com/Evolveum/midpoint/blob/master/config/false-positives.xml[config/false-positives.xml]`.
+
+This file is used as configuration for OWASP Dependency Check to suppress known false positives, and also contains human readable list of CVEs and explanation, why detected vulnerability is considered false positive.
+
+If you want to perform your own dependency scan, we recommend to use this list of false positives, soy your tooling also suppress these.

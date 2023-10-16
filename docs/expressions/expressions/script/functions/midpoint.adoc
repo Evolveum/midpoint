@@ -1,0 +1,114 @@
+= MidPoint Script Library
+:page-wiki-name: MidPoint Script Library
+:page-wiki-id: 13074839
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-12-06T17:44:19.709+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2021-02-24T10:42:46.079+01:00
+:page-toc: top
+
+MidPoint function library provides access to midPoint internals.
+It provides complex functions that contain IDM-specific and midPoint-specific logic.
+It also contains version of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] methods that are designed to be easy to use from the scripting languages.
+
+== IDM Model Interface Functions
+
+Following functions directly invoke the operations of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface].The library provides a simplified versions of the operations which are easier to use from scripts.
+The library implementation automatically supplies some required arguments (such as `task` and `result`), provide automatic type conversion and they are also designed to work with the form of xref:/midpoint/devel/prism/[prism objects] that is typically used in scripts (the JAXB-like compiled form).
+Therefore use of these functions from scripts is quite seamless.
+
+[%autowidth]
+|===
+| Function Name | Description
+
+| getObject(type, oid, [ options ])
+| Returns object for provided OID.
+It retrieves the object from an appropriate source for an object type (e.g. internal repository, resource or both), merging data as necessary, processing any policies, caching mechanisms, etc.
+
+
+| searchObjects(type, query, [ options ]) +
+searchObjectsIterative(type, query, handler, [ options ]) +
+searchObjectByName(type, name)
+| Search for objects.
+Searches through all object of a specified type.
+Returns a list of objects that match search criteria.
+Or invokes the handler (as callback) in the "iterative" version of the methods.
+
+
+| countObjects(type, query)
+| Count objects.
+Searches through all object of a specified type and returns a count of such objects.
+
+
+| executeChanges(deltas, [ options ])
+| Execute the provided object deltas.
+
+
+| addObject(newObject, [ options ])
+| Add specified object to repository and to the resource (if applicable).
+
+
+| modifyObject(delta, [ options ])
+| Modify specified object in repository and on the resource (if applicable).
+
+
+| delteObject(type, oid, [ options ])
+| Delete specified object from the repository and the resource (if applicable).
+
+
+| recompute(type, oid)
+| Recompute object specified by the OID (and all related projection objects).
+
+
+| findShadowOwner(oid)
+| Find owner for the specified shadow.
+
+
+| testResource(oid)
+| Test resource specified by the provided shadow.
+
+
+|===
+
+You may want to have a look at xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction] to see examples how to use these methods.
+Just keep in mind that the scripting library has a simplified versions of these methods therefore the task and result parameters are supplied automatically and do no need to be specified explicitly.
+
+=== Examples
+
+[source]
+----
+<outbound>
+    <expression>
+        <script>
+            <code>
+                import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+                ship = midpoint.getObject(GenericObjectType.class, "54195419-5419-5419-5419-000000000001");
+                'The crew of ' + ship.getName();
+            </code>
+        </script>
+    </expression>
+</outbound>
+----
+
+// TODO: more examples
+
+
+== JavaDoc and Source Code
+
+++++
+{% versionlinks
+since: "3.0"
+development: true
+columns:
+  - heading: JavaDoc
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/model/api/expr/MidpointFunctions.html"
+    linkText: "JavaDoc"
+  - heading: Source Code
+    linkUrlPattern: "https://github.com/Evolveum/midpoint/blob/${git-tag}/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/expr/MidpointFunctionsImpl.java"
+    linkText: "Source"
+%}
+++++
+
+== See Also
+
+* xref:/midpoint/reference/interfaces/model-java/introduction/[IDM Model Interface Introduction]

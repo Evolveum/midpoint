@@ -1,0 +1,31 @@
+= Miscellaneous MidPoint Tips & Tricks
+:page-nav-title: Tips & Tricks
+:page-wiki-name: Misc Tips & Tricks
+:page-wiki-id: 22741300
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-05-09T09:02:04.287+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2019-12-04T18:55:32.296+01:00
+:page-upkeep-status: orange
+
+== CertificateException: Certificates does not conform to algorithm constraints
+
+Java (JCE) is refusing to process a certificate because it violates configured algorithm constraints.
+This is most likely a certificate using md5WithRSAEncryption that are still quite common.
+
+The algorithm constraints are defined in `java.security` file located somewhere in your JDK installation (e.g. `/etc/java-8-openjdk/security/java.security` for OpenJDK8 on Ubuntu).
+Change the following lines
+
+[source]
+----
+jdk.certpath.disabledAlgorithms=MD2, MD5, RSA keySize < 1024
+jdk.tls.disabledAlgorithms=SSLv3, RC4, MD5withRSA, DH keySize < 768
+----
+
+to
+
+[source]
+----
+jdk.certpath.disabledAlgorithms=MD2, RSA keySize < 1024
+jdk.tls.disabledAlgorithms=SSLv3, RC4, DH keySize < 768
+----

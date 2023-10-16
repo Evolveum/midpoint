@@ -1,0 +1,144 @@
+= Activities
+:toc:
+:page-since: "4.4"
+:page-upkeep-status: green
+
+== Introduction
+
+Since the beginning of midPoint, a _task_ represented something that should be done, like importing
+all accounts from a given resource. Such tasks could be created, executed, checked for the current
+status and progress, and so on. Gradually, tasks grew rich in features: multi-thread and multi-node
+processing, the ability to suspend and resume (continuing where the work has stopped), various kinds
+of statistics, and error-reporting and handling options.
+
+Somewhere around midPoint 4.2, we realized that a task is something that can have
+a rich internal structure: it can consist of distinct "parts". For example, reconciliation
+tasks typically consist of operation completion, resource objects reconciliation, and remaining
+shadows reconciliation.
+
+In midPoint 4.4 we finally have found a suitable conceptual model for the tasks and their work:
+the activities.
+
+== Activities
+
+An _activity_ describes the real work that should be carried out. It can be either simple or composite.
+
+_Simple activities_ consist of a single _action_, carried out on a set of input _items_ (zero, one,
+or more ones). Typical examples are recomputation, import from resource, or iterative bulk action.
+
+On the other hand, _composite activities_ consist of a set of other activities - again, either simple
+or composite. Composite activities can be _predefined_ (like reconciliation or cleanup) or
+_custom_. Note that composite activities do not have their own actions nor item sets. They are defined
+solely by their constituent sub-activities.footnote:[This is not 100% true, as there may be
+some auxiliary actions, like recording a starting timestamp for reconciliation, that are built into
+the predefined composition logic. But those are really minor actions, not visible from the outside.
+However, in the future we may be able to define custom composition logic for predefined or even for
+custom composite activities.]
+
+image::activity-categorization.png[alt="Activity categorization", width=600]
+
+=== A Few Examples
+
+==== Example 1: User recomputation - a simple activity with a set of input items
+
+image::activity-user-recomputation.png[alt="User recomputation activity", width=400]
+
+This activity runs a `recomputation` action over a set of all users.
+
+==== Example 2: Non-iterative bulk action - a simple activity with no input items
+
+image::activity-non-iterative-bulk-action.png[width=400,alt="Non-iterative bulk action"]
+
+This activity runs a `nonIterativeScripting` action (i.e. non-iterative bulk action).
+The bulk action does not expect any input items. It simply runs provided Groovy script (in this case).
+
+==== Example 3: Reconciliation - a (predefined) composite activity
+
+image::activity-reconciliation.png[width=900,alt="Reconciliation activity"]
+
+The reconciliation activity consists of three sub-activities. They are partially dependent:
+the third one (remaining shadows reconciliation) depends on the second one (resource objects reconciliation).
+
+Each of the sub-activities has a different action, and a different item set.
+
+==== Example 4: User recomputation + custom bulk action - a (custom) composite activity
+
+image::activity-user-recomputation-with-custom-bulk-action.png[width=700,alt="User recomputation with bulk action"]
+
+The custom activity consists of two sub-activities. Both of them are defined by the user:
+a recomputation, followed by a custom bulk action.
+
+== Configuring the Activities
+
+=== Configuring Simple and Predefined Composite Activities
+
+A definition of a simple (or predefined composite) activity contains the following sections:
+
+[%header]
+[%autowidth]
+|===
+| Section | Meaning
+| xref:work.adoc[`work`] | The work that is to be done. Contains the definition of the activity and the item set.
+| xref:execution-mode.adoc[`execution` and `executionMode`] | Defines the overall mode of execution: `full`, `preview`, `dryRun`, `none`,
+`bucketAnalysis` and related parameters.
+| xref:control-flow.adoc[`controlFlow`] | Items like prerequisites, preconditions, error handling strategy, and so on.
+| xref:distribution.adoc[`distribution`] | Distribution of the work executed as part of this activity into threads, buckets, and worker tasks.
+| xref:reporting/[`reporting`] | How various aspects of activity execution are reported, using logging, tracing,
+profiling, reporting, and so on.
+| xref:tailoring.adoc[`tailoring`] | Tailors the definition of individual sub-activities in a predefined composite activity.
+|===
+
+(More details are provided in the linked documents.)
+
+=== Configuring Custom Composite Activities
+
+In a current implementation, the custom composite activity definition contains just a single section:
+
+[%header]
+[%autowidth]
+|===
+| Section | Meaning
+| `composition` | Defines the composite activity as a set of its constituent sub-activities.
+|===
+
+NOTE: Currently, we do not yet support inheriting the non-functional aspects (`executionMode`, `controlFlow`,
+`distribution`, `reporting`) from the composite to the sub-activities. Neither we do not support specifying
+common parts of the work definition for these. (Like object set specification, or some options.)
+Therefore, the sub-activities have to be fully defined, independently of each other. We plan to improve
+this in the future.
+
+== Activities and Tasks
+
+As described above, _activities_ represent the work that should be done, while _tasks_ are actual
+vehicles that make sure that work is done.
+
+Definition of an activity deals typically with:
+
+* what action should be done, and on which objects,
+* how should errors be treated,
+* how should be the work distributed into threads and worker tasks,
+* how should be the work reported on,
+* and so on.
+
+Definition of a task deals typically with:
+
+* under what identity should the work be done,
+* should the execution be one-time or recurring - and if the latter, at what time intervals,
+* what should be done when the execution thread stops, e.g. by node going down,
+* what are limitations regarding the node(s) on which the execution should take place,
+* what are specific configurations of e.g. caching or operation result handling,
+* and so on.
+
+(The distinction is sometimes clearer and sometimes not.)
+
+Generally, a single task can contain a single or multiple activities, running in the form of
+an activity tree. And vice versa, a single activity can be distributed to multiple tasks,
+when coordinator-workers setup (multi-node processing) is chosen.
+
+== Migration from 4.3 and Before
+
+Please see xref:migration/[this document].
+
+== New Features in 4.4
+
+Please see xref:new-in-4.4/[this document].

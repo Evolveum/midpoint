@@ -1,0 +1,203 @@
+= Microsoft SQL Server
+:page-nav-title: MS SQL
+:page-wiki-name: MS SQL Server 2008, 2014 and 2016
+:page-wiki-id: 15859780
+:page-wiki-metadata-create-user: lazyman
+:page-wiki-metadata-create-date: 2014-06-26T17:05:59.962+02:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-07-28T13:51:49.292+02:00
+:page-deprecated-since: "4.4"
+:page-upkeep-status: orange
+:page-toc: top
+
+[NOTE]
+====
+Tested SQL Server Collations:
+
+* SQL_Latin1_General_CP1_CS_AS
+
+* SQL_Czech_CP1250_CS_AS
+
+*Be aware* that using *CS* (case-sensitive) collation causes *column names in queries to be case-sensitive too!*
+====
+
+== Database create
+
+The following script is written for `sqlcmd` and may require adjustments for other SQL clients:
+
+[source,sql]
+----
+CREATE DATABASE midtest
+    COLLATE SQL_Latin1_General_CP1_CS_AS;
+GO
+
+ALTER DATABASE midtest SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+ALTER DATABASE midtest SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE midtest SET MULTI_USER;
+
+CREATE LOGIN midtest WITH PASSWORD = 'password', CHECK_POLICY = OFF;
+GO
+
+USE midtest;
+GO
+
+CREATE USER [midtest] FOR LOGIN [midtest] WITH DEFAULT_SCHEMA=[dbo];
+GO
+ALTER ROLE [db_owner] ADD MEMBER [midtest];
+GO
+----
+
+Check policy for password is disabled because very simple password is used, you can use proper password instead.
+
+Assuming the commands above are in a file called `create-db.sql`, run the commands above in `sqlcmd`:
+
+----
+sqlcmd -b -S localhost -U sa -P 'Pa55word!' -d master -i create-db.sql
+----
+
+Alternatively, run the `sqlcmd` without the last `-i` option and run the commands interactively.
+
+== Configuration sample
+
+[source,xml]
+----
+<configuration>
+  <midpoint>
+    <repository>
+      <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+      <database>sqlserver</database>
+      <jdbcUsername>midpoint</jdbcUsername>
+      <jdbcPassword>password</jdbcPassword>
+      <jdbcUrl>jdbc:sqlserver://localhost:1433;database=midpoint</jdbcUrl>
+    </repository>
+  </midpoint>
+</configuration>
+----
+
+== Troubleshooting
+
+=== Current version cannot be determined. The metadata table (m_global_metadata) is missing or inaccessible.
+
+Log snippet:
+
+----
+*******************************************************************************
+*** ***
+*** Couldn't start midPoint because of a database schema issue.
+***
+*** ***
+*******************************************************************************
+----
+
+Database schema is not compatible with the executing code.
+
+Current version cannot be determined.
+The metadata table (m_global_metadata) is missing or inaccessible.
+This indicates the version is below 3.9. +
+Required version is: 4.0
+
+Reason:
+
+Since version 3.9, midPoint checks for presence of table m_global_metadata and will not start if table is not found.
+
+Resolution:
+
+However, If you have DB wrongly set - missing the ALLOW_SNAPSHOT_ISOLATION option, you will not get usual "SQLServerException: Snapshot isolation transaction failed" but rather confusing error that m_global_metadata table is missing.
+So you just run "ALTER DATABASE "midpoint" SET ALLOW_SNAPSHOT_ISOLATION ON;" to fix it.
+
+Jira:
+
+bug:MID-5880[]
+
+== Driver
+
+MS SQL Server driver is *not* provided as a part of midPoint distribution and must be provided separately:
+
+* Download the driver from here: https://docs.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server
+* The archive (ZIP or tar.gz, you can choose your favorite format) contains the driver JAR files under `sqljdbc_10.2\enu` directory.
+Extract the driver for the JDK you use, or the lowest supported JDK for your midPoint version (e.g. JDK 11 containing `jre11` for 4.4 LTS).
+* Place the JAR into `lib` directory under xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint Home directory].
+
+Now you can start midPoint with SQL Server configured in the `config.xml` (see example above) and check the logs.
+If the driver is not found, midPoint will complain about it and will not start.
+
+== Preparing Docker container for development
+
+Assuming Linux machine with Docker installed, we can quickly get to a working development MS SQL Server.
+Let's start with the SQL Server docker container:
+
+----
+docker run --rm --name sql-server -d -p 1433:1433 \
+  -e ACCEPT_EULA=Y -e 'SA_PASSWORD=Pa55word!' \
+  mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04
+----
+
+Please note, there is no persistent volume when run like this.
+Read https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-docker-container-configure[this] for
+examples with persistent volumes.
+
+Now let's configure it from inside the container:
+
+----
+docker exec -u 0 -it sql-server /bin/bash
+# now we're in shell inside the container
+cd # let's not litter in /
+
+cat > create-db.sql << EOF
+CREATE DATABASE midtest
+    COLLATE SQL_Latin1_General_CP1_CS_AS;
+GO
+
+ALTER DATABASE midtest SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+ALTER DATABASE midtest SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE midtest SET MULTI_USER;
+
+CREATE LOGIN midtest WITH PASSWORD = 'password', CHECK_POLICY = OFF;
+GO
+
+USE midtest;
+GO
+
+CREATE USER [midtest] FOR LOGIN [midtest] WITH DEFAULT_SCHEMA=[dbo];
+GO
+ALTER ROLE [db_owner] ADD MEMBER [midtest];
+GO
+EOF
+
+# now with the file ready, let's initialize the DB:
+/opt/mssql-tools/bin/sqlcmd -b -S localhost -U sa -P 'Pa55word!' -d master -i create-db.sql
+----
+
+At this moment the DB is ready and we can connect to it with any reasonable client (e.g. from IDEA Ultimate).
+Simply execute `sqlserver-*-all.sql` and also the cleanup script `sqlserver.sql` from `repo/repo-sql-impl-test/sql-procedures`
+if we want to run tests (which is likely).
+
+Alternatively we can wget the files from GitHub directly:
+----
+wget https://raw.githubusercontent.com/Evolveum/midpoint/master/config/sql/generic-old/sqlserver-4.5-all.sql
+wget https://raw.githubusercontent.com/Evolveum/midpoint/master/repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
+# now let's use them:
+/opt/mssql-tools/bin/sqlcmd -I -b -S localhost -U midtest -P password -d midtest -i sqlserver-4.5-all.sql -i sqlserver.sql
+----
+
+
+Or for `support-4.4` it would look like this:
+----
+wget https://raw.githubusercontent.com/Evolveum/midpoint/support-4.4/config/sql/generic-old/sqlserver-4.4-all.sql
+wget https://raw.githubusercontent.com/Evolveum/midpoint/support-4.4/repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
+# now let's use them:
+/opt/mssql-tools/bin/sqlcmd -I -b -S localhost -U midtest -P password -d midtest -i sqlserver-4.4-all.sql -i sqlserver.sql
+----
+
+To run a test class with the new SQL Server, the following set of JVM args overrides the default
+H2 repo configuration (don't use newlines for the command line):
+
+----
+-Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://192.168.56.201:1433;database=midtest;trustServerCertificate=true
+-Dmidpoint.repository.jdbcPassword=password
+-Dmidpoint.repository.jdbcUsername=midtest
+-Dmidpoint.repository.database=sqlserver
+-Dmidpoint.repository.hibernateHbm2ddl=validate
+----
+
+Fix the IP to your Docker VM or use `localhost` if appropriate.

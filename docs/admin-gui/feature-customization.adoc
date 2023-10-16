@@ -1,0 +1,23 @@
+= User Interface Feature Customization
+:page-nav-title: Feature Customization
+:page-wiki-name: User Interface Feature Customization
+:page-wiki-id: 24674770
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-07-17T17:10:04.744+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-07-17T17:20:09.691+02:00
+:page-experimental: true
+:page-upkeep-status: yellow
+
+[source]
+----
+    <adminGuiConfiguration>
+        <feature>
+            <identifier>http://midpoint.evolveum.com/xml/ns/public/ui/feature#orgTreeExpandAll</identifier>
+            <visibility>hidden</visibility>
+        </feature>
+    </adminGuiConfiguration>
+----
+
+
+List of currently supported GUI features: link:https://github.com/Evolveum/midpoint/blob/master/gui/admin-gui/src/main/java/com/evolveum/midpoint/gui/api/GuiFeature.java[https://github.com/Evolveum/midpoint/blob/master/gui/admin-gui/src/main/java/com/evolveum/midpoint/gui/api/GuiFeature.java]

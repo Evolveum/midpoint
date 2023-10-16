@@ -1,0 +1,185 @@
+= Jaspersoft Studio - midPoint integration HOWTO
+:page-wiki-name: Jaspersoft Studio - midPoint integration HOWTO
+:page-wiki-id: 17761382
+:page-wiki-metadata-create-user: katkav
+:page-wiki-metadata-create-date: 2015-05-14T21:02:05.283+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-09-25T14:32:40.385+02:00
+:page-obsolete: true
+:page-toc: top
+
+
+There is an experimental jasper report query executor which can be used in Jaspersoft Studio to build custom reports.
+This plugin requires running midPoint and some configuration in Jaspersoft Studio.
+Source code of the plugin can be find on link:https://github.com/Evolveum/jaspersoft-studio-midpoint-integration[github]. To be honest, it is still not perfect and bugs may exist.
+In the case you'll find some bugs, please create an issue in our JIRA and assign it to .
+
+
+== Configure Jaspersoft Studio with midPoint plugin
+
+. Install Jaspersoft Studio
+
+** Tested versions: 6.0.3, 6.0.4 and 6.1.0
+
+
+
+. Build and deploy midPoint
+
+. Build link:https://github.com/Evolveum/jaspersoft-studio-midpoint-integration[jaspersoft-midpoint] integration plugin
+
+** edit client.properties file in jaspersoft-studio-midpoint-integration-{version}.jar to configure plugin (endpoint and credentials)
+
+
+
+. Open Jaspersoft Studio
+
+. Create new project
+
+** Right click and then: New -> Project -> Jaspersoft Studio -> "JasperReports Project"
+
+** Enter project name, e.g.: midPoint
+
+
+
+. Add libs to classpath: Right click on project -> Build Path -> Configure Build Path -> Add External JARs button +
+The list is based on 3.1.1 tag, exact lib version may vary in future releases.
+Add the following libs on the classpath:
+
+** midpoint-jaspersoft-studio-integration-{version}.jar
+
+** audit-api-3.3-SNAPSHOT.jar (this one is part of midPoint)
+
+** audit-impl-3.3-SNAPSHOT.jar (this one is part of midPoint)
+
+** model-client-3.3-SNAPSHOT.jar (this one is in midpoint/model/model-client/target/ when building midPoint)
+
+** report-impl-3.2.SNAPSHOT.jar (this one is part of midPoint)      REMOVE FROM BUILD PATH
+
+** util-3.1.1.jar (this one is part of midPoint)
+
+** cxf-rt-bindings-soap-3.0.1.e3.jar
+
+** cxf-core-3.0.1.e3.jar
+
+** cxf-rt-databinding-jaxb-3.0.1.e3.jar
+
+** cxf-rt-frontend-jaxws-3.0.1.e3.jar
+
+** cxf-rt-transports-http-3.0.1.e3.jar
+
+** cxf-rt-ws-security-3.0.1.e3.jar
+
+** cxf-rt-frontend-simple-3.0.1.e3.jar
+
+** cxf-rt-wsdl-3.0.1.e3.jar
+
+** cxf-xjc-runtime-3.0.3.jar
+
+** jaxb2-basics-runtime-0.6.3.jar
+
+** jaxb-impl-2.2.10-b140310.1920.jar
+
+** jaxb-core-2.2.10-b140310.1920.jar
+
+** jackson-dataformat-yaml-2.3.1.jar
+
+** relaxngDatatype-20020414.jar
+
+** spring-context-3.0.5.RELEASE.jar (Be aware that Jasper Studio 6.0.4 is compatible with Spring 3, which may be found e.g. here: link:http://nexus.evolveum.com/nexus/content/repositories/spring-releases/org/springframework/[http://nexus.evolveum.com/nexus/content/repositories/spring-releases/org/springframework/])
+
+** spring-aop-3.0.6.RELEASE.jar (Be aware that Jasper Studio 6.0.4 is compatible with Spring 3, which may be found e.g. here: link:http://nexus.evolveum.com/nexus/content/repositories/spring-releases/org/springframework/[http://nexus.evolveum.com/nexus/content/repositories/spring-releases/org/springframework/])
+
+** wsdl4j-1.6.3.jar
+
+** wss4j-ws-security-dom-2.0.1.jar
+
+** wss4j-ws-security-common-2.0.1.jar
+
+** xmlschema-core-2.1.0.jar
+
+** xmlsec-2.0.1.jar
+
+** xsom-20110809.jar
+
+
+
+. Configure new query executor in Jaspersoft Studio
+
+** In Jaspersoft studio go to the Window -> Preferences, find Jaspersoft Studio and then Properties.
+Click on the Add button and fill the required fields with following values:
+
+*** Property Name "net.sf.jasperreports.query.executer.factory.*mql*"
+
+*** Value "*com.evolveum.midpoint.jaspersoft.studio.integration.MidPointRemoteQueryExecutorFactory*"
+
+
+
+
+
+. Create new Data adapter (in Jaspersoft Studio - Repository tab)
+
+** Right click on the project you created in step 4 and then:  New -> Other -> Jaspersoft Studio -> Data Adapter (name it mql for example) -> Query executor adapter
+
+** Locate Repository tab in left upper corner, usually next to "Project Explorer".
+If it's not there try Windows -> Open Perspective -> Other -> Report Design
+
+** In the Repository tab right click on the Data Adapters and choose "Import from Workspace" and then choose the data adapter you created previously
+
+
+
+. Probably after you configure Jaspersoft Studio you will need to restart it (some class loading problems)
+
+. Run report with the midPoint adapter (created in the previous step) - see below in Usage
+
+
+== Limitations
+
+* Jaspersoft Studio is starting a little bit longer because of different initializations
+
+* You can user only "primitive" types for report parameters in Jaspersoft Studio - other parameters are not shown while running reports and this may cause errors while executing queries or scripts.
+Other possibility is to use queries without parameters.
+
+* In the subdatasets the name of the parameter *must be *the name for the JAXB element - it can be found in schema or ObjectFactory class.
+
+* Fields class should be classes defined in schemas (common-3, audit-3,...).
+
+
+== Usage
+
+. In studio, open project as described above.
+
+. Add new report (New->Jasper Report) or manually create .jrxml file in your JaspersoftWorkspace/<project> folder.
+
+. Login to midPoint and go to Reports->List reports, Configure button at desired report and then click Jasper Template tab.
+
+. Copy whole Jasper template XML to your new studio report.
+
+. Now you need to copy styles:
+
+.. In midPoint, Jasper template style tab - copy inner content of <jasperTemplate> tag.
+Starting with <style>...
+
+.. Add style lines to your studio report - usually under last <property> or <import> tag at the near top of source.
+
+
+
+. In studio, click Preview tab and choose mql as data adapter.
+
+. Fill in input parameters (if any) and click Play.
+
+
+== Troubleshooting
+
+* When tuning Jasper Studio dont forget to check idm.log in midPoint as well! E.g. many SOAP exceptions are there.
+
+* Report compilation results in "Could not resolved style(s)" - Your JRXML is missing style references. Just copy content of <jasperTemplate> from midPoint portal to your JRXML file under <import> tag. E.g. <style name="Base" isDefault="true" ... />
+
+* "Unmarshalling Error: unexpected element..." - avoid prism.jar on the classpath
+
+* "SoapFault: Fault occurred while processing." - see JAXB element limitation above and check your <datasetParameter> names
+
+* "SOAPFaultException: Security processing failed" which is Caused by: "java.lang.ClassCastException: org.apache.wss4j.common.ext.WSPasswordCallback cannot be cast to org.apache.wss4j.common.ext.WSPasswordCallback" - restart Studio, delete .jasper file, close report tab and compile again OR re-create new report (and copy/paste the content from the original one), you don't need to restart Studio
+
+* To force report refresh/recompile, try closing the report tab and open jrxml again.
+
+* java.net.SocketTimeoutException: Read timed out - increase timeouts in client.properties

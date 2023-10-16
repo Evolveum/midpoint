@@ -1,0 +1,108 @@
+= Look & Feel Customization HOWTO
+:page-toc: top
+:page-since: "4.6"
+
+Current MidPoint theme is based on link:https://almsaeedstudio.com/preview[AdminLTE] template.
+
+* AdminLTE 3.2
+* Bootstrap 4.6
+* jQuery
+* link:https://ace.c9.io/#nav=about[Ace editor]
+* other plugins
+** bootstrap-select
+** bootstrap-multiselect
+** daterangepicker
+** select2
+
+== Stylesheets and javascripts
+
+WARNING: Since midPoint 4.6, stylesheets can't be changed without modifying source code of midpoint or using overlay.
+
+Starting with midPoint 4.6 whole css/js processing has changed.
+In previous versions midPoint compiled all LESS and CSS files (sources + files from midpoint.home) during startup into final CSS files that were used to style web pages.
+
+With midPoint 4.6 NodeJS and Webpack 5 was incorporated into build.
+Stylesheets, javascripts and other static resources are now processed using Webpack 5 and configuration defined in package.json.
+These are invoked using maven during build time and final CSS/javascript files are bundled into final midPoint JAR file.
+
+Simple style and javascript changes can be done via maven overlay by adding content to CSS/javascript files:
+
+* src/main/resources/static/css/overlay.css
+* src/main/resources/static/js/overlay.js
+
+These files are empty by default and are linked last on midPoint web pages.
+
+For more details see xref:../../devel/gui/gui-development-guide.adoc#styles-and-javascript[GUI development guide].
+
+== Quick customization
+
+=== Header color
+
+Header color can be defined in system configuration object, part `deploymentInformation/headerColor`.
+This property can be combined with `skin`, however header color value will override default skin header color.
+
+=== AdminLTE skins
+
+Skins can be defined in system configuration object, part `deploymentInformation/skin`.
+
+Previous versions of AdminLTE contained 12 predefined skins out of the box.
+Currently used version of AdminLTE 3.x doesn't support skins, however for backward compatibility these were implemented on top of AdminLTE:
+
+* skin-blue
+* skin-blue-light
+* skin-yellow
+* skin-yellow-light
+* skin-green
+* skin-green-light
+* skin-purple
+* skin-purple-light
+* skin-red
+* skin-red-light
+* skin-black
+* skin-black-light
+
+AdminLTE supports few theme colors:
+
+* primary
+* secondary
+* info
+* success
+* warning
+* danger
+* black
+* indigo
+* lightblue (default)
+* navy
+* purple
+* fuchsia
+* pink
+* maroon
+* orange
+* lime
+* teal
+* olive
+
+== Example of usage colored and dark/light themes
+
+[source, xml]
+----
+<deploymentInformation>
+    <skin>orange</skin>
+</deploymentInformation>
+----
+
+[source, xml]
+----
+<deploymentInformation>
+    <headerColor>#444</headerColor>
+    <skin>secondary</skin>
+</deploymentInformation>
+----
+
+[source, xml]
+----
+<deploymentInformation>
+    <headerColor>#444</headerColor>
+    <skin>secondary</skin>
+</deploymentInformation>
+----

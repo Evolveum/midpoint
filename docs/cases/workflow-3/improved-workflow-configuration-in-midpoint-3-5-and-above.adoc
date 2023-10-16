@@ -1,0 +1,37 @@
+= Improved workflow configuration in midPoint 3.5 and above
+:page-nav-title: MidPoint 3.5
+:page-wiki-name: Improved workflow configuration in midPoint 3.5 and above
+:page-wiki-id: 24084611
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-11-29T17:35:22.274+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-11-29T17:35:22.274+01:00
+:page-obsolete: true
+
+Besides legacy approval configuration (described xref:/midpoint/reference/cases/workflow-3/legacy-pre-3-5-workflow-configuration/[in a separate document]), midPoint 3.5 provides much more flexible approach to configuring approvals: _the policy rule-based configuration_.
+
+
+The configuration looks like this:
+
+[source,xml]
+----
+  <workflowConfiguration>
+    <modelHookEnabled>true</modelHookEnabled>		<!-- this is the default -->
+    <processCheckInterval>10</processCheckInterval> <!-- this is the default -->
+    <allowCompleteOthersItems>true</allowCompleteOthersItems> <!-- this is the default -->
+    <primaryChangeProcessor>
+      <enabled>true</enabled>						<!-- this is the default -->
+      <addUserAbstractRoleAssignmentAspect>
+        <enabled>true</enabled>						<!-- this is the default -->
+      </addUserAbstractRoleAssignmentAspect>
+      <addUserAspect>
+        <approverRef oid="12345678-1234-1234-4321-123456781234" type="UserType"/>
+      </addUserAspect>
+      <otherAspect>
+        <name>myExtraSpecialCustomWorkflowAspect</name>
+        <approverRef oid="32143214-adce-9910-8898-439183748100" type="UserType"/>
+        <approverRef oid="90101010-8818-0102-3111-849328493218" type="UserType"/>
+      </otherAspect>
+    </primaryChangeProcessor>
+  </workflowConfiguration>
+----

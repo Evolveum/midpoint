@@ -1,0 +1,359 @@
+= midPoint Demo Upgrade HOWTO
+:page-wiki-name: midPoint Demo Upgrade HOWTO
+:page-wiki-id: 16613432
+:page-wiki-metadata-create-user: mdevecka
+:page-wiki-metadata-create-date: 2014-08-21T19:10:14.612+02:00
+:page-wiki-metadata-modify-user: ifarinic
+:page-wiki-metadata-modify-date: 2015-07-07T17:30:47.103+02:00
+:page-obsolete: true
+
+== midPoint demo migration guide
+
+Together with midPoint upgrade also new version of live demo was made.
+This guide describes midPoint migration from 2.2.1 to 3.0 version in following *steps*:
+
+
+
+. *Download and install**Virtual box* via link:https://www.virtualbox.org/wiki/Downloads[https://www.virtualbox.org/wiki/Downloads] and select appropriate platform package. +
+\=================================================================================================================================================================
+
+. *Download**ubuntu server* via link:http://virtualboxes.org/images/ubuntu-server/[http://virtualboxes.org/images/ubuntu-server/] and select link:https://s3-eu-west-1.amazonaws.com/virtualboxes.org/ubuntu-14.04-server-i386.ova.torrent[https://s3-eu-west-1.amazonaws.com/virtualboxes.org/ubuntu-14.04-server-i386.ova.torrent] +
+\=================================================================================================================================================================
+
+. *Download and install utorrent* via link:http://www.utorrent.com/downloads/win[http://www.utorrent.com/downloads/win] (select stable version).
+Add and start to download ubuntu-14.04-server-i386.ova.torrent  +
+Download midpoint 2.2.1 VM (demo-2.2.1-new-ip-ovf1.ova).
+New user has to be added with new password via command: sudo adduser ... sudo.
+ +
+Also edit of interfaces is needed via command: sudo vim /etc/network/interfaces where static is replaced with dhcp and parts below are commented.
+ +
+Restart is needed via command: sudo service networking restart or sudo /etc/init.d/networking restart +
+\=================================================================================================================================================================
+
+. *Import new VM* (ubuntu-14.04-server-i386.ova) into Virtual box where midpoint 3.0 is to be installed.
+Set up settings, especially motherboard base memory with 2048 MB. +
+\=================================================================================================================================================================
+
+. *Download and install putty.exe* via link:http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html[http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html] +
+\=================================================================================================================================================================
+
+. *Set up Port forwarding* in midpoint demo VM in Virtual box (Settings -> Network -> Advanced) in order to run midpoint, putty and web applications: +
+ +
+
+[%autowidth]
+|===
+| Name |   | Protocol | Host IP | Host Port | Guest IP | Guest Port
+
+| Rule1 (midpoint)
+|
+|  TCP
+| 127.0.0.1
+| 8080
+| 10.0.2.15
+| 8080
+
+
+| Rule2 (web apps)
+|
+|  TCP
+|
+| 5678
+|
+| 80
+
+
+| Rule3 (putty)
+|
+|  TCP
+|
+| 2222
+|
+| 22
+
+
+|===
+
+       You can check out your Host IP and Guest IP in ubuntu via command: ifconfig       In case you are working in windows (where virtual box is installed) possibility to create new port (for example for putty) is via command: C:\Program Files\Oracle\Virtual Box>VBoxManage modifyvm "ubuntu-14.04-server-i386" --natpf1 "Rule3,tcp,,2222,,22" +
+
+. *Install**JDK* via command:
++
+----
+sudo add-apt-repository link:http://ppawebupd8team[ppa:webupd8team/java] +
+sudo apt-get update +
+sudo apt-get install oracle-java6-installer +
+sudo apt-get install oracle-java7-installer +
+sudo apt-get install oracle-java8-installer +
+sudo apt-get update +
+----
+
+. *Tomcat**installation and configuration* on VM (check also      xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] and link:https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-7-on-ubuntu-14-04-via-apt-get[https://www.digitalocean.com/community/tutorials/how-to-install-apache-tomcat-7-on-ubuntu-14-04-via-apt-get]) via commands:
++
+----
+sudo apt-get install tomcat7
+sudo apt-get install tomcat7-docs tomcat7-admin tomcat7-examples
+sudo apt-get install ant git
+sudo vim /etc/tomcat7/tomcat-users.xml
+<tomcat-users>
+<user username="administrator" password="5ecr3t" roles="manager-gui,admin-gui"/>
+</tomcat-users>
+sudo service tomcat7 restart
+----
++
+Also file setenv.sh with content (CATALINA_OUT=/var/log/tomcat7/catalina.out) has to be created via command:
++
+----
+sudo vim /usr/share/tomcat7/bin/setenv.sh
+----
++
+At last check in browser connection via: link:http://localhost:8080[http://localhost:8080] +
++
+It works! should appear.
+Once installed, you can access the manager webapp and the host-manager webapp entering username administrator and password 5ecr3t.
+
+. *PostgreSQL**installation.* Check      xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
+To install PostgreSQL, run the following command:    sudo apt-get install postgresql +
+\=================================================================================================================================================================
+
+. *LDAP installation.*
+Check also link:https://help.ubuntu.com/14.04/serverguide/serverguide.pdf[https://help.ubuntu.com/14.04/serverguide/serverguide.pdf].
+To install LDAP, run the following command:
++
+----
+    sudo apt-get install slapd ldap-utils +
+    sudo ufw app list +
+    sudo ufw allow "openLDAP LDAP" +
+----
++
+This is command what the slapd-config DIT looks like via the LDAP protocol:
++
+----
+sudo ldapsearch -Q -LLL -Y EXTERNAL -H ldapi://wiki.evolveum.com/[ldapi:///] -b cn=config dn
+----
++
+This is command what the dc=example,dc=com DIT looks like:
++
+----
+ldapsearch -x -LLL -H link:ldap://wiki.evolveum.com/[ldap:///] -b dc=example,dc=com dn +
+----
+
+. *Midpoint 3.0 installation.* Check also:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
+Download midpoint last recent version via command: +
+sudo wget "link:http://athena.evolveum.com/builds/master/build2781-v3.0.1devel-15-g0c62837/midpoint-3.1-SNAPSHOT-dist.tar.gz[athena.evolveum.com/builds/master/build2781-v3.0.1devel-15-g0c62837/midpoint-3.1-SNAPSHOT-dist.tar.gz]" +
++
+Unpack the file via command:
++
+----
+sudo tar -zxvf */midpoint-3.1-SNAPSHOT-dist.tar.gz +
+----
++
+Create midPoint home directory and also make sure it can be accessed by tomcat:
++
+----
+sudo mkdir /opt/midpoint-home +
+sudo chown link:http://tomcat7tomcat7[tomcat7:tomcat7] /opt/midpoint-home +
+----
++
+Add `JAVA_OPTS="$JAVA_OPTS -server -Xms256m -Xmx1024m -XX:PermSize=128m -XX:MaxPermSize=256m -Dmidpoint.home=/opt/midpoint-home/"` into `catalina.sh` file via command:
++
+----
+sudo vim /usr/share/tomcat7/bin/catalina.sh +
+----
++
+Copy midpoint.war in tomcat7 via command:
++
+----
+sudo cp */midpoint-3.1-SNAPSHOT/war/midpoint.war /var/lib/tomcat7/webapps
+----
++
+[NOTE]
+====
+For stable release check:
+* the latest midpoint link:http://www.evolveum.com/downloads/midpoint/3.0/[http://www.evolveum.com/downloads/midpoint/3.0/]
+* and download midpoint-3.0-dist.zip
+
+For snapshot check:
+* the latest commit number on link:https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful[https://bamboo.evolveum.com/browse/MID-TRUNK/latestSuccessful]
+* and download it via link:http://athena.evolveum.com/builds/master/[http://athena.evolveum.com/builds/master/] where .zip file should be selected (midpoint-3.1-SNAPSHOT-dist.zip).
+====
+
+. *Apache**install.* Check also:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[] +
+Install apache2 via command:    sudo apt-get install apache2 +
+\=================================================================================================================================================================
+
+. *Install**WinSCP* (commander variant) on local operating system because of need to transfer files between local operating system and midpoint VM located on Virtual box. +
+\=================================================================================================================================================================
+
+. *Midpoint 3.0 configuration.* +
+In case you want to import new midpoint WAR, delete midpoint files (sudo rm -r midpoint) in /var/lib/tomcat7/webapps and /var/lib/tomcat7/Catalina/localhost.
+ +
+In order to change midpoint repository, edit config.xml in opt/midpoint-home and replace old H2 repository with postgreSQL: +
+<repository> +
+<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass> +
+<embedded>false</embedded> +
+<driverClassName>org.postgresql.Driver</driverClassName> +
+<jdbcUsername>midpoint</jdbcUsername> +
+<jdbcPassword>5ecr3t</jdbcPassword> +
+<jdbcUrl>link:[jdbc:postgresql://localhost/midpoint]</jdbcUrl> +
+<hibernateDialect>com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect</hibernateDialect> +
+<hibernateHbm2ddl>validate</hibernateHbm2ddl> +
+</repository> +
+\=================================================================================================================================================================
+
+. *Create postgreSQL database.* Check:     xref:/midpoint/guides/midpoint-on-ubuntu-tomcat-postgresql-howto/[]    Example for create a database: ubuntu@ubuntu-i386:/$ sudo -u postgres createdb --owner=midpoint midpoint        Example to execute the script to create database: ubuntu@ubuntu-i386:/$ psql --host=localhost --username=midpoint -d midpoint < /midpoint-2.3-SNAPSHOT/config/sql/midpoint/2.3/postgresql/postgresql-2.3.sql        Check if database was created correctly:    ubuntu@ubuntu-i386:/$ sudo su - postgres    postgres@ubuntu-i386:~$ psql -U postgres    postgres=# \l +
+\=================================================================================================================================================================
+
+. *Download, unzip and copy Java Cryptography Extension (JCE)* version 6, 7, 8 local_policy.jar and US_export_policy.jar files into /usr/lib/jvm/java.../jre/lib/security file located in midpoint VM. +
+\=================================================================================================================================================================
+
+. *Download and install KeyStore Explorer 5.0* in order to* combine default and strong key* from midpoint's 2.2.1 keystore.jceks (located in var/opt/midpoint) with midpoint's 3.0 keystore.jceks default key (located in /opt/midpoint-home). +
+\=================================================================================================================================================================
+
+. *Create export.csv file or import* via WinSCP and set up full access rights (sudo chmod 777 export.csv) and also chmod o+w for hr in path /var/opt/hr/export.csv  +
+Also set sudo chown link:http://tomcat7tomcat7[tomcat7:tomcat7] /var/opt/hr +
+\=================================================================================================================================================================
+
+. *Download OpenDj* zip (OpenDJ-2.5.0-Xpress1.zip) file, unzip.
+ +
+Create new directory via command: sudo mkdir /opt/OpenDJ +
+Copy OpenDJ-2.5.0-Xpress1 into /opt/OpenDJ and set access rights if necessary (sudo chmod 777 ...). +
+ +
+Start installation (    xref:/connectors/resources/ldap/opendj/[]) of OpenDJ via command (taking into account your path and OpenDJ version):  +
+ubuntu@ubuntu-i386:/$ sudo /opt/opendj/OpenDj.\*/./setup --cli +
+ +
+Import exportPhpLdapAdminDemo3.ldif or .ldif by your desire (Option 3 for populating the database).
+Exact path is demanded.
+ +
+ +
+Allow ACI for cn=changelog suffix (non-Windows platforms only): +
+opt/OpenDJ/OpenDJ-2.5.0-Xpress1/bin/$ ./dsconfig -h localhost -p 4444 -D "cn=Directory Manager" -w secret -X -n set-access-control-handler-prop --add global-aci:"(target=\"link:ldap://wiki.evolveum.com/cn=changelog%5C[ldap:///cn=changelog\]")(targetattr=\"\*||\") (version 3.0; acl \"IDM Access to ChangeLog\"; allow (read,search,compare) userdn=\"link:ldap://wiki.evolveum.com/uid=idm,ou=Administrators,dc=example,dc=com%5C[ldap:///uid=idm,ou=Administrators,dc=example,dc=com\]";)" -n +
+ +
+Allow ACI for root DSE (non-Windows platforms only): +
+opt/OpenDJ/OpenDJ-2.5.0-Xpress1/bin/$ ./dsconfig -h localhost -p 4444 -D "cn=Directory Manager" -w secret -X -n set-access-control-handler-prop --add global-aci:"(target=\"link:ldap://wiki.evolveum.com/%5C[ldap:///\]")(targetattr=\"changeLog || firstChangeNumber || lastChangeNumber\")(version 3.0; acl \"IDM Access to ChangeLog\"; allow (read,search,compare) userdn=\"link:ldap://wiki.evolveum.com/uid=idm,ou=Administrators,dc=example,dc=com%5C[ldap:///uid=idm,ou=Administrators,dc=example,dc=com\]";)" -
+    \=================================================================================================================================================================
+
+. In order to run Addressbook resource *create database addressbook* with table people.
+ +
+You can also import file addressbook.sql from VM Demo2.2.1 (postgres@electra:~$ pg_dump adddressbook > /tmp/addressbook.sql) into postgres database (via WinSCP) VM Demo3. +
+Following command for table people creation is also possible to use:    addressbook=# create table people (first_name CHARACTER VARYING(100),last_name CHARACTER VARYING(100) NOT NULL,tel_number CHARACTER VARYING(32),fax_number CHARACTER VARYING(32),office_id CHARACTER VARYING(32),floor integer,street_address CHARACTER VARYING(100),city CHARACTER VARYING(100),country CHARACTER VARYING(100),postal_code CHARACTER VARYING(16),validity boolean, created timestamp without time zone,modified timestamp without time zone,username CHARACTER VARYING(64),password CHARACTER VARYING(64)); +
+\=================================================================================================================================================================
+
+. *Insert values in table people*. Command is following (or import file addressbook-schema.sql):    addressbook=# insert into people (first_name,last_name,tel_number,office_id,city,validity,username,password) values ('Raffaello','Sanzio da Urbino',+3968887777,'Employee','Rome','t','raphael','dS0eE');    addressbook=# insert into people (first_name,last_name,tel_number,office_id,city,validity,username,password) values ('Leonardo','da Vinci',+3968687797,'Employee','Florentine','t','leonardo','NZ6i1');    addressbook=# insert into people (first_name,last_name,tel_number,office_id,city,validity,username,password) values ('Michelangelo','di Lodovico Buonarroti Simoni',+3968587707,'Contractor','Rome','t','michelangelo','l3xps'); +
+\=================================================================================================================================================================
+
+. *Set up user addressbook* in postgres database (based on Addressbook postgre resource XML schema user addressbook).
+Command is following:    addressbook=# create user addressbook with password 'secret';    addressbook=# grant all privileges on database addressbook to addressbook;    addressbook=# grant all on table people to addressbook; +
+\=================================================================================================================================================================
+
+. *Import file hr.sql* from VM Demo2.2.1 (postgres@electra:~$ pg_dump hr > /tmp/hr.sql) into postgres database (via WinSCP) VM Demo3 and set up user hr in postgre database: +
+sudo -u postgres createuser --pwprompt --no-superuser --no-createdb --no-createrole hr    Create database:    sudo -u postgres createdb --owner=hr hr    psql --host=localhost --username=hr < /home/ubuntu/hr.sql +
+\=================================================================================================================================================================
+
+. *Import addressbook.war and hr.war* into ./tomcat7/webapps +
+\=================================================================================================================================================================
+
+. *Set up replication for opendj* based on link:http://ludopoitou.wordpress.com/2011/05/11/opendj-enabling-the-external-change-log-on-a-single-server/[http://ludopoitou.wordpress.com/2011/05/11/opendj-enabling-the-external-change-log-on-a-single-server/] +
+Code can be following:  +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/$] bin/dsconfig create-replication-server -h 10.0.2.15 -p 4444 -D "cn=directory manager" -w secret -X -n  +
+--provider-name "Multimaster Synchronization" --set link:http://replication-port:8989[replication-port:8989] --set replication-server-id:2 --type generic +
++
+And: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/$] bin/dsconfig create-replication-domain -h 10.0.2.15 -p 4444 -D "cn=directory manager" -w secret -X -n  +
+--provider-name "Multimaster Synchronization" --set link:http://base-dndc=example,dc=com[base-dn:dc=example,dc=com] --set link:[replication-server:10.0.2.15:8989] --set server-id:3 --type generic --domain-name example_com +
++
+And: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/$] bin/ldapsearch -D cn=directory\ manager -w secret -h 10.0.2.15 -p 1389  +
+-J "1.3.6.1.4.1.26027.1.5.4:false:;" -b "cn=changelog" '(objectclass=*)' +
+\=================================================================================================================================================================
+
+. *Add further .ldif files* via, check also link:http://opendj.forgerock.org/opendj-server/doc/admin-guide/index/chap-groups.html[http://opendj.forgerock.org/opendj-server/doc/admin-guide/index/chap-groups.html]:   +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword secret --defaultAdd --filename /home/ubuntu/groupsPainters-permissions.ldif +
++
+Set up access rights to openDJ for technical midpoint user, check also link:http://opendj.forgerock.org/opendj-server/doc/admin-guide/index/chap-privileges-acis.html[http://opendj.forgerock.org/opendj-server/doc/admin-guide/index/chap-privileges-acis.html]:  +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./dsconfig -h localhost -p 4444 -D "cn=Directory Manager" -w secret -X -n set-access-control-handler-prop --add global-aci:'(target="link:ldap://wiki.evolveum.com/ou=groups,dc=example,dc=com[ldap:///ou=groups,dc=example,dc=com]")(version 3.0; acl "Admin config access"; allow (all)groupdn="link:ldap://wiki.evolveum.com/cn=Administrators,ou=groups,dc=example,dc=com[ldap:///cn=Administrators,ou=groups,dc=example,dc=com]";)' -n +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./dsconfig -h localhost -p 4444 -D "cn=Directory Manager" -w secret -X -n set-access-control-handler-prop --add global-aci:'(target="link:ldap://wiki.evolveum.com/ou=groups,dc=example,dc=com[ldap:///ou=groups,dc=example,dc=com]")(version 3.0;acl "Administrators Group permission"; allow(all) groupdn="link:ldap://wiki.evolveum.com/cn=Administrators,dc=example,dc=com[ldap:///cn=Administrators,dc=example,dc=com]";)' -n +
++
+In case of any delete, modification or add operation you can also use following commmands to change previous settings: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./ldapdelete --port 1389 --bindDN "cn=Directory Manager" --bindPassword secret "cn=painters,ou=Groups,dc=example,dc=com" +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./ldapdelete --port 1389 --bindDN "cn=Directory Manager" --bindPassword secret "cn=employees,ou=Groups,dc=example,dc=com" +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./ldapdelete --port 1389 --bindDN "cn=Directory Manager" --bindPassword secret --deleteSubtree "dc=example,dc=com" +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword secret --defaultAdd --filename /home/ubuntu/groupsPainters-permissions.ldif   +
+\=================================================================================================================================================================
+
+. In case you *need to check LDAP schema or search* some element use command: +
+Check all: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ldapsearch -x -h localhost -p 1389 -b "dc=example,dc=com" -s sub "objectclass=*" +
++
+Check selected element: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ldapsearch -x -h localhost -p 1389 -b "dc=example,dc=com" "cn=Testi Testini" +
++
+In case you need to import ldif file with *pre-encoded attributes* (such as userpassword: {SSHA}KHIeTa1f4ntz0w6evBan7w+wxFYEQ7AFH8Gz7w==) you need to change default LDAP settings via: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] ./dsconfig set-password-policy-prop --set link:http://allow-pre-encoded-passwordstrue[allow-pre-encoded-passwords:true] --policy-name "Default Password Policy" -h localhost -p 4444 -D "cn=Directory Manager" -w secret -X -n +
+\=================================================================================================================================================================
+
+. *Phpldapadmin installation and Apache2 configuration:* +
+sudo mkdir /etc/apache2/conf.d +
+sudo apt-get install phpldapadmin +
++
+Because phpldapadmin expects old file structure is necessary to do: +
+sudo mv /etc/apache2/conf.d/\* /etc/apache2/conf-enabled/ +
+ubuntu@link:http://ubuntu-i386/etc/apache2/conf-enabled$[ubuntu-i386:/etc/apache2/conf-enabled$] sudo mv phpldapadmin phpldapadmin.conf +
+sudo service apache2 reload +
+\=================================================================================================================================================================
+
+. *Phpldapadmin configuration.* Check also: link:http://forums.debian.net/viewtopic.php?f=5&t=111508[http://forums.debian.net/viewtopic.php?f=5&t=111508] +
+At sudo vim /usr/share/phpldapadmin/lib/functions.php lines 2130, 2311, 2320 and sudo vim /usr/share/phpldapadmin/lib/PageRender.php line 289:    replace:    password_hash    with:        pla_password_hash    At sudo vim /usr/share/phpldapadmin/lib/functions.php line 2549 and sudo vim /usr/share/phpldapadmin/lib/ds_ldap.php line 1120:    replace:     preg_replace('/\\\([0-9A-Fa-f]{2})/e',"''.chr(hexdec('\\1')).''",$rdn);    with:         preg_replace_callback('/\\\([0-9A-Fa-f]{2})/',function(){return "''.chr(hexdec('\\1')).''";},$rdn);    At /usr/share/phpldapadmin/lib/functions.php line 2554 and /usr/share/phpldapadmin/lib/ds_ldap.php line 1125:    replace:    preg_replace('/\\\([0-9A-Fa-f]{2})/e',"''.chr(hexdec('\\1')).''",$dn);    with:        preg_replace_callback('/\\\([0-9A-Fa-f]{2})/',function(){return "''.chr(hexdec('\\1')).''";},$dn); +
+\=================================================================================================================================================================
+
+. *Phpldapadmin configuration. *Check also: link:http://forums.debian.net/viewtopic.php?f=5&t=111508[http://forums.debian.net/viewtopic.php?f=5&t=111508]    At sudo vim /etc/phpldapadmin/config.php and /usr/share/phpldapadmin/config/config.php line 161    replace:    //$config->custom->appearance['hide_template_warning'] = false;    with:        $config->custom->appearance['hide_template_warning'] = true;    At line 194 - 199    replace:    $config->custom->appearance['friendly_attrs'] = array(                'facsimileTelephoneNumber' => 'Fax',                'gid'                      => 'Group',                'mail'                     => 'Email',                'telephoneNumber'          => 'Telephone',                'uid'                      => 'User Name',                'userPassword'             => 'Password'                );    with:        $config->custom->appearance['friendly_attrs'] = array(                # 'facsimileTelephoneNumber' => 'Fax',                # 'gid'                      => 'Group',                # 'mail'                     => 'Email',                # 'telephoneNumber'          => 'Telephone',                # 'uid'                      => 'User Name',                # 'userPassword'             => 'Password'                );    At line 286    replace:     $servers->setValue('server','name','My LDAP server');    with:        $servers->setValue('server','name','Leonardo\'s Workshop LDAP Server');    At line 296    replace:     //$servers->setValue('server','port',389);    with:        $servers->setValue('server','port',1389);    At line 318    replace:     $servers->setValue('login','auth_type','session');    with:        $servers->setValue('login','auth_type','config');    At line 326    replace:     $servers->setValue('login','bind_id','cn=admin,dc=example,dc=com');    with:        $servers->setValue('login','bind_id','uid=phpldapadmin,ou=Administrators,dc=example,dc=com');    At line 332    replace:     //$servers->setValue('login','bind_pass','secret');    with:        $servers->setValue('login','bind_pass','secret');    sudo service apache2 reload +
+\=================================================================================================================================================================
+
+. *Apache2 configuration.* +
+Import default file from VM demo midpoint2 /etc/apache2/sites-available into VM demo midpoint3 and rename it to 000-default.conf  +
+Rename files 000-default.conf to 000-default.conf.orig in VM demo midpoint3 located in /etc/apache2/sites-enabled and /etc/apache2/sites-available +
+Copy 000-default.conf file into /etc/apache2/sites-enabled and /etc/apache2/sites-available +
+sudo service apache2 reload +
++
+Modules need to be started via: +
+ubuntu@ubuntu-i386:/$ a2enmod rewrite +
+sudo service apache2 reload +
+ubuntu@ubuntu-i386:/$ a2enmod proxy_http +
+sudo service apache2 reload +
+ubuntu@ubuntu-i386:/$ a2enmod authnz_ldap +
+sudo service apache2 reload +
++
+NOTE: exportPhpLdapAdminDemo3.ldif file configuration passwords and passwords in 000-default.conf file has to be identical +
+Check /var/log/apache2/error.log or /var/log/apache2/access.log in case of trouble. +
+Also direction has to be created for library application:     sudo mkdir /var/www/library +
+sudo chown link:http://tomcat7tomcat7[tomcat7:tomcat7] /var/www/library +
+sudo service tomca7 restart +
+\=================================================================================================================================================================
+
+. According settings in /var/lib/tomcat7/webapps/hr/WEB-INF/db-config.xml and in 000-default.conf *add password to user hr:*    hr=# ALTER ROLE hr WITH PASSWORD 'nbusr123'; +
+\=================================================================================================================================================================
+
+. *Set up OpenDJ automatic initialization.* +
+Add user: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] sudo adduser opendj +
+Check user in: /etc/passwd (link:[opendj:x:1001:1001:OpenDJ,,,:/home/opendj:/bin/bash]) +
+Change owner: +
+ubuntu@link:http://ubuntu-i386/opt/opendj$[ubuntu-i386:/opt/opendj$] sudo chown -R link:http://opendjopendj[opendj:opendj] OpenDJ-2.5.0-Xpress1 +
+Create initialization script: +
+ubuntu@link:http://ubuntu-i386/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$[ubuntu-i386:/opt/opendj/OpenDJ-2.5.0-Xpress1/bin$] sudo ./create-rc-script -f etc/init.d/opendj -u opendj +
+ubuntu@link:http://ubuntu-i386/etc/init.d$[ubuntu-i386:/etc/init.d$] sudo update-rc.d opendj defaults +
+Check initialization: +
+ubuntu@ubuntu-i386:~$ ps -ax | grep opendj +
+\=================================================================================================================================================================
+
+. *Import midpoint resources:* +
+Import extension-electra.xsd into /opt/midpoint-home/schema    Via midpoint opened in browser import (Configuration -> Import objects -> Choose file -> Import object):    addressbook.xml, hr.xml, opendj.xml, org.xml, password-policy.xml, role-contractor.xml, role-fte.xml, role-patron.xml and user-template.xml    In midpoint confirm user template via (Configuration -> Basic -> Click on blue square beside Default user template -> select Default user template -> Save) +
+\=================================================================================================================================================================
+
+. *In case of troubles with phpLDAPadmin* delete in Live Sync: LDAP Server (OpenDJ) task token: +
+<extension> +
+<link:http://gen51token[gen51:token]link:[xmlns:gen51="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd]" +
+link:[xmlns:xsd="http://www.w3.org/2001/XMLSchema]" +
+link:[xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance]" +
+link:[xsi:type="xsd:int]">97</link:http://gen51token[gen51:token]> +
+</extension> +
++
+\=================================================================================================================================================================

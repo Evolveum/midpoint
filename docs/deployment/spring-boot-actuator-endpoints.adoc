@@ -1,0 +1,57 @@
+= Spring Boot Actuator Endpoints
+:page-wiki-name: Spring Boot Actuator Endpoints
+:page-wiki-id: 38764570
+:page-wiki-metadata-create-user: lskublik
+:page-wiki-metadata-create-date: 2019-09-18T10:28:40.011+02:00
+:page-wiki-metadata-modify-user: lskublik
+:page-wiki-metadata-modify-date: 2019-09-24T10:30:28.100+02:00
+:page-since: "4.0.1"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+
+Midpoint support six Spring Boot Actuator endpoint.
+Each of them is accessible on 'BASE_MIDPOINT_URL'/actuator/'NAME_OF_ENDPOINT'.
+
+[%autowidth]
+|===
+| Name of endpoint | Authorization is needed
+
+| _health_
+| no
+
+
+| _threaddump_
+| yes
+
+
+| _heapdump_
+| yes
+
+
+| _env_
+| yes
+
+
+| _info_
+| yes
+
+
+| _metrics_
+| yes
+
+
+|===
+
+xref:/midpoint/reference/security/authorization/actuators/[Spring Boot Actuator Endpoints Authorizations] page shows authorizations for individual endpoint.
+
+You can see all available links on _'BASE_MIDPOINT_URL'/actuator_.
+
+All links are available after login by GUI, or you can use REST basic authentication by username and password.
+
+For example by curl:
+
+[source,bash]
+----
+curl --user administrator:5ecr3t -X GET http://localhost:8080/midpoint/actuator/metrics
+----

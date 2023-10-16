@@ -1,0 +1,312 @@
+= Work Definition (Types of Activities)
+
+This section defines _what_ the activity should do (i.e. the action) and on what _items_ (the item set).
+As of midPoint 4.4, the following items are supported (MT means "Supports multi-threading", MN means "Support multi-node operation"):
+
+[%header]
+[%autowidth]
+|===
+| Item | Meaning | Activity type | MT | MN | Parameter | Meaning | Default
+
+.2+| `recomputation`
+.2+| Recomputes specified objects.
+.2+| Simple
+.2+| Y
+.2+| Y
+| `objects`
+| What xref:../object-set-specification/[objects] to recompute.
+| All of `AssignmentHolderType`.
+| `executionOptions`
+| What options to use.
+| `reconcile`
+
+| xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[`import`]
+| Imports specified resource objects.
+| Simple
+| Y
+| Y
+| `resourceObjects`
+| What xref:../resource-object-set-specification/[resource objects] to import.
+| This is obligatory parameter.
+
+| xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[`reconciliation`]
+| Reconciles specified resource objects.
+| Predefined composite
+| Y
+| Y
+| `resourceObjects`
+| What xref:../resource-object-set-specification/[resource objects] to reconcile.
+| This is obligatory parameter.
+
+| xref:/midpoint/reference/tasks/synchronization-tasks/asynchronous-update/[`asynchronousUpdate`]
+| Processes asynchronous updates for given resource objects (EXPERIMENTAL).
+| Simple
+| Y
+| N
+| `updatedResourceObjects`
+| What xref:../resource-object-set-specification/[resource objects] to receive updates for. (Not all configuration items are supported - TODO.)
+| This is obligatory parameter.
+
+.3+| xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[`liveSynchronization`]
+.3+| Processes live synchronization events for give resource objects.
+.3+| Simple
+.3+| Y
+.3+| N
+| `resourceObjects`
+| What xref:../resource-object-set-specification/[resource objects] to synchronize.
+| This is obligatory parameter.
+| `batchSize`
+| See xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[].
+| 0
+| `updateLiveSyncTokenInDryRun`
+| See xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronization/[].
+| `false`
+
+| `cleanup`
+| Cleans up obsolete objects: audit records, closed tasks, closed cases, closed certification
+campaigns, output reports, and dead nodes.
+| Predefined composite
+| N
+| N
+| `policies`
+| Cleanup policies to be used. (Specifying typically max. age and/or max. number of records to keep.)
+| Global cleanup policies defined in the system configuration.
+
+.2+| `reportExport`
+.2+| Exports any report in a "classical" way. (Does not support bucketing.)
+.2+| Simple
+.2+| Y
+.2+| N
+| `reportRef`
+| Definition of the report.
+| Obligatory.
+| `reportParam`
+| Definition of the report parameters.
+| No parameters.
+
+.2+| `distributedReportExport`
+.2+| Exports a report on repository objects or audit records.
+.2+| Predefined composite
+.2+| Y
+.2+| Y
+| `reportRef`
+| Definition of the report.
+| Obligatory.
+| `reportParam`
+| Definition of the report parameters.
+| No parameters.
+
+.3+| `reportImport`
+.3+| Imports a report.
+.3+| Simple
+.3+| Y
+.3+| N
+| `reportRef`
+| Definition of the report.
+| Obligatory.
+| `reportParam`
+| Definition of the report parameters.
+| No parameters.
+| `reportDataRef`
+| Report data to be imported.
+| Obligatory.
+
+.2+| `iterativeScripting`
+.2+| Executes a script (a.k.a. bulk action) over a set of objects.
+.2+| Simple
+.2+| Y
+.2+| Y
+| `objects`
+| What xref:../object-set-specification/[objects] to process.
+| All objects in repo.
+| `scriptExecutionRequest`
+| Script to execute (`ExecuteScriptType`). Contains scripting expression, `options`, and `variables`. Note: `input` can be set,
+but it is ignored.
+| Obligatory.
+
+| `nonIterativeScripting`
+| Executes a script (a.k.a. bulk action) on an empty or explicitly specified input. NOTE: not implemented yet, but hopefully will be in 4.4.
+| Simple
+| N
+| N
+| `scriptExecutionRequest`
+| Script to execute (`ExecuteScriptType`). Contains scripting expression, `input`, options`, and `variables`.
+| Obligatory.
+
+.3+| xref:/midpoint/reference/tasks/specific/focus-validity-scan/[`focusValidityScan`]
+.3+| Executes validity scan on focal objects.
+.3+| Predefined composite
+.3+| Y
+.3+| Y
+| `objects`
+| What xref:../object-set-specification/[objects] to scan.
+| All of `FocusType`.
+| `queryStyle`
+| How to find the objects: `singleQuery` or `separateObjectAndAssignmentQueries`.
+| `singleQuery`
+| `validityConstraint`
+| Custom validity constraint.
+| None.
+
+| `triggerScan`
+| Executes trigger scan on repository objects. Invokes trigger handlers for any triggers that have fire time less than or equal `currentTime`.
+(Unlike validity scanner, this one intentionally ignores `lastScanTimestamp`.)
+| Simple
+| Y
+| Y
+| `objects`
+| What xref:../object-set-specification/[objects] to scan. If a query is present, the filter computed
+by the activity is added to it (as a conjunction).
+| All of `ObjectType`.
+
+| link:https://docs.evolveum.com/midpoint/reference/tasks/shadow-refresh-task/[`shadowRefresh`]
+| Looks for pending operations in shadows and updates their status.
+| Simple
+| Y
+| Y
+| `shadows`
+| What xref:../object-set-specification/[shadows] to process. If a query with filter is present, it _replaces_ the default query.
+If a query without filter is present, the default filter is "implanted" into it (reusing e.g. the ordering).
+| All shadows with pending operations.
+
+.3+| `changeExecution`
+.3+| Executes specified changes on specified objects.
+.3+| Simple
+.3+| Y
+.3+| Y
+| `objects`
+| What xref:../object-set-specification/[objects] to process.
+| All of `ObjectType` (can be dangerous!)
+| `delta`
+| What delta to apply.
+| Obligatory.
+| `executionOptions`
+| What execution options to use.
+| Default execution options.
+
+| `reindexing`
+| Re-indexes specified repository objects.
+| Simple
+| Y
+| Y
+| `objects`
+| What xref:../object-set-specification/[objects] to reindex.
+| All of `ObjectType`.
+
+.2+| `shadowCleanup`
+.2+| Deletes all shadows that have not been updated for given time. (I.e. their `fullSynchronizationTimestamp` is either null or less or equal "current time - specified interval".)
+.2+| Simple
+.2+| Y
+.2+| Y
+| `shadows`
+| What xref:../resource-object-set-specification/[shadows] to check. The task works only if given resource is not in maintenance mode. If a query is specified, it is always
+appended to the default time-scanning query.
+| Obligatory.
+| `interval`
+| How "stale" must be a shadow to be deleted.
+| Obligatory.
+
+.2+| `objectIntegrityCheck`
+.2+| The purpose of this activity is to detect and optionally fix anomalies in repository objects.
+However, currently its only function is to display information about objects size.
+.2+| Simple
+.2+| N
+.2+| N
+| `objects`
+| What xref:../object-set-specification/[objects] to analyze.
+| All objects in repository.
+| `histogramColumns`
+| Number of columns in the histograms of object sizes.
+| 80
+
+.5+| xref:/midpoint/reference/resources/shadow/integrity-check/[`shadowIntegrityCheck`]
+.5+| The purpose of this activity is to detect and optionally anomalies in resource object shadows
+stored in the repository.
+.5+| Simple
+.5+| N
+.5+| N
+| `shadows`
+| What xref:../object-set-specification/[shadows] to analyze.
+| All shadows.
+| `aspectsToDiagnose`
+| Aspects that should be diagnosed.
+| All.
+| `aspectsToFix`
+| Aspects that should be fixed.
+| None.
+| `duplicateShadowsResolver`
+| Class name of the duplicate shadows resolver to be used.
+| Built-in one.
+| `checkDuplicatesOnPrimaryIdentifiersOnly`
+| Whether to check uniqueness on primary identifiers (or on secondary ones as well).
+| `false` (meaning all identifiers)
+
+.4+| xref:/midpoint/reference/tasks/auto-scaling/[`activityAutoScaling`]
+.4+| Adapts running activities to the current cluster configuration by executing "reconcile workers" operation
+when the cluster state changes (i.e. a node goes up or down).
+.4+| Simple
+.4+| Y
+.4+| Y
+| `tasks`
+| xref:../object-set-specification/[Tasks] that should be considered for auto-scaling.
+(Any task must be multi-node, running, and the auto-scaling for it must not be disabled.)
+| All eligible tasks.
+| `minReconciliationInterval`
+| Minimal interval between reconciliations, i.e. it will not reconcile workers if this time has not elapsed since the last one.
+| 0
+| `maxReconciliationInterval`
+| Maximal interval between reconciliations, i.e. it will _always_ reconcile workers after this time has elapsed since the last one.
+| infinity
+| `skipInitialReconciliation`
+| Whether to skip initial reconciliation of the workers on the activity start.
+| `false`
+
+| xref:/midpoint/reference/resources/propagation/configuration/[`propagation`]
+| Executes eligible pending operations on a resource.
+| Simple
+| Y
+| Y
+| `resourceRef`
+| Resource on which the operation propagation should be done.
+| Obligatory.
+
+| xref:/midpoint/reference/resources/propagation/configuration/[`multiPropagation`]
+| Executes eligible pending operations on set of resources.
+| Simple
+| Y
+| Yfootnote:[What can be distributed are _resource_, not individual shadows on the resource.]
+| `resources`
+| Set of resources on which the operation propagation should be done.
+| All resources.
+
+.3+| `noOp`
+.3+| "No operation" activity to be used for demonstration and testing purposes. It consists of a set of numbered steps,
+each taking a given time.
+.3+| Simple
+.3+| Y
+.3+| Y
+| `delay`
+| Duration of each step in milliseconds.
+| 0
+| `steps`
+| Number of steps.
+| 1
+| `stepInterruptibility`
+| Should a step of this activity be interruptible? Value of `none` means that
+the activity is not interruptible, except at step boundaries. If `hard` is used,
+the activity can be interrupted only in "hard" way, i.e. by sending the Java interrupt signal.
+Finally, `full` means that the activity can be interrupted any time.
+| `none`
+
+| `extension`
+| This is a place for customer-provided activities.
+| Simple
+|
+|
+|
+|
+|
+|===
+
+Customer-provided activities can have any configuration items and distribution (multi-threading,
+clustering) properties.

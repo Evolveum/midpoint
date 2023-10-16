@@ -1,0 +1,13 @@
+= MidPoint 3.x Legacy Workflows
+:page-nav-title: Legacy Workflows
+:page-upkeep-status: green
+:page-obsolete: true
+:page-liquid:
+
+Pages in this part of the site deal with legacy workflow mechanism that was used in midPoint 2.x and 3.x. It was replaces by "workflowless" approval mechanism in midPoint 4.0.
+
+++++
+{% children %}
+++++
+
+// TODO: refer to new approval mechanism

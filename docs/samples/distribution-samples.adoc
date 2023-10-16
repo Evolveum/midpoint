@@ -1,0 +1,38 @@
+= Distribution Samples
+:page-upkeep-status: yellow
+
+There is set of configuration samples that is distributed in midPoint distribution package.
+The samples are maintained in a dedicated https://github.com/Evolveum/midpoint-samples[`midpoint-samples` project].
+
+++++
+{% versionlinks
+since: "4.0"
+development: true
+columns:
+  - heading: Source Code
+    linkUrlPattern: "https://github.com/Evolveum/midpoint-samples/tree/${git-tag}/samples"
+    linkText: "Source"
+%}
+++++
+
+== Contributing to Samples
+
+There is a link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/contrib[samples/contrib] directory that is dedicated to contributed samples.
+You are more than welcome to xref:/community/development/code-contribution-guidelines/[contribute] your samples there.
+
+To contribute a sample, just create a directory that is reasonably unique for you.
+E.g. use your company name, your nick name or something similar.
+Then place samples inside that directory.
+If there are several sets of samples (e.g. several user stories) then pleace each set in a separate sub-directory.
+It is recommended to write a short description of the sample in a README file in each directory.
+
+[TIP]
+====
+Before midPoint 4.0 the samples were maintained in midPoint source code.
+Since midPoint 4.0 the samples were separated to a link:https://github.com/Evolveum/midpoint-samples[dedicated `midpoint-samples` project].
+====
+
+
+== See Also
+
+** xref:/midpoint/reference/deployment/maven-overlay-project/[Customization With Overlay Project]

@@ -1,0 +1,105 @@
+= Logging
+:page-wiki-name: Logging
+:page-wiki-id: 7307677
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-02-07T17:51:22.159+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-11-28T14:28:37.080+01:00
+:page-upkeep-status: red
+:page-upkeep-note: This is pathetic excuse for a logging page ...
+
+Logging is one of the best and most important troubleshooting tools.
+Logging provides information about all the important things that happen in the system.
+It also goes very deep, and it can provide very fine details about midPoint operations.
+Logging is universal and very powerful tool.
+It is the best hope to find the cause even for the trickiest of problems.
+
+Similarly to every other tool, the most important thing is to know how to use it properly.
+This is especially important for midPoint logging.
+The default logging setting logs only a very little information.
+This is a reasonable detail for a production system that has been properly configured and tested.
+It is not enough in case that you are chasing a configuration.
+In that case, the logging system needs to be reconfigured to log more information.
+Beware, if logging system is set to its full power you will get a huge stream of data that is likely to completely overwhelm you.
+The important information will surely be there.
+However, they will be lost in the flood of other data.
+Therefore logging need some skill and experience to manage it correctly.
+
+== Logging in MidPoint
+
+MidPoint is using logging approach that is well established in the industry.
+MidPoint logging principles should be quite familiar to any deployment engineer.
+
+MidPoint is logging diagnostic messages systematically.
+The messages are set on several xref:log-levels.adoc[log levels].
+Log levels `FATAL` to `INFO` are intended to be enabled during normal system operation.
+Log level `DEBUG` is intended for configuration troubleshooting by system administrator.
+The `TRACE` level is intended mostly for development-level troubleshooting.
+
+=== Log Files
+
+MidPoint log files are located in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
+MidPoint home directory contains sub-directory `logs` and midPoint logfiles are there.
+There are usually several files:
+
+* `midpoint.log` is the primary midPoint log file.
+Almost all log messages from midPoint will be recorded here.
+This is the right file to examine.
+The truth is in there.
+
+* `midpoint.out` is file where the standard output of midPoint process is recorded.
+Only a very few things are usually logged here.
+Those are the things that happen before midPoint logging system is enabled, therefore midPoint cannot control and redirect logging of those messages.
+Which that the messages usually describe events that happen before midPoint starts and after it stops.
+This file does not need to be inspected routinely.
+However, it is a useful place to look while experiencing startup issues.
+
+Log files are usually rotated.
+Which means that when there is too much data in one log file the file is renamed.
+Oldest files are removed.
+Otherwise the log files would fill all available disk space.
+
+//=== Logging Configuration
+//
+//The default logging setting logs only a very little information.
+//This is a reasonable detail for a production system that has been properly configured and tested.
+
+// TODO: system config
+
+// TODO mention/reference initial logging somewhere
+
+//=== Logging Implementation
+
+// TODO: LOG4J and logback
+
+== Logging in ICF Connectors
+
+Most of the logging of ICF connectors is integrated with midPoint logging.
+Therefore setting a correct logger in midPoint will result in changed logging setup of the connector.
+The appropriate class name is usually state in the connector documentation.
+
+However, there is one issue.
+If the connector or any of its libraries use obsolete `java.util.logging` (also known as JUL)
+then the midPoint logging setting will not work.
+The JUL is not designed to work well with classloaders and dynamic logging configuration.
+ICF is using classloaders and midPoint is usign dynamic logging configuration therefore the JUL fails miserably in this case.
+Yet there is a workaround.
+The logging can still be configured by using the ancient `logging.properties` cofiguration file:
+
+. Create `logging.properties` configuration file in application of web container class path.
+E.g. if you are using Tomcat then a good place is `<tomcat-root>/lib/logging.properties}`.
+The file may look like this:.logging.properties
+
+[source]
+----
+org.dinosaur.lost.in.past.level = FINER
+expect4j.Expect4j.level = ALL
+----
+
+. Restart midPoint
+
+== See Also
+
+* xref:log-levels.adoc[]
+
+* xref:useful-loggers.adoc[]

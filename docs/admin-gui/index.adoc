@@ -1,0 +1,28 @@
+= MidPoint Administration User Interface
+:page-nav-title: Administration User Interface
+:page-wiki-name: User Interface
+:page-wiki-id: 22741879
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-07-14T15:38:02.683+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-02-17T10:44:05.316+01:00
+:page-display-order: 600
+:page-upkeep-status: green
+
+MidPoint has a sophisticated web-based user interface that can be used for xref:/midpoint/reference/admin-gui/self-service/[self service], identity administration and midPoint configuration.
+This is one unified user interface by purpose.
+It is not artificially divided into end-user and administration part because of delegated administration possibility.
+Some users may have administrative authorizations over a portion of a system and they can do both self-service and administration tasks from the same user interface.
+Despite that the midPoint user interface is a single application it is visually divided into two parts:
+
+* xref:/midpoint/reference/admin-gui/self-service/[Self Services] part has a simple look & feel and it has functionality targeted at common users.
+
+* Administration part has comprehensive functionality targeted at identity administrators, delegated administrators and deployment engineers.
+
+Following pages describe MidPoint web-based administration user interface, its usage, configuration and customization.
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

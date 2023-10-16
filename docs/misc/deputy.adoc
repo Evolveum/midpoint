@@ -1,0 +1,174 @@
+= Deputy
+:page-wiki-name: Deputy
+:page-wiki-id: 24084487
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-10T16:41:52.639+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-07-26T09:44:59.224+02:00
+:page-since: "3.5"
+:page-midpoint-feature: true
+:page-alias: { "parent" : "/midpoint/features/current/" }
+:page-upkeep-status: yellow
+:page-toc: top
+
+
+This feature allows specifying deputies or delegates for users.
+For example a user that leaves for a vacation can delegate some of his responsibilities to his colleague.
+That colleague will become his deputy.
+The deputy will get the same privileges as the user from whom the privileges are delegated.
+The deputy will get the same privileges in midPoint user interface.
+The deputy will get the same position in the workflows, e.g. deputy can approve role requests in place of the delegator.
+The deputy will get accounts and entitlements equivalent to the delegator, e.g. the deputy's accounts will get membership in the same groups as the delegator has.
+
+
+== Terminology and Basic Mechanism
+
+The _deputy_ will get the privileges of the _delegator_. The _delegator_ is the user giving the privileges.
+The _deputy_ (or _delegate_) is the user receiving the privileges.
+This action is usually initiated by the delegator himself, however it may also be initiated by other user (e.g. system administrator).
+
+The delegations can be limited in both scope and time - and that is actually the common case.
+The delegations are usually set up only for some subset of delegators privileges and only for a limited time.
+Obviously, the delegator may only delegate the privileges that he has.
+There may be many deputies for a single delegator and one user may be a deputy for many delegators.
+
+Only roles, orgs and services that are explicitly marked as _delegable_ can be delegated using the user interface.
+This is mostly a convenience feature.
+Users often have tens or even hundreds of assignments, but only few are usually delegated.
+Therefore the _delegable_ flag allows user interface to reduce the list of roles to a manageable and understandable size.
+
+[NOTE]
+.Delegable roles
+====
+Only the roles, orgs and services that are explicitly marked as *_delegable_* can be delegated.
+Non-delegable roles are ignored during delegation - the deputy will not receive the privileges given by these roles.
+The role, org and service contains a `delegable` property that controls whether it is delegable or not.
+The default value for this property is `false`, therefore the roles must be explicitly marked for delegation for this feature to work.
+====
+
+
+== Workflows and Certification
+
+xref:/midpoint/reference/cases/workflow-3/[Workflows (midPoint 3.x)] and xref:/midpoint/reference/roles-policies/certification/[access certification] fully support the concept of deputy.
+The deputies will have access to the workitems that are assigned to their delegators.
+The deputies can make decisions on these workitems and the decision will advance the workflow (or be recorded in access certification case) as if the delegator made the decision.
+
+[NOTE]
+====
+The approval schemes and workflow will work well with delegations only if the approvers are defined using the assignment mechanism (available in midPoint 3.5 and later).
+See xref:/midpoint/reference/cases/approval/[Approval] page for more details.
+====
+
+Besides providing authorizations to make decisions, deputies will receive mail notifications intended for the delegator reminding him or her that a decision is to be made.
+
+[NOTE]
+====
+Because the operation of finding all the deputies is currently quite time-consuming, deputy information is _not_ generally shown in the GUI along with approver name.
+So, if an approval work item is assigned to a user X, it is not displayed that X has (let's say) 3 deputies eligible to approve the given work item.
+====
+
+
+== Implementation Notes
+
+Deputy delegation are in fact xref:/midpoint/reference/roles-policies/assignment/[assignments]. that have special `deputy`xref:/midpoint/reference/concepts/relation/[relation] in their target reference.
+Unlike most other assignments the target of deputy relation is not a role or org.
+The target of deputy relation is a user.
+This makes perfect sense as the delegation is a relation between two users: the delegator and the deputy.
+
+Maybe quite surprisingly the assignment is created in the deputy->delegator direction.
+I.e. the assignment is added to the _deputy_, not the delegator.
+This may seem counter-intuitive at the first sight, but in fact it is very well aligned with the midPoint philosophy.
+The assignments always add privileges.
+And it is the deputy that is getting new privileges, not the delegator.
+Also when the delegation assignment is created or deleted then the deputy user is affected.
+Not the delegator.
+The deputy will get new accounts, new entitlements and privileges.
+The delegator is not affected.
+Therefore recording delegations in the deputy makes perfect sense.
+However it affects the thinking when setting up related midPoint mechanisms.
+E.g. the meaning of _object_ and _target_ in the authorizations may seem to be reversed as compared to the intuitive approach.
+But as the delegation assignment itself is "reversed" the authorizations make perfect sense.
+
+The delegation assignment is somehow special.
+Normal assignment between objects that are already assigned would cause similar effect that is used by xref:/midpoint/reference/roles-policies/metaroles/gensync/[metaroles]. But the delegation (deputy) assignment does not do this.
+This assignment is not counted when the high-order inducements are evaluated.
+In other words: Even though the delegated privileges are assigned to the delegator, they are processed in almost the same way as role inducements when the deputy is evaluated.
+The deputy assignment is not counted into the "order" for metarole processing.
+If we would count it, then what is normally order=2 would become order=3. That would break meta-roles.
+
+There is one more thing that needs to be considered when using deputy delegations.
+The deputy and the delegator are two users that are still considered to be a very independent entities in midPoint.
+When one user is changed the other one is unlikely to be directly affected because only one xref:/midpoint/reference/schema/focus-and-projections/[focal object] is processed in every midPoint operation.
+Therefore if the assignments of the delegator are changed, the deputy is not directly affected by that operation.
+The changes are applied to the deputy only when the deputy user is recomputed.
+The fact that the delegation assignment is part of the deputy user is an advantage here.
+Therefore adding and removing deputy delegation is acting on the user that it is supposed to act: the deputy.
+This also means that if the deputy delegation expires it will be automatically handled in the same way as expired assignment and the privileges will be automatically deprovisioned.
+This design decision together with the fact that the delegations are often short-lived means that there is seldom need for deputy recompute.
+But there may be cases when this mechanism needs to be considered.
+
+Designing the deputy delegations as assignments gives exciting possibilities for the future.
+The creation of a delegation may theoretically be approved (this functionality is not there yet, but it is conceptually possible).
+There are assignment metadata in the delegations.
+The delegations might be subject to compliance rules and re-certification in the future (as assignments are).
+And so on.
+
+If there is a need to distinguish between the privileges of a delegator and those of a deputy then it is possible to be defined using order constraints.
+See xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization'] page for details.
+
+
+== Security and Authorizations
+
+Deputy delegations are assignments.
+And they are seen as assignments by the security subsystem.
+Therefore any authorizations that apply to assignments also apply to deputy delegations.
+However, using just these authorizations by themselves would not be entirely practical.
+This is given by the fact that it is usually the delegator that is initiating the delegation.
+This means that the delegator needs to add assignment to a different user (the deputy).
+And this is not easy to do with current authorizations.
+Therefore special `delegate` authorization was introduced.
+It can be used like this:
+
+[source,xml]
+----
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegate</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <target>
+            <special>self</special>
+        </target>
+    </authorization>
+----
+
+If this authorization is given to the delegator it will allow to delegate his privileges to any user.
+In other words, this authorization will allow to create new assignment with relation=deputy in the _object_ (user) with the _target_ set to the user who has initiated the operation.
+Please note that the object and target are the other way around as compared to what intuition may suggest.
+This is given by the fact that the delegation assignment is also "the other way around".
+
+The authorization above allows the model operations that created and delete deputy delegations.
+However there still needs to be a user interface authorization that enabled the delegation modification buttons:
+
+link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#delegate[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#delegate]
+
+To make things simple there is a pre-defined `Delegator` role in midPoint.
+This role allows users to delegate any privileges to any user.
+This role can be used as a starting point for more fine-tuned delegation setup.
+
+The user interface will only allow abstract roles (roles, orgs and services) that have the `delegable` flag set to be delegated.
+This is currently hardcoded in midPoint user interface.
+Later we would like to use the authorization subsystem to handle this.
+But currently the authorization subsystem is limited to process just _object_ and _target_. When processing the delegation authorizations the _object_ is set to the deputy and _target_ is set to delegator.
+There is no mechanism that allows to also handle the delegated privilege in the authorization decision.
+Yet.
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+
+* xref:/midpoint/reference/concepts/relation/[Relation]
+
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

@@ -1,0 +1,159 @@
+= REST Authentication
+:page-nav-title: Authentication
+:page-wiki-name: REST Authentication
+:page-wiki-id: 24085550
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-03-17T14:35:11.808+01:00
+:page-wiki-metadata-modify-user: virgo
+:page-wiki-metadata-modify-date: 2020-06-02T10:29:25.618+02:00
+:page-toc: top
+
+[TIP]
+====
+Starting with 4.2 the REST API uses xref:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication] with only Basic Authentication + Impersonation on by default.
+SecQ must be added via xref:/midpoint/reference/security/security-policy/[Security Policy Configuration].
+====
+
+== Basic Authentication
+
+MidPoint REST interface support standard HTTP basic authentication (RFC2617).
+Digest authentication is not supported.
+
+== Proxy (Impersonation)
+
+There are use cases when the authenticated user is not the user which is supposed to execute the operations in midPoint.
+For example a self-service application would like to use the identity of the end user to execute the operations in midPoint.
+However in that case the self-service application would need to know the password of end user.
+This approach is neither practical nor secure.
+Therefore this use case is supported by other methods.
+The recommended approach is to use a single sign-on (SSO) or similar system to pass end-user identity to midPoint.
+OAuth2 is a recommended approach in the case of midPoint REST interface (see below).
+However, there are cases when OAuth cannot be used.
+The proxy (impersonation) functionality is designed to handle those cases.
+
+The _proxy_ or _impersonation_ is an ability for one user to switch his identity to different user.
+In the case of self-service application it works like this:
+
+. Setup: Self-service application will be issues with the application credentials.
+There will be an application user in midPoint (e.g. `selfserviceapp` user).
+The user will have a strong password which is known to the self-service application.
+
+. End user (`jack`) clicks a button in the self-service application that needs to invoke operation in midPoint.
+
+. Self-service application constructs a REST request to midPoint:
+
+.. The HTTP request will contain standard `Authorization` header with Basic or Digest token.
+The token will represent the application user (`selfserviceapp`).
+
+.. The HTTP request will also contain a special header (Switch-To-Principal).
+This header refers to the identity of the end user (`jack`).
+
+.. The URL and payload will be set up according to the REST operation.
+
+. MidPoint will authenticate the application user (`selfserviceapp`).
+
+. MIdPoint will extract the end user from the Switch-To-Principal header.
+
+. MidPoint will check whether the authenticated (application) user has proxy authorization that allows switch to the end user.
+
+. If the authorization check is successful midPoint will switch the authenticated identity to the use user (`jack`). The operation will be executed using the authorizations of the end user.
+The identity of the end user will be recorded in the audit trail.
+
+HTTP header format and example
+
+Header name: *Switch-To-Principal* +
+Header value: midPoint oid of the user under which the operation will run +
+Example: *-H "Switch-To-Principal: dc12980b-0b92-4c4b-9a4d-f18f70ac977f"* +
+Curl example:
+
+[source,bash]
+----
+curl --user "administrator:5ecr3t" -X GET -H "Switch-To-Principal: dc12980b-0b92-4c4b-9a4d-f18f70ac977f" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
+----
+
+Example proxy authorization (which is assigned to the application user such as selfserviceapp) :
+
+[source,xml]
+----
+<authorization>
+  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#proxy</action>
+  <object>
+    <type>UserType</type>
+    <filter>
+      <q:equal>
+        <q:path>employeeType</q:path>
+        <q:value>enduser</q:value>
+      </q:equal>
+    </filter>
+  </object>
+</authorization>
+----
+
+The authorization above allows the user to switch identity to any other user who has the `employeeType` attribute set to value `enduser`.
+
+== Security Questions
+
+Security question authentication is used when "Authorization" header is filled with the value SecQ.
+It is expected that the client send all required information for the authentication such as username and list of question identifier and question answer couples.
+
+Prerequisites:
+
+* midPoint is configured to support security question.
+
+* User credentials contains security questions and answers on them.
+
+* REST API call contains "Authorization" header with the value "SecQ" followed with the base64 encoded required information.
+
+Expecting (JSON) format of data sent for SecQ authentication
+
+[source,json]
+----
+{
+  "user" : "administrator",
+  "answer" : [
+    {
+           "qid" : "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001",
+           "qans" : "I don't know!"
+     }
+  ]
+}
+----
+
+Example above is the format which is expected for the security question authentication.
+Attribute user has to contain username of the user to authenticate.
+List of answers has to contain question identifier (`qid` attribute) and question answers (`qans` attribute) couples.
+It is sent in the Authorization header encoded in base64 format to the server.
+
+Example curl call:
+
+[source,bash]
+----
+curl -X GET -H "Authorization: SecQ ew0KInVzZXIiIDogImFkbWluaXN0cmF0b3IiLA0KImFuc3dlciIgOiBbDQogew0KICAgInFpZCIgOiAiaHR0cDovL21pZHBvaW50LmV2b2x2ZXVtLmNvbS94bWwvbnMvcHVibGljL3NlY3VyaXR5L3F1ZXN0aW9uLTIjcTAwMSIsDQogICAicWFucyIgOiAiSSBkb24ndCBrbm93ISINCiB9DQpdDQp9" -H "Content-Type: application/xml" -H "Accept: application/yaml" "http://localhost:8080/midpoint/ws/rest/self" -v
+----
+
+=== challengeResponseSecQ Challenge - Response implementation
+
+The whole sequence with link:https://httpie.org/[HTTPie] and link:https://linux.die.net/man/1/base64[base64] encoding using command substitution in bash may look like this:
+
+[source,bash]
+----
+$ http -v :8080/midpoint/ws/rest/self | grep WWW-Authenticate
+WWW-Authenticate: Basic realm="internalBasic", SecQ realm="httpSecQ"
+
+# specifying user, response header is "parsed" and decoded
+$ http -v :8080/midpoint/ws/rest/self "Authorization: SecQ $(base64 -w 0 <<< '{"user":"administrator"}')" | grep WWW-Authenticate | cut -d' ' -f 3 | base64 -di
+{"user":"administrator","answer":[{"qid":"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001","qtxt":"How much wood would a woodchuck chuck if woodchuck could chuck wood?"},{"qid":"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q003","qtxt":"What's your favorite color?"}]}
+
+# final answer for q001, this shows complete response for "self"
+http -v :8080/midpoint/ws/rest/self "Authorization: SecQ $(base64 -w 0 <<< '{"user":"administrator","answer":[{"qid":"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001", "qans":"much"}]}')"
+----
+
+== Other authentication options
+
+Please, consult xref:/midpoint/reference/security/authentication/flexible-authentication/configuration.adoc[Flexible authentication configuration]
+for further options, e.g. `httpHeader` for pre-authenticated users.
+This allows to delegate authentication to another component, e.g. HTTP server reverse proxy, and implement other types of authentication like OAuth2, SAML, etc.
+
+== See Also
+
+* xref:..[REST API]

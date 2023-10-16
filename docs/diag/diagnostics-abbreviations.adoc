@@ -1,0 +1,72 @@
+= Diagnostics Abbreviations
+:page-wiki-name: Diagnostics Abbreviations
+:page-wiki-id: 4423720
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-18T16:24:30.882+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2013-01-11T20:19:48.496+01:00
+:page-upkeep-status: orange
+
+== Prism
+
+MidPoint is using a lot of abbreviation in diagnostic outputs (logs, dumps, etc).
+Abbreviations are used to make the output more dense and easier to use in day-to-day diagnostics.
+However, the output format requires some time to get used to.
+This page explains some of the basic abbreviations and notations used in the diagnostic output.
+
+[%autowidth,cols="h,1,1,1"]
+|===
+|
+|  Item
+|  Value
+|  Definition
+
+
+|  Prism Property
+|  PP
+|  PPV
+|  PPD
+
+
+|  Prism Container
+|  PC
+|  PCV
+|  PCD
+
+
+|  Prism Reference
+|  PR
+|  PRV
+|  PRD
+
+
+|  Prism Object
+|  PO
+|  PCV (1)
+|  POD
+
+
+|===
+
+Notes:
+
+. Prism Objects does not have special values.
+Prism Objects are just special case of Prism Container, therefore they share the same value type.
+
+
+== Schema
+
+* RA: Resource Attribute
+
+* Discr: Resource Shadow Dicsriminator.
+Used to distinguish between shadows belonging to the same user, e.g. different account types.
+
+
+== Model
+
+* VC: Value Construction
+
+
+== See Also
+
+* xref:/midpoint/devel/prism/[Prism Objects]

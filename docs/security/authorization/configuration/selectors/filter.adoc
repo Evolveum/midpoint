@@ -1,0 +1,86 @@
+= Filter Clause
+
+Selects objects that match specified filter.
+
+.Listing 1. Authorization with a selector matching objects that have property `locality` set to value `Caribbean`
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <filter>
+            <q:equal>
+                <q:path>locality</q:path>
+                <q:value>Caribbean</q:value>
+            </q:equal>
+        </filter>
+    </object>
+</authorization>
+----
+
+The same can be achieved using midPoint Query Language.
+
+.Listing 2. Authorization with a selector matching objects that have property `locality` set to value `Caribbean` (using midPoint Query Language)
+[source,xml]
+----
+<authorization>
+    <action>...</action>
+    <object>
+        <filter>
+            <q:text>locality = "Caribbean"</q:text>
+        </filter>
+    </object>
+</authorization>
+----
+
+== Expressions
+
+++++
+{% include since.html since="3.7" %}
+++++
+
+xref:/midpoint/reference/expressions/expressions/[Expressions] can be used in authorization search filters:
+
+[source,xml]
+----
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <object>
+        <type>RoleType</type>
+        <filter>
+            <q:equal>
+                <q:path>roleType</q:path>
+                <expression>
+                    <!-- Make sure empty value of costCenter does not allow any access. -->
+                    <queryInterpretationOfNoValue>filterNone</queryInterpretationOfNoValue>
+                    <path>$subject/costCenter</path>
+                </expression>
+            </q:equal>
+        </filter>
+    </object>
+</authorization>
+----
+
+The authorization above allows read access to all roles that have the same `roleType` as is the values of `costCenter` property of the user who is subject of the authorization.
+
+Variable `subject` may be used in the expressions to represent authorization subject (user).
+Other common expressions variables may also be available or will be made available in the future.
+However, we recommend to avoid using the `actor` variable.
+Please use `subject` variable instead.
+Those variables are usually set to the same value.
+But there may be situations when the value is different (e.g. administrator evaluating authorization of a different user).
+The `subject` variable is usually the right one.
+
+[NOTE]
+====
+Authorizations are evaluated frequently.
+Evaluations are done at least twice during ordinary midPoint operation.
+Authorizations are designed to be very efficient to evaluate.
+However, if expression is part of the evaluation then the expression may impact performance of the entire system.
+Expressions that use the `path` evaluator (as the one above) are usually very fast, and they are safe.
+Even simple script expressions usually do not create any major issue.
+However, try to avoid placing complex or slow expressions into authorizations.
+Those are almost certain to have a severe negative impact on system performance.
+If you need complex computation, it is perhaps better to compute the value in xref:/midpoint/reference/expressions/object-template/[object template] and place it into property of the object (e.g. user extension property).
+Then use only the result of the computation stored in that property in authorization expressions.
+====

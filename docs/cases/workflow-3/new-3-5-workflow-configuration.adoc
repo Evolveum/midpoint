@@ -1,0 +1,177 @@
+= New (3.5+) workflow configuration
+:page-wiki-name: New (3.5+) workflow configuration
+:page-wiki-id: 24084761
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-12-14T18:13:53.772+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-12-14T23:13:49.096+01:00
+:page-obsolete: true
+
+Starting in midPoint 3.5, configuration of workflows is done like this:
+
+. "Static configuration", e.g. Activiti database URL, is stored in midPoint config file (config.xml).
+
+. Other parts of configuration are stored in xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration] repository object.
+
+. Finally, some information about required approvals is attached to individual objects (e.g. roles being assigned):
+
+.. directly (in a "legacy way"),
+
+.. using policy rules:
+
+... attached directly or via metaroles,
+
+... defined globally in System Configuration repository object.
+
+
+== MidPoint configuration file
+
+You can specify some configuration properties in the static midPoint configuration file.
+An example:
+
+[source,xml]
+----
+<workflow>
+    <enabled>true</enabled>    <!-- optional (if omitted, default is true) -->
+    <!-- optional (if omitted, default is either the same database as for repository, or - in case of embedded H2 - separate file in the same directory) -->
+    <jdbcUrl>jdbc:h2:mem:activiti;DB_CLOSE_DELAY=1000</jdbcUrl>
+    <jdbcDriver>org.h2.Driver</jdbcDriver>
+    <jdbcUsername>sa</jdbcUsername>
+    <jdbcPassword/>
+</workflow>
+
+----
+
+Items that can be configured are:
+
+[%autowidth]
+|===
+| Item | Description
+
+| enabled
+| If false, workflows are disabled.
+Use this if you don't use approvals in your deployment.
+*Do not use* this to temporarily turn off approving new requests - in such situation disable the workflow model hook instead (see below).
+
+
+| jdbcUrl, jdbcDriver, jdbcUsername, jdbcPassword
+| Parameters for connecting to workflow (i.e. Activiti) database.
+By default, workflows use the same database connection parameters as midPoint repository.
+However, it is possible to specify different db connection properties for them, if necessary.
+
+
+| activitiSchemaUpdate
+| Whether to perform automatic update of Activiti database schema, e.g. when upgrading midPoint.
+Default: the same as for repository configuration (it is true if hibernateHbm2ddl is set to "update").
+
+
+| autoDeploymentFrom
+a| MidPoint automatically deploys new versions of BPMN processes at startup.
+Here you can specify the location from which the deploy is done.
+Default: `++classpath*:processes/*.bpmn20.xml++`.
+
+
+|===
+
+
+== System configuration object
+
+The configuration object primarily lists change processors that are to be used and their configuration.
+A change processor is a module that intercepts a change event coming from midPoint core (model) and determines whether workflows have to deal with such an event.
+
+Currently, there are two change processors available:
+
+. *Primary change processor*: it is used to approve a request (or requests) before execution.
+It is able to provide approvals in standard situations with almost no configuration nor coding.
+
+. *General change processor*: provides the greatest flexibility for midPoint engineer, however, at the cost of more complex configuring (one could say "programming") and testing.
+It allows calling arbitrary BPMN process in any phase of model operation execution.
+Please note that this change processor is still quite experimental.
+
+More information on change processors is in the xref:/midpoint/architecture/archive/subsystems/model/workflow-3/[architectural description of workflow module].
+
+The configuration looks like this:
+
+[source,xml]
+----
+  <workflowConfiguration>
+    <modelHookEnabled>true</modelHookEnabled>		<!-- this is the default -->
+    <processCheckInterval>10</processCheckInterval> <!-- this is the default -->
+    <primaryChangeProcessor>
+      <enabled>true</enabled>						<!-- this is the default -->
+    </primaryChangeProcessor>
+  </workflowConfiguration>
+----
+
+Items that can be configured are:
+
+[%autowidth]
+|===
+| Item | Description | Default value
+
+| modelHookEnabled
+| Tells whether workflow model hook is active (the default) or not.
+If the hook is not active, all requests simply bypass workflow processing, so they are executed without any approvals.
+(This can be obviously dangerous from the security perspective, so be careful.)
+| true
+
+| processCheckInterval
+| This property is applicable to "dumb" wf processes, which require active shadowing tasks that repeatedly query their state.
+It sets the process instance check interval (in seconds).
+| 10
+
+| useLegacyApproversSpecification
+a| How to deal with legacy approvers specifications, i.e. `approvalRef`, `approvalExpression`, `approvalSchema`, `automaticallyApproved` items in roles, orgs, and services ?The options are:
+
+* `never`: The legacy approvers specification is never used.
+
+* `always`: The legacy approvers specification is always used.
+It is used before any other (policy-based) approval actions.
+
+* `ifNoExplicitApprovalPolicyAction`: The legacy approvers specification is used if there's no explicit approval policy applicable to a given target.
+(This is the default setting.)
+
+
+| ifNoExplicitApprovalPolicyAction
+
+| useDefaultApprovalPolicyRules
+a| Whether to use default approval policy rules.These default rules are: use users with the `approver` relation to approve any assignments of a given role/org/service.
+Use users with the `owner` relation to approve any modification of a given focal object.The options are:
+
+* `never`: Default approval policy rules are never used.
+
+* `ifNoApprovalPolicyAction`: Default approval policy rules are used if there are no applicable approval policy actions.
+(This is the default setting.)
+
+| ifNoApprovalPolicyAction
+
+
+| primaryChangeProcessor, generalChangeProcessor
+| Configuration of these two change processors.
+|
+
+|===
+
+
+=== Primary change processor configuration
+
+Primary change processor traditionally contained a set of so called _change aspects_. Each aspect takes care of approvals of a single kind of elementary modification, like "assign a role R to a user U".
+So, by listing change aspects in the configuration, you specified what kinds of changes were to be approved by workflows.
+
+However, in midPoint 3.5 we have introduced _policy-based approvals_. These are no longer configured by specifying list of aspects and their parameters.
+Nevertheless, legacy aspects are still present in midPoint (at least in version 3.5).
+All of them are disabled by default, but can be enabled if needed.
+
+If needed, policy-based approvals can be disabled by setting `enabled` to `false` for `policyRuleBasedAspect`. You might be in such a situation e.g. if there would be some issue with this new mechanism and you'd like to stay with original (although obsolete) code.
+
+
+== Concluding notes
+
+. If you fail to correctly set up your approvals (i.e. change processors, aspects, policies) then changes will be executed *WITHOUT* requiring the approvals.
+That might present a major security problem.
+
+. Each change can be processed by only one aspect.
+So beware, if you enable both "legacy" aspects and new policy-based one.
+The policy-based one is evaluated first; but nevertheless keep in mind the potential for conflicts.
+
+. Some policies can interfere - like assignment policy for a given role and modification policy for a given user.

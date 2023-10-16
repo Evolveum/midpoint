@@ -1,0 +1,144 @@
+= Task Notifications
+:page-wiki-name: Task notifications
+:page-wiki-id: 22741589
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-06-21T17:58:03.734+02:00
+:page-wiki-metadata-modify-user: dantrob
+:page-wiki-metadata-modify-date: 2017-11-15T16:39:24.315+01:00
+:page-alias: { "parent" : "/midpoint/reference/tasks/" }
+:page-display-order: 420
+:page-upkeep-status: yellow
+
+Task manager provides the following notifications:
+
+[%autowidth]
+|===
+| Event | Recipient(s) | Comment
+
+| Task handler execution start
+| task owner
+| Emitted when a task handler execution is started.
+
+| Task handler execution finish
+| task owner
+| Emitted when a task handler execution finishes.
+
+|===
+
+
+== Some examples
+
+The following snippet of the system configuration object can be used to configure task notifications:
+
+[source,xml]
+----
+<notificationConfiguration>
+    <handler>
+        <simpleTaskNotifier>
+            <transport>mail</transport>      <!-- all starts and finishes are reported by mail (can generate a lot of messages, e.g. when live sync is used -->
+        </simpleTaskNotifier>
+        <simpleTaskNotifier>
+            <operation>delete</operation>    <!-- DELETE means finishing task handler execution -->
+            <status>onlyFailure</status>     <!-- this corresponds to the FATAL_ERROR result -->
+            <transport>sms</transport>
+        </simpleTaskNotifier>
+        <simpleTaskNotifier>
+            <operation>delete</operation>    <!-- DELETE means finishing task handler execution -->
+            <category>taskEvent</category>
+            <expressionFilter>
+                <script>                     <!-- any situation that results in the task being suspended -->
+                    <code>event.isPermanentError()</code>
+                </script>
+            </expressionFilter>
+            <transport>sms</transport>
+        </simpleTaskNotifier>
+    </handler>
+    <mail>
+        <server>
+            <host>smtp.gmail.com</host>
+            <port>587</port>
+            <username>...</username>
+            <password>...</password>
+            <transportSecurity>starttlsEnabled</transportSecurity>
+         </server>
+         <redirectToFile>d:\midpoint\home\mail-notifications.txt</redirectToFile>		<!-- just for debugging -->
+     </mail>
+     <sms> ... </sms>
+</notificationConfiguration>
+----
+
+A notification looks like this:
+
+[source]
+----
+============================================ Tue Jun 21 18:07:42 CEST 2016
+To: admin@evolveum.com
+Subject: Task 'Reconcile CSV1' finish notification: FATAL_ERROR
+
+Notification about task-related operation.
+
+Task: Reconcile CSV1
+Handler: http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3
+
+Run result status: PERMANENT_ERROR
+Status: FATAL_ERROR
+Message: Reconciliation without an object class specification is not supported
+Progress: 0
+
+Notification created on: Tue Jun 21 18:07:42 CEST 2016
+
+Task owner: midPoint Administrator (administrator)
+Channel: http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation
+----
+
+The following information is available:
+
+[%autowidth]
+|===
+| Field | Meaning | Comment |
+
+| Task
+| The name of the task.
+Usually it is self-explaining.
+|
+|
+
+| Handler
+| Handler that starts or finishes its execution.
+Most tasks have exactly one handler.
+However, some workflow-related tasks can have more (sometimes up to 4) handlers.
+Each handler start/stop is sent as a standalone event.
+|
+|
+
+| Run result status
+| Result of the handler execution, driving what will be done with the task.
+Can have values of PERMANENT_ERROR, TEMPORARY_ERROR, FINISHED, FINISHED_HANDLER, INTERRUPTED, RESTART_REQUESTED.
+(TODO - more information)
+| Can be tested with isPermanentError(), isTemporaryError(), isFinished(), isInterrupted(), isRestartRequested() event methods.
+|
+
+| Status
+| Status as stored in the task's operation result.
+Can have values of SUCCESS, HANDLED_ERROR, WARNING, PARTIAL_ERROR, FATAL_ERROR, IN_PROGRESS, NOT_APPLICABLE.
+| Can be tested with <status> filter, or with isSuccess() - corresponds to SUCESS, HANDLED_ERROR, WARNING, isOnlyFailure() - corresponds to FATAL_ERROR, isFailure() - corresponds to PARTIAL_ERROR or FATAL_ERROR.
+|
+
+| Message
+| Message that is part of the operation result, if present.
+| Retrieved via event.getMessage().
+|
+
+| Progress
+| Progress reported by the task.
+| Retrieved via event.getProgress().
+|
+
+|===
+
+[TIP]
+====
+So, if you want to send notifications when a problem occurs, it is most advisable to use expressionFilter of *event.isPermanentError()*, as in the third example.
+====
+
+// TODO more detailed explanation

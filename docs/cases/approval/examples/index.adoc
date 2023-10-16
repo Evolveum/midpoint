@@ -1,0 +1,18 @@
+= Approval examples
+:page-wiki-name: Approval examples
+:page-wiki-id: 24085020
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-01-13T15:33:22.898+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-01-13T15:50:42.315+01:00
+:page-upkeep-status: green
+
+[TIP]
+====
+Examples mentioned here are valid for midPoint 3.5 and later.
+Some features (e.g. run-time resolvable approver references and `outcomeIfNoApprovers` property) are available in midPoint 3.6 and later.
+====
+
+++++
+{% children %}
+++++
