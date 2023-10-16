@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -119,5 +121,10 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
         return createStringResource("PageCorrelation.title.description");
+    }
+
+    @Override
+    protected boolean areAllItemsMandatory(ItemWrapper<?,?> itemWrapper) {
+        return true;
     }
 }
