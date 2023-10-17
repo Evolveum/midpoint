@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -40,6 +42,8 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
         convertSupportedTypeList(config.getSupportedTypes());
         this.defaultObjectType = config.getDefaultValue();
+        name = resolveName(config);
+        help = resolveHelp(config);
     }
 
     public ObjectTypeSearchItemWrapper(List<Class<?>> supportedTypeList, QName defaultObjectType) {
@@ -153,5 +157,19 @@ public class ObjectTypeSearchItemWrapper extends FilterableSearchItemWrapper<QNa
 
     public void setAllowAllTypesSearch(boolean allowAllTypesSearch) {
         this.allowAllTypesSearch = allowAllTypesSearch;
+    }
+
+    private String resolveName(ObjectTypeSearchItemConfigurationType config) {
+        if (config == null || config.getDisplay() == null) {
+            return null;
+        }
+        return GuiDisplayTypeUtil.getTranslatedLabel(config.getDisplay());
+    }
+
+    private String resolveHelp(ObjectTypeSearchItemConfigurationType config) {
+        if (config == null || config.getDisplay() == null) {
+            return null;
+        }
+        return GuiDisplayTypeUtil.getHelp(config.getDisplay());
     }
 }
