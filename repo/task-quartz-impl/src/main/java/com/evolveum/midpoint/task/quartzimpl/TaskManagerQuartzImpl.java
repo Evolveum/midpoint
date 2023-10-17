@@ -158,6 +158,17 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     /** Cached task prism definition. */
     private PrismObjectDefinition<TaskType> taskPrismDefinition;
 
+    /**
+     * A flag that the task manager is going down (most probably as part of the system shutdown).
+     * We use it to prevent starting the quartz scheduler in such a state, to prevent erroneous situations like MID-7331:
+     * service stop is requested during service startup, which leads to a situation when the scheduler is first paused
+     * (because of shutdown), and then started (because of startup) - which leads to tasks being closed because of internal
+     * inconsistencies due to missing task handlers.
+     *
+     * We simply assume that once system goes down, it will never be started in its current instance.
+     */
+    private boolean goingDown;
+
     private static final Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
     //region Initialization and shutdown
@@ -165,13 +176,14 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     public void init() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "init");
         systemConfigurationChangeDispatcher.registerListener(this);
-        upAndDown.init(result);
+        upAndDown.init(result); // not actually starting the scheduler, unless in test mode
     }
 
     @PreDestroy
     public void destroy() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "shutdown");
         systemConfigurationChangeDispatcher.unregisterListener(this);
+        goingDown = true;
         upAndDown.shutdown(result);
     }
 
@@ -192,7 +204,11 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @EventListener(ApplicationReadyEvent.class)
     public void onSystemStarted() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
-        upAndDown.onSystemStarted(result);
+        if (!goingDown) {
+            upAndDown.switchToUpState(result);
+        } else {
+            LOGGER.info("NOT starting threads (scheduler + cluster manager) because we are going down");
+        }
     }
 
     /**
@@ -205,6 +221,7 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @EventListener(ContextClosedEvent.class)
     public void onSystemShutdown() {
         OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemShutdown");
+        goingDown = true;
         upAndDown.stopLocalSchedulerAndTasks(result);
     }
     //endregion
