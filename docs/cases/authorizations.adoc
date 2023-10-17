@@ -125,3 +125,11 @@ At the GUI level, there are the following action URIs available.
 | Single work item details
 | <prefix>#workItem
 |===
+
+== An Example
+
+For a more comprehensive example, see `041-role-approver.xml` initial object.
+
+== See Also
+
+* xref:../security/authorization/configuration/selectors/type-and-parent.adoc[]
