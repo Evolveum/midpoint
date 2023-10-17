@@ -40,6 +40,8 @@ public class PcpStartInstruction extends StartInstruction {
 
     private boolean isObjectCreationInstruction;
 
+    private ObjectTreeDeltas<?> deltasToApprove;
+
     private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         super(changeProcessor, archetypeOid);
         aCase.setApprovalContext(new ApprovalContextType());
@@ -94,7 +96,12 @@ public class PcpStartInstruction extends StartInstruction {
 
     public void setDeltasToApprove(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {
         isObjectCreationInstruction = isObjectCreationInstruction(objectTreeDeltas);
+        this.deltasToApprove = objectTreeDeltas;
         getApprovalContext().setDeltasToApprove(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
+    }
+
+    ObjectTreeDeltas<?> getDeltasToApprove() {
+        return deltasToApprove;
     }
 
     private boolean isObjectCreationInstruction(ObjectTreeDeltas<?> deltasToApprove) {
