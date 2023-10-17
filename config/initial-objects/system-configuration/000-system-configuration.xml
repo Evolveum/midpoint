@@ -381,8 +381,8 @@
                     </target>
                 </action>
             </widget>
-           <widget id="29">
-               <identifier>listResourcesWidget</identifier>
+            <widget id="29">
+                <identifier>listResourcesWidget</identifier>
                 <display>
                     <label>
                         <orig>List resources</orig>
@@ -398,7 +398,7 @@
                 <panelType>linkWidget</panelType>
                 <action id="38">
                     <identifier>list-resources-widget-action</identifier>
-                   <target>
+                    <target>
                         <targetUrl>/admin/resources</targetUrl>
                     </target>
                 </action>
@@ -908,6 +908,32 @@
                     </searchItems>
                 </searchBoxConfiguration>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>resource-templates</identifier>
+                <display>
+                    <label>
+                        <orig>Resource templates</orig>
+                        <translation>
+                            <key>ResourceType.templates.title</key>
+                        </translation>
+                    </label>
+                    <pluralLabel>
+                        <orig>All resource templates</orig>
+                        <translation>
+                            <key>ResourceType.template.all.title</key>
+                        </translation>
+                    </pluralLabel>
+                    <singularLabel>Resource template</singularLabel>
+                    <icon>
+                        <cssClass>fa fa-file-alt</cssClass>
+                    </icon>
+                </display>
+                <type>ResourceType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0001-000000000340" relation="org:default" type="c:ObjectCollectionType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage id="83">
@@ -915,7 +941,12 @@
                 <panel id="85">
                     <identifier>advanced-options-panel</identifier>
                     <display>
-                        <label>Advanced options</label>
+                        <label>
+                            <orig>Advanced options</orig>
+                            <translation>
+                                <key>TaskType.advancedOptions</key>
+                            </translation>
+                        </label>
                     </display>
                     <panelType>formPanel</panelType>
                     <container id="87">
@@ -941,7 +972,12 @@
                 <panel id="86">
                     <identifier>operational-attributes-panel</identifier>
                     <display>
-                        <label>Operational attributes</label>
+                        <label>
+                            <orig>Operational attributes</orig>
+                            <translation>
+                                <key>TaskType.operationalAttributes</key>
+                            </translation>
+                        </label>
                     </display>
                     <panelType>formPanel</panelType>
                     <container id="92">
@@ -1040,6 +1076,7 @@
                     <display>
                         <label>Application.panel.applications</label>
                     </display>
+                    <applicableForOperation>modify</applicableForOperation>
                     <panelType>roleMemberships</panelType>
                     <listView>
                         <identifier>applications</identifier>

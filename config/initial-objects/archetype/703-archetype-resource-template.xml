@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000703"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Resource template</name>
+    <description>
+        Archetype for resource templates.
+    </description>
+    <archetypePolicy>
+        <display>
+            <label>
+                <t:orig>Resource template</t:orig>
+                <t:translation>
+                    <t:key>ResourceType.template.title</t:key>
+                </t:translation>
+            </label>
+            <pluralLabel>
+                <t:orig>Resource templates</t:orig>
+                <t:translation>
+                    <t:key>ResourceType.templates.title</t:key>
+                </t:translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-file-alt</cssClass>
+            </icon>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <panel id="1">
+                    <identifier>resourceAccounts</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="2">
+                    <identifier>resourceEntitlements</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="3">
+                    <identifier>resourceGenerics</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="4">
+                    <identifier>resourceUncategorized</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment id="5">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="6">
+            <holderType>ResourceType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>
