@@ -1318,6 +1318,38 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         }
     }
 
+    /**
+     * When the structural archetype is changed, the "processed object" record should refer to the old archetype.
+     *
+     * MID-8610
+     */
+    @Test
+    public void test320SimulateArchetypeChange() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a user with archetype 'person'");
+        UserType user = new UserType()
+                .name("test320")
+                .assignment(ARCHETYPE_PERSON.assignmentTo());
+        addObject(user, task, result);
+
+        when("archetype is changed to 'customer' (in simulation)");
+        TestSimulationResult simResult =
+                executeWithSimulationResult(
+                        List.of(deltaFor(UserType.class)
+                                .item(UserType.F_ASSIGNMENT)
+                                .replace(ARCHETYPE_CUSTOMER.assignmentTo())
+                                .asObjectDelta(user.getOid())),
+                        getExecutionMode(), defaultSimulationDefinition(), task, result);
+
+        then("simulation result points still to 'person' archetype");
+        assertProcessedObjects(simResult)
+                .display()
+                .single()
+                .assertStructuralArchetypeOid(ARCHETYPE_PERSON.oid);
+    }
+
     private boolean isDevelopmentConfigurationSeen() {
         return !getExecutionMode().isProductionConfiguration();
     }

@@ -271,9 +271,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 simulationTransaction.getTransactionId(),
                 elementContext.getOid(),
                 type,
-                // We should provide the old value here, just like for name and discriminator. See MID-8610.
-                elementContext instanceof LensFocusContext<?> ?
-                        ((LensFocusContext<?>) elementContext).getStructuralArchetypeRef() : null,
+                determineStructuralArchetypeRef(anyState, result),
                 determineShadowDiscriminator(anyState),
                 anyState.getName(),
                 delta != null ?
@@ -391,11 +389,19 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return !Objects.equals(ownerOptionsBefore, ownerOptionsAfter);
     }
 
-    private static <O extends ObjectType> ShadowDiscriminatorType determineShadowDiscriminator(O object) {
-        if (!(object instanceof ShadowType)) {
+    private static <O extends ObjectType> @Nullable ObjectReferenceType determineStructuralArchetypeRef(
+            @NotNull O object, @NotNull OperationResult result) throws SchemaException {
+        if (!(object instanceof AssignmentHolderType assignmentHolder)) {
             return null;
         }
-        ShadowType shadow = (ShadowType) object;
+        var archetype = ModelBeans.get().archetypeManager.determineStructuralArchetype(assignmentHolder, result);
+        return ObjectTypeUtil.createObjectRef(archetype);
+    }
+
+    private static <O extends ObjectType> ShadowDiscriminatorType determineShadowDiscriminator(O object) {
+        if (!(object instanceof ShadowType shadow)) {
+            return null;
+        }
         ObjectReferenceType resourceRef = shadow.getResourceRef();
         return new ShadowDiscriminatorType()
                 .resourceRef(resourceRef != null ? resourceRef.clone() : null)

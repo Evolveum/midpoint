@@ -1036,6 +1036,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Structural archetype of the object processed. Applies only to focal objects (assignment holders).
+                        When the simulated change of the archetype itself is reported, the old value is provided here.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SimulationResultProcessedObjectType.structuralArchetypeRef</a:displayName>
