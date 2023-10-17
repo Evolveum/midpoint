@@ -2018,6 +2018,7 @@
                       <suppressionFile>config/false-positives.xml</suppressionFile>
                       <formats>HTML,JENKINS,XML,JSON</formats>
                       <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                      <bundleAuditAnalyzerEnabled>false</bundleAuditAnalyzerEnabled>
                     </configuration>
                 </plugin>
             </plugins>
