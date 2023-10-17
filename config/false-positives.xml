@@ -7,17 +7,7 @@
       False Positive. H2 is not recommended for production use, only for demo testing use-cases.
     </notes>
     <cve>CVE-2021-42392</cve>
-  </suppress>
-  <suppress>
-    <notes>
-      False Positive. H2 is not recommended for production use, only for demo testing use-cases.
-    </notes>
     <cve>CVE-2022-23221</cve>
-  </suppress>
-  <suppress>
-    <notes>
-      False Positive. H2 is not recommended for production use, only for demo testing use-cases.
-    </notes>
     <cve>CVE-2022-45868</cve>
   </suppress>
   <suppress>
@@ -136,7 +126,7 @@
   </suppress>
   <suppress>
     <notes>
-      Minor. MidPoint integrator and/or MidPoint Administrator is only person able to edit JDBC URL.
+      False Positive. MidPoint integrator and/or MidPoint Administrator is only person able to edit JDBC URL.
     </notes>
     <cve>CVE-2022-26520</cve>
   </suppress>
@@ -217,5 +207,46 @@
     </notes>
     <cve>CVE-2020-11023</cve>
   </suppress>  
-  
+  <suppress>
+    <notes>
+      False Positive. MidPoint does not use Commons Text in way leading to vulnerability.
+    </notes>
+    <cve>CVE-2022-42889</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. MidPoint is not Cloud Foundry application.
+    </notes>
+    <cve>CVE-2023-20873</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. midPoint does not use Spring deserialization for user submitted data.
+    </notes>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False positive. Okio is not used in midPoint directly, Okio is used only in Ninja and not used in way leading to vulnerability.
+    </notes>
+    <cve>CVE-2023-3635</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False positive. Netty is not used in midPoint and it'đ dependencies in the role of TLS server.
+    </notes>
+    <cve>CVE-2023-34462</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. Default tomcat application is not exposed.
+    </notes>
+    <cve>CVE-2023-41080</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      False Positive. midPoint does not use LDAP CertStore for certificate validations.
+    </notes>
+    <cve>CVE-2023-33201</cve>
+  </suppress>
 </suppressions>

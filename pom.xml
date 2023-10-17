@@ -2019,6 +2019,7 @@
                       <formats>HTML,JENKINS,XML,JSON</formats>
                       <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                       <bundleAuditAnalyzerEnabled>false</bundleAuditAnalyzerEnabled>
+                      <yarnAuditAnalyzerEnabled>false</yarnAuditAnalyzerEnabled>
                     </configuration>
                 </plugin>
             </plugins>
