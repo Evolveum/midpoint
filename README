@@ -1,4 +1,4 @@
-MidPoint 4.8 "Curie"
+MidPoint 4.8 Support Branch
 -------------------------------
 
 General information:
