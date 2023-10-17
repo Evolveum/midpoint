@@ -1,0 +1,135 @@
+= Case Management Authorizations
+
+== Model level
+
+Case management authorization deals with _cases_ (`CaseType` objects) and their constituents, the most prominent being _work items_ residing in `workItem` container.
+
+These objects are acted upon by the following actions:
+
+.Relevant actions
+[%autowidth]
+|===
+| Action | Description | Related objects
+
+| `<prefix>#read`
+| Getting objects, searching objects, counting objects and so on.
+| cases and their parts (including work items)
+
+| `<prefix>#completeWorkItem`
+| Completing (e.g., approving and rejecting) individual work items.
+| work items
+
+| `<prefix>#delegateWorkItem`
+| Delegating individual work items.
+| work items
+|===
+
+`*<prefix>*` is the standard prefix denoting authorization actions at the model level, i.e. `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3`.
+
+The following is an example of these authorizations:
+
+.Listing 1: Standard authorizations for an approver
+[source,xml]
+----
+<authorization>
+    <name>own-workitems-read-complete-delegate</name>
+    <description>
+        Allows reading, completion, and delegation of own work items.
+    </description>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeWorkItem</action>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateWorkItem</action>
+    <object>
+        <parent>
+            <type>CaseType</type>
+            <path>workItem</path>
+        </parent>
+        <assignee>
+            <special>self</special>
+        </assignee>
+    </object>
+</authorization>
+<authorization>
+    <name>cases-read</name>
+    <description>
+        Allows to see parts of the cases containing work items assigned to the user.
+    </description>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <object>
+        <type>CaseType</type>
+        <assignee>
+            <special>self</special>
+        </assignee>
+    </object>
+    <exceptItem>workItem</exceptItem>
+</authorization>
+----
+
+The first authorization (`own-workitems-read-complete-delegate`) allows its holder to get, search, and count _work items_ they have assigned.
+The assignment can be direct or indirect, via delegation.
+For example, if Alice is assigned a given work item, and Bob is a deputy of Alice, then Bob is also considered to be the assignee for the sake of the above authorization.
+
+The second authorization (`cases-read`) allows its holder to get, search, and count _cases_ that are assigned to them, i.e. the cases where the user is an assignee of any work item in that particular case.
+
+Note the `exceptItem` clause.
+It makes sure that the user sees everything in the relevant case, except for work items.
+But the first authorization ensures that they see their own work items.
+Both authorizations combined ensure that the user sees the whole case, except for work items they are not assignee for.
+
+=== Claiming and Releasing of Work Items
+
+The "claim" and "release" operations do not require any special authorizations:
+Any user who is a candidate actor for a work item can claim it.
+Any user that is a sole assignee of a work item can release it, provided that there are any candidate users the work item can be offered to.
+
+=== Deprecated Authorizations
+
+Some of the legacy authorizations (like `#completeAllWorkItems`) were deprecated.
+As described https://docs.evolveum.com/midpoint/devel/design/schema-cleanup-4.8/authorizations/[here], they should be replaced by their current equivalents.
+
+== GUI level
+
+At the GUI level, there are the following action URIs available.
+`*<prefix>*` is the standard prefix for GUI authorization actions, i.e. `http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3`.
+
+[%autowidth]
+|===
+| GUI page | Action URI | Alternate action URI
+
+| All cases
+| <prefix>#cases
+.4+| <prefix>#casesAll
+
+| My cases (requested by me)
+| <prefix>#casesView
+
+| Specific case collections (e.g. All manual cases, All requests, All approvals)
+| <prefix>#casesView
+
+| Single case details
+| <prefix>#case
+
+| All work items
+| <prefix>#allWorkItems
+.5+| <prefix>#workItemsAll
+
+| My work items
+| <prefix>#myWorkItems
+
+| Attorney items
+| <prefix>#attorneyWorkItems
+
+| Work items claimable by me
+| <prefix>#claimableWorkItems
+
+| Single work item details
+| <prefix>#workItem
+|===
+
+== An Example
+
+For a more comprehensive example, see `041-role-approver.xml` initial object.
+
+== See Also
+
+* xref:../security/authorization/configuration/selectors/type-and-parent.adoc[]

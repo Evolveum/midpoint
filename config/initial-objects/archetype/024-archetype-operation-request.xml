@@ -26,7 +26,12 @@
                 <panel id="3">
                     <identifier>childCases</identifier>
                     <display>
-                        <label>Child cases</label>
+                        <label>
+                            <orig>Child cases</orig>
+                            <translation>
+                                <key>ChildCases.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
@@ -37,7 +42,12 @@
                 <panel id="4">
                     <identifier>operationRequestCase</identifier>
                     <display>
-                        <label>Operation request</label>
+                        <label>
+                            <orig>Operation request</orig>
+                            <translation>
+                                <key>OperationRequest.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>

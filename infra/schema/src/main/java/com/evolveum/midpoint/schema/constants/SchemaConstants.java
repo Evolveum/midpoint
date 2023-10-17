@@ -551,6 +551,7 @@ public abstract class SchemaConstants {
     // Case is open - work items are created, completed, delegated, etc. Associated work is carried out.
     public static final String CASE_STATE_OPEN = "open";
     public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
+    public static final String CASE_STATE_OPEN_URI = qNameToUri(CASE_STATE_OPEN_QNAME);
 
     // All human interaction regarding the case is over. But there might be some actions pending, e.g.
     // submitting change execution task, waiting for subtasks to be closed, and so on.

@@ -26,7 +26,12 @@
                 <panel id="3">
                     <identifier>caseWorkItems</identifier>
                     <display>
-                        <label>Workitems</label>
+                        <label>
+                            <orig>Workitems</orig>
+                            <translation>
+                                <key>Workitems.panel.title</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
@@ -37,7 +42,12 @@
                 <panel id="4">
                     <identifier>approvalCase</identifier>
                     <display>
-                        <label>Approvals</label>
+                        <label>
+                            <orig>Approvals</orig>
+                            <translation>
+                                <key>Approvals.case.panel</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-circle-o</cssClass>
                         </icon>
