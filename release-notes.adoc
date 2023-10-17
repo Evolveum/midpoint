@@ -298,8 +298,7 @@ However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
 Please see xref:/midpoint/install/platform-support/[] for details.
 
-Production deployments in Windows environments are supported only for LTS releases.
-As midPoint {release-version} is a feature release, Windows environment is not supported for production use.
+Note that production deployments in Windows environments are supported only for LTS releases.
 
 === Java
 
@@ -390,7 +389,7 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 9.0.65
+| 10.1.12
 | Web container
 
 | ConnId
@@ -398,15 +397,15 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.6.1
+| 3.7
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.6
+| 2.7
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
-| 1.5.0.0
+| 1.5.1.0
 | Connector for simple database tables
 
 |===
@@ -477,8 +476,8 @@ The most important changes are summarized in Changes With Respect To Version 4.4
 
 === Upgrade From Other MidPoint Versions
 
-Upgrade from midPoint versions older than 4.4.6 or 4.7.2 to midPoint {release-version} is not supported directly.
-Please upgrade to one of these versions first.
+Upgrade from midPoint versions other than 4.4.x or 4.7.x to midPoint {release-version} is not supported directly.
+Please upgrade to one of these versions (at least 4.4.6 or 4.7.2) first.
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.7
 
@@ -516,28 +515,17 @@ This may result in upgrade problems if the existing object contains configuratio
 The following list contains a description of changes to the initial objects in this midPoint release.
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
-Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
+_Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
 For more information see xref:/midpoint/reference/deployment/ninja/upgrade-with-ninja/#initial-objects[here].
-
-_Actions required:_ Please review the changes and apply them appropriately to your configuration.
-More details are provided along with individual changes below.
 
 * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
-+
-_Action required:_ These changes have to be applied when upgrading midPoint.
 
 * `230-lookup-lifecycle-state.xml`: The `suspended` lifecycle state was added.
-+
-_Action required:_ This change has to be applied when upgrading midPoint.
 
 * Container IDs and configuration items identifiers were added to multiple objects, see https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9] and https://github.com/Evolveum/midpoint/commit/092db5c5ab1b21f578acab520a2ea35d0ed94904[092db5] (the last commit also adds missing `handlerUri` mapping to `520-archetype-task-certification.xml`).
-+
-_Action required:_ This change has to be applied when upgrading midPoint.
 
 * `270-object-collection-audit.xml` was adapted to internal API change in https://github.com/Evolveum/midpoint/commit/400d78c5372c9ec86b80d7d995af27f8a244a616[400d78].
-+
-_Action required:_ This change has to be applied when upgrading midPoint.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
@@ -573,7 +561,7 @@ Since 4.8, this value will not be put into "effectiveStatus" property anymore.
 | Use `privileges/runAsRef` instead.
 
 | `LegacyCorrelationDefinitionType`, `CorrelationCasesDefinitionType`
-| (whole type)
+| (the whole type)
 | Use the new correlation definition in `schemaHandling` container.
 
 | `GroupSelectionType`
@@ -688,12 +676,12 @@ You should at least scan through them, though.
 
 * Mappings created by resource and role wizards are now by default `strong` (bug:MID-8756[]).
 
-* The resolution of a function library object in <function> expression is now handled by a lower-level component (`FunctionLibraryManager`) without checking for authorizations.
-If needed, the access to the functionality provided by these libraries should be restricted by expression profiles instead.
+* The resolution of a function library object in `<function>` expression is now handled by a lower-level component (`FunctionLibraryManager`) without checking for authorizations.
+If needed, the access to the functionality provided by these libraries can be restricted by expression profiles.
 (Note that the calls to functions from withing scripts ignored authorizations from the beginning.)
 See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c980015fed12c26e[c9b1ce].
 
-* Using of task template (e.g. to implement custom GUI actions) no longer requires `#read` authorization for the task template object.
+* Using a task template (e.g., to implement custom GUI actions) no longer requires `#read` authorization for the task template object.
 Instead, a new `model-3#use` authorization was created to cover this use case.
 See also xref:/midpoint/reference/security/authorization/configuration/#object-authorization-actions[] and commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
 
@@ -741,7 +729,7 @@ NOTE: As for the Java API, this section describes changes in `midpoint` and `bas
 But these two objects are something that can be unofficially considered to be the API of midPoint, usable e.g. from scripts.)
 
 * Some of `javax` namespaces were migrated to `jakarta` namespaces, due to upgrade of Spring and Groovy 4. This may affect your scripts / overlays if you were using them. Most notable is `javax.xml.bind`, which was migrated to `jakarta.xml.bind`.
-** Most notable rename for Groovy scripts is `javax.xml.bind.JAXBElement` to `jakarta.xml.bind.JAXBElement`
+** Most notable rename for Groovy scripts is `javax.xml.bind.JAXBElement` to `jakarta.xml.bind.JAXBElement`.
 
 * Groovy was updated to version 4, which changed some of exposed java package names. See https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 Release Notes] for more details.
 
