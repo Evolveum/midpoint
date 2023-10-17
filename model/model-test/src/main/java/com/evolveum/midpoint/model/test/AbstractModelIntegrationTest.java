@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHand
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource;
+import com.evolveum.midpoint.security.api.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -6675,5 +6676,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public OperationResult testResource(@NotNull String oid, @NotNull Task task) throws ObjectNotFoundException {
         return modelService.testResource(oid, task);
+    }
+
+    protected @NotNull CaseType getOpenCaseRequired(List<CaseType> cases) {
+        var openCases = cases.stream()
+                .filter(c -> QNameUtil.matchUri(c.getState(), CASE_STATE_OPEN_URI))
+                .collect(Collectors.toList());
+        return MiscUtil.extractSingletonRequired(
+                openCases,
+                () -> new AssertionError("More than one open case: " + openCases),
+                () -> new AssertionError("No open case in: " + cases));
+    }
+
+    protected @NotNull CaseWorkItemType getOpenWorkItemRequired(CaseType aCase) {
+        var openWorkItems = aCase.getWorkItem().stream()
+                .filter(wi -> wi.getCloseTimestamp() == null)
+                .collect(Collectors.toList());
+        return MiscUtil.extractSingletonRequired(
+                openWorkItems,
+                () -> new AssertionError("More than one open work item: " + openWorkItems),
+                () -> new AssertionError("No open work items in: " + aCase));
     }
 }

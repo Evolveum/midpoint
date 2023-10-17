@@ -199,6 +199,11 @@
             <groupId>jakarta.xml.ws</groupId>
             <artifactId>jakarta.xml.ws-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- TEST DEPENDENCIES -->
         <dependency>

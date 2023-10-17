@@ -235,7 +235,8 @@ public class StageComputeHelper {
 
     public String evaluateAutoCompleteExpression(ApprovalStageDefinitionType stageDef, VariablesMap variables,
             Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<String> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), variables,
+        List<String> outcomes = evaluationHelper.evaluateExpression(
+                stageDef.getAutomaticallyCompleted(), variables,
                 "automatic completion expression", String.class,
                 DOMUtil.XSD_STRING, false, createOutcomeConvertor(), opTask, result);
         LOGGER.trace("Pre-completed = {} for stage {}", outcomes, stageDef);
@@ -258,8 +259,7 @@ public class StageComputeHelper {
             } else if (o instanceof QName) {
                 return QNameUtil.qNameToUri((QName) o);
             } else {
-                //throw new IllegalArgumentException("Couldn't create an URI from " + o);
-                return o;        // let someone else complain about this
+                return o; // let someone else complain about this
             }
         };
     }

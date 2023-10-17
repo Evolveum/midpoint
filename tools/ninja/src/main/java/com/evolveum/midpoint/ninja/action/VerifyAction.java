@@ -16,6 +16,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.file.PathUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.verify.VerificationReporter;
@@ -65,13 +67,34 @@ public class VerifyAction extends AbstractRepositorySearchAction<VerifyOptions, 
         };
     }
 
+    private void guessReportStyle() {
+        if (options.getOutput() == null) {
+            options.setReportStyle(VerifyOptions.ReportStyle.PLAIN);
+            return;
+        }
+
+        File output = options.getOutput();
+        String extension = FilenameUtils.getExtension(output.getName());
+        VerifyOptions.ReportStyle style = "csv".equalsIgnoreCase(extension) ?
+                VerifyOptions.ReportStyle.CSV : VerifyOptions.ReportStyle.PLAIN;
+
+        options.setReportStyle(style);
+    }
+
     @Override
     public VerifyResult execute() throws Exception {
+        if (options.getReportStyle() == null) {
+            guessReportStyle();
+        }
+
         VerifyResult result;
         if (options.getOutput() != null) {
-            log.info("Verification report will be saved to '{}'", options.getOutput().getPath());
+            log.info("Verification report will be saved to '{}' ({})", options.getOutput().getPath(), options.getReportStyle().name().toLowerCase());
         } else if (context.isUserMode() && !partial) {
-            log.warn("Consider using  '-o verify-output.csv' option for CSV output with upgradeability status of deprecated items.");
+            log.warn(
+                    "Consider using '" + VerifyOptions.P_OUTPUT + " verify-output.csv " + VerifyOptions.P_REPORT_STYLE
+                            + " " + VerifyOptions.ReportStyle.CSV.name().toLowerCase()
+                            + "' option for CSV output with upgradeability status of deprecated items.");
             log.warn("It is recommended to review this report and actions for proper upgrade procedure.");
         }
         if (!options.getFiles().isEmpty()) {

@@ -2010,6 +2010,16 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>3.3.0</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>8.2.1</version>
+                    <configuration>
+                      <suppressionFile>config/false-positives.xml</suppressionFile>
+                      <formats>HTML,JENKINS,XML,JSON</formats>
+                      <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>

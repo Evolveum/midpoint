@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="f3f31769-4b1e-401c-8db4-22914cee1550">
+    <name>metarole-selective-approval</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+                            <automaticallyCompleted>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.schema.constants.SchemaConstants
+
+                                        target.name.orig == 'role-selective-a' ?
+                                                SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP : null
+                                    </code>
+                                </script>
+                            </automaticallyCompleted>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>

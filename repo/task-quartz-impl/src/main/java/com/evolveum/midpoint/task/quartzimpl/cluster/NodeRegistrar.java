@@ -48,6 +48,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -69,6 +70,7 @@ import java.util.*;
  *
  * TODO finish review of this class
  */
+@DependsOn("taskManagerConfiguration")
 @Component
 public class NodeRegistrar implements Cache {
 
