@@ -69,7 +69,7 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
 
         return iws
                 .stream()
-                .filter(iw -> iw.getFormComponentValidator() != null)
+                .filter(iw -> iw != null && iw.getFormComponentValidator() != null)
                 .toList();
     }
 

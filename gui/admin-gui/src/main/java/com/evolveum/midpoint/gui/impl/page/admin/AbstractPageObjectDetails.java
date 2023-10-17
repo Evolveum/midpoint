@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -720,6 +721,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         PrismObjectWrapper<O> wrapper = getModelWrapperObject();
         WebPrismUtil.collectWrappers(wrapper, iws);
 
-        iws.forEach(iw -> iw.setValidated(false));
+        iws.stream().filter(Objects::nonNull).forEach(iw -> iw.setValidated(false));
     }
 }
