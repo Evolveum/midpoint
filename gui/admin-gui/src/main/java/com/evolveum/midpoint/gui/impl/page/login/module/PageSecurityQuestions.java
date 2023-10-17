@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -158,16 +159,14 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
             return new ArrayList<>();
         }
 
-        SecurityQuestionsCredentialsType credentialsPolicyType = user.getCredentials()
-                .getSecurityQuestions();
-        if (credentialsPolicyType == null
-                || credentialsPolicyType.getQuestionAnswer() == null
-                || credentialsPolicyType.getQuestionAnswer().isEmpty()) {
+        if (shouldThrowException(user.getCredentials())) {
             // This is better than "web.security.flexAuth.any.security.questions", because it is specific to the context
             // of resetting the password through security questions. (At least I suppose these questions are used only for
             // this reason.)
             throw new BadCredentialsException("pageForgetPassword.message.ContactAdminQuestionsNotSet");
         }
+        SecurityQuestionsCredentialsType credentialsPolicyType = user.getCredentials()
+                .getSecurityQuestions();
         List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
         SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
@@ -199,6 +198,11 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
         }
 
         return questionsDto;
+    }
+
+    private boolean shouldThrowException(CredentialsType credentials) {
+        return credentials == null || credentials.getSecurityQuestions() == null
+                || CollectionUtils.isEmpty(credentials.getSecurityQuestions().getQuestionAnswer());
     }
 
     public PageBase getPageBase() {
