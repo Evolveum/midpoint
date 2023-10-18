@@ -73,7 +73,7 @@ public class Main {
         this.err = err;
     }
 
-    protected <T> @NotNull MainResult<?> run(String[] args) {
+    protected @NotNull MainResult<?> run(String[] args) {
         AnsiConsole.systemInstall();
 
         try {
@@ -156,7 +156,7 @@ public class Main {
                 }
 
                 NinjaApplicationContextLevel contextLevel = action.getApplicationContextLevel(allOptions);
-                if (contextLevel != null && contextLevel != NinjaApplicationContextLevel.NONE) {
+                if (contextLevel != NinjaApplicationContextLevel.NONE) {
                     ConnectionOptions connectionOptions =
                             Objects.requireNonNullElse(context.getOptions(ConnectionOptions.class), new ConnectionOptions());
                     checkAndWarnMidpointHome(connectionOptions.getMidpointHome());
