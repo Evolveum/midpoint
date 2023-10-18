@@ -111,7 +111,7 @@ public class PasswordPanel extends InputPanel {
         setOutputMarkupId(true);
 
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
-        inputContainer.add(new VisibleBehaviour(() -> passwordInputVisible));
+        inputContainer.add(new VisibleBehaviour(this::isPasswordInputVisible));
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
@@ -221,6 +221,10 @@ public class PasswordPanel extends InputPanel {
 
         WebComponentUtil.addAjaxOnUpdateBehavior(inputContainer);
 
+    }
+
+    protected boolean isPasswordInputVisible() {
+        return passwordInputVisible || getParentPage().getPrincipalFocus() == null;
     }
 
     private String initPasswordValidation() {
