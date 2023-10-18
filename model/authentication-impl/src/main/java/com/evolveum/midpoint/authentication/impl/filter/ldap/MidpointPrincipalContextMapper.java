@@ -53,18 +53,21 @@ public class MidpointPrincipalContextMapper implements UserDetailsContextMapper 
     public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
             Collection<? extends GrantedAuthority> authorities) {
 
-        if (!(ctx instanceof LdapDirContextAdapter) || ((LdapDirContextAdapter) ctx).getNamingAttr() == null) {
-            LOGGER.debug("Couldn't define midpoint user");
+        if (!(ctx instanceof LdapDirContextAdapter)) {
+            LOGGER.debug("Wrong type of authentication context expected LdapDirContextAdapter, but was "
+                    + (ctx == null ? null : ctx.getClass()));
             throw new AuthenticationServiceException("web.security.provider.invalid");
         }
 
-        String userNameEffective;
-        try {
-            userNameEffective = resolveLdapName(ctx, username, ((LdapDirContextAdapter) ctx).getNamingAttr());
-        } catch (ObjectNotFoundException e) {
-            throw new UsernameNotFoundException("web.security.provider.invalid.credentials", e);
-        } catch (NamingException e) {
-            throw new SystemException(e.getMessage(), e);
+        String userNameEffective = username;
+        if (((LdapDirContextAdapter) ctx).getNamingAttr() != null){
+            try {
+                userNameEffective = resolveLdapName(ctx, username, ((LdapDirContextAdapter) ctx).getNamingAttr());
+            } catch (ObjectNotFoundException e) {
+                throw new UsernameNotFoundException("web.security.provider.invalid.credentials", e);
+            } catch (NamingException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
         }
 
         Class<? extends FocusType> focusType = ((LdapDirContextAdapter) ctx).getFocusType();
