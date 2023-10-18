@@ -365,18 +365,21 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
     public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
             Collection<? extends GrantedAuthority> authorities) {
 
-        if (!(ctx instanceof MidpointDirContextAdapter) || ((MidpointDirContextAdapter) ctx).getNamingAttr() == null) {
-            LOGGER.debug("Couldn't define midpoint user");
+        if (!(ctx instanceof MidpointDirContextAdapter)) {
+            LOGGER.debug("Wrong type of authentication context expected MidpointDirContextAdapter, but was "
+                    + (ctx == null ? null : ctx.getClass()));
             throw new AuthenticationServiceException("web.security.provider.invalid");
         }
 
-        String userNameEffective;
-        try {
-            userNameEffective = resolveLdapName(ctx, username, ((MidpointDirContextAdapter) ctx).getNamingAttr());
-        } catch (ObjectNotFoundException e) {
-            throw new UsernameNotFoundException("web.security.provider.invalid", e);
-        } catch (NamingException e) {
-            throw new SystemException(e.getMessage(), e);
+        String userNameEffective = username;
+        if (((MidpointDirContextAdapter) ctx).getNamingAttr() != null) {
+            try {
+                userNameEffective = resolveLdapName(ctx, username, ((MidpointDirContextAdapter) ctx).getNamingAttr());
+            } catch (ObjectNotFoundException e) {
+                throw new UsernameNotFoundException("web.security.provider.invalid", e);
+            } catch (NamingException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
         }
 
         Class<? extends FocusType> focusType = ((MidpointDirContextAdapter) ctx).getFocusType();
