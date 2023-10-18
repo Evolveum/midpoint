@@ -78,6 +78,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
         }
 
         fragment.setOutputMarkupId(true);
+        fragment.add(new VisibleBehaviour(() -> !isSubmitted));
         content.setOutputMarkupId(true);
         addOrReplaceCaptcha(fragment);
         initButtons(mainForm);
@@ -117,7 +118,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
             return;
         }
         submitRegistration(target);
-        isSubmitted = true;
     }
 
     private boolean validateCaptcha(AjaxRequestTarget target) {

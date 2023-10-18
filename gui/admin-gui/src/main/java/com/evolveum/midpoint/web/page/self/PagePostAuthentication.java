@@ -206,6 +206,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
         if (!result.isAcceptable()) {
             target.add(PagePostAuthentication.this);
         } else {
+            isSubmitted = true;
             MidPointPrincipal principal = AuthUtil.getPrincipalUser();
             try {
                 getModelInteractionService().refreshPrincipal(principal.getOid(), principal.getFocus().getClass());
