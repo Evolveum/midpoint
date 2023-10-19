@@ -33,6 +33,7 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigur
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -615,7 +617,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     @Override
     public boolean onBackPerformed(AjaxRequestTarget target) {
         if (selectionState.getObject() == SelectionState.TILES) {
-            return super.onBackPerformed(target);
+            boolean executeDefaultBehaviour = super.onBackPerformed(target);
+            if (!executeDefaultBehaviour) {
+                getPageBase().redirectBack();
+            }
+            return executeDefaultBehaviour;
         }
 
         selectionState.setObject(SelectionState.TILES);
