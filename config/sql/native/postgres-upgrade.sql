@@ -461,6 +461,10 @@ BEGIN
 END;
 $$;
 $aa$);
+
+call apply_change(26, $aa$
+CREATE INDEX m_user_personalNumber_idx ON m_user (personalNumber);
+$aa$);
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

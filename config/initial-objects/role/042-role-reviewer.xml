@@ -46,6 +46,7 @@
         <item>fullName</item>
         <item>employeeType</item>
         <item>employeeNumber</item>
+        <item>personalNumber</item>
     </authorization>
     <authorization id="5">
         <name>roles-read</name>

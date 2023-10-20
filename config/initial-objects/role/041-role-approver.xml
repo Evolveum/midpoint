@@ -84,6 +84,7 @@
         <item>fullName</item>
         <item>employeeType</item>
         <item>employeeNumber</item>
+        <item>personalNumber</item>
     </authorization>
     <authorization id="6">
         <name>roles-read</name>

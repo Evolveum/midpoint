@@ -13,6 +13,7 @@
         <givenName>%%GIVEN_NAME%%</givenName>
         <familyName>%%FAMILY_NAME%%</familyName>
         <employeeNumber>E%%ID%%</employeeNumber>
+        <personalNumber>E%%ID%%</personalNumber>
     </user>
 
 

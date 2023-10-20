@@ -653,6 +653,7 @@ CREATE INDEX m_user_fullNameOrig_idx ON m_user (fullNameOrig);
 CREATE INDEX m_user_familyNameOrig_idx ON m_user (familyNameOrig);
 CREATE INDEX m_user_givenNameOrig_idx ON m_user (givenNameOrig);
 CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
+CREATE INDEX m_user_personalNumber_idx ON m_user (personalNumber);
 CREATE INDEX m_user_subtypes_idx ON m_user USING gin(subtypes);
 CREATE INDEX m_user_organizations_idx ON m_user USING gin(organizations);
 CREATE INDEX m_user_organizationUnits_idx ON m_user USING gin(organizationUnits);
@@ -2218,4 +2219,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(25, $$ SELECT 1 $$, true);
+call apply_change(26, $$ SELECT 1 $$, true);

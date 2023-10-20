@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                 @Index(name = "iFamilyName", columnList = "familyName_orig"),
                 @Index(name = "iGivenName", columnList = "givenName_orig"),
                 @Index(name = "iEmployeeNumber", columnList = "employeeNumber"),
+                @Index(name = "iPersonalNumber", columnList = "personalNumber"),
                 @Index(name = "iUserNameOrig", columnList = "name_orig") })
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
@@ -45,6 +46,7 @@ public class RUser extends RFocus {
     private RPolyString honorificPrefix;
     private RPolyString honorificSuffix;
     private String employeeNumber;
+    private String personalNumber;
     private Set<RPolyString> organizationalUnit;
     private RPolyString title;
     private RPolyString nickName;
@@ -92,6 +94,10 @@ public class RUser extends RFocus {
 
     public String getEmployeeNumber() {
         return employeeNumber;
+    }
+
+    public String getPersonalNumber() {
+        return personalNumber;
     }
 
     @Embedded
@@ -149,6 +155,10 @@ public class RUser extends RFocus {
         this.employeeNumber = employeeNumber;
     }
 
+    public void setPersonalNumber(String personalNumber) {
+        this.personalNumber = personalNumber;
+    }
+
     public void setFamilyName(RPolyString familyName) {
         this.familyName = familyName;
     }
@@ -185,6 +195,7 @@ public class RUser extends RFocus {
         repo.setHonorificPrefix(RPolyString.copyFromJAXB(jaxb.getHonorificPrefix()));
         repo.setHonorificSuffix(RPolyString.copyFromJAXB(jaxb.getHonorificSuffix()));
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
+        repo.setPersonalNumber(jaxb.getPersonalNumber());
         repo.setAdditionalName(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
