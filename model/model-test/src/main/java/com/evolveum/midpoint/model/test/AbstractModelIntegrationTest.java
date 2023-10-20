@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.extractMessages;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
@@ -38,6 +39,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
@@ -5880,11 +5882,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         String password = getPassword(user);
         displayValue("Password of " + user, password);
         PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
-        List<LocalizableMessage> messages = new ArrayList<>();
-        valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        var results = valuePolicyProcessor.validateValue(
+                password, passwordPolicy.asObjectable(), createUserOriginResolver(user), "validating password of " + user, task, result);
         boolean valid = result.isAcceptable();
         if (!valid) {
-            fail("Password for " + user + " does not comply with password policy: " + messages);
+            fail("Password for " + user + " does not comply with password policy: " + extractMessages(results));
         }
     }
 

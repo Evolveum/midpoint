@@ -7,45 +7,31 @@
   -->
 
 <valuePolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-             oid="81818181-76e0-59e2-8888-3d4f02d3fffb"
-             version="10">
-   <name>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Numeric PIN Policy</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">numeric pin policy</norm>
-   </name>
-   <description>A policy useful for generating PIN.</description>
-   <c:stringPolicy xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-                   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-                   xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-      <c:description>String validation policy</c:description>
-      <c:limitations>
-         <c:minLength>4</c:minLength>
-         <c:maxLength>4</c:maxLength>
-         <c:minUniqueChars>4</c:minUniqueChars>
-         <c:checkAgainstDictionary>false</c:checkAgainstDictionary>
-         <c:checkPattern></c:checkPattern>
-         <c:limit>
-            <c:description>Numeric characters (first digit - excluding zero)</c:description>
-            <c:minOccurs>1</c:minOccurs>
-            <c:maxOccurs>4</c:maxOccurs>
-            <c:mustBeFirst>true</c:mustBeFirst>
-            <c:characterClass>
-               <c:value>123456789</c:value>
-            </c:characterClass>
-         </c:limit>
-         <c:limit>
-            <c:description>Numeric characters</c:description>
-            <c:mustBeFirst>false</c:mustBeFirst>
-            <c:characterClass>
-               <c:value>1234567890</c:value>
-            </c:characterClass>
-         </c:limit>
-      </c:limitations>
-   </c:stringPolicy>
+        oid="81818181-76e0-59e2-8888-3d4f02d3fffb">
+    <name>Numeric PIN Policy</name>
+    <description>A policy useful for generating PIN.</description>
+    <stringPolicy>
+        <description>String validation policy</description>
+        <limitations>
+            <minLength>4</minLength>
+            <maxLength>4</maxLength>
+            <minUniqueChars>4</minUniqueChars>
+            <limit>
+                <description>Numeric characters (first digit - excluding zero)</description>
+                <minOccurs>1</minOccurs>
+                <maxOccurs>4</maxOccurs>
+                <mustBeFirst>true</mustBeFirst>
+                <characterClass>
+                    <value>123456789</value>
+                </characterClass>
+            </limit>
+            <limit>
+                <description>Numeric characters</description>
+                <mustBeFirst>false</mustBeFirst>
+                <characterClass>
+                    <value>1234567890</value>
+                </characterClass>
+            </limit>
+        </limitations>
+    </stringPolicy>
 </valuePolicy>
