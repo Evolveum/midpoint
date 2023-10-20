@@ -49,6 +49,8 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+
 public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends Serializable> extends AbstractExportableColumn<S, String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurableExpressionColumn.class);
@@ -92,7 +94,12 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     public IModel<String> getDataModel(IModel<S> rowModel) {
         ItemPath columnPath = WebComponentUtil.getPath(customColumn);
 
-        return () -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                return loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
+            }
+        };
     }
 
     @Override
