@@ -6,27 +6,7 @@
  */
 package com.evolveum.midpoint.ninja;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterException;
-
-import com.evolveum.midpoint.ninja.action.Action;
-import com.evolveum.midpoint.ninja.action.ActionResult;
-import com.evolveum.midpoint.ninja.action.BaseOptions;
-import com.evolveum.midpoint.ninja.impl.Command;
-import com.evolveum.midpoint.ninja.impl.LogLevel;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.util.ConsoleFormat;
-import com.evolveum.midpoint.ninja.util.InputParameterException;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.fusesource.jansi.AnsiConsole;
-import org.jetbrains.annotations.NotNull;
-
+import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URL;
@@ -34,6 +14,29 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.fusesource.jansi.AnsiConsole;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.init.StartupConfiguration;
+import com.evolveum.midpoint.ninja.action.Action;
+import com.evolveum.midpoint.ninja.action.ActionResult;
+import com.evolveum.midpoint.ninja.action.BaseOptions;
+import com.evolveum.midpoint.ninja.action.ConnectionOptions;
+import com.evolveum.midpoint.ninja.impl.Command;
+import com.evolveum.midpoint.ninja.impl.LogLevel;
+import com.evolveum.midpoint.ninja.impl.NinjaApplicationContextLevel;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
+import com.evolveum.midpoint.ninja.util.InputParameterException;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 public class Main {
 
@@ -70,7 +73,7 @@ public class Main {
         this.err = err;
     }
 
-    protected <T> @NotNull MainResult<?> run(String[] args) {
+    protected @NotNull MainResult<?> run(String[] args) {
         AnsiConsole.systemInstall();
 
         try {
@@ -90,6 +93,12 @@ public class Main {
             jc.parse(args);
         } catch (ParameterException ex) {
             err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, ex.getMessage()));
+
+            String parsedCommand = ex.getJCommander().getParsedCommand();
+            BaseOptions base = NinjaUtils.getOptions(jc.getObjects(), BaseOptions.class);
+            if (base != null && base.isVerbose()) {
+                printHelp(jc, parsedCommand);
+            }
 
             return MainResult.EMPTY_ERROR;
         }
@@ -146,6 +155,13 @@ public class Main {
                     context.getLog().info("");
                 }
 
+                NinjaApplicationContextLevel contextLevel = action.getApplicationContextLevel(allOptions);
+                if (contextLevel != NinjaApplicationContextLevel.NONE) {
+                    ConnectionOptions connectionOptions =
+                            Objects.requireNonNullElse(context.getOptions(ConnectionOptions.class), new ConnectionOptions());
+                    checkAndWarnMidpointHome(connectionOptions.getMidpointHome());
+                }
+
                 Object result = action.execute();
                 if (result instanceof ActionResult) {
                     ActionResult<?> actionResult = (ActionResult<?>) result;
@@ -169,6 +185,27 @@ public class Main {
         }
     }
 
+    private void checkAndWarnMidpointHome(String midpointHome) {
+        if (StringUtils.isEmpty(midpointHome)) {
+            throw new InputParameterException("Midpoint home " + ConnectionOptions.P_MIDPOINT_HOME + " option expected, but not defined");
+        }
+
+        File file = new File(midpointHome);
+        if (!file.exists() || !file.isDirectory()) {
+            throw new InputParameterException("Midpoint home directory '" + midpointHome + "' doesn't exist or is not a directory");
+        }
+
+        String configFile = StartupConfiguration.DEFAULT_CONFIG_FILE_NAME;
+        if (System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY) != null) {
+            configFile = System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY);
+        }
+
+        File config = new File(file, configFile);
+        if (!config.exists() || config.isDirectory()) {
+            throw new InputParameterException("Midpoint home config xml file '" + config.getAbsolutePath() + "' doesn't exist");
+        }
+    }
+
     private void cleanupResources(BaseOptions opts, NinjaContext context) {
         try {
             if (context != null) {
@@ -181,7 +218,7 @@ public class Main {
 
     private Exception checkAndUnwrapException(Exception ex) {
         Throwable throwable = ex;
-        while (throwable != null && !Objects.equals(throwable.getCause() , throwable)) {
+        while (throwable != null && !Objects.equals(throwable.getCause(), throwable)) {
             throwable = throwable.getCause();
             if (throwable instanceof SystemException) {
                 break;
