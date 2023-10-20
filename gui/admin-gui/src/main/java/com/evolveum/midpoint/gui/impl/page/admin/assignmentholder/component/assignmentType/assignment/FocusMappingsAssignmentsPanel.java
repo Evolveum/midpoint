@@ -45,7 +45,6 @@ public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> exte
         return null;
     }
 
-
     protected ObjectQuery createCustomizeQuery() {
         return getPageBase().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
@@ -92,4 +91,10 @@ public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> exte
             target.add(getPageBase().getFeedbackPanel());
         }
     }
+
+    @Override
+    protected boolean isCancelButtonVisible() {
+        return false;
+    }
+
 }
