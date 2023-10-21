@@ -615,7 +615,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     @Override
     public boolean onBackPerformed(AjaxRequestTarget target) {
         if (selectionState.getObject() == SelectionState.TILES) {
-            return super.onBackPerformed(target);
+            boolean executeDefaultBehaviour = super.onBackPerformed(target);
+            if (!executeDefaultBehaviour) {
+                getPageBase().redirectBack();
+            }
+            return executeDefaultBehaviour;
         }
 
         selectionState.setObject(SelectionState.TILES);

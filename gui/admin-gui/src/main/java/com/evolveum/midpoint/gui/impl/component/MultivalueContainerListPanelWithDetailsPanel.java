@@ -127,6 +127,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
                 ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
             }
         };
+        cancelButton.add(new VisibleBehaviour(this::isCancelButtonVisible));
+
         buttonsContainer.add(cancelButton);
     }
 
@@ -144,6 +146,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     }
 
     protected boolean isButtonPanelVisible() {
+        return true;
+    }
+
+    protected boolean isCancelButtonVisible() {
         return true;
     }
 

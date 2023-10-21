@@ -67,6 +67,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
             String labelCssClass, String textCssClass, final boolean required,
             boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.add(AttributeAppender.prepend("class", getLabelContainerCssClass()));
         labelContainer.add(new VisibleBehaviour(() -> label != null && StringUtils.isNotEmpty(label.getObject())));
         add(labelContainer);
 
@@ -96,6 +97,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         labelContainer.add(requiredContainer);
 
         WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);
+        propertyLabel.add(AttributeAppender.prepend("class", getPropertyContainerCssClass()));
         WebMarkupContainer rowLabel = new WebMarkupContainer(ID_ROW);
         WebMarkupContainer selectWrapper = new WebMarkupContainer(ID_SELECT_WRAPPER);
         if (StringUtils.isNotEmpty(textCssClass)) {
@@ -161,5 +163,13 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
     protected String getNullValidDisplayValue() {
         return getString("DropDownChoicePanel.empty");
+    }
+
+    protected String getLabelContainerCssClass() {
+        return "";
+    }
+
+    protected String getPropertyContainerCssClass() {
+        return "";
     }
 }
