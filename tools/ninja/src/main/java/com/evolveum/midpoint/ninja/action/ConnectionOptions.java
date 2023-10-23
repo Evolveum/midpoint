@@ -37,6 +37,10 @@ public class ConnectionOptions {
     public static final String P_JDBC = "-j";
     public static final String P_JDBC_LONG = "--jdbc";
 
+    /**
+     * This option is not directly used by ninja code, however command parser needs it to be defined.
+     * Otherwise, command parser will throw an exception because of unknown parameter.
+     */
     @Parameter(names = { P_JDBC, P_JDBC_LONG }, descriptionKey = "connection.jdbc", hidden = true)
     private File jdbc;
 
