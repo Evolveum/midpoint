@@ -13,6 +13,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetail
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -92,16 +98,25 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
     protected DetailsFragment createDetailsFragment() {
 
+        Class<? extends AbstractWizardPanel> wizardClass = null;
+
         if (canShowWizard(SystemObjectsType.ARCHETYPE_APPLICATION_ROLE)) {
-            setShowedByWizard(true);
-            getObjectDetailsModels().reset();
-            return createRoleWizardFragment(ApplicationRoleWizardPanel.class);
+            wizardClass = ApplicationRoleWizardPanel.class;
         }
 
         if (canShowWizard(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE)) {
+            wizardClass = BusinessRoleWizardPanel.class;
+        }
+
+        if (wizardClass != null) {
             setShowedByWizard(true);
-            getObjectDetailsModels().reset();
-            return createRoleWizardFragment(BusinessRoleWizardPanel.class);
+            PrismObject<RoleType> obj = getObjectDetailsModels().getObjectWrapper().getObject();
+            try {
+                obj.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_DRAFT);
+            } catch (SchemaException ex) {
+                getFeedbackMessages().error(PageRole.this, ex.getUserFriendlyMessage());
+            }
+            return createRoleWizardFragment(wizardClass);
         }
 
         return super.createDetailsFragment();
