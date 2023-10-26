@@ -18,8 +18,6 @@
             <minLength>14</minLength>
             <maxLength>17</maxLength>
             <minUniqueChars>3</minUniqueChars>
-            <checkAgainstDictionary>true</checkAgainstDictionary>
-            <checkPattern />
             <limit>
                 <description>extreme</description>
                 <minOccurs>1</minOccurs>
