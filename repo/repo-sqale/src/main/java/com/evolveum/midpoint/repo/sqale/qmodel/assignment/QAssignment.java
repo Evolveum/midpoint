@@ -117,6 +117,9 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
     public static final ColumnMetadata MODIFY_TIMESTAMP =
             ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
+    public static final ColumnMetadata FULL_OBJECT =
+            ColumnMetadata.named("fullObject").ofType(Types.BINARY);
+
     // attributes
 
     public final EnumPath<MObjectType> ownerType =
@@ -192,6 +195,8 @@ public class QAssignment<OR extends MObject> extends QContainer<MAssignment, OR>
             createInteger("modifyChannelId", MODIFY_CHANNEL_ID);
     public final DateTimePath<Instant> modifyTimestamp =
             createInstant("modifyTimestamp", MODIFY_TIMESTAMP);
+
+    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
 
     public QAssignment(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

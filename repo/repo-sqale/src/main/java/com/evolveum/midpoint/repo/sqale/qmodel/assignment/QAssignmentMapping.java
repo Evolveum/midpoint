@@ -11,6 +11,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentTyp
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -26,10 +33,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Mapping between {@link QAssignment} and {@link AssignmentType}.
@@ -179,72 +182,11 @@ public class QAssignmentMapping<OR extends MObject>
     }
 
     @Override
-    public AssignmentType toSchemaObject(MAssignment row) {
-        // TODO is there any place we can put row.ownerOid reasonably?
-        //  repositoryContext().prismContext().itemFactory().createObject(... definition?)
-        //  assignment.asPrismContainerValue().setParent(new ObjectType().oid(own)); abstract not possible
-        //  For assignments we can use ownerType, but this is not general for all containers.
-        //  Inspiration: com.evolveum.midpoint.repo.sql.helpers.CertificationCaseHelper.updateLoadedCertificationCase
-        //  (if even possible with abstract type definition)
-        AssignmentType assignment = new AssignmentType()
-                .id(row.cid)
-                .lifecycleState(row.lifecycleState)
-                .order(row.orderValue)
-                .orgRef(objectReference(row.orgRefTargetOid,
-                        row.orgRefTargetType, row.orgRefRelationId))
-                .targetRef(objectReference(row.targetRefTargetOid,
-                        row.targetRefTargetType, row.targetRefRelationId))
-                .tenantRef(objectReference(row.tenantRefTargetOid,
-                        row.tenantRefTargetType, row.tenantRefRelationId));
-
-        // TODO ext... wouldn't serialized fullObject part of the assignment be better after all?
-
-        if (row.policySituations != null) {
-            for (Integer policySituationId : row.policySituations) {
-                assignment.policySituation(resolveIdToUri(policySituationId));
-            }
-        }
-        if (row.subtypes != null) {
-            for (String subtype : row.subtypes) {
-                assignment.subtype(subtype);
-            }
-        }
-
-        if (row.resourceRefTargetOid != null) {
-            assignment.construction(new ConstructionType()
-                    .resourceRef(objectReference(row.resourceRefTargetOid,
-                            row.resourceRefTargetType, row.resourceRefRelationId)));
-        }
-
-        ActivationType activation = new ActivationType()
-                .administrativeStatus(row.administrativeStatus)
-                .effectiveStatus(row.effectiveStatus)
-                .enableTimestamp(asXMLGregorianCalendar(row.enableTimestamp))
-                .disableTimestamp(asXMLGregorianCalendar(row.disableTimestamp))
-                .disableReason(row.disableReason)
-                .validityStatus(row.validityStatus)
-                .validFrom(asXMLGregorianCalendar(row.validFrom))
-                .validTo(asXMLGregorianCalendar(row.validTo))
-                .validityChangeTimestamp(asXMLGregorianCalendar(row.validityChangeTimestamp))
-                .archiveTimestamp(asXMLGregorianCalendar(row.archiveTimestamp));
-        if (!activation.asPrismContainerValue().isEmpty()) {
-            assignment.activation(activation);
-        }
-
-        MetadataType metadata = new MetadataType()
-                .creatorRef(objectReference(row.creatorRefTargetOid,
-                        row.creatorRefTargetType, row.creatorRefRelationId))
-                .createChannel(resolveIdToUri(row.createChannelId))
-                .createTimestamp(asXMLGregorianCalendar(row.createTimestamp))
-                .modifierRef(objectReference(row.modifierRefTargetOid,
-                        row.modifierRefTargetType, row.modifierRefRelationId))
-                .modifyChannel(resolveIdToUri(row.modifyChannelId))
-                .modifyTimestamp(asXMLGregorianCalendar(row.modifyTimestamp));
-        if (!metadata.asPrismContainerValue().isEmpty()) {
-            assignment.metadata(metadata);
-        }
-
-        return assignment;
+    public AssignmentType toSchemaObject(MAssignment row) throws SchemaException {
+        return parseSchemaObject(
+                row.fullObject,
+                "assignment for " + row.ownerOid + "," + row.cid,
+                AssignmentType.class);
     }
 
     @Override
@@ -266,12 +208,15 @@ public class QAssignmentMapping<OR extends MObject>
         row.ownerType = ownerRow.objectType;
         return row;
     }
-
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) {
+    public MAssignment insert(AssignmentType assignment, OR ownerRow, JdbcSession jdbcSession) throws SchemaException {
         MAssignment row = initRowObject(assignment, ownerRow);
+
+        // Insert full Object here
+        row.fullObject = createFullObject(assignment);
+
 
         row.lifecycleState = assignment.getLifecycleState();
         row.orderValue = assignment.getOrder();
@@ -342,5 +287,18 @@ public class QAssignmentMapping<OR extends MObject>
         }
 
         return row;
+    }
+
+    @Override
+    public void afterModify(SqaleUpdateContext<AssignmentType, QAssignment<OR>, MAssignment> updateContext) throws SchemaException {
+        // insert fullObject here
+        PrismContainer<AssignmentType> identityContainer =
+                updateContext.findValueOrItem(FocusType.F_ASSIGNMENT);
+        // row in context already knows its CID
+        PrismContainerValue<AssignmentType> pcv = identityContainer.findValue(updateContext.row().cid);
+        byte[] fullObject = createFullObject(pcv.asContainerable());
+        updateContext.set(updateContext.entityPath().fullObject, fullObject);
+
+
     }
 }

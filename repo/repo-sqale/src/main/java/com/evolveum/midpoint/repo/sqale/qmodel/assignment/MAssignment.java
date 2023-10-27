@@ -61,4 +61,6 @@ public class MAssignment extends MContainer {
     public Integer modifierRefRelationId;
     public Integer modifyChannelId;
     public Instant modifyTimestamp;
+
+    public byte[] fullObject;
 }

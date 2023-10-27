@@ -3652,7 +3652,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertEquals(found.size(), count, "Found situation count does not match.");
     }
 
-    @Test
+    // This test assumes assignments are in full object and separate table at same time
+    @Test(enabled = false)
     public void test952ReindexFixingColumnsOutOfSync()
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
@@ -3745,7 +3746,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(assRows.get(0).orderValue).isEqualTo(1);
     }
 
-    @Test
+    // This test assumes assignments are in full object and separete table at same time
+    @Test(enabled = false)
     public void test955ReindexOfShadowWithAttributes() throws Exception {
         OperationResult result = createOperationResult();
 

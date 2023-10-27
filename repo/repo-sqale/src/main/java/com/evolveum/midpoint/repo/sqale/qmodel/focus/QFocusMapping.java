@@ -157,7 +157,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     @Override
     protected PathSet fullObjectItemsToSkip() {
-        return PathSet.of(F_JPEG_PHOTO, PATH_FOCUS_IDENTITY, PATH_FOCUS_NORMALIZED_DATA);
+        return PathSet.of(F_JPEG_PHOTO, PATH_FOCUS_IDENTITY, PATH_FOCUS_NORMALIZED_DATA, F_ASSIGNMENT);
     }
 
     @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
@@ -229,7 +229,6 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         } else if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_JPEG_PHOTO, options)) {
             PrismUtil.setPropertyNullAndComplete(focus.asPrismObject(), F_JPEG_PHOTO);
         }
-
         if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(PATH_FOCUS_NORMALIZED_DATA, options)) {
             loadFocusIdentitiesNormalizedData(row.get(entityPath.normalizedData), focus);
         }

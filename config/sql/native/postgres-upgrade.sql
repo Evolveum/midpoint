@@ -461,6 +461,12 @@ BEGIN
 END;
 $$;
 $aa$);
+
+-- Assignments have separate full object
+call apply_change(26, $aa$
+    ALTER TABLE m_assignment ADD COLUMN fullObject BYTEA;
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

@@ -487,7 +487,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
         assertThat(users).isNotEmpty();
 
         queryBuffer = queryRecorder.getQueryBuffer();
-        assertThat(queryBuffer).hasSize(1);
+        // 1 query if assignments are inlined, 11 if assignments are separate table
+        assertThat(queryBuffer).hasSize(11);
         entry = queryBuffer.remove();
         assertThat(entry.sql).startsWith("select u.oid, u.fullObject");
     }
@@ -528,7 +529,8 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                         + " where u.nameNorm = ? and u.nameOrig = ? and u.administrativeStatus = ?"
                         + " limit ?");
 
-        assertThat(queryRecorder.getQueryBuffer()).hasSize(1);
+        // assignments are in separate table, so 2 queries
+        assertThat(queryRecorder.getQueryBuffer()).hasSize(2);
     }
 
     @Test
