@@ -20,7 +20,7 @@
             files to initialize the DB.
             -->
             <database>postgresql</database>
-            <jdbcUrl>jdbc:postgresql://192.168.56.33:5432/midtest</jdbcUrl>
+            <jdbcUrl>jdbc:postgresql://127.0.0.1:5432/midtest</jdbcUrl>
             <jdbcUsername>midtest</jdbcUsername>
             <jdbcPassword>password</jdbcPassword>
 
