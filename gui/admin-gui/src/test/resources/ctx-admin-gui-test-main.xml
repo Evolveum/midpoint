@@ -37,4 +37,9 @@
     <bean id="asyncWebProcessManager" class="com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl"/>
     <bean id="guiComponentRegistry" class="com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl"/>
 
+    <!--
+        Needed to convert string to duration in @Value annotations.
+        By default, it's initialized by @SpringBootApplication, however in tests we're not fully using spring boot annotations -->
+    <bean id="conversionService" class="org.springframework.boot.convert.ApplicationConversionService"/>
+
 </beans>
