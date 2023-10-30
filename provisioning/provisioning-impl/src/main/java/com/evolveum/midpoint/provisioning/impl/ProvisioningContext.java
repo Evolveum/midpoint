@@ -330,13 +330,22 @@ public class ProvisioningContext {
     /**
      * Creates an exact copy of the context but with different task.
      */
-    public ProvisioningContext spawn(Task task) {
+    public @NotNull ProvisioningContext spawn(Task task) {
         // No need to bother the factory because no population resolution is needed
         return new ProvisioningContext(
                 this,
                 task,
                 resourceObjectDefinition,
                 wholeClass);
+    }
+
+    /** A convenience method for {@link #spawn(Task)} */
+    public @NotNull ProvisioningContext spawnIfNeeded(Task task) {
+        if (task == this.task) {
+            return this;
+        } else {
+            return spawn(task);
+        }
     }
 
     /**
@@ -599,6 +608,26 @@ public class ProvisioningContext {
     public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
         return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
+    }
+
+    /**
+     * Takes kind/intent/OC from the shadow, looks up the definition, and updates the shadow accordingly.
+     * Currently that means attribute definitions and shadow state.
+     */
+    public ProvisioningContext adoptShadow(
+            @NotNull ShadowType shadow, @Nullable ObjectDelta<ShadowType> delta)
+            throws SchemaException, ConfigurationException {
+        var shadowCtx = applyAttributesDefinition(shadow);
+        if (delta != null) {
+            shadowCtx.applyAttributesDefinition(delta);
+        }
+        shadowCtx.updateShadowState(shadow);
+        return shadowCtx;
+    }
+
+    /** Just a convenience method. */
+    public ProvisioningContext adoptShadow(@NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
+        return adoptShadow(shadow, null);
     }
 
     /**

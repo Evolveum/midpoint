@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,15 +82,16 @@ class ShadowGetOperation {
     @Nullable private final Collection<SelectorOptions<GetOperationOptions>> options;
 
     @Nullable private final GetOperationOptions rootOptions;
-    @NotNull private final ShadowsLocalBeans localBeans;
+
+    @NotNull private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
+
     @NotNull private final XMLGregorianCalendar now;
 
     private ShadowGetOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull ShadowsLocalBeans localBeans) {
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
         this.ctx = ctx;
         this.oid = repositoryShadow.getOid();
         this.repositoryShadow = repositoryShadow;
@@ -97,27 +100,26 @@ class ShadowGetOperation {
         this.options = GetOperationOptions.updateToReadWrite(options);
         this.rootOptions = SelectorOptions.findRootOptions(this.options);
         assert !GetOperationOptions.isReadOnly(rootOptions);
-        this.localBeans = localBeans;
-        this.now = localBeans.clock.currentTimeXMLGregorianCalendar();
+        this.now = b.clock.currentTimeXMLGregorianCalendar();
     }
 
-    static ShadowGetOperation create(
+    static ShadowType execute(
             @NotNull String oid,
             @Nullable ShadowType providedRepositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull ShadowsLocalBeans localBeans)
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException {
-        ShadowType repositoryShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result, localBeans);
-        ProvisioningContext ctx = createProvisioningContext(repositoryShadow, options, context, task, result, localBeans);
-        return new ShadowGetOperation(ctx, repositoryShadow, identifiersOverride, options, localBeans);
+            CommunicationException, SecurityViolationException, EncryptionException {
+        ShadowType repositoryShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result);
+        ProvisioningContext ctx = createProvisioningContext(repositoryShadow, options, context, task, result);
+        return new ShadowGetOperation(ctx, repositoryShadow, identifiersOverride, options)
+                .executeInternal(result);
     }
 
-    public ShadowType execute(OperationResult parentResult)
+    private ShadowType executeInternal(OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 
@@ -131,9 +133,7 @@ class ShadowGetOperation {
         }
 
         ctx.assertDefinition();
-        ctx.applyAttributesDefinition(repositoryShadow);
-
-        updateShadowState();
+        ctx.adoptShadow(repositoryShadow);
 
         if (isNoFetch()) {
             // Even here we want to delete expired pending operations; and delete the shadow if needed.
@@ -160,7 +160,7 @@ class ShadowGetOperation {
             return returnCached("no identifiers but can return repository shadow");
         }
 
-        ShadowType resourceObject;
+        ResourceObject resourceObject;
         OperationResult result = parentResult.createSubresult(OP_GET_RESOURCE_OBJECT);
         result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
         result.addArbitraryObjectAsParam("context", ctx);
@@ -198,8 +198,7 @@ class ShadowGetOperation {
             @NotNull String oid,
             @Nullable ShadowType providedRepositoryShadow,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull OperationResult result,
-            @NotNull ShadowsLocalBeans localBeans) throws SchemaException, ObjectNotFoundException {
+            @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (providedRepositoryShadow != null) {
             LOGGER.trace("Start getting '{}' (opts {})", providedRepositoryShadow, options);
             argCheck(oid.equals(providedRepositoryShadow.getOid()), "Provided OID is not equal to OID of repository shadow");
@@ -212,7 +211,7 @@ class ShadowGetOperation {
             LOGGER.trace("Start getting shadow '{}' (opts {})", oid, options);
             // Get the shadow from repository. There are identifiers that we need for accessing the object by UCF.
             ShadowType fetchedRepositoryShadow =
-                    localBeans.repositoryService
+                    b().repositoryService
                             .getObject(ShadowType.class, oid, disableReadOnly(options), result)
                             .asObjectable();
             LOGGER.trace("Got repository shadow object:\n{}", fetchedRepositoryShadow.debugDumpLazily());
@@ -220,16 +219,19 @@ class ShadowGetOperation {
         }
     }
 
+    private static ShadowsLocalBeans b() {
+        return ShadowsLocalBeans.get();
+    }
+
     private static @NotNull ProvisioningContext createProvisioningContext(
             @NotNull ShadowType repositoryShadow,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ProvisioningOperationContext operationContext,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull ShadowsLocalBeans localBeans)
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException {
-        ProvisioningContext ctx = localBeans.ctxFactory.createForShadow(repositoryShadow, task, result);
+        ProvisioningContext ctx = b().ctxFactory.createForShadow(repositoryShadow, task, result);
         ctx.setGetOperationOptions(options);
         ctx.setOperationContext(operationContext);
         return ctx;
@@ -241,11 +243,6 @@ class ShadowGetOperation {
 
     private boolean isNoFetch() {
         return GetOperationOptions.isNoFetch(rootOptions);
-    }
-
-    private void updateShadowState() {
-        ctx.updateShadowState(repositoryShadow);
-        LOGGER.trace("shadow state is {}", repositoryShadow.getShadowLifecycleState());
     }
 
     private void checkReadCapability() {
@@ -270,7 +267,7 @@ class ShadowGetOperation {
 
     private void doQuickShadowRefresh(OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        repositoryShadow = localBeans.refreshHelper.refreshShadowQuick(ctx, repositoryShadow, now, result);
+        repositoryShadow = ShadowRefreshOperation.executeQuick(ctx, repositoryShadow, result);
         if (repositoryShadow == null) {
             throw new ObjectNotFoundException(
                     "Resource object not found (after quick refresh)",
@@ -278,15 +275,16 @@ class ShadowGetOperation {
                     oid,
                     ctx.isAllowNotFound());
         }
-        updateShadowState();
+        ctx.updateShadowState(repositoryShadow);
     }
 
     private void doFullShadowRefresh(OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
-        repositoryShadow = localBeans.refreshHelper
-                .refreshShadow(repositoryShadow, refreshOpts, ctx.getOperationContext(), ctx.getTask(), result)
-                .getRefreshedShadow();
+        repositoryShadow =
+                ShadowRefreshOperation
+                        .executeFull(repositoryShadow, refreshOpts, ctx.getOperationContext(), ctx.getTask(), result)
+                        .getShadow();
         LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow, 1));
 
         if (repositoryShadow == null) {
@@ -297,7 +295,7 @@ class ShadowGetOperation {
         }
 
         // Refresh might change the shadow state.
-        updateShadowState();
+        ctx.updateShadowState(repositoryShadow);
     }
 
     private ProvisioningOperationOptions toProvisioningOperationOptions(GetOperationOptions getOpts) {
@@ -355,14 +353,15 @@ class ShadowGetOperation {
         }
     }
 
-    private @NotNull ShadowType getResourceObject(Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result)
+    private @NotNull ResourceObject getResourceObject(
+            Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result)
             throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ReturnCachedException, ObjectNotFoundException {
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         try {
-            ShadowType resourceObject =
-                    localBeans.resourceObjectConverter.getResourceObject(
+            var resourceObject =
+                    b.resourceObjectConverter.getResourceObject(
                             ctx, identifiers, repositoryShadow, true, result);
             LOGGER.trace("Object returned by ResourceObjectConverter:\n{}", resourceObject.debugDumpLazily(1));
             markResourceUp(result);
@@ -398,7 +397,7 @@ class ShadowGetOperation {
         // altogether, if the (currently known) resource is marked as UP. The data may be slightly outdated, but not much.
         // Even if so, the resource would certainly be sooner or later marked as UP by a different "get" operation.
         if (!ResourceTypeUtil.isUp(ctx.getResource())) {
-            localBeans.resourceManager.modifyResourceAvailabilityStatus(
+            b.resourceManager.modifyResourceAvailabilityStatus(
                     ctx.getResourceOid(),
                     AvailabilityStatusType.UP,
                     "getting " + repositoryShadow + " was successful.",
@@ -414,13 +413,13 @@ class ShadowGetOperation {
             ExpressionEvaluationException {
         LOGGER.debug("Handling provisioning GET exception {}: {}", cause.getClass(), cause.getMessage());
         assert repositoryShadow != null;
-        repositoryShadow = localBeans.errorHandlerLocator
+        repositoryShadow = b.errorHandlerLocator
                 .locateErrorHandlerRequired(cause)
                 .handleGetError(ctx, repositoryShadow, cause, failedOpResult, result);
         if (repositoryShadow != null) {
             // We update the shadow lifecycle state because we are not sure if the shadow after handling the exception
             // is the same as it was before (that has its state set).
-            updateShadowState();
+            ctx.updateShadowState(repositoryShadow);
         }
     }
 
@@ -447,53 +446,49 @@ class ShadowGetOperation {
         return shadowToReturn;
     }
 
-    @NotNull
-    private ShadowType constructShadowedObject(@NotNull ShadowType resourceObject, OperationResult result)
+    private @NotNull ShadowType constructShadowedObject(@NotNull ResourceObject resourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         // Complete the shadow by adding attributes from the resource object
         // This also completes the associations by adding shadowRefs
         ShadowType shadowedObject =
-                localBeans.shadowedObjectConstructionHelper.constructShadowedObject(
+                ShadowedObjectConstruction.construct(
                         ctx, repositoryShadow, resourceObject, result);
         LOGGER.trace("Shadowed resource object:\n{}", shadowedObject.debugDumpLazily(1));
         return shadowedObject;
     }
 
-    private void classifyIfNeeded(ShadowType resourceObject, @NotNull OperationResult result)
+    private void classifyIfNeeded(ResourceObject resourceObject, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        if (localBeans.classificationHelper.shouldClassify(ctx, repositoryShadow)) {
+        if (b.classificationHelper.shouldClassify(ctx, repositoryShadow)) {
             ResourceObjectClassification classification =
-                    localBeans.classificationHelper.classify(ctx, repositoryShadow, resourceObject, result);
+                    b.classificationHelper.classify(ctx, repositoryShadow, resourceObject.getBean(), result);
             if (classification.isKnown()) {
                 // TODO deduplicate this code somehow
                 LOGGER.debug("Classified {} as {}", repositoryShadow, classification.getDefinition());
-                repositoryShadow = localBeans.shadowUpdater.normalizeShadowAttributesInRepository(
+                repositoryShadow = b.shadowUpdater.normalizeShadowAttributesInRepository(
                         ctx, repositoryShadow, classification, result);
-                updateShadowState();
-                ProvisioningContext tempCtx = ctx.spawnForShadow(repositoryShadow);
-                tempCtx.applyAttributesDefinition(repositoryShadow);
+                ctx.adoptShadow(repositoryShadow);
             }
         }
         // Resource shadow may have different auxiliary object classes than the original repo shadow. Make sure we have the
         // definition that applies to resource shadow. We will fix repo shadow later. BUT we need also information about
         // kind/intent and these information is only in repo shadow, therefore the following 2 lines...
-        resourceObject.setKind(repositoryShadow.getKind());
-        resourceObject.setIntent(repositoryShadow.getIntent());
-        ctx = ctx.spawnForShadow(resourceObject);
+        resourceObject.getBean().setKind(repositoryShadow.getKind());
+        resourceObject.getBean().setIntent(repositoryShadow.getIntent());
+        ctx = ctx.spawnForShadow(resourceObject.getBean());
     }
 
-    private void updateShadowInRepository(ShadowType resourceObject, @NotNull OperationResult result)
+    private void updateShadowInRepository(ResourceObject resourceObject, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("updateShadowInRepository starting; shadow from repository:\n{}", repositoryShadow.debugDump(1));
             LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
         }
         repositoryShadow =
-                localBeans.shadowUpdater.updateShadowInRepository(
-                        ctx, resourceObject, null, repositoryShadow,
-                        repositoryShadow.getShadowLifecycleState(), result);
+                b.shadowUpdater.updateShadowInRepository(
+                        ctx, resourceObject, null, repositoryShadow, result);
         LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
     }
 
@@ -559,7 +554,7 @@ class ShadowGetOperation {
             return false;
         }
         long retrievalTimestampMillis = XmlTypeConverter.toMillis(retrievalTimestamp);
-        return localBeans.clock.currentTimeMillis() - retrievalTimestampMillis < stalenessOption;
+        return b.clock.currentTimeMillis() - retrievalTimestampMillis < stalenessOption;
     }
 
     private static class ReturnCachedException extends Exception {

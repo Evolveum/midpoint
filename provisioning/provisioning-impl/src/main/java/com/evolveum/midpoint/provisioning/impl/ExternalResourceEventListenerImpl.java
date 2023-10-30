@@ -12,12 +12,14 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedExternalChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -46,10 +47,8 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     private static final Trace LOGGER = TraceManager.getTrace(ExternalResourceEventListenerImpl.class);
 
     @Autowired private ShadowsFacade shadowsFacade;
-    @Autowired private ChangeProcessingBeans changeProcessingBeans;
     @Autowired private ProvisioningContextFactory provisioningContextFactory;
     @Autowired private EventDispatcher eventDispatcher;
-    @Autowired private ResourceObjectConverter resourceObjectConverter;
 
     private final AtomicInteger currentSequenceNumber = new AtomicInteger(0);
 
@@ -101,17 +100,14 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
                     primaryIdentifierRealValue,
                     ctx.getObjectClassDefinition(),
                     identifiers,
-                    getResourceObject(event),
+                    getResourceObject(event, primaryIdentifierRealValue),
                     event.getObjectDelta(),
-                    ctx,
-                    resourceObjectConverter);
-            resourceObjectChange.initialize(task, result);
-
-            ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, changeProcessingBeans);
+                    ctx);
+            ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange);
             adoptedChange.initialize(task, result);
 
             InitializationState initializationState = adoptedChange.getInitializationState();
-            initializationState.checkAfterInitialization();
+            initializationState.checkInitialized();
             if (initializationState.isOk()) {
                 ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
                 eventDispatcher.notifyChange(shadowChangeDescription, task, result);
@@ -190,14 +186,13 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     // consider moving into ResourceEventDescription
-    private PrismObject<ShadowType> getResourceObject(ExternalResourceEvent eventDescription) {
+    private ResourceObject getResourceObject(ExternalResourceEvent eventDescription, Object primaryIdentifierValue) {
         if (eventDescription.getResourceObject() != null) {
-            return eventDescription.getResourceObject();
+            return ResourceObject.fromPrismObject(eventDescription.getResourceObject(), primaryIdentifierValue);
         } else if (ObjectDelta.isAdd(eventDescription.getObjectDelta())) {
-            return eventDescription.getObjectDelta().getObjectToAdd();
+            return ResourceObject.fromPrismObject(eventDescription.getObjectDelta().getObjectToAdd(), primaryIdentifierValue);
         } else {
             return null;
         }
     }
-
 }

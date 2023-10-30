@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
@@ -77,14 +76,14 @@ class EntitlementConverter {
      * Note that for "object to subject" entitlements this involves a search operation.
      */
     void postProcessEntitlementsRead(
-            PrismObject<ShadowType> resourceObject,
+            ResourceObject resourceObject,
             ProvisioningContext subjectCtx,
             OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         LOGGER.trace("Starting postProcessEntitlementRead");
 
-        PrismContainer<ShadowAssociationType> associationContainer = resourceObject.getDefinition()
+        PrismContainer<ShadowAssociationType> associationContainer = resourceObject.getPrismObject().getDefinition()
                 .<ShadowAssociationType>findContainerDefinition(ShadowType.F_ASSOCIATION)
                 .instantiate();
 
@@ -132,7 +131,7 @@ class EntitlementConverter {
         }
 
         if (!associationContainer.isEmpty()) {
-            resourceObject.add(associationContainer);
+            resourceObject.getPrismObject().add(associationContainer);
         }
         LOGGER.trace("Finished postProcessEntitlementRead with association container having {} item(s)",
                 associationContainer.size());
@@ -148,9 +147,9 @@ class EntitlementConverter {
      * @see #createAssociationValueFromIdentifier(PrismContainer, PrismPropertyValue, ResourceAttributeDefinition, QName,
      * ResourceObjectDefinition)
      */
-    private <S extends ShadowType,T> void postProcessReadSubjectToEntitlement(
+    private <T> void postProcessReadSubjectToEntitlement(
             PrismContainer<ShadowAssociationType> associationContainer,
-            PrismObject<S> resourceObject,
+            ResourceObject resourceObject,
             QName referencingAttrName,
             QName referencedAttrName,
             ResourceAssociationDefinition associationDef,
@@ -162,7 +161,7 @@ class EntitlementConverter {
         ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
         ResourceObjectDefinition entitlementDef = entitlementCtx.getObjectDefinitionRequired();
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+        ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
 
         schemaCheck(referencingAttrName != null,
                 "No association attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
@@ -202,9 +201,9 @@ class EntitlementConverter {
      * Creates values in `associationContainer`. It searches for entitlements having the "association" (referencing) attribute
      * value - e.g. `ri:members` - containing the value in subject "value" (referenced) attribute - e.g. `ri:dn`.
      */
-    private <S extends ShadowType, T> void postProcessReadEntitlementToSubject(
+    private <T> void postProcessReadEntitlementToSubject(
             PrismContainer<ShadowAssociationType> associationContainer,
-            PrismObject<S> resourceObject,
+            ResourceObject resourceObject,
             ResourceAssociationDefinition associationDef,
             ProvisioningContext subjectCtx,
             ProvisioningContext entitlementCtx,
@@ -217,7 +216,7 @@ class EntitlementConverter {
         ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
         ResourceObjectDefinition entitlementDef = entitlementCtx.getObjectDefinitionRequired();
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+        ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
 
         QName associationAuxiliaryObjectClass = associationDef.getAuxiliaryObjectClass();
         if (associationAuxiliaryObjectClass != null && !subjectDef.hasAuxiliaryObjectClass(associationAuxiliaryObjectClass)) {
@@ -260,9 +259,9 @@ class EntitlementConverter {
     /**
      * Executes the search for entitlements using the prepared query.
      */
-    private <S extends ShadowType> void executeSearchForEntitlements(
+    private void executeSearchForEntitlements(
             PrismContainer<ShadowAssociationType> associationContainer,
-            PrismObject<S> resourceObject,
+            ResourceObject resourceObject,
             ObjectQuery explicitQuery,
             QName associationName,
             ProvisioningContext subjectCtx,
@@ -277,7 +276,7 @@ class EntitlementConverter {
                 delineationProcessor.determineQueryWithConstraints(entitlementCtx, explicitQuery, result);
 
         UcfObjectHandler handler = (ucfObject, lResult) -> {
-            PrismObject<ShadowType> entitlementResourceObject = ucfObject.getResourceObject();
+            PrismObject<ShadowType> entitlementResourceObject = ucfObject.getPrismObject();
 
             try {
                 createAssociationValueFromTarget(associationContainer, entitlementResourceObject, associationName, entitlementDef);
@@ -286,7 +285,7 @@ class EntitlementConverter {
             }
 
             LOGGER.trace("Processed entitlement-to-subject association for account {} and entitlement {}",
-                    ShadowUtil.getHumanReadableNameLazily(resourceObject),
+                    ShadowUtil.getHumanReadableNameLazily(resourceObject.getPrismObject()),
                     ShadowUtil.getHumanReadableNameLazily(entitlementResourceObject));
 
             return true;
@@ -295,7 +294,7 @@ class EntitlementConverter {
         ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, result);
         try {
             LOGGER.trace("Processing entitlement-to-subject association for account {}: query {}",
-                    ShadowUtil.getHumanReadableNameLazily(resourceObject), queryWithConstraints.query);
+                    ShadowUtil.getHumanReadableNameLazily(resourceObject.getPrismObject()), queryWithConstraints.query);
             try {
                 connector.search(
                         entitlementDef,
@@ -652,7 +651,7 @@ class EntitlementConverter {
                         delineationProcessor.determineQueryWithConstraints(entitlementCtx, query, result);
 
                 UcfObjectHandler handler = (ucfObject, lResult) -> {
-                    PrismObject<ShadowType> entitlementShadow = ucfObject.getResourceObject();
+                    PrismObject<ShadowType> entitlementShadow = ucfObject.getPrismObject();
                     Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
                     ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementDef.getTypeName(), primaryIdentifiers);
                     ResourceObjectOperations operations = roMap.get(disc);
@@ -915,7 +914,7 @@ class EntitlementConverter {
                 if (!ShadowUtil.isFullShadow(subjectShadow)) {
                     Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getAllIdentifiers(subjectShadow);
                     LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
-                    subjectShadow = asObjectable(
+                    subjectShadow = ResourceObject.getBean(
                             resourceObjectReferenceResolver.fetchResourceObject(
                                     subjectCtx, subjectIdentifiers, null, subjectShadow.asPrismObject(), result));
                     subjectShadowAfter = subjectShadow;
@@ -958,7 +957,7 @@ class EntitlementConverter {
                 if (currentObjectShadow == null) {
                     LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
                             entitlementIdentifiersFromAssociation, entitlementIntent);
-                    currentObjectShadow = asObjectable(
+                    currentObjectShadow = ResourceObject.getBean(
                             resourceObjectReferenceResolver.fetchResourceObject(
                                     entitlementCtx,
                                     entitlementIdentifiersFromAssociation,

@@ -7,13 +7,26 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 
+/** Beans useful for non-Spring components within this package. */
 @Component
 class ResourceObjectsBeans {
+
+    private static ResourceObjectsBeans instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static ResourceObjectsBeans get() {
+        return instance;
+    }
 
     // Local ones
     @Autowired ResourceObjectConverter resourceObjectConverter;

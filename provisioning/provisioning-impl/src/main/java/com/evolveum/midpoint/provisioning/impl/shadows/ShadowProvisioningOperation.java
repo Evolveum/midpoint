@@ -171,7 +171,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         ShadowType shadow;
         if (isAdd()) {
             // This is more precise. Besides, there is no repo shadow in some cases (e.g. adding protected shadow). [TODO??]
-            shadow = ((ShadowAddOperation) this).getResourceObjectAddedOrToAdd();
+            shadow = ((ShadowAddOperation) this).getResourceObjectAddedOrToAdd().getBean();
         } else {
             shadow = opState.getRepoShadow();
         }

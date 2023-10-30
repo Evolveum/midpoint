@@ -101,7 +101,7 @@ class SyncDeltaConverter {
                                 connIdDelta.getObject(), objectDefinition, false,
                                 connectorInstance.isCaseIgnoreAttributeNames(), connectorInstance.isLegacySchema(),
                                 UcfFetchErrorReportingMethod.EXCEPTION, result)
-                        .getResourceObject();
+                        .getPrismObject();
 
                 LOGGER.trace("Got (current) resource object: {}", resourceObject.debugDumpLazily());
                 identifiers.addAll(emptyIfNull(ShadowUtil.getAllIdentifiers(resourceObject)));

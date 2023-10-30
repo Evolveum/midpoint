@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.addDuration;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.isRetryableOperation;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType.RETRY;
 
@@ -22,13 +21,12 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -38,20 +36,15 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.RefreshShadowOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -61,7 +54,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -69,39 +61,77 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
- * Helps with the `refresh` operation.
+ * The `refresh` operation - either full or quick.
  */
-@Component
-@Experimental
-class ShadowRefreshHelper {
+class ShadowRefreshOperation {
 
     private static final String OP_REFRESH_RETRY = ShadowsFacade.class.getName() + ".refreshRetry";
     private static final String OP_OPERATION_RETRY = ShadowsFacade.class.getName() + ".operationRetry";
 
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowRefreshHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowRefreshOperation.class);
 
-    @Autowired private Clock clock;
-    @Autowired private PrismContext prismContext;
-    @Autowired private ResourceObjectConverter resourceObjectConverter;
-    @Autowired private ShadowCaretaker shadowCaretaker;
-    @Autowired protected ShadowUpdater shadowUpdater;
-    @Autowired private EventDispatcher operationListener;
-    @Autowired private ProvisioningContextFactory ctxFactory;
-    @Autowired private DefinitionsHelper definitionsHelper;
+    @NotNull private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
-    public @NotNull RefreshShadowOperation refreshShadow(
-            ShadowType repoShadow, ProvisioningOperationOptions options, ProvisioningOperationContext context, Task task, OperationResult result)
+    /** Shadow-specific provisioning context. */
+    @NotNull private final ProvisioningContext ctx;
+
+    /** The shadow being refreshed. Should not be null at the beginning; but is cleared when dead shadow is deleted from repo. */
+    private ShadowType shadow;
+
+    /** ODOs for retried pending operations. */
+    @NotNull private final Collection<ObjectDeltaOperation<ShadowType>> retriedOperations = new ArrayList<>();
+
+    /** Very simplified result corresponding to retried execution of pending operations (just success/failure + last msg). */
+    private OperationResult retriedOperationsResult;
+
+    /** Original options for the embedding operation (like "modify"). */
+    private final ProvisioningOperationOptions options;
+
+    private ShadowRefreshOperation(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType shadow,
+            @Nullable ProvisioningOperationOptions options) {
+        this.ctx = ctx;
+        this.shadow = shadow;
+        this.options = options;
+    }
+
+    static @NotNull ShadowRefreshOperation executeFull(
+            ShadowType repoShadow,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationContext context,
+            Task task,
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, EncryptionException {
-
-        LOGGER.trace("Refreshing {}", repoShadow);
-        ProvisioningContext ctx = ctxFactory.createForShadow(repoShadow, task, result);
+            ExpressionEvaluationException {
+        ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(repoShadow, task, result);
         ctx.setOperationContext(context);
         ctx.assertDefinition();
         ctx.applyAttributesDefinition(repoShadow);
 
+        var op = new ShadowRefreshOperation(ctx, repoShadow, options);
+        op.executeFull(result);
+        return op;
+    }
+
+    /**
+     * Used to quickly and efficiently refresh shadow before GET operations.
+     */
+    static ShadowType executeQuick(ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        var op = new ShadowRefreshOperation(ctx, repoShadow, null);
+        op.executeQuick(result);
+        return op.shadow;
+    }
+
+    private void executeFull(OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        LOGGER.trace("Fully refreshing {}", shadow);
+
         try {
-            shadowUpdater.refreshProvisioningIndexes(ctx, repoShadow, true, result);
+            b.shadowUpdater.refreshProvisioningIndexes(ctx, shadow, true, result);
         } catch (ObjectAlreadyExistsException e) {
             throw SystemException.unexpected(e, "when refreshing provisioning indexes");
         }
@@ -110,74 +140,56 @@ class ShadowRefreshHelper {
             // Unlike other places related to the simulation mode, we do not throw an exception here. The shadow refresh may be
             // invoked in various situations, and it is not sure that the caller(s) have full responsibility of these. Hence, we
             // silently ignore these requests here.
-            LOGGER.trace("Skipping refresh of {} pending operations because the task is in simulation mode", repoShadow);
-            return new RefreshShadowOperation(repoShadow);
+            LOGGER.trace("Skipping refresh of {} pending operations because the task is in simulation mode", shadow);
+            return;
         }
 
-        RefreshShadowOperation refreshShadowOperation = processPendingOperations(ctx, repoShadow, options, task, result);
-
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-
-        ShadowType shadowAfterCleanup = deleteDeadShadowIfPossible(ctx, repoShadow, now, result);
-        if (shadowAfterCleanup == null) {
-            refreshShadowOperation.setRefreshedShadow(null);
-        }
-
-        updateProvisioningIndexesAfterDeletion(ctx, refreshShadowOperation, result);
-
-        return refreshShadowOperation;
+        processPendingOperations(result);
+        deleteDeadShadowIfPossible(result);
+        updateProvisioningIndexesAfterDeletion(result);
     }
 
-    private @NotNull RefreshShadowOperation processPendingOperations(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            ProvisioningOperationOptions options,
-            Task task,
-            OperationResult result)
+    private void executeQuick(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException {
+        LOGGER.trace("Quickly refreshing {}", shadow);
+
+        ObjectDelta<ShadowType> shadowDelta = shadow.asPrismObject().createModifyDelta();
+        expirePendingOperations(shadowDelta);
+        if (!shadowDelta.isEmpty()) {
+            b.shadowUpdater.executeRepoShadowModifications(ctx, shadow, shadowDelta.getModifications(), result);
+            shadowDelta.applyTo(shadow.asPrismObject());
+        }
+
+        deleteDeadShadowIfPossible(result);
+    }
+
+    private void processPendingOperations(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
 
-        List<PendingOperationType> pendingOperations = repoShadow.getPendingOperation();
-        boolean isDead = ShadowUtil.isDead(repoShadow);
+        List<PendingOperationType> pendingOperations = shadow.getPendingOperation();
+        boolean isDead = ShadowUtil.isDead(shadow);
         if (!isDead && pendingOperations.isEmpty()) {
             LOGGER.trace(
                     "Skipping refresh of {} pending operations because shadow is not dead and there are no pending operations",
-                    repoShadow);
-            return new RefreshShadowOperation(repoShadow);
+                    shadow);
+            return;
         }
 
         if (ctx.isInMaintenance()) {
-            LOGGER.trace("Skipping refresh of {} pending operations because resource is in the maintenance mode", repoShadow);
-            return new RefreshShadowOperation(repoShadow);
+            LOGGER.trace("Skipping refresh of {} pending operations because resource is in the maintenance mode", shadow);
+            return;
         }
 
         LOGGER.trace("Pending operations refresh of {}, dead={}, {} pending operations",
-                repoShadow, isDead, pendingOperations.size());
+                shadow, isDead, pendingOperations.size());
 
         ctx.assertDefinition();
-        List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(repoShadow.getPendingOperation());
+        List<PendingOperationType> sortedOperations = b.shadowCaretaker.sortPendingOperations(shadow.getPendingOperation());
 
-        refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, result);
+        refreshShadowAsyncStatus(sortedOperations, result);
 
-        return retryOperations(ctx, repoShadow, sortedOperations, options, result);
-    }
-
-    /**
-     * Used to quickly and efficiently refresh shadow before GET operations.
-     */
-    ShadowType refreshShadowQuick(
-            ProvisioningContext ctx, ShadowType repoShadow, XMLGregorianCalendar now, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-
-        ObjectDelta<ShadowType> shadowDelta = repoShadow.asPrismObject().createModifyDelta();
-        expirePendingOperations(ctx, repoShadow, shadowDelta, now);
-
-        if (!shadowDelta.isEmpty()) {
-            shadowUpdater.executeRepoShadowModifications(ctx, repoShadow, shadowDelta.getModifications(), result);
-            shadowDelta.applyTo(repoShadow.asPrismObject());
-        }
-
-        return deleteDeadShadowIfPossible(ctx, repoShadow, now, result);
+        retryOperations(sortedOperations, result);
     }
 
     /**
@@ -185,20 +197,15 @@ class ShadowRefreshHelper {
      * This method will get new status from {@link ResourceObjectConverter} and it will process the
      * status in case that it has changed.
      */
-    private void refreshShadowAsyncStatus(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            List<PendingOperationType> sortedOperations,
-            Task task,
-            OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException, ConfigurationException, ExpressionEvaluationException {
+    private void refreshShadowAsyncStatus(List<PendingOperationType> sortedOperations, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
 
         List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
 
         boolean shadowInception = false;
         OperationResultStatusType shadowInceptionOutcome = null;
-        ObjectDelta<ShadowType> shadowDelta = repoShadow.asPrismObject().createModifyDelta();
+        ObjectDelta<ShadowType> shadowDelta = shadow.asPrismObject().createModifyDelta();
         for (PendingOperationType pendingOperation : sortedOperations) {
 
             if (!needsRefresh(pendingOperation)) {
@@ -214,10 +221,10 @@ class ShadowRefreshHelper {
 
             AsynchronousOperationResult refreshAsyncResult;
             try {
-                refreshAsyncResult = resourceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
+                refreshAsyncResult = b.resourceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, parentResult);
             } catch (CommunicationException e) {
                 LOGGER.debug("Communication error while trying to refresh pending operation of {}. "
-                        + "Skipping refresh of this operation.", repoShadow, e);
+                        + "Skipping refresh of this operation.", shadow, e);
                 parentResult.recordPartialError(e);
                 continue;
             }
@@ -240,7 +247,7 @@ class ShadowRefreshHelper {
                 shadowDelta.addModificationDeleteContainer(ShadowType.F_PENDING_OPERATION, pendingOperation.clone());
 
                 ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType);
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
@@ -250,7 +257,7 @@ class ShadowRefreshHelper {
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
                     //noinspection unchecked
-                    shadowUpdater.addTombstoneDeltas(repoShadow, (List) shadowDelta.getModifications());
+                    b.shadowUpdater.addTombstoneDeltas(shadow, (List) shadowDelta.getModifications());
                 }
                 continue;
 
@@ -272,11 +279,10 @@ class ShadowRefreshHelper {
                 PropertyDelta<XMLGregorianCalendar> completionTimestampDelta =
                         shadowDelta.createPropertyModification(
                                 containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
-                completionTimestampDelta.setRealValuesToReplace(clock.currentTimeXMLGregorianCalendar());
+                completionTimestampDelta.setRealValuesToReplace(b.clock.currentTimeXMLGregorianCalendar());
                 shadowDelta.addModification(completionTimestampDelta);
 
-                ObjectDelta<ShadowType> pendingDelta =
-                        DeltaConvertor.createObjectDelta(pendingOperation.getDelta(), prismContext);
+                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
@@ -287,7 +293,7 @@ class ShadowRefreshHelper {
 
                     // Apply shadow naming attribute modification
                     PrismContainer<ShadowAttributesType> shadowAttributesContainer =
-                            repoShadow.asPrismObject().findContainer(ItemPath.create(ShadowType.F_ATTRIBUTES));
+                            shadow.asPrismObject().findContainer(ItemPath.create(ShadowType.F_ATTRIBUTES));
 
                     ResourceAttributeContainer resourceAttributeContainer =
                             ResourceAttributeContainer.convertFromContainer(
@@ -316,7 +322,7 @@ class ShadowRefreshHelper {
                                         Collection<PolyString> modificationSet = new ArrayList<>();
                                         PolyString nameAttributeReplacement = new PolyString((String) valueToReplaceObj);
                                         modificationSet.add(nameAttributeReplacement);
-                                        nameDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(prismContext, modificationSet));
+                                        nameDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(modificationSet));
                                         shadowDelta.addModification(nameDelta);
                                     }
                                 }
@@ -333,7 +339,7 @@ class ShadowRefreshHelper {
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
                     //noinspection unchecked
-                    shadowUpdater.addTombstoneDeltas(repoShadow, (List) shadowDelta.getModifications());
+                    b.shadowUpdater.addTombstoneDeltas(shadow, (List) shadowDelta.getModifications());
                 }
 
                 notificationDeltas.add(pendingDelta);
@@ -354,21 +360,20 @@ class ShadowRefreshHelper {
             shadowDelta.addModification(existsDelta);
         }
 
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        expirePendingOperations(ctx, repoShadow, shadowDelta, now);
+        expirePendingOperations(shadowDelta);
 
         if (!shadowDelta.isEmpty()) {
             ctx.applyAttributesDefinition(shadowDelta);
-            shadowUpdater.modifyRepoShadow(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
+            b.shadowUpdater.modifyRepoShadow(ctx, shadow, shadowDelta.getModifications(), parentResult);
         }
 
         for (ObjectDelta<ShadowType> notificationDelta : notificationDeltas) {
-            ResourceOperationDescription opDescription = createSuccessOperationDescription(ctx, repoShadow, notificationDelta);
-            operationListener.notifySuccess(opDescription, task, parentResult);
+            ResourceOperationDescription opDescription = createSuccessOperationDescription(ctx, shadow, notificationDelta);
+            b.eventDispatcher.notifySuccess(opDescription, ctx.getTask(), parentResult);
         }
 
         if (!shadowDelta.isEmpty()) {
-            shadowDelta.applyTo(repoShadow.asPrismObject());
+            shadowDelta.applyTo(shadow.asPrismObject());
         }
     }
 
@@ -382,25 +387,19 @@ class ShadowRefreshHelper {
         }
     }
 
-    private @NotNull RefreshShadowOperation retryOperations(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            List<PendingOperationType> sortedOperations,
-            ProvisioningOperationOptions options,
-            OperationResult parentResult)
+    private void retryOperations(List<PendingOperationType> sortedOperations, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
-        OperationResult retryResult = new OperationResult(OP_REFRESH_RETRY);
-        if (ShadowUtil.isDead(repoShadow)) {
-            RefreshShadowOperation rso = new RefreshShadowOperation(repoShadow);
-            retryResult.recordSuccess();
-            rso.setRefreshResult(retryResult);
-            return rso;
+
+        retriedOperationsResult = new OperationResult(OP_REFRESH_RETRY);
+        retriedOperationsResult.setSuccess();
+
+        if (ShadowUtil.isDead(shadow)) {
+            return;
         }
 
         Duration retryPeriod = ProvisioningUtil.getRetryPeriod(ctx);
         LOGGER.trace("Selecting operations to retry from {} one(s); retry period: {}", sortedOperations.size(), retryPeriod);
 
-        Collection<ObjectDeltaOperation<ShadowType>> executedDeltas = new ArrayList<>();
         for (PendingOperationType pendingOperation : sortedOperations) {
 
             if (!isRetryableOperation(pendingOperation)) {
@@ -409,7 +408,7 @@ class ShadowRefreshHelper {
             }
 
             // We really want to get "now" here. Retrying operation may take some time. We want good timestamps that do not lie.
-            XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+            XMLGregorianCalendar now = b.clock.currentTimeXMLGregorianCalendar();
             if (!isAfterRetryPeriod(pendingOperation, retryPeriod, now)) {
                 if (pendingOperation.getType() != RETRY) { // TODO why this distinction?
                     LOGGER.trace(
@@ -422,7 +421,7 @@ class ShadowRefreshHelper {
                 }
             }
 
-            LOGGER.trace("Going to retry operation {} on {}", pendingOperation, repoShadow);
+            LOGGER.trace("Going to retry operation {} on {}", pendingOperation, shadow);
 
             // Record attempt number and timestamp before the operation
             // TODO: later use this as an optimistic lock to make sure that two threads won't retry the operation at the same time
@@ -431,7 +430,7 @@ class ShadowRefreshHelper {
             ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 
             int attemptNumber = or0(pendingOperation.getAttemptNumber()) + 1; // "or0" is there just for sure (btw, default is 1)
-            List<ItemDelta<?, ?>> shadowDeltas = prismContext.deltaFor(ShadowType.class)
+            List<ItemDelta<?, ?>> shadowDeltas = PrismContext.get().deltaFor(ShadowType.class)
                     .item(containerPath.append(PendingOperationType.F_ATTEMPT_NUMBER))
                     .replace(attemptNumber)
                     .item(containerPath.append(PendingOperationType.F_LAST_ATTEMPT_TIMESTAMP))
@@ -440,23 +439,22 @@ class ShadowRefreshHelper {
                     .replace(OperationResultStatusType.IN_PROGRESS)
                     .asItemDeltas();
 
-            shadowUpdater.executeRepoShadowModifications(ctx, repoShadow, shadowDeltas, parentResult);
+            b.shadowUpdater.executeRepoShadowModifications(ctx, shadow, shadowDeltas, parentResult);
             // The pending operation should be updated as part of the above call
             assert pendingOperation.getAttemptNumber() == attemptNumber;
 
             ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
 
-            LOGGER.debug("Retrying operation {} on {}, attempt #{}", pendingDelta, repoShadow, attemptNumber);
+            LOGGER.debug("Retrying operation {} on {}, attempt #{}", pendingDelta, shadow, attemptNumber);
 
             OperationResult result = parentResult.createSubresult(OP_OPERATION_RETRY);
             try {
-                ProvisioningOperationState<?> opState = retryOperation(ctx, pendingDelta, repoShadow, pendingOperation, result);
-                repoShadow = opState.getRepoShadow();
+                ProvisioningOperationState<?> opState = retryOperation(ctx, pendingDelta, shadow, pendingOperation, result);
+                shadow = opState.getRepoShadow();
                 result.computeStatus();
                 if (result.isError()) {
-                    retryResult.setStatus(result.getStatus());
+                    retriedOperationsResult.setStatus(result.getStatus());
                 }
-                //TODO maybe add whole "result" as subresult to the retryResult?
                 result.muteError();
             } catch (CommunicationException | GenericFrameworkException | ObjectAlreadyExistsException | SchemaException |
                     ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
@@ -464,32 +462,27 @@ class ShadowRefreshHelper {
                 // Therefore the operation is now completed - finished with an error.
                 // But we do not want to stop the task. Just log the error.
                 LOGGER.error("Operation {} on {} ended up with an error after {} retries: {}",
-                        pendingDelta, repoShadow, attemptNumber, e.getMessage(), e);
+                        pendingDelta, shadow, attemptNumber, e.getMessage(), e);
                 // The retry itself was a success. Operation that was retried might have failed.
                 // And that is recorded in the shadow. But we have successfully retried the operation.
                 result.recordHandledError(e);
-                retryResult.recordFatalError("Operation " + pendingDelta + " on " + repoShadow + " ended with an error after " + attemptNumber + " retries: " + e.getMessage());
+                retriedOperationsResult.recordFatalError(
+                        "Operation %s on %s ended with an error after %d retries: %s".formatted(
+                                pendingDelta, shadow, attemptNumber, e.getMessage()));
             } catch (Throwable e) {
                 // This is unexpected error during retry. This means that there was other
                 // failure that we did not expected. This is likely to be bug - or maybe wrong
                 // error handling. This means that the retry was a failure.
                 result.recordFatalError(e);
-                retryResult.recordFatalError(e);
+                retriedOperationsResult.recordFatalError(e);
             } finally {
                 result.close(); // Status should be set by now, we just want to close the result
             }
 
             ObjectDeltaOperation<ShadowType> objectDeltaOperation = new ObjectDeltaOperation<>(pendingDelta);
             objectDeltaOperation.setExecutionResult(result);
-            executedDeltas.add(objectDeltaOperation);
+            retriedOperations.add(objectDeltaOperation);
         }
-
-        RefreshShadowOperation rso = new RefreshShadowOperation(repoShadow);
-        rso.setExecutedDeltas(executedDeltas);
-        rso.setRefreshResult(retryResult);
-
-        LOGGER.trace("refreshShadowOperation {}", rso.debugDumpLazily());
-        return rso;
     }
 
     private @NotNull ProvisioningOperationState<?> retryOperation(
@@ -521,27 +514,23 @@ class ShadowRefreshHelper {
         return XmlTypeConverter.compare(now, scheduledRetryTime) == DatatypeConstants.GREATER;
     }
 
-    private ShadowType deleteDeadShadowIfPossible(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            XMLGregorianCalendar now,
-            OperationResult result) throws ObjectNotFoundException, SchemaException,
+    private void deleteDeadShadowIfPossible(OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        if (!ShadowUtil.isDead(repoShadow)) {
-            return repoShadow;
+        if (!ShadowUtil.isDead(shadow)) {
+            return;
         }
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
         Duration deadRetentionPeriod = ProvisioningUtil.getDeadShadowRetentionPeriod(ctx);
         Duration expirationPeriod = XmlTypeConverter.longerDuration(gracePeriod, deadRetentionPeriod);
         XMLGregorianCalendar lastActivityTimestamp = null;
 
-        for (PendingOperationType pendingOperation : repoShadow.getPendingOperation()) {
+        for (PendingOperationType pendingOperation : shadow.getPendingOperation()) {
             lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getRequestTimestamp());
             lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getLastAttemptTimestamp());
             lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getCompletionTimestamp());
         }
         if (lastActivityTimestamp == null) {
-            MetadataType metadata = repoShadow.getMetadata();
+            MetadataType metadata = shadow.getMetadata();
             if (metadata != null) {
                 lastActivityTimestamp = metadata.getModifyTimestamp();
                 if (lastActivityTimestamp == null) {
@@ -550,36 +539,35 @@ class ShadowRefreshHelper {
             }
         }
 
+        var now = b.clock.currentTimeXMLGregorianCalendar();
+
         // Explicitly check for zero deadRetentionPeriod to avoid some split-millisecond issues with dead shadow deletion.
         // If we have zero deadRetentionPeriod, we should get rid of all dead shadows immediately.
         if (XmlTypeConverter.isZero(deadRetentionPeriod) || expirationPeriod == null ||
                 lastActivityTimestamp == null || XmlTypeConverter.isAfterInterval(lastActivityTimestamp, expirationPeriod, now)) {
             // Perish you stinking corpse!
-            LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
+            LOGGER.debug("Deleting dead {} because it is expired", shadow);
             Task task = ctx.getTask();
-            shadowUpdater.deleteShadow(repoShadow, task, result);
-            definitionsHelper.applyDefinition(repoShadow, task, result);
+            b.shadowUpdater.deleteShadow(shadow, task, result);
+            b.definitionsHelper.applyDefinition(shadow, task, result);
             ResourceOperationDescription operationDescription =
-                    createSuccessOperationDescription(ctx, repoShadow, repoShadow.asPrismObject().createDeleteDelta());
-            operationListener.notifySuccess(operationDescription, task, result);
-            return null;
+                    createSuccessOperationDescription(ctx, shadow, shadow.asPrismObject().createDeleteDelta());
+            b.eventDispatcher.notifySuccess(operationDescription, task, result);
+            shadow = null;
+            return;
         }
 
         LOGGER.trace("Keeping dead {} because it is not expired yet, last activity={}, expiration period={}",
-                repoShadow, lastActivityTimestamp, expirationPeriod);
-        return repoShadow;
+                shadow, lastActivityTimestamp, expirationPeriod);
     }
 
-    private void expirePendingOperations(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            ObjectDelta<ShadowType> shadowDelta,
-            XMLGregorianCalendar now)
+    private void expirePendingOperations(ObjectDelta<ShadowType> shadowDelta)
             throws SchemaException {
+        var now = b.clock.currentTimeXMLGregorianCalendar();
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
         Duration pendingOperationRetentionPeriod = ProvisioningUtil.getPendingOperationRetentionPeriod(ctx);
         Duration expirePeriod = XmlTypeConverter.longerDuration(gracePeriod, pendingOperationRetentionPeriod);
-        for (PendingOperationType pendingOperation : repoShadow.getPendingOperation()) {
+        for (PendingOperationType pendingOperation : shadow.getPendingOperation()) {
             if (ProvisioningUtil.isCompletedAndOverPeriod(now, expirePeriod, pendingOperation)) {
                 LOGGER.trace("Deleting pending operation because it is completed '{}' and expired: {}",
                         pendingOperation.getResultStatus(), pendingOperation);
@@ -596,25 +584,35 @@ class ShadowRefreshHelper {
      *
      * (For simplicity and robustness, we just refresh provisioning indexes. It should be efficient enough.)
      */
-    private void updateProvisioningIndexesAfterDeletion(
-            ProvisioningContext ctx, RefreshShadowOperation refreshShadowOperation, OperationResult result)
+    private void updateProvisioningIndexesAfterDeletion(OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        ShadowType shadow = refreshShadowOperation.getRefreshedShadow();
         if (shadow == null) {
             LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
             return;
         }
-        if (emptyIfNull(refreshShadowOperation.getExecutedDeltas()).stream()
+        if (retriedOperations.stream()
                 .noneMatch(d -> ObjectDelta.isDelete(d.getObjectDelta()))) {
             LOGGER.trace("updateProvisioningIndexesAfterDeletion: no DELETE delta found");
             return;
         }
         try {
-            shadowUpdater.refreshProvisioningIndexes(ctx, shadow, false, result);
+            b.shadowUpdater.refreshProvisioningIndexes(ctx, shadow, false, result);
         } catch (ObjectAlreadyExistsException e) {
             LOGGER.debug("Couldn't set `primaryIdentifierValue` for {} - probably a new one was created in the meanwhile. "
                     + "Marking this one as dead.", shadow, e);
-            shadowUpdater.markShadowTombstone(shadow, ctx.getTask(), result);
+            b.shadowUpdater.markShadowTombstone(shadow, ctx.getTask(), result);
         }
+    }
+
+    public @Nullable ShadowType getShadow() {
+        return shadow;
+    }
+
+    @NotNull Collection<ObjectDeltaOperation<ShadowType>> getRetriedOperations() {
+        return retriedOperations;
+    }
+
+    @Nullable OperationResult getRetriedOperationsResult() {
+        return retriedOperationsResult;
     }
 }

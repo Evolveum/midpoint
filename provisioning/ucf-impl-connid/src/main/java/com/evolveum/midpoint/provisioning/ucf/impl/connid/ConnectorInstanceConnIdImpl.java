@@ -456,8 +456,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult)
+    public UcfResourceObject fetchObject(
+            ResourceObjectIdentification resourceObjectIdentification,
+            AttributesToReturn attributesToReturn,
+            UcfExecutionContext ctx,
+            OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, SecurityViolationException, ConfigurationException {
 
@@ -511,19 +514,19 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             }
 
             PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectDefinition);
+
             // TODO configure error reporting method
-            PrismObject<ShadowType> shadow = connIdConvertor
-                    .convertToUcfObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
+            return connIdConvertor
+                    .convertToUcfObject(
+                            co, shadowDefinition, false, caseIgnoreAttributeNames,
                             legacySchema, UcfFetchErrorReportingMethod.EXCEPTION, result)
                     .getResourceObject();
 
-            result.recordSuccess();
-            return shadow;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

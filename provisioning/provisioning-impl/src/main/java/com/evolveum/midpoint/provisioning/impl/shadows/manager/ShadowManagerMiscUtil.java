@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecyc
 import java.util.Collection;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -22,10 +23,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Temporary class - this functionality has to be sorted out.
  */
 public class ShadowManagerMiscUtil {
+
+    public static <T> T determinePrimaryIdentifierValue(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ResourceObject resourceObject) throws SchemaException {
+        return determinePrimaryIdentifierValue(ctx, resourceObject.getBean());
+    }
 
     public static <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, ShadowType shadow) throws SchemaException {
         if (ShadowUtil.isDead(shadow)) {

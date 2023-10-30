@@ -16,8 +16,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
-
 /**
  * Adopted "async update" change.
  */
@@ -25,8 +23,8 @@ public class ShadowedAsyncChange
         extends ShadowedChange<ResourceObjectAsyncChange>
         implements AcknowledgementSink {
 
-    public ShadowedAsyncChange(@NotNull ResourceObjectAsyncChange resourceObjectChange, ChangeProcessingBeans beans) {
-        super(resourceObjectChange, beans);
+    public ShadowedAsyncChange(@NotNull ResourceObjectAsyncChange resourceObjectChange) {
+        super(resourceObjectChange);
     }
 
     @Override

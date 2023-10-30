@@ -272,8 +272,9 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult) {
+    public UcfResourceObject fetchObject(
+            ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
+            UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
     }

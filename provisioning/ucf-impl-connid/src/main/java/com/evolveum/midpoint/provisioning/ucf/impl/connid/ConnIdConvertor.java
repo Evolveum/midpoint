@@ -81,9 +81,14 @@ class ConnIdConvertor {
      *
      * @return new mapped ResourceObject instance.
      */
-    @NotNull UcfObjectFound convertToUcfObject(@NotNull ConnectorObject co,
-            @NotNull PrismObjectDefinition<ShadowType> objectDefinition, boolean full, boolean caseIgnoreAttributeNames,
-            boolean legacySchema, UcfFetchErrorReportingMethod ucfErrorReportingMethod, OperationResult parentResult) throws SchemaException {
+    @NotNull UcfObjectFound convertToUcfObject(
+            @NotNull ConnectorObject co,
+            @NotNull PrismObjectDefinition<ShadowType> objectDefinition,
+            boolean full,
+            boolean caseIgnoreAttributeNames,
+            boolean legacySchema,
+            UcfFetchErrorReportingMethod ucfErrorReportingMethod,
+            OperationResult parentResult) throws SchemaException {
 
         // This is because of suspicion that this operation sometimes takes a long time.
         // If it will not be the case, we can safely remove subresult construction here.
