@@ -8,7 +8,7 @@ public class UpgradeConstants {
      * This is the version we are upgrading from.
      * It's current version.
      */
-    public static final String SUPPORTED_VERSION = "4.4.6";
+    public static final String SUPPORTED_VERSION = "4.4.7";
 
     /**
      * This is the version we are upgrading to.
