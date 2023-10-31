@@ -22,7 +22,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStrategyType;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -272,14 +271,13 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         LOGGER.trace("Going to determine current resource object, as the previous one was temporary");
 
         ResourceObject resourceObject;
-        boolean passiveCaching = shadowCtx.getCachingStrategy() == CachingStrategyType.PASSIVE;
         ReadCapabilityType readCapability = shadowCtx.getCapability(ReadCapabilityType.class);
         boolean canReadFromResource = readCapability != null && !Boolean.TRUE.equals(readCapability.isCachingOnly());
-        if (canReadFromResource && (!passiveCaching || isNotificationOnly())) {
+        if (canReadFromResource) {
             // Either we don't use caching or we have a notification-only change. Such changes mean that we want to
             // refresh the object from the resource.
-            Collection<SelectorOptions<GetOperationOptions>> options = b.schemaService.getOperationOptionsBuilder()
-                    .doNotDiscovery().build();
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    b.schemaService.getOperationOptionsBuilder().doNotDiscovery().build();
             try {
                 // TODO why we use shadow cache and not resource object converter?!
                 var object = b.shadowsFacade.getShadow(
@@ -297,8 +295,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
                 throw new NotApplicableException();
             }
             LOGGER.trace("-> current object was taken from the resource:\n{}", resourceObject.debugDumpLazily());
-        } else if (passiveCaching) {
-            // this might not be correct w.r.t. index-only attributes!
+        } else if (shadowCtx.isCachingEnabled()) {
+            // This might not be correct, because of partial caching and/or index-only attributes!
             resourceObject = ResourceObject.fromBean(repoShadow.clone(), getPrimaryIdentifierValue());
             if (resourceObjectDelta != null) {
                 resourceObjectDelta.applyTo(resourceObject.getPrismObject());
@@ -308,7 +306,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
                 LOGGER.trace("-> current object was taken from old shadow:\n{}", resourceObject.debugDumpLazily());
             }
         } else {
-            throw new IllegalStateException("Cannot get current resource object: read capability is not present and passive caching is not configured");
+            throw new IllegalStateException(
+                    "Cannot get current resource object: read capability is not present and passive caching is not configured");
         }
         globalCtx.applyAttributesDefinition(resourceObject.getPrismObject()); // is this really needed?
         return resourceObject;

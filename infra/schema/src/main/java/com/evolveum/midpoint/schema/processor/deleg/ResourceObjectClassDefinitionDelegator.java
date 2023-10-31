@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.schema.processor.deleg;
 
+import com.evolveum.midpoint.schema.processor.BasicResourceInformation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -56,5 +59,11 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     @Override
     default ResourceAttributeContainer instantiate(ItemName elementName) {
         return delegate().instantiate(elementName);
+    }
+
+    @Override
+    default @NotNull ResourceObjectClassDefinition attachTo(@NotNull BasicResourceInformation resourceInformation)
+            throws SchemaException, ConfigurationException {
+        return delegate().attachTo(resourceInformation);
     }
 }

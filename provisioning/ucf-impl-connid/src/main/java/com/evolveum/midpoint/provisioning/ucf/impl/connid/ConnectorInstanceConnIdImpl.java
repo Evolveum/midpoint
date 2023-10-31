@@ -163,7 +163,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         this.instanceName = instanceName;
     }
 
-    public void setRawResourceSchema(ResourceSchema rawResourceSchema) {
+    private void setRawResourceSchema(ResourceSchema rawResourceSchema) {
         this.rawResourceSchema = rawResourceSchema;
         connIdNameMapper.setResourceSchema(rawResourceSchema);
     }

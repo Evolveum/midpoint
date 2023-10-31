@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * A definition that describes either an object class (as fetched from the resource, optionally refined by `schemaHandling`),
  * or an object type (as defined in `schemaHandling` part of resource definition).
@@ -58,6 +60,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
  * This change eliminates e.g. the need to create "artificial" refined object class definitions just to allow
  * model and provisioning modules to work with object classes not described in schema handling. (Confusion stemmed
  * e.g. from the fact that `RefinedObjectClassDefinition` had to have kind/intent. This is now fixed.)
+ *
+ * NOTE: The object definition can be _attached to the resource_ or not. The attached definition has the basic
+ * information about the resource present, see {@link #getBasicResourceInformation()}. Only raw object class
+ * definitions can be unattached. Refined definitions are always attached.
  */
 public interface ResourceObjectDefinition
     extends
@@ -68,6 +74,30 @@ public interface ResourceObjectDefinition
         LayeredDefinition {
 
     /**
+     * The basic information about the resource (like name, OID, selected configuration beans).
+     * Replaces the hard-coded resource OID; necessary also for determination of default values for some features,
+     * e.g., shadow caching, and useful for diagnostics.
+     *
+     * May or may not be null for raw object class definitions.
+     * Must be non-null for refined definitions.
+     *
+     * Note: The nullity for raw object class definitions is because such definitions are created (among other places)
+     * deep in UCF code, where we know nothing about the resources. Fortunately, we do not need such information
+     * for raw definitions, at least not for now.
+     *
+     * Definitions that have this information are called _attached_.
+     *
+     * @see #assertAttached()
+     */
+    @Nullable BasicResourceInformation getBasicResourceInformation();
+
+    /** The resource OID, if known. */
+    default String getResourceOid() {
+        var info = getBasicResourceInformation();
+        return info != null ? info.oid() : null;
+    }
+
+    /**
      * Returns the (raw or refined) object class definition.
      *
      * It is either this object itself (for object classes), or the linked object class definition (for object types).
@@ -75,7 +105,8 @@ public interface ResourceObjectDefinition
     @NotNull ResourceObjectClassDefinition getObjectClassDefinition();
 
     /**
-     * Returns the raw object class definition.
+     * Returns the raw object class definition. It is either this object itself (if it represents the raw class definition),
+     * or the linked raw object class definition (for object types and refined object class definitions).
      */
     @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition();
 
@@ -430,7 +461,7 @@ public interface ResourceObjectDefinition
 
     //region Other
     /**
-     * Returns the "raw" configuration bean for this object type.
+     * Returns the configuration bean for this object type or class.
      */
     @NotNull ResourceObjectTypeDefinitionType getDefinitionBean();
 
@@ -452,13 +483,6 @@ public interface ResourceObjectDefinition
     default void replaceDefinition(@NotNull ItemDefinition<?> newDefinition) {
         replaceDefinition(newDefinition.getItemName(), newDefinition);
     }
-
-    /**
-     * This is currently used only to pass information about association in the model-impl
-     *
-     * TODO consider removal!
-     */
-    String getResourceOid();
 
     /**
      * Returns true if the type definition matches specified object class name.
@@ -486,5 +510,25 @@ public interface ResourceObjectDefinition
      */
     @Experimental
     boolean isDefaultFor(@NotNull ShadowKindType kind);
+
+    /**
+     * Returns shadow caching policy determined by the application of resource-level definitions down to the specific
+     * object type/class definition (using bean merging).
+     *
+     * Throws an exception for unattached raw object class definitions.
+     */
+    @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy();
+
+    static void assertAttached(ResourceObjectDefinition resourceObjectDefinition) {
+        if (resourceObjectDefinition != null) {
+            resourceObjectDefinition.assertAttached();
+        }
+    }
+
+    default void assertAttached() {
+        stateCheck(
+                getBasicResourceInformation() != null,
+                "Object definition %s is not attached to a resource", this);
+    }
     //endregion
 }

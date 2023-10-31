@@ -78,6 +78,11 @@ public class CompositeObjectDefinitionImpl
         return definition;
     }
 
+    @Override
+    public @Nullable BasicResourceInformation getBasicResourceInformation() {
+        return structuralDefinition.getBasicResourceInformation();
+    }
+
     @NotNull
     @Override
     public Collection<ResourceObjectDefinition> getAuxiliaryDefinitions() {
@@ -261,11 +266,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public String getDescription() {
         return structuralDefinition.getDescription();
-    }
-
-    @Override // todo delete
-    public String getResourceOid() {
-        return structuralDefinition.getResourceOid();
     }
 
     @Override
@@ -790,5 +790,10 @@ public class CompositeObjectDefinitionImpl
     @Override
     public boolean isDefaultFor(@NotNull ShadowKindType kind) {
         return structuralDefinition.isDefaultFor(kind);
+    }
+
+    @Override
+    public @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
+        return structuralDefinition.getEffectiveShadowCachingPolicy();
     }
 }

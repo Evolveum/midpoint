@@ -107,6 +107,11 @@ public interface RefinedAttributeDefinitionDelegator<T> extends AttributeDefinit
     }
 
     @Override
+    default Boolean isCached() {
+        return delegate().isCached();
+    }
+
+    @Override
     default @NotNull List<String> getTolerantValuePatterns() {
         return delegate().getTolerantValuePatterns();
     }

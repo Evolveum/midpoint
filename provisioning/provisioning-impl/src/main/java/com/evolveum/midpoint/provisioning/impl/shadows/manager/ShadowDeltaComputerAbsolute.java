@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -94,7 +93,7 @@ class ShadowDeltaComputerAbsolute {
         @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
         private final ShadowLifecycleStateType shadowState;
         @NotNull private final ObjectDelta<ShadowType> computedShadowDelta;
-        @NotNull private final CachingStrategyType cachingStrategy;
+        private final boolean cachingEnabled; // FIXME partial caching?!
         /**
          * True if the information we deal with (resource object, resource object delta) comes from the resource.
          * False if the shadow was sent to the resource, and the operation might or might not succeeded.
@@ -114,7 +113,7 @@ class ShadowDeltaComputerAbsolute {
             this.resourceObjectDelta = resourceObjectDelta;
             this.shadowState = shadowState;
             this.computedShadowDelta = repoShadow.asPrismObject().createModifyDelta();
-            this.cachingStrategy = ctx.getCachingStrategy();
+            this.cachingEnabled = ctx.isCachingEnabled();
             this.fromResource = fromResource;
         }
 
@@ -138,13 +137,11 @@ class ShadowDeltaComputerAbsolute {
 
             if (fromResource) { // TODO reconsider this
                 updateEffectiveMarks();
-                if (cachingStrategy == CachingStrategyType.NONE) {
-                    clearCachingMetadata();
-                } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
+                if (cachingEnabled) {
                     updateCachedActivation();
                     updateCachingMetadata(incompleteCacheableItems);
                 } else {
-                    throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
+                    clearCachingMetadata();
                 }
             }
             return computedShadowDelta;
@@ -255,13 +252,15 @@ class ShadowDeltaComputerAbsolute {
             // However, for incomplete (e.g. index-only) attributes we have to rely on object delta, if present.
             // TODO clean this up! MID-5834
 
+            Collection<? extends QName> associationValueAttrs = ocDef.getAssociationValueAttributes();
+
             for (Item<?, ?> currentResourceAttrItem : resourceObjectAttributes.getValue().getItems()) {
                 if (currentResourceAttrItem instanceof PrismProperty<?>) {
                     //noinspection unchecked
                     PrismProperty<Object> currentResourceAttrProperty = (PrismProperty<Object>) currentResourceAttrItem;
                     ResourceAttributeDefinition<?> attrDef =
                             ocDef.findAttributeDefinitionRequired(currentResourceAttrProperty.getElementName());
-                    if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy)) {
+                    if (ctx.shouldStoreAttributeInShadow(ocDef, attrDef, associationValueAttrs)) {
                         if (!currentResourceAttrItem.isIncomplete()) {
                             updateAttribute(repoShadowAttributes, currentResourceAttrProperty, attrDef);
                         } else {
@@ -294,7 +293,7 @@ class ShadowDeltaComputerAbsolute {
                             resourceObjectAttributes.findProperty(oldRepoAttrProperty.getElementName());
                     // note: incomplete attributes with no values are not here: they are found in resourceObjectAttributes container
                     if (attrDef == null
-                            || !ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy)
+                            || !ctx.shouldStoreAttributeInShadow(ocDef, attrDef, associationValueAttrs)
                             || currentAttribute == null) {
                         // No definition for this property it should not be there or no current value: remove it from the shadow
                         PropertyDelta<Object> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();

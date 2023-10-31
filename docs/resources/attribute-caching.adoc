@@ -30,7 +30,7 @@ It can be turned on in xref:/midpoint/reference/resources/resource-configuration
 <resource>
     ...
     <caching>
-        <cachingStategy>passive</cachingStategy>
+        <cachingStrategy>passive</cachingStrategy>
     </caching>
     ...
 </resource>
@@ -46,6 +46,9 @@ If caching is turned on then midPoint will start to cache the data in xref:/midp
 If you need to populate the caches with information you have to make an operation that is searching all the objects.
 E.g. reconciliation or similar operation should do the trick.
 
+#TODO#
+
+#Describe caching at the level of resource object types/classes and the new `scope` setting.#
 
 == Impact on Operations
 
