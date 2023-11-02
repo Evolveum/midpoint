@@ -24,9 +24,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import static java.util.Collections.emptyList;
 
-/**
- * TODO
- */
+/** The UCF-level asynchronous update change. */
 public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSink {
 
     /**
@@ -34,6 +32,8 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
      * it has to be fetched. For notification-only changes both objectDelta and currentResourceObject have to be null.
      * (And this flag is introduced to distinguish intentional notification-only changes from malformed ones that have
      * both currentResourceObject and objectDelta missing.)
+     *
+     * TODO consider removal - is this needed any longer? (It looks nice and useful, though.)
      */
     private final boolean notificationOnly;
     private final AcknowledgementSink acknowledgeSink;

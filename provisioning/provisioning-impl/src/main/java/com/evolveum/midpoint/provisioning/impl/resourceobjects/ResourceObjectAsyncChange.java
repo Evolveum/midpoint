@@ -26,6 +26,7 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectAsyncChange.class);
 
+    /** See {@link UcfAsyncUpdateChange#notificationOnly}. TODO consider removal. */
     private final boolean notificationOnly;
 
     /** Where to send acknowledgements to. */
@@ -53,10 +54,6 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
             // TODO why not in LS case? Probably there's no MODIFY delta there...
             effectiveCtx.applyAttributesDefinition(objectDelta);
         }
-    }
-
-    public boolean isNotificationOnly() {
-        return notificationOnly;
     }
 
     @Override

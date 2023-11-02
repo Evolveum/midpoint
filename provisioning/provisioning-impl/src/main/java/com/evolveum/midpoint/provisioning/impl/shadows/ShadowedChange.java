@@ -274,12 +274,12 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         ReadCapabilityType readCapability = shadowCtx.getCapability(ReadCapabilityType.class);
         boolean canReadFromResource = readCapability != null && !Boolean.TRUE.equals(readCapability.isCachingOnly());
         if (canReadFromResource) {
-            // Either we don't use caching or we have a notification-only change. Such changes mean that we want to
-            // refresh the object from the resource.
+            // We go for the fresh object here. TODO to be reconsidered with regards to shadow caching in 4.9.
             Collection<SelectorOptions<GetOperationOptions>> options =
                     b.schemaService.getOperationOptionsBuilder().doNotDiscovery().build();
             try {
                 // TODO why we use shadow cache and not resource object converter?!
+                //  Because of (planned) caching? But then why don't we do this also when isCachingOnly is true?
                 var object = b.shadowsFacade.getShadow(
                         repoShadow.getOid(),
                         repoShadow,
@@ -311,11 +311,6 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
         globalCtx.applyAttributesDefinition(resourceObject.getPrismObject()); // is this really needed?
         return resourceObject;
-    }
-
-    private boolean isNotificationOnly() {
-        return resourceObjectChange instanceof ResourceObjectAsyncChange asyncChange
-                && asyncChange.isNotificationOnly();
     }
 
     public boolean isDelete() {
