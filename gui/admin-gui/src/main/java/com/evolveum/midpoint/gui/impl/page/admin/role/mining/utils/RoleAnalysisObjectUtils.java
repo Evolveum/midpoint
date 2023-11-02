@@ -7,14 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
@@ -28,8 +31,10 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -41,15 +46,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * The `RoleAnalysisObjectUtils` class provides utility methods for managing objects related to role analysis.
+ */
 public class RoleAnalysisObjectUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisObjectUtils.class);
+
+    static Collection<SelectorOptions<GetOperationOptions>> defaultOptions = GetOperationOptionsBuilder.create().raw().build();
 
     public static PrismObject<UserType> getUserTypeObject(@NotNull ModelService modelService, String oid,
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(UserType.class, oid, null, task, result);
+            return modelService.getObject(UserType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get UserType object, Probably not set yet", ex);
         } finally {
@@ -62,7 +72,7 @@ public class RoleAnalysisObjectUtils {
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(FocusType.class, oid, null, task, result);
+            return modelService.getObject(FocusType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get FocusType object, Probably not set yet", ex);
         } finally {
@@ -75,7 +85,7 @@ public class RoleAnalysisObjectUtils {
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(RoleType.class, oid, null, task, result);
+            return modelService.getObject(RoleType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleType object, Probably not set yet", ex);
         } finally {
@@ -89,7 +99,7 @@ public class RoleAnalysisObjectUtils {
 
         Task task = pageBase.createSimpleTask("getRoleTypeObject");
         try {
-            return pageBase.getModelService().getObject(RoleType.class, oid, null, task, result);
+            return pageBase.getModelService().getObject(RoleType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleType object, Probably not set yet", ex);
         } finally {
@@ -103,7 +113,7 @@ public class RoleAnalysisObjectUtils {
 
         Task task = pageBase.createSimpleTask("getRoleTypeObject");
         try {
-            return pageBase.getModelService().getObject(UserType.class, oid, null, task, result);
+            return pageBase.getModelService().getObject(UserType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get UserType object, Probably not set yet", ex);
         } finally {
@@ -118,7 +128,7 @@ public class RoleAnalysisObjectUtils {
         Task task = pageBase.createSimpleTask("getFocusTypeObject");
 
         try {
-            return pageBase.getModelService().getObject(FocusType.class, oid, null, task, result);
+            return pageBase.getModelService().getObject(FocusType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get FocusType object, Probably not set yet", ex);
         } finally {
@@ -131,7 +141,7 @@ public class RoleAnalysisObjectUtils {
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(RoleAnalysisClusterType.class, oid, null, task, result);
+            return modelService.getObject(RoleAnalysisClusterType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER,
                     "Couldn't get RoleAnalysisClusterType object, Probably not set yet", ex);
@@ -145,7 +155,7 @@ public class RoleAnalysisObjectUtils {
             String oid, Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(RoleAnalysisSessionType.class, oid, null, task, result);
+            return modelService.getObject(RoleAnalysisSessionType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER,
                     "Couldn't get RoleAnalysisSessionType object, Probably not set yet", ex);
@@ -155,29 +165,57 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
-    public static List<PrismObject<UserType>> extractRoleMembers(ModelService modelService, ObjectFilter userFilter,
-            String objectId, Task task, OperationResult result) {
+    public static ListMultimap<String, String> extractRoleMembers(ModelService modelService,
+            Map<String, PrismObject<UserType>> userExistCache, ObjectFilter userFilter,
+            Set<String> clusterMembers, Task task, OperationResult result) {
+
+        ListMultimap<String, String> roleMemberCache = ArrayListMultimap.create();
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .exists(AssignmentHolderType.F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
-                .ref(objectId)
+                .ref(clusterMembers.toArray(new String[0]))
                 .endBlock().build();
 
         if (userFilter != null) {
             query.addFilter(userFilter);
         }
 
+        ResultHandler<UserType> resultHandler = (userObject, parentResult) -> {
+            try {
+                boolean shouldCacheUser = false;
+                List<AssignmentType> assignments = userObject.asObjectable().getAssignment();
+
+                for (AssignmentType assignment : assignments) {
+                    ObjectReferenceType targetRef = assignment.getTargetRef();
+                    if (targetRef != null && clusterMembers.contains(targetRef.getOid())) {
+                        roleMemberCache.put(targetRef.getOid(), userObject.getOid());
+                        shouldCacheUser = true;
+                    }
+                }
+
+                if (shouldCacheUser) {
+                    userExistCache.put(userObject.getOid(), userObject);
+                }
+            } catch (Exception e) {
+                String errorMessage = "Cannot resolve role members: " + toShortString(userObject.asObjectable()) + ": " + e.getMessage();
+                throw new SystemException(errorMessage, e);
+            }
+
+            return true;
+        };
+
         try {
-            return modelService.searchObjects(UserType.class, query, null, task, result);
+            modelService.searchObjectsIterative(UserType.class, query, resultHandler, null,
+                    task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
         } finally {
             result.recomputeStatus();
         }
 
-        return null;
+        return roleMemberCache;
     }
 
     public static Integer countRoleMembers(PageBase pageBase, ObjectFilter userFilter, String objectId, OperationResult result) {
@@ -196,7 +234,7 @@ public class RoleAnalysisObjectUtils {
         Task task = pageBase.createSimpleTask("countRoleMembers");
 
         try {
-            return pageBase.getModelService().countObjects(UserType.class, query, null, task, result);
+            return pageBase.getModelService().countObjects(UserType.class, query, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
         } finally {

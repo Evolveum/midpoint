@@ -9,12 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
 import java.util.List;
 
-import org.apache.commons.math3.util.MathArrays;
 import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.wicket.chartjs.*;
 
+
+/**
+ * The RoleAnalysisAggregateChartModel class is a LoadableModel that generates aggregate
+ * charts for role analysis based on provided data.
+ */
 public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfiguration> {
 
     LoadableDetachableModel<List<RoleAnalysisModel>> roleAnalysisModels;

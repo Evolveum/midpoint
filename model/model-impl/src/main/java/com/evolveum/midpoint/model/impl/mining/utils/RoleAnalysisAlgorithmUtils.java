@@ -30,8 +30,28 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+
+/**
+ * The `RoleAnalysisAlgorithmUtils` class provides utility methods for processing and analyzing data clusters
+ * and outliers in role analysis.
+ * These utilities are used to generate statistics, prepare cluster objects, and detect patterns during role analysis.
+ */
 public class RoleAnalysisAlgorithmUtils {
 
+
+    /**
+     * Processes the clusters and generates cluster statistics, including the detection of patterns and outliers.
+     * This method is used in role analysis to analyze clusters of data points.
+     *
+     * @param modelService              The model service to interact with the underlying system.
+     * @param dataPoints                The data points representing cluster data.
+     * @param clusters                  The clusters to process.
+     * @param session                   The role analysis session.
+     * @param handler                   A progress handler to report processing status.
+     * @param task                      The current task.
+     * @param result                    The operation result.
+     * @return                          A list of PrismObjects representing the processed clusters.
+     */
     @NotNull
     public List<PrismObject<RoleAnalysisClusterType>> processClusters(ModelService modelService, List<DataPoint> dataPoints,
             List<Cluster<DataPoint>> clusters, @NotNull RoleAnalysisSessionType session,

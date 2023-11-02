@@ -27,6 +27,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * This class is responsible for preparing the chunk structure for role analysis in the Midpoint system.
+ * It creates data structures used in the analysis process, such as chunks of user and role data for further processing.
+ */
 public class PrepareChunkStructure extends BasePrepareAction {
 
     RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Data Preparation", 4);
@@ -48,7 +52,7 @@ public class PrepareChunkStructure extends BasePrepareAction {
         Set<String> membersOidSet = new HashSet<>();
 
         List<ObjectReferenceType> members = cluster.getMember();
-        loadRoleMap(members, roleExistCache, membersOidSet, userChunk, roleMap);
+        loadRoleMap(members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
 
         int roleMapSize = roleMap.size();
         ListMultimap<List<String>, String> roleChunk = prepareRoleChunkMap(roleMapSize, roleMap);
@@ -96,7 +100,7 @@ public class PrepareChunkStructure extends BasePrepareAction {
         Set<String> membersOidSet = new HashSet<>();
 
         List<ObjectReferenceType> members = cluster.getMember();
-        loadRoleMap(members, roleExistCache, membersOidSet, userChunk, roleMap);
+        loadRoleMap(members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
 
         int roleMapSize = roleMap.size();
         ListMultimap<List<String>, String> roleChunk = prepareRoleChunkMap(roleMapSize, roleMap);

@@ -27,8 +27,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionO
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+/**
+ * Implements clustering of roles based process mode.
+ * This class is responsible for executing the clustering operation.
+ */
 public class RoleBasedClustering implements Clusterable {
 
+
+    /**
+     * Executes the clustering operation for role analysis.
+     *
+     * @param session       The role analysis session object to be processed.
+     * @param modelService  The model service for performing operations.
+     * @param handler       The progress increment handler for tracking the execution progress.
+     * @param task          The task being executed.
+     * @param result        The operation result to record the outcome.
+     * @return A list of PrismObject instances representing the role analysis clusters.
+     */
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
             ModelService modelService, RoleAnalysisProgressIncrement handler, Task task, OperationResult result) {

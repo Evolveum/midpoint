@@ -11,6 +11,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 
 import java.io.Serializable;
 
+/**
+ * The `DetectionOption` class represents detection options for role analysis. It includes parameters such as minimum
+ * and maximum frequency thresholds, minimum users, and minimum roles.
+ */
 public class DetectionOption implements Serializable {
 
     private final double minFrequencyThreshold;

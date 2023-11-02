@@ -17,6 +17,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
+/**
+ * The `ExtractPatternUtils` class provides utility methods for preparing and transforming detected patterns.
+ * <p>
+ *     It's a part of the `Role Analysis`.
+ * </p>
+ */
 public class ExtractPatternUtils {
 
     public static DetectedPattern prepareDetectedPattern(Set<String> roles, Set<String> users) {

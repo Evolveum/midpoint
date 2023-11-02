@@ -17,17 +17,37 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
+
+/**
+ * A class responsible for executing the detection of patterns in role and user mining chunks/role analysis process.
+ * The specific detection operation is determined by the provided detection option.
+ * Default detection action is used after clustering operation.
+ */
 public class DefaultDetectionAction implements Serializable {
     private final DetectionOperation detectionType;
-    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Pattern Detection", 6);
+    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Pattern Detection: "
+            + "DefaultDetectionAction", 6);
     private final DetectionOption detectionOption;
 
+    /**
+     * Constructs a DefaultDetectionAction with the specified detection option.
+     *
+     * @param detectionOption The detection option that defines the specific detection operation.
+     */
     public DefaultDetectionAction(DetectionOption detectionOption) {
         this.detectionOption = detectionOption;
         detectionType = new PatternResolver();
     }
 
-    public List<DetectedPattern> executeDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
+    /**
+     * Executes the pattern detection operation on role or user mining chunks based on the provided mode.
+     *
+     * @param miningRoleTypeChunks The list of role mining chunks.
+     * @param miningUserTypeChunks The list of user mining chunks.
+     * @param mode                The mode specifying whether the operation is user-based or role-based.
+     * @return A list of detected patterns resulting from the detection operation.
+     */
+    protected List<DetectedPattern> executeDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
             List<MiningUserTypeChunk> miningUserTypeChunks, RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
             return detectionType.performUserBasedDetection(miningRoleTypeChunks, detectionOption, handler);

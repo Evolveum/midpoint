@@ -7,19 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.extractOid;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.CacheUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.extractRoleMembers;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.CacheUtils.cacheRole;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.chunk.CacheUtils.cacheUser;
 
 import java.util.*;
-
-import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
-
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.task.api.Task;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -28,10 +21,18 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * This class is responsible for preparing the expanded structure for role analysis in the Midpoint system.
+ * It creates data structures used in the analysis process, such as users and roles data for further processing.
+ */
 public class PrepareExpandStructure extends BasePrepareAction {
 
     RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Data Preparation", 3);
@@ -41,13 +42,11 @@ public class PrepareExpandStructure extends BasePrepareAction {
         return this.executeAction(modelService, cluster, fullProcess, mode, handler, task, result);
     }
 
-    @Override
     public MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
             RoleAnalysisProgressIncrement handler, Task task, OperationResult result) {
 
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
-
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
         ListMultimap<String, String> userChunk = ArrayListMultimap.create();
@@ -58,27 +57,34 @@ public class PrepareExpandStructure extends BasePrepareAction {
         handler.setActive(true);
         handler.enterNewStep("Prepare Role Structure");
         handler.setOperationCountToProcess(membersCount);
+
         for (ObjectReferenceType member : members) {
             handler.iterateActualStatus();
-
             String memberOid = member.getOid();
             PrismObject<RoleType> role = cacheRole(modelService, roleExistCache, memberOid, task, result);
-            if (role == null) {
-                continue;
+
+            if (role != null) {
+                membersOidSet.add(memberOid);
             }
-            membersOidSet.add(memberOid);
-            List<PrismObject<UserType>> userMembers = extractRoleMembers(modelService, null, memberOid, task, result);
-            List<String> users = extractOid(userMembers);
+        }
 
-            String chunkName = role.getName().toString();
+        ListMultimap<String, String> mapRoleMembers = extractRoleMembers(modelService, userExistCache, null, membersOidSet, task, result);
 
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(memberOid),
-                    users, chunkName, 0, RoleAnalysisOperationMode.NEUTRAL));
+        for (String clusterMember : membersOidSet) {
+            List<String> users = mapRoleMembers.get(clusterMember);
 
-            for (String user : users) {
-                userChunk.putAll(user, Collections.singletonList(memberOid));
-            }
+            PrismObject<RoleType> roleTypePrismObject = roleExistCache.get(clusterMember);
+            String chunkName = roleTypePrismObject.getName().toString();
 
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(
+                    Collections.singletonList(clusterMember),
+                    users,
+                    chunkName,
+                    0,
+                    RoleAnalysisOperationMode.EXCLUDE
+            ));
+
+            users.forEach(user -> userChunk.putAll(user, Collections.singletonList(clusterMember)));
         }
 
         int userChunkSize = userChunk.size();
@@ -92,8 +98,9 @@ public class PrepareExpandStructure extends BasePrepareAction {
 
         int memberCount = membersOidSet.size();
 
+
         handler.enterNewStep("Prepare User Structure");
-        handler.setOperationCountToProcess(userChunk.size());
+        handler.setOperationCountToProcess(userChunk.keySet().size());
         for (String key : userChunk.keySet()) {
             handler.iterateActualStatus();
 
@@ -107,7 +114,7 @@ public class PrepareExpandStructure extends BasePrepareAction {
             }
 
             miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(key), roleIds, chunkName, frequency,
-                    RoleAnalysisOperationMode.NEUTRAL));
+                    RoleAnalysisOperationMode.EXCLUDE));
 
         }
 
@@ -160,7 +167,7 @@ public class PrepareExpandStructure extends BasePrepareAction {
             }
 
             miningUserTypeChunks.add(new MiningUserTypeChunk(Collections.singletonList(userOid), existingRolesAssignment, chunkName,
-                    0, RoleAnalysisOperationMode.NEUTRAL));
+                    0, RoleAnalysisOperationMode.EXCLUDE));
 
         }
 
@@ -190,7 +197,7 @@ public class PrepareExpandStructure extends BasePrepareAction {
             }
 
             miningRoleTypeChunks.add(new MiningRoleTypeChunk(Collections.singletonList(key), usersOidList, chunkName, frequency,
-                    RoleAnalysisOperationMode.NEUTRAL));
+                    RoleAnalysisOperationMode.EXCLUDE));
 
         }
 
@@ -211,7 +218,7 @@ public class PrepareExpandStructure extends BasePrepareAction {
         ListMultimap<String, String> roleMap = ArrayListMultimap.create();
         List<ObjectReferenceType> members = cluster.getMember();
         Set<String> membersOidSet = new HashSet<>();
-        loadRoleMap(members, roleExistCache, membersOidSet, userChunk, roleMap);
+        loadRoleMap(members, roleExistCache, userExistCache, membersOidSet, userChunk, roleMap);
 
         //user //role
         ListMultimap<List<String>, String> roleChunk = prepareRoleChunkMap(roleMap.size(), roleMap);

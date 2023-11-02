@@ -47,6 +47,12 @@ public class ClusteringAction extends BaseAction {
         super(activityRun);
     }
 
+    /**
+     * Executes the clustering action for the specified session and imports the resulting clusters into the repository.
+     *
+     * @param sessionOid The OID of the role analysis session to process.
+     * @param result     The operation result to record the outcome.
+     */
     public void execute(String sessionOid, @NotNull OperationResult result) {
 
         var task = activityRun.getRunningTask();

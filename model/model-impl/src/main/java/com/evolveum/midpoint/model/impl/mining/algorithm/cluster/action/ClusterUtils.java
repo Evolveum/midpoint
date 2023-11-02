@@ -11,6 +11,10 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +33,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+
+/**
+ * Utility class for performing clustering operations in the context of role analysis.
+ * Provides methods for creating, preparing, and processing data points used in clustering.
+ */
 public class ClusterUtils{
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusterUtils.class);
 
+    static Collection<SelectorOptions<GetOperationOptions>> defaultOptions = GetOperationOptionsBuilder.create().raw().build();
+
+
+    /**
+     * Retrieves existing role OIDs from the model service.
+     *
+     * @param modelService The model service for accessing role data.
+     * @param task         The task associated with the operation.
+     * @param result       The operation result.
+     * @return A set of existing role OIDs.
+     */
     @NotNull
     protected static Set<String> getExistingRolesOidsSet(@NotNull ModelService modelService, Task task, OperationResult result) {
         Set<String> existingRolesOidsSet = new HashSet<>();
@@ -47,7 +67,7 @@ public class ClusterUtils{
 
         try {
             modelService.searchObjectsIterative(RoleType.class, null, roleTypeHandler,
-                    null, task, result);
+                    defaultOptions, task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't search  RoleType ", e);
@@ -56,6 +76,19 @@ public class ClusterUtils{
 
     }
 
+
+    /**
+     * Creates a mapping of roles to users based on user properties.
+     *
+     * @param modelService         The model service for accessing user data.
+     * @param minProperties        The minimum number of properties (RoleType) required.
+     * @param maxProperties        The maximum number of properties (RoleType) allowed.
+     * @param userQuery            The user query to filter user objects.
+     * @param existingRolesOidsSet A set of existing role OIDs.
+     * @param task                 The task associated with the operation.
+     * @param result               The operation result.
+     * @return A list multimap mapping roles to users.
+     */
     @NotNull
     protected static ListMultimap<List<String>, String> getUserBasedRoleToUserMap(@NotNull ModelService modelService,
             int minProperties, int maxProperties, SearchFilterType userQuery, Set<String> existingRolesOidsSet,
@@ -84,7 +117,7 @@ public class ClusterUtils{
             throw new RuntimeException(e);
         }
         try {
-            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, null,
+            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, defaultOptions,
                     task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | SecurityViolationException e) {
@@ -94,6 +127,15 @@ public class ClusterUtils{
         return roleToUserMap;
     }
 
+    /**
+     * Creates a mapping of users to roles based on role properties.
+     * @param modelService The model service for accessing user data.
+     * @param userQuery The user query to filter user objects.
+     * @param existingRolesOidsSet A set of existing role OIDs.
+     * @param task The task associated with the operation.
+     * @param result The operation result.
+     * @return A list multimap mapping role to users.
+     */
     @NotNull
     protected static ListMultimap<String, String> getRoleBasedRoleToUserMap(@NotNull ModelService modelService,
             SearchFilterType userQuery, Set<String> existingRolesOidsSet, Task task, OperationResult result) {
@@ -121,7 +163,7 @@ public class ClusterUtils{
         }
 
         try {
-            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, null,
+            modelService.searchObjectsIterative(UserType.class, objectQuery, resultHandler, defaultOptions,
                     task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | SecurityViolationException e) {
@@ -130,6 +172,13 @@ public class ClusterUtils{
         return roleToUserMap;
     }
 
+    /**
+     * Creates a mapping of users to roles based on (UserType) members.
+     * @param minProperties The minimum number of properties (UserType) required.
+     * @param maxProperties The maximum number of properties (UserType) allowed.
+     * @param roleToUserMap A list multimap mapping role to users.
+     * @return A list multimap mapping users to roles.
+     */
     @NotNull
     protected static ListMultimap<List<String>, String> getRoleBasedUserToRoleMap(int minProperties, int maxProperties,
             ListMultimap<String, String> roleToUserMap) {
@@ -144,7 +193,13 @@ public class ClusterUtils{
         return userToRoleMap;
     }
 
-    public static List<DataPoint> prepareDataPoints(ListMultimap<List<String>, String> chunkMap) {
+    /**
+     * Prepares data points based on the provided chunk map.
+     *
+     * @param chunkMap A list multimap mapping roles to users.
+     * @return A list of DataPoint instances.
+     */
+ public static List<DataPoint> prepareDataPoints(ListMultimap<List<String>, String> chunkMap) {
         List<DataPoint> dataPoints = new ArrayList<>();
 
         for (List<String> points : chunkMap.keySet()) {

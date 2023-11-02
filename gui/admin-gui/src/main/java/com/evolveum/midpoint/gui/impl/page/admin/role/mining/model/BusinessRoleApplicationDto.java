@@ -17,6 +17,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+/**
+ * The BusinessRoleApplicationDto class represents a Data Transfer Object (DTO) that holds
+ * information about a specific role, its associated cluster, and a list of BusinessRoleDtos that holds information
+ * about a user's delta to a specific role.
+ */
 public class BusinessRoleApplicationDto implements Serializable {
 
     PrismObject<RoleAnalysisClusterType> cluster;
@@ -30,7 +35,11 @@ public class BusinessRoleApplicationDto implements Serializable {
         this.businessRoleDtos = businessRoleDtos;
     }
 
-
+    /**
+     * Updates the value of the inducements of the business role.
+     *
+     * @param inducements The list of inducements to be updated.
+     */
     public void updateValue(List<AssignmentType> inducements) {
         Set<String> inducementsOidSet = new HashSet<>();
         for (AssignmentType inducement : inducements) {

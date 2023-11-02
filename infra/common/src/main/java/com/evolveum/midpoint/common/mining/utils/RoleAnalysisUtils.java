@@ -28,19 +28,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * The `RoleAnalysisUtils` class provides utility methods for various operations related to role analysis.
+ */
 public class RoleAnalysisUtils {
 
     public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisUtils.class);
-
-    public static List<String> extractOid(List<PrismObject<UserType>> roleMembers) {
-        List<String> membersOids = new ArrayList<>();
-        for (PrismObject<UserType> roleMember : roleMembers) {
-            membersOids.add(roleMember.getOid());
-        }
-
-        return membersOids;
-
-    }
 
     public static AbstractAnalysisSessionOptionType getSessionOptionType(RoleAnalysisSessionType roleAnalysisSession) {
         if (roleAnalysisSession == null || roleAnalysisSession.getProcessMode() == null) {

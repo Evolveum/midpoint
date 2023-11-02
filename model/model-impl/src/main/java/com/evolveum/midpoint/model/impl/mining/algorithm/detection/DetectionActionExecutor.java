@@ -36,10 +36,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
+
+/**
+ * The `DetectionActionExecutor` class is responsible for executing the pattern detection process
+ * within the role analysis. It processes a specific cluster and identifies patterns based on
+ * the configured detection options and the session details.
+ * <p>
+ * This class is a crucial part of the role analysis workflow, helping to identify patterns within
+ * the analyzed data for better decision-making regarding role and user assignments.
+ */
 public class DetectionActionExecutor extends BaseAction {
 
     private final DetectionOperation detectionType;
-    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Pattern Detection", 6, this::incrementProgress);
+    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Pattern Detection: "
+            + "DetectionActionExecutor", 6, this::incrementProgress);
     private final String clusterOid;
     private final ModelService modelService;
 
@@ -61,6 +71,11 @@ public class DetectionActionExecutor extends BaseAction {
         this.task = activityRun.getRunningTask();
     }
 
+
+    /**
+     * Executes the pattern detection process within the role analysis for a specific cluster.
+     * This method retrieves cluster and session information, prepares data, and performs pattern detection.
+     */
     public void executeDetectionProcess() {
         handler.enterNewStep("Load Data");
         handler.setActive(true);

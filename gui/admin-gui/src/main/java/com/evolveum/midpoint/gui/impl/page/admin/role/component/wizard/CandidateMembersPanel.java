@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 @PanelType(name = "brw-candidateMembers")
-@PanelInstance(identifier = "brw-access",
+@PanelInstance(identifier = "brw-candidateMembers",
         applicableForType = RoleType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRole.wizard.step.access.applicationRole", icon = "fa fa-list"),

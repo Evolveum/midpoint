@@ -40,15 +40,8 @@ public class LinkIconPanelStatus extends Panel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RoleAnalysisOperationMode roleAnalysisOperationMode = onClickPerformed(target, null);
-
-                if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.NEUTRAL)) {
-                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.ADD.getDisplayString()));
-                } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.ADD)) {
-                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.REMOVE.getDisplayString()));
-                } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.REMOVE)) {
-                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.NEUTRAL.getDisplayString()));
-                }
+                RoleAnalysisOperationMode roleAnalysisOperationMode = onClickPerformed(target, status.getObject());
+                image.add(AttributeModifier.replace("class", roleAnalysisOperationMode.toggleStatus().getDisplayString()));
                 target.add(image);
             }
         };
@@ -58,7 +51,6 @@ public class LinkIconPanelStatus extends Panel {
         add(link);
 
     }
-
 
     protected RoleAnalysisOperationMode onClickPerformed(AjaxRequestTarget target, RoleAnalysisOperationMode roleAnalysisOperationMode) {
         return roleAnalysisOperationMode;
