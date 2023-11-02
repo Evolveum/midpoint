@@ -16,10 +16,10 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 @PageDescriptor(
         urls = @Url(mountUrl = "/admin/certification/tasks"),
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
+                @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
                         label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
                         description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CERTIFICATION_SHEDULING_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
                         description = "PageTasks.auth.tasks.description") })
 public class PageTasksCertScheduling extends PageTasks {
