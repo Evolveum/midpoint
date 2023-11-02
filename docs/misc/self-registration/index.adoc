@@ -6,13 +6,8 @@
 :page-wiki-metadata-modify-user: khazelton
 :page-wiki-metadata-modify-date: 2021-02-23T15:21:40.478+01:00
 :page-toc: top
-:page-since: "3.5"
+:page-since: "4.6"
 :page-upkeep-status: yellow
-
-[TIP]
-.MidPoint 4.6 and later
-
-This configuration is valid in midPoint 4.6 and later. For configuration before 4.6 please see xref:./configuration-before-4-6/[Self Registration Configuration before 4.6].
 
 Self registration in midPoint provides possibility for unauthenticated user to enroll to midPoint and request assignments.
 By default, self registration is disabled.
