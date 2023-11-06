@@ -116,7 +116,6 @@
         </objectType>
     </schemaHandling>
 
-
     <capabilities>
         <!-- No cachingMetadata here MID-4472, MID-4174 -->
         <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"

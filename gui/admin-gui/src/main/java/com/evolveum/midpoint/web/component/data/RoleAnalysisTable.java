@@ -77,8 +77,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     static boolean isRoleMining = false;
     RoleAnalysisSortMode roleAnalysisSortModeMode;
 
-
-    public RoleAnalysisTable(String id, ISortableDataProvider<T,?> provider, List<IColumn<T, String>> columns,
+    public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount, RoleAnalysisSortMode roleAnalysisSortModeMode) {
         super(id);
         this.tableId = tableId;
@@ -87,13 +86,14 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         this.roleAnalysisSortModeMode = roleAnalysisSortModeMode;
         initLayout(columns, provider, columnCount);
     }
+
     @Override
     public void renderHead(IHeaderResponse response) {
         response.render(OnDomReadyHeaderItem
                 .forScript("MidPointTheme.initResponsiveTable(); MidPointTheme.initScaleResize('#tableScaleContainer');"));
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T,?> provider, int colSize) {
+    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, ?> provider, int colSize) {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
         add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
@@ -168,8 +168,8 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     }
 
     @Override
-    public DataTable<?,?> getDataTable() {
-        return (DataTable<?,?>) get(ID_TABLE_CONTAINER).get(ID_TABLE);
+    public DataTable<?, ?> getDataTable() {
+        return (DataTable<?, ?>) get(ID_TABLE_CONTAINER).get(ID_TABLE);
     }
 
     @Override
@@ -292,7 +292,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
             add(buttonToolbar);
 
-            final DataTable<?,?> dataTable = table.getDataTable();
+            final DataTable<?, ?> dataTable = table.getDataTable();
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);
             footerContainer.add(new VisibleBehaviour(this::isPagingVisible));
@@ -405,7 +405,9 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
                     BusinessRoleApplicationDto operationData = getOperationData();
-                    if (operationData == null) {
+                    if (operationData == null || operationData.getBusinessRoleDtos().isEmpty()) {
+                        warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
+                        target.add(getPageBase().getFeedbackPanel());
                         return;
                     }
 

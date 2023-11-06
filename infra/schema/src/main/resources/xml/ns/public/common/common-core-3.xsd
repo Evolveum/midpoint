@@ -10241,34 +10241,65 @@
 
     <xsd:complexType name="LimitationsType">
         <xsd:annotation>
-            <xsd:documentation>Definition of complexity and string policy
+            <xsd:documentation>
+                Definition of complexity and string policy
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0"/>
-            <xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0"/>
+            <xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimal length of the string. If not specified, the string can be empty.
+
+                        (When generating values, though, the default for minimal generated length
+                        is situation-specific, e.g. 10 or 24 characters. It is used when both minLength
+                        and minUniqueChars are unspecified or zero.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal length of the string. If not specified or if negative,
+                        the string can have arbitrary length.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="minUniqueChars" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                          Minimum number of unique characters in the generated string.
+                          Minimum number of unique characters in the string.
                           Defaults to minLength.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0"/>
-            <xsd:element name="checkPattern" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="checkPattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="checkExpression" type="c:CheckExpressionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                          Expression that is used to check the resulting value whether it is acceptable
-                          or not. If the expression returns true, then the value is accepted.
-                          If the expression returns false value, then the value is rejected and it
-                          will be generated again. Until the maximum number of attempts is reached.
-                          If there are several expressions that all of them must pass for the value to
-                          be accepted. However each of them may produce a different failure message.
+                            Expression that is used to check the value whether it is acceptable
+                            or not. If the expression returns true, then the value is accepted.
+                            If the expression returns false value, then the value is rejected and
+                            (in the case of value generation) it will be generated again.
+                            Until the maximum number of attempts is reached.
+                            If there are several expressions that all of them must pass for the value to
+                            be accepted. However, each of them may produce a different failure message.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -10277,48 +10308,174 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                          Maximum number of attempts to generate an expression. Attempts are used
-                          with limitations that cannot be incorporated directly into the generation
-                          algorithm (check expression, pattern, dictionary).
+                            Maximum number of attempts to generate an expression. Attempts are used
+                            with limitations that cannot be incorporated directly into the generation
+                            algorithm (check expression, pattern, dictionary). Any value less than 1
+                            is interpreted as 1.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Limitations (e.g., minimum and maximum occurrences) related to individual character classes.
+
+                            Important note: Generation of values is guaranteed to work if the character classes are disjunctive.
+
+                            If they are not, there may be situations where the value cannot be generated entirely,
+                            or their generation would require computationally intensive algorithms involving, e.g.,
+                            approaches known from constraints programming area. This can be the case if requirements
+                            for individual classes contradict each other - like A is subset of B, and minOccurs for A
+                            is greater than maxOccurs of B - or if the current simple algorithm walks into a dead end
+                            by randomly selected required characters from one class in such a way that there will be no
+                            chance of fulfilling the requirements of other classes and the global requirements
+                            at the same time.
+
+                            Hence, you should either use disjunctive character classes or make sure that all the limitations
+                            can be met even when selecting required amounts of characters from individual classes randomly
+                            and independently of each other.
+
+                            If there are no specific limitations, alphanumeric chars are used for value generation.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="StringLimitType">
         <xsd:annotation>
-            <xsd:documentation>Definition of valid single string limitation
+            <xsd:documentation>
+                Limitations of a string value connected to given character class.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="t:PolyStringType" minOccurs="0"/>
-            <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            User-understandable name of the limitations.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            User-understandable description of the limitations.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0"/>
-            <xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0"/>
-            <xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0"/>
-            <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0"/>
+            <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimal number of characters from this class that must be present in the string value.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximal number of characters from this class that can be present in the string value.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            If "true", the character from this class must be at the first place of the string value.
+                            If more classes have this flag set to "true", all of them must conform to this rule.
+                            (I.e., the first character must come from an intersection of these classes, which must
+                            be, obviously, non-empty.)
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="characterClass" type="tns:CharacterClassOrRefType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specification of the character class for these limitations.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="CharacterClassType">
         <xsd:annotation>
-            <xsd:documentation>Definition of valid characters in class. Default
-                value is ASCII printable characters (Codes 0x20
-                to 0x7E)
+            <xsd:documentation>
+                Definition of valid characters in a character class.
+                Default value is ASCII printable characters (codes 0x20 to 0x7E).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:choice>
-                <xsd:element name="characterClass" type="tns:CharacterClassType" maxOccurs="unbounded"/>
-                <xsd:element name="value" type="xsd:string"/>
-            </xsd:choice>
+            <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Embedded character class(es). Their content is included in the outer class.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Explicitly specified characters belonging to this class.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="ref" type="xsd:QName"/>
-        <xsd:attribute name="name" type="xsd:QName"/>
+        <xsd:attribute name="name" type="xsd:QName">
+            <xsd:annotation>
+                <xsd:documentation>
+                    <p>
+                        Name of this character class (optional).
+                    </p>
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="CharacterClassOrRefType">
+        <xsd:annotation>
+            <xsd:documentation>
+                As a CharacterClassType, but it can contain a reference to a class defined elsewhere.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CharacterClassType">
+                <xsd:attribute name="ref" type="xsd:QName">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            <p>
+                                Name of existing character class that is to be used at this place.
+
+                                If this value is present, no content ("characterClass" nor "value") must be provided.
+                                The referenced classes are looked up in the list of classes provided in the "characterClass"
+                                item within the StringPolicyType object. There must be exactly one class with the given
+                                reference. Note that unlike at other places in midPoint, here both namespaces and local parts
+                                of the names must match. Therefore, the use of unqualified names is suggested for simplicity.
+                            </p>
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="CheckExpressionType">

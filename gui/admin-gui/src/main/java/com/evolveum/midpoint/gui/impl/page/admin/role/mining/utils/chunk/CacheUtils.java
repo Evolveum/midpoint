@@ -21,6 +21,9 @@ import java.util.Map;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getUserTypeObject;
 
+/**
+ * Utility class for caching PrismObjects of roles and users.
+ */
 public class CacheUtils {
 
     @Nullable

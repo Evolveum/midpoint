@@ -20,6 +20,9 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.PendingOperationTypeUtil;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
  */
 @Component
 public class ShadowCaretaker {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowCaretaker.class);
 
     @Autowired private Clock clock;
 
@@ -451,7 +456,8 @@ public class ShadowCaretaker {
 
     /** Determines and updates the shadow state. */
     void updateShadowState(ProvisioningContext ctx, ShadowType shadow) {
-        shadow.setShadowLifecycleState(
-                determineShadowState(ctx, shadow));
+        ShadowLifecycleStateType state = determineShadowState(ctx, shadow);
+        shadow.setShadowLifecycleState(state);
+        LOGGER.trace("shadow state is {}", state);
     }
 }

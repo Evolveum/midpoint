@@ -41,36 +41,36 @@ public class UcfObjectFound implements DebugDumpable {
      * - if errorState.isSuccess: Object is fully converted. In particular, it has identifiers present.
      * - if errorState.isError: Object may or may not be fully converted. It can be even empty.
      */
-    @NotNull private final PrismObject<ShadowType> resourceObject;
-
-    /**
-     * Real value of the object primary identifier (e.g. ConnId UID).
-     *
-     * Conditions:
-     * - errorState.isSuccess: Not null.
-     * - errorState.isError: Usually not null (e.g. never in ConnId 1.x). But this may change in the future.
-     */
-    private final Object primaryIdentifierValue;
+    @NotNull private final UcfResourceObject resourceObject;
 
     /**
      * Error state describing the result of processing within UCF layer.
      */
     @NotNull private final UcfErrorState errorState;
 
-    public UcfObjectFound(@NotNull PrismObject<ShadowType> resourceObject, Object primaryIdentifierValue,
+    public UcfObjectFound(
+            @NotNull PrismObject<ShadowType> resourceObject,
+            Object primaryIdentifierValue,
             @NotNull UcfErrorState errorState) {
-        this.resourceObject = resourceObject;
-        this.primaryIdentifierValue = primaryIdentifierValue;
+        this.resourceObject = UcfResourceObject.of(resourceObject, primaryIdentifierValue);
         this.errorState = errorState;
         checkConsistence();
     }
 
-    public @NotNull PrismObject<ShadowType> getResourceObject() {
+    public @NotNull UcfResourceObject getResourceObject() {
         return resourceObject;
     }
 
+    public @NotNull PrismObject<ShadowType> getPrismObject() {
+        return resourceObject.bean().asPrismObject();
+    }
+
+    public @NotNull ShadowType getBean() {
+        return resourceObject.bean();
+    }
+
     public Object getPrimaryIdentifierValue() {
-        return primaryIdentifierValue;
+        return resourceObject.primaryIdentifierValue();
     }
 
     public @NotNull UcfErrorState getErrorState() {
@@ -81,7 +81,6 @@ public class UcfObjectFound implements DebugDumpable {
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "resourceObject=" + resourceObject +
-                ", primaryIdentifierValue=" + primaryIdentifierValue +
                 ", errorState=" + errorState +
                 '}';
     }
@@ -94,7 +93,6 @@ public class UcfObjectFound implements DebugDumpable {
         sb.append(getClass().getSimpleName());
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierValue), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "errorState", errorState, indent + 1);
         return sb.toString();
     }
@@ -105,7 +103,7 @@ public class UcfObjectFound implements DebugDumpable {
         }
         if (errorState.isSuccess()) {
             // Not possible to check identifiers in the resource object, as we do not have OC def here.
-            stateCheck(primaryIdentifierValue != null, "No primary identifier value");
+            stateCheck(getPrimaryIdentifierValue() != null, "No primary identifier value");
         }
     }
 }

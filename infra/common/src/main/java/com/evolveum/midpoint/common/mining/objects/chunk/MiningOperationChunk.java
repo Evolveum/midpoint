@@ -14,6 +14,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * <p>
+ * The `MiningOperationChunk` class represents a chunk of data used in the role analysis process. It contains two lists:
+ * - `miningUserTypeChunks` for user data
+ * - `miningRoleTypeChunks` for role data
+ * </p>
+ * <p>
+ * This class provides methods to retrieve these lists and sort them based on the specified `RoleAnalysisSortMode`.
+ * </p>
+ */
 public class MiningOperationChunk implements Serializable {
 
     private List<MiningUserTypeChunk> miningUserTypeChunks;

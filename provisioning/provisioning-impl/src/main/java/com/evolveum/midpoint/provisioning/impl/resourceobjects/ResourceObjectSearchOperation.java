@@ -163,8 +163,7 @@ class ResourceObjectSearchOperation {
     }
 
     private boolean handleObjectFound(UcfObjectFound ucfObject, OperationResult parentResult) {
-        ResourceObjectFound objectFound =
-                new ResourceObjectFound(ucfObject, beans.resourceObjectConverter, ctx, fetchAssociations);
+        ResourceObjectFound objectFound = new ResourceObjectFound(ucfObject, ctx, fetchAssociations);
 
         // in order to utilize the cache right from the beginning...
         RepositoryCache.enterLocalCaches(beans.cacheConfigurationManager);
@@ -181,7 +180,7 @@ class ResourceObjectSearchOperation {
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
                         .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState()).build();
                 try {
-                    objectFound.initialize(task, objResult);
+                    // Intentionally not initializing the object here. Let us be flexible and let the ultimate caller decide.
                     return resultHandler.handle(objectFound, objResult);
                 } catch (Throwable t) {
                     objResult.recordFatalError(t);

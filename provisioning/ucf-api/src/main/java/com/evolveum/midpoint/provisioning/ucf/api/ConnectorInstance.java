@@ -197,12 +197,14 @@ public interface ConnectorInstance {
      *
      * @param resourceObjectIdentification objectClass+identifiers of the object to fetch
      * @return object fetched from the resource (no schema)
-     * @throws CommunicationException error in communication to the resource
-     *                - nothing was fetched.
+     * @throws CommunicationException error in communication to the resource - nothing was fetched.
      * @throws SchemaException error converting object from native (connector) format
      */
-    PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-            AttributesToReturn attributesToReturn, UcfExecutionContext ctx, OperationResult parentResult)
+    UcfResourceObject fetchObject(
+            ResourceObjectIdentification resourceObjectIdentification,
+            AttributesToReturn attributesToReturn,
+            UcfExecutionContext ctx,
+            OperationResult parentResult)
         throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
         SecurityViolationException, ConfigurationException;
 

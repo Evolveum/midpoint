@@ -5,8 +5,10 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import java.util.Collection;
 import java.util.List;
 
-
-
+/**
+ * An abstract base class for role analysis clustering data points of a specific type using a distance measure.
+ * Subclasses are responsible for implementing the actual clustering logic for a given data type.
+ */
 public abstract class Clusterer<T extends Clusterable> {
     private final DistanceMeasure measure;
 

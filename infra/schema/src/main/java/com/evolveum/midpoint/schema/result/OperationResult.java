@@ -1285,6 +1285,10 @@ public class OperationResult
         recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
     }
 
+    public void setNotApplicable() {
+        setNotApplicable(null);
+    }
+
     public void setNotApplicable(String message) {
         setStatus(OperationResultStatus.NOT_APPLICABLE, message, null);
     }

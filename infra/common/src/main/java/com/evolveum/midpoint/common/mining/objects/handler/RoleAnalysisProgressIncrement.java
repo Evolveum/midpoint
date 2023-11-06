@@ -16,7 +16,15 @@ import java.io.Serializable;
 import java.time.Duration;
 
 /**
+ * <p>
+ * The `RoleAnalysisProgressIncrement` class provides a way to increment progress during role-mining operations.
+ * It allows for tracking the progress of each step within the role-mining process and provides information such as
+ * the title, subtitle, percentage completion, and duration.
+ * </p>
+ * <p>
  * Keeps the state of the role-mining activity (clustering, pattern detection, etc).
+ * </p>
+ * TODO what about serializability? Currently we assume we'll never use deserialized version of this class instance
  */
 public class RoleAnalysisProgressIncrement implements Serializable {
 

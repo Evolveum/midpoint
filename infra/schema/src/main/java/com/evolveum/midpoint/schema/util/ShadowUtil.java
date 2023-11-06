@@ -180,14 +180,16 @@ public class ShadowUtil {
     }
 
     public static ResourceAttributeContainer getAttributesContainer(PrismContainerValue<?> cval, QName containerName) {
-        PrismContainer attributesContainer = cval.findContainer(containerName);
+        PrismContainer<?> attributesContainer = cval.findContainer(containerName);
         if (attributesContainer == null) {
             return null;
         }
-        if (attributesContainer instanceof ResourceAttributeContainer) {
-            return (ResourceAttributeContainer)attributesContainer;
+        if (attributesContainer instanceof ResourceAttributeContainer resourceAttributeContainer) {
+            return resourceAttributeContainer;
         } else {
-            throw new SystemException("Expected that <"+containerName.getLocalPart()+"> will be ResourceAttributeContainer but it is "+attributesContainer.getClass());
+            throw new IllegalStateException(
+                    "Expected that <%s> will be ResourceAttributeContainer but it is %s".formatted(
+                            containerName.getLocalPart(), attributesContainer.getClass()));
         }
     }
 

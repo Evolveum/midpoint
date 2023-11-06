@@ -67,7 +67,9 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+
         checkEvaluatorProfile(context);
 
         ValuePolicyType valuePolicy = getValuePolicy(context, result);
@@ -85,25 +87,24 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     }
 
     @NotNull
-    private String generateStringValue(ValuePolicyType valuePolicy, ExpressionEvaluationContext context, ItemPath outputPath,
-            OperationResult result)
+    private String generateStringValue(
+            ValuePolicyType valuePolicy, ExpressionEvaluationContext context, ItemPath outputPath, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         GenerateExpressionEvaluatorModeType mode = defaultIfNull(expressionEvaluatorBean.getMode(), POLICY);
-        switch (mode) {
-            case POLICY:
-                // TODO: generate value based on stringPolicyType (if not null)
+        // TODO: generate value based on stringPolicyType (if not null)
+        return switch (mode) {
+            case POLICY -> {
                 if (valuePolicy != null) {
                     String generatedStringValue = generateStringValueFromPolicy(valuePolicy, context, outputPath, result);
-                    if (generatedStringValue != null)
-                        return generatedStringValue;
+                    if (generatedStringValue != null) {
+                        yield generatedStringValue;
+                    }
                 }
-                return new RandomString(DEFAULT_LENGTH).nextString();
-            case UUID:
-                return UUID.randomUUID().toString();
-            default:
-                throw new ExpressionEvaluationException("Unknown mode for generate expression: " + mode);
-        }
+                yield new RandomString(DEFAULT_LENGTH).nextString();
+            }
+            case UUID -> UUID.randomUUID().toString();
+        };
     }
 
     private void addValueToOutputProperty(Item<V, D> output, String stringValue, ExpressionEvaluationContext context)
@@ -123,19 +124,14 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     }
 
     @Nullable
-    private String generateStringValueFromPolicy(ValuePolicyType valuePolicy, ExpressionEvaluationContext context,
-            ItemPath outputPath, OperationResult result)
+    private String generateStringValueFromPolicy(
+            ValuePolicyType valuePolicy, ExpressionEvaluationContext context, ItemPath outputPath, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         ObjectBasedValuePolicyOriginResolver<?> originResolver = getOriginResolver(context);
-        String generatedValue;
-        if (isNotEmptyMinLength(valuePolicy)) {
-            generatedValue = valuePolicyProcessor.generate(outputPath, valuePolicy, DEFAULT_LENGTH, true, originResolver,
-                    context.getContextDescription(), context.getTask(), result);
-        } else {
-            generatedValue = valuePolicyProcessor.generate(outputPath, valuePolicy, DEFAULT_LENGTH, false, originResolver,
-                    context.getContextDescription(), context.getTask(), result);
-        }
+        String generatedValue = valuePolicyProcessor.generate(
+                outputPath, valuePolicy, DEFAULT_LENGTH, originResolver,
+                context.getContextDescription(), context.getTask(), result);
         result.computeStatus();
         if (result.isError()) {
             throw new ExpressionEvaluationException("Failed to generate value according to policy: "
@@ -159,11 +155,10 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
             SecurityViolationException, ExpressionEvaluationException {
         ObjectReferenceType specifiedValuePolicyRef = expressionEvaluatorBean.getValuePolicyRef();
         if (specifiedValuePolicyRef != null) {
-            ValuePolicyType resolvedPolicy = objectResolver.resolve(specifiedValuePolicyRef, ValuePolicyType.class,
-                    null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), result);
-            if (resolvedPolicy != null) {
-                return resolvedPolicy;
-            }
+            return objectResolver.resolve(
+                    specifiedValuePolicyRef, ValuePolicyType.class,
+                    null, "resolving value policy reference in generateExpressionEvaluator",
+                    context.getTask(), result);
         }
 
         ValuePolicySupplier valuePolicySupplier = context.getValuePolicySupplier();

@@ -29,15 +29,41 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * <p>
+ * The DefaultPatternResolver class is responsible for detecting and resolving patterns within a role analysis session.
+ * It provides methods to load and resolve patterns based on the configured detection options, session details, and cluster statistics.
+ *</p>
+ * <p>
+ * This class is a crucial component of the role analysis process, helping identify patterns within the analyzed data and
+ * facilitating decision-making for role and user assignments.
+ * </p>
+ */
 public class DefaultPatternResolver {
 
     private static final int MAX_PATTERN_INIT = 30;
     private final RoleAnalysisProcessModeType roleAnalysisProcessModeType;
 
+    /**
+     * Constructs a DefaultPatternResolver for a specific role analysis process mode.
+     *
+     * @param roleAnalysisProcessModeType The mode specifying whether the process is role-based or user-based.
+     */
     public DefaultPatternResolver(@NotNull RoleAnalysisProcessModeType roleAnalysisProcessModeType) {
         this.roleAnalysisProcessModeType = roleAnalysisProcessModeType;
     }
 
+    /**
+     * Loads and resolves detection patterns based on the session details, cluster statistics, and detection options.
+     *
+     * @param session           The role analysis session.
+     * @param clusterStatistic  The cluster statistics for a specific cluster.
+     * @param clusterType       The cluster type to resolve patterns for.
+     * @param modelService      The ModelService for retrieving role analysis data.
+     * @param result            The operation result for tracking the operation status.
+     * @param task              The task associated with the operation.
+     * @return A list of resolved RoleAnalysisDetectionPatternType objects representing detection patterns.
+     */
     public List<RoleAnalysisDetectionPatternType> loadPattern(
             RoleAnalysisSessionType session,
             @NotNull ClusterStatistic clusterStatistic,
@@ -119,6 +145,12 @@ public class DefaultPatternResolver {
         return loadIntersections(topPatterns);
     }
 
+    /**
+     * Loads the top detection patterns from a list of detected patterns based on their cluster metric values.
+     *
+     * @param detectedPatterns The list of detected patterns.
+     * @return A list of the top detected patterns.
+     */
     public static List<DetectedPattern> loadTopPatterns(List<DetectedPattern> detectedPatterns) {
         detectedPatterns.sort(Comparator.comparing(DetectedPattern::getClusterMetric).reversed());
 

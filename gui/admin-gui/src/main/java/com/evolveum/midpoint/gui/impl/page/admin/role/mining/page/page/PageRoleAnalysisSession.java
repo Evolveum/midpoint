@@ -271,6 +271,11 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         return panelConfigurations;
     }
 
+    @Override
+    protected void onBackPerform(AjaxRequestTarget target) {
+        ((PageBase) getPage()).navigateToNext(PageRoleAnalysis.class);
+    }
+
     private DetailsFragment createRoleWizardFragment(Class<? extends AbstractWizardPanel> clazz) {
 
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRoleAnalysisSession.this) {
@@ -280,7 +285,8 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                     Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
                     AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
                     add(wizard);
-                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ignored) {
+                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
+                        InvocationTargetException ignored) {
 
                 }
             }

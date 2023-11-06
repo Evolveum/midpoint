@@ -1,16 +1,30 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
-import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
-
 import java.util.*;
 
-import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
+import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
+/**
+ * Performs density-based clustering of data points based on specified parameters and distance measure.
+ * This class implements the Density-Based Spatial Clustering of Applications with Noise (DBSCAN) algorithm.
+ */
 public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> {
     private double eps;
     private int minPts;
     int minPropertiesOverlap;
 
+    private static final Trace LOGGER = TraceManager.getTrace(DensityBasedClustering.class);
+
+    /**
+     * Constructs a DensityBasedClustering instance with the specified parameters.
+     *
+     * @param eps               The epsilon parameter for distance-based clustering.
+     * @param minPts            The minimum number of points required to form a dense cluster.
+     * @param measure           The distance measure for clustering.
+     * @param minRolesOverlap   The minimum properties overlap required for adding a point to a cluster.
+     */
     public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure, int minRolesOverlap) {
         super(measure);
 
@@ -23,7 +37,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         } else {
             this.eps = eps;
             this.minPts = (minPts - 1);
-            LOGGER.info("Updated parameters: eps={} and minPts={}. New values: eps={} and minPts={}.",
+            LOGGER.debug("Updated parameters: eps={} and minPts={}. New values: eps={} and minPts={}.",
                     eps, minPts, this.eps, this.minPts);
         }
 
@@ -31,6 +45,13 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
 
     }
 
+    /**
+     * Performs density-based clustering on the provided collection of data points.
+     *
+     * @param points   The collection of data points to cluster.
+     * @param handler  The progress increment handler for tracking the execution progress.
+     * @return A list of clusters containing the clustered data points.
+     */
     public List<Cluster<T>> cluster(Collection<T> points, RoleAnalysisProgressIncrement handler) {
         List<Cluster<T>> clusters = new ArrayList<>();
         Map<Clusterable, PointStatus> visited = new HashMap<>();

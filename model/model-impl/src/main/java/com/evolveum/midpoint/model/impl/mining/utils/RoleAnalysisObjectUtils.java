@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.mining.utils;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
@@ -16,6 +18,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
+import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
@@ -36,15 +45,29 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * Utility methods for working with role analysis objects in the Midpoint system.
+ */
 public class RoleAnalysisObjectUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisObjectUtils.class);
 
+    static Collection<SelectorOptions<GetOperationOptions>> defaultOptions = GetOperationOptionsBuilder.create().raw().build();
+
+    /**
+     * Retrieves a PrismObject of UserType object based on its OID.
+     *
+     * @param modelService The ModelService for accessing user data.
+     * @param oid The OID of the UserType object to retrieve.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The PrismObject of UserType object, or null if not found.
+     */
     public static PrismObject<UserType> getUserTypeObject(@NotNull ModelService modelService, String oid,
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(UserType.class, oid, null, task, result);
+            return modelService.getObject(UserType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get UserType object, Probably not set yet", ex);
         } finally {
@@ -53,11 +76,20 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
+    /**
+     * Retrieves a PrismObject of FocusType object based on its OID.
+     *
+     * @param modelService The ModelService for accessing data.
+     * @param oid The OID of the FocusType object to retrieve.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The PrismObject of FocusType object, or null if not found.
+     */
     public static PrismObject<FocusType> getFocusTypeObject(@NotNull ModelService modelService, String oid,
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(FocusType.class, oid, null, task, result);
+            return modelService.getObject(FocusType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get FocusType object, Probably not set yet", ex);
         } finally {
@@ -66,11 +98,20 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
+    /**
+     * Retrieves a PrismObject of RoleType object based on its OID.
+     *
+     * @param modelService The ModelService for accessing role data.
+     * @param oid The OID of the RoleType object to retrieve.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The PrismObject of RoleType object, or null if not found.
+     */
     public static PrismObject<RoleType> getRoleTypeObject(@NotNull ModelService modelService, String oid,
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(RoleType.class, oid, null, task, result);
+            return modelService.getObject(RoleType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleType object, Probably not set yet", ex);
         } finally {
@@ -79,11 +120,20 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
+    /**
+     * Retrieves a PrismObject of RoleAnalysisClusterType object based on its OID.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param oid The OID of the RoleAnalysisClusterType object to retrieve.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The PrismObject of RoleAnalysisClusterType object, or null if not found.
+     */
     public static PrismObject<RoleAnalysisClusterType> getClusterTypeObject(@NotNull ModelService modelService, String oid,
             Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(RoleAnalysisClusterType.class, oid, null, task, result);
+            return modelService.getObject(RoleAnalysisClusterType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER,
                     "Couldn't get RoleAnalysisClusterType object, Probably not set yet", ex);
@@ -93,11 +143,20 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
+    /**
+     * Retrieves a PrismObject of RoleAnalysisSessionType object based on its OID.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param oid The OID of the RoleAnalysisSessionType object to retrieve.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The PrismObject of RoleAnalysisSessionType object, or null if not found.
+     */
     public static PrismObject<RoleAnalysisSessionType> getSessionTypeObject(@NotNull ModelService modelService,
             String oid, Task task, OperationResult result) {
 
         try {
-            return modelService.getObject(RoleAnalysisSessionType.class, oid, null, task, result);
+            return modelService.getObject(RoleAnalysisSessionType.class, oid, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER,
                     "Couldn't get RoleAnalysisSessionType object, Probably not set yet", ex);
@@ -107,11 +166,19 @@ public class RoleAnalysisObjectUtils {
         return null;
     }
 
+    /**
+     * Retrieves the number of RoleAnalysisSessionType objects in the system.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return The number of RoleAnalysisSessionType objects in the system.
+     */
     public static Integer getSessionTypeObjectCount(@NotNull ModelService modelService,
             Task task, OperationResult result) {
 
         try {
-            return modelService.countObjects(RoleAnalysisSessionType.class, null, null, task, result);
+            return modelService.countObjects(RoleAnalysisSessionType.class, null, defaultOptions, task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER,
                     "Couldn't count RoleAnalysisSessionType object, Probably not set yet", ex);
@@ -121,31 +188,81 @@ public class RoleAnalysisObjectUtils {
         return 0;
     }
 
-    public static List<PrismObject<UserType>> extractRoleMembers(ModelService modelService, ObjectFilter userFilter,
-            String objectId, Task task, OperationResult result) {
+    /**
+     * Extracts a list of user members from set of RoleType object based on provided parameters.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param userExistCache  The cache of user objects.
+     * @param userFilter The UserType filter.
+     * @param clusterMembers The set of cluster members.
+     * @param task The task associated with this operation.
+     * @param result   The operation result.
+     * @return A list of user members.
+     */
+    //TODO Optimize this method. Loading role members is very expensive operation.
+    public static ListMultimap<String, String> extractRoleMembers(ModelService modelService,
+            Map<String, PrismObject<UserType>> userExistCache, ObjectFilter userFilter,
+            Set<String> clusterMembers, Task task, OperationResult result) {
+
+        ListMultimap<String, String> roleMemberCache = ArrayListMultimap.create();
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .exists(AssignmentHolderType.F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
-                .ref(objectId)
+                .ref(clusterMembers.toArray(new String[0]))
                 .endBlock().build();
 
         if (userFilter != null) {
             query.addFilter(userFilter);
         }
 
+        ResultHandler<UserType> resultHandler = (userObject, parentResult) -> {
+            try {
+                boolean shouldCacheUser = false;
+                List<AssignmentType> assignments = userObject.asObjectable().getAssignment();
+
+                for (AssignmentType assignment : assignments) {
+                    ObjectReferenceType targetRef = assignment.getTargetRef();
+                    if (targetRef != null && clusterMembers.contains(targetRef.getOid())) {
+                        roleMemberCache.put(targetRef.getOid(), userObject.getOid());
+                        shouldCacheUser = true;
+                    }
+                }
+
+                if (shouldCacheUser) {
+                    userExistCache.put(userObject.getOid(), userObject);
+                }
+            } catch (Exception e) {
+                String errorMessage = "Cannot resolve role members: " + toShortString(userObject.asObjectable()) + ": " + e.getMessage();
+                throw new SystemException(errorMessage, e);
+            }
+
+            return true;
+        };
+
         try {
-            return modelService.searchObjects(UserType.class, query, null, task, result);
+            modelService.searchObjectsIterative(UserType.class, query, resultHandler, null,
+                    task, result);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
         } finally {
             result.recomputeStatus();
         }
 
-        return null;
+        return roleMemberCache;
     }
 
+    /**
+     * Imports a RoleAnalysisClusterType object into the system.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param cluster The cluster for importing.
+     * @param roleAnalysisSessionDetectionOption The session detection option.
+     * @param parentRef The parent Role analysis session reference.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
     public static void importRoleAnalysisClusterObject(@NotNull ModelService modelService,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             RoleAnalysisDetectionOptionType roleAnalysisSessionDetectionOption, ObjectReferenceType parentRef,
@@ -155,6 +272,15 @@ public class RoleAnalysisObjectUtils {
         modelService.importObject(cluster, null, task, result);
     }
 
+    /**
+     * Modifies statistics of a RoleAnalysisSessionType object.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param sessionRef The session reference.
+     * @param sessionStatistic The session statistic to modify.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
     public static void modifySessionAfterClustering(ModelService modelService, ObjectReferenceType sessionRef,
             RoleAnalysisSessionStatisticType sessionStatistic,
             Task task, OperationResult result) {
@@ -175,6 +301,15 @@ public class RoleAnalysisObjectUtils {
 
     }
 
+    /**
+     * Replaces the detected patterns of a RoleAnalysisClusterType object.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param clusterOid The cluster OID.
+     * @param detectedPatterns The detected patterns to replace.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
     public static void replaceRoleAnalysisClusterDetectionPattern(ModelService modelService, String clusterOid,
             List<DetectedPattern> detectedPatterns, Task task, OperationResult result) {
 
@@ -227,6 +362,16 @@ public class RoleAnalysisObjectUtils {
         return analysisClusterStatisticType;
     }
 
+    /**
+     * Generates a set of object references based on a provided parameters.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param objects The objects to create references for.
+     * @param complexType The complex type of the objects.
+     * @param task The task associated with this operation.
+     * @param operationResult The operation result.
+     * @return A set of object references.
+     */
     public static @NotNull Set<ObjectReferenceType> createObjectReferences(ModelService modelService, Set<String> objects,
             QName complexType, Task task, OperationResult operationResult) {
 
@@ -246,6 +391,14 @@ public class RoleAnalysisObjectUtils {
         return objectReferenceList;
     }
 
+    /**
+     * Deletes all RoleAnalysisClusterType objects associated with a specific session.
+     *
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param sessionOid The session OID.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
     public static void deleteRoleAnalysisSessionClusters(ModelService modelService, String sessionOid,
             Task task, OperationResult result) {
 
@@ -271,6 +424,13 @@ public class RoleAnalysisObjectUtils {
 
     }
 
+    /**
+     * Deletes a single RoleAnalysisClusterType object.
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param cluster The cluster to delete.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
     public static void deleteSingleRoleAnalysisCluster(@NotNull ModelService modelService,
             @NotNull RoleAnalysisClusterType cluster,
             Task task, OperationResult result) {
@@ -313,6 +473,14 @@ public class RoleAnalysisObjectUtils {
 
     }
 
+    /**
+     * Recomputes the statistics of a RoleAnalysisSessionType object.
+     * @param modelService The ModelService for accessing role analysis data.
+     * @param sessionOid The session OID.
+     * @param roleAnalysisClusterType The cluster to recompute statistics for.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
     public static void recomputeSessionStatic(@NotNull ModelService modelService, String sessionOid,
             @NotNull RoleAnalysisClusterType roleAnalysisClusterType,
             Task task, OperationResult result) {

@@ -72,6 +72,17 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Override
+    protected void onBackPerform(AjaxRequestTarget target) {
+        PageParameters parameters = new PageParameters();
+        ObjectReferenceType roleAnalysisSessionRef = getModelObjectType().getRoleAnalysisSessionRef();
+        parameters.add(OnePageParameterEncoder.PARAMETER, roleAnalysisSessionRef.getOid());
+        parameters.add("panelId", "clusters");
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisSessionType.class);
+        ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
+    }
+
+    @Override
     public void addAdditionalButtons(RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton detection = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),

@@ -18,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
+/**
+ * Interface for defining the mining structure in the role analysis data processing.
+ */
 public interface MiningStructure {
     MiningOperationChunk prepareRoleBasedStructure(@NotNull RoleAnalysisClusterType cluster, ModelService modelService,
             RoleAnalysisProgressIncrement handler, Task task, OperationResult result);

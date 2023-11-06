@@ -7,27 +7,29 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import javax.xml.namespace.QName;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.normalizeAttributes;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.PendingOperationsHelper.findPendingAddOperation;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ShadowAuditHelper;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ShadowAuditHelper;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,10 +40,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.normalizeAttributes;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.PendingOperationsHelper.findPendingAddOperation;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 
 /**
  * Creates shadows as needed. This is one of public classes of this package.
@@ -139,8 +137,6 @@ public class ShadowCreator {
 
     /**
      * Create a copy of a resource object (or another shadow) that is suitable for repository storage.
-     *
-     * @see ProvisioningUtil#shouldStoreAttributeInShadow(ResourceObjectDefinition, QName, CachingStrategyType)
      */
     @NotNull ShadowType createShadowForRepoStorage(ProvisioningContext ctx, ShadowType resourceObjectOrShadow)
             throws SchemaException, ConfigurationException, EncryptionException {
@@ -150,43 +146,32 @@ public class ShadowCreator {
                 determinePrimaryIdentifierValue(ctx, resourceObjectOrShadow));
 
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObjectOrShadow);
-        CachingStrategyType cachingStrategy = ctx.getCachingStrategy();
-        if (cachingStrategy == CachingStrategyType.NONE) {
-            ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
-            // Clean all repoShadow attributes and add only those that should be there
-            repoAttributesContainer.clear();
-            for (PrismProperty<?> p : attributesContainer.getAllIdentifiers()) {
-                repoAttributesContainer.add(p.clone());
+        ResourceObjectDefinition objectDef = ctx.getObjectDefinitionRequired();
+
+        ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
+
+        // We keep all the attributes that act as association identifiers.
+        // We will need them when the shadow is deleted (to remove the shadow from entitlements).
+        // TODO is this behavior documented somewhere? Is it known well enough?
+        var associationValueAttributes = objectDef.getAssociationValueAttributes();
+
+        PrismContainerValue<ShadowAttributesType> repoAttributesPcv = repoAttributesContainer.getValue();
+
+        for (QName attrName : repoAttributesPcv.getItemNames()) {
+            var attrDef = objectDef.findAttributeDefinitionRequired(attrName);
+            if (!ctx.shouldStoreAttributeInShadow(objectDef, attrDef, associationValueAttributes)) {
+                repoAttributesPcv.removeProperty(
+                        ItemName.fromQName(attrName));
             }
+        }
 
-            // Also add all the attributes that act as association identifiers.
-            // We will need them when the shadow is deleted (to remove the shadow from entitlements).
-            // TODO is this behavior documented somewhere? Is it known well enough?
-            ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-            for (ResourceAssociationDefinition associationDef : objectDefinition.getAssociationDefinitions()) {
-                if (associationDef.getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-                    QName valueAttributeName = associationDef.getDefinitionBean().getValueAttribute();
-                    if (repoAttributesContainer.findAttribute(valueAttributeName) == null) {
-                        ResourceAttribute<Object> valueAttribute = attributesContainer.findAttribute(valueAttributeName);
-                        if (valueAttribute != null) {
-                            repoAttributesContainer.add(valueAttribute.clone());
-                        }
-                    }
-                }
-            }
-
-            repoShadow.setCachingMetadata(null);
-
-            ProvisioningUtil.cleanupShadowActivation(repoShadow);
-
-        } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
-            // Do not need to clear anything. Just store all attributes and add metadata.
+        if (ctx.isCachingEnabled()) {
             CachingMetadataType cachingMetadata = new CachingMetadataType();
             cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
             repoShadow.setCachingMetadata(cachingMetadata);
-
         } else {
-            throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
+            repoShadow.setCachingMetadata(null);
+            ProvisioningUtil.cleanupShadowActivation(repoShadow); // TODO deal with this more precisely
         }
 
         // Store only password meta-data in repo - unless there is explicit caching
@@ -224,7 +209,7 @@ public class ShadowCreator {
             repoShadow.setEffectiveOperationPolicy(null);
         }
 
-        normalizeAttributes(repoShadow, ctx.getObjectDefinitionRequired());
+        normalizeAttributes(repoShadow, objectDef);
 
         MetadataUtil.addCreationMetadata(repoShadow);
 

@@ -17,8 +17,6 @@
         <limitations>
             <minLength>0</minLength>
             <minUniqueChars>0</minUniqueChars>
-            <checkAgainstDictionary>true</checkAgainstDictionary>
-            <checkPattern />
         </limitations>
     </stringPolicy>
 </valuePolicy>

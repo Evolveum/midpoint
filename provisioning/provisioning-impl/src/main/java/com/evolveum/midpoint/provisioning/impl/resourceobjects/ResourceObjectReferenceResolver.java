@@ -15,6 +15,7 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil;
 import com.evolveum.midpoint.provisioning.util.QueryConversionUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -210,14 +211,14 @@ class ResourceObjectReferenceResolver {
     /**
      * @param repoShadow Used when read capability is "caching only"
      */
-    PrismObject<ShadowType> fetchResourceObject(
+    @Nullable ResourceObject fetchResourceObject(
             ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
             @Nullable PrismObject<ShadowType> repoShadow,
-            OperationResult parentResult) throws ObjectNotFoundException,
+            OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
+        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
 
         try {
@@ -229,13 +230,18 @@ class ResourceObjectReferenceResolver {
             }
 
             if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {
-                return repoShadow;
+                return repoShadow != null ?
+                        ResourceObject.fromRepoPrismObject(
+                                repoShadow,
+                                ShadowManagerMiscUtil.determinePrimaryIdentifierValue(ctx, repoShadow.asObjectable())) :
+                        null;
             }
 
             ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectDefinition, identifiers);
-            ResourceObjectIdentification resolvedIdentification = resolvePrimaryIdentifiers(ctx, identification, parentResult);
+            ResourceObjectIdentification resolvedIdentification = resolvePrimaryIdentifiers(ctx, identification, result);
             resolvedIdentification.validatePrimaryIdentifiers();
-            return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx.getUcfExecutionContext(), parentResult);
+            var object = connector.fetchObject(resolvedIdentification, attributesToReturn, ctx.getUcfExecutionContext(), result);
+            return ResourceObject.from(object);
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
             // We do not use simple "e.wrap" because there is a lot of things to be filled-in here.
@@ -246,25 +252,25 @@ class ResourceObjectReferenceResolver {
                     ShadowType.class,
                     repoShadow != null ? repoShadow.getOid() : null,
                     ctx.isAllowNotFound());
-            parentResult.recordExceptionNotFinish(objectNotFoundException);
+            result.recordExceptionNotFinish(objectNotFoundException);
             throw objectNotFoundException;
         } catch (CommunicationException e) {
-            parentResult.setFatalError("Error communication with the connector " + connector
+            result.setFatalError("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);
             throw e;
         } catch (GenericFrameworkException e) {
-            parentResult.setFatalError(
+            result.setFatalError(
                     "Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
             throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
                     + e.getMessage(), e);
         } catch (SchemaException ex) {
-            parentResult.setFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+            result.setFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ExpressionEvaluationException ex) {
-            parentResult.setFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
+            result.setFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ConfigurationException e) {
-            parentResult.setFatalError(e);
+            result.setFatalError(e);
             throw e;
         }
     }

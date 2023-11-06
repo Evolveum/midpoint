@@ -10,13 +10,14 @@ package com.evolveum.midpoint.provisioning.util;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,10 @@ import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOpera
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
@@ -375,34 +379,9 @@ public class ProvisioningUtil {
         opResult.markExceptionRecorded();
     }
 
-    /** See {@link ShadowCreator#createShadowForRepoStorage(ProvisioningContext, ShadowType)}. */
-    public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,
-            CachingStrategyType cachingStrategy) throws ConfigurationException {
-        if (cachingStrategy == null || cachingStrategy == CachingStrategyType.NONE) {
-            if (objectDefinition.isPrimaryIdentifier(attributeName) || objectDefinition.isSecondaryIdentifier(attributeName)) {
-                return true;
-            }
-            for (ResourceAssociationDefinition associationDef : objectDefinition.getAssociationDefinitions()) {
-                if (associationDef.getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-                    QName valueAttributeName = associationDef.getDefinitionBean().getValueAttribute();
-                    if (QNameUtil.match(attributeName, valueAttributeName)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-
-        } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
-            return objectDefinition.findAttributeDefinition(attributeName) != null;
-
-        } else {
-            throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
-        }
-    }
-
     // MID-2585
-    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStrategyType cachingStrategy) {
-        return cachingStrategy == CachingStrategyType.PASSIVE
+    public static boolean shouldStoreActivationItemInShadow(QName elementName, boolean cachingEnabled) {
+        return cachingEnabled
                 || QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP)
                 || QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP)
                 || QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP)

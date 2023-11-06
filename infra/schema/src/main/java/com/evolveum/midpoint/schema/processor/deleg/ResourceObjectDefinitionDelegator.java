@@ -25,6 +25,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     ResourceObjectDefinition delegate();
 
     @Override
+    @Nullable
+    default BasicResourceInformation getBasicResourceInformation() {
+        return delegate().getBasicResourceInformation();
+    }
+
+    @Override
     default @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
         return delegate().getAttributeDefinitions();
     }
@@ -73,21 +79,6 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
         return delegate().getDisplayNameAttribute();
     }
-
-//    @Override
-//    default String getNativeObjectClass() {
-//        return delegate().getNativeObjectClass();
-//    }
-//
-//    @Override
-//    default boolean isAuxiliary() {
-//        return delegate().isAuxiliary();
-//    }
-//
-//    @Override
-//    default boolean isDefaultInAKind() {
-//        return delegate().isDefaultInAKind();
-//    }
 
     @Override
     default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
@@ -207,11 +198,6 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default String getResourceOid() {
-        return delegate().getResourceOid();
-    }
-
-    @Override
     default ResourceObjectMultiplicityType getObjectMultiplicity() {
         return delegate().getObjectMultiplicity();
     }
@@ -315,5 +301,10 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Override
     default boolean isDefaultFor(@NotNull ShadowKindType kind) {
         return delegate().isDefaultFor(kind);
+    }
+
+    @Override
+    default @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
+        return delegate().getEffectiveShadowCachingPolicy();
     }
 }

@@ -21,6 +21,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+/**
+ * Utility class for caching PrismObjects of roles and users.
+ */
 public class CacheUtils {
 
     @Nullable

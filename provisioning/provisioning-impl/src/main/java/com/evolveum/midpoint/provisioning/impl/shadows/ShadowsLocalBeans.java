@@ -20,6 +20,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -30,11 +31,11 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
 /**
- * Beans useful for non-Spring components within this package.
+ * Beans useful for non-Spring components within this package and its children.
  */
 @Experimental
 @Component
-class ShadowsLocalBeans {
+public class ShadowsLocalBeans {
 
     private static ShadowsLocalBeans instance;
 
@@ -48,8 +49,6 @@ class ShadowsLocalBeans {
     }
 
     @Autowired AccessChecker accessChecker;
-    @Autowired ShadowedObjectConstructionHelper shadowedObjectConstructionHelper;
-    @Autowired ShadowAcquisitionHelper shadowAcquisitionHelper;
     @Autowired ClassificationHelper classificationHelper;
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ShadowCaretaker shadowCaretaker;
@@ -69,8 +68,10 @@ class ShadowsLocalBeans {
     @Autowired Clock clock;
     @Autowired ResourceObjectConverter resourceObjectConverter;
     @Autowired ProvisioningContextFactory ctxFactory;
-    @Autowired ShadowRefreshHelper refreshHelper;
     @Autowired EventDispatcher eventDispatcher;
+    @Autowired DefinitionsHelper definitionsHelper;
 
     @Autowired CacheConfigurationManager cacheConfigurationManager;
+
+    @Autowired SchemaService schemaService;
 }

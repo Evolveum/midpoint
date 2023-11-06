@@ -295,7 +295,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
                 accountDefinition, identifiers);
-        PrismObject<ShadowType> resObj = null;
+        UcfResourceObject resObj = null;
         try {
             resObj = cc.fetchObject(identification, null, null, result);
             Assert.fail();
@@ -325,8 +325,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         cc.modifyObject(identification, null, changes, null, null, result);
 
-        PrismObject<ShadowType> shadow = cc.fetchObject(identification, null, null, result);
-        ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
+        var resourceObject = cc.fetchObject(identification, null, null, result);
+        ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(resourceObject.bean());
 
         AssertJUnit.assertNull(resObj.findAttribute(QNAME_GIVEN_NAME));
 
@@ -558,7 +558,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult("fetchObject");
 
         // WHEN
-        PrismObject<ShadowType> ro = cc.fetchObject(identification, null, null, result);
+        var ro = cc.fetchObject(identification, null, null, result);
 
         // THEN
 
@@ -567,7 +567,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         System.out.println("Result:");
         System.out.println(result.debugDump());
 
-        assertEquals("Wrong LDAP uid", "Teell", IntegrationTestTools.getAttributeValue(ro.asObjectable(), new QName(NS_RI, "uid")));
+        assertEquals("Wrong LDAP uid", "Teell",
+                IntegrationTestTools.getAttributeValue(ro.bean(), new QName(NS_RI, "uid")));
 
     }
 

@@ -101,7 +101,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         loadMiningTable(webMarkupContainer);
         add(webMarkupContainer);
 
-
     }
 
     private void loadMiningTableData() {
@@ -152,7 +151,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     private void updateMiningTable(AjaxRequestTarget target, boolean resetStatus) {
-
         RoleAnalysisDetectionOptionType detectionOption = getObjectDetailsModels().getObjectType().getDetectionOption();
         if (detectionOption == null || detectionOption.getFrequencyRange() == null) {
             return;
@@ -164,10 +162,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
         if (resetStatus) {
             for (MiningRoleTypeChunk miningRoleTypeChunk : simpleMiningRoleTypeChunks) {
-                miningRoleTypeChunk.setStatus(RoleAnalysisOperationMode.NEUTRAL);
+                miningRoleTypeChunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
             }
             for (MiningUserTypeChunk miningUserTypeChunk : simpleMiningUserTypeChunks) {
-                miningUserTypeChunk.setStatus(RoleAnalysisOperationMode.NEUTRAL);
+                miningUserTypeChunk.setStatus(RoleAnalysisOperationMode.EXCLUDE);
             }
         }
 
@@ -224,9 +222,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                         Model.of("Analyzed members details panel"), detectedPatternList, cluster) {
                     @Override
                     public void onLoadPerform(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-                        getPageBase().hideMainPopup(ajaxRequestTarget);
+                        RoleAnalysisUserBasedTable miningUserBasedTable = getMiningUserBasedTable();
                         analysePattern = rowModel.getObject();
-                        updateMiningTable(ajaxRequestTarget, true);
+                        miningUserBasedTable.loadDetectedPattern(ajaxRequestTarget, analysePattern);
+                        getPageBase().hideMainPopup(ajaxRequestTarget);
                     }
                 };
 
@@ -267,9 +266,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                         Model.of("Analyzed members details panel"), detectedPatternList, cluster) {
                     @Override
                     public void onLoadPerform(AjaxRequestTarget ajaxRequestTarget, IModel<DetectedPattern> rowModel) {
-                        getPageBase().hideMainPopup(ajaxRequestTarget);
+                        RoleAnalysisRoleBasedTable miningRoleBasedTable = getMiningRoleBasedTable();
                         analysePattern = rowModel.getObject();
-                        updateMiningTable(ajaxRequestTarget, true);
+                        miningRoleBasedTable.loadDetectedPattern(ajaxRequestTarget, analysePattern);
+                        getPageBase().hideMainPopup(ajaxRequestTarget);
                     }
                 };
 

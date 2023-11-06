@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -28,14 +26,14 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectAsyncChange.class);
 
+    /** See {@link UcfAsyncUpdateChange#notificationOnly}. TODO consider removal. */
     private final boolean notificationOnly;
 
     /** Where to send acknowledgements to. */
     @NotNull private final AcknowledgementSink acknowledgementSink;
 
-    ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
-            @NotNull ResourceObjectConverter converter, @NotNull ProvisioningContext originalContext) {
-        super(ucfAsyncUpdateChange, null, originalContext, converter.getBeans());
+    ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange, @NotNull ProvisioningContext originalContext) {
+        super(ucfAsyncUpdateChange, originalContext);
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();
         this.acknowledgementSink = ucfAsyncUpdateChange;
     }
@@ -44,23 +42,18 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     protected void processObjectAndDelta(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        ResourceObjectConverter converter = beans.resourceObjectConverter;
         if (resourceObject != null) {
             // TODO why not in LS case? Probably because ConnId LS operation takes care of it?
-            context.applyAttributesDefinition(resourceObject);
-            converter.postProcessResourceObjectRead(context, resourceObject, true, result);
+            effectiveCtx.applyAttributesDefinition(resourceObject.getPrismObject());
+            b.resourceObjectConverter.postProcessResourceObjectRead(effectiveCtx, resourceObject, true, result);
         } else {
             // we will fetch current resource object later; TODO why the difference w.r.t. LS case?
         }
 
         if (objectDelta != null) {
             // TODO why not in LS case? Probably there's no MODIFY delta there...
-            context.applyAttributesDefinition(objectDelta);
+            effectiveCtx.applyAttributesDefinition(objectDelta);
         }
-    }
-
-    public boolean isNotificationOnly() {
-        return notificationOnly;
     }
 
     @Override

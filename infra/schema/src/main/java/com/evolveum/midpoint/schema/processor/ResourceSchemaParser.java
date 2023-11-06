@@ -13,22 +13,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+/** TODO decide on the fate of this class. */
 public class ResourceSchemaParser {
 
-    @NotNull private final Element xsdSchema;
-    @NotNull private final String description;
-
-    public ResourceSchemaParser(@NotNull Element xsdSchema, @NotNull String description) {
-        this.xsdSchema = xsdSchema;
-        this.description = description;
-    }
-
     public static @NotNull ResourceSchema parse(Element xsdSchema, String description) throws SchemaException {
-        return new ResourceSchemaParser(xsdSchema, description)
-                .parse();
-    }
-
-    private ResourceSchema parse() throws SchemaException {
         ResourceSchemaImpl schema = new ResourceSchemaImpl();
         schema.parseThis(xsdSchema, true, description, PrismContext.get());
         return schema;

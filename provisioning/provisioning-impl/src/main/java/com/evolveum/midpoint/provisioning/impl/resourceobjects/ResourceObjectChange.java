@@ -7,39 +7,32 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
-import static java.util.Collections.emptySet;
-
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectPrimaryIdentifiers;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEvent;
 import com.evolveum.midpoint.provisioning.api.ExternalResourceEventListener;
-import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
+import com.evolveum.midpoint.provisioning.impl.AlreadyInitializedObject;
+import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfChange;
+import com.evolveum.midpoint.provisioning.util.ErrorState;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Change (live sync, async update, or external) represented at the level of resource object
@@ -48,7 +41,7 @@ import javax.xml.namespace.QName;
  * Usually derived from {@link UcfChange} but may be also provided externally -
  * see {@link ExternalResourceEventListener#notifyEvent(ExternalResourceEvent, Task, OperationResult)}.
  */
-public abstract class ResourceObjectChange implements InitializableMixin {
+public abstract class ResourceObjectChange extends AbstractResourceEntity {
 
     /**
      * Sequence number that is local to the current live sync or async update operation.
@@ -62,23 +55,23 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      * Real value of the primary identifier of the object.
      * In initialized/OK state it must not be null.
      *
-     * See {@link UcfChange#primaryIdentifierRealValue}.
+     * See {@link UcfChange#primaryIdentifierValue}.
      */
     private final Object primaryIdentifierRealValue;
 
     /**
      * Definition of the resource object present at change creation.
-     * For UCF-based changes it came from UcfChange.
+     * For UCF-based changes it comes from UcfChange.
      *
      * In OK state it must be present, except for LS delete deltas where it MAY be null.
      * See {@link UcfChange#resourceObjectDefinition}.
      *
-     * Refined during initialization, see {@link #resourceObjectDefinition}.
+     * Refined during initialization into {@link #resourceObjectDefinition}.
      */
     private final ResourceObjectDefinition initialResourceObjectDefinition;
 
     /**
-     * Resource object definition as determined from (possibly updated) provisioning context.
+     * Resource object definition as determined from {@link #effectiveCtx}.
      * May be null in exceptional cases (wildcard LS with delete event with object class not provided).
      */
     protected ResourceObjectDefinition resourceObjectDefinition;
@@ -130,74 +123,69 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      *
      * See {@link UcfChange#resourceObject} and {@link ExternalResourceEvent#resourceObject}.
      */
-    protected PrismObject<ShadowType> resourceObject;
+    protected ResourceObject resourceObject;
 
     /** The initialization state for this change. */
-    @NotNull protected final InitializationState initializationState;
+    @NotNull private final InitializationState initializationState = InitializationState.created();
 
-    /**
-     * Provisioning context specific to this change.
-     *
-     * Original value provided at creation time. Refined during initialization, when specific object/change is known.
-     */
-    @NotNull protected ProvisioningContext context;
-
-    @NotNull protected final ResourceObjectsBeans beans;
+    /** Represents the status if the original UCF change. */
+    @NotNull private final AlreadyInitializedObject ucfChangeStatus;
 
     ResourceObjectChange(
             int localSequenceNumber,
             Object primaryIdentifierRealValue,
             ResourceObjectDefinition initialResourceObjectDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            PrismObject<ShadowType> resourceObject,
+            ResourceObject resourceObject,
             ObjectDelta<ShadowType> objectDelta,
-            @NotNull InitializationState initializationState,
-            @NotNull ProvisioningContext originalContext,
-            @NotNull ResourceObjectsBeans beans) {
+            @NotNull ErrorState initialErrorState,
+            @NotNull ProvisioningContext originalContext) {
+        super(originalContext);
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.initialResourceObjectDefinition = initialResourceObjectDefinition;
         this.identifiers = new ArrayList<>(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
-        this.initializationState = initializationState;
-        this.context = originalContext;
-        this.beans = beans;
+        this.ucfChangeStatus = AlreadyInitializedObject.of(initialErrorState);
     }
 
     ResourceObjectChange(
-            UcfChange ucfChange,
-            Exception preInitializationException,
-            @NotNull ProvisioningContext originalContext,
-            ResourceObjectsBeans beans) {
+            UcfChange ucfChange, @NotNull ProvisioningContext originalContext) {
         this(ucfChange.getLocalSequenceNumber(),
-                ucfChange.getPrimaryIdentifierRealValue(),
+                ucfChange.getPrimaryIdentifierValue(),
                 ucfChange.getResourceObjectDefinition(),
                 ucfChange.getIdentifiers(),
-                ucfChange.getResourceObject(),
+                ResourceObject.fromNullable(ucfChange.getResourceObject()),
                 ucfChange.getObjectDelta(),
-                InitializationState.fromUcfErrorState(ucfChange.getErrorState(), preInitializationException),
-                originalContext,
-                beans);
+                ErrorState.fromUcfErrorState(ucfChange.getErrorState()),
+                originalContext);
     }
 
-    /**
-     * The meat is in subclasses. (In the future we might pull up common parts here.)
-     */
     @Override
-    public void initializeInternal(Task task, OperationResult result)
+    public @Nullable InitializableObjectMixin getPrerequisite() {
+        return ucfChangeStatus;
+    }
+
+    @Override
+    public void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
             throws CommonException, NotApplicableException {
-
-        if (initializationState.isInitialStateOk()) {
-            updateProvisioningContext(task);
-            setResourceObjectDefinition();
-
-            processObjectAndDelta(result);
-        } else {
-            addFakePrimaryIdentifierIfNeeded();
-        }
-
+        effectiveCtx = refineProvisioningContext();
+        setResourceObjectDefinition();
+        processObjectAndDelta(result); // this is different for subclasses
         freezeIdentifiers();
+    }
+
+    @Override
+    public void initializeInternalForPrerequisiteError(Task task, OperationResult result) throws CommonException {
+        effectiveCtx = globalCtx;
+        addFakePrimaryIdentifierIfNeeded();
+        freezeIdentifiers();
+    }
+
+    @Override
+    public void initializeInternalForPrerequisiteNotApplicable(Task task, OperationResult result) {
+        throw new IllegalStateException("UCF does not signal 'not applicable' state");
     }
 
     /**
@@ -206,10 +194,6 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     protected abstract void processObjectAndDelta(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, NotApplicableException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException;
-
-    public @NotNull InitializationState getInitializationState() {
-        return initializationState;
-    }
 
     public boolean isDelete() {
         return ObjectDelta.isDelete(objectDelta);
@@ -227,12 +211,8 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         return objectDelta;
     }
 
-    public PrismObject<ShadowType> getResourceObject() {
+    public @Nullable ResourceObject getResourceObject() {
         return resourceObject;
-    }
-
-    public ShadowType getResourceObjectBean() {
-        return asObjectable(resourceObject);
     }
 
     @Override
@@ -248,53 +228,23 @@ public abstract class ResourceObjectChange implements InitializableMixin {
                 + toStringExtra() + ")";
     }
 
-    private void updateProvisioningContext(@NotNull Task task) throws SchemaException, ConfigurationException {
-
-        schemaCheck(initialResourceObjectDefinition != null || isDelete() && context.isWildcard(),
-                "No object type or class definition in change %s", this);
-
-        ProvisioningContext contextBefore = context;
-
-        if (context.isWildcard()) {
+    private ProvisioningContext refineProvisioningContext() throws SchemaException, ConfigurationException {
+        if (globalCtx.isWildcard()) {
             if (initialResourceObjectDefinition != null) {
-                context = applyObjectClassAndTask(initialResourceObjectDefinition.getTypeName(), task);
-                assert !context.isWildcard();
+                var refinedCtx = globalCtx.spawnForObjectClass(initialResourceObjectDefinition.getTypeName());
+                getLogger().trace("Updated provisioning context: {}", refinedCtx);
+                return refinedCtx;
             } else {
-                assert isDelete(); // see the schema check above
-                context = applyTask(task);
+                schemaCheck(isDelete(), "No object type or class definition in change %s", this);
+                return globalCtx;
             }
         } else {
-            assert initialResourceObjectDefinition != null || !isDelete(); // see the schema check above
-            context = applyTask(task);
-            assert !context.isWildcard();
-        }
-
-        if (context != contextBefore) {
-            getLogger().trace("Updated provisioning context: {}", context);
+            return globalCtx;
         }
     }
 
-    /** Post-condition: Returned context is not wildcard. */
-    private ProvisioningContext applyObjectClassAndTask(@NotNull QName ocName, @NotNull Task task)
-            throws SchemaException, ConfigurationException {
-        // We know that current context has now OC name
-        if (task != context.getTask()) {
-            return context.spawnForObjectClass(task, ocName);
-        } else {
-            return context.spawnForObjectClass(ocName);
-        }
-    }
-
-    private ProvisioningContext applyTask(Task task) {
-        if (task != context.getTask()) {
-            return context.spawn(task);
-        } else {
-            return context;
-        }
-    }
-
-    protected void setResourceObjectDefinition() {
-        resourceObjectDefinition = context.getObjectDefinition();
+    private void setResourceObjectDefinition() {
+        resourceObjectDefinition = effectiveCtx.getObjectDefinition();
     }
 
     public int getLocalSequenceNumber() {
@@ -303,10 +253,6 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     public Object getPrimaryIdentifierRealValue() {
         return primaryIdentifierRealValue;
-    }
-
-    public @NotNull ProvisioningContext getContext() {
-        return context;
     }
 
     protected abstract String toStringExtra();
@@ -330,7 +276,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(context), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(effectiveCtx), indent + 1);
 
         debugDumpExtra(sb, indent);
 
@@ -345,7 +291,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     }
 
     private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
-        beans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(
+        b.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(
                 identifiers, primaryIdentifierRealValue, getCurrentResourceObjectDefinition());
     }
 
@@ -362,24 +308,6 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     private boolean hasDefinition() {
         return getCurrentResourceObjectDefinition() != null;
-    }
-
-    /**
-     * @return Primary identifiers selected from the list of all identifiers known for this change.
-     */
-    public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
-        ResourceObjectDefinition definition = getCurrentResourceObjectDefinition();
-        if (definition != null) {
-            return selectPrimaryIdentifiers(identifiers, definition);
-        } else {
-            return emptySet(); // Or should we throw an exception right here?
-        }
-    }
-
-    public ResourceAttribute<?> getPrimaryIdentifierRequired() throws SchemaException {
-        return MiscUtil.extractSingletonRequired(getPrimaryIdentifiers(),
-                () -> new SchemaException("Multiple primary identifiers in " + this),
-                () -> new SchemaException("No primary identifier in " + this));
     }
 
     @Override
@@ -401,7 +329,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         }
 
         if (resourceObject != null) {
-            stateCheck(resourceObject.asObjectable().isExists() != null, "Exists is null");
+            stateCheck(resourceObject.getBean().isExists() != null, "Exists is null");
             // Unfortunately, other aspects cannot be checked here.
         }
     }

@@ -20,6 +20,10 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 
 public class JaccardSorter {
 
+    /**
+     * The `JaccardSorter` class provides methods to sort `MiningUserTypeChunk` and `MiningRoleTypeChunk` collections
+     * based on Jaccard similarity and frequency.
+     */
     public static @NotNull List<MiningUserTypeChunk> frequencyUserBasedSort(@NotNull List<MiningUserTypeChunk> dataPoints) {
         List<MiningUserTypeChunk> sorted = new ArrayList<>(dataPoints);
         sorted.sort(Comparator.comparingDouble(MiningUserTypeChunk::getFrequency).reversed());

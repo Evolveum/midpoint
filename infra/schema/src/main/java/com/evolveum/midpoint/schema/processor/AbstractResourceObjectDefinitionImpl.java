@@ -7,30 +7,30 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 /**
  * Common implementation for both {@link ResourceObjectClassDefinition} and {@link ResourceObjectTypeDefinition}.
@@ -56,6 +56,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
      * At what layer do we have the attribute definitions.
      */
     @NotNull final LayerType currentLayer;
+
+    /** See {@link ResourceObjectDefinition#getBasicResourceInformation()}. */
+    @Nullable final BasicResourceInformation basicResourceInformation;
+
+    /**
+     * Effective shadow caching policy determined from resource and object type/class level.
+     * Nullable only for unattached raw object class definitions.
+     */
+    @Nullable private final ShadowCachingPolicyType effectiveShadowCachingPolicy;
 
     /**
      * Definition of attributes.
@@ -134,7 +143,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      * refinements).
      * - For object type definitions, it is relevant `objectType` value in `schemaHandling`, expanded by resolving
      * object type inheritance. Note that object type definition that refers to refined object class definition is also
-     * a case of inheritance! Such definition bean contains all data from the refined object class definition bean.
+     * a case of inheritance, so such type definition bean contains all data from the refined object class definition bean.
      *
      * Immutable.
      */
@@ -143,10 +152,10 @@ public abstract class AbstractResourceObjectDefinitionImpl
     /**
      * Compiled patterns denoting protected objects.
      *
+     * Frozen after parsing.
+     *
      * @see ResourceObjectTypeDefinitionType#getProtected()
      * @see ResourceObjectPatternType
-     *
-     * Frozen after parsing. (TODO)
      */
     @NotNull private final FreezableList<ResourceObjectPattern> protectedObjectPatterns = new FreezableList<>();
 
@@ -162,10 +171,19 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     AbstractResourceObjectDefinitionImpl(
             @NotNull LayerType currentLayer,
-            @NotNull ResourceObjectTypeDefinitionType definitionBean) {
+            @Nullable BasicResourceInformation basicResourceInformation,
+            @NotNull ResourceObjectTypeDefinitionType definitionBean)
+            throws SchemaException, ConfigurationException {
         this.currentLayer = currentLayer;
+        this.basicResourceInformation = basicResourceInformation;
         definitionBean.freeze();
         this.definitionBean = definitionBean;
+        this.effectiveShadowCachingPolicy = computeEffectiveShadowCachingPolicy();
+    }
+
+    @Override
+    public @Nullable BasicResourceInformation getBasicResourceInformation() {
+        return basicResourceInformation;
     }
 
     @NotNull
@@ -819,5 +837,22 @@ public abstract class AbstractResourceObjectDefinitionImpl
     public void setDisplayNameAttributeName(QName name) {
         checkMutable();
         this.displayNameAttributeName = name;
+    }
+
+    @Override
+    public @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
+        return MiscUtil.argNonNull(
+                effectiveShadowCachingPolicy,
+                "Effective shadow caching policy is not available for unattached definitions: %s", this);
+    }
+
+    private ShadowCachingPolicyType computeEffectiveShadowCachingPolicy() throws SchemaException, ConfigurationException {
+        if (basicResourceInformation == null) {
+            return null;
+        }
+        var merged = BaseMergeOperation.merge(
+                definitionBean.getCaching(),
+                basicResourceInformation.cachingPolicy());
+        return Objects.requireNonNullElseGet(merged, ShadowCachingPolicyType::new);
     }
 }

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.chunk;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.extractOid;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.chunk.CacheUtils.cacheRole;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.chunk.CacheUtils.cacheUser;
@@ -30,6 +29,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Abstract base class for preparing mining structure for role analysis.
+ */
 public abstract class BasePrepareAction implements MiningStructure {
 
     RoleAnalysisProgressIncrement handler;
@@ -37,6 +39,18 @@ public abstract class BasePrepareAction implements MiningStructure {
     OperationResult result;
     ModelService modelService;
 
+    /**
+     * Executes the action for preparing the mining structure based on the specified cluster and mode.
+     *
+     * @param modelService The ModelService for accessing role data.
+     * @param cluster      The role analysis cluster to process.
+     * @param fullProcess  Indicates whether a full process should be performed.
+     * @param mode         The role analysis process Mode.
+     * @param handler      The progress increment handler.
+     * @param task         The task associated with this operation.
+     * @param result       The operation result.
+     * @return The MiningOperationChunk containing the prepared structure.
+     */
     protected MiningOperationChunk executeAction(ModelService modelService, @NotNull RoleAnalysisClusterType cluster,
             boolean fullProcess, RoleAnalysisProcessModeType mode, RoleAnalysisProgressIncrement handler,
             Task task, OperationResult result) {
@@ -77,32 +91,36 @@ public abstract class BasePrepareAction implements MiningStructure {
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
     }
 
-    protected void loadRoleMap(List<ObjectReferenceType> members, Map<String,
-            PrismObject<RoleType>> roleExistCache, Set<String> membersOidSet, ListMultimap<List<String>,
-            String> userChunk, ListMultimap<String, String> roleMap) {
+    protected void loadRoleMap(List<ObjectReferenceType> members,
+            Map<String, PrismObject<RoleType>> roleExistCache,
+            Map<String, PrismObject<UserType>> userExistCache,
+            Set<String> membersOidSet,
+            ListMultimap<List<String>, String> userChunk,
+            ListMultimap<String, String> roleMap) {
         handler.setActive(true);
         handler.enterNewStep("Map Roles");
         handler.setOperationCountToProcess(members.size());
+
         for (ObjectReferenceType member : members) {
             handler.iterateActualStatus();
 
             String membersOid = member.getOid();
             PrismObject<RoleType> role = cacheRole(modelService, roleExistCache, membersOid, task, result);
-            if (role == null) {
-                continue;
+            if (role != null) {
+                membersOidSet.add(membersOid);
             }
-            membersOidSet.add(membersOid);
-            List<PrismObject<UserType>> userMembers = extractRoleMembers(modelService, null, membersOid, task, result);
-            List<String> users = extractOid(userMembers);
+        }
+
+        ListMultimap<String, String> mapRoleMembers = extractRoleMembers(modelService, userExistCache, null, membersOidSet, task, result);
+
+        for (String clusterMember : membersOidSet) {
+            List<String> users = mapRoleMembers.get(clusterMember);
             Collections.sort(users);
-
-            userChunk.putAll(users, Collections.singletonList(membersOid));
-            for (String userOid : users) {
-                roleMap.putAll(userOid, Collections.singletonList(membersOid));
-            }
-
+            userChunk.putAll(users, Collections.singletonList(clusterMember));
+            users.forEach(userOid -> roleMap.putAll(userOid, Collections.singletonList(clusterMember)));
         }
     }
+
 
     @NotNull
     protected ListMultimap<List<String>, String> prepareRoleChunkMap(int roleMapSize,
@@ -141,7 +159,7 @@ public abstract class BasePrepareAction implements MiningStructure {
 
             double frequency = Math.min(key.size() / membersCount, 1);
 
-            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
+            miningRoleTypeChunks.add(new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE));
 
         }
     }
@@ -169,7 +187,7 @@ public abstract class BasePrepareAction implements MiningStructure {
                     chunkName = user.getName().toString();
                 }
             }
-            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.NEUTRAL));
+            miningUserTypeChunks.add(new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE));
 
         }
     }
