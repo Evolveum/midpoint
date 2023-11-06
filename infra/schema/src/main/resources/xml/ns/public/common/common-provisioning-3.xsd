@@ -4292,7 +4292,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.dead</a:displayName>
-                                <a:emphasized>true</a:emphasized>
+                                <a:display>emphasized</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4340,7 +4340,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.synchronizationSituation</a:displayName>
-                                <a:emphasized>true</a:emphasized>
+                                <a:display>emphasized</a:display>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4410,7 +4410,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.objectClass</a:displayName>
-                                <a:emphasized>true</a:emphasized>
+                                <a:display>emphasized</a:display>
                                 <a:diagram>
                                     <a:name>user-shadow-resource</a:name>
                                 </a:diagram>
@@ -4463,7 +4463,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.intent</a:displayName>
-                                <a:emphasized>true</a:emphasized>
+                                <a:display>emphasized</a:display>
                                 <a:diagram>
                                     <a:name>user-shadow-resource</a:name>
                                 </a:diagram>
