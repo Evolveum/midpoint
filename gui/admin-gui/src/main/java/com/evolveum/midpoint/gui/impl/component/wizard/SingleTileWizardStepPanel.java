@@ -24,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -45,12 +46,6 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
     public SingleTileWizardStepPanel(ODM model) {
         super(model);
         initValueModel(null);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
     }
 
     private void initValueModel(IModel<PrismContainerValueWrapper<V>> valueModel) {
@@ -91,7 +86,8 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
         this.valueModel = valueModel;
     }
 
-    protected void initLayout() {
+    @Override
+    protected SingleSelectTileTablePanel createTable(String idTable) {
         SingleSelectTileTablePanel<O> tilesTable =
                 new SingleSelectTileTablePanel<>(
                         ID_TABLE,
@@ -134,7 +130,8 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                         refreshSubmitAndNextButton(target);
                     }
                 };
-        add(tilesTable);
+        tilesTable.setOutputMarkupId(true);
+        return tilesTable;
     }
 
     protected void performSelectedObjects() {
