@@ -95,11 +95,6 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
                         SchemaDebugUtil.debugDump(identifiers));
             }
 
-            if (!ResourceTypeUtil.isDeleteCapabilityEnabled(ctx.getResource())) {
-                throw new UnsupportedOperationException(
-                        String.format("Resource does not support 'delete' operation (%s)", ctx.getExceptionDescription()));
-            }
-
             connectorAsyncOpRet =
                     connector.deleteObject(
                             ctx.getObjectDefinitionRequired(),

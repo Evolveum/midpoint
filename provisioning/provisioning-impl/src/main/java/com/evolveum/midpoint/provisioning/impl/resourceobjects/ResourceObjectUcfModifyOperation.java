@@ -179,18 +179,6 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                         primaryIdentification.debugDump(1), SchemaDebugUtil.debugDump(operations, 1));
             }
 
-            // TODO wasn't this checked above?
-            if (!ResourceTypeUtil.isUpdateCapabilityEnabled(ctx.getResource())) {
-                if (operations.isEmpty()) {
-                    LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
-                    result.recordSuccess();
-                    return null;
-                }
-                UnsupportedOperationException e = new UnsupportedOperationException("Resource does not support 'update' operation");
-                result.recordFatalError(e);
-                throw e;
-            }
-
             // because identifiers can be modified e.g. on rename operation (TODO: is this really needed?)
             ResourceObjectIdentification identificationClone = primaryIdentification.clone();
             List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectDefinition);
