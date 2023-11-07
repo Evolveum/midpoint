@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.task.api.Task;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,14 +30,20 @@ public interface Clusterable {
     /**
      * Execute the clustering action for role analysis.
      *
-     * @param session   The role analysis session.
+     * @param roleAnalysisService  The role analysis service for performing operations.
      * @param modelService The model service for performing operations.
-     * @param handler   The progress increment handler.
-     * @param task      The task being executed.
-     * @param result    The operation result.
+     * @param session The role analysis session.
+     * @param handler The progress increment handler.
+     * @param task The task being executed.
+     * @param result The operation result.
      * @return A list of PrismObject instances representing the cluster.
      * @throws IllegalArgumentException If session is null.
      */
-    List<PrismObject<RoleAnalysisClusterType>> executeClustering(@NotNull RoleAnalysisSessionType session,
-            ModelService modelService, RoleAnalysisProgressIncrement handler, Task task, OperationResult result);
+    List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull ModelService modelService,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisProgressIncrement handler,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 
 /**
@@ -32,7 +34,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      * @return The computed Jaccard distance between the sets.
      */
     @Override
-    public double compute(Set<String> valueA, Set<String> valueB) {
+    public double compute(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
         int intersectionCount = 0;
         int setBunique = 0;
 

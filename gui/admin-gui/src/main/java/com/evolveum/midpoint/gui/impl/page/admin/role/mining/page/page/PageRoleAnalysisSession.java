@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.searchAndDeleteCluster;
-
 import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -89,12 +89,15 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     @Override
     public void afterDeletePerformed(AjaxRequestTarget target) {
         PageBase pageBase = (PageBase) getPage();
+        Task task = pageBase.createSimpleTask("deleteCleanup");
         OperationResult result = new OperationResult(OP_DELETE_CLEANUP);
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
         RoleAnalysisSessionType session = getModelWrapperObject().getObjectOld().asObjectable();
         String sessionOid = session.getOid();
 
-        searchAndDeleteCluster(pageBase, sessionOid, result);
+        roleAnalysisService
+                .deleteSessionClustersMembers(sessionOid, task, result);
     }
 
     @Override

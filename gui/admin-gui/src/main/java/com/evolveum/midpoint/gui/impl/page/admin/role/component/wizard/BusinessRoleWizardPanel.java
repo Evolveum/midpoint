@@ -6,34 +6,31 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.clusterMigrationRecompute;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
 import static com.evolveum.midpoint.repo.api.RepositoryService.LOGGER;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -42,9 +39,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author lskublik
@@ -140,14 +136,16 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                 BusinessRoleApplicationDto patternDeltas = getHelper().getDetailsModel().getPatternDeltas();
 
                 if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
-                    ModelService modelService = getPageBase().getModelService();
                     Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ObjectChangesExecutorImpl()
                             .executeChanges(deltas, false, task, result, target);
 
                     String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
-                    clusterMigrationRecompute(getPageBase(), patternDeltas.getCluster().getOid(), roleOid, task, result);
+                    RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                    roleAnalysisService.clusterObjectMigrationRecompute(
+                            getPageBase().getRepositoryService(), patternDeltas.getCluster().getOid(), roleOid, task, result);
 
-                    PrismObject<RoleType> roleObject = getRoleTypeObject(modelService, roleOid, task, result);
+                    PrismObject<RoleType> roleObject = roleAnalysisService
+                            .getRoleTypeObject( roleOid, task, result);
                     if (roleObject != null) {
                         executeMigrationTask(result, task, patternDeltas.getBusinessRoleDtos(), roleObject);
                     }

@@ -9,13 +9,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getSessionOptionType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.PARAM_IS_WIZARD;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.deleteSingleRoleAnalysisSession;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 import java.io.Serial;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -45,12 +46,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.Ro
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -107,21 +110,29 @@ public class PageRoleAnalysis extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
+                        PageBase page = (PageBase) getPage();
+                        Task task = page.createSimpleTask("deleteSingleRoleAnalysisCluster");
+                        RoleAnalysisService roleAnalysisService = page.getRoleAnalysisService();
+
                         List<SelectableBean<RoleAnalysisSessionType>> selectedObjects = getTable().getSelectedObjects();
                         OperationResult result = new OperationResult(OP_DELETE_SESSION);
                         if (selectedObjects.size() == 1 && getRowModel() == null) {
                             try {
                                 SelectableBean<RoleAnalysisSessionType> selectableSession = selectedObjects.get(0);
-                                deleteSingleRoleAnalysisSession((PageBase) getPage(), selectableSession.getValue().getOid(), result
-                                );
+                                roleAnalysisService
+                                        .deleteSession(selectableSession.getValue().getOid(),
+                                                task, result
+                                        );
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
                         } else if (getRowModel() != null) {
                             try {
                                 IModel<SelectableBean<RoleAnalysisSessionType>> rowModel = getRowModel();
-                                deleteSingleRoleAnalysisSession((PageBase) getPage(), rowModel.getObject().getValue().getOid(), result
-                                );
+                                String oid = rowModel.getObject().getValue().getOid();
+                                roleAnalysisService
+                                        .deleteSession(oid, task, result
+                                        );
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -129,7 +140,9 @@ public class PageRoleAnalysis extends PageAdmin {
                             for (SelectableBean<RoleAnalysisSessionType> selectedObject : selectedObjects) {
                                 try {
                                     String parentOid = selectedObject.getValue().asPrismObject().getOid();
-                                    deleteSingleRoleAnalysisSession((PageBase) getPage(), parentOid, result);
+                                    roleAnalysisService
+                                            .deleteSession(parentOid,
+                                                    task, result);
 
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);

@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.deleteSingleRoleAnalysisCluster;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -39,11 +40,13 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -55,7 +58,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisClusterStatisticType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PanelType(name = "clusters")
 @PanelInstance(
@@ -173,7 +179,7 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-                                             String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
                         cellItem.add(new Label(componentId, extractRoleObjectCount(model)));
                     }
 
@@ -415,7 +421,6 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
             }
 
-            @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<RoleAnalysisClusterType>>() {
                     @Override
@@ -423,18 +428,25 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
 
                         List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable().getSelectedObjects();
                         OperationResult result = new OperationResult(OP_DELETE_CLUSTER);
+                        PageBase page = (PageBase) getPage();
+                        RoleAnalysisService roleAnalysisService = page.getRoleAnalysisService();
+                        Task task = page.createSimpleTask("deleteSingleRoleAnalysisCluster");
+                        ModelService modelService = page.getModelService();
                         if (selectedObjects.size() == 1 && getRowModel() == null) {
                             try {
                                 SelectableBean<RoleAnalysisClusterType> roleAnalysisSessionTypeSelectableBean = selectedObjects.get(0);
-                                deleteSingleRoleAnalysisCluster((PageBase) getPage(), roleAnalysisSessionTypeSelectableBean.getValue(), result
-                                );
+                                roleAnalysisService
+                                        .deleteCluster(
+                                                roleAnalysisSessionTypeSelectableBean.getValue(), task, result);
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
                         } else if (getRowModel() != null) {
                             try {
                                 IModel<SelectableBean<RoleAnalysisClusterType>> rowModel = getRowModel();
-                                deleteSingleRoleAnalysisCluster((PageBase) getPage(), rowModel.getObject().getValue(), result);
+                                roleAnalysisService
+                                        .deleteCluster(
+                                                rowModel.getObject().getValue(), task, result);
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -442,7 +454,9 @@ public class ClustersPanel extends AbstractObjectMainPanel<RoleAnalysisSessionTy
                             for (SelectableBean<RoleAnalysisClusterType> selectedObject : selectedObjects) {
                                 try {
                                     RoleAnalysisClusterType roleAnalysisClusterType = selectedObject.getValue();
-                                    deleteSingleRoleAnalysisCluster((PageBase) getPage(), roleAnalysisClusterType, result);
+                                    roleAnalysisService
+                                            .deleteCluster(
+                                                    roleAnalysisClusterType, task, result);
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
