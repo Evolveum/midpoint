@@ -131,7 +131,8 @@ public class ShadowsFacade {
     }
 
     public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         definitionsHelper.applyDefinition(shadow.asObjectable(), task, result);
     }
 

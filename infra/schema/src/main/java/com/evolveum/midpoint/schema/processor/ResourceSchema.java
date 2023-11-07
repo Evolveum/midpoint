@@ -179,8 +179,8 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
     /**
      * As {@link #findDefinitionForObjectClass(QName)} but throws an exception if there's no suitable definition.
      */
-    default @NotNull ResourceObjectDefinition findDefinitionForObjectClassRequired(@NotNull QName name) {
-        return stateNonNull(
+    default @NotNull ResourceObjectDefinition findDefinitionForObjectClassRequired(@NotNull QName name) throws SchemaException {
+        return requireNonNull(
                 findDefinitionForObjectClass(name),
                 () -> "No definition for object class " + name + " in " + this);
     }
@@ -258,14 +258,14 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
      */
     default @Nullable ResourceObjectDefinition findDefinitionForShadow(
             @NotNull ShadowType shadow,
-            @NotNull Collection<QName> additionalAuxObjectClassNames) {
+            @NotNull Collection<QName> additionalAuxObjectClassNames) throws SchemaException {
         return ResourceObjectDefinitionResolver.findDefinitionForShadow(this, shadow, additionalAuxObjectClassNames);
     }
 
     /**
      * Convenience variant of {@link #findDefinitionForShadow(ShadowType, Collection)}.
      */
-    default @Nullable ResourceObjectDefinition findDefinitionForShadow(@NotNull ShadowType shadow) {
+    default @Nullable ResourceObjectDefinition findDefinitionForShadow(@NotNull ShadowType shadow) throws SchemaException {
         return findDefinitionForShadow(shadow, List.of());
     }
     //endregion

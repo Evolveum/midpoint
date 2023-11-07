@@ -16,6 +16,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * Operations to be executed on a resource object.
+ *
  * @author semancik
  */
 public class ResourceObjectOperations {
@@ -41,7 +43,7 @@ public class ResourceObjectOperations {
         this.resourceObjectContext = resourceObjectContext;
     }
 
-    @NotNull public Collection<Operation> getOperations() {
+    @NotNull public Collection<Operation> getUcfOperations() {
         return operations;
     }
 
@@ -64,7 +66,4 @@ public class ResourceObjectOperations {
         return "ResourceObjectOperations(operations=" + operations + ", currentShadow=" + currentShadow
                 + ", ctx=" + resourceObjectContext + ")";
     }
-
-
-
 }

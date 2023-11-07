@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.Checks;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
@@ -99,24 +100,12 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
     }
 
     @Override
-    public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getPrimaryIdentifiers());
     }
 
     @Override
-    public <T> PrismProperty<T> getSecondaryIdentifier() {
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers();
-        if (secondaryIdentifiers.size() > 1){
-            throw new IllegalStateException("Resource object has more than one identifier.");
-        }
-        for (PrismProperty<?> p : secondaryIdentifiers){
-            return (PrismProperty<T>) p;
-        }
-        return null;
-    }
-
-    @Override
-    public Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getSecondaryIdentifiers());
     }
 

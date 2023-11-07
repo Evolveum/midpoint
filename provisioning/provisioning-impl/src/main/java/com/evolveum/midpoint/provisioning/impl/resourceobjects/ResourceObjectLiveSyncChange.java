@@ -7,25 +7,21 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
-
-import com.evolveum.midpoint.provisioning.impl.TokenUtil;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Objects;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.provisioning.api.LiveSyncToken;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.TokenUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * A live sync change at the level of ResourceObjectConverter, i.e. completely processed except
@@ -56,50 +52,17 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         this.originalAttributesToReturn = originalAttributesToReturn;
     }
 
-    @Override
-    protected void processObjectAndDelta(OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            NotApplicableException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
-        if (isDelete()) {
-            return;
-        }
-
-        AttributesToReturn actualAttributesToReturn = determineAttributesToReturn();
-        if (resourceObject == null) {
-            // TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented anyway
-            //  But, actually, for all non-delete ConnId LS changes the object is here anyway.
-            LOGGER.trace("Fetching object {} because it is not in the change", identifiers);
-            fetchResourceObject(actualAttributesToReturn, result);
-        } else if (originalCtx.isWildcard() && !Objects.equals(actualAttributesToReturn, originalAttributesToReturn)) {
-            LOGGER.trace("Re-fetching object {} because mismatching attributesToReturn", identifiers);
-            fetchResourceObject(actualAttributesToReturn, result);
-        } else {
-            b.resourceObjectConverter.postProcessResourceObjectRead(effectiveCtx, resourceObject, true, result);
-        }
-    }
-
-    private void fetchResourceObject(AttributesToReturn attributesToReturn, OperationResult result)
-            throws CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, NotApplicableException {
-        try {
-            // todo consider whether it is always necessary to fetch the entitlements
-            resourceObject = b.resourceObjectConverter
-                    .fetchResourceObject(effectiveCtx, identifiers, attributesToReturn, null, true, result);
-        } catch (ObjectNotFoundException ex) {
-            result.recordHandledError(
-                    "Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
-            LOGGER.warn("Object detected in change log no longer exist on the resource. Skipping processing this object "
-                    + ex.getMessage());
-            throw new NotApplicableException();
-        }
-    }
-
-    private AttributesToReturn determineAttributesToReturn() {
+    AttributesToReturn determineAttributesToReturn() {
         if (effectiveCtx == originalCtx) {
             return originalAttributesToReturn;
         } else {
             return effectiveCtx.createAttributesToReturn();
         }
+    }
+
+    @Override
+    boolean attributesToReturnAreDifferent(AttributesToReturn actualAttributesToReturn) {
+        return !Objects.equals(actualAttributesToReturn, originalAttributesToReturn);
     }
 
     public @NotNull LiveSyncToken getToken() {
@@ -124,9 +87,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     @Override
     public void checkConsistence() throws SchemaException {
         super.checkConsistence();
-        if (isOk() && isInitialized()) {
-            // Maybe temporary. This is a specialty of LS change.
-            stateCheck(resourceObject != null || isDelete(), "No resource object for non-delete delta");
-        }
+        // Currently, livesync ADD+MODIFY changes contain the whole object.
+        stateCheck(completeResourceObject != null || isDelete(), "No resource object for non-delete delta");
     }
 }

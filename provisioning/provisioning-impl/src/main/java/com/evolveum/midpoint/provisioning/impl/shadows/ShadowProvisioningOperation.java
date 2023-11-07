@@ -237,7 +237,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         ProvisioningContext runAsCtx = ctxFactory.createForShadow(runAsShadow.asObjectable(), ctx.getResource(), ctx.getTask());
         runAsCtx.applyAttributesDefinition(runAsShadow);
         ResourceObjectIdentification runAsIdentification =
-                ResourceObjectIdentification.createFromShadow(
+                ResourceObjectIdentification.fromShadow(
                         runAsCtx.getObjectDefinitionRequired(), runAsShadow.asObjectable());
         ConnectorOperationOptions connOptions = new ConnectorOperationOptions();
         getLogger().trace("RunAs identification: {}", runAsIdentification);

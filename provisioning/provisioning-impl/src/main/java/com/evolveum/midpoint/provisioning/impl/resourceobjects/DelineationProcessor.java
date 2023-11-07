@@ -13,7 +13,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -79,11 +78,11 @@ class DelineationProcessor {
         }
 
         ResourceObjectDefinition objectDef = getEffectiveDefinition(ctx);
-        PrismObject<ShadowType> baseContextShadow;
+        ShadowType baseContextShadow;
         try {
             // We request the use of raw object class definition to avoid endless loops during base context determination.
-            baseContextShadow = resourceObjectReferenceResolver.resolve(
-                    ctx, baseContextRef, true, "base context specification in " + objectDef, result);
+            baseContextShadow = resourceObjectReferenceResolver.resolveUsingRawClass(
+                    ctx, baseContextRef, "base context specification in " + objectDef, result);
         } catch (RuntimeException e) {
             throw new SystemException("Cannot resolve base context for "+ objectDef +", specified as "+ baseContextRef, e);
         }
@@ -95,9 +94,9 @@ class DelineationProcessor {
         }
         ResourceObjectDefinition baseContextObjectDefinition =
                 java.util.Objects.requireNonNull(
-                        ctx.getResourceSchema().findDefinitionForShadow(baseContextShadow.asObjectable()),
+                        ctx.getResourceSchema().findDefinitionForShadow(baseContextShadow),
                         () -> "Couldn't determine definition for " + baseContextRef);
-        return ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectDefinition);
+        return ResourceObjectIdentification.fromShadow(baseContextObjectDefinition, baseContextShadow);
     }
 
     /**

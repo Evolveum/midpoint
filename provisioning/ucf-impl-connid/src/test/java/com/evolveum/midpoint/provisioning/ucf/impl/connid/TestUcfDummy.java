@@ -392,7 +392,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 (ResourceAttribute<String>) accountDefinition.getSecondaryIdentifiers().iterator().next().instantiate();
         name.setRealValue("jack");
         ResourceObjectIdentification identification =
-                new ResourceObjectIdentification(accountDefinition, List.of(uid), List.of(name));
+                ResourceObjectIdentification.of(accountDefinition, List.of(uid), List.of(name));
 
         when("getting account by UID");
         var resourceObject = cc.fetchObject(identification, null, ctx, result);

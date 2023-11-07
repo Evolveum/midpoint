@@ -14,7 +14,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -36,24 +35,6 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
         super(ucfAsyncUpdateChange, originalContext);
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();
         this.acknowledgementSink = ucfAsyncUpdateChange;
-    }
-
-    @Override
-    protected void processObjectAndDelta(OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        if (resourceObject != null) {
-            // TODO why not in LS case? Probably because ConnId LS operation takes care of it?
-            effectiveCtx.applyAttributesDefinition(resourceObject.getPrismObject());
-            b.resourceObjectConverter.postProcessResourceObjectRead(effectiveCtx, resourceObject, true, result);
-        } else {
-            // we will fetch current resource object later; TODO why the difference w.r.t. LS case?
-        }
-
-        if (objectDelta != null) {
-            // TODO why not in LS case? Probably there's no MODIFY delta there...
-            effectiveCtx.applyAttributesDefinition(objectDelta);
-        }
     }
 
     @Override

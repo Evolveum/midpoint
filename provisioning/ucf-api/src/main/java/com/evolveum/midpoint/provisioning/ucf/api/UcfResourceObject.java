@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * @param primaryIdentifierValue Real value of the object primary identifier (e.g. ConnId UID).
  *
  * Conditions:
+ *
  * - errorState.isSuccess: Not null.
  * - errorState.isError: Usually not null (e.g. never in ConnId 1.x). But this may change in the future.
  */

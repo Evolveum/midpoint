@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectChange;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -225,8 +225,9 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     private @NotNull ResourceObject determineCurrentResourceObjectBeforeShadow() {
-        if (resourceObjectChange.getResourceObject() != null) {
-            return resourceObjectChange.getResourceObject().clone();
+        CompleteResourceObject completeResourceObject = resourceObjectChange.getCompleteResourceObject();
+        if (completeResourceObject != null) {
+            return completeResourceObject.resourceObject().clone();
         } else if (resourceObjectDelta != null && resourceObjectDelta.isAdd()) {
             return ResourceObject.fromPrismObject(
                     resourceObjectDelta.getObjectToAdd().clone(),

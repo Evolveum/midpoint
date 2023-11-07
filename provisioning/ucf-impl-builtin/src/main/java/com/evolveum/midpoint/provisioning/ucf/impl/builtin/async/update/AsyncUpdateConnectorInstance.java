@@ -312,8 +312,12 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, UcfExecutionContext ctx, OperationResult parentResult) {
+    public AsynchronousOperationResult deleteObject(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            UcfExecutionContext ctx,
+            OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("deleteObject");
         return null;
     }

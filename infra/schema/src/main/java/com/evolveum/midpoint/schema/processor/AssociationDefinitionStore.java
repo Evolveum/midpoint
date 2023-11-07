@@ -76,7 +76,7 @@ public interface AssociationDefinitionStore {
 
     default @NotNull Collection<? extends QName> getAssociationValueAttributes() {
         return getAssociationDefinitions().stream()
-                .filter(assocDef -> assocDef.getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT)
+                .filter(assocDef -> assocDef.isObjectToSubject())
                 .map(associationDef -> associationDef.getDefinitionBean().getValueAttribute())
                 .filter(Objects::nonNull) // just for sure
                 .toList();

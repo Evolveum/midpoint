@@ -214,7 +214,7 @@ public class ShadowUtil {
         return emptyContainer;
     }
 
-    public static ResourceObjectClassDefinition getObjectClassDefinition(ShadowType shadow) {
+    public static @NotNull ResourceObjectClassDefinition getObjectClassDefinition(@NotNull ShadowType shadow) {
         // TODO: maybe we can do something more intelligent here
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         return attributesContainer.getDefinition()
@@ -772,14 +772,6 @@ public class ShadowUtil {
         return value.getValue();
     }
 
-    public static @NotNull ResourceObjectIdentification getResourceObjectIdentification(
-            PrismObject<ShadowType> shadow, ResourceObjectDefinition objectDefinition) {
-        return new ResourceObjectIdentification(
-                objectDefinition,
-                ShadowUtil.getPrimaryIdentifiers(shadow),
-                ShadowUtil.getSecondaryIdentifiers(shadow));
-    }
-
     public static boolean matchesAttribute(ItemPath path, QName attributeName) {
         return path.startsWithName(ShadowType.F_ATTRIBUTES) &&
                 path.rest().startsWithName(attributeName);
@@ -791,26 +783,6 @@ public class ShadowUtil {
                 !attributesContainer
                         .extractAttributesByDefinitions(objectDefinition.getPrimaryIdentifiers())
                         .isEmpty();
-    }
-
-    public static boolean hasPrimaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
-            ResourceObjectDefinition objectDefinition) {
-        for (ResourceAttribute identifier: identifiers) {
-            if (objectDefinition.isPrimaryIdentifier(identifier.getElementName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean hasSecondaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
-            ResourceObjectClassDefinition objectClassDefinition) {
-        for (ResourceAttribute identifier: identifiers) {
-            if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static ResourceAttribute<?> fixAttributePath(ResourceAttribute<?> attribute) throws SchemaException {

@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -188,7 +190,7 @@ class ShadowedObjectConstruction {
 
     private void setEffectiveProvisioningPolicy(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedObject, b.expressionFactory, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedObject, result);
     }
 
     /**
@@ -380,6 +382,9 @@ class ShadowedObjectConstruction {
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException, SchemaException, ObjectNotFoundException {
 
+        // TODO should we cache the entitlement resource object?
+        //  (If yes, maybe we should retrieve also the associations below?)
+
         Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
         PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
         if (providedResourceObject != null) {
@@ -395,8 +400,9 @@ class ShadowedObjectConstruction {
                 return existingLiveRepoShadow;
             }
 
-            ResourceObject fetchedResourceObject = b.resourceObjectConverter
-                    .locateResourceObject(ctxEntitlement, entitlementIdentifiers, result);
+            var entitlementIdentification = ctxEntitlement.getIdentificationFromAttributes(entitlementIdentifiers);
+            CompleteResourceObject fetchedResourceObject = b.resourceObjectConverter
+                    .locateResourceObject(ctxEntitlement, entitlementIdentification, false, result);
 
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
@@ -440,7 +446,8 @@ class ShadowedObjectConstruction {
         Collection<ResourceAttribute<?>> entitlementIdentifiers = identifierContainer != null ?
                 identifierContainer.getAttributes() : null;
         if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
-            throw new IllegalStateException("No entitlement identifiers present for association " + associationValue + " " + ctx.getDesc());
+            throw new IllegalStateException(
+                    "No entitlement identifiers present for association " + associationValue + " " + ctx.getDesc());
         }
         return entitlementIdentifiers;
     }

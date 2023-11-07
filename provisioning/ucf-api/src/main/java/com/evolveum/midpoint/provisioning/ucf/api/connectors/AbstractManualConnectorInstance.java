@@ -142,10 +142,13 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 
     @Override
-    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
+    public AsynchronousOperationResult deleteObject(
+            @NotNull ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow,
             Collection<? extends ResourceAttribute<?>> identifiers,
-            UcfExecutionContext ctx, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+            UcfExecutionContext ctx,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException,
             GenericFrameworkException, SchemaException, ConfigurationException {
 
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
@@ -169,7 +172,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
         } catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
                 ConfigurationException | RuntimeException | Error e) {
-            result.recordFatalError(e);
+            result.recordException(e);
             throw e;
         }
 

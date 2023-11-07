@@ -42,15 +42,11 @@ class ResourceObjectCountOperation {
     /** Query as requested by the client. */
     @Nullable private final ObjectQuery clientQuery;
 
-    @NotNull private final ResourceObjectsBeans beans;
+    @NotNull private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
-    ResourceObjectCountOperation(
-            @NotNull ProvisioningContext ctx,
-            @Nullable ObjectQuery clientQuery,
-            @NotNull ResourceObjectsBeans beans) {
+    ResourceObjectCountOperation(@NotNull ProvisioningContext ctx, @Nullable ObjectQuery clientQuery) {
         this.ctx = ctx;
         this.clientQuery = clientQuery;
-        this.beans = beans;
     }
 
     public Integer execute(OperationResult parentResult)
@@ -137,7 +133,7 @@ class ResourceObjectCountOperation {
             ConfigurationException, ObjectNotFoundException {
 
         AtomicInteger counter = new AtomicInteger(0);
-        ResourceObjectHandler countingHandler = (ResourceObjectFound object, OperationResult objResult) -> {
+        ResourceObjectHandler countingHandler = (ResourceObjectFound object, OperationResult lResult) -> {
             counter.incrementAndGet();
             return true;
         };
@@ -145,7 +141,7 @@ class ResourceObjectCountOperation {
         ObjectQuery actualQuery = clientQuery != null ? clientQuery.clone() : PrismContext.get().queryFactory().createQuery();
         actualQuery.setPaging(paging);
 
-        var metadata = beans.resourceObjectConverter.searchResourceObjects(
+        var metadata = b.resourceObjectConverter.searchResourceObjects(
                 ctx,
                 countingHandler,
                 actualQuery,

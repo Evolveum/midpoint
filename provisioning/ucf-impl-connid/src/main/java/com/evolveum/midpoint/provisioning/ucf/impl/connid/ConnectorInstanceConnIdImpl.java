@@ -1429,7 +1429,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public AsynchronousOperationResult deleteObject(
-            ResourceObjectDefinition objectDefinition,
+            @NotNull ResourceObjectDefinition objectDefinition,
             PrismObject<ShadowType> shadow,
             Collection<? extends ResourceAttribute<?>> identifiers,
             UcfExecutionContext ctx,

@@ -33,7 +33,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
     private static final Trace LOGGER = TraceManager.getTrace(CommunicationExceptionHandler.class);
 
     @Override
-    public ShadowType handleGetError(
+    public @NotNull ShadowType handleGetError(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType repositoryShadow,
             @NotNull Exception cause,

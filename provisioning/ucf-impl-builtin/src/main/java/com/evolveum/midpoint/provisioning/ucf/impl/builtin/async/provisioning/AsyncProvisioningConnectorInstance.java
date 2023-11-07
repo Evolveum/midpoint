@@ -218,9 +218,12 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
-            UcfExecutionContext ctx, OperationResult parentResult) throws SchemaException {
+    public AsynchronousOperationResult deleteObject(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            UcfExecutionContext ctx,
+            OperationResult parentResult) throws SchemaException {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("deleteObject");
         OperationResult result = parentResult.createSubresult(OP_DELETE_OBJECT);
@@ -230,7 +233,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
                     new OperationRequested.Delete(objectDefinition, asObjectable(shadow), identifiers, getPrismContext());
             return createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();

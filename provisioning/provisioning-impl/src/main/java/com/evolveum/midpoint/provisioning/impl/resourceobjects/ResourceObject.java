@@ -8,7 +8,9 @@
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfChange;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectFound;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -67,17 +69,25 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable {
                 ucfResourceObject.primaryIdentifierValue());
     }
 
-    public static ResourceObject fromNullable(@Nullable UcfResourceObject ucfResourceObject) {
-        return ucfResourceObject != null ? from(ucfResourceObject) : null;
+    public static @Nullable ResourceObject from(@NotNull UcfChange ucfChange) {
+        UcfResourceObject object = ucfChange.getResourceObject();
+        if (object != null) {
+            return from(object);
+        }
+        var delta = ucfChange.getObjectDelta();
+        if (ObjectDelta.isAdd(delta)) {
+            return fromBean(delta.getObjectToAdd().asObjectable(), ucfChange.getPrimaryIdentifierValue());
+        }
+        return null;
     }
 
     public static @Nullable ShadowType getBean(@Nullable ResourceObject resourceObject) {
         return resourceObject != null ? resourceObject.getBean() : null;
     }
 
-    // TODO we should perhaps indicate that the source is repo!
-    public static ResourceObject fromRepoPrismObject(@NotNull PrismObject<ShadowType> object, Object primaryIdentifierValue) {
-        return new ResourceObject(object.asObjectable(), primaryIdentifierValue);
+    /** TODO we should perhaps indicate that the source is repo! */
+    static ResourceObject fromRepoShadow(@NotNull ShadowType repoShadow, Object primaryIdentifierValue) {
+        return new ResourceObject(repoShadow, primaryIdentifierValue);
     }
 
     public static ResourceObject fromPrismObject(@NotNull PrismObject<ShadowType> object, Object primaryIdentifierValue) {
@@ -117,6 +127,7 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable {
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilder(
                 this.getClass().getSimpleName() + " [" + primaryIdentifierValue + "]", indent);
+        sb.append('\n');
         DebugUtil.debugDumpWithLabel(sb, "bean", bean, indent + 1);
         return sb.toString();
     }

@@ -317,17 +317,24 @@ public interface ConnectorInstance {
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            UcfExecutionContext ctx, OperationResult parentResult)
+            UcfExecutionContext ctx,
+            OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
-    AsynchronousOperationResult deleteObject(ResourceObjectDefinition objectDefinition, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, UcfExecutionContext ctx, OperationResult parentResult)
+    AsynchronousOperationResult deleteObject(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            UcfExecutionContext ctx,
+            OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 
-    Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, UcfExecutionContext ctx,
-            OperationResult parentResult)
+    Object executeScript(
+            ExecuteProvisioningScriptOperation scriptOperation,
+            UcfExecutionContext ctx,
+            OperationResult result)
             throws CommunicationException, GenericFrameworkException;
 
     /**

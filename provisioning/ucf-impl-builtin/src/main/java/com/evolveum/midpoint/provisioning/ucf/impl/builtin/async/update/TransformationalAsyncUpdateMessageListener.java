@@ -160,8 +160,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 result.recordFatalError(e.getMessage(), e);
 
                 int changeSequentialNumber = changesProduced.incrementAndGet();
-                UcfAsyncUpdateChange change = new UcfAsyncUpdateChange(changeSequentialNumber, UcfErrorState.error(e),
-                        acknowledgementSink);
+                UcfAsyncUpdateChange change = new UcfAsyncUpdateChange(
+                        changeSequentialNumber, UcfErrorState.error(e), acknowledgementSink);
                 changeListener.onChange(change, task, result);
             } finally {
                 result.computeStatusIfUnknown();
@@ -212,17 +212,17 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     }
 
     @NotNull
-    private UcfAsyncUpdateChange createChange(UcfChangeType changeBean, OperationResult result, int changeSequentialNumber,
+    private UcfAsyncUpdateChange createChange(
+            UcfChangeType changeBean,
+            OperationResult result,
+            int changeSequentialNumber,
             AcknowledgementSink acknowledgeSink) throws SchemaException {
         QName objectClassName = changeBean.getObjectClass();
         if (objectClassName == null) {
             throw new SchemaException("Object class name is null in " + changeBean);
         }
         ResourceSchema resourceSchema = getResourceSchema(result);
-        ResourceObjectDefinition objectClassDef = resourceSchema.findDefinitionForObjectClass(objectClassName);
-        if (objectClassDef == null) {
-            throw new SchemaException("Object class " + objectClassName + " not found in " + resourceSchema);
-        }
+        ResourceObjectDefinition objectClassDef = resourceSchema.findDefinitionForObjectClassRequired(objectClassName);
         ObjectDelta<ShadowType> delta;
         ObjectDeltaType deltaBean = changeBean.getObjectDelta();
         if (deltaBean != null) {

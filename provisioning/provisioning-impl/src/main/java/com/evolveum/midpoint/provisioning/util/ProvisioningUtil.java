@@ -73,17 +73,17 @@ public class ProvisioningUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
-    public static ExecuteProvisioningScriptOperation convertToScriptOperation(
-            ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
+    public static ExecuteProvisioningScriptOperation convertToScriptOperation(ProvisioningScriptType scriptBean, String desc)
+            throws SchemaException {
         ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
         MutablePrismPropertyDefinition<?> scriptArgumentDefinition =
-                prismContext.definitionFactory().createPropertyDefinition(
+                PrismContext.get().definitionFactory().createPropertyDefinition(
                         FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
         scriptArgumentDefinition.setMinOccurs(0);
         scriptArgumentDefinition.setMaxOccurs(-1);
 
-        for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
+        for (ProvisioningScriptArgumentType argument : scriptBean.getArgument()) {
             ExecuteScriptArgument arg = new ExecuteScriptArgument(
                     argument.getName(),
                     StaticExpressionUtil.getStaticOutput(
@@ -91,25 +91,25 @@ public class ProvisioningUtil {
             scriptOperation.getArgument().add(arg);
         }
 
-        scriptOperation.setLanguage(scriptType.getLanguage());
-        scriptOperation.setTextCode(scriptType.getCode());
+        scriptOperation.setLanguage(scriptBean.getLanguage());
+        scriptOperation.setTextCode(scriptBean.getCode());
 
-        if (scriptType.getHost() != null && scriptType.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
+        if (scriptBean.getHost() != null && scriptBean.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
             scriptOperation.setConnectorHost(true);
             scriptOperation.setResourceHost(false);
         }
-        if (scriptType.getHost() == null || scriptType.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
+        if (scriptBean.getHost() == null || scriptBean.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
             scriptOperation.setConnectorHost(false);
             scriptOperation.setResourceHost(true);
         }
 
-        scriptOperation.setCriticality(scriptType.getCriticality());
+        scriptOperation.setCriticality(scriptBean.getCriticality());
 
         return scriptOperation;
     }
 
     // To be called via ProvisioningContext
-    public static AttributesToReturn createAttributesToReturn(ProvisioningContext ctx) {
+    public static @Nullable AttributesToReturn createAttributesToReturn(@NotNull ProvisioningContext ctx) {
 
         ResourceObjectDefinition resourceObjectDefinition = ctx.getObjectDefinitionRequired();
 
@@ -348,11 +348,11 @@ public class ProvisioningUtil {
     }
 
     public static void setEffectiveProvisioningPolicy (
-            ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
+            ProvisioningContext ctx, ShadowType shadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
         ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
-                ctx.getProtectedAccountPatterns(factory, result), shadow, result);
+                ctx.getProtectedAccountPatterns(result), shadow, result);
     }
 
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {

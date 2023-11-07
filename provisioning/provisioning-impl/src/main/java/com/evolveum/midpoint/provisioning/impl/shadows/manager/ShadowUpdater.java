@@ -20,6 +20,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,7 +192,7 @@ public class ShadowUpdater {
         return values != null && values.contains(Boolean.TRUE);
     }
 
-    public ShadowType markShadowTombstone(ShadowType repoShadow, Task task, OperationResult result)
+    public @Nullable ShadowType markShadowTombstone(ShadowType repoShadow, Task task, OperationResult result)
             throws SchemaException {
         if (repoShadow == null) {
             return null;
