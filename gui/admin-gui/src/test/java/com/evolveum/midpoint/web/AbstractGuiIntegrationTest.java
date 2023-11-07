@@ -16,6 +16,7 @@ import java.io.File;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
@@ -263,6 +264,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public SimulationResultManager getSimulationResultManager() {
+                return null;
+            }
+
+            @Override
+            public RoleAnalysisService getRoleAnalysisService() {
                 return null;
             }
         };

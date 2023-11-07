@@ -10,7 +10,11 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
 import jakarta.servlet.ServletContext;
+
 import javax.xml.datatype.Duration;
 
 import org.apache.commons.configuration2.Configuration;
@@ -181,6 +185,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private ModelAuditService auditService;
     @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
+    @Autowired private RoleAnalysisService roleAnalysisService;
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private CaseService caseService;
     @Autowired private CaseManager caseManager;
@@ -549,6 +554,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public Protector getProtector() {
         return protector;
+    }
+
+    public RoleAnalysisService getRoleAnalysisService() {
+        return roleAnalysisService;
     }
 
     @Override

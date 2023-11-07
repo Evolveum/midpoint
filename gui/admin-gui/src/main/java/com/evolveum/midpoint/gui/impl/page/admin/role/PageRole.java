@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleD
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -208,14 +209,16 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         }
 
         Task task = createSimpleTask(OP_PERFORM_MIGRATION);
-        ModelService modelService = getModelService();
 
         String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
 
         BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-        clusterMigrationRecompute(PageRole.this, patternDeltas.getCluster().getOid(), roleOid, task, result);
+        RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
+        roleAnalysisService.clusterObjectMigrationRecompute(
+                getRepositoryService(), patternDeltas.getCluster().getOid(), roleOid, task, result);
 
-        PrismObject<RoleType> roleObject = getRoleTypeObject(modelService, roleOid, task, result);
+        PrismObject<RoleType> roleObject = roleAnalysisService
+                .getRoleTypeObject( roleOid, task, result);
         if (roleObject != null) {
             executeMigrationTask(result, task, patternDeltas.getBusinessRoleDtos(), roleObject);
         }

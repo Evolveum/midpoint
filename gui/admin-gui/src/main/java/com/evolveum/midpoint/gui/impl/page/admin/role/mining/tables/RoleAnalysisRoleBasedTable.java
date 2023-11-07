@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
@@ -57,6 +56,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
@@ -67,6 +67,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkIconPanelStatus;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
@@ -85,6 +86,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     double minFrequency;
     double maxFrequency;
     DetectedPattern detectedPattern;
+
     RoleAnalysisSortMode roleAnalysisSortMode;
 
     public RoleAnalysisRoleBasedTable(String id,
@@ -154,10 +156,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 RepeatingView repeatingView = new RepeatingView(id);
                 repeatingView.setOutputMarkupId(true);
 
-                CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-search", LayeredIconCssStyle.IN_ROW_STYLE);
+                CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                        "fa fa-search", LayeredIconCssStyle.IN_ROW_STYLE);
 
-                AjaxCompositedIconButton detectionPanel = new AjaxCompositedIconButton(repeatingView.newChildId(), iconBuilder.build(),
-                        createStringResource("")) {
+                AjaxCompositedIconButton detectionPanel = new AjaxCompositedIconButton(
+                        repeatingView.newChildId(), iconBuilder.build(), createStringResource("")) {
 
                     @Serial private static final long serialVersionUID = 1L;
 
@@ -172,7 +175,9 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
                 repeatingView.add(detectionPanel);
 
-                AjaxIconButton refreshIcon = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                AjaxIconButton refreshIcon = new AjaxIconButton(
+                        repeatingView.newChildId(),
+                        new Model<>(GuiStyleConstants.CLASS_RECONCILE),
                         createStringResource("MainObjectListPanel.refresh")) {
 
                     @Serial private static final long serialVersionUID = 1L;
@@ -206,6 +211,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 if (miningOperationChunk == null) {
                     return null;
                 }
+                Task task = getPageBase().createSimpleTask("load objects");
 
                 List<AssignmentType> roleAssignments = new ArrayList<>();
 
@@ -213,7 +219,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 for (MiningRoleTypeChunk roleChunk : simpleMiningRoleTypeChunks) {
                     if (roleChunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
                         for (String roleOid : roleChunk.getRoles()) {
-                            PrismObject<RoleType> roleObject = getRoleTypeObject(getPageBase(), roleOid, result);
+                            PrismObject<RoleType> roleObject = getPageBase().getRoleAnalysisService()
+                                    .getRoleTypeObject(roleOid, task, result);
                             if (roleObject != null) {
                                 roleAssignments.add(ObjectTypeUtil.createAssignmentTo(roleOid, ObjectTypes.ROLE));
                             }
@@ -221,7 +228,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     }
                 }
 
-                PrismObject<RoleType> businessRole = generateBusinessRole((PageBase) getPage(), roleAssignments, "");
+                PrismObject<RoleType> businessRole = getPageBase().getRoleAnalysisService()
+                        .generateBusinessRole(roleAssignments, PolyStringType.fromOrig(""));
 
                 List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
 
@@ -230,7 +238,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 for (MiningUserTypeChunk userChunk : simpleMiningUserTypeChunks) {
                     if (userChunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
                         for (String userOid : userChunk.getUsers()) {
-                            PrismObject<UserType> userObject = getUserTypeObject(getPageBase(), userOid, result);
+                            PrismObject<UserType> userObject = getPageBase().getRoleAnalysisService()
+                                    .getUserTypeObject(userOid, task, result);
                             if (userObject != null) {
                                 roleApplicationDtos.add(new BusinessRoleDto(userObject,
                                         businessRole, getPageBase()));
@@ -244,7 +253,6 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
             @Override
             public void onChangeSortMode(RoleAnalysisSortMode sortMode, AjaxRequestTarget target) {
-
                 roleAnalysisSortMode = sortMode;
                 List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(roleAnalysisSortMode);
                 List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks(roleAnalysisSortMode);
@@ -351,10 +359,12 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         createStringResource(title)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        Task task = getPageBase().createSimpleTask("prepare objects");
 
                         List<PrismObject<FocusType>> objects = new ArrayList<>();
-                        for (String s : elements) {
-                            objects.add(getFocusTypeObject(getPageBase(), s, result));
+                        for (String objectOid : elements) {
+                            objects.add(getPageBase().getRoleAnalysisService()
+                                    .getFocusTypeObject(objectOid, task, result));
                         }
                         MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                 Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.USER) {
@@ -367,7 +377,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     }
 
                 };
-                analyzedMembersDetailsPanel.add(AttributeAppender.replace("class", "d-inline-block text-truncate"));
+                analyzedMembersDetailsPanel.add(
+                        AttributeAppender.replace("class", "d-inline-block text-truncate"));
                 analyzedMembersDetailsPanel.add(AttributeAppender.replace("style", "width:145px"));
                 analyzedMembersDetailsPanel.setOutputMarkupId(true);
                 item.add(analyzedMembersDetailsPanel);
@@ -448,7 +459,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<MiningUserTypeChunk>> item, String componentId,
                     IModel<MiningUserTypeChunk> rowModel) {
 
-                item.add(AttributeAppender.replace("style", " overflow-wrap: break-word !important; word-break: inherit;"));
+                item.add(AttributeAppender.replace(
+                        "style", " overflow-wrap: break-word !important; word-break: inherit;"));
 
                 LinkIconPanelStatus linkIconPanel = new LinkIconPanelStatus(componentId, new LoadableDetachableModel<>() {
                     @Override
@@ -457,7 +469,9 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     }
                 }) {
                     @Override
-                    protected RoleAnalysisOperationMode onClickPerformed(AjaxRequestTarget target, RoleAnalysisOperationMode status) {
+                    protected RoleAnalysisOperationMode onClickPerformed(
+                            AjaxRequestTarget target,
+                            RoleAnalysisOperationMode status) {
                         rowModel.getObject().setStatus(status.toggleStatus());
                         target.add(getTable().setOutputMarkupId(true));
                         return rowModel.getObject().getStatus();
@@ -519,7 +533,9 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                             }) {
 
                         @Override
-                        protected RoleAnalysisOperationMode onClickPerformedAction(AjaxRequestTarget target, RoleAnalysisOperationMode status) {
+                        protected RoleAnalysisOperationMode onClickPerformedAction(
+                                AjaxRequestTarget target,
+                                RoleAnalysisOperationMode status) {
                             roleChunk.setStatus(status.toggleStatus());
                             target.add(getTable().setOutputMarkupId(true));
                             return roleChunk.getStatus();
@@ -533,9 +549,12 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
 
+                            Task task = getPageBase().createSimpleTask("prepare objects");
+
                             List<PrismObject<FocusType>> objects = new ArrayList<>();
-                            for (String s : elements) {
-                                objects.add(getFocusTypeObject(getPageBase(), s, result));
+                            for (String objectOid : elements) {
+                                objects.add(getPageBase().getRoleAnalysisService()
+                                        .getFocusTypeObject(objectOid, task, result));
                             }
                             MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
                                     Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.ROLE) {
@@ -566,8 +585,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         return ((RoleAnalysisTable<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
     }
 
-    protected RoleAnalysisTable<?> getTable() {
-        return ((RoleAnalysisTable<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
+    protected RoleAnalysisTable<MiningOperationChunk> getTable() {
+        return ((RoleAnalysisTable<MiningOperationChunk>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
     }
 
     protected void resetTable(AjaxRequestTarget target) {
@@ -608,6 +627,10 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
     private boolean isPatternDetected() {
         return detectedPattern != null && detectedPattern.getUsers() != null;
+    }
+
+    public RoleAnalysisSortMode getRoleAnalysisSortMode() {
+        return roleAnalysisSortMode;
     }
 
 }

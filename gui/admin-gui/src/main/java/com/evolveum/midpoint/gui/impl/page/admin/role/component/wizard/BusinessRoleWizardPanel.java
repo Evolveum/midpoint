@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+
 import java.util.ArrayList;
 import java.util.List;
+
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
