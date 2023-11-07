@@ -16,6 +16,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -376,9 +378,11 @@ class ShadowedObjectConstruction {
         }
     }
 
-    @Nullable
-    private ShadowType acquireEntitlementRepoShadow(PrismContainerValue<ShadowAssociationType> associationValue,
-            ResourceAttributeContainer identifierContainer, ProvisioningContext ctxEntitlement, OperationResult result)
+    private @Nullable ShadowType acquireEntitlementRepoShadow(
+            PrismContainerValue<ShadowAssociationType> associationValue,
+            ResourceAttributeContainer identifierContainer,
+            ProvisioningContext ctxEntitlement,
+            OperationResult result)
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException, SchemaException, ObjectNotFoundException {
 
@@ -386,10 +390,10 @@ class ShadowedObjectConstruction {
         //  (If yes, maybe we should retrieve also the associations below?)
 
         Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
-        PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
+        UcfResourceObject providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY);
         if (providedResourceObject != null) {
             return ShadowAcquisition.acquireRepoShadow(
-                    ctxEntitlement, providedResourceObject.asObjectable(), false, result);
+                    ctxEntitlement, providedResourceObject.bean(), false, result);
         }
 
         try {

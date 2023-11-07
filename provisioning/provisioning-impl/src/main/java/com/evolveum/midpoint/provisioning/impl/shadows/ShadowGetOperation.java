@@ -377,8 +377,8 @@ class ShadowGetOperation {
         try {
             assert repositoryShadow != null;
             @NotNull var completeObject =
-                    b.resourceObjectConverter.getResourceObject(
-                            ctx, identification, repositoryShadow, true, result);
+                    b.resourceObjectConverter.fetchResourceObject(
+                            ctx, identification, ctx.createAttributesToReturn(), repositoryShadow, true, result);
             LOGGER.trace("Object returned by ResourceObjectConverter:\n{}", completeObject.debugDumpLazily(1));
             markResourceUp(result);
             return completeObject;

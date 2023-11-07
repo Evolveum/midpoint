@@ -75,6 +75,20 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
         }
     }
 
+    public static ResourceObjectIdentification.Primary primary(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<? extends ResourceAttribute<?>> primaryIdentifiers) {
+        return primary(resourceObjectDefinition, primaryIdentifiers, List.of());
+    }
+
+    public static ResourceObjectIdentification.Primary primary(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<? extends ResourceAttribute<?>> primaryIdentifiers,
+            @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
+        argCheck(!primaryIdentifiers.isEmpty(), "No primary identifiers");
+        return new Primary(resourceObjectDefinition, primaryIdentifiers, secondaryIdentifiers);
+    }
+
     private static ResourceObjectIdentification fromIdentifiersOrAttributes(
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> allAttributes,
@@ -271,6 +285,16 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
             super(resourceObjectDefinition, primaryIdentifiers, secondaryIdentifiers);
             argCheck(!primaryIdentifiers.isEmpty(), "No primary identifiers in %s", this);
         }
+
+        @Override
+        public <T> @NotNull ResourceAttribute<T> getPrimaryIdentifier() throws SchemaException {
+            return Objects.requireNonNull(super.getPrimaryIdentifier());
+        }
+
+        @Override
+        public ResourceObjectIdentification.Primary clone() {
+            return (Primary) super.clone();
+        }
     }
 
     /** Identification that does not contain a primary identifier. */
@@ -280,6 +304,11 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
                 @NotNull ResourceObjectDefinition resourceObjectDefinition,
                 @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
             super(resourceObjectDefinition, List.of(), secondaryIdentifiers);
+        }
+
+        @Override
+        public ResourceObjectIdentification.NoPrimary clone() {
+            return (NoPrimary) super.clone();
         }
     }
 }

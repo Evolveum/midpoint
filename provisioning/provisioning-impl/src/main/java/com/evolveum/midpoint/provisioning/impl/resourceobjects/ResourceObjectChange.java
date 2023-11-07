@@ -193,24 +193,18 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         throw new IllegalStateException("UCF does not signal 'not applicable' state");
     }
 
-    /**
-     * Returns the complete resource object, if possible.
-     *
-     * For LS, this may be the case only for DELETE deltas.
-     * For AU, also MODIFY deltas can have no full object.
-     */
+    /** Returns the complete resource object, if present in the original change or it could be fetched. */
     private @Nullable CompleteResourceObject processObjectAndDelta(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, NotApplicableException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        // TODO this was originally only in the AU case. Why?
         if (rawResourceObject != null) {
+            // This may be required for AU, but does not hurt for other cases.
             effectiveCtx.applyAttributesDefinition(rawResourceObject.getPrismObject());
         }
         if (objectDelta != null) {
             effectiveCtx.applyAttributesDefinition(objectDelta);
         }
-        // end of to-do
 
         if (isDelete()) {
             return CompleteResourceObject.deletedNullable(rawResourceObject);
@@ -218,14 +212,13 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
 
         AttributesToReturn actualAttributesToReturn = determineAttributesToReturn();
         if (rawResourceObject == null) {
-            // TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented anyway
-            getLogger().trace("Fetching object {} because it is not in the change", identifiers);
+            getLogger().trace("Trying to fetch object {} because it is not in the change", identifiers);
             return fetchResourceObject(actualAttributesToReturn, result);
         }
 
         // This is a specialty of live synchronization
         if (originalCtx.isWildcard() && attributesToReturnAreDifferent(actualAttributesToReturn)) {
-            getLogger().trace("Re-fetching object {} because mismatching attributesToReturn", identifiers);
+            getLogger().trace("Trying to re-fetch object {} because mismatching attributesToReturn", identifiers);
             return fetchResourceObject(actualAttributesToReturn, result);
         }
 
@@ -242,9 +235,13 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         return false;
     }
 
-    private CompleteResourceObject fetchResourceObject(AttributesToReturn attributesToReturn, OperationResult result)
+    private @Nullable CompleteResourceObject fetchResourceObject(AttributesToReturn attributesToReturn, OperationResult result)
             throws CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, NotApplicableException {
+        if (!effectiveCtx.hasRealReadCapability()) {
+            getLogger().trace("NOT fetching object {} because the resource does not support it", identifiers);
+            return null;
+        }
         try {
             // todo consider whether it is always necessary to fetch the entitlements
             return b.resourceObjectConverter
@@ -279,7 +276,10 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         return objectDelta;
     }
 
-    /** Returns {@link CompleteResourceObject}, either right from {@link #completeResourceObject} or artificial one. */
+    /**
+     * Returns {@link CompleteResourceObject}, either right from {@link #completeResourceObject} or incomplete one.
+     * May return `null` if the object was not provided in the original change, and the resource does not support reading.
+     */
     public @Nullable CompleteResourceObject getCompleteResourceObject() {
         checkInitialized();
         if (completeResourceObject != null) {

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -16,13 +17,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
- * @param primaryIdentifierValue Real value of the object primary identifier (e.g. ConnId UID).
+ * `primaryIdentifierValue` provides the value of the object primary identifier (e.g. ConnId UID).
  *
  * Conditions:
  *
- * - errorState.isSuccess: Not null.
- * - errorState.isError: Usually not null (e.g. never in ConnId 1.x). But this may change in the future.
+ * - when the object was successfully retrieved: Not null.
+ * - if there was an error: Usually not null (e.g. never in ConnId 1.x). But this may change in the future.
+ *
+ * (The error is not recorded here.)
  */
 public record UcfResourceObject(
         @NotNull ShadowType bean,
@@ -53,5 +60,9 @@ public record UcfResourceObject(
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append(ShadowUtil.shortDumpShadow(bean));
+    }
+
+    public @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers() {
+        return emptyIfNull(ShadowUtil.getAllIdentifiers(bean));
     }
 }

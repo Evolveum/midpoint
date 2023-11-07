@@ -195,13 +195,13 @@ public interface ConnectorInstance {
      *
      * TODO: object not found error
      *
-     * @param resourceObjectIdentification objectClass+identifiers of the object to fetch
+     * @param resourceObjectIdentification objectClass+primary identifiers of the object to fetch
      * @return object fetched from the resource (no schema)
      * @throws CommunicationException error in communication to the resource - nothing was fetched.
      * @throws SchemaException error converting object from native (connector) format
      */
     UcfResourceObject fetchObject(
-            ResourceObjectIdentification resourceObjectIdentification,
+            ResourceObjectIdentification.Primary resourceObjectIdentification,
             AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx,
             OperationResult parentResult)
@@ -313,7 +313,7 @@ public interface ConnectorInstance {
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
     AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.Primary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,

@@ -11,10 +11,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.createEntitlementQuery;
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 
 /**
@@ -148,20 +145,20 @@ class EntitlementReader {
         ResourceAttributeContainer attributesContainer = subject.getAttributesContainer();
 
         schemaCheck(referencingAttrName != null,
-                "No association attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
+                "No association attribute defined in association '%s' in %s", associationName, subjectCtx);
         schemaCheck(referencedAttrName != null,
-                "No value attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
+                "No value attribute defined in association '%s' in %s", associationName, subjectCtx);
 
         subjectDef.findAttributeDefinitionRequired(
                 referencingAttrName,
-                () -> " in entitlement association '" + associationName + "' in " + subjectCtx + " [association attribute]");
+                () -> " in association '" + associationName + "' in " + subjectCtx + " [association attribute]");
 
         //noinspection unchecked
         ResourceAttributeDefinition<T> referencedAttrDef =
                 (ResourceAttributeDefinition<T>)
                         entitlementDef.findAttributeDefinitionRequired(
                                 referencedAttrName,
-                                () -> " in entitlement association '" + associationName + "' in " + subjectCtx + " [value attribute]");
+                                () -> " in association '" + associationName + "' in " + subjectCtx + " [value attribute]");
 
         ResourceAttribute<T> referencingAttr = attributesContainer.findAttribute(referencingAttrName);
         if (referencingAttr != null && !referencingAttr.isEmpty()) {
@@ -211,13 +208,13 @@ class EntitlementReader {
         QName referencedAttrName = associationDef.getDefinitionBean().getValueAttribute(); // e.g. ri:dn
 
         schemaCheck(referencingAttrName != null,
-                "No association attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
+                "No association attribute defined in association '%s' in %s", associationName, subjectCtx);
         schemaCheck(referencedAttrName != null,
-                "No value attribute defined in entitlement association '%s' in %s", associationName, subjectCtx);
+                "No value attribute defined in association '%s' in %s", associationName, subjectCtx);
 
         ResourceAttributeDefinition<?> referencingAttrDef = entitlementDef.findAttributeDefinitionRequired(
                 referencingAttrName,
-                () -> " in entitlement association '" + associationName + "' in " + entitlementCtx + " [association attribute]");
+                () -> " in association '" + associationName + "' in " + entitlementCtx + " [association attribute]");
 
         ResourceAttribute<T> referencedAttr = attributesContainer.findAttribute(referencedAttrName);
         if (referencedAttr == null || referencedAttr.isEmpty()) {
@@ -226,13 +223,14 @@ class EntitlementReader {
             return;
         }
         if (referencedAttr.size() > 1) {
-            throw new SchemaException("Referenced value attribute " + referencedAttrName + " has more than one value; "
-                    + "it is the attribute defined in entitlement association '" + associationName + "' in " + subjectCtx);
+            throw new SchemaException(
+                    "Referenced value attribute %s has more than one value; it is the attribute defined in association '%s' in %s"
+                            .formatted(referencedAttrName, associationName, subjectCtx));
         }
         ResourceAttributeDefinition<T> referencedAttrDef = referencedAttr.getDefinition();
         PrismPropertyValue<T> referencedAttrValue = referencedAttr.getAnyValue();
 
-        ObjectQuery query = EntitlementUtils.createEntitlementQuery(referencedAttrValue, referencedAttrDef, referencingAttrDef, associationDef);
+        ObjectQuery query = createEntitlementQuery(referencedAttrValue, referencedAttrDef, referencingAttrDef, associationDef);
 
         executeSearchForEntitlements(query, associationName, entitlementCtx, result);
     }
@@ -254,24 +252,22 @@ class EntitlementReader {
                 b.delineationProcessor.determineQueryWithConstraints(entitlementCtx, explicitQuery, result);
 
         UcfObjectHandler handler = (ucfObject, lResult) -> {
-            PrismObject<ShadowType> entitlementResourceObject = ucfObject.getPrismObject();
-
             try {
-                createAssociationValueFromTarget(entitlementResourceObject, associationName, entitlementDef);
+                createAssociationValueFromEntitlementObject(ucfObject.getResourceObject(), associationName, entitlementDef);
             } catch (SchemaException e) {
                 throw new TunnelException(e);
             }
 
             LOGGER.trace("Processed entitlement-to-subject association for account {} and entitlement {}",
                     ShadowUtil.getHumanReadableNameLazily(subject.getPrismObject()),
-                    ShadowUtil.getHumanReadableNameLazily(entitlementResourceObject));
+                    ShadowUtil.getHumanReadableNameLazily(ucfObject.getPrismObject()));
 
             return true;
         };
 
         ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, result);
         try {
-            LOGGER.trace("Processing entitlement-to-subject association for account {}: query {}",
+            LOGGER.trace("Processing object-to-subject association for account {}: query {}",
                     ShadowUtil.getHumanReadableNameLazily(subject.getPrismObject()), queryWithConstraints.query);
             try {
                 connector.search(
@@ -340,15 +336,15 @@ class EntitlementReader {
      *       name: ri:groups
      *       identifiers: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
      */
-    private void createAssociationValueFromTarget(
-            PrismObject<ShadowType> targetResourceObject,
+    private void createAssociationValueFromEntitlementObject(
+            UcfResourceObject entitlementObject,
             QName associationName,
             ResourceObjectDefinition entitlementDef) throws SchemaException {
 
         PrismContainerValue<ShadowAssociationType> associationContainerValue = associationContainer.createNewValue();
         associationContainerValue.asContainerable().setName(associationName);
         associationContainerValue.add(
-                createIdentifiersContainerForTargetObject(targetResourceObject, entitlementDef));
+                createIdentifiersContainerForTargetObject(entitlementObject, entitlementDef));
     }
 
     /**
@@ -370,18 +366,16 @@ class EntitlementReader {
      * Creates the identifiers container for resolved target entitlement object.
      */
     private @NotNull ResourceAttributeContainer createIdentifiersContainerForTargetObject(
-            PrismObject<ShadowType> targetResourceObject,
+            UcfResourceObject entitlementObject,
             ResourceObjectDefinition entitlementDef) throws SchemaException {
 
         ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
                 ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition());
         identifiersContainer.getValue().addAll(
-                Item.cloneCollection(
-                        emptyIfNull(
-                                ShadowUtil.getAllIdentifiers(targetResourceObject))));
+                Item.cloneCollection(entitlementObject.getAllIdentifiers()));
 
         // Remember the full shadow. This is used later as an optimization to create the shadow in repo
-        identifiersContainer.setUserData(ResourceObjectConverter.FULL_SHADOW_KEY, targetResourceObject);
+        identifiersContainer.setUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY, entitlementObject);
         return identifiersContainer;
     }
 }

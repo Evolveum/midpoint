@@ -10,7 +10,6 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -18,7 +17,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.Checks;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
@@ -110,7 +108,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
     }
 
     @Override
-    public Collection<ResourceAttribute<?>> getAllIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers() {
         return extractAttributesByDefinitions(getDefinition().getAllIdentifiers());
     }
 

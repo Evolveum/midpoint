@@ -180,7 +180,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             }
 
             // because identifiers can be modified e.g. on rename operation (TODO: is this really needed?)
-            ResourceObjectIdentification identificationClone = primaryIdentification.clone();
+            ResourceObjectIdentification.Primary identificationClone = primaryIdentification.clone();
             List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectDefinition);
             LOGGER.trace("Operation waves: {}", operationsWaves.size());
             boolean inProgress = false;
@@ -242,7 +242,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             ProvisioningContext ctx,
             ShadowType currentShadow,
             Collection<Operation> operationsWave,
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.Primary identification,
             ResourceObjectDefinition objectDefinition,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -258,7 +258,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             LOGGER.trace("Fetching object because of READ+REPLACE mode");
             var fetchedResourceObject =
                     b.resourceObjectConverter.fetchResourceObject(
-                            ctx, identification.ensurePrimary(), attributesToReturn, currentShadow, false, result);
+                            ctx, identification, attributesToReturn, currentShadow, false, result);
             operationsWave = convertToReplace(ctx, operationsWave, fetchedResourceObject, false);
         }
         UpdateCapabilityType updateCapability = ctx.getCapability(UpdateCapabilityType.class); // TODO what if it's disabled?
@@ -268,7 +268,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                 LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
                 var fetched =
                         b.resourceObjectConverter.fetchResourceObject(
-                                ctx, identification.ensurePrimary(), null, currentShadow, false, result);
+                                ctx, identification, null, currentShadow, false, result);
                 if (fetched == null) {
                     throw new SystemException(
                             "Attribute content requirement set for resource %s, but read of shadow returned null, identifiers: %s"

@@ -94,7 +94,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         ctx.checkForCapability(CreateCapabilityType.class);
 
         if (!skipExplicitUniquenessCheck) {
-            checkForAddConflicts(result);
+            checkForAddConflictsForMultiConnectors(result);
         }
 
         executeProvisioningScripts(ProvisioningOperationTypeType.ADD, BeforeAfterType.BEFORE, result);
@@ -146,7 +146,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
      * which we want to add is already present in the backing store. In case of manual provisioning the resource
      * itself will not indicate "already exist" error. We have to explicitly check for that.
      */
-    private void checkForAddConflicts(OperationResult result)
+    private void checkForAddConflictsForMultiConnectors(OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         LOGGER.trace("Checking for add conflicts for {}", ShadowUtil.shortDumpShadowLazily(shadowClone));
@@ -161,8 +161,10 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
                 // that we normally do not need or want.
                 return;
             }
-            ResourceObjectIdentification identification =
-                    ResourceObjectIdentification.fromShadow(ctx.getObjectDefinitionRequired(), shadowClone);
+            ResourceObjectIdentification.Primary identification =
+                    ResourceObjectIdentification
+                            .fromShadow(ctx.getObjectDefinitionRequired(), shadowClone)
+                            .ensurePrimary();
 
             existingObject =
                     readConnector.fetchObject(identification, null, ctx.getUcfExecutionContext(), result);

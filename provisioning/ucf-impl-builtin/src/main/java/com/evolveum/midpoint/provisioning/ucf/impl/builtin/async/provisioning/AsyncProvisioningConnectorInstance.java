@@ -199,8 +199,12 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
-            ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
+            ResourceObjectIdentification.Primary identification,
+            PrismObject<ShadowType> shadow,
+            @NotNull Collection<Operation> changes,
+            ConnectorOperationOptions options,
+            UcfExecutionContext ctx,
+            OperationResult parentResult) {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("modifyObject");
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
@@ -364,7 +368,8 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
+            ResourceObjectIdentification.Primary resourceObjectIdentification,
+            AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;

@@ -273,7 +273,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
+            ResourceObjectIdentification.Primary resourceObjectIdentification,
+            AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
@@ -305,8 +306,12 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
-            ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
+            ResourceObjectIdentification.Primary identification,
+            PrismObject<ShadowType> shadow,
+            @NotNull Collection<Operation> changes,
+            ConnectorOperationOptions options,
+            UcfExecutionContext ctx,
+            OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");
         return null;
     }

@@ -111,7 +111,7 @@ public class ShadowUtil {
         return secondaryIdentifier.getRealValue();
     }
 
-    public static Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
+    public static @Nullable Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return null;

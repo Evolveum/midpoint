@@ -468,6 +468,10 @@ public class ProvisioningContext {
         return hasCapability(ReadCapabilityType.class);
     }
 
+    public boolean hasRealReadCapability() {
+        return hasReadCapability() && !isReadingCachingOnly();
+    }
+
     public boolean isReadingCachingOnly() {
         ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
         if (readCapability == null) {

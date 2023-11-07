@@ -201,7 +201,7 @@ class EntitlementConverter {
 
             QName associationName = associationDef.getName();
             for (String entitlementIntent : associationDef.getIntents()) {
-                ResolvedAssociationDefinition def = resolve(associationDef, entitlementIntent);
+                ResolvedAssociationDefinition def = resolveDefinition(associationDef, entitlementIntent);
 
                 //noinspection unchecked
                 ResourceAttributeDefinition<T> assocAttrDef =
@@ -290,7 +290,7 @@ class EntitlementConverter {
         return objectsOperations;
     }
 
-    private @NotNull ResolvedAssociationDefinition resolve(
+    private @NotNull ResolvedAssociationDefinition resolveDefinition(
             ResourceAssociationDefinition associationDef, String entitlementIntent)
             throws SchemaException, ConfigurationException {
         ProvisioningContext entitlementCtx = subjectCtx.spawnForKindIntent(associationDef.getKind(), entitlementIntent);
@@ -444,7 +444,7 @@ class EntitlementConverter {
             throw new SchemaException("No entitlement intent specified in association " + associationValue + " in " + resource);
         }
         for (String entitlementIntent : entitlementIntents) {
-            ResolvedAssociationDefinition def = resolve(associationDef, entitlementIntent);
+            ResolvedAssociationDefinition def = resolveDefinition(associationDef, entitlementIntent);
 
             //noinspection unchecked
             ResourceAttributeDefinition<TA> assocAttrDef =
@@ -455,7 +455,8 @@ class EntitlementConverter {
                                 + "'%s' in schema for %s").formatted(def.assocAttrName, entitlementIntents, resource));
             }
 
-            ResourceAttributeContainer identifiersContainer = getIdentifiersAttributeContainer(associationValue, def.entitlementObjDef);
+            ResourceAttributeContainer identifiersContainer =
+                    getIdentifiersAttributeContainer(associationValue, def.entitlementObjDef);
             Collection<ResourceAttribute<?>> entitlementIdentifiersFromAssociation = identifiersContainer.getAttributes();
 
             ResourceObjectDiscriminator disc =
@@ -491,7 +492,7 @@ class EntitlementConverter {
                     ResourceObjectIdentification subjectIdentifiers = subjectCtx.getIdentificationFromShadow(subjectShadow);
                     LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
                     subjectShadow = ResourceObject.getBean(
-                            ResourceObjectLocateOrFetchOperation.executeFetchRaw(
+                            ResourceObjectLocateOrFetchOperation.executeFetchRaw( // TODO what if there is no read capability?
                                     subjectCtx, subjectIdentifiers, subjectShadow, result));
                     subjectShadowAfter = subjectShadow;
                     valueAttr = ShadowUtil.getAttribute(subjectShadow, def.valueAttrName);
@@ -628,7 +629,7 @@ class EntitlementConverter {
 
     /**
      * Association definition resolved into directly usable details.
-     * See {@link #resolve(ResourceAssociationDefinition, String)}.
+     * See {@link #resolveDefinition(ResourceAssociationDefinition, String)}.
      */
     private record ResolvedAssociationDefinition(
             @NotNull ProvisioningContext entitlementCtx,

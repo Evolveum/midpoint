@@ -97,7 +97,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.Primary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
@@ -204,7 +204,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public UcfResourceObject fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
+    public UcfResourceObject fetchObject(
+            ResourceObjectIdentification.Primary resourceObjectIdentification, AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.

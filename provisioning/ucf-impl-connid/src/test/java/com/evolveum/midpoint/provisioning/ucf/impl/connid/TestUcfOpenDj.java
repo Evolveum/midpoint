@@ -293,8 +293,10 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         cc.deleteObject(accountDefinition, null, identifiers, null, result);
 
-        ResourceObjectIdentification identification = ResourceObjectIdentification.fromAttributes(
-                accountDefinition, identifiers);
+        ResourceObjectIdentification.Primary identification =
+                ResourceObjectIdentification
+                        .fromAttributes(accountDefinition, identifiers)
+                        .ensurePrimary();
         UcfResourceObject resObj = null;
         try {
             resObj = cc.fetchObject(identification, null, null, result);
@@ -320,8 +322,9 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
-        ResourceObjectIdentification identification = ResourceObjectIdentification.fromAttributes(
-                accountDefinition, identifiers);
+        var identification = ResourceObjectIdentification
+                .fromAttributes(accountDefinition, identifiers)
+                .ensurePrimary();
 
         cc.modifyObject(identification, null, changes, null, null, result);
 
@@ -554,8 +557,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
         // Determine object class from the schema
 
-        ResourceObjectIdentification identification =
-                ResourceObjectIdentification.of(accountDefinition, identifiers, List.of());
+        var identification = ResourceObjectIdentification.primary(accountDefinition, identifiers);
         OperationResult result = createOperationResult("fetchObject");
 
         // WHEN
@@ -680,8 +682,10 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         PropertyModificationOperation<ProtectedStringType> passwordModification = new PropertyModificationOperation(passDelta);
         changes.add(passwordModification);
 
-        ResourceObjectIdentification identification = ResourceObjectIdentification.fromAttributes(
-                accountDefinition, identifiers);
+        ResourceObjectIdentification.Primary identification =
+                ResourceObjectIdentification
+                        .fromAttributes(accountDefinition, identifiers)
+                        .ensurePrimary();
 
         cc.modifyObject(identification, null, changes, null, null, result);
 

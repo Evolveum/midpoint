@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.proc
 import static com.evolveum.midpoint.schema.reporting.ConnIdOperation.getIdentifier;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static java.util.Collections.emptySet;
 import static org.apache.commons.collections4.SetUtils.emptyIfNull;
 
@@ -97,7 +99,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
-    public static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
+    private static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
 
     private final ConnectorInfo connectorInfo;
     private final ConnectorType connectorType;
@@ -277,7 +279,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
+    public ConnectorOperationalStatus getOperationalStatus() {
 
         if (!(connectorInfo instanceof LocalConnectorInfoImpl)) {
             LOGGER.trace("Cannot get operational status of a remote connector {}", connectorType);
@@ -457,7 +459,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification resourceObjectIdentification,
+            ResourceObjectIdentification.Primary resourceObjectIdentification,
             AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx,
             OperationResult parentResult)
@@ -472,18 +474,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         result.addArbitraryObjectAsParam("identification", resourceObjectIdentification);
         result.addContext("connector", connectorType);
         try {
-            if (connIdConnectorFacade == null) {
-                throw new IllegalStateException("Attempt to use unconfigured connector " + connectorType + " " + description);
-            }
+            stateCheck(connIdConnectorFacade != null,
+                    "Attempt to use unconfigured connector %s %s", connectorType, description);
 
-            // Get UID from the set of identifiers
             Uid uid = getUid(resourceObjectIdentification);
-            if (uid == null) {
-                throw new IllegalArgumentException(
-                        "Required attribute UID not found in identification set while attempting to fetch object identified by "
-                                + resourceObjectIdentification + " from " + description);
-            }
-
             ObjectClass icfObjectClass = objectClassToConnId(objectDefinition);
 
             OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
@@ -901,7 +895,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification.Primary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
@@ -914,33 +908,29 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         result.addArbitraryObjectCollectionAsParam("changes", changes);
         result.addArbitraryObjectAsParam("options", options);
 
-        if (changes.isEmpty()) {
-            LOGGER.info("No modifications for connector object specified. Skipping processing.");
-            result.recordNotApplicableIfUnknown();
-            return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
-        }
-
-        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
-
-        ObjectClass objClass = objectClassToConnId(identification.getResourceObjectDefinition());
-
-        Uid uid;
         try {
-            uid = getUid(identification);
-        } catch (SchemaException e) {
-            result.recordFatalError(e);
-            throw e;
-        }
 
-        if (uid == null) {
-            result.recordFatalError("Cannot determine UID from identification: " + identification);
-            throw new IllegalArgumentException("Cannot determine UID from identification: " + identification);
-        }
+            if (changes.isEmpty()) {
+                LOGGER.debug("No modifications for connector object specified. Skipping processing.");
+                result.recordNotApplicable();
+                return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
+            }
 
-        if (supportsDeltaUpdateOp()) {
-            return modifyObjectDelta(identification, objClass, uid, shadow, changes, options, ctx, result);
-        } else {
-            return modifyObjectUpdate(identification, objClass, uid, shadow, changes, options, ctx, result);
+            UcfExecutionContext.checkExecutionFullyPersistent(ctx);
+
+            Uid uid = getUid(identification);
+            ObjectClass objClass = objectClassToConnId(identification.getResourceObjectDefinition());
+
+            if (supportsDeltaUpdateOp()) {
+                return modifyObjectDelta(identification, objClass, uid, shadow, changes, options, ctx, result);
+            } else {
+                return modifyObjectUpdate(identification, objClass, uid, shadow, changes, options, ctx, result);
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
@@ -1972,11 +1962,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     // UTILITY METHODS
 
-    private Uid getUid(ResourceObjectIdentification resourceObjectIdentification) throws SchemaException {
+    private @NotNull Uid getUid(ResourceObjectIdentification.Primary resourceObjectIdentification) throws SchemaException {
         ResourceAttribute<String> primaryIdentifier = resourceObjectIdentification.getPrimaryIdentifier();
-        if (primaryIdentifier == null) {
-            return null;
-        }
         String uidValue = primaryIdentifier.getRealValue();
         String nameValue = getNameValue(resourceObjectIdentification);
         if (uidValue != null) {
@@ -1986,7 +1973,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 return new Uid(uidValue, new Name(nameValue));
             }
         }
-        return null;
+        throw new IllegalArgumentException(
+                "Primary identifier without value in %s from %s".formatted(
+                        resourceObjectIdentification, description));
     }
 
     private String getNameValue(ResourceObjectIdentification resourceObjectIdentification) throws SchemaException {

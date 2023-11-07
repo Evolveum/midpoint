@@ -76,38 +76,15 @@ public class ResourceObjectConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
-    /** TODO document this */
-    public static final String FULL_SHADOW_KEY = ResourceObjectConverter.class.getName() + ".fullShadow";
-
     /**
-     * Retrieves resource object, given its primary identifiers.
-     *
-     * Note that this method can return `null` only if the resource is caching-only and the `repoShadow` is `null`.
-     *
-     * @param repoShadow Used when read capability is "caching only"
+     * For object-to-subject entitlements, the {@link ShadowAssociationType#F_IDENTIFIERS} containers can contain
+     * the full object ({@link UcfResourceObject}) of the relevant entitlement, to avoid is repeated fetching
+     * for the sake of the shadowization.
      */
-    @Contract("_, _, !null, _, _ -> !null")
-    public CompleteResourceObject getResourceObject(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectIdentification.Primary primaryIdentification,
-            @Nullable ShadowType repoShadow,
-            boolean fetchAssociations,
-            @NotNull OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
-
-        return fetchResourceObject(
-                ctx,
-                primaryIdentification,
-                ctx.createAttributesToReturn(),
-                repoShadow,
-                fetchAssociations,
-                result);
-    }
+    public static final String ENTITLEMENT_OBJECT_KEY = ResourceObjectConverter.class.getName() + ".entitlementObject";
 
     /**
-     * Fetches the resource object either by primary identifier(s) or by secondary identifier(s).
-     * In the latter case, the primary identifier is resolved (from the secondary ones) by the repository.
+     * Fetches the resource object by its primary identifier(s).
      *
      * Returns `null` if the resource is caching-only, and the `repoShadow` is `null`.
      * In all other "unavailability" cases, appropriate exception is thrown.
@@ -115,7 +92,7 @@ public class ResourceObjectConverter {
      * @param repoShadow Used when read capability is "caching only"
      */
     @Contract("_, _, _, !null, _, _ -> !null")
-    @Nullable CompleteResourceObject fetchResourceObject(
+    public CompleteResourceObject fetchResourceObject(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectIdentification.Primary primaryIdentification,
             @Nullable AttributesToReturn attributesToReturn,
@@ -218,10 +195,10 @@ public class ResourceObjectConverter {
             ProvisioningContext ctx,
             ConnectorInstance connectorUsedForOperation,
             AsynchronousOperationResult aResult,
-            OperationResult parentResult)
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        ConnectorInstance readConnector = ctx.getConnector(ReadCapabilityType.class, parentResult);
+        ConnectorInstance readConnector = ctx.getConnector(ReadCapabilityType.class, result);
         if (readConnector != connectorUsedForOperation) {
             // Writing by different connector that we are going to use for reading: danger of quantum effects
             aResult.setQuantumOperation(true);
@@ -229,7 +206,7 @@ public class ResourceObjectConverter {
     }
 
     /**
-     * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(ResourceObjectIdentification,
+     * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(ResourceObjectIdentification.Primary,
      * PrismObject, Collection, ConnectorOperationOptions, UcfExecutionContext, OperationResult)}.
      */
     public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> modifyResourceObject(
@@ -396,48 +373,43 @@ public class ResourceObjectConverter {
             ExpressionEvaluationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_OPERATION_STATUS);
-
-        ResourceType resource;
-        ConnectorInstance connector;
         try {
-            resource = ctx.getResource();
+
+            ResourceType resource = ctx.getResource();
+
             // TODO: not really correct. But good enough for now.
-            connector = ctx.getConnector(UpdateCapabilityType.class, result);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException
-                | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            result.recordFatalError(e);
-            throw e;
-        }
+            ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, result);
 
-        OperationResultStatus status = null;
-        if (connector instanceof AsynchronousOperationQueryable) {
+            OperationResultStatus status;
+            if (connector instanceof AsynchronousOperationQueryable queryableConnector) {
 
-            LOGGER.trace("PROVISIONING REFRESH operation ref={} on {}, object: {}",
-                    asyncRef, resource, shadow);
+                LOGGER.trace("PROVISIONING REFRESH operation ref={} on {}, object: {}",
+                        asyncRef, resource, shadow);
 
-            try {
+                status = queryableConnector.queryOperationStatus(asyncRef, result);
 
-                status = ((AsynchronousOperationQueryable) connector).queryOperationStatus(asyncRef, result);
-
-            } catch (ObjectNotFoundException | SchemaException | ConfigurationException | CommunicationException e) {
-                result.recordFatalError(e);
-                throw e;
+                LOGGER.debug("PROVISIONING REFRESH ref={} successful on {} {}, returned status: {}",
+                        asyncRef, resource, shadow, status);
+            } else {
+                LOGGER.trace("Ignoring refresh of {}, because the connector is not async operation queryable", shadow);
+                status = null;
+                result.setNotApplicable();
             }
 
-            result.recordSuccess();
+            OperationResult refreshResult = new OperationResult(OPERATION_REFRESH_OPERATION_STATUS);
+            refreshResult.setStatus(status);
+            AsynchronousOperationResult asyncResult = AsynchronousOperationResult.wrap(refreshResult);
 
-            LOGGER.debug("PROVISIONING REFRESH ref={} successful on {} {}, returned status: {}", asyncRef, resource, shadow, status);
+            updateQuantum(ctx, connector, asyncResult, result);
 
-        } else {
-            LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async operation queryable", shadow.getOid());
-            result.recordNotApplicableIfUnknown();
+            return asyncResult;
+
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
-
-        OperationResult refreshResult = new OperationResult(OPERATION_REFRESH_OPERATION_STATUS);
-        refreshResult.setStatus(status);
-        AsynchronousOperationResult asyncResult = AsynchronousOperationResult.wrap(refreshResult);
-        updateQuantum(ctx, connector, asyncResult, parentResult); // We have to use parent result here because the result is closed.
-        return asyncResult;
     }
 
     /**

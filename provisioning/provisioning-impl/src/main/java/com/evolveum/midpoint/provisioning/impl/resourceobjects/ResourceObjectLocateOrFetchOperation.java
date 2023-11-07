@@ -36,7 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
  * Handles `locate` and `fetch` method calls:
  *
  * - {@link ResourceObjectConverter#locateResourceObject(ProvisioningContext, ResourceObjectIdentification, boolean, OperationResult)}
- * - {@link ResourceObjectConverter#fetchResourceObject(ProvisioningContext, ResourceObjectIdentification.Primary, AttributesToReturn, ShadowType, boolean, OperationResult)}
+ * - {@link ResourceObjectConverter#fetchResourceObject(ProvisioningContext, ResourceObjectIdentification.Primary,
+ * AttributesToReturn, ShadowType, boolean, OperationResult)}
  * - plus "fetch raw" called from various places, mainly related to entitlements
  *
  * @see ResourceObjectSearchOperation
@@ -166,10 +167,9 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
                         null;
             }
 
-            ResourceObjectIdentification resolvedIdentification =
+            var primaryIdentification =
                     b.resourceObjectReferenceResolver.resolvePrimaryIdentifiers(ctx, identification, result);
-            resolvedIdentification.validatePrimaryIdentifiers();
-            var object = connector.fetchObject(resolvedIdentification, attributesToReturn, ctx.getUcfExecutionContext(), result);
+            var object = connector.fetchObject(primaryIdentification, attributesToReturn, ctx.getUcfExecutionContext(), result);
             return ResourceObject.from(object);
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
