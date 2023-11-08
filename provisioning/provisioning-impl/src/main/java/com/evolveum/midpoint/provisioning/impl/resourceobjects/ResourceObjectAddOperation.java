@@ -161,13 +161,18 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
                 // that we normally do not need or want.
                 return;
             }
-            ResourceObjectIdentification.Primary identification =
+            ResourceObjectIdentification identification =
                     ResourceObjectIdentification
-                            .fromShadow(ctx.getObjectDefinitionRequired(), shadowClone)
-                            .ensurePrimary();
+                            .fromShadow(ctx.getObjectDefinitionRequired(), shadowClone);
 
-            existingObject =
-                    readConnector.fetchObject(identification, null, ctx.getUcfExecutionContext(), result);
+            if (identification instanceof ResourceObjectIdentification.Primary primaryIdentification) {
+                existingObject = readConnector.fetchObject(
+                        primaryIdentification, null, ctx.getUcfExecutionContext(), result);
+            } else {
+                LOGGER.trace("No primary identifier present, skipping add conflict check for {}", identification);
+                existingObject = null;
+            }
+
         } catch (ObjectNotFoundException e) {
             // This is OK
             result.muteLastSubresultError();
