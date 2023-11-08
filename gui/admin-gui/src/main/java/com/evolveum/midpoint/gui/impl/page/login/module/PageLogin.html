@@ -11,11 +11,11 @@
 <wicket:extend>
     <form method="post" wicket:id="form" class="justify-content-end">
         <div class="d-flex flex-wrap">
-            <label class="col-form-label">
+            <label class="col-form-label" for="username">
                 <wicket:message key="PageLogin.username"/>
             </label>
             <div class="input-group d-flex login-panel-control">
-                <input wicket:id="username" name="username" type="text" class="form-control form-control-sm">
+                <input wicket:id="username" id="username" name="username" type="text" class="form-control form-control-sm">
                 <div class="input-group-append">
                     <span class="input-group-text">
                         <i class="fas fa-user"></i>
@@ -24,11 +24,11 @@
             </div>
         </div>
         <div class="d-flex flex-wrap">
-            <label class="col-form-label">
+            <label class="col-form-label" for="password">
                 <wicket:message key="PageLogin.password"/>
             </label>
             <div class="input-group d-flex login-panel-control">
-                <input name="password" type="password" autocomplete="off" class="form-control form-control-sm d-flex flex-wrap gap-2">
+                <input name="password" id="password" type="password" autocomplete="off" class="form-control form-control-sm d-flex flex-wrap gap-2">
                 <div class="input-group-append">
                     <span class="input-group-text">
                         <i class="fas fa-lock"></i>

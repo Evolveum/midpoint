@@ -48,8 +48,15 @@
 .login-box-msg,
 .register-box-msg {
   padding: 0 20px 10px;
+  font-size:1.5rem;
 }
 
 .popover {
   z-index:1040;
+}
+
+//:focus pseudo attribute fix for accessibility intentions
+.btn-default:focus {
+  background-color: #e9ecef;
+  color: #2b2b2b;
 }
