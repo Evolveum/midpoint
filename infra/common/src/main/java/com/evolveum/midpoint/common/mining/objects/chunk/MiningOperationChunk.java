@@ -22,13 +22,15 @@ import java.util.List;
  * </p>
  * <p>
  * This class provides methods to retrieve these lists and sort them based on the specified `RoleAnalysisSortMode`.
+ * Sorting is performed by chunk, so the lists are sorted independently of each other.
  * </p>
  */
 public class MiningOperationChunk implements Serializable {
 
     private List<MiningUserTypeChunk> miningUserTypeChunks;
-
     private List<MiningRoleTypeChunk> miningRoleTypeChunks;
+    RoleAnalysisSortMode sortModeUserChunk = RoleAnalysisSortMode.NONE;
+    RoleAnalysisSortMode sortModeRoleChunk = RoleAnalysisSortMode.NONE;
 
     public MiningOperationChunk(List<MiningUserTypeChunk> miningUserTypeChunks, List<MiningRoleTypeChunk> miningRoleTypeChunks) {
         resetList();
@@ -45,7 +47,7 @@ public class MiningOperationChunk implements Serializable {
     }
 
     public List<MiningUserTypeChunk> getMiningUserTypeChunks(RoleAnalysisSortMode roleAnalysisSortMode) {
-
+        this.sortModeUserChunk = roleAnalysisSortMode;
         if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.JACCARD)) {
             this.miningUserTypeChunks = JaccardSorter.jaccardUserBasedSorter(miningUserTypeChunks);
         } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
@@ -55,7 +57,7 @@ public class MiningOperationChunk implements Serializable {
     }
 
     public List<MiningRoleTypeChunk> getMiningRoleTypeChunks(RoleAnalysisSortMode roleAnalysisSortMode) {
-
+        this.sortModeRoleChunk = roleAnalysisSortMode;
         if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.JACCARD)) {
             this.miningRoleTypeChunks = JaccardSorter.jaccardRoleBasedSorter(miningRoleTypeChunks);
         } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
@@ -67,6 +69,14 @@ public class MiningOperationChunk implements Serializable {
     private void resetList() {
         miningUserTypeChunks = new ArrayList<>();
         miningRoleTypeChunks = new ArrayList<>();
+    }
+
+    public RoleAnalysisSortMode getSortModeUserChunk() {
+        return sortModeUserChunk;
+    }
+
+    public RoleAnalysisSortMode getSortModeRoleChunk() {
+        return sortModeRoleChunk;
     }
 
 }

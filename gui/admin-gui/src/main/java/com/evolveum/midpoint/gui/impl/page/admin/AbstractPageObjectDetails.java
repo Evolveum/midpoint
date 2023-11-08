@@ -320,10 +320,17 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         if (!isShowedByWizard()) {
             postProcessResult(result, executedDeltas, target);
         } else {
-            reloadObject(result, executedDeltas, target);
+            postProcessResultForWizard(result, executedDeltas, target);
         }
 
         return executedDeltas;
+    }
+
+    protected void postProcessResultForWizard(
+            OperationResult result,
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
+            AjaxRequestTarget target) {
+        reloadObject(result, executedDeltas, target);
     }
 
     private void reloadObject(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {

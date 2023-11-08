@@ -536,6 +536,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     public void onChangeSortMode(RoleAnalysisSortMode roleAnalysisSortModeMode, AjaxRequestTarget target) {
     }
 
+
     protected BusinessRoleApplicationDto getOperationData() {
         return null;
     }

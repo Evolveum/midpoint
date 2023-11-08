@@ -8,14 +8,13 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.countRoleMembers;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -76,14 +75,16 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
 
     @Override
     protected void initLayout() {
-
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
         List<ObjectReferenceType> reductionObject = cluster.getResolvedPattern();
+        Task task = getPageBase().createSimpleTask("resolve role object");
+
         List<RoleType> roles = new ArrayList<>();
         for (ObjectReferenceType objectReferenceType : reductionObject) {
             String oid = objectReferenceType.getOid();
             if (oid != null) {
-                PrismObject<RoleType> roleTypeObject = getRoleTypeObject(getPageBase(), oid, result);
+                PrismObject<RoleType> roleTypeObject = getPageBase().getRoleAnalysisService()
+                        .getRoleTypeObject(oid, task, result);
                 if (roleTypeObject != null) {
                     roles.add(roleTypeObject.asObjectable());
                 }
@@ -223,11 +224,11 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
             @Override
             public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
                     IModel<RoleType> rowModel) {
-                Integer membersCount = countRoleMembers(getPageBase(), null, rowModel.getObject().getOid(), result);
+                Task task = getPageBase().createSimpleTask("countRoleMembers");
 
-                if (membersCount == null) {
-                    membersCount = 0;
-                }
+                Integer membersCount = getPageBase().getRoleAnalysisService()
+                        .countUserTypeMembers(null, rowModel.getObject().getOid(),
+                                task, result);
 
                 item.add(new Label(componentId, membersCount));
             }

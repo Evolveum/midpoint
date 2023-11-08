@@ -33,17 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class for performing clustering operations in the context of role analysis.
  * Provides methods for creating, preparing, and processing data points used in clustering.
  */
-public class ClusterUtils{
+public class ClusteringUtils {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ClusterUtils.class);
-
+    private static final Trace LOGGER = TraceManager.getTrace(ClusteringUtils.class);
     static Collection<SelectorOptions<GetOperationOptions>> defaultOptions = GetOperationOptionsBuilder.create().raw().build();
-
 
     /**
      * Retrieves existing role OIDs from the model service.
@@ -54,7 +53,9 @@ public class ClusterUtils{
      * @return A set of existing role OIDs.
      */
     @NotNull
-    protected static Set<String> getExistingRolesOidsSet(@NotNull ModelService modelService, Task task, OperationResult result) {
+    protected static Set<String> getExistingRolesOidsSet(@NotNull ModelService modelService,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         Set<String> existingRolesOidsSet = new HashSet<>();
         ResultHandler<RoleType> roleTypeHandler = (object, parentResult) -> {
             try {
@@ -91,8 +92,12 @@ public class ClusterUtils{
      */
     @NotNull
     protected static ListMultimap<List<String>, String> getUserBasedRoleToUserMap(@NotNull ModelService modelService,
-            int minProperties, int maxProperties, SearchFilterType userQuery, Set<String> existingRolesOidsSet,
-            Task task, OperationResult result) {
+            int minProperties,
+            int maxProperties,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Set<String> existingRolesOidsSet,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         ListMultimap<List<String>, String> roleToUserMap = ArrayListMultimap.create();
 
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {
@@ -138,7 +143,10 @@ public class ClusterUtils{
      */
     @NotNull
     protected static ListMultimap<String, String> getRoleBasedRoleToUserMap(@NotNull ModelService modelService,
-            SearchFilterType userQuery, Set<String> existingRolesOidsSet, Task task, OperationResult result) {
+            @Nullable SearchFilterType userQuery,
+            @NotNull Set<String> existingRolesOidsSet,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         ListMultimap<String, String> roleToUserMap = ArrayListMultimap.create();
 
         ResultHandler<UserType> resultHandler = (object, parentResult) -> {
@@ -180,8 +188,9 @@ public class ClusterUtils{
      * @return A list multimap mapping users to roles.
      */
     @NotNull
-    protected static ListMultimap<List<String>, String> getRoleBasedUserToRoleMap(int minProperties, int maxProperties,
-            ListMultimap<String, String> roleToUserMap) {
+    protected static ListMultimap<List<String>, String> getRoleBasedUserToRoleMap(int minProperties,
+            int maxProperties,
+            @NotNull ListMultimap<String, String> roleToUserMap) {
         ListMultimap<List<String>, String> userToRoleMap = ArrayListMultimap.create();
         for (String member : roleToUserMap.keySet()) {
             List<String> properties = roleToUserMap.get(member);
@@ -199,7 +208,7 @@ public class ClusterUtils{
      * @param chunkMap A list multimap mapping roles to users.
      * @return A list of DataPoint instances.
      */
- public static List<DataPoint> prepareDataPoints(ListMultimap<List<String>, String> chunkMap) {
+ public static List<DataPoint> prepareDataPoints(@NotNull ListMultimap<List<String>, String> chunkMap) {
         List<DataPoint> dataPoints = new ArrayList<>();
 
         for (List<String> points : chunkMap.keySet()) {

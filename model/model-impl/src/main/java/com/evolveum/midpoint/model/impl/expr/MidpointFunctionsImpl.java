@@ -1608,11 +1608,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
             if (selfRegistrationPolicy != null) {
-                String resetPasswordSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence();
-                if (resetPasswordSequenceName != null) {
+                String selfReqistrationSequenceName = selfRegistrationPolicy.getAdditionalAuthenticationSequence();
+                if (selfReqistrationSequenceName != null) {
                     String prefix = createPrefixLinkByAuthSequence(
                             SchemaConstants.CHANNEL_SELF_REGISTRATION_URI,
-                            resetPasswordSequenceName,
+                            selfReqistrationSequenceName,
                             securityPolicy.getAuthentication().getSequence());
                     if (prefix != null) {
                         return createTokenConfirmationLink(prefix, userType);

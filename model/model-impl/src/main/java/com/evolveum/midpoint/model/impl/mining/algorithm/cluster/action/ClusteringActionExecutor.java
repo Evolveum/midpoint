@@ -7,21 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action;
 
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisObjectUtils.*;
-
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.mining.algorithm.BaseAction;
-
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.mining.algorithm.BaseAction;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -37,13 +34,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * <p>
  * This action also updates session object with information about clusters.
  */
-public class ClusteringAction extends BaseAction {
+public class ClusteringActionExecutor extends BaseAction {
 
     private Clusterable clusterable;
 
-    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering", 7, this::incrementProgress);
+    private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
+            7, this::incrementProgress);
 
-    public ClusteringAction(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+    public ClusteringActionExecutor(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
         super(activityRun);
     }
 
@@ -51,17 +49,19 @@ public class ClusteringAction extends BaseAction {
      * Executes the clustering action for the specified session and imports the resulting clusters into the repository.
      *
      * @param sessionOid The OID of the role analysis session to process.
-     * @param result     The operation result to record the outcome.
+     * @param result The operation result to record the outcome.
      */
-    public void execute(String sessionOid, @NotNull OperationResult result) {
+    public void execute(@NotNull String sessionOid, @NotNull OperationResult result) {
 
         var task = activityRun.getRunningTask();
         ModelService modelService = ModelBeans.get().modelService;
+        RoleAnalysisService roleAnalysisService = ModelBeans.get().roleAnalysisService;
 
-        PrismObject<RoleAnalysisSessionType> prismSession = getSessionTypeObject(modelService, sessionOid, task, result);
+        PrismObject<RoleAnalysisSessionType> prismSession = roleAnalysisService.getSessionTypeObject(
+                sessionOid, task, result);
         if (prismSession != null) {
 
-            deleteRoleAnalysisSessionClusters(modelService, prismSession.getOid(), task, result);
+            roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result);
 
             RoleAnalysisProcessModeType processMode = prismSession.asObjectable().getProcessMode();
             if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
@@ -72,20 +72,21 @@ public class ClusteringAction extends BaseAction {
 
             RoleAnalysisSessionType session = prismSession.asObjectable();
             List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
-                    clusterable.executeClustering(session, modelService, handler, task, result);
+                    clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
 
             if (clusterObjects != null && !clusterObjects.isEmpty()) {
-                importObjects(clusterObjects, session, modelService, task, result);
+                importObjects(roleAnalysisService, clusterObjects, session, task, result);
             }
 
         }
     }
 
     private void importObjects(
-            List<PrismObject<RoleAnalysisClusterType>> clusters,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull List<PrismObject<RoleAnalysisClusterType>> clusters,
             @NotNull RoleAnalysisSessionType session,
-            ModelService modelService,
-            Task task, OperationResult result) {
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         String sessionOid = session.getOid();
 
         ObjectReferenceType sessionRef = new ObjectReferenceType();
@@ -119,7 +120,8 @@ public class ClusteringAction extends BaseAction {
             objectReferenceType.setOid(clusterTypePrismObject.getOid());
             objectReferenceType.setType(complexType);
 
-            importRoleAnalysisClusterObject(modelService, clusterTypePrismObject, session.getDefaultDetectionOption(), sessionRef, task, result
+            roleAnalysisService.importCluster(
+                    clusterTypePrismObject, session.getDefaultDetectionOption(), sessionRef, task, result
             );
         }
         result.getSubresults().get(0).close();
@@ -133,10 +135,9 @@ public class ClusteringAction extends BaseAction {
 
         handler.enterNewStep("Update Session");
         handler.setOperationCountToProcess(clusters.size());
-        modifySessionAfterClustering(modelService, sessionRef,
-                sessionStatistic,
-                task, result
-        );
+        roleAnalysisService
+                .updateSessionStatistics(sessionRef, sessionStatistic, task, result
+                );
     }
 
 }

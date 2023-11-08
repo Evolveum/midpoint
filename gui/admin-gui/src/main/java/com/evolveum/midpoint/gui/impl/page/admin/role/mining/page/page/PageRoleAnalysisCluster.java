@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.recomputeRoleAnalysisClusterDetectionOptions;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
+
+import java.io.Serial;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -32,10 +33,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.ClusterSummaryPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -43,8 +43,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.io.Serial;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -119,11 +117,13 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
 
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectWrapper().getObject().asObjectable();
 
-        Task task = ((PageBase) getPage()).createSimpleTask(OP_PATTERN_DETECTION);
-        ModelService modelService = ((PageBase) getPage()).getModelService();
+        PageBase pageBase = (PageBase) getPage();
+        Task task = pageBase.createSimpleTask(OP_PATTERN_DETECTION);
         DetectionOption detectionOption = new DetectionOption(cluster);
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-        recomputeRoleAnalysisClusterDetectionOptions(modelService, clusterOid, detectionOption, task, result);
+        roleAnalysisService.recomputeClusterDetectionOptions(clusterOid, detectionOption,
+                task, result);
 
         executeDetectionTask(result, task, clusterOid);
 
@@ -180,11 +180,12 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         PageBase pageBase = (PageBase) getPage();
         Task task = pageBase.createSimpleTask(OP_RECOMPUTE_SESSION_STAT);
         OperationResult result = task.getResult();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
         RoleAnalysisClusterType cluster = getModelWrapperObject().getObjectOld().asObjectable();
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-        RoleAnalysisObjectUtils.recomputeSessionStatic(pageBase.getModelService(), roleAnalysisSessionRef.getOid(), cluster, task, result);
-
+        roleAnalysisService.recomputeSessionStatics(
+                roleAnalysisSessionRef.getOid(), cluster, task, result);
     }
 
     public PageRoleAnalysisCluster() {

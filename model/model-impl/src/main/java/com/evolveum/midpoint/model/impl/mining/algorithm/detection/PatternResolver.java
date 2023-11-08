@@ -13,6 +13,8 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -32,14 +34,16 @@ public class PatternResolver implements DetectionOperation, Serializable {
      * Performs user-based pattern detection based on the provided mining role type chunks, detection options,
      * and a progress increment handler.
      *
-     * @param miningRoleTypeChunks           The mining role type chunks to analyze.
-     * @param detectionOption                The detection options to configure the detection process.
-     * @param handler                        The progress increment handler for tracking the detection process.
+     * @param miningRoleTypeChunks The mining role type chunks to analyze.
+     * @param detectionOption The detection options to configure the detection process.
+     * @param handler The progress increment handler for tracking the detection process.
      * @return A list of detected patterns based on user-based detection criteria.
      */
     @Override
-    public List<DetectedPattern> performUserBasedDetection(List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            DetectionOption detectionOption, RoleAnalysisProgressIncrement handler) {
+    public @NotNull List<DetectedPattern> performUserBasedDetection(
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            @NotNull DetectionOption detectionOption,
+            @NotNull RoleAnalysisProgressIncrement handler) {
 
         handler.enterNewStep("Pattern Detection");
         handler.setActive(true);
@@ -167,14 +171,15 @@ public class PatternResolver implements DetectionOperation, Serializable {
      * Performs role-based pattern detection based on the provided mining user type chunks, detection options,
      * and a progress increment handler.
      *
-     * @param miningUserTypeChunks            The mining user type chunks to analyze.
+     * @param miningUserTypeChunks The mining user type chunks to analyze.
      * @param roleAnalysisSessionDetectionOptionType The detection options to configure the detection process.
-     * @param handler                        The progress increment handler for tracking the detection process.
+     * @param handler The progress increment handler for tracking the detection process.
      * @return A list of detected patterns based on role-based detection criteria.
      */
     @Override
-    public List<DetectedPattern> performRoleBasedDetection(List<MiningUserTypeChunk> miningUserTypeChunks,
-            DetectionOption roleAnalysisSessionDetectionOptionType, RoleAnalysisProgressIncrement handler) {
+    public @NotNull List<DetectedPattern> performRoleBasedDetection(@NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
+            @NotNull DetectionOption roleAnalysisSessionDetectionOptionType,
+            @NotNull RoleAnalysisProgressIncrement handler) {
 
         handler.enterNewStep("Data Preparation");
         handler.setActive(true);
