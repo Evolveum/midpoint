@@ -19,9 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,11 +49,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.clusterMigrationRecompute;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisObjectUtils.getRoleTypeObject;
 
 @PageDescriptor(
         urls = {
