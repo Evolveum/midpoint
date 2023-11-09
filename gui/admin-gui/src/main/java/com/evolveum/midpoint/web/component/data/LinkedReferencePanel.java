@@ -67,7 +67,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 if (value.getObject() == null) {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT);
                     OperationResult result = task.getResult();
-                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(), getPageBase(),
+                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.resolveReferenceNoFetch(getModelObject(), getPageBase(),
                             task, result);
                     if (referencedObject != null) {
                         value.setObject(referencedObject.clone());

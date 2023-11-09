@@ -114,7 +114,6 @@ public class PageCases extends PageAdmin {
     private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
         return getOperationOptionsBuilder()
                 .item(CaseType.F_OBJECT_REF).resolve()
-                .item(CaseType.F_TARGET_REF).resolve()
                 .build();
     }
 

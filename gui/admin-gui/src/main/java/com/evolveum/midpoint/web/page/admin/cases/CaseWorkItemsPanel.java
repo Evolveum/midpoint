@@ -165,9 +165,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     private ContainerListDataProvider<CaseWorkItemType> createProvider(IModel<Search<CaseWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
-                .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()
-                .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).resolve()
-                .item(PrismConstants.T_PARENT, CaseType.F_TARGET_REF).resolve()
+                .resolveNames()
                 .build();
         ContainerListDataProvider<CaseWorkItemType> provider = new ContainerListDataProvider<>(this,
                 searchModel, options) {
