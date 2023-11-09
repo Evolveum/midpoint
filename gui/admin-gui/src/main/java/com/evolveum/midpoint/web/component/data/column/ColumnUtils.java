@@ -662,7 +662,7 @@ public class ColumnUtils {
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), true, pageBase));
+                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), false, pageBase));
             }
 
             @Override
