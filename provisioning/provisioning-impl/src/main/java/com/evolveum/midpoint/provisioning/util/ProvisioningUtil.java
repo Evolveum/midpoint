@@ -19,6 +19,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -545,8 +545,7 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
-    @Nullable
-    public static PrismObject<ShadowType> selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
+    public static @Nullable ShadowType selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
         LOGGER.trace("Selecting from {} objects", shadows.size());
 
         if (shadows.isEmpty()) {
@@ -556,7 +555,7 @@ public class ProvisioningUtil {
             LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
             throw new IllegalStateException("More than one shadow for " + context);
         } else {
-            return shadows.get(0);
+            return shadows.get(0).asObjectable();
         }
     }
 
@@ -564,12 +563,11 @@ public class ProvisioningUtil {
      * As {@link #selectSingleShadow(List, Object)} but allows the existence of multiple dead shadows
      * (if single live shadow exists). Not very nice! Transitional solution until better one is found.
      */
-    @Nullable
-    public static PrismObject<ShadowType> selectSingleShadowRelaxed(
+    public static @Nullable ShadowType selectSingleShadowRelaxed(
             @NotNull List<PrismObject<ShadowType>> shadows, Object context) {
         var singleLive = selectLiveShadow(shadows, context);
         if (singleLive != null) {
-            return singleLive;
+            return singleLive.asObjectable();
         }
 
         // all remaining shadows (if any) are dead
@@ -580,7 +578,7 @@ public class ProvisioningUtil {
             LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
             throw new IllegalStateException("More than one [dead] shadow for " + context);
         } else {
-            return shadows.get(0);
+            return shadows.get(0).asObjectable();
         }
     }
 
@@ -598,7 +596,7 @@ public class ProvisioningUtil {
         if (liveShadows.isEmpty()) {
             return null;
         } else if (liveShadows.size() > 1) {
-            LOGGER.trace("More than one live shadow found ({} out of {}) {}\n{}",
+            LOGGER.error("More than one live shadow found ({} out of {}) {}\n{}",
                     liveShadows.size(), shadows.size(), context, DebugUtil.debugDumpLazily(shadows, 1));
             // TODO: handle "more than one shadow" case for conflicting shadows - MID-4490
             throw new IllegalStateException("Found more than one live shadow " + context + ": " + liveShadows);
@@ -622,6 +620,13 @@ public class ProvisioningUtil {
         } else {
             return shadows.get(0).asObjectable();
         }
+    }
+
+    // TODO better place?
+    public static @NotNull PrismProperty<?> getSingleValuedPrimaryIdentifierRequired(ShadowType shadow) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                getSingleValuedPrimaryIdentifier(shadow),
+                () -> "No primary identifier value in " + ShadowUtil.shortDumpShadow(shadow));
     }
 
     // TODO better place?
@@ -676,17 +681,5 @@ public class ProvisioningUtil {
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(shadow);
         }
-    }
-
-    public static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(
-            Collection<ResourceAttribute<?>> identifiers, ResourceObjectDefinition def) {
-
-        Collection<ItemName> primaryIdentifiers = def.getPrimaryIdentifiers().stream()
-                .map(ItemDefinition::getItemName)
-                .collect(Collectors.toSet());
-
-        return identifiers.stream()
-                .filter(attr -> QNameUtil.matchAny(attr.getElementName(), primaryIdentifiers))
-                .collect(Collectors.toList());
     }
 }

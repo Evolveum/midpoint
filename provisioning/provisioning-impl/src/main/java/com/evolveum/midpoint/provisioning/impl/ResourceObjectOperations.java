@@ -10,9 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -22,10 +23,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class ResourceObjectOperations {
 
-    private final Collection<Operation> operations = new ArrayList<>();
+    /** Low-level (transformed, elementary) operations to be executed. */
+    @NotNull private final Collection<Operation> ucfOperations = new ArrayList<>();
+
+    /** TODO */
     private ShadowType currentShadow = null;
-    private ProvisioningContext resourceObjectContext = null;
-    private Collection<? extends ResourceAttribute<?>> allIdentifiers;
+
+    /** The context in which the operations will be carried out. */
+    @NotNull private final ProvisioningContext resourceObjectContext;
+
+    /** TODO */
+    @Nullable private final ResourceObjectIdentifiers.WithPrimary allIdentifiers;
+
+    public ResourceObjectOperations(
+            @NotNull ProvisioningContext resourceObjectContext,
+            @Nullable ResourceObjectIdentifiers.WithPrimary allIdentifiers) {
+        this.resourceObjectContext = resourceObjectContext;
+        this.allIdentifiers = allIdentifiers;
+    }
 
     public ShadowType getCurrentShadow() {
         return currentShadow;
@@ -35,35 +50,29 @@ public class ResourceObjectOperations {
         this.currentShadow = currentShadow;
     }
 
-    public ProvisioningContext getResourceObjectContext() {
+    public @NotNull ProvisioningContext getResourceObjectContext() {
         return resourceObjectContext;
     }
 
-    public void setResourceObjectContext(ProvisioningContext resourceObjectContext) {
-        this.resourceObjectContext = resourceObjectContext;
+    public @NotNull Collection<Operation> getUcfOperations() {
+        return ucfOperations;
     }
 
-    @NotNull public Collection<Operation> getUcfOperations() {
-        return operations;
-    }
-
-    public void add(Operation operation) {
-        if (!operations.contains(operation)) {
-            operations.add(operation);
+    public void add(@NotNull Operation operation) {
+        if (!ucfOperations.contains(operation)) {
+            ucfOperations.add(operation);
         }
     }
 
-    public Collection<? extends ResourceAttribute<?>> getAllIdentifiers() {
+    public @Nullable ResourceObjectIdentifiers.WithPrimary getAllIdentifiers() {
         return allIdentifiers;
-    }
-
-    public void setAllIdentifiers(Collection<? extends ResourceAttribute<?>> allIdentifiers) {
-        this.allIdentifiers = allIdentifiers;
     }
 
     @Override
     public String toString() {
-        return "ResourceObjectOperations(operations=" + operations + ", currentShadow=" + currentShadow
+        return "ResourceObjectOperations("
+                + "operations=" + ucfOperations
+                + ", currentShadow=" + currentShadow
                 + ", ctx=" + resourceObjectContext + ")";
     }
 }

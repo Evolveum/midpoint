@@ -10,8 +10,6 @@ import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
@@ -20,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -33,10 +31,10 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -116,10 +114,12 @@ class ResourceObjectReferenceResolver {
                 ExpressionUtil.evaluateQueryExpressions(
                         refQuery, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
                         desc, ctx.getTask(), result);
-        ObjectFilter baseFilter =
-                ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClassName);
-        ObjectFilter filter = prismContext.queryFactory().createAnd(baseFilter, evaluatedRefQuery.getFilter());
-        ObjectQuery query = prismContext.queryFactory().createQuery(filter);
+
+        ObjectFilter completeFilter = prismContext.queryFactory().createAnd(
+                ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClassName),
+                evaluatedRefQuery.getFilter());
+
+        ObjectQuery completeQuery = prismContext.queryFactory().createQuery(completeFilter);
 
         // TODO: implement "repo" search strategies, don't forget to apply definitions
 
@@ -132,7 +132,7 @@ class ResourceObjectReferenceResolver {
             return true;
         };
 
-        shadowsFacade.searchObjectsIterative(subCtx, query, null, handler, result);
+        shadowsFacade.searchObjectsIterative(subCtx, completeQuery, null, handler, result);
 
         // TODO: implement storage of OID (ONCE search frequency)
 
@@ -146,53 +146,37 @@ class ResourceObjectReferenceResolver {
      * Actually, we could be more courageous, and reject dead shadows altogether, as we use the result for object fetching;
      * but there is a theoretical chance that the shadow is dead in the repo but alive on the resource.
      */
-    @SuppressWarnings("unchecked")
-    ResourceObjectIdentification.Primary resolvePrimaryIdentifiers(
-            ProvisioningContext ctx, ResourceObjectIdentification identification, OperationResult result)
+    ResourceObjectIdentification.WithPrimary resolvePrimaryIdentifier(
+            ProvisioningContext ctx, ResourceObjectIdentification<?> identification, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         if (identification == null) {
             return null;
         }
-        if (identification instanceof ResourceObjectIdentification.Primary primary) {
+        if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
             return primary;
         }
-        Collection<ResourceAttribute<?>> secondaryIdentifiers =
-                (Collection<ResourceAttribute<?>>) identification.getSecondaryIdentifiers();
-        PrismObject<ShadowType> repoShadow = shadowFinder.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
+        ShadowType repoShadow = shadowFinder.lookupShadowByAnyIdentifier(ctx, identification.getSecondaryIdentifiers(), result);
         if (repoShadow == null) {
             // TODO: we could attempt resource search here
             throw new ObjectNotFoundException(
                     "No repository shadow for %s, cannot resolve identifiers (%s)".formatted(
-                            secondaryIdentifiers, ctx.getExceptionDescription()),
+                            identification, ctx.getExceptionDescription()),
                     ShadowType.class,
                     null);
         }
-        shadowsFacade.applyDefinition(repoShadow, ctx.getTask(), result);
-        PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
-        if (attributesContainer == null) {
-            throw new SchemaException(
-                    "No attributes in %s, cannot resolve identifiers %s (%s)".formatted(
-                            repoShadow, secondaryIdentifiers, ctx.getExceptionDescription()));
-        }
-        ResourceObjectDefinition objDef = ctx.getObjectDefinitionRequired();
-        Collection<ResourceAttribute<?>> primaryIdentifiers = new ArrayList<>();
-        for (Item<?, ?> item: attributesContainer.getValue().getItems()) {
-            ItemName itemName = item.getElementName();
-            if (objDef.isPrimaryIdentifier(itemName)) {
-                ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinitionRequired(itemName);
-                @SuppressWarnings("rawtypes")
-                ResourceAttribute primaryIdentifier = attrDef.instantiate();
-                primaryIdentifier.setRealValue(item.getRealValue());
-                primaryIdentifiers.add(primaryIdentifier);
-            }
-        }
-        LOGGER.trace("Resolved {} to primary identifiers {} (object class {})", identification, primaryIdentifiers, objDef);
-        if (primaryIdentifiers.isEmpty()) {
-            throw new SchemaException(
-                    "No primary identifiers in %s (secondary identifiers: %s) in %s".formatted(
-                            repoShadow, secondaryIdentifiers, ctx.getExceptionDescription()));
-        }
-        return identification.primary(primaryIdentifiers);
+
+        var shadowCtx = ctx.applyAttributesDefinition(repoShadow);
+
+        ResourceObjectDefinition objDef = shadowCtx.getObjectDefinitionRequired();
+        ResourceObjectIdentifier.Primary<?> primaryIdentifier =
+                ResourceObjectIdentifiers.of(objDef, repoShadow)
+                        .getPrimaryIdentifierRequired();
+
+        LOGGER.trace("Resolved {} to {} (object class {})", identification, primaryIdentifier, objDef);
+
+        // The secondary identifiers may be different between the fetched shadow and original values provided by client.
+        // Let us ignore that for now, and provide the original values with the resolved primary identifier.
+        return identification.withPrimary(primaryIdentifier);
     }
 }

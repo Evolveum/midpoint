@@ -7,19 +7,15 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import java.util.Collection;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
  * Handles `locate` and `fetch` method calls:
  *
  * - {@link ResourceObjectConverter#locateResourceObject(ProvisioningContext, ResourceObjectIdentification, boolean, OperationResult)}
- * - {@link ResourceObjectConverter#fetchResourceObject(ProvisioningContext, ResourceObjectIdentification.Primary,
+ * - {@link ResourceObjectConverter#fetchResourceObject(ProvisioningContext, ResourceObjectIdentification.WithPrimary,
  * AttributesToReturn, ShadowType, boolean, OperationResult)}
  * - plus "fetch raw" called from various places, mainly related to entitlements
  *
@@ -46,11 +42,11 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectLocateOrFetchOperation.class);
 
-    @NotNull private final ResourceObjectIdentification identification;
+    @NotNull private final ResourceObjectIdentification<?> identification;
 
     private ResourceObjectLocateOrFetchOperation(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectIdentification identification,
+            @NotNull ResourceObjectIdentification<?> identification,
             boolean fetchAssociations,
             @Nullable FetchErrorReportingMethodType errorReportingMethod) {
         super(ctx, fetchAssociations, errorReportingMethod);
@@ -63,7 +59,7 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
      */
     static CompleteResourceObject executeLocate(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectIdentification identification,
+            @NotNull ResourceObjectIdentification<?> identification,
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
@@ -78,7 +74,7 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
      */
     static @Nullable CompleteResourceObject executeFetch(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectIdentification.Primary identification,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             boolean fetchAssociations,
             @Nullable AttributesToReturn attributesToReturn,
             @Nullable ShadowType repoShadow,
@@ -90,7 +86,7 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
     }
 
     /**
-     * As {@link #executeFetch(ProvisioningContext, ResourceObjectIdentification.Primary, boolean, AttributesToReturn,
+     * As {@link #executeFetch(ProvisioningContext, ResourceObjectIdentification.WithPrimary, boolean, AttributesToReturn,
      * ShadowType, OperationResult)} but without the "post-processing" contained in
      * {@link ResourceObjectFound#completeResourceObject(ProvisioningContext, ResourceObject, boolean, OperationResult)}.
      *
@@ -98,7 +94,7 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
      */
     static ResourceObject executeFetchRaw(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectIdentification identification,
+            @NotNull ResourceObjectIdentification<?> identification,
             @Nullable ShadowType repoShadow,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
@@ -113,7 +109,7 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
 
         LOGGER.trace("Locating resource object {}", identification);
 
-        if (identification.hasPrimaryIdentifiers()) {
+        if (identification.hasPrimaryIdentifier()) {
             return fetch(
                     ctx.createAttributesToReturn(),
                     null,
@@ -139,6 +135,9 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
     /**
      * Note that the identifiers here can be either primary or secondary.
      * In the latter case, the repository is used to find the primary identifier.
+     *
+     * Can return `null` only if the resource is caching only, and no `repoShadow` is provided.
+     * (Probably not quite right approach!)
      *
      * @param repoShadow Used when read capability is "caching only"
      */
@@ -168,7 +167,7 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
             }
 
             var primaryIdentification =
-                    b.resourceObjectReferenceResolver.resolvePrimaryIdentifiers(ctx, identification, result);
+                    b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identification, result);
             var object = connector.fetchObject(primaryIdentification, attributesToReturn, ctx.getUcfExecutionContext(), result);
             return ResourceObject.from(object);
         } catch (ObjectNotFoundException e) {
@@ -208,35 +207,22 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
             throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
             ConfigurationException, ExpressionEvaluationException {
 
-        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdDefs = objectDefinition.getSecondaryIdentifiers();
-        LOGGER.trace("Searching by secondary identifier(s) {}, using values of: {}", secondaryIdDefs, identification);
-        if (secondaryIdDefs.isEmpty()) {
-            throw new SchemaException( // Shouldn't be ConfigurationException?
-                    String.format("No secondary identifier(s) defined, cannot search for secondary identifiers among %s (%s)",
-                            identification, ctx.getExceptionDescription()));
-        }
-
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 
-        for (ResourceAttributeDefinition<?> secondaryIdDef : secondaryIdDefs) {
-            ItemName identifierName = secondaryIdDef.getItemName();
-            var identifierValue = identification.getSecondaryIdentifierValue(identifierName);
-            if (identifierValue == null) {
-                LOGGER.trace("Secondary identifier {} is not provided, will try another one (if available)", secondaryIdDef);
-                continue;
-            }
+        var secondaryIdentifiers = identification.getSecondaryIdentifiers();
 
+        LOGGER.trace("Searching by {}", secondaryIdentifiers);
+        for (var secondaryIdentifier: secondaryIdentifiers) {
             ObjectQuery query = PrismContext.get().queryFor(ShadowType.class)
-                    .itemWithDef(secondaryIdDef, ShadowType.F_ATTRIBUTES, identifierName)
-                    .eq(identifierValue)
+                    .item(secondaryIdentifier.getSearchPath(), secondaryIdentifier.getDefinition())
+                    .eq(secondaryIdentifier.getValue())
                     .build();
             Holder<ResourceObject> objectHolder = new Holder<>();
             UcfObjectHandler handler = (ucfObject, lResult) -> {
                 if (!objectHolder.isEmpty()) {
                     throw new IllegalStateException(
-                            String.format("More than one object found for secondary identifier %s='%s' (%s)",
-                                    identifierName, identifierValue, ctx.getExceptionDescription()));
+                            String.format("More than one object found for %s (%s)",
+                                    secondaryIdentifier, ctx.getExceptionDescription()));
                 }
                 objectHolder.setValue(ResourceObject.from(ucfObject));
                 return true;
@@ -244,7 +230,7 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
             try {
                 // TODO constraints? scope?
                 connector.search(
-                        objectDefinition,
+                        ctx.getObjectDefinitionRequired(),
                         query,
                         handler,
                         ctx.createAttributesToReturn(),
@@ -256,8 +242,8 @@ class ResourceObjectLocateOrFetchOperation extends AbstractResourceObjectSearchO
                 if (objectHolder.isEmpty()) {
                     // We could consider continuing with another secondary identifier, but let us keep the original behavior.
                     throw new ObjectNotFoundException(
-                            String.format("No object found for secondary identifier %s='%s' (%s)",
-                                    identifierName, identifierValue, ctx.getExceptionDescription(connector)),
+                            String.format("No object found for %s (%s)",
+                                    secondaryIdentifier, ctx.getExceptionDescription(connector)),
                             ShadowType.class,
                             null,
                             ctx.isAllowNotFound());

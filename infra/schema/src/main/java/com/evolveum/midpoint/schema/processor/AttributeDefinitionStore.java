@@ -50,7 +50,7 @@ public interface AttributeDefinitionStore
         return getAttributeDefinitions().stream()
                 .filter(def -> type.isAssignableFrom(def.getClass()))
                 .map(def -> (AD) def)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     /**
@@ -140,13 +140,6 @@ public interface AttributeDefinitionStore
      */
     default boolean containsAttributeDefinition(@NotNull QName attributeName) {
         return findAttributeDefinition(attributeName) != null;
-    }
-
-    default Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
-        return getAttributeDefinitions().stream()
-                .filter(attrDef -> attrDef.getOutboundMappingBean() != null)
-                .map(ItemDefinition::getItemName)
-                .collect(Collectors.toCollection(HashSet::new));
     }
 
     default Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {

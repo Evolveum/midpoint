@@ -26,8 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.util.MiscUtil.getClassWithMessage;
-
 /**
  * Processing of retrieved resource objects that is common for search and sync operations.
  *
@@ -78,7 +76,7 @@ public abstract class AbstractShadowedEntity implements InitializableObjectMixin
 
     //region Shadow acquisition
 
-    /** Looks up and creates (if needed) a shadow for the resource object (in {@link #getResourceObject()}). */
+    /** Looks up and creates (if needed) a shadow for the resource object (in {@link #getResourceObject()}). Deals with errors. */
     @NotNull ShadowType acquireRepoShadow(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException,
             SecurityViolationException {

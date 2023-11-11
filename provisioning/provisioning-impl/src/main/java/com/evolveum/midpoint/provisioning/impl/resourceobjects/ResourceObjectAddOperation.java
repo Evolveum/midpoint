@@ -161,11 +161,10 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
                 // that we normally do not need or want.
                 return;
             }
-            ResourceObjectIdentification identification =
-                    ResourceObjectIdentification
-                            .fromShadow(ctx.getObjectDefinitionRequired(), shadowClone);
+            ResourceObjectIdentification<?> identification =
+                    ResourceObjectIdentification.fromIncompleteShadow(ctx.getObjectDefinitionRequired(), shadowClone);
 
-            if (identification instanceof ResourceObjectIdentification.Primary primaryIdentification) {
+            if (identification instanceof ResourceObjectIdentification.WithPrimary primaryIdentification) {
                 existingObject = readConnector.fetchObject(
                         primaryIdentification, null, ctx.getUcfExecutionContext(), result);
             } else {

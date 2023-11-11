@@ -261,9 +261,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
-    @NotNull
-    private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ResourceObjectDefinition ocDef,
-            Holder<Object> primaryIdentifierRealValueHolder) throws SchemaException {
+    private @NotNull Collection<ResourceAttribute<?>> getIdentifiers(
+            UcfChangeType changeBean, ResourceObjectDefinition ocDef, Holder<Object> primaryIdentifierRealValueHolder)
+            throws SchemaException {
         Collection<ResourceAttribute<?>> rv = new ArrayList<>();
         PrismContainerValue<ShadowAttributesType> attributesPcv;
         boolean mayContainNonIdentifiers;
@@ -291,7 +291,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 ResourceAttribute<Object> resourceAttribute;
                 if (attribute instanceof ResourceAttribute) {
                     //noinspection unchecked
-                    resourceAttribute = ((ResourceAttribute) attribute).clone();
+                    resourceAttribute = ((ResourceAttribute<Object>) attribute).clone();
                 } else {
                     //noinspection unchecked
                     ResourceAttributeDefinition<Object> definition =

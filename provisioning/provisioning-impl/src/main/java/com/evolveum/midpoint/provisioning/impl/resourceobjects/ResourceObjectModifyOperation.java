@@ -55,7 +55,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
     @NotNull private final ProvisioningContext ctx;
     @NotNull private final ResourceObjectDefinition objectDefinition;
-    @NotNull private final ResourceObjectIdentification.Primary identification;
+    @NotNull private final ResourceObjectIdentification.WithPrimary identification;
     @NotNull private final ShadowType repoShadow;
     private final Collection<? extends ItemDelta<?, ?>> itemDeltas;
     private final XMLGregorianCalendar now;

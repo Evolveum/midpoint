@@ -273,7 +273,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification.Primary resourceObjectIdentification,
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
             AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
@@ -298,7 +298,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
+    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
+            PrismObject<? extends ShadowType> object,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
         return null;
@@ -306,7 +307,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification.Primary identification,
+            ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
@@ -318,11 +319,10 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationResult deleteObject(
-            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers,
             UcfExecutionContext ctx,
-            OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("deleteObject");
         return null;
     }

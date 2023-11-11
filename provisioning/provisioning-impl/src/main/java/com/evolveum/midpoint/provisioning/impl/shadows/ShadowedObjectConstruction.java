@@ -9,30 +9,25 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
-
-import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -389,7 +384,6 @@ class ShadowedObjectConstruction {
         // TODO should we cache the entitlement resource object?
         //  (If yes, maybe we should retrieve also the associations below?)
 
-        Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
         UcfResourceObject providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY);
         if (providedResourceObject != null) {
             return ShadowAcquisition.acquireRepoShadow(
@@ -404,7 +398,10 @@ class ShadowedObjectConstruction {
                 return existingLiveRepoShadow;
             }
 
-            var entitlementIdentification = ctxEntitlement.getIdentificationFromAttributes(entitlementIdentifiers);
+            // TODO using the secondary identifiers in this context is quite questionable: if we weren't able to find the object
+            //  in the repo using all identifiers (above), we will probably not find it here neither. Maybe only if it's dead?
+            var entitlementIdentification = ResourceObjectIdentification.fromAssociationValue(
+                    ctxEntitlement.getObjectDefinitionRequired(), associationValue);
             CompleteResourceObject fetchedResourceObject = b.resourceObjectConverter
                     .locateResourceObject(ctxEntitlement, entitlementIdentification, false, result);
 
@@ -442,18 +439,6 @@ class ShadowedObjectConstruction {
                     + " couldn't be found in " + ctx);
         }
         return rEntitlementAssociationDef;
-    }
-
-    @Contract("_, null -> fail")
-    private @NotNull Collection<ResourceAttribute<?>> getEntitlementIdentifiers(
-            PrismContainerValue<ShadowAssociationType> associationValue, ResourceAttributeContainer identifierContainer) {
-        Collection<ResourceAttribute<?>> entitlementIdentifiers = identifierContainer != null ?
-                identifierContainer.getAttributes() : null;
-        if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
-            throw new IllegalStateException(
-                    "No entitlement identifiers present for association " + associationValue + " " + ctx.getDesc());
-        }
-        return entitlementIdentifiers;
     }
 
     private boolean doesAssociationMatch(

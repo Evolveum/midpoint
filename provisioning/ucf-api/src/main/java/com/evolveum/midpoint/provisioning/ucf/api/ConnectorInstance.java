@@ -201,7 +201,7 @@ public interface ConnectorInstance {
      * @throws SchemaException error converting object from native (connector) format
      */
     UcfResourceObject fetchObject(
-            ResourceObjectIdentification.Primary resourceObjectIdentification,
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
             AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx,
             OperationResult parentResult)
@@ -313,7 +313,7 @@ public interface ConnectorInstance {
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
     AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification.Primary identification,
+            ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
@@ -322,12 +322,16 @@ public interface ConnectorInstance {
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
+    /**
+     * Deletes the specified object.
+     *
+     * Currently, some implementations may accept secondary-only identification. Some (e.g. ConnId) may not.
+     */
     AsynchronousOperationResult deleteObject(
-            @NotNull ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers,
-            UcfExecutionContext ctx,
-            OperationResult result)
+            @NotNull ResourceObjectIdentification<?> identification,
+            @Nullable PrismObject<ShadowType> shadow,
+            @Nullable UcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 

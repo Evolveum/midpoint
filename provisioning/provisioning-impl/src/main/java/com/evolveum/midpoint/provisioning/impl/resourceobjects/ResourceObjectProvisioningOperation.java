@@ -13,9 +13,9 @@ import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -155,22 +155,19 @@ abstract class ResourceObjectProvisioningOperation {
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ObjectAlreadyExistsException {
 
-        var roMap = objectsOperations.roMap; // TODO
-        getLogger().trace("Executing entitlement changes, roMap:\n{}", DebugUtil.debugDumpLazily(roMap, 1));
+        getLogger().trace("Executing entitlement changes, roMap:\n{}", objectsOperations.debugDumpLazily(1));
 
-        for (Map.Entry<ResourceObjectDiscriminator, ResourceObjectOperations> entry : roMap.entrySet()) {
+        for (Map.Entry<ResourceObjectDiscriminator, ResourceObjectOperations> entry : objectsOperations.roMap.entrySet()) {
             ResourceObjectDiscriminator disc = entry.getKey();
             ProvisioningContext entitlementCtx = entry.getValue().getResourceObjectContext();
-            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = disc.getPrimaryIdentifiers();
             ResourceObjectOperations resourceObjectOperations = entry.getValue();
-            Collection<? extends ResourceAttribute<?>> allIdentifiers = resourceObjectOperations.getAllIdentifiers();
-            if (allIdentifiers == null || allIdentifiers.isEmpty()) {
-                allIdentifiers = primaryIdentifiers;
-            }
+            ResourceObjectIdentifiers identifiers = Objects.requireNonNullElse(
+                    resourceObjectOperations.getAllIdentifiers(), // if present, this contains the primary identifier
+                    disc.identifiers()); // may or may not contain the primary identifier
             Collection<Operation> operations = resourceObjectOperations.getUcfOperations();
 
             getLogger().trace("Executing entitlement change identifiers={}:\n{}",
-                    allIdentifiers, DebugUtil.debugDumpLazily(operations, 1));
+                    identifiers, DebugUtil.debugDumpLazily(operations, 1));
 
             OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
             try {
@@ -178,7 +175,7 @@ abstract class ResourceObjectProvisioningOperation {
                 ResourceObjectUcfModifyOperation.execute(
                         entitlementCtx,
                         entry.getValue().getCurrentShadow(),
-                        entitlementCtx.getIdentificationFromAttributes(allIdentifiers),
+                        ResourceObjectIdentification.of(entitlementCtx.getObjectDefinitionRequired(), identifiers),
                         operations,
                         null,
                         result,
@@ -210,7 +207,7 @@ abstract class ResourceObjectProvisioningOperation {
 
     ShadowType preOrPostRead(
             ProvisioningContext ctx,
-            ResourceObjectIdentification.Primary identification,
+            ResourceObjectIdentification.WithPrimary identification,
             Collection<Operation> operations,
             boolean fetchEntitlements,
             ShadowType repoShadow,

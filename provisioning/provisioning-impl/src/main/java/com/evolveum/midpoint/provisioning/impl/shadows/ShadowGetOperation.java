@@ -169,7 +169,7 @@ class ShadowGetOperation {
 
         ResourceObject resourceObject;
         OperationResult result = parentResult.createSubresult(OP_GET_RESOURCE_OBJECT);
-        result.addArbitraryObjectCollectionAsParam("identifiers", identification.getPrimaryIdentifiers());
+        result.addArbitraryObjectAsParam("identification", identification);
         result.addArbitraryObjectAsParam("context", ctx);
         try {
             resourceObject = getResourceObject(identification, result).resourceObject();
@@ -209,7 +209,9 @@ class ShadowGetOperation {
             @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (providedRepositoryShadow != null) {
             LOGGER.trace("Start getting '{}' (opts {})", providedRepositoryShadow, options);
-            argCheck(oid.equals(providedRepositoryShadow.getOid()), "Provided OID is not equal to OID of repository shadow");
+            argCheck(
+                    oid.equals(providedRepositoryShadow.getOid()),
+                    "Provided OID is not equal to OID of repository shadow");
             if (providedRepositoryShadow.isImmutable()) {
                 return providedRepositoryShadow.clone();
             } else {
@@ -218,10 +220,7 @@ class ShadowGetOperation {
         } else {
             LOGGER.trace("Start getting shadow '{}' (opts {})", oid, options);
             // Get the shadow from repository. There are identifiers that we need for accessing the object by UCF.
-            ShadowType fetchedRepositoryShadow =
-                    b().repositoryService
-                            .getObject(ShadowType.class, oid, disableReadOnly(options), result)
-                            .asObjectable();
+            ShadowType fetchedRepositoryShadow = b().shadowFinder.getShadowBean(oid, disableReadOnly(options), result);
             LOGGER.trace("Got repository shadow object:\n{}", fetchedRepositoryShadow.debugDumpLazily());
             return fetchedRepositoryShadow;
         }
@@ -322,20 +321,19 @@ class ShadowGetOperation {
     /**
      * Returns `null` in case there are no suitable identifiers but we can return the cached shadow.
      */
-    private ResourceObjectIdentification.Primary getPrimaryIdentification() throws SchemaException {
+    private ResourceObjectIdentification.WithPrimary getPrimaryIdentification() throws SchemaException {
         ResourceObjectDefinition objDef = ctx.getObjectDefinitionRequired();
         if (identifiersOverride != null) {
             LOGGER.trace("Using overridden identifiers: {}", identifiersOverride);
-            var identification = ResourceObjectIdentification.fromIdentifiers(
-                    objDef, identifiersOverride);
-            if (identification instanceof ResourceObjectIdentification.Primary primary) {
+            var identification = ResourceObjectIdentification.fromIdentifiers(objDef, identifiersOverride);
+            if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
                 return primary;
             }
             throw new SchemaException("Overridden identifiers are not primary: " + identification);
         }
 
-        var identification = ResourceObjectIdentification.fromShadow(objDef, repositoryShadow);
-        if (identification instanceof ResourceObjectIdentification.Primary primary) {
+        var identification = ResourceObjectIdentification.fromIncompleteShadow(objDef, repositoryShadow);
+        if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
             return primary;
         }
 
@@ -369,7 +367,7 @@ class ShadowGetOperation {
     }
 
     private @NotNull CompleteResourceObject getResourceObject(
-            ResourceObjectIdentification.Primary identification, OperationResult result)
+            ResourceObjectIdentification.WithPrimary identification, OperationResult result)
             throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ReturnCachedException, ObjectNotFoundException {
 
@@ -485,7 +483,7 @@ class ShadowGetOperation {
             if (classification.isKnown()) {
                 // TODO deduplicate this code somehow
                 LOGGER.debug("Classified {} as {}", repositoryShadow, classification.getDefinition());
-                repositoryShadow = b.shadowUpdater.normalizeShadowAttributesInRepository(
+                repositoryShadow = b.shadowUpdater.normalizeShadowAttributesInRepositoryAfterClassification(
                         ctx, repositoryShadow, classification, result);
                 ctx.adoptShadow(repositoryShadow);
             }

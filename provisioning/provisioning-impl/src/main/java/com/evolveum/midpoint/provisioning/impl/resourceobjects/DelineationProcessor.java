@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.processor.*;
@@ -58,8 +57,7 @@ class DelineationProcessor {
         ResourceObjectReferenceType baseContextRef = objectDef.getBaseContext();
         SearchHierarchyScope scope = objectDef.getSearchHierarchyScope();
 
-        ResourceObjectIdentification baseContextIdentification = determineBaseContextIdentification(baseContextRef, ctx, result);
-
+        var baseContextIdentification = determineBaseContextIdentification(baseContextRef, ctx, result);
         if (baseContextIdentification != null || scope != null) {
             return new SearchHierarchyConstraints(baseContextIdentification, scope);
         } else {
@@ -68,7 +66,7 @@ class DelineationProcessor {
     }
 
     @Nullable
-    private ResourceObjectIdentification determineBaseContextIdentification(
+    private ResourceObjectIdentification.WithPrimary determineBaseContextIdentification(
             ResourceObjectReferenceType baseContextRef, ProvisioningContext ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -96,7 +94,7 @@ class DelineationProcessor {
                 java.util.Objects.requireNonNull(
                         ctx.getResourceSchema().findDefinitionForShadow(baseContextShadow),
                         () -> "Couldn't determine definition for " + baseContextRef);
-        return ResourceObjectIdentification.fromShadow(baseContextObjectDefinition, baseContextShadow);
+        return ResourceObjectIdentification.fromCompleteShadow(baseContextObjectDefinition, baseContextShadow);
     }
 
     /**

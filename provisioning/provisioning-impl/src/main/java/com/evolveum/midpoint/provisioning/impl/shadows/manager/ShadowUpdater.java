@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import static com.evolveum.midpoint.prism.delta.PropertyDeltaCollectionsUtil.findPropertyDelta;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.getMatchingRule;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 import java.util.ArrayList;
@@ -20,7 +19,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 
-import org.jetbrains.annotations.Contract;
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +112,7 @@ public class ShadowUpdater {
             ShadowType repoShadow,
             Collection<? extends ItemDelta<?, ?>> modifications,
             OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ConfigurationException {
+            ObjectNotFoundException {
 
         Collection<? extends ItemDelta<?, ?>> repoModifications =
                 new ShadowDeltaComputerRelative(ctx, repoShadow, modifications, protector)
@@ -151,7 +151,7 @@ public class ShadowUpdater {
             LOGGER.trace("Applying repository shadow modifications:\n{}", debugDumpLazily(clonedModifications, 1));
             try {
                 ConstraintsChecker.onShadowModifyOperation(clonedModifications);
-                repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), clonedModifications, result);
+                executeRepoShadowModificationsRaw(repoShadow, clonedModifications, result);
                 // Maybe we should catch ObjectNotFoundException here and issue death event. But unless such deletion occurred
                 // in raw mode by the administrator, we shouldn't care, because the thread that deleted the shadow should have
                 // updated the links accordingly.
@@ -166,6 +166,19 @@ public class ShadowUpdater {
                 throw SystemException.unexpected(ex, "when updating shadow in the repository");
             }
         }
+    }
+
+    /** Central place for updating the shadows in "shadows" package. Created to easy navigation to all such situations. */
+    public void executeRepoShadowModificationsRaw(
+            @NotNull ShadowType repoShadow,
+            @NotNull List<ItemDelta<?, ?>> modifications,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ShadowType.class,
+                MiscUtil.argNonNull(repoShadow.getOid(), "no shadow OID: %s", repoShadow),
+                modifications,
+                result);
     }
 
     private void issueShadowDeathEvent(String shadowOid, Task task, OperationResult result) {
@@ -209,7 +222,7 @@ public class ShadowUpdater {
 
         LOGGER.trace("Marking shadow {} as tombstone", repoShadow);
         try {
-            repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, result);
+            executeRepoShadowModificationsRaw(repoShadow, shadowChanges, result);
         } catch (ObjectAlreadyExistsException e) {
             // Should not happen, this is not a rename
             throw new SystemException(e.getMessage(), e);
@@ -257,7 +270,7 @@ public class ShadowUpdater {
 
         LOGGER.trace("Marking shadow {} as existent", repoShadow);
         try {
-            repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
+            executeRepoShadowModificationsRaw(repoShadow, shadowChanges, parentResult);
         } catch (ObjectAlreadyExistsException e) {
             // Should not happen, this is not a rename
             throw new SystemException(e.getMessage(), e);
@@ -290,20 +303,24 @@ public class ShadowUpdater {
                 repoShadow, currentPrimaryIdentifierValue, expectedPrimaryIdentifierValue);
         try {
 
-            repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, result);
+            executeRepoShadowModificationsRaw(repoShadow, modifications, result);
 
         } catch (ObjectAlreadyExistsException e) {
             if (!resolveDuplicates) {
                 throw e; // Client will take care of this
             }
 
-            // Boom! We have some kind of inconsistency here. There is not much we can do to fix it.
-            // But let's try to find offending object.
+            // Boom! We have some kind of inconsistency here. We will try to fix it by resetting the primaryIdentifierValue
+            // on the conflicting shadow. So let's try to find it.
             LOGGER.error("Error updating primaryIdentifierValue for {} to value {}: {}",
                     repoShadow, expectedPrimaryIdentifierValue, e.getMessage(), e);
 
             ShadowType potentialConflictingShadow =
-                    asObjectable(shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, expectedPrimaryIdentifierValue, result));
+                    shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, expectedPrimaryIdentifierValue, result);
+            if (potentialConflictingShadow == null) {
+                throw new SystemException("Duplicate shadow conflict, but no conflicting shadow found for: " + repoShadow);
+            }
+
             LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
                     DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
             String conflictingShadowPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, potentialConflictingShadow);
@@ -333,7 +350,7 @@ public class ShadowUpdater {
             MetadataUtil.addModificationMetadataDeltas(resetModifications, repoShadow);
 
             try {
-                repositoryService.modifyObject(ShadowType.class, potentialConflictingShadow.getOid(), resetModifications, result);
+                executeRepoShadowModificationsRaw(potentialConflictingShadow, resetModifications, result);
             } catch (ObjectAlreadyExistsException ee) {
                 throw new SystemException(
                         String.format("Attempt to reset primaryIdentifierValue on %s failed: %s",
@@ -343,7 +360,7 @@ public class ShadowUpdater {
 
             // Now we should be free to set up correct identifier. Finally.
             try {
-                repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, result);
+                executeRepoShadowModificationsRaw(repoShadow, modifications, result);
             } catch (ObjectAlreadyExistsException ee) {
                 // Oh no! Not again!
                 throw new SystemException(
@@ -452,11 +469,7 @@ public class ShadowUpdater {
                         .item(ShadowType.F_ATTRIBUTES).retrieve(RetrieveOption.INCLUDE)
                         .build();
 
-        ShadowType retrievedRepoShadow =
-                repositoryService
-                        .getObject(ShadowType.class, repoShadow.getOid(), options, result)
-                        .asObjectable();
-
+        ShadowType retrievedRepoShadow = shadowFinder.getShadowBean(repoShadow.getOid(), options, result);
         shadowCtx.adoptShadow(retrievedRepoShadow);
 
         LOGGER.trace("Full repo shadow:\n{}", retrievedRepoShadow.debugDumpLazily(1));
@@ -476,23 +489,22 @@ public class ShadowUpdater {
      *
      * See also {@link ShadowsNormalizationUtil}. (However, this code is too specific to be put there.)
      */
-    public @NotNull ShadowType normalizeShadowAttributesInRepository(
+    public @NotNull ShadowType normalizeShadowAttributesInRepositoryAfterClassification(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType origRepoShadow,
             @Nullable ResourceObjectClassification newClassification,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        PrismObject<ShadowType> currentRepoShadow =
-                repositoryService.getObject(ShadowType.class, origRepoShadow.getOid(), null, result);
+        ShadowType currentRepoShadow = shadowFinder.getShadowBean(origRepoShadow.getOid(), result);
         if (newClassification != null && ctx.areShadowChangesSimulated()) {
             // In shadow simulation, we would lose kind/intent on repository re-read here.
             // So we have to manually set the new values into the shadow.
-            currentRepoShadow.asObjectable()
+            currentRepoShadow
                     .kind(newClassification.getKind())
                     .intent(newClassification.getIntent());
         }
         ResourceObjectDefinition objectDef = ctx
-                .spawnForShadow(currentRepoShadow.asObjectable())
+                .spawnForShadow(currentRepoShadow)
                 .getObjectDefinitionRequired();
         List<ItemDelta<?, ?>> normalizationDeltas = new ArrayList<>();
         for (Item<?, ?> attribute : ShadowUtil.getAttributesRaw(currentRepoShadow)) {
@@ -505,7 +517,7 @@ public class ShadowUpdater {
         } else {
             LOGGER.trace("No need to normalize shadow {} (no differences)", origRepoShadow);
         }
-        return currentRepoShadow.asObjectable();
+        return currentRepoShadow;
     }
 
     private <T> void addNormalizationDeltas(

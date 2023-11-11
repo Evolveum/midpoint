@@ -187,7 +187,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
-            OperationRequested operation = new OperationRequested.Add(object.asObjectable(), getPrismContext());
+            OperationRequested operation = new OperationRequested.Add(object.asObjectable());
             return createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -199,7 +199,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
-            ResourceObjectIdentification.Primary identification,
+            ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
@@ -211,7 +211,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation =
-                    new OperationRequested.Modify(identification, asObjectable(shadow), changes, options, getPrismContext());
+                    new OperationRequested.Modify(identification, asObjectable(shadow), changes, options);
             return createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -223,9 +223,8 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public AsynchronousOperationResult deleteObject(
-            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers,
             UcfExecutionContext ctx,
             OperationResult parentResult) throws SchemaException {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
@@ -234,7 +233,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, getClass());
         try {
             OperationRequested operation =
-                    new OperationRequested.Delete(objectDefinition, asObjectable(shadow), identifiers, getPrismContext());
+                    new OperationRequested.Delete(identification, asObjectable(shadow));
             return createAndSendRequest(operation, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordException(t);
@@ -368,7 +367,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification.Primary resourceObjectIdentification,
+            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
             AttributesToReturn attributesToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");

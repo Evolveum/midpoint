@@ -46,7 +46,7 @@ public class CommonBeans {
     @Autowired public PrismContext prismContext;
     @Autowired public ShadowsFacade shadowsFacade;
     @Autowired public ResourceObjectConverter resourceObjectConverter;
-    @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
     @Autowired public ProvisioningServiceImpl provisioningService;
     @Autowired public ResourceManager resourceManager;
     @Autowired public ResourceCache resourceCache;

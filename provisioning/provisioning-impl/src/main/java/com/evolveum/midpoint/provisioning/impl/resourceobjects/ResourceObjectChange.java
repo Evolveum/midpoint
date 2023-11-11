@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,6 +87,8 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
      *
      * The collection is unmodifiable after this object is initialized.
      * The elements should be mutable because of possible future definition (re)application.
+     *
+     * This is why we don't use immutable {@link ResourceObjectIdentifiers} here (for now).
      *
      * See {@link UcfChange#identifiers}.
      *
@@ -242,12 +248,15 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
             getLogger().trace("NOT fetching object {} because the resource does not support it", identifiers);
             return null;
         }
+        var primaryIdentification =
+                ResourceObjectIdentification.fromAttributes(effectiveCtx.getObjectDefinitionRequired(), identifiers)
+                        .ensurePrimary();
         try {
             // todo consider whether it is always necessary to fetch the entitlements
             return b.resourceObjectConverter
                     .fetchResourceObject(
                             effectiveCtx,
-                            effectiveCtx.getIdentificationFromAttributes(identifiers).ensurePrimary(),
+                            primaryIdentification,
                             attributesToReturn,
                             null,
                             true,

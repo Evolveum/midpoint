@@ -376,9 +376,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             throws SchemaException, ConfigurationException, NotApplicableException {
         ShadowType currentShadow;
         try {
-            currentShadow = b.repositoryService
-                    .getObject(ShadowType.class, repoShadow.getOid(), null, result)
-                    .asObjectable();
+            currentShadow = b.shadowFinder.getShadowBean(repoShadow.getOid(), result);
         } catch (ObjectNotFoundException e) {
             LOGGER.debug("Shadow for delete synchronization event {} disappeared recently. Skipping this event.", this);
             throw new NotApplicableException();

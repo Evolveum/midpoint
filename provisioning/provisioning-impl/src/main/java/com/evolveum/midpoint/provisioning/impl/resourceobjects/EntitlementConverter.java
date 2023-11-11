@@ -20,6 +20,8 @@ import com.evolveum.midpoint.provisioning.impl.ResourceObjectDiscriminator;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,6 +39,8 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.createEntitlementQuery;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
@@ -221,8 +225,9 @@ class EntitlementConverter {
                                     def.valueAttrName, associationName, subjectCtx));
                 }
                 if (valueAttr.size() > 1) {
-                    throw new SchemaException("Value attribute "+ def.valueAttrName +" has no more than one value; attribute defined"
-                            + " in entitlement association '"+associationName+"' in "+subjectCtx);
+                    throw new SchemaException(
+                            "Value attribute %s has no more than one value; attribute defined in entitlement association '%s' in %s"
+                                    .formatted(def.valueAttrName, associationName, subjectCtx));
                 }
 
                 ResourceAttributeDefinition<T> valueAttrDef = valueAttr.getDefinition();
@@ -234,21 +239,19 @@ class EntitlementConverter {
                         b.delineationProcessor.determineQueryWithConstraints(def.entitlementCtx, query, result);
 
                 UcfObjectHandler handler = (ucfObject, lResult) -> {
-                    PrismObject<ShadowType> entitlementShadow = ucfObject.getPrismObject();
-                    Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
-                    ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(def.entitlementObjDef.getTypeName(), primaryIdentifiers);
-                    ResourceObjectOperations operations = objectsOperations.roMap.get(disc);
-                    if (operations == null) {
-                        operations = new ResourceObjectOperations();
-                        objectsOperations.roMap.put(disc, operations);
-                        operations.setResourceObjectContext(def.entitlementCtx);
-                        Collection<? extends ResourceAttribute<?>> allIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
-                        operations.setAllIdentifiers(allIdentifiers);
-                    }
+                    ShadowType entitlementShadow = ucfObject.getBean();
+
+                    ResourceObjectIdentification.WithPrimary entitlementIdentification =
+                            ResourceObjectIdentification.fromCompleteShadow(def.entitlementObjDef, entitlementShadow);
+                    ResourceObjectOperations singleObjectOperations =
+                            objectsOperations.findOrCreate(
+                                    ResourceObjectDiscriminator.of(entitlementIdentification),
+                                    def.entitlementCtx,
+                                    entitlementIdentification.getIdentifiers());
 
                     PropertyDelta<T> attributeDelta = null;
-                    for (Operation operation: operations.getUcfOperations()) {
-                        if (operation instanceof PropertyModificationOperation<?> propOp) {
+                    for (Operation ucfOperation: singleObjectOperations.getUcfOperations()) {
+                        if (ucfOperation instanceof PropertyModificationOperation<?> propOp) {
                             if (propOp.getPropertyDelta().getElementName().equals(def.assocAttrName)) {
                                 //noinspection unchecked
                                 attributeDelta = (PropertyDelta<T>) propOp.getPropertyDelta();
@@ -257,9 +260,9 @@ class EntitlementConverter {
                     }
                     if (attributeDelta == null) {
                         attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, def.assocAttrName));
-                        PropertyModificationOperation<?> attributeModification = new PropertyModificationOperation<>(attributeDelta);
+                        var attributeModification = new PropertyModificationOperation<>(attributeDelta);
                         attributeModification.setMatchingRuleQName(associationDef.getMatchingRule());
-                        operations.add(attributeModification);
+                        singleObjectOperations.add(attributeModification);
                     }
 
                     attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
@@ -428,7 +431,7 @@ class EntitlementConverter {
 
         QName associationName = associationBean.getName();
         if (associationName == null) {
-            throw new SchemaException("No name in entitlement association "+associationValue);
+            throw new SchemaException("No name in entitlement association " + associationValue);
         }
         ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
         ResourceAssociationDefinition associationDef =
@@ -455,13 +458,13 @@ class EntitlementConverter {
                                 + "'%s' in schema for %s").formatted(def.assocAttrName, entitlementIntents, resource));
             }
 
-            ResourceAttributeContainer identifiersContainer =
-                    getIdentifiersAttributeContainer(associationValue, def.entitlementObjDef);
-            Collection<ResourceAttribute<?>> entitlementIdentifiersFromAssociation = identifiersContainer.getAttributes();
-
-            ResourceObjectDiscriminator disc =
-                    new ResourceObjectDiscriminator(def.entitlementObjDef.getTypeName(), entitlementIdentifiersFromAssociation);
-            ResourceObjectOperations objectOperations = objectsOperations.findOrCreate(disc, def.entitlementCtx);
+            ResourceObjectIdentification<?> entitlementIdentification =
+                    ResourceObjectIdentification.fromAssociationValue(def.entitlementObjDef, associationValue);
+            ResourceObjectOperations objectOperations =
+                    objectsOperations.findOrCreate(
+                            ResourceObjectDiscriminator.of(entitlementIdentification),
+                            def.entitlementCtx,
+                            null);
 
             // Which shadow would we use - shadowBefore or shadowAfter?
             //
@@ -489,11 +492,12 @@ class EntitlementConverter {
             ResourceAttribute<TV> valueAttr = ShadowUtil.getAttribute(subjectShadow, def.valueAttrName);
             if (valueAttr == null) {
                 if (!ShadowUtil.isFullShadow(subjectShadow)) {
-                    ResourceObjectIdentification subjectIdentifiers = subjectCtx.getIdentificationFromShadow(subjectShadow);
-                    LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
+                    ResourceObjectIdentification.WithPrimary subjectIdentification =
+                            subjectCtx.getIdentificationFromShadow(subjectShadow);
+                    LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentification);
                     subjectShadow = ResourceObject.getBean(
                             ResourceObjectLocateOrFetchOperation.executeFetchRaw( // TODO what if there is no read capability?
-                                    subjectCtx, subjectIdentifiers, subjectShadow, result));
+                                    subjectCtx, subjectIdentification, subjectShadow, result));
                     subjectShadowAfter = subjectShadow;
                     valueAttr = ShadowUtil.getAttribute(subjectShadow, def.valueAttrName);
                 }
@@ -531,13 +535,10 @@ class EntitlementConverter {
                 ShadowType currentObjectShadow = objectOperations.getCurrentShadow();
                 if (currentObjectShadow == null) {
                     LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
-                            entitlementIdentifiersFromAssociation, entitlementIntent);
+                            entitlementIdentification, entitlementIntent);
                     currentObjectShadow = ResourceObject.getBean(
                             ResourceObjectLocateOrFetchOperation.executeFetchRaw(
-                                    def.entitlementCtx,
-                                    def.entitlementCtx.getIdentificationFromAttributes(entitlementIdentifiersFromAssociation),
-                                    null,
-                                    result));
+                                    def.entitlementCtx, entitlementIdentification, null, result));
                     objectOperations.setCurrentShadow(currentObjectShadow);
                 }
                 // TODO It seems that duplicate values are checked twice: once here and the second time
@@ -562,35 +563,6 @@ class EntitlementConverter {
         }
         return subjectShadowAfter;
     }
-
-    private @NotNull ResourceAttributeContainer getIdentifiersAttributeContainer(
-            PrismContainerValue<ShadowAssociationType> associationCVal, ResourceObjectDefinition entitlementDef)
-            throws SchemaException {
-        PrismContainer<?> container = associationCVal.findContainer(ShadowAssociationType.F_IDENTIFIERS);
-        if (container == null) {
-            throw new SchemaException("No identifiers in association value: " + associationCVal);
-        }
-        if (container instanceof ResourceAttributeContainer) {
-            return (ResourceAttributeContainer) container;
-        }
-        ResourceAttributeContainer attributesContainer =
-                entitlementDef.toResourceAttributeContainerDefinition()
-                        .instantiate(ShadowAssociationType.F_IDENTIFIERS);
-        PrismContainerValue<?> cval = container.getValue();
-        for (Item<?, ?> item : cval.getItems()) {
-            //noinspection unchecked
-            ResourceAttribute<Object> attribute =
-                    ((ResourceAttributeDefinition<Object>)
-                            entitlementDef.findAttributeDefinitionRequired(item.getElementName()))
-                            .instantiate();
-            for (Object val : item.getRealValues()) {
-                attribute.addRealValue(val);
-            }
-            attributesContainer.add(attribute);
-        }
-        return attributesContainer;
-    }
-
     //endregion
 
     /**
@@ -612,18 +584,25 @@ class EntitlementConverter {
         }
     }
 
-    static class EntitlementObjectsOperations {
+    static class EntitlementObjectsOperations implements DebugDumpable {
         final Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 
-        @NotNull ResourceObjectOperations findOrCreate(ResourceObjectDiscriminator disc, ProvisioningContext entitlementCtx) {
+        @NotNull ResourceObjectOperations findOrCreate(
+                @NotNull ResourceObjectDiscriminator disc,
+                @NotNull ProvisioningContext entitlementCtx,
+                @Nullable ResourceObjectIdentifiers.WithPrimary entitlementsIdentifiers) {
             ResourceObjectOperations existing = roMap.get(disc);
             if (existing != null) {
                 return existing;
             }
-            var operations = new ResourceObjectOperations();
-            operations.setResourceObjectContext(entitlementCtx);
+            var operations = new ResourceObjectOperations(entitlementCtx, entitlementsIdentifiers);
             roMap.put(disc, operations);
             return operations;
+        }
+
+        @Override
+        public String debugDump(int indent) {
+            return DebugUtil.debugDump(roMap, indent);
         }
     }
 

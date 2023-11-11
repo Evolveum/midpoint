@@ -9,20 +9,16 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.*;
 
-import java.util.Collection;
-
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -82,30 +78,24 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
 
         determineAndExecuteEntitlementObjectOperations(result);
 
-        Collection<? extends ResourceAttribute<?>> identifiers = getIdentifiers();
+        ResourceObjectIdentification<?> identification = getIdentification();
 
         ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
         AsynchronousOperationResult connectorAsyncOpRet;
         try {
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(
-                        "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}",
-                        ctx.getResource(), shadow.getObjectClass(),
-                        SchemaDebugUtil.debugDump(identifiers));
-            }
+            LOGGER.debug(
+                    "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}",
+                    ctx.getResource(), shadow.getObjectClass(),
+                    identification);
 
             connectorAsyncOpRet =
                     connector.deleteObject(
-                            ctx.getObjectDefinitionRequired(),
-                            shadow.asPrismObject(),
-                            identifiers,
-                            ctx.getUcfExecutionContext(),
-                            result);
+                            identification, shadow.asPrismObject(), ctx.getUcfExecutionContext(), result);
         } catch (ObjectNotFoundException ex) {
             throw ex.wrap(String.format(
                     "An error occurred while deleting resource object %s with identifiers %s (%s)",
-                    shadow, identifiers, ctx.getExceptionDescription(connector)));
+                    shadow, identification, ctx.getExceptionDescription(connector)));
         } catch (CommunicationException ex) {
             throw communicationException(ctx, connector, ex);
         } catch (GenericFrameworkException ex) {
@@ -131,14 +121,14 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
         return aResult;
     }
 
-    @Nullable
-    private Collection<? extends ResourceAttribute<?>> getIdentifiers()
+    private @NotNull ResourceObjectIdentification<?> getIdentification()
             throws SchemaException, ConfigurationException {
         if (ShadowUtil.isAttributesContainerRaw(shadow)) {
             // This could occur if shadow was re-read during op state processing
             ctx.applyAttributesDefinition(shadow);
         }
-        return ShadowUtil.getAllIdentifiers(shadow);
+        return ResourceObjectIdentification.fromIncompleteShadow( // maybe we could require complete shadow here
+                ctx.getObjectDefinitionRequired(), shadow);
     }
 
     private void determineAndExecuteEntitlementObjectOperations(OperationResult result) throws SchemaException {

@@ -6,100 +6,138 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentifiersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-
 /**
  * Identification of a resource object using its primary and/or secondary identifiers.
  *
- * For facilitating type safety in clients, we provide two specific subclasses: {@link Primary} and {@link NoPrimary}.
+ * For facilitating type safety (mainly) across APIs, we provide two specific subclasses:
+ * {@link WithPrimary} and {@link SecondaryOnly}.
+ *
+ * NOTE: Making this class parameterized by the type of identifiers (primary-containing or secondary-only)
+ * may or may not be a good idea. It makes the implementation nicer, but the clients are bothered with
+ * additional `<?>` in the code. To be reconsidered.
+ *
+ * @see ResourceObjectIdentifier
  *
  * @author semancik
  */
-public class ResourceObjectIdentification implements Serializable, DebugDumpable, Cloneable {
+public abstract class ResourceObjectIdentification<I extends ResourceObjectIdentifiers>
+        implements Serializable, DebugDumpable, Cloneable {
 
     @Serial private static final long serialVersionUID = 1L;
 
     @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
 
-    /** Unmodifiable. */
-    @NotNull private final Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
-
-    /** Unmodifiable. */
-    @NotNull private final Collection<? extends ResourceAttribute<?>> secondaryIdentifiers;
+    /** Primary and/or secondary identifiers */
+    @NotNull final I identifiers;
 
     // TODO: identification strategy
 
     private ResourceObjectIdentification(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> primaryIdentifiers,
-            @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
+            @NotNull I identifiers) {
         this.resourceObjectDefinition = resourceObjectDefinition;
-        this.primaryIdentifiers = Collections.unmodifiableCollection(primaryIdentifiers);
-        this.secondaryIdentifiers = Collections.unmodifiableCollection(secondaryIdentifiers);
+        this.identifiers = identifiers;
     }
 
-    public ResourceObjectIdentification.Primary primary(@NotNull Collection<ResourceAttribute<?>> primaryIdentifiers) {
-        argCheck(!primaryIdentifiers.isEmpty(), "No primary identifiers to be added to %s", this);
-        return new Primary(resourceObjectDefinition, primaryIdentifiers, secondaryIdentifiers);
-    }
-
-    public static ResourceObjectIdentification of(
+    public static ResourceObjectIdentification<?> of(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> primaryIdentifiers,
-            @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
-        if (!primaryIdentifiers.isEmpty()) {
-            return new Primary(resourceObjectDefinition, primaryIdentifiers, secondaryIdentifiers);
+            @NotNull ResourceObjectIdentifiers identifiers) {
+        if (identifiers instanceof ResourceObjectIdentifiers.WithPrimary withPrimary) {
+            return new WithPrimary(resourceObjectDefinition, withPrimary);
+        } else if (identifiers instanceof ResourceObjectIdentifiers.SecondaryOnly secondaryOnly) {
+            return new SecondaryOnly(resourceObjectDefinition, secondaryOnly);
         } else {
-            return new NoPrimary(resourceObjectDefinition, secondaryIdentifiers);
+            throw new AssertionError(identifiers);
         }
     }
 
-    public static ResourceObjectIdentification.Primary primary(
+    /** Creates new identification with a primary identifier. */
+    public static WithPrimary withPrimary(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> primaryIdentifiers) {
-        return primary(resourceObjectDefinition, primaryIdentifiers, List.of());
+            @NotNull ResourceAttribute<?> primaryIdentifierAttribute,
+            @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifierAttributes) {
+        return new WithPrimary(
+                resourceObjectDefinition,
+                ResourceObjectIdentifiers.withPrimary(
+                        ResourceObjectIdentifier.Primary.of(primaryIdentifierAttribute),
+                        ResourceObjectIdentifier.Secondary.of(secondaryIdentifierAttributes)));
     }
 
-    public static ResourceObjectIdentification.Primary primary(
-            @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> primaryIdentifiers,
-            @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
-        argCheck(!primaryIdentifiers.isEmpty(), "No primary identifiers");
-        return new Primary(resourceObjectDefinition, primaryIdentifiers, secondaryIdentifiers);
+    /** Gets identifiers from the association value, applying definitions if needed. */
+    private static @NotNull Collection<ResourceAttribute<?>> getIdentifiersAttributes(
+            PrismContainerValue<ShadowAssociationType> associationCVal, ResourceObjectDefinition entitlementDef)
+            throws SchemaException {
+        PrismContainer<?> container =
+                MiscUtil.requireNonNull(
+                        associationCVal.findContainer(ShadowAssociationType.F_IDENTIFIERS),
+                        () -> "No identifiers in association value: " + associationCVal);
+        if (container instanceof ResourceAttributeContainer resourceAttributeContainer) {
+            return resourceAttributeContainer.getAttributes();
+        }
+        Collection<ResourceAttribute<?>> identifierAttributes = new ArrayList<>();
+        for (Item<?, ?> rawIdentifierItem : container.getValue().getItems()) {
+            //noinspection unchecked
+            ResourceAttribute<Object> attribute =
+                    ((ResourceAttributeDefinition<Object>)
+                            entitlementDef.findAttributeDefinitionRequired(rawIdentifierItem.getElementName()))
+                            .instantiate();
+            for (Object val : rawIdentifierItem.getRealValues()) {
+                attribute.addRealValue(val);
+            }
+            identifierAttributes.add(attribute);
+        }
+        return identifierAttributes;
     }
 
-    private static ResourceObjectIdentification fromIdentifiersOrAttributes(
+    /** Enriches current identification with a primary identifier. */
+    public WithPrimary withPrimary(@NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier) {
+        return new WithPrimary(resourceObjectDefinition, identifiers.withPrimary(primaryIdentifier));
+    }
+
+    /** See {@link ResourceObjectIdentifiers#of(Collection, Collection)} for preconditions. */
+    public static ResourceObjectIdentification<?> of(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers,
+            @NotNull Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers) throws SchemaException {
+        return ResourceObjectIdentification.of(
+                resourceObjectDefinition,
+                ResourceObjectIdentifiers.of(primaryIdentifiers, secondaryIdentifiers));
+    }
+
+    private static ResourceObjectIdentification<?> fromIdentifiersOrAttributes(
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> allAttributes,
             boolean nonIdentifiersAllowed) throws SchemaException {
-        Collection<ResourceAttribute<?>> primaryIdentifiers = new ArrayList<>();
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = new ArrayList<>();
+        Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers = new ArrayList<>();
+        Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers = new ArrayList<>();
         for (ResourceAttribute<?> attribute : allAttributes) {
             if (objectDefinition.isPrimaryIdentifier(attribute.getElementName())) {
-                primaryIdentifiers.add(attribute);
+                primaryIdentifiers.add(ResourceObjectIdentifier.Primary.of(attribute));
             } else if (objectDefinition.isSecondaryIdentifier(attribute.getElementName())) {
-                secondaryIdentifiers.add(attribute);
+                secondaryIdentifiers.add(ResourceObjectIdentifier.Secondary.of(attribute));
             } else if (!nonIdentifiersAllowed) {
                 throw new SchemaException(
                         "Attribute %s is neither primary not secondary identifier in object class %s".
@@ -111,13 +149,22 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
         return ResourceObjectIdentification.of(objectDefinition, primaryIdentifiers, secondaryIdentifiers);
     }
 
-    public static ResourceObjectIdentification fromIdentifiers(
+    public static ResourceObjectIdentification<?> fromIdentifiers(
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> allIdentifiers) throws SchemaException {
         return fromIdentifiersOrAttributes(objectDefinition, allIdentifiers, false);
     }
 
-    public static ResourceObjectIdentification fromAttributes(
+    public static ResourceObjectIdentification<?> fromAssociationValue(
+            @NotNull ResourceObjectDefinition targetObjDef,
+            @NotNull PrismContainerValue<ShadowAssociationType> associationValue)
+            throws SchemaException {
+        return fromIdentifiers(
+                targetObjDef,
+                getIdentifiersAttributes(associationValue, targetObjDef));
+    }
+
+    public static ResourceObjectIdentification<?> fromAttributes(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> attributes) {
         try {
@@ -127,79 +174,66 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
         }
     }
 
-    public static ResourceObjectIdentification fromShadow(
+    /** Returns identification for a shadow. The shadow must have the primary identifier. */
+    public static @NotNull ResourceObjectIdentification.WithPrimary fromCompleteShadow(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ShadowType shadow) {
+        var identification = fromAttributes(resourceObjectDefinition, ShadowUtil.getAttributes(shadow));
+        if (identification instanceof WithPrimary withPrimary) {
+            return withPrimary;
+        } else {
+            throw new IllegalStateException("Shadow " + shadow + " does not have a primary identifier");
+        }
+    }
+
+    /** Returns identification for a shadow. The shadow must have at least one identifier, not necessarily the primary one. */
+    public static @NotNull ResourceObjectIdentification<?> fromIncompleteShadow(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ShadowType shadow) {
         return fromAttributes(resourceObjectDefinition, ShadowUtil.getAttributes(shadow));
     }
 
-    public @NotNull Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
-        return primaryIdentifiers;
+    public @NotNull I getIdentifiers() {
+        return identifiers;
     }
 
-    public <T> ResourceAttribute<T> getPrimaryIdentifier() throws SchemaException {
-        //noinspection unchecked
-        return (ResourceAttribute<T>)
-                MiscUtil.extractSingleton(
-                        primaryIdentifiers,
-                        () -> new SchemaException("More than one primary identifier in " + this));
+    public @Nullable ResourceObjectIdentifier<?> getPrimaryIdentifier() {
+        return identifiers.getPrimaryIdentifier();
     }
 
-    public @NotNull Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
-        return secondaryIdentifiers;
+    public @NotNull Set<? extends ResourceObjectIdentifier<?>> getPrimaryIdentifiers() {
+        var primaryIdentifier = getPrimaryIdentifier();
+        return primaryIdentifier != null ? Set.of(primaryIdentifier) : Set.of();
     }
 
-    public <T> ResourceAttribute<T> getSecondaryIdentifier() throws SchemaException {
-        //noinspection unchecked
-        return (ResourceAttribute<T>)
-                MiscUtil.extractSingleton(
-                        secondaryIdentifiers,
-                        () -> new SchemaException("More than one secondary identifier in " + this));
+    public abstract @Nullable ResourceAttribute<?> getPrimaryIdentifierAttribute();
+
+    public @NotNull Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiersAsAttributes() {
+        return MiscUtil.asListExceptForNull(getPrimaryIdentifierAttribute());
     }
 
-    public @Nullable PrismPropertyValue<?> getSecondaryIdentifierValue(@NotNull QName name) throws SchemaException {
-        var identifier = getSecondaryIdentifier(name);
-        if (identifier == null) {
-            return null;
-        }
-        return MiscUtil.extractSingleton(
-                (Collection<? extends PrismPropertyValue<?>>) identifier.getValues(),
-                () -> new SchemaException("Secondary identifier has more than one value: %s in %s"
-                        .formatted(identifier.getValues(), this)));
+    public @NotNull Set<? extends ResourceObjectIdentifier<?>> getSecondaryIdentifiers() {
+        return identifiers.getSecondaryIdentifiers();
     }
 
-    private ResourceAttribute<?> getSecondaryIdentifier(@NotNull QName name) {
-        for (ResourceAttribute<?> identifier : secondaryIdentifiers) {
-            if (identifier.getElementName().equals(name)) {
-                return identifier;
-            }
-        }
-        return null;
+    public @NotNull Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiersAsAttributes() {
+        return ResourceObjectIdentifiers.asAttributes(identifiers.getSecondaryIdentifiers());
     }
 
-    /**
-     * Returned collection should be never modified!
-     */
-    public Collection<? extends ResourceAttribute<?>> getAllIdentifiers() {
-        return Collections.unmodifiableCollection(
-                MiscUtil.concat(primaryIdentifiers, secondaryIdentifiers));
+    /** Returns all identifiers, both primary and secondary, as an unmodifiable collection. */
+    public @NotNull Collection<? extends ResourceAttribute<?>> getAllIdentifiersAsAttributes() {
+        return ResourceObjectIdentifiers.asAttributes(
+                Sets.union(getPrimaryIdentifiers(), getSecondaryIdentifiers()));
     }
 
     public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
     }
 
-    public void validatePrimaryIdentifiers() {
-        stateCheck(hasPrimaryIdentifiers(), "No primary identifiers in %s", this);
+    public boolean hasPrimaryIdentifier() {
+        return identifiers instanceof ResourceObjectIdentifiers.WithPrimary;
     }
 
-    public boolean hasPrimaryIdentifiers() {
-        return !primaryIdentifiers.isEmpty();
-    }
-
-    /**
-     * TODO Or should we compare only relevant parts of the definition? And compare identifiers in unordered way?
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -208,9 +242,9 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ResourceObjectIdentification that = (ResourceObjectIdentification) o;
+        ResourceObjectIdentification<?> that = (ResourceObjectIdentification<?>) o;
         return resourceObjectDefinition.equals(that.resourceObjectDefinition)
-                && primaryIdentifiers.equals(that.primaryIdentifiers);
+                && identifiers.equals(that.identifiers);
     }
 
     /**
@@ -218,21 +252,22 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
      */
     @Override
     public int hashCode() {
-        return Objects.hash(resourceObjectDefinition, primaryIdentifiers);
+        return Objects.hash(resourceObjectDefinition, identifiers);
     }
 
     @Override
     public String toString() {
-        return "ResourceObjectIdentification(" + PrettyPrinter.prettyPrint(resourceObjectDefinition.getTypeName())
-                + ": primary=" + primaryIdentifiers + ", secondary=" + secondaryIdentifiers + ")";
+        return "ResourceObjectIdentification("
+                + PrettyPrinter.prettyPrint(resourceObjectDefinition.getTypeName())
+                + ": " + identifiers + ")";
     }
 
     @NotNull
     public ResourceObjectIdentityType asBean() throws SchemaException {
         ResourceObjectIdentityType bean = new ResourceObjectIdentityType();
         bean.setObjectClass(resourceObjectDefinition.getTypeName());
-        bean.setPrimaryIdentifiers(getIdentifiersAsBean(primaryIdentifiers));
-        bean.setSecondaryIdentifiers(getIdentifiersAsBean(secondaryIdentifiers));
+        bean.setPrimaryIdentifiers(getIdentifiersAsBean(getPrimaryIdentifiersAsAttributes()));
+        bean.setSecondaryIdentifiers(getIdentifiersAsBean(getSecondaryIdentifiersAsAttributes()));
         return bean;
     }
 
@@ -249,17 +284,8 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
         return identifiersBean;
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
-    public ResourceObjectIdentification clone() {
-        return of(
-                resourceObjectDefinition,
-                CloneUtil.cloneCollectionMembers(primaryIdentifiers),
-                CloneUtil.cloneCollectionMembers(secondaryIdentifiers));
-    }
-
-    public Primary ensurePrimary() {
-        if (this instanceof Primary primary) {
+    public WithPrimary ensurePrimary() {
+        if (this instanceof WithPrimary primary) {
             return primary;
         } else {
             throw new IllegalStateException("Expected primary identification, but got " + this);
@@ -267,48 +293,58 @@ public class ResourceObjectIdentification implements Serializable, DebugDumpable
     }
 
     @Override
+    public abstract ResourceObjectIdentification<I> clone();
+
+    @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", resourceObjectDefinition, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifiers", primaryIdentifiers, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "secondaryIdentifiers", secondaryIdentifiers, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
         return sb.toString();
     }
 
-    /** Identification that contains a primary identifier. */
-    public static class Primary extends ResourceObjectIdentification {
+    /** Identification that contains a primary identifier. Some methods are redeclared as returning a non-null value. */
+    public static class WithPrimary extends ResourceObjectIdentification<ResourceObjectIdentifiers.WithPrimary> {
 
-        private Primary(
+        private WithPrimary(
                 @NotNull ResourceObjectDefinition resourceObjectDefinition,
-                @NotNull Collection<? extends ResourceAttribute<?>> primaryIdentifiers,
-                @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
-            super(resourceObjectDefinition, primaryIdentifiers, secondaryIdentifiers);
-            argCheck(!primaryIdentifiers.isEmpty(), "No primary identifiers in %s", this);
+                @NotNull ResourceObjectIdentifiers.WithPrimary identifiers) {
+            super(resourceObjectDefinition, identifiers);
         }
 
         @Override
-        public <T> @NotNull ResourceAttribute<T> getPrimaryIdentifier() throws SchemaException {
+        public @NotNull ResourceAttribute<?> getPrimaryIdentifierAttribute() {
+            return identifiers.getPrimaryIdentifier().getAttribute();
+        }
+
+        @Override
+        public @NotNull ResourceObjectIdentifier<?> getPrimaryIdentifier() {
             return Objects.requireNonNull(super.getPrimaryIdentifier());
         }
 
         @Override
-        public ResourceObjectIdentification.Primary clone() {
-            return (Primary) super.clone();
+        public WithPrimary clone() {
+            return this;
         }
     }
 
     /** Identification that does not contain a primary identifier. */
-    public static class NoPrimary extends ResourceObjectIdentification {
+    public static class SecondaryOnly extends ResourceObjectIdentification<ResourceObjectIdentifiers.SecondaryOnly> {
 
-        private NoPrimary(
+        private SecondaryOnly(
                 @NotNull ResourceObjectDefinition resourceObjectDefinition,
-                @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
-            super(resourceObjectDefinition, List.of(), secondaryIdentifiers);
+                @NotNull ResourceObjectIdentifiers.SecondaryOnly identifiers) {
+            super(resourceObjectDefinition, identifiers);
         }
 
         @Override
-        public ResourceObjectIdentification.NoPrimary clone() {
-            return (NoPrimary) super.clone();
+        public @Nullable ResourceAttribute<?> getPrimaryIdentifierAttribute() {
+            return null;
+        }
+
+        @Override
+        public SecondaryOnly clone() {
+            return this;
         }
     }
 }

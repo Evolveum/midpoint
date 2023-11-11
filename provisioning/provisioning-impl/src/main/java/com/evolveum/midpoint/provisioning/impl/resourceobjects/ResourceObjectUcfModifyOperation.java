@@ -62,14 +62,14 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
 
     private final ProvisioningContext ctx;
     private ShadowType currentShadow;
-    private final ResourceObjectIdentification identification;
+    private final ResourceObjectIdentification<?> identification;
     private Collection<Operation> operations;
     private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
     private ResourceObjectUcfModifyOperation(
             ProvisioningContext ctx,
             ShadowType currentShadow,
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification<?> identification,
             @NotNull Collection<Operation> operations,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions) {
@@ -80,10 +80,14 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         this.operations = operations;
     }
 
+    /**
+     * The identification may or may not be primary. In the latter case, it is resolved using
+     * {@link ResourceObjectReferenceResolver} (currently, through the repo search).
+     */
     static AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> execute(
             ProvisioningContext ctx,
             ShadowType currentShadow,
-            ResourceObjectIdentification identification,
+            ResourceObjectIdentification<?> identification,
             @NotNull Collection<Operation> operations,
             OperationProvisioningScriptsType scripts,
             OperationResult result,
@@ -114,8 +118,8 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         ctx.checkExecutionFullyPersistent();
         ctx.checkForCapability(UpdateCapabilityType.class);
 
-        ResourceObjectIdentification.Primary primaryIdentification =
-                b.resourceObjectReferenceResolver.resolvePrimaryIdentifiers(ctx, identification, result);
+        ResourceObjectIdentification.WithPrimary primaryIdentification =
+                b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identification, result);
 
         executeProvisioningScripts(ProvisioningOperationTypeType.MODIFY, BeforeAfterType.BEFORE, result);
 
@@ -180,11 +184,11 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             }
 
             // because identifiers can be modified e.g. on rename operation (TODO: is this really needed?)
-            ResourceObjectIdentification.Primary identificationClone = primaryIdentification.clone();
+            ResourceObjectIdentification.WithPrimary identificationClone = primaryIdentification.clone();
             List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectDefinition);
             LOGGER.trace("Operation waves: {}", operationsWaves.size());
             boolean inProgress = false;
-            String asynchronousOperationReference = null;
+            String asyncOpReference = null;
             for (Collection<Operation> operationsWave : operationsWaves) {
                 operationsWave = convertToReplaceAsNeeded(
                         ctx, currentShadow, operationsWave, identificationClone, objectDefinition, result);
@@ -204,7 +208,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                     }
                     if (connectorAsyncOpRet.isInProgress()) {
                         inProgress = true;
-                        asynchronousOperationReference = connectorAsyncOpRet.getOperationResult().getAsynchronousOperationReference();
+                        asyncOpReference = connectorAsyncOpRet.getOperationResult().getAsynchronousOperationReference();
                     }
                 } finally {
                     b.shadowAuditHelper.auditEvent(AuditEventType.MODIFY_OBJECT, currentShadow, operationsWave, ctx, result);
@@ -216,7 +220,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
 
             if (inProgress) {
                 result.setInProgress();
-                result.setAsynchronousOperationReference(asynchronousOperationReference);
+                result.setAsynchronousOperationReference(asyncOpReference);
             }
         } catch (ObjectNotFoundException ex) {
             throw ex.wrap(String.format("Object to modify was not found (%s)", ctx.getExceptionDescription(connector)));
@@ -242,7 +246,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             ProvisioningContext ctx,
             ShadowType currentShadow,
             Collection<Operation> operationsWave,
-            ResourceObjectIdentification.Primary identification,
+            ResourceObjectIdentification.WithPrimary identification,
             ResourceObjectDefinition objectDefinition,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,

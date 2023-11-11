@@ -18,8 +18,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -41,18 +41,17 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  */
 public abstract class OperationRequested {
 
-    final PrismContext prismContext;
+    final PrismContext prismContext = PrismContext.get();
     public final ShadowType shadow;
 
-    protected OperationRequested(PrismContext prismContext, ShadowType shadow) {
-        this.prismContext = prismContext;
+    protected OperationRequested(ShadowType shadow) {
         this.shadow = shadow;
     }
 
     public static class Add extends OperationRequested {
 
-        public Add(ShadowType shadow, PrismContext prismContext) {
-            super(prismContext, shadow);
+        public Add(ShadowType shadow) {
+            super(shadow);
         }
 
         @Override
@@ -84,13 +83,16 @@ public abstract class OperationRequested {
 
     public static class Modify extends OperationRequested {
 
-        @NotNull public final ResourceObjectIdentification identification;
+        @NotNull public final ResourceObjectIdentification.WithPrimary identification;
         @NotNull public final Collection<Operation> operations;
         public final ConnectorOperationOptions options;
 
-        public Modify(@NotNull ResourceObjectIdentification identification, ShadowType shadow, Collection<Operation> operations,
-                ConnectorOperationOptions options, PrismContext prismContext) {
-            super(prismContext, shadow);
+        public Modify(
+                @NotNull ResourceObjectIdentification.WithPrimary identification,
+                ShadowType shadow,
+                Collection<Operation> operations,
+                ConnectorOperationOptions options) {
+            super(shadow);
             this.identification = identification;
             this.operations = Collections.unmodifiableCollection(operations);
             this.options = options;
@@ -129,32 +131,27 @@ public abstract class OperationRequested {
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
-            return identification.getPrimaryIdentifiers();
+            return identification.getPrimaryIdentifiersAsAttributes();
         }
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
-            return identification.getSecondaryIdentifiers();
+            return identification.getSecondaryIdentifiersAsAttributes();
         }
 
         @Override
         public QName getObjectClassName() {
-            return identification.getResourceObjectDefinition() != null ?
-                    identification.getResourceObjectDefinition().getTypeName() : null;
+            return identification.getResourceObjectDefinition().getTypeName();
         }
     }
 
     public static class Delete extends OperationRequested {
 
-        public final ResourceObjectIdentification identification;
+        public final ResourceObjectIdentification<?> identification;
 
-        public Delete(
-                ResourceObjectDefinition objectClass,
-                ShadowType shadow,
-                Collection<? extends ResourceAttribute<?>> identifiers,
-                PrismContext prismContext) throws SchemaException {
-            super(prismContext, shadow);
-            this.identification = ResourceObjectIdentification.fromIdentifiers(objectClass, identifiers);
+        public Delete(ResourceObjectIdentification<?> identification, ShadowType shadow) throws SchemaException {
+            super(shadow);
+            this.identification = identification;
         }
 
         @Override
@@ -171,18 +168,18 @@ public abstract class OperationRequested {
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
-            return identification.getPrimaryIdentifiers();
+            return ResourceObjectIdentifiers.asAttributes(
+                    identification.getPrimaryIdentifiers());
         }
 
         @Override
         public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
-            return identification.getSecondaryIdentifiers();
+            return identification.getSecondaryIdentifiersAsAttributes();
         }
 
         @Override
         public QName getObjectClassName() {
-            return identification.getResourceObjectDefinition() != null ?
-                    identification.getResourceObjectDefinition().getTypeName() : null;
+            return identification.getResourceObjectDefinition().getTypeName();
         }
     }
 

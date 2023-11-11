@@ -94,7 +94,7 @@ public class ResourceObjectConverter {
     @Contract("_, _, _, !null, _, _ -> !null")
     public CompleteResourceObject fetchResourceObject(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectIdentification.Primary primaryIdentification,
+            @NotNull ResourceObjectIdentification.WithPrimary primaryIdentification,
             @Nullable AttributesToReturn attributesToReturn,
             @Nullable ShadowType repoShadow,
             boolean fetchAssociations,
@@ -114,12 +114,14 @@ public class ResourceObjectConverter {
      * Both cases are handled by the resource, i.e. not by the repository.
      * The returned object is in the "initialized" state.
      *
-     * Currently seems to be used for entitlements search.
-     * (It is questionable whether we should do the full processing of activation etc here.)
+     * TODO
+     *  Currently seems to be used for entitlements search.
+     *  Please see the caller for open questions - whether this method is necessary at all.
+     *  (Moreover, it is questionable whether we should do the full processing of activation etc here.)
      */
     public CompleteResourceObject locateResourceObject(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectIdentification identification,
+            @NotNull ResourceObjectIdentification<?> identification,
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -206,7 +208,7 @@ public class ResourceObjectConverter {
     }
 
     /**
-     * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(ResourceObjectIdentification.Primary,
+     * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(ResourceObjectIdentification.WithPrimary,
      * PrismObject, Collection, ConnectorOperationOptions, UcfExecutionContext, OperationResult)}.
      */
     public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> modifyResourceObject(

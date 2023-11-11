@@ -132,6 +132,7 @@ public class ProvisioningContext {
      */
     private Collection<ResourceObjectPattern> protectedObjectPatterns;
 
+    /** TODO document */
     private ObjectReferenceType associationShadowRef;
 
     private ProvisioningOperationContext operationContext;
@@ -324,8 +325,7 @@ public class ProvisioningContext {
      *
      * The returned context is based on "refined" resource type definition.
      */
-    @NotNull
-    public ProvisioningContext spawnForKindIntent(
+    public @NotNull ProvisioningContext spawnForKindIntent(
             @NotNull ShadowKindType kind,
             @NotNull String intent)
             throws SchemaException, ConfigurationException {
@@ -832,13 +832,8 @@ public class ProvisioningContext {
         this.associationShadowRef = associationShadowRef;
     }
 
-    public @NotNull ResourceObjectIdentification getIdentificationFromAttributes(
-            @NotNull Collection<? extends ResourceAttribute<?>> attributes) {
-        return ResourceObjectIdentification.fromAttributes(getObjectDefinitionRequired(), attributes);
-    }
-
-    public @NotNull ResourceObjectIdentification getIdentificationFromShadow(@NotNull ShadowType shadow) {
-        return ResourceObjectIdentification.fromShadow(getObjectDefinitionRequired(), shadow);
+    public @NotNull ResourceObjectIdentification.WithPrimary getIdentificationFromShadow(@NotNull ShadowType shadow) {
+        return ResourceObjectIdentification.fromCompleteShadow(getObjectDefinitionRequired(), shadow);
     }
 
     public boolean isAvoidDuplicateValues() {
@@ -879,5 +874,13 @@ public class ProvisioningContext {
             throw new SecurityViolationException(
                     String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }
+    }
+
+    public @NotNull ResourceObjectDefinition getAnyDefinition() throws SchemaException, ConfigurationException {
+        Collection<ResourceObjectDefinition> objectDefinitions = getResourceSchema().getResourceObjectDefinitions();
+        if (objectDefinitions.isEmpty()) {
+            throw new IllegalStateException("Resource without object definitions: " + resource);
+        }
+        return objectDefinitions.iterator().next();
     }
 }
