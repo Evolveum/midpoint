@@ -23,10 +23,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Primary and/or secondary identifiers of a resource object.
@@ -158,6 +156,19 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
         DebugUtil.debugDumpWithLabelLn(sb, "primary identifier", String.valueOf(getPrimaryIdentifier()), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "secondary identifiers", secondaryIdentifiers, indent + 1);
         return sb.toString();
+    }
+
+    /** The primary identifier (if present) goes first. */
+    public @NotNull List<ResourceObjectIdentifier<?>> getAllIdentifiers() {
+        return Stream.concat(
+                        Stream.ofNullable(getPrimaryIdentifier()),
+                        secondaryIdentifiers.stream())
+                .toList();
+    }
+
+    @Override
+    public String toString() {
+        return "Resource object identifiers: " + getAllIdentifiers();
     }
 
     /** Identifiers that contain a primary identifier. */

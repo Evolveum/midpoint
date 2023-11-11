@@ -173,6 +173,14 @@ public class ResourceObjectConverter {
         }
     }
 
+    /**
+     * Deletes the object on the resource.
+     *
+     * For the majority of cases - typically, for ConnId connectors - the primary identifier of the object is required.
+     * (The operation will fail if it is not present.)
+     *
+     * TODO consider making this obligatory for all cases.
+     */
     public AsynchronousOperationResult deleteResourceObject(
             ProvisioningContext ctx,
             ShadowType shadow,
