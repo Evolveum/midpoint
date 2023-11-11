@@ -41,6 +41,9 @@ public class ImportOptions extends BaseImportExportOptions implements BasicImpor
     @Parameter(names = { P_CONTINUE_ON_INPUT_ERROR_LONG }, descriptionKey = "import.continueOnInputError")
     private boolean continueOnInputError;
 
+    @ParametersDelegate
+    private ExpanderOptions expand = new ExpanderOptions();
+
     @Override
     public File getInput() {
         return input;

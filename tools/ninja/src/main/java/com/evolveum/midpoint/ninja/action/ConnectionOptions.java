@@ -100,7 +100,7 @@ public class ConnectionOptions {
         this.midpointHome = midpointHome;
     }
 
-    public File jdbc() {
+    public File getJdbc() {
         return jdbc;
     }
 
