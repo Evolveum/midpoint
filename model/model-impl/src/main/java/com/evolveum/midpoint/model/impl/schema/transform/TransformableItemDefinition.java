@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.deleg.ItemDefinitionDelegator;
@@ -33,6 +35,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     private String help;
     private Integer displayOrder;
+    private DisplayHint display;
     private Boolean emphasized;
     private Boolean deprecated;
     private Boolean experimental;
@@ -58,6 +61,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
             this.help = copyOf.help;
             this.displayOrder = copyOf.displayOrder;
+            this.display = copyOf.display;
             this.emphasized = copyOf.emphasized;
             this.deprecated = copyOf.deprecated;
             this.experimental = copyOf.experimental;
@@ -191,6 +195,9 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         if (apply.getHelp() != null) {
             this.setHelp(apply.getHelp());
         }
+        if (apply.getDisplay() != null) {
+            this.setDisplay(MiscSchemaUtil.toDisplayHint(apply.getDisplay()));
+        }
         if (apply.getDisplayOrder() != null) {
             this.setDisplayOrder(apply.getDisplayOrder());
         }
@@ -218,6 +225,11 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     @Override
     public Integer getDisplayOrder() {
         return preferLocal(this.displayOrder, delegate().getDisplayOrder());
+    }
+
+    @Override
+    public DisplayHint getDisplay() {
+        return preferLocal(this.display, delegate().getDisplay());
     }
 
     @Override
@@ -271,6 +283,10 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         this.displayOrder = displayOrder;
     }
 
+    @Override
+    public void setDisplay(DisplayHint display) {
+        this.display = display;
+    }
 
     @Override
     public void setEmphasized(boolean emphasized) {

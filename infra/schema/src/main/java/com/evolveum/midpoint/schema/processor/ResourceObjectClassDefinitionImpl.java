@@ -436,6 +436,11 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public void setDisplay(DisplayHint display) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setEmphasized(boolean emphasized) {
         throw new UnsupportedOperationException();
     }

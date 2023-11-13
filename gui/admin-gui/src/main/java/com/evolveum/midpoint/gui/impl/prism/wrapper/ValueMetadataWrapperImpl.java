@@ -95,6 +95,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public DisplayHint getDisplay() {
+        return metadataValueWrapper.getDisplay();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return metadataValueWrapper.isEmphasized();
     }

@@ -133,6 +133,11 @@ public class CompositeObjectDefinitionImpl
     public List<ItemDiagramSpecification> getDiagrams() { return structuralDefinition.getDiagrams(); }
 
     @Override
+    public DisplayHint getDisplay() {
+        return structuralDefinition.getDisplay();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return structuralDefinition.isEmphasized();
     }

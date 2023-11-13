@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -363,6 +364,15 @@ public class ResourceAttributeDefinitionImpl<T>
     @Override
     public boolean isIgnored() {
         return isIgnored(currentLayer);
+    }
+
+    @Override
+    public DisplayHint getDisplay() {
+        if (customizationBean.getDisplay() != null) {
+            return MiscSchemaUtil.toDisplayHint(customizationBean.getDisplay());
+        } else {
+            return rawDefinition.getDisplay();
+        }
     }
 
     @Override

@@ -531,6 +531,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
+    public DisplayHint getDisplay() {
+        return getItemDefinition().getDisplay();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return getItemDefinition().isEmphasized();
     }

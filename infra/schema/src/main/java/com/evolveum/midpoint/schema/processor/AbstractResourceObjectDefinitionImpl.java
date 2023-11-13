@@ -652,6 +652,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public DisplayHint getDisplay() {
+        return null;
+    }
+
+    @Override
     public boolean isEmphasized() {
         return false;
     }
