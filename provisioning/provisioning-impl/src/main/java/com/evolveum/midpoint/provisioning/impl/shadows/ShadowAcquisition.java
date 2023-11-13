@@ -158,9 +158,7 @@ class ShadowAcquisition {
     private @NotNull ShadowType acquireRawRepoShadow(OperationResult result)
             throws SchemaException, EncryptionException {
 
-        ShadowType existingLiveRepoShadow =
-                b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
-
+        var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
         if (existingLiveRepoShadow != null) {
             LOGGER.trace("Found live shadow object in the repository {}", shortDumpShadowLazily(existingLiveRepoShadow));
             if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
@@ -196,8 +194,7 @@ class ShadowAcquisition {
 
         LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
                 resourceObject);
-        ShadowType conflictingLiveShadow =
-                b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+        var conflictingLiveShadow = b.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
         if (conflictingLiveShadow != null) {
             if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {

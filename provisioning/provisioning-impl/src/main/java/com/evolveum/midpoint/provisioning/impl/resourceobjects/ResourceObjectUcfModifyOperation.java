@@ -62,14 +62,14 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
 
     private final ProvisioningContext ctx;
     private ShadowType currentShadow;
-    private final ResourceObjectIdentification<?> identification;
+    @NotNull private final ResourceObjectIdentification.WithPrimary identification;
     private Collection<Operation> operations;
     private final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
     private ResourceObjectUcfModifyOperation(
             ProvisioningContext ctx,
             ShadowType currentShadow,
-            ResourceObjectIdentification<?> identification,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             @NotNull Collection<Operation> operations,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions) {
@@ -87,7 +87,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
     static AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> execute(
             ProvisioningContext ctx,
             ShadowType currentShadow,
-            ResourceObjectIdentification<?> identification,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             @NotNull Collection<Operation> operations,
             OperationProvisioningScriptsType scripts,
             OperationResult result,
@@ -118,9 +118,6 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         ctx.checkExecutionFullyPersistent();
         ctx.checkForCapability(UpdateCapabilityType.class);
 
-        ResourceObjectIdentification.WithPrimary primaryIdentification =
-                b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identification, result);
-
         executeProvisioningScripts(ProvisioningOperationTypeType.MODIFY, BeforeAfterType.BEFORE, result);
 
         // Invoke connector operation
@@ -133,7 +130,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                 if (currentShadow == null) {
                     LOGGER.trace("Fetching shadow for duplicate filtering");
                     currentShadow =
-                            preOrPostRead(ctx, primaryIdentification, operations, false, currentShadow, result);
+                            preOrPostRead(ctx, identification, operations, false, currentShadow, result);
                 }
 
                 if (currentShadow == null) {
@@ -180,11 +177,11 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                 LOGGER.debug(
                         "PROVISIONING MODIFY operation on {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
                         ctx.getResource(), objectDefinition.getHumanReadableName(),
-                        primaryIdentification.debugDump(1), SchemaDebugUtil.debugDump(operations, 1));
+                        identification.debugDump(1), SchemaDebugUtil.debugDump(operations, 1));
             }
 
             // because identifiers can be modified e.g. on rename operation (TODO: is this really needed?)
-            ResourceObjectIdentification.WithPrimary identificationClone = primaryIdentification.clone();
+            ResourceObjectIdentification.WithPrimary identificationClone = identification.clone();
             List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectDefinition);
             LOGGER.trace("Operation waves: {}", operationsWaves.size());
             boolean inProgress = false;

@@ -559,29 +559,6 @@ public class ProvisioningUtil {
         }
     }
 
-    /**
-     * As {@link #selectSingleShadow(List, Object)} but allows the existence of multiple dead shadows
-     * (if single live shadow exists). Not very nice! Transitional solution until better one is found.
-     */
-    public static @Nullable ShadowType selectSingleShadowRelaxed(
-            @NotNull List<PrismObject<ShadowType>> shadows, Object context) {
-        var singleLive = selectLiveShadow(shadows, context);
-        if (singleLive != null) {
-            return singleLive.asObjectable();
-        }
-
-        // all remaining shadows (if any) are dead
-        if (shadows.isEmpty()) {
-            return null;
-        } else if (shadows.size() > 1) {
-            LOGGER.error("Cannot select from dead shadows ({}) for {}", shadows.size(), context);
-            LOGGER.debug("Shadows:\n{}", DebugUtil.debugDumpLazily(shadows));
-            throw new IllegalStateException("More than one [dead] shadow for " + context);
-        } else {
-            return shadows.get(0).asObjectable();
-        }
-    }
-
     // TODO better place?
     @Nullable
     public static PrismObject<ShadowType> selectLiveShadow(List<PrismObject<ShadowType>> shadows, Object context) {

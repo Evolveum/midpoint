@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
 
+import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
@@ -25,19 +27,20 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.provisioning.util.QueryConversionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -142,41 +145,62 @@ class ResourceObjectReferenceResolver {
     /**
      * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
      *
-     * We accept also dead shadows, but only if there is only one. (This is a bit inconsistent, should be fixed somehow.)
+     * We accept also dead shadows, but only if there is only one.
      * Actually, we could be more courageous, and reject dead shadows altogether, as we use the result for object fetching;
      * but there is a theoretical chance that the shadow is dead in the repo but alive on the resource.
      */
-    ResourceObjectIdentification.WithPrimary resolvePrimaryIdentifier(
-            ProvisioningContext ctx, ResourceObjectIdentification<?> identification, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        if (identification == null) {
-            return null;
-        }
+    @NotNull ResourceObjectIdentification.WithPrimary resolvePrimaryIdentifier(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ResourceObjectIdentification<?> identification,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
         if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
             return primary;
+        } else if (identification instanceof ResourceObjectIdentification.SecondaryOnly secondaryOnly) {
+            var repoShadows = shadowFinder.searchShadowsByAnySecondaryIdentifier(ctx, secondaryOnly, result);
+            var repoShadow = selectSingleShadow(repoShadows, lazy(() -> "while resolving " + secondaryOnly));
+            if (repoShadow == null) {
+                // TODO: we could attempt resource search here
+                throw new ObjectNotFoundException(
+                        "No repository shadow for %s, cannot resolve identifiers (%s)".formatted(
+                                identification, ctx.getExceptionDescription()),
+                        ShadowType.class,
+                        null);
+            }
+            var shadowCtx = ctx.applyAttributesDefinition(repoShadow);
+
+            ResourceObjectIdentifier.Primary<?> primaryIdentifier =
+                    ResourceObjectIdentifiers.of(shadowCtx.getObjectDefinitionRequired(), repoShadow)
+                            .getPrimaryIdentifierRequired();
+
+            LOGGER.trace("Resolved {} to {}", identification, primaryIdentifier);
+
+            // The secondary identifiers may be different between the fetched shadow and original values provided by client.
+            // Let us ignore that for now, and provide the original values with the resolved primary identifier.
+            return identification.withPrimary(primaryIdentifier);
+        } else {
+            throw new AssertionError(identification);
         }
-        ShadowType repoShadow = shadowFinder.lookupShadowByAnyIdentifier(ctx, identification.getSecondaryIdentifiers(), result);
-        if (repoShadow == null) {
-            // TODO: we could attempt resource search here
-            throw new ObjectNotFoundException(
-                    "No repository shadow for %s, cannot resolve identifiers (%s)".formatted(
-                            identification, ctx.getExceptionDescription()),
-                    ShadowType.class,
-                    null);
+    }
+
+    /**
+     * As {@link ProvisioningUtil#selectSingleShadow(List, Object)} but allows the existence of multiple dead shadows
+     * (if single live shadow exists). Not very nice! Transitional solution until better one is found.
+     */
+    private static @Nullable ShadowType selectSingleShadow(@NotNull List<PrismObject<ShadowType>> shadows, Object context) {
+        var singleLive = ProvisioningUtil.selectLiveShadow(shadows, context);
+        if (singleLive != null) {
+            return singleLive.asObjectable();
         }
 
-        var shadowCtx = ctx.applyAttributesDefinition(repoShadow);
-
-        ResourceObjectDefinition objDef = shadowCtx.getObjectDefinitionRequired();
-        ResourceObjectIdentifier.Primary<?> primaryIdentifier =
-                ResourceObjectIdentifiers.of(objDef, repoShadow)
-                        .getPrimaryIdentifierRequired();
-
-        LOGGER.trace("Resolved {} to {} (object class {})", identification, primaryIdentifier, objDef);
-
-        // The secondary identifiers may be different between the fetched shadow and original values provided by client.
-        // Let us ignore that for now, and provide the original values with the resolved primary identifier.
-        return identification.withPrimary(primaryIdentifier);
+        // all remaining shadows (if any) are dead
+        if (shadows.isEmpty()) {
+            return null;
+        } else if (shadows.size() > 1) {
+            LOGGER.error("Cannot select from {} dead shadows {}:\n{}", shadows.size(), context, DebugUtil.debugDump(shadows));
+            throw new IllegalStateException("More than one [dead] shadow for " + context);
+        } else {
+            return shadows.get(0).asObjectable();
+        }
     }
 }

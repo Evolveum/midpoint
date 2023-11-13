@@ -246,8 +246,7 @@ class EntitlementConverter {
                     ResourceObjectOperations singleObjectOperations =
                             objectsOperations.findOrCreate(
                                     ResourceObjectDiscriminator.of(entitlementIdentification),
-                                    def.entitlementCtx,
-                                    entitlementIdentification.getIdentifiers());
+                                    def.entitlementCtx);
 
                     PropertyDelta<T> attributeDelta = null;
                     for (Operation ucfOperation: singleObjectOperations.getUcfOperations()) {
@@ -443,9 +442,10 @@ class EntitlementConverter {
         }
 
         Collection<String> entitlementIntents = associationDef.getIntents();
-        if (entitlementIntents == null || entitlementIntents.isEmpty()) {
+        if (entitlementIntents.isEmpty()) {
             throw new SchemaException("No entitlement intent specified in association " + associationValue + " in " + resource);
         }
+        // TODO reconsider the effectiveness of executing this loop repeatedly for multiple intents
         for (String entitlementIntent : entitlementIntents) {
             ResolvedAssociationDefinition def = resolveDefinition(associationDef, entitlementIntent);
 
@@ -458,13 +458,16 @@ class EntitlementConverter {
                                 + "'%s' in schema for %s").formatted(def.assocAttrName, entitlementIntents, resource));
             }
 
-            ResourceObjectIdentification<?> entitlementIdentification =
+            ResourceObjectIdentification<?> rawEntitlementIdentification = // may be secondary-only
                     ResourceObjectIdentification.fromAssociationValue(def.entitlementObjDef, associationValue);
+            var primaryEntitlementIdentification =
+                    b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(
+                            def.entitlementCtx, rawEntitlementIdentification, result);
+
             ResourceObjectOperations objectOperations =
                     objectsOperations.findOrCreate(
-                            ResourceObjectDiscriminator.of(entitlementIdentification),
-                            def.entitlementCtx,
-                            null);
+                            ResourceObjectDiscriminator.of(primaryEntitlementIdentification),
+                            def.entitlementCtx);
 
             // Which shadow would we use - shadowBefore or shadowAfter?
             //
@@ -496,7 +499,7 @@ class EntitlementConverter {
                             subjectCtx.getIdentificationFromShadow(subjectShadow);
                     LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentification);
                     subjectShadow = ResourceObject.getBean(
-                            ResourceObjectLocateOrFetchOperation.executeFetchRaw( // TODO what if there is no read capability?
+                            ResourceObjectFetchOperation.executeRaw( // TODO what if there is no read capability?
                                     subjectCtx, subjectIdentification, subjectShadow, result));
                     subjectShadowAfter = subjectShadow;
                     valueAttr = ShadowUtil.getAttribute(subjectShadow, def.valueAttrName);
@@ -535,10 +538,10 @@ class EntitlementConverter {
                 ShadowType currentObjectShadow = objectOperations.getCurrentShadow();
                 if (currentObjectShadow == null) {
                     LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
-                            entitlementIdentification, entitlementIntent);
+                            primaryEntitlementIdentification, entitlementIntent);
                     currentObjectShadow = ResourceObject.getBean(
-                            ResourceObjectLocateOrFetchOperation.executeFetchRaw(
-                                    def.entitlementCtx, entitlementIdentification, null, result));
+                            ResourceObjectFetchOperation.executeRaw(
+                                    def.entitlementCtx, primaryEntitlementIdentification, null, result));
                     objectOperations.setCurrentShadow(currentObjectShadow);
                 }
                 // TODO It seems that duplicate values are checked twice: once here and the second time
@@ -588,14 +591,12 @@ class EntitlementConverter {
         final Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 
         @NotNull ResourceObjectOperations findOrCreate(
-                @NotNull ResourceObjectDiscriminator disc,
-                @NotNull ProvisioningContext entitlementCtx,
-                @Nullable ResourceObjectIdentifiers.WithPrimary entitlementsIdentifiers) {
+                @NotNull ResourceObjectDiscriminator disc, @NotNull ProvisioningContext entitlementCtx) {
             ResourceObjectOperations existing = roMap.get(disc);
             if (existing != null) {
                 return existing;
             }
-            var operations = new ResourceObjectOperations(entitlementCtx, entitlementsIdentifiers);
+            var operations = new ResourceObjectOperations(entitlementCtx);
             roMap.put(disc, operations);
             return operations;
         }

@@ -7,21 +7,21 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-
-import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 
 /**
  * Either full-featured `search` or simpler `locate` or `fetch` operations.
  *
  * @see ResourceObjectSearchOperation
- * @see ResourceObjectLocateOrFetchOperation
+ * @see ResourceObjectLocateOperation
  */
-abstract class AbstractResourceObjectSearchOperation {
+abstract class AbstractResourceObjectRetrievalOperation {
 
     @NotNull final ProvisioningContext ctx;
 
@@ -32,7 +32,7 @@ abstract class AbstractResourceObjectSearchOperation {
 
     @NotNull final ResourceObjectsBeans b = ResourceObjectsBeans.get();
 
-    AbstractResourceObjectSearchOperation(
+    AbstractResourceObjectRetrievalOperation(
             @NotNull ProvisioningContext ctx,
             boolean fetchAssociations,
             @Nullable FetchErrorReportingMethodType errorReportingMethod) {
@@ -47,5 +47,16 @@ abstract class AbstractResourceObjectSearchOperation {
         } else {
             return UcfFetchErrorReportingMethod.EXCEPTION;
         }
+    }
+
+    /**
+     * Does all the necessary processing at "resource objects" layer: activation, protected flag, associations, and so on.
+     *
+     * @see ResourceObjectFound#completeResourceObject(ProvisioningContext, ResourceObject, boolean, OperationResult)
+     */
+    @NotNull CompleteResourceObject complete(@NotNull ResourceObject object, @NotNull OperationResult result) {
+        ResourceObjectFound objectFound = new ResourceObjectFound(object, ctx, fetchAssociations);
+        objectFound.initialize(ctx.getTask(), result);
+        return objectFound.asCompleteResourceObject();
     }
 }

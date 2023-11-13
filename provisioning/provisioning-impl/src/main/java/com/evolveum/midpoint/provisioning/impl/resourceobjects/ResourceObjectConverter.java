@@ -101,7 +101,7 @@ public class ResourceObjectConverter {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        return ResourceObjectLocateOrFetchOperation.executeFetch(
+        return ResourceObjectFetchOperation.execute(
                 ctx, primaryIdentification, fetchAssociations, attributesToReturn, repoShadow, result);
     }
 
@@ -109,15 +109,14 @@ public class ResourceObjectConverter {
      * Obtains the resource object:
      *
      * - Tries to get the object directly if primary identifiers are present.
-     * - Tries to search for the object if they are not.
+     * - If they are not, tries to search for the object by arbitrary/first secondary identifier.
      *
      * Both cases are handled by the resource, i.e. not by the repository.
      * The returned object is in the "initialized" state.
      *
      * TODO
      *  Currently seems to be used for entitlements search.
-     *  Please see the caller for open questions - whether this method is necessary at all.
-     *  (Moreover, it is questionable whether we should do the full processing of activation etc here.)
+     *  It is questionable whether we should do the full processing of activation etc here.
      */
     public CompleteResourceObject locateResourceObject(
             @NotNull ProvisioningContext ctx,
@@ -126,7 +125,17 @@ public class ResourceObjectConverter {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
-        return ResourceObjectLocateOrFetchOperation.executeLocate(ctx, identification, fetchAssociations, result);
+        if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
+            return ResourceObjectFetchOperation.execute(
+                    ctx, primary, fetchAssociations,
+                    ctx.createAttributesToReturn(),
+                    null,
+                    result);
+        } else if (identification instanceof ResourceObjectIdentification.SecondaryOnly secondaryOnly) {
+            return ResourceObjectLocateOperation.execute(ctx, secondaryOnly, fetchAssociations, result);
+        } else {
+            throw new AssertionError(identification);
+        }
     }
 
     public SearchResultMetadata searchResourceObjects(

@@ -1797,7 +1797,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 pagedSearchConfiguration = getCapability(PagedSearchCapabilityType.class);
             }
 
-            return new SearchExecutor(objectDefinition, query, handler, attributesToReturn,
+            return new SearchExecutor(
+                    objectDefinition, query, handler, attributesToReturn,
                     pagedSearchConfiguration, searchHierarchyConstraints,
                     ucfErrorReportingMethod, ctx, this)
                     .execute(result);

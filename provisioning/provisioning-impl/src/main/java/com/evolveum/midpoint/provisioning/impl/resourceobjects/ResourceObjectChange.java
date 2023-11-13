@@ -229,6 +229,7 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         }
 
         completeResourceObject(effectiveCtx, rawResourceObject, true, result);
+
         // No exception, so we assume everything went well
         return CompleteResourceObject.of(rawResourceObject, ErrorState.ok());
     }

@@ -74,6 +74,14 @@ public interface AssociationDefinitionStore {
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
+    /**
+     * Returns all attributes that are used as targets for object-to-subject associations, i.e., attributes whose values
+     * are referenced from the entitlements. For example, the group (an entitlement) may list its members by their `uid`
+     * attribute. This method returns `uid` in such a case.
+     *
+     * The goal is to making sure such attributes are always cached, regardless of whether they are formally defined
+     * as identifiers.
+     */
     default @NotNull Collection<? extends QName> getAssociationValueAttributes() {
         return getAssociationDefinitions().stream()
                 .filter(assocDef -> assocDef.isObjectToSubject())

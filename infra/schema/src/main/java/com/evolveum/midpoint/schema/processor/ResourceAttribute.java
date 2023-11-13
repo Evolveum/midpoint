@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  /**
@@ -50,6 +53,14 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
     default String getNativeAttributeName() {
         ResourceAttributeDefinition<T> definition = getDefinition();
         return definition != null ? definition.getNativeAttributeName() : null;
+    }
+
+    /** Returns self to be usable in chained calls. */
+    default @NotNull ResourceAttribute<T> forceDefinitionFrom(ResourceObjectDefinition objectDefinition) throws SchemaException {
+        var attrDef = objectDefinition.findAttributeDefinitionRequired(getElementName());
+        //noinspection unchecked
+        applyDefinition((ResourceAttributeDefinition<T>) attrDef, true);
+        return this;
     }
 
     @Override

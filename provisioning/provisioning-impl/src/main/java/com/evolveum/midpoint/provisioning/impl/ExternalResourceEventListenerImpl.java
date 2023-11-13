@@ -90,7 +90,7 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
             ctx.assertDefinition();
 
             Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, event);
-            Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(anyShadow));
+            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(anyShadow);
             if (identifiers.isEmpty()) {
                 throw new SchemaException("No identifiers");
             }

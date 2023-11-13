@@ -62,7 +62,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         this.identifiers = identifiers;
     }
 
-    public static ResourceObjectIdentification<?> of(
+    public static @NotNull ResourceObjectIdentification<?> of(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectIdentifiers identifiers) {
         if (identifiers instanceof ResourceObjectIdentifiers.WithPrimary withPrimary) {
@@ -72,6 +72,12 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         } else {
             throw new AssertionError(identifiers);
         }
+    }
+
+    public static @NotNull ResourceObjectIdentification.WithPrimary of(
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull ResourceObjectIdentifiers.WithPrimary primaryIdentifiers) {
+        return new WithPrimary(resourceObjectDefinition, primaryIdentifiers);
     }
 
     /** Creates new identification with a primary identifier. */
@@ -118,7 +124,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
     }
 
     /** See {@link ResourceObjectIdentifiers#of(Collection, Collection)} for preconditions. */
-    public static ResourceObjectIdentification<?> of(
+    public static @NotNull ResourceObjectIdentification<?> of(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers,
             @NotNull Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers) throws SchemaException {
@@ -127,7 +133,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
                 ResourceObjectIdentifiers.of(primaryIdentifiers, secondaryIdentifiers));
     }
 
-    private static ResourceObjectIdentification<?> fromIdentifiersOrAttributes(
+    private static @NotNull ResourceObjectIdentification<?> fromIdentifiersOrAttributes(
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> allAttributes,
             boolean nonIdentifiersAllowed) throws SchemaException {
@@ -149,13 +155,13 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         return ResourceObjectIdentification.of(objectDefinition, primaryIdentifiers, secondaryIdentifiers);
     }
 
-    public static ResourceObjectIdentification<?> fromIdentifiers(
+    public static @NotNull ResourceObjectIdentification<?> fromIdentifiers(
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> allIdentifiers) throws SchemaException {
         return fromIdentifiersOrAttributes(objectDefinition, allIdentifiers, false);
     }
 
-    public static ResourceObjectIdentification<?> fromAssociationValue(
+    public static @NotNull ResourceObjectIdentification<?> fromAssociationValue(
             @NotNull ResourceObjectDefinition targetObjDef,
             @NotNull PrismContainerValue<ShadowAssociationType> associationValue)
             throws SchemaException {
@@ -164,7 +170,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
                 getIdentifiersAttributes(associationValue, targetObjDef));
     }
 
-    public static ResourceObjectIdentification<?> fromAttributes(
+    public static @NotNull ResourceObjectIdentification<?> fromAttributes(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> attributes) {
         try {

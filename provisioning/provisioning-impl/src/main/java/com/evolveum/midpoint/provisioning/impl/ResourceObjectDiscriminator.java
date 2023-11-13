@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Preconditions;
@@ -17,16 +18,17 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
- * @param objectClass Qualified object class name.
- * @param identifiers Originally, here we expected primary identifiers. But in fact, clients put here almost anything.
+ * - `objectClass`: Qualified object class name.
+ * - `identifiers`: Identifiers of the object that contain the primary identifier.
+ *
  * @author semancik
  */
 public record ResourceObjectDiscriminator(
         @NotNull QName objectClass,
-        @NotNull ResourceObjectIdentifiers identifiers)
+        @NotNull ResourceObjectIdentifiers.WithPrimary identifiers)
         implements Serializable {
 
-    public static @NotNull ResourceObjectDiscriminator of(@NotNull ResourceObjectIdentification<?> identification) {
+    public static @NotNull ResourceObjectDiscriminator of(@NotNull ResourceObjectIdentification.WithPrimary identification) {
         return new ResourceObjectDiscriminator(
                 identification.getResourceObjectDefinition().getObjectClassName(),
                 identification.getIdentifiers());
@@ -35,6 +37,28 @@ public record ResourceObjectDiscriminator(
     public ResourceObjectDiscriminator {
         Preconditions.checkArgument(
                 QNameUtil.isQualified(objectClass), "Object class must be qualified: %s", objectClass);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ResourceObjectDiscriminator that = (ResourceObjectDiscriminator) o;
+        return Objects.equals(objectClass, that.objectClass)
+                && Objects.equals(getPrimaryIdentifierRealValue(), that.getPrimaryIdentifierRealValue());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(objectClass, getPrimaryIdentifierRealValue());
+    }
+
+    private @NotNull Object getPrimaryIdentifierRealValue() {
+        return identifiers.getPrimaryIdentifier().getRealValue();
     }
 
     @Override

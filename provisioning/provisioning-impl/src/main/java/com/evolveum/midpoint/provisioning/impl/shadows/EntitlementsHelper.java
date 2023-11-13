@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.getAllIdentifiers;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
 
@@ -142,7 +141,7 @@ class EntitlementsHelper {
                             ShadowAssociationType.F_IDENTIFIERS, origContainer.getDefinition());
             association.add(identifiersContainer);
         }
-        for (ResourceAttribute<?> identifier : emptyIfNull(getAllIdentifiers(repoShadow))) {
+        for (ResourceAttribute<?> identifier : getAllIdentifiers(repoShadow)) {
             identifiersContainer.add(identifier.clone());
         }
     }

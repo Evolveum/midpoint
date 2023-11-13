@@ -10,10 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -32,14 +30,8 @@ public class ResourceObjectOperations {
     /** The context in which the operations will be carried out. */
     @NotNull private final ProvisioningContext resourceObjectContext;
 
-    /** TODO */
-    @Nullable private final ResourceObjectIdentifiers.WithPrimary allIdentifiers;
-
-    public ResourceObjectOperations(
-            @NotNull ProvisioningContext resourceObjectContext,
-            @Nullable ResourceObjectIdentifiers.WithPrimary allIdentifiers) {
+    public ResourceObjectOperations(@NotNull ProvisioningContext resourceObjectContext) {
         this.resourceObjectContext = resourceObjectContext;
-        this.allIdentifiers = allIdentifiers;
     }
 
     public ShadowType getCurrentShadow() {
@@ -62,10 +54,6 @@ public class ResourceObjectOperations {
         if (!ucfOperations.contains(operation)) {
             ucfOperations.add(operation);
         }
-    }
-
-    public @Nullable ResourceObjectIdentifiers.WithPrimary getAllIdentifiers() {
-        return allIdentifiers;
     }
 
     @Override

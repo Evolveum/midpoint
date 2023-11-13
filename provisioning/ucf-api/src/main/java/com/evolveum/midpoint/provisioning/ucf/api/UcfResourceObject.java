@@ -63,6 +63,6 @@ public record UcfResourceObject(
     }
 
     public @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers() {
-        return emptyIfNull(ShadowUtil.getAllIdentifiers(bean));
+        return ShadowUtil.getAllIdentifiers(bean);
     }
 }

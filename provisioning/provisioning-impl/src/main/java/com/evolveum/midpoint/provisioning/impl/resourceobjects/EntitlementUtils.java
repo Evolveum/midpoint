@@ -43,6 +43,7 @@ class EntitlementUtils {
             throws SchemaException {
 
         // This is the value we look for in the entitlements (e.g. specific DN that should be their member).
+        // TODO actually, we don't need the normalization here, as the query seems to be issued against the resource (not repo)
         TA normalizedRealValue =
                 getRealNormalizedConvertedValue(referencedAttrValue, referencedAttrDef, referencingAttrDef, associationDef);
 

@@ -122,6 +122,7 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
                 () -> new IllegalStateException("No primary identifier in " + this));
     }
 
+    /** Not empty for {@link SecondaryOnly} instances. */
     public @NotNull Set<ResourceObjectIdentifier.Secondary<?>> getSecondaryIdentifiers() {
         return secondaryIdentifiers;
     }

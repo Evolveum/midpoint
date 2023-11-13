@@ -78,15 +78,15 @@ public class ShadowUtil {
         return attributesContainer.getSecondaryIdentifiers();
     }
 
-    public static @Nullable Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
+    public static @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
-            return null;
+            return List.of();
         }
         return attributesContainer.getAllIdentifiers();
     }
 
-    public static Collection<ResourceAttribute<?>> getAllIdentifiers(ShadowType shadow) {
+    public static @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers(ShadowType shadow) {
         return getAllIdentifiers(shadow.asPrismObject());
     }
 
@@ -979,5 +979,12 @@ public class ShadowUtil {
         return shadow.getSynchronizationSituationDescription().stream()
                 .max(Comparator.comparing(desc -> XmlTypeConverter.toMillis(desc.getTimestamp())))
                 .orElse(null);
+    }
+
+    public static @NotNull ResourceAttributeContainer getIdentifiersContainerRequired(
+            @NotNull PrismContainerValue<ShadowAssociationType> associationValue) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                getAttributesContainer(associationValue, ShadowAssociationType.F_IDENTIFIERS),
+                () -> "No identifiers in " + associationValue);
     }
 }

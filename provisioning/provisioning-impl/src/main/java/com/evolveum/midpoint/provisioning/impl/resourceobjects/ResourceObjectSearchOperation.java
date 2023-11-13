@@ -36,9 +36,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Handles {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
  * boolean, FetchErrorReportingMethodType, OperationResult)} method call.
  *
- * @see ResourceObjectLocateOrFetchOperation
+ * @see ResourceObjectLocateOperation
  */
-class ResourceObjectSearchOperation extends AbstractResourceObjectSearchOperation {
+class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSearchOperation.class);
 

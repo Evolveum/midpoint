@@ -161,12 +161,10 @@ abstract class ResourceObjectProvisioningOperation {
             ResourceObjectDiscriminator disc = entry.getKey();
             ProvisioningContext entitlementCtx = entry.getValue().getResourceObjectContext();
             ResourceObjectOperations resourceObjectOperations = entry.getValue();
-            ResourceObjectIdentifiers identifiers = Objects.requireNonNullElse(
-                    resourceObjectOperations.getAllIdentifiers(), // if present, this contains the primary identifier
-                    disc.identifiers()); // may or may not contain the primary identifier
+            ResourceObjectIdentifiers.WithPrimary identifiers = disc.identifiers();
             Collection<Operation> operations = resourceObjectOperations.getUcfOperations();
 
-            getLogger().trace("Executing entitlement change identifiers={}:\n{}",
+            getLogger().trace("Executing entitlement change with identifiers={}:\n{}",
                     identifiers, DebugUtil.debugDumpLazily(operations, 1));
 
             OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);

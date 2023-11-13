@@ -9,8 +9,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.TokenUtil.toUcf;
 
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
 import java.util.ArrayList;
@@ -104,7 +102,7 @@ class SyncDeltaConverter {
                         .getPrismObject();
 
                 LOGGER.trace("Got (current) resource object: {}", resourceObject.debugDumpLazily());
-                identifiers.addAll(emptyIfNull(ShadowUtil.getAllIdentifiers(resourceObject)));
+                identifiers.addAll(ShadowUtil.getAllIdentifiers(resourceObject));
 
                 if (icfDeltaType == SyncDeltaType.CREATE) {
                     objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.ADD);

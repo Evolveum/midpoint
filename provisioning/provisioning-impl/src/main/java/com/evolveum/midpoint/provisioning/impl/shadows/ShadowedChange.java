@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
@@ -176,15 +177,40 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         return repoShadow;
     }
 
-    // For delete deltas we don't bother with creating a shadow if it does not exist.
+    /**
+     * For delete deltas we don't bother with creating a shadow if it does not exist. So, just looking for one.
+     * (Maybe we could even refrain from throwing exceptions if there is no unique primary identifier in wildcard case?)
+     */
+    @SuppressWarnings("ExtractMethodRecommender")
     private @Nullable ShadowType lookupShadowForDeletionChange(OperationResult result)
             throws SchemaException, ConfigurationException {
         // This context is the best we know at this moment. It is possible that it is wildcard (no OC known).
         // But the only way how to detect the OC is to read existing repo shadow. So we must take the risk
         // of guessing identifiers' definition correctly - in other words, assuming that these definitions are
         // the same for all the object classes on the given resource.
-        var repoShadow = b.shadowFinder.lookupLiveOrAnyShadowByPrimaryIds(
-                globalCtx, resourceObjectChange.getIdentifiers(), result);
+        @Nullable ResourceObjectDefinition objectDefinition = globalCtx.getObjectDefinition();
+        ResourceObjectDefinition effectiveObjectDefinition;
+        if (objectDefinition != null) {
+            effectiveObjectDefinition = objectDefinition;
+        } else {
+            effectiveObjectDefinition = globalCtx.getAnyDefinition();
+        }
+
+        List<ResourceAttribute<?>> primaryIdentifierAttributes = getIdentifiers().stream()
+                .filter(identifier -> effectiveObjectDefinition.isPrimaryIdentifier(identifier.getElementName()))
+                .toList();
+
+        ResourceAttribute<?> primaryIdentifierAttribute = MiscUtil.extractSingletonRequired(
+                primaryIdentifierAttributes,
+                () -> new SchemaException("Multiple primary identifiers among " + getIdentifiers() + " in " + this),
+                () -> new SchemaException("No primary identifier in " + this));
+
+        // We need to learn about correct matching rule (among others).
+        primaryIdentifierAttribute.forceDefinitionFrom(effectiveObjectDefinition);
+
+        ResourceObjectIdentifier.Primary<?> primaryIdentifier = ResourceObjectIdentifier.Primary.of(primaryIdentifierAttribute);
+
+        var repoShadow = b.shadowFinder.lookupLiveOrAnyShadowByPrimaryId(globalCtx, primaryIdentifier, result);
         if (repoShadow == null) {
             getLogger().debug(
                     "No old shadow for delete synchronization event {}, we probably did not know about "
@@ -353,7 +379,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      */
     protected abstract String getDefaultChannel();
 
-    public Collection<ResourceAttribute<?>> getIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getIdentifiers() {
         return resourceObjectChange.getIdentifiers();
     }
 

@@ -97,7 +97,8 @@ class SearchExecutor {
         this.connectorInstance = connectorInstance;
     }
 
-    public SearchResultMetadata execute(OperationResult result) throws CommunicationException, ObjectNotFoundException,
+    public SearchResultMetadata execute(OperationResult result)
+            throws CommunicationException, ObjectNotFoundException,
             GenericFrameworkException, SchemaException, SecurityViolationException {
 
         if (isNoConnectorPaging() && query != null && query.getPaging() != null &&

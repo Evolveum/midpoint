@@ -229,9 +229,7 @@ public class AssociationFromLinkExpressionEvaluator
                     ShadowAssociationType.F_IDENTIFIERS, shadowAttributesContainer.getDefinition());
             //noinspection unchecked
             shadowAssociationType.asPrismContainerValue().add(identifiersContainer);
-            Collection<ResourceAttribute<?>> shadowIdentifiers =
-                    Objects.requireNonNull(ShadowUtil.getAllIdentifiers(shadow), "no shadow identifiers");
-            for (ResourceAttribute<?> shadowIdentifier : shadowIdentifiers) {
+            for (ResourceAttribute<?> shadowIdentifier : ShadowUtil.getAllIdentifiers(shadow)) {
                 identifiersContainer.add(shadowIdentifier.clone());
             }
 

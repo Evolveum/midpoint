@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -316,14 +317,15 @@ class ShadowedObjectConstruction {
 
         LOGGER.trace("Determining shadowRef for {}", associationValue);
 
-        ResourceAttributeContainer identifierContainer =
-                ShadowUtil.getAttributesContainer(associationValue, ShadowAssociationType.F_IDENTIFIERS);
+        ResourceAttributeContainer identifierContainer = ShadowUtil.getIdentifiersContainerRequired(associationValue);
 
         ShadowAssociationType associationValueBean = associationValue.asContainerable();
         QName associationName = associationValueBean.getName();
         ResourceAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
         ShadowKindType entitlementKind = rAssociationDef.getKind();
 
+        // TODO what if we find a shadow given one of the intents? Shouldn't we stop there? Overall, the process seems
+        //  to be inefficient for multiple intents.
         for (String entitlementIntent : rAssociationDef.getIntents()) {
             LOGGER.trace("Processing kind={}, intent={} (from the definition)", entitlementKind, entitlementIntent);
             ProvisioningContext ctxEntitlement = ctx.spawnForKindIntent(entitlementKind, entitlementIntent);
@@ -381,7 +383,7 @@ class ShadowedObjectConstruction {
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException, SchemaException, ObjectNotFoundException {
 
-        // TODO should we cache the entitlement resource object?
+        // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
         //  (If yes, maybe we should retrieve also the associations below?)
 
         UcfResourceObject providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY);
@@ -391,19 +393,29 @@ class ShadowedObjectConstruction {
         }
 
         try {
-            ShadowType existingLiveRepoShadow =
-                    b.shadowFinder.lookupLiveShadowByAllIds(ctxEntitlement, identifierContainer, result);
+            ResourceObjectDefinition entitlementObjDef = ctxEntitlement.getObjectDefinitionRequired();
 
+            List<ResourceAttribute<?>> identifyingAttributes = new ArrayList<>();
+            for (ResourceAttribute<?> rawIdentifyingAttribute : identifierContainer.getAttributes()) {
+                identifyingAttributes.add(
+                        rawIdentifyingAttribute.clone().forceDefinitionFrom(entitlementObjDef));
+            }
+
+            var existingLiveRepoShadow =
+                    b.shadowFinder.lookupLiveShadowByAllAttributes(ctxEntitlement, identifyingAttributes, result);
             if (existingLiveRepoShadow != null) {
                 return existingLiveRepoShadow;
             }
 
-            // TODO using the secondary identifiers in this context is quite questionable: if we weren't able to find the object
-            //  in the repo using all identifiers (above), we will probably not find it here neither. Maybe only if it's dead?
-            var entitlementIdentification = ResourceObjectIdentification.fromAssociationValue(
-                    ctxEntitlement.getObjectDefinitionRequired(), associationValue);
-            CompleteResourceObject fetchedResourceObject = b.resourceObjectConverter
-                    .locateResourceObject(ctxEntitlement, entitlementIdentification, false, result);
+            // Nothing found in repo, let's do the search on the resource.
+
+            // TODO the following code requires that all attributes in shadow association value are identifiers
+            //  (primary or secondary). However, at other places in the code we also allow non-identifiers in these situations.
+            //  What is the correct approach?
+            var entitlementIdentification = ResourceObjectIdentification.fromAssociationValue(entitlementObjDef, associationValue);
+            CompleteResourceObject fetchedResourceObject =
+                    b.resourceObjectConverter.locateResourceObject(
+                            ctxEntitlement, entitlementIdentification, false, result);
 
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
