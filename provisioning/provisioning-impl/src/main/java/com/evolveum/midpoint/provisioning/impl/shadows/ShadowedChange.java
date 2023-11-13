@@ -69,6 +69,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
     /**
      * Resource object: the best that is known at given time instant.
+     * May be even null for DELETE-only, no-OC changes in wildcard LS mode.
      *
      * @see #determineCurrentResourceObjectBeforeShadow()
      * @see #determineCurrentResourceObjectAfterShadow(ProvisioningContext, ShadowType, OperationResult)
@@ -116,6 +117,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     public void initializeInternalCommon(Task task, OperationResult result) {
         super.initializeInternalCommon(task, result);
         // Delta is not cloned in the constructor, because it may be changed during resource change initialization.
+        // We need to get those changes here.
         resourceObjectDelta = CloneUtil.clone(resourceObjectChange.getObjectDelta());
         resourceObject = determineCurrentResourceObjectBeforeShadow();
     }
@@ -220,7 +222,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     @Override
-    public @NotNull ResourceObject getResourceObject() {
+    public @NotNull ResourceObject getResourceObjectRequired() {
         return Objects.requireNonNull(resourceObject, "No resource object");
     }
 
@@ -250,7 +252,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
     }
 
-    private @NotNull ResourceObject determineCurrentResourceObjectBeforeShadow() {
+    /** Null value can be returned only for (some) delete events in wildcard context. */
+    private @Nullable ResourceObject determineCurrentResourceObjectBeforeShadow() {
         CompleteResourceObject completeResourceObject = resourceObjectChange.getCompleteResourceObject();
         if (completeResourceObject != null) {
             return completeResourceObject.resourceObject().clone();
@@ -268,31 +271,37 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
     }
 
-    private @NotNull ResourceObject createIdentifiersOnlyFakeResourceObject() {
+    private @Nullable ResourceObject createIdentifiersOnlyFakeResourceObject() {
+        ResourceObjectDefinition objectDefinition = resourceObjectChange.getCurrentResourceObjectDefinition();
+        if (objectDefinition == null) {
+            if (isDelete()) {
+                // This can happen for wildcard live sync, with no-object-class DELETE event. We have to deal with it.
+                return null;
+            } else {
+                throw new IllegalStateException(
+                        "Could not create shadow from change description. Object definition is not specified: " + this);
+            }
+        }
+        ShadowType fakeResourceObject = new ShadowType();
+        fakeResourceObject.setObjectClass(objectDefinition.getTypeName());
+        ResourceAttributeContainer attributeContainer = objectDefinition.toResourceAttributeContainerDefinition().instantiate();
         try {
-            ResourceObjectDefinition objectDefinition =
-                    MiscUtil.stateNonNull(
-                            resourceObjectChange.getCurrentResourceObjectDefinition(),
-                            "Could not create shadow from change description. Object definition is not specified.");
-            ShadowType fakeResourceObject = new ShadowType();
-            fakeResourceObject.setObjectClass(objectDefinition.getTypeName());
-            ResourceAttributeContainer attributeContainer = objectDefinition.toResourceAttributeContainerDefinition().instantiate();
             fakeResourceObject.asPrismObject().add(attributeContainer);
             for (ResourceAttribute<?> identifier : resourceObjectChange.getIdentifiers()) {
                 attributeContainer.add(identifier.clone());
             }
-            return ResourceObject.fromBean(fakeResourceObject, getPrimaryIdentifierValue());
         } catch (SchemaException e) {
             // All the operations are schema-safe, so this is really a kind of internal error.
             throw SystemException.unexpected(e, "when creating fake resource object");
         }
+        return ResourceObject.fromBean(fakeResourceObject, getPrimaryIdentifierValue());
     }
 
     private @NotNull ResourceObject determineCurrentResourceObjectAfterShadow(
             @NotNull ProvisioningContext shadowCtx, @NotNull ShadowType repoShadow, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
             SecurityViolationException, EncryptionException, NotApplicableException {
-        if (!resourceObjectIsTemporary) {
+        if (resourceObject != null && !resourceObjectIsTemporary) {
             return resourceObject;
         }
         LOGGER.trace("Going to determine current resource object, as the previous one was temporary");

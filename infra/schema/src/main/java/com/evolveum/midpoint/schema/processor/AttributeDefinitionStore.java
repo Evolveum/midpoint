@@ -171,4 +171,14 @@ public interface AttributeDefinitionStore
         attribute.setIncomplete(property.isIncomplete());
         return attribute;
     }
+
+    @SuppressWarnings("unchecked")
+    default <T> @NotNull ResourceAttribute<T> instantiateAttribute(@NotNull QName attrName, @NotNull T... realValues)
+            throws SchemaException {
+        //noinspection unchecked
+        var attrDef = (ResourceAttributeDefinition<T>) findAttributeDefinitionRequired(attrName);
+        var attr = attrDef.instantiate();
+        attr.addRealValues(realValues);
+        return attr;
+    }
 }

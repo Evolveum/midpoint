@@ -76,12 +76,15 @@ public abstract class AbstractShadowedEntity implements InitializableObjectMixin
 
     //region Shadow acquisition
 
-    /** Looks up and creates (if needed) a shadow for the resource object (in {@link #getResourceObject()}). Deals with errors. */
+    /**
+     * Looks up and creates (if needed) a shadow for the resource object (in {@link #getResourceObjectRequired()}).
+     * Deals with errors.
+     */
     @NotNull ShadowType acquireRepoShadow(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException,
             SecurityViolationException {
 
-        var resourceObjectBean = getResourceObject().getBean();
+        var resourceObjectBean = getResourceObjectRequired().getBean();
 
         // The resource object does not have any kind or intent at this point.
         // But let us at least apply the definition using object class(es) in the fetched object.
@@ -115,7 +118,7 @@ public abstract class AbstractShadowedEntity implements InitializableObjectMixin
         getLogger().trace("Acquiring repo shadow in emergency:\n{}", debugDumpLazily( 1));
         try {
             return ShadowAcquisition.acquireRepoShadow(
-                    globalCtx, getResourceObject().getBean(), true, result);
+                    globalCtx, getResourceObjectRequired().getBean(), true, result);
         } catch (Exception e) {
             setAcquiredRepoShadowInEmergency(
                     acquireRepoShadowInUltraEmergency(result));
@@ -131,7 +134,7 @@ public abstract class AbstractShadowedEntity implements InitializableObjectMixin
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
         ShadowType minimalResourceObject = ShadowsUtil.minimize(
-                getResourceObject().getBean(),
+                getResourceObjectRequired().getBean(),
                 globalCtx.getObjectDefinitionRequired());
         getLogger().trace("Minimal resource object to acquire a shadow for:\n{}",
                 DebugUtil.debugDumpLazily(minimalResourceObject, 1));
@@ -150,7 +153,7 @@ public abstract class AbstractShadowedEntity implements InitializableObjectMixin
         // TODO [from ShadowedChange]:
         //  should we update the repo even if we obtained current resource object from the cache? (except for e.g. metadata)
         return b.shadowUpdater.updateShadowInRepository(
-                shadowCtx, getResourceObject(), getResourceObjectDelta(), repoShadow, result);
+                shadowCtx, getResourceObjectRequired(), getResourceObjectDelta(), repoShadow, result);
     }
 
     @NotNull ShadowType createShadowedObject(
@@ -159,14 +162,14 @@ public abstract class AbstractShadowedEntity implements InitializableObjectMixin
             SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         // TODO do we want also to futurize the shadow like in getObject?
         // TODO [from ShadowedChange] should we bother merging if we obtained resource object from the cache?
-        return ShadowedObjectConstruction.construct(shadowCtx, repoShadow, getResourceObject(), result);
+        return ShadowedObjectConstruction.construct(shadowCtx, repoShadow, getResourceObjectRequired(), result);
     }
     //endregion
 
     //region "SPI"
 
-    /** Underlying resource object. */
-    abstract @NotNull ResourceObject getResourceObject();
+    /** Underlying resource object. Be sure to avoid calling it when there's none. */
+    abstract @NotNull ResourceObject getResourceObjectRequired();
 
     /** The delta - always null for search, null or non-null for changes. */
     abstract @Nullable ObjectDelta<ShadowType> getResourceObjectDelta();

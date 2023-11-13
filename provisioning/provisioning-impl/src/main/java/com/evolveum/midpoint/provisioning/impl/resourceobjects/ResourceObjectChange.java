@@ -161,8 +161,7 @@ public abstract class ResourceObjectChange extends AbstractResourceEntity {
         this.ucfChangeStatus = AlreadyInitializedObject.of(initialErrorState);
     }
 
-    ResourceObjectChange(
-            @NotNull UcfChange ucfChange, @NotNull ProvisioningContext originalContext) {
+    ResourceObjectChange(@NotNull UcfChange ucfChange, @NotNull ProvisioningContext originalContext) {
         this(ucfChange.getLocalSequenceNumber(),
                 ucfChange.getPrimaryIdentifierValue(),
                 ucfChange.getResourceObjectDefinition(),
