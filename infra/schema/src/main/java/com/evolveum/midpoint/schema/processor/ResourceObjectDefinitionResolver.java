@@ -16,6 +16,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -201,7 +203,8 @@ class ResourceObjectDefinitionResolver {
      * See {@link ResourceSchema#findDefinitionForShadow(ShadowType)} for the description.
      */
     static @Nullable ResourceObjectDefinition findDefinitionForShadow(
-            @NotNull ResourceSchema schema, @NotNull ShadowType shadow, @NotNull Collection<QName> additionalAuxObjectClassNames) {
+            @NotNull ResourceSchema schema, @NotNull ShadowType shadow, @NotNull Collection<QName> additionalAuxObjectClassNames)
+            throws SchemaException {
         ResourceObjectDefinition structuralDefinition = findStructuralDefinitionForShadow(schema, shadow);
         if (structuralDefinition != null) {
             return addAuxiliaryObjectClasses(

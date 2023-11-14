@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
+
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -206,6 +208,7 @@ public class ShadowsNormalizationUtil {
         return newValue;
     }
 
+    /** @see ResourceObjectIdentifier#getNormalizedValues() */
     public static <T> List<PrismPropertyValue<T>> getNormalizedValues(PrismProperty<T> attribute, ResourceObjectDefinition objDef)
             throws SchemaException {
         ResourceAttributeDefinition<?> attrDef = objDef.findAttributeDefinitionRequired(attribute.getElementName());

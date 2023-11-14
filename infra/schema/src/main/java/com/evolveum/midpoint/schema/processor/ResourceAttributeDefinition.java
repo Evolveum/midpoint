@@ -10,8 +10,11 @@ package com.evolveum.midpoint.schema.processor;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.base.Preconditions;
@@ -335,5 +338,10 @@ public interface ResourceAttributeDefinition<T>
     /** TODO */
     default boolean isVisible(@NotNull TaskExecutionMode taskExecutionMode) {
         return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
+    }
+
+    default @NotNull MatchingRule<T> getMatchingRule() throws SchemaException {
+        return SchemaService.get().matchingRuleRegistry()
+                .getMatchingRule(getMatchingRuleQName(), getTypeName());
     }
 }

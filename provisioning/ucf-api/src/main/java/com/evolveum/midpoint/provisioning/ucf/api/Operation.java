@@ -7,9 +7,16 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyModificationOperationType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Abstract operation for a connector. Subclasses of this class
@@ -20,9 +27,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyModification
  * extended later on.
  *
  * @author Radovan Semancik
- *
  */
 public abstract class Operation implements DebugDumpable {
+
+    /** Do the operations contain an identifier change? */
+    public static boolean isRename(@NotNull Collection<Operation> operations, @NotNull ResourceObjectDefinition objDef) {
+        return operations.stream()
+                .anyMatch(operation -> operation.isRename(objDef));
+    }
+
+    /** Is this an identifier change? */
+    public abstract boolean isRename(@NotNull ResourceObjectDefinition objDef);
+
+    public abstract boolean isAttributeDelta();
+
+    public abstract @Nullable ResourceAttributeDefinition<?> getAttributeDefinitionIfApplicable(
+            @NotNull ResourceObjectDefinition objDef);
 
     /** Converts this Operation into respective xType bean */
     public abstract PropertyModificationOperationType asBean(PrismContext prismContext) throws SchemaException;

@@ -82,10 +82,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired ApplicationContext springContext;
     @Autowired private PrismContext prismContext;
     @Autowired CacheRegistry cacheRegistry;
@@ -559,10 +556,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     private Collection<? extends ItemDelta<?, ?>> activeStatusDelta(boolean status) {
         try {
-
-            return prismContext.deltaFor(ConnectorType.class).item(ConnectorType.F_AVAILABLE)
-                .replaceRealValues(Collections.singletonList(status))
-                .asItemDeltas();
+            return prismContext.deltaFor(ConnectorType.class)
+                    .item(ConnectorType.F_AVAILABLE)
+                    .replace(status)
+                    .asItemDeltas();
         } catch (SchemaException e) {
             throw new SystemException(e);
         }

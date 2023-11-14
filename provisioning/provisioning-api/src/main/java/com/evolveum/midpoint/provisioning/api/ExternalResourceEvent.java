@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Externally-provided resource event. Used to inform provisioning module about the fact
  * that an object on a resource has changed.
  */
+@SuppressWarnings("ClassCanBeRecord")
 public class ExternalResourceEvent implements ProvisioningEvent, Serializable, DebugDumpable {
 
     /**

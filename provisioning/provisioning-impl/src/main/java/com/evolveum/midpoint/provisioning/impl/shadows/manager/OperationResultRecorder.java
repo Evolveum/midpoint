@@ -59,10 +59,7 @@ import javax.xml.datatype.Duration;
 @Component
 public class OperationResultRecorder {
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ShadowDeltaComputerAbsolute shadowDeltaComputerAbsolute;

@@ -79,6 +79,7 @@ import static java.util.Collections.emptySet;
  *
  * @author Radovan Semancik
  */
+@SuppressWarnings("unused")
 public class BasicExpressionFunctions {
 
     public static final String NAME_SEPARATOR = " ";
@@ -651,19 +652,20 @@ public class BasicExpressionFunctions {
                 () -> new SchemaException("More than one identifier value in " + shadow));
     }
 
+    /** Beware, the shadow may legally have more than one secondary identifier. */
     public <T> T getSecondaryIdentifierValue(ShadowType shadow) throws SchemaException {
         if (shadow == null) {
             return null;
         }
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-        if (identifiers.size() == 0) {
+        if (identifiers.isEmpty()) {
             return null;
         }
         if (identifiers.size() > 1) {
-            throw new SchemaException("More than one secondary idenfier in " + shadow);
+            throw new SchemaException("More than one secondary identifier in " + shadow);
         }
         Collection<T> realValues = (Collection<T>) identifiers.iterator().next().getRealValues();
-        if (realValues.size() == 0) {
+        if (realValues.isEmpty()) {
             return null;
         }
         if (realValues.size() > 1) {

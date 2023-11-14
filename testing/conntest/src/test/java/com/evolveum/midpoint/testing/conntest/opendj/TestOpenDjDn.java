@@ -30,7 +30,7 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 public class TestOpenDjDn extends AbstractOpenDjNoiseTest {
 
-    private static final int INITIAL_SYNC_TOKEN = 25;
+    private static final int INITIAL_SYNC_TOKEN = 24;
 
     @Override
     protected File getResourceFile() {

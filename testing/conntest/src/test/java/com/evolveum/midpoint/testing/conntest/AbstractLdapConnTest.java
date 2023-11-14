@@ -218,6 +218,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -244,6 +245,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertApproxNumberOfAllResults(metadata, null);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -260,6 +262,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertCountAllAccounts(count);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     protected void assertCountAllAccounts(Integer count) {
@@ -295,6 +298,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertApproxNumberOfAllResults(metadata, null);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -326,6 +330,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertApproxNumberOfAllResults(metadata, null);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -355,6 +360,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -390,6 +396,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -419,6 +426,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertApproxNumberOfAllResults(metadata, getNumberOfAllAccounts());
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -448,6 +456,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -477,6 +486,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -510,6 +520,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -543,6 +554,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -595,6 +607,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     private void singleInfernoSearch(ObjectQuery query, int expectedNumberOfResults, Integer offset, Integer maxSize, String sortAttrName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -661,6 +674,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         TestUtil.assertBetween("Wrong createTimestamp in " + shadow, roundTsDown(tsStart) - 1000, roundTsUp(tsEnd) + 1000, createTimestampMillis);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -696,6 +710,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -735,6 +750,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -774,6 +790,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -803,6 +820,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -828,6 +846,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -853,6 +872,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -878,6 +898,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -915,6 +936,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -961,6 +983,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -985,6 +1008,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertNoLinkedAccount(user);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -1024,6 +1048,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -1060,6 +1085,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -1096,6 +1122,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -1132,6 +1159,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         displayValue("Undead group", ldapEntryUndead);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -1169,6 +1197,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -1215,6 +1244,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupName(), groupEvilShadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -1267,6 +1297,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     /**
@@ -1316,6 +1347,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertAssociation(shadow, ASSOCIATION_GROUP_NAME, groupEvilShadowOid);
 
         assertLdapConnectorReasonableInstances();
+        showToken();
     }
 
     @Test
@@ -1330,6 +1362,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<ShadowType> shadow = shadows.get(0);
         IntegrationTestTools.displayXml("Bilbo", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_BILBO_UID));
+        showToken();
     }
 
     protected Entry createBilboEntry() throws LdapException, IOException {

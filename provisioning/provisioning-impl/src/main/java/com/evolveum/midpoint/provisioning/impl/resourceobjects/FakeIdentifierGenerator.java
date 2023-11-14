@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectPrimaryIdentifiers;
-
 import java.util.Collection;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -44,6 +47,18 @@ class FakeIdentifierGenerator {
                 && selectPrimaryIdentifiers(attrContainer.getAllIdentifiers(), objectClassDef).isEmpty()) {
             attrContainer.add(createFakePrimaryIdentifier(primaryIdentifierRealValue, objectClassDef));
         }
+    }
+
+    private static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(
+            Collection<ResourceAttribute<?>> identifiers, ResourceObjectDefinition def) {
+
+        Collection<ItemName> primaryIdentifiers = def.getPrimaryIdentifiers().stream()
+                .map(ItemDefinition::getItemName)
+                .collect(Collectors.toSet());
+
+        return identifiers.stream()
+                .filter(attr -> QNameUtil.matchAny(attr.getElementName(), primaryIdentifiers))
+                .collect(Collectors.toList());
     }
 
     private ResourceAttribute<?> createFakePrimaryIdentifier(Object primaryIdentifierRealValue,

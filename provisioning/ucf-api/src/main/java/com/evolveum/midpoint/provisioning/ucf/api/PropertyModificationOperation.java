@@ -9,17 +9,21 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyModificationOperationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
 /**
  * @author Radovan Semancik
- *
  */
 public final class PropertyModificationOperation<T> extends Operation {
 
@@ -46,6 +50,25 @@ public final class PropertyModificationOperation<T> extends Operation {
     @NotNull
     public PropertyDelta<T> getPropertyDelta() {
         return propertyDelta;
+    }
+
+    @Override
+    public boolean isRename(@NotNull ResourceObjectDefinition objDef) {
+        return objDef.isIdentifier(propertyDelta.getElementName());
+    }
+
+    @Override
+    public boolean isAttributeDelta() {
+        return ShadowType.F_ATTRIBUTES.equivalent(propertyDelta.getParentPath());
+    }
+
+    @Override
+    public @Nullable ResourceAttributeDefinition<?> getAttributeDefinitionIfApplicable(@NotNull ResourceObjectDefinition objDef) {
+        if (isAttributeDelta()) {
+            return objDef.findAttributeDefinition(propertyDelta.getElementName());
+        } else {
+            return null;
+        }
     }
 
     @Override

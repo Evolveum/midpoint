@@ -128,8 +128,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Autowired private OperationsHelper operationsHelper;
     @Autowired private ResourceObjectClassifier resourceObjectClassifier;
     @Autowired private ShadowTagGenerator shadowTagGenerator;
-
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private volatile SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     private volatile SystemConfigurationType systemConfiguration;
@@ -235,7 +234,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 } else {
                     addOptions = null;
                 }
-                return cacheRepositoryService.addObject(object, addOptions, result);
+                return repositoryService.addObject(object, addOptions, result);
             }
 
         } catch (Throwable t) {
@@ -447,11 +446,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
 
-
             if (ShadowType.class.isAssignableFrom(type)) {
                 oid = shadowsFacade.modifyShadow((ShadowType) repoShadow, modifications, scripts, options, context, task, result);
             } else {
-                cacheRepositoryService.modifyObject(type, oid, modifications, result);
+                repositoryService.modifyObject(type, oid, modifications, result);
             }
             if (!result.isInProgress()) {
                 // This is the case when there is already a conflicting pending operation.
@@ -512,7 +510,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 resourceManager.deleteResource(oid, result);
                 return null;
             } else {
-                cacheRepositoryService.deleteObject(type, oid, result);
+                repositoryService.deleteObject(type, oid, result);
                 return null;
             }
 

@@ -59,8 +59,7 @@ public class ResourceCache implements Cache {
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ResourceCache.class.getName() + ".content");
 
     @Autowired private CacheRegistry cacheRegistry;
-    @Autowired @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @PostConstruct
     public void register() {

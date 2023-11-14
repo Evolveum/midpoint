@@ -8,9 +8,11 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.impl.InitializableObjectMixin;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectChange;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -68,6 +69,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
     /**
      * Resource object: the best that is known at given time instant.
+     * May be even null for DELETE-only, no-OC changes in wildcard LS mode.
      *
      * @see #determineCurrentResourceObjectBeforeShadow()
      * @see #determineCurrentResourceObjectAfterShadow(ProvisioningContext, ShadowType, OperationResult)
@@ -115,6 +117,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     public void initializeInternalCommon(Task task, OperationResult result) {
         super.initializeInternalCommon(task, result);
         // Delta is not cloned in the constructor, because it may be changed during resource change initialization.
+        // We need to get those changes here.
         resourceObjectDelta = CloneUtil.clone(resourceObjectChange.getObjectDelta());
         resourceObject = determineCurrentResourceObjectBeforeShadow();
     }
@@ -176,15 +179,40 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         return repoShadow;
     }
 
-    // For delete deltas we don't bother with creating a shadow if it does not exist.
+    /**
+     * For delete deltas we don't bother with creating a shadow if it does not exist. So, just looking for one.
+     * (Maybe we could even refrain from throwing exceptions if there is no unique primary identifier in wildcard case?)
+     */
+    @SuppressWarnings("ExtractMethodRecommender")
     private @Nullable ShadowType lookupShadowForDeletionChange(OperationResult result)
             throws SchemaException, ConfigurationException {
         // This context is the best we know at this moment. It is possible that it is wildcard (no OC known).
         // But the only way how to detect the OC is to read existing repo shadow. So we must take the risk
         // of guessing identifiers' definition correctly - in other words, assuming that these definitions are
         // the same for all the object classes on the given resource.
-        var repoShadow = b.shadowFinder.lookupLiveOrAnyShadowByPrimaryIds(
-                globalCtx, resourceObjectChange.getIdentifiers(), result);
+        @Nullable ResourceObjectDefinition objectDefinition = globalCtx.getObjectDefinition();
+        ResourceObjectDefinition effectiveObjectDefinition;
+        if (objectDefinition != null) {
+            effectiveObjectDefinition = objectDefinition;
+        } else {
+            effectiveObjectDefinition = globalCtx.getAnyDefinition();
+        }
+
+        List<ResourceAttribute<?>> primaryIdentifierAttributes = getIdentifiers().stream()
+                .filter(identifier -> effectiveObjectDefinition.isPrimaryIdentifier(identifier.getElementName()))
+                .toList();
+
+        ResourceAttribute<?> primaryIdentifierAttribute = MiscUtil.extractSingletonRequired(
+                primaryIdentifierAttributes,
+                () -> new SchemaException("Multiple primary identifiers among " + getIdentifiers() + " in " + this),
+                () -> new SchemaException("No primary identifier in " + this));
+
+        // We need to learn about correct matching rule (among others).
+        primaryIdentifierAttribute.forceDefinitionFrom(effectiveObjectDefinition);
+
+        ResourceObjectIdentifier.Primary<?> primaryIdentifier = ResourceObjectIdentifier.Primary.of(primaryIdentifierAttribute);
+
+        var repoShadow = b.shadowFinder.lookupLiveOrAnyShadowByPrimaryId(globalCtx, primaryIdentifier, result);
         if (repoShadow == null) {
             getLogger().debug(
                     "No old shadow for delete synchronization event {}, we probably did not know about "
@@ -194,7 +222,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     @Override
-    public @NotNull ResourceObject getResourceObject() {
+    public @NotNull ResourceObject getResourceObjectRequired() {
         return Objects.requireNonNull(resourceObject, "No resource object");
     }
 
@@ -224,9 +252,11 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
     }
 
-    private @NotNull ResourceObject determineCurrentResourceObjectBeforeShadow() {
-        if (resourceObjectChange.getResourceObject() != null) {
-            return resourceObjectChange.getResourceObject().clone();
+    /** Null value can be returned only for (some) delete events in wildcard context. */
+    private @Nullable ResourceObject determineCurrentResourceObjectBeforeShadow() {
+        CompleteResourceObject completeResourceObject = resourceObjectChange.getCompleteResourceObject();
+        if (completeResourceObject != null) {
+            return completeResourceObject.resourceObject().clone();
         } else if (resourceObjectDelta != null && resourceObjectDelta.isAdd()) {
             return ResourceObject.fromPrismObject(
                     resourceObjectDelta.getObjectToAdd().clone(),
@@ -241,31 +271,37 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
     }
 
-    private @NotNull ResourceObject createIdentifiersOnlyFakeResourceObject() {
+    private @Nullable ResourceObject createIdentifiersOnlyFakeResourceObject() {
+        ResourceObjectDefinition objectDefinition = resourceObjectChange.getCurrentResourceObjectDefinition();
+        if (objectDefinition == null) {
+            if (isDelete()) {
+                // This can happen for wildcard live sync, with no-object-class DELETE event. We have to deal with it.
+                return null;
+            } else {
+                throw new IllegalStateException(
+                        "Could not create shadow from change description. Object definition is not specified: " + this);
+            }
+        }
+        ShadowType fakeResourceObject = new ShadowType();
+        fakeResourceObject.setObjectClass(objectDefinition.getTypeName());
+        ResourceAttributeContainer attributeContainer = objectDefinition.toResourceAttributeContainerDefinition().instantiate();
         try {
-            ResourceObjectDefinition objectDefinition =
-                    MiscUtil.stateNonNull(
-                            resourceObjectChange.getCurrentResourceObjectDefinition(),
-                            "Could not create shadow from change description. Object definition is not specified.");
-            ShadowType fakeResourceObject = new ShadowType();
-            fakeResourceObject.setObjectClass(objectDefinition.getTypeName());
-            ResourceAttributeContainer attributeContainer = objectDefinition.toResourceAttributeContainerDefinition().instantiate();
             fakeResourceObject.asPrismObject().add(attributeContainer);
             for (ResourceAttribute<?> identifier : resourceObjectChange.getIdentifiers()) {
                 attributeContainer.add(identifier.clone());
             }
-            return ResourceObject.fromBean(fakeResourceObject, getPrimaryIdentifierValue());
         } catch (SchemaException e) {
             // All the operations are schema-safe, so this is really a kind of internal error.
             throw SystemException.unexpected(e, "when creating fake resource object");
         }
+        return ResourceObject.fromBean(fakeResourceObject, getPrimaryIdentifierValue());
     }
 
     private @NotNull ResourceObject determineCurrentResourceObjectAfterShadow(
             @NotNull ProvisioningContext shadowCtx, @NotNull ShadowType repoShadow, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
             SecurityViolationException, EncryptionException, NotApplicableException {
-        if (!resourceObjectIsTemporary) {
+        if (resourceObject != null && !resourceObjectIsTemporary) {
             return resourceObject;
         }
         LOGGER.trace("Going to determine current resource object, as the previous one was temporary");
@@ -352,7 +388,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      */
     protected abstract String getDefaultChannel();
 
-    public Collection<ResourceAttribute<?>> getIdentifiers() {
+    public @NotNull Collection<ResourceAttribute<?>> getIdentifiers() {
         return resourceObjectChange.getIdentifiers();
     }
 
@@ -375,9 +411,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             throws SchemaException, ConfigurationException, NotApplicableException {
         ShadowType currentShadow;
         try {
-            currentShadow = b.repositoryService
-                    .getObject(ShadowType.class, repoShadow.getOid(), null, result)
-                    .asObjectable();
+            currentShadow = b.shadowFinder.getShadowBean(repoShadow.getOid(), result);
         } catch (ObjectNotFoundException e) {
             LOGGER.debug("Shadow for delete synchronization event {} disappeared recently. Skipping this event.", this);
             throw new NotApplicableException();

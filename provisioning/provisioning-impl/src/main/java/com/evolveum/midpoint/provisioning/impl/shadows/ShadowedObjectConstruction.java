@@ -9,26 +9,26 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -188,7 +188,7 @@ class ShadowedObjectConstruction {
 
     private void setEffectiveProvisioningPolicy(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedObject, b.expressionFactory, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedObject, result);
     }
 
     /**
@@ -317,14 +317,15 @@ class ShadowedObjectConstruction {
 
         LOGGER.trace("Determining shadowRef for {}", associationValue);
 
-        ResourceAttributeContainer identifierContainer =
-                ShadowUtil.getAttributesContainer(associationValue, ShadowAssociationType.F_IDENTIFIERS);
+        ResourceAttributeContainer identifierContainer = ShadowUtil.getIdentifiersContainerRequired(associationValue);
 
         ShadowAssociationType associationValueBean = associationValue.asContainerable();
         QName associationName = associationValueBean.getName();
         ResourceAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
         ShadowKindType entitlementKind = rAssociationDef.getKind();
 
+        // TODO what if we find a shadow given one of the intents? Shouldn't we stop there? Overall, the process seems
+        //  to be inefficient for multiple intents.
         for (String entitlementIntent : rAssociationDef.getIntents()) {
             LOGGER.trace("Processing kind={}, intent={} (from the definition)", entitlementKind, entitlementIntent);
             ProvisioningContext ctxEntitlement = ctx.spawnForKindIntent(entitlementKind, entitlementIntent);
@@ -374,29 +375,47 @@ class ShadowedObjectConstruction {
         }
     }
 
-    @Nullable
-    private ShadowType acquireEntitlementRepoShadow(PrismContainerValue<ShadowAssociationType> associationValue,
-            ResourceAttributeContainer identifierContainer, ProvisioningContext ctxEntitlement, OperationResult result)
+    private @Nullable ShadowType acquireEntitlementRepoShadow(
+            PrismContainerValue<ShadowAssociationType> associationValue,
+            ResourceAttributeContainer identifierContainer,
+            ProvisioningContext ctxEntitlement,
+            OperationResult result)
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException, SchemaException, ObjectNotFoundException {
 
-        Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
-        PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
+        // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
+        //  (If yes, maybe we should retrieve also the associations below?)
+
+        UcfResourceObject providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY);
         if (providedResourceObject != null) {
             return ShadowAcquisition.acquireRepoShadow(
-                    ctxEntitlement, providedResourceObject.asObjectable(), false, result);
+                    ctxEntitlement, providedResourceObject.bean(), false, result);
         }
 
         try {
-            ShadowType existingLiveRepoShadow =
-                    b.shadowFinder.lookupLiveShadowByAllIds(ctxEntitlement, identifierContainer, result);
+            ResourceObjectDefinition entitlementObjDef = ctxEntitlement.getObjectDefinitionRequired();
 
+            List<ResourceAttribute<?>> identifyingAttributes = new ArrayList<>();
+            for (ResourceAttribute<?> rawIdentifyingAttribute : identifierContainer.getAttributes()) {
+                identifyingAttributes.add(
+                        rawIdentifyingAttribute.clone().forceDefinitionFrom(entitlementObjDef));
+            }
+
+            var existingLiveRepoShadow =
+                    b.shadowFinder.lookupLiveShadowByAllAttributes(ctxEntitlement, identifyingAttributes, result);
             if (existingLiveRepoShadow != null) {
                 return existingLiveRepoShadow;
             }
 
-            ResourceObject fetchedResourceObject = b.resourceObjectConverter
-                    .locateResourceObject(ctxEntitlement, entitlementIdentifiers, result);
+            // Nothing found in repo, let's do the search on the resource.
+
+            // TODO the following code requires that all attributes in shadow association value are identifiers
+            //  (primary or secondary). However, at other places in the code we also allow non-identifiers in these situations.
+            //  What is the correct approach?
+            var entitlementIdentification = ResourceObjectIdentification.fromAssociationValue(entitlementObjDef, associationValue);
+            CompleteResourceObject fetchedResourceObject =
+                    b.resourceObjectConverter.locateResourceObject(
+                            ctxEntitlement, entitlementIdentification, false, result);
 
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
@@ -432,17 +451,6 @@ class ShadowedObjectConstruction {
                     + " couldn't be found in " + ctx);
         }
         return rEntitlementAssociationDef;
-    }
-
-    @Contract("_, null -> fail")
-    private @NotNull Collection<ResourceAttribute<?>> getEntitlementIdentifiers(
-            PrismContainerValue<ShadowAssociationType> associationValue, ResourceAttributeContainer identifierContainer) {
-        Collection<ResourceAttribute<?>> entitlementIdentifiers = identifierContainer != null ?
-                identifierContainer.getAttributes() : null;
-        if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
-            throw new IllegalStateException("No entitlement identifiers present for association " + associationValue + " " + ctx.getDesc());
-        }
-        return entitlementIdentifiers;
     }
 
     private boolean doesAssociationMatch(

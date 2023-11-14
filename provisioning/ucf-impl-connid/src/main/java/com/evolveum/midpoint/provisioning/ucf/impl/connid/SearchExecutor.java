@@ -97,7 +97,8 @@ class SearchExecutor {
         this.connectorInstance = connectorInstance;
     }
 
-    public SearchResultMetadata execute(OperationResult result) throws CommunicationException, ObjectNotFoundException,
+    public SearchResultMetadata execute(OperationResult result)
+            throws CommunicationException, ObjectNotFoundException,
             GenericFrameworkException, SchemaException, SecurityViolationException {
 
         if (isNoConnectorPaging() && query != null && query.getPaging() != null &&
@@ -176,26 +177,35 @@ class SearchExecutor {
 
     private void setupSearchHierarchyScope(OperationOptionsBuilder optionsBuilder) throws SchemaException {
         if (searchHierarchyConstraints != null) {
-            ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
+            ResourceObjectIdentification.WithPrimary baseContextIdentification = searchHierarchyConstraints.getBaseContext();
             if (baseContextIdentification != null) {
                 // Only LDAP connector really supports base context. And this one will work better with
                 // DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-                ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+                //
+                // Limitations/assumptions: there is exactly one identifier - either secondary (and it's DN in that case)
+                // or primary which is the same as secondary (for the particular resource).
                 String identifierValue;
-                if (secondaryIdentifier == null) {
+                var secIdentifiers = baseContextIdentification.getSecondaryIdentifiers();
+                if (secIdentifiers.size() == 1) {
+                    // the standard case
+                    identifierValue = secIdentifiers.iterator().next().getRealValue().toString();
+                } else if (secIdentifiers.isEmpty()) {
                     if (resourceObjectDefinition.getSecondaryIdentifiers().isEmpty()) {
                         // This object class obviously has __NAME__ and __UID__ the same. Primary identifier will work here.
-                        identifierValue = baseContextIdentification.getPrimaryIdentifier().getRealValue(String.class);
+                        identifierValue = baseContextIdentification.getPrimaryIdentifier().getRealValue().toString();
                     } else {
-                        throw new SchemaException("No secondary identifier in base context identification " + baseContextIdentification);
+                        throw new SchemaException(
+                                "No secondary identifier in base context identification " + baseContextIdentification);
                     }
                 } else {
-                    identifierValue = secondaryIdentifier.getRealValue(String.class);
+                    throw new SchemaException(
+                            "More than one secondary identifier in base context identification is not supported: %s".formatted(
+                                    baseContextIdentification));
                 }
                 ObjectClass baseContextIcfObjectClass = connectorInstance.objectClassToConnId(
                         baseContextIdentification.getResourceObjectDefinition());
-                QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierValue));
-                optionsBuilder.setContainer(containerQualifiedUid);
+                optionsBuilder.setContainer(
+                        new QualifiedUid(baseContextIcfObjectClass, new Uid(identifierValue)));
             }
             SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
             if (scope != null) {

@@ -49,23 +49,20 @@ public class ShadowCreator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowCreator.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private Clock clock;
     @Autowired private Protector protector;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
     @Autowired private ShadowAuditHelper shadowAuditHelper;
+    @Autowired private ShadowFinder shadowFinder;
 
     /**
      * Adds (without checking for existence) a shadow corresponding to a resource object that was discovered.
      * Used when searching for objects or when completing entitlements.
      */
-    @NotNull
-    public ShadowType addDiscoveredRepositoryShadow(
+    public @NotNull ShadowType addDiscoveredRepositoryShadow(
             ProvisioningContext ctx, ShadowType resourceObject, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         LOGGER.trace("Adding new shadow from resource object:\n{}", resourceObject.debugDumpLazily(1));
         ShadowType repoShadow = createShadowForRepoStorage(ctx, resourceObject);
         ConstraintsChecker.onShadowAddOperation(repoShadow); // TODO eventually replace by repo cache invalidation
@@ -74,7 +71,7 @@ public class ShadowCreator {
         LOGGER.debug("Added new shadow (from resource object): {}", repoShadow);
         LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDumpLazily(1));
 
-        shadowAuditHelper.auditEvent(AuditEventType.DISCOVER_OBJECT, repoShadow, null, ctx, result);
+        shadowAuditHelper.auditEvent(AuditEventType.DISCOVER_OBJECT, repoShadow, ctx, result);
 
         return repoShadow;
     }
@@ -117,9 +114,7 @@ public class ShadowCreator {
 
         ShadowType shadowAfter;
         try {
-            shadowAfter = repositoryService
-                    .getObject(ShadowType.class, oid, null, result)
-                    .asObjectable();
+            shadowAfter = shadowFinder.getShadowBean(oid, result);
             ctx.applyAttributesDefinition(shadowAfter);
             opState.setRepoShadow(shadowAfter);
         } catch (ObjectNotFoundException e) {
@@ -139,7 +134,7 @@ public class ShadowCreator {
      * Create a copy of a resource object (or another shadow) that is suitable for repository storage.
      */
     @NotNull ShadowType createShadowForRepoStorage(ProvisioningContext ctx, ShadowType resourceObjectOrShadow)
-            throws SchemaException, ConfigurationException, EncryptionException {
+            throws SchemaException, EncryptionException {
 
         ShadowType repoShadow = resourceObjectOrShadow.clone();
         repoShadow.setPrimaryIdentifierValue(

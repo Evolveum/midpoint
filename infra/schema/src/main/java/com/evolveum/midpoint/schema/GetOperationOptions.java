@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
  * @author semancik
  */
 public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable, ShortDumpable {
-    private static final long serialVersionUID = 1L;
+
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final GetOperationOptions EMPTY = new GetOperationOptions();
 
@@ -776,6 +778,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     public static boolean isMaxStaleness(GetOperationOptions options) {
         return GetOperationOptions.getStaleness(options) == Long.MAX_VALUE;
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> zeroStalenessOptions() {
+        return SelectorOptions.createCollection(
+                GetOperationOptions.createStaleness(0L));
     }
 
     public Boolean getForceRefresh() {

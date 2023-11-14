@@ -290,11 +290,12 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
+        var identification =
+                ResourceObjectIdentification.fromAttributes(accountDefinition, identifiers)
+                        .ensurePrimary();
 
-        cc.deleteObject(accountDefinition, null, identifiers, null, result);
+        cc.deleteObject(identification, null, null, result);
 
-        ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
-                accountDefinition, identifiers);
         UcfResourceObject resObj = null;
         try {
             resObj = cc.fetchObject(identification, null, null, result);
@@ -320,8 +321,9 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
-        ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
-                accountDefinition, identifiers);
+        var identification = ResourceObjectIdentification
+                .fromAttributes(accountDefinition, identifiers)
+                .ensurePrimary();
 
         cc.modifyObject(identification, null, changes, null, null, result);
 
@@ -551,10 +553,13 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
-        Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
-        // Determine object class from the schema
+        ResourceObjectIdentifier.Primary<?> primaryIdentifier = ResourceObjectIdentifier.Primary.of(
+                accountDefinition,
+                resourceObject.getPrimaryIdentifier());
 
-        ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
+        // Determine object class from the schema
+        var identification = ResourceObjectIdentification.withPrimary(
+                accountDefinition, primaryIdentifier.getAttribute(), List.of());
         OperationResult result = createOperationResult("fetchObject");
 
         // WHEN
@@ -679,8 +684,10 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         PropertyModificationOperation<ProtectedStringType> passwordModification = new PropertyModificationOperation(passDelta);
         changes.add(passwordModification);
 
-        ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
-                accountDefinition, identifiers);
+        ResourceObjectIdentification.WithPrimary identification =
+                ResourceObjectIdentification
+                        .fromAttributes(accountDefinition, identifiers)
+                        .ensurePrimary();
 
         cc.modifyObject(identification, null, changes, null, null, result);
 

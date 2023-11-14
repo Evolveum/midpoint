@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
@@ -3421,6 +3424,50 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertShadowAfter(objectsOverLong.get(0))
                 .attributes()
                 .assertValue(QNAME_UID_NUMBER, overLong);
+    }
+
+    /** Tests the wildcard LS with DELETE event. It has no OC information, requiring very careful treatment. */
+    @Test
+    public void test740WildcardLiveSyncWithDeleteEvent() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        LiveSyncTokenStorage tokenStorage = new DummyTokenStorageImpl();
+        ResourceOperationCoordinates coords = ResourceOperationCoordinates.ofResource(resource.getOid());
+
+        var accountDef = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findObjectClassDefinitionRequired(OBJECT_CLASS_INETORGPERSON_QNAME);
+
+        given("LDAP account");
+        var accountToAdd = new ShadowType()
+                .resourceRef(resource.getOid(), ResourceType.COMPLEX_TYPE)
+                .objectClass(OBJECT_CLASS_INETORGPERSON_QNAME);
+        var attributes = ShadowUtil.getOrCreateAttributesContainer(accountToAdd, accountDef);
+        attributes.add(accountDef.instantiateAttribute(QNAME_DN, "uid=test740,ou=People,dc=example,dc=com"));
+        attributes.add(accountDef.instantiateAttribute(QNAME_UID, "test740"));
+        attributes.add(accountDef.instantiateAttribute(QNAME_CN, "Test740"));
+        attributes.add(accountDef.instantiateAttribute(QNAME_SN, "Test"));
+        provisioningService.addObject(accountToAdd.asPrismObject(), null, null, task, result);
+
+        and("livesync token is fetched");
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
+        syncServiceMock.reset();
+
+        when("account is deleted on LDAP");
+        openDJController.delete("uid=test740,ou=People,dc=example,dc=com");
+
+        and("livesync is executed");
+        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
+
+        then("operation is successful and there was a delete event");
+        assertSuccess(result);
+
+        ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+        displayDumpable("The change", lastChange);
+
+        and("there was a model notification");
+        syncServiceMock.assertNotifyChange();
     }
 
     /**
