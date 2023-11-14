@@ -67,10 +67,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
 
-//    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-//    private static final String ID_WIZARD = "wizard";
-
-
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
     }

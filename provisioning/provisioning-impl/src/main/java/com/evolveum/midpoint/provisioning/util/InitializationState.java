@@ -7,14 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
+import static com.evolveum.midpoint.provisioning.util.InitializationState.LifecycleState.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -27,76 +26,47 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 public class InitializationState implements Serializable {
 
     /**
-     * The error state when the initializable object was created (meaning created by its Java constructor).
-     */
-    @NotNull private final ErrorState initialErrorState;
-
-    /**
-     * The current error state. It determines further fate of this initializable object. For example, objects marked
-     * as {@link ErrorState#ERROR} are only minimally processed. Objects marked as {@link ErrorState#NOT_APPLICABLE} are ignored even more.
-     */
-    @NotNull private ErrorState currentErrorState;
-
-    /**
-     * Was an exception encountered during earlier processing OR the initialization of this object?
-     *
-     * Is not null if and only if {@link #currentErrorState} is {@link ErrorState#ERROR}.
-     */
-    private Throwable exceptionEncountered;
-
-    /**
-     * State in the life cycle.
+     * State of this initializable object (regarding the initialization itself).
      */
     @NotNull private LifecycleState lifecycleState;
 
-    private InitializationState(@NotNull ErrorState initialErrorState, Throwable initialException) {
-        this.initialErrorState = initialErrorState;
-        this.currentErrorState = initialErrorState;
-        this.exceptionEncountered = initialException;
-        this.lifecycleState = LifecycleState.CREATED;
-        checkErrorStateCompatibleWithException();
+    /**
+     * The current error state. It determines further fate of this initializable object. For example, objects marked
+     * as {@link ErrorState.Error} are only minimally processed. Objects marked as {@link ErrorState.NotApplicable}
+     * are ignored even more.
+     */
+    @NotNull private ErrorState errorState;
+
+    private InitializationState(@NotNull LifecycleState lifecycleState, @NotNull ErrorState errorState) {
+        this.lifecycleState = lifecycleState;
+        this.errorState = errorState;
     }
 
-    private void checkErrorStateCompatibleWithException() {
-        if (currentErrorState == ErrorState.ERROR) {
-            stateCheck(exceptionEncountered != null, "Error state without an exception");
-        } else {
-            stateCheck(exceptionEncountered == null, "Exception without error state");
-        }
+    public static @NotNull InitializationState created() {
+        return new InitializationState(CREATED, ErrorState.ok());
     }
 
-    public static InitializationState fromSuccess() {
-        return new InitializationState(ErrorState.OK, null);
-    }
-
-    public static InitializationState fromUcfErrorState(UcfErrorState errorState, Throwable preInitException) {
-        if (preInitException != null) {
-            return new InitializationState(ErrorState.ERROR, preInitException);
-        } else if (errorState.isError()) {
-            return new InitializationState(ErrorState.ERROR, errorState.getException());
-        } else {
-            return InitializationState.fromSuccess();
-        }
-    }
-
-    public static InitializationState fromPreviousState(InitializationState previousState) {
-        return new InitializationState(previousState.currentErrorState, previousState.exceptionEncountered);
+    public static InitializationState initialized(@NotNull ErrorState errorState) {
+        return new InitializationState(INITIALIZED, errorState);
     }
 
     public void recordInitializationFailed(@NotNull Throwable t) {
-        lifecycleState = LifecycleState.INITIALIZATION_FAILED; // The previous state can be initializing or initialized
-        currentErrorState = ErrorState.ERROR;
-        exceptionEncountered = t;
+        lifecycleState = INITIALIZED; // The previous state can be initializing or initialization complete.
+        recordError(t);
+    }
+
+    public void recordError(@NotNull Throwable t) {
+        errorState = ErrorState.error(t);
     }
 
     public void moveFromCreatedToInitializing() {
-        stateCheck(lifecycleState == LifecycleState.CREATED, "Unexpected lifecycle state: %s", lifecycleState);
-        lifecycleState = LifecycleState.INITIALIZING;
+        stateCheck(lifecycleState == CREATED, "Unexpected lifecycle state: %s", lifecycleState);
+        lifecycleState = INITIALIZING;
     }
 
     public void moveFromInitializingToInitialized() {
-        stateCheck(lifecycleState == LifecycleState.INITIALIZING, "Unexpected lifecycle state: %s", lifecycleState);
-        lifecycleState = LifecycleState.INITIALIZED;
+        stateCheck(lifecycleState == INITIALIZING, "Unexpected lifecycle state: %s", lifecycleState);
+        lifecycleState = INITIALIZED;
     }
 
     /**
@@ -110,8 +80,8 @@ public class InitializationState implements Serializable {
      * We intentionally do not mess with lifecycle status here. It is done separately.
      */
     public void recordNotApplicable() {
-        if (currentErrorState != ErrorState.ERROR) {
-            currentErrorState = ErrorState.NOT_APPLICABLE;
+        if (!errorState.isError()) {
+            errorState = ErrorState.notApplicable();
         } else {
             // Keeping the error state (and exception) as is.
         }
@@ -119,67 +89,36 @@ public class InitializationState implements Serializable {
 
     @Override
     public String toString() {
-        return lifecycleState + ": " + initialErrorState + " -> " + currentErrorState +
-                (exceptionEncountered != null ? " (e=" + MiscUtil.getClassWithMessage(exceptionEncountered) + ")" : "");
+        return lifecycleState + ": " + errorState;
+    }
+
+    public @NotNull ErrorState getErrorState() {
+        return errorState;
     }
 
     public Throwable getExceptionEncountered() {
-        return exceptionEncountered;
-    }
-
-    public boolean isAfterInitialization() {
-        return lifecycleState == LifecycleState.INITIALIZED || lifecycleState == LifecycleState.INITIALIZATION_FAILED;
+        return errorState.getException();
     }
 
     // Beware, the error state can be anything!
     public boolean isInitialized() {
-        return lifecycleState == LifecycleState.INITIALIZED;
-    }
-
-    // Useful during initialization.
-    public boolean isInitialStateOk() {
-        return initialErrorState == ErrorState.OK;
-    }
-
-    public boolean isNotApplicable() {
-        return currentErrorState == ErrorState.NOT_APPLICABLE;
+        return lifecycleState == INITIALIZED;
     }
 
     public boolean isOk() {
-        return currentErrorState == ErrorState.OK;
+        return errorState.isOk();
     }
 
     public boolean isError() {
-        checkErrorStateCompatibleWithException();
-        return currentErrorState == ErrorState.ERROR;
+        return errorState.isError();
     }
 
-    public void checkAfterInitialization() {
-        stateCheck(lifecycleState == LifecycleState.INITIALIZED || lifecycleState == LifecycleState.INITIALIZATION_FAILED,
-                "Lifecycle state is not INITIALIZED/INITIALIZATION_FAILED: %s", lifecycleState);
+    public boolean isNotApplicable() {
+        return errorState.isNotApplicable();
     }
 
-    public enum ErrorState {
-        /**
-         * No restrictions for further processing are known (yet). After successful initialization,
-         * the object can be used for full processing.
-         */
-        OK,
-
-        /**
-         * The object is in error state. The further processing is limited. Usually,
-         * only actions related to statistics keeping and error reporting should be done.
-         */
-        ERROR,
-
-        /**
-         * The object is without errors, but it is nevertheless not applicable for further processing.
-         * (From the higher level view it is simply not relevant. From the lower level view it may miss some
-         * crucial information - like a repository shadow.)
-         *
-         * Usually this state means that it should be passed further only for statistics-keeping purposes.
-         */
-        NOT_APPLICABLE
+    public void checkInitialized() {
+        stateCheck(isInitialized(), "Lifecycle state is not INITIALIZED: %s", lifecycleState);
     }
 
     public enum LifecycleState {
@@ -194,14 +133,9 @@ public class InitializationState implements Serializable {
         INITIALIZING,
 
         /**
-         * Initialization completed successfully.
-         * Not applicable objects also fall into this category.
+         * Initialization completed (successfully or not).
+         * This means that errored and not applicable objects also fall into this category.
          */
         INITIALIZED,
-
-        /**
-         * Initialization ends with a failure. (Should be a separate state?)
-         */
-        INITIALIZATION_FAILED
     }
 }

@@ -211,6 +211,9 @@
 
     <caching>
         <cachingStrategy>passive</cachingStrategy>
+        <scope>
+            <attributes>all</attributes>
+        </scope>
     </caching>
 
 </resource>

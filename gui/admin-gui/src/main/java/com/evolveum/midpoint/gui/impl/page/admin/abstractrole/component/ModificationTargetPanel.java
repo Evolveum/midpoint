@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -358,14 +359,19 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                         };
 
                         AjaxIconButton ajaxIncludeButton = new AjaxIconButton(repeatingView.newChildId(), loadableIncludeModel,
-                                createStringResource("Include")) {
+                                new LoadableDetachableModel<>() {
+                                    @Override
+                                    protected String load() {
+                                        if (model.getObject().isInclude()) {
+                                            return createStringResource("RoleAnalysis.exclude").getString();
+                                        }
+                                        return createStringResource("RoleAnalysis.include").getString();
+                                    }
+                                }) {
                             @Override
                             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                 model.getObject().setInclude(!model.getObject().isInclude());
-                                BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-                                patternDeltas.setBusinessRoleDtos(provider.getAvailableData());
                                 ajaxRequestTarget.add(this);
-                                getTable().replaceWith(generateTable(provider));
                                 ajaxRequestTarget.add(getTable().setOutputMarkupId(true));
                             }
                         };

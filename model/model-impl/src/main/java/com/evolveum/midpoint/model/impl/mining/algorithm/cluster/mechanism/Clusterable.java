@@ -10,6 +10,9 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
 import java.util.Set;
 
+/**
+ * An interface representing data points that can be used in clustering algorithms.
+ */
 public interface Clusterable {
     Set<String> getPoint();
     int getMembersCount();

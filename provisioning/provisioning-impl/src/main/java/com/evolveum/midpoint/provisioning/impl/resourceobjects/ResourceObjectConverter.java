@@ -111,7 +111,7 @@ public class ResourceObjectConverter {
     /**
      * @param repoShadow Used when read capability is "caching only"
      */
-    public @NotNull ShadowType getResourceObject(
+    public @NotNull ResourceObject getResourceObject(
             @NotNull ProvisioningContext ctx,
             @NotNull Collection<? extends ResourceAttribute<?>> identifiers,
             @Nullable ShadowType repoShadow,
@@ -121,7 +121,7 @@ public class ResourceObjectConverter {
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 
         LOGGER.trace("Getting resource object {}", identifiers);
-        PrismObject<ShadowType> resourceObject = fetchResourceObject(
+        var resourceObject = fetchResourceObject(
                 ctx,
                 identifiers,
                 ctx.createAttributesToReturn(),
@@ -129,13 +129,13 @@ public class ResourceObjectConverter {
                 fetchAssociations,
                 result);
         LOGGER.trace("Got resource object\n{}", resourceObject.debugDumpLazily());
-        return resourceObject.asObjectable();
+        return resourceObject;
     }
 
     /**
      * Tries to get the object directly if primary identifiers are present. Tries to search for the object if they are not.
      */
-    public PrismObject<ShadowType> locateResourceObject(
+    public ResourceObject locateResourceObject(
             ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             OperationResult result)
@@ -157,7 +157,7 @@ public class ResourceObjectConverter {
         }
     }
 
-    private PrismObject<ShadowType> searchBySecondaryIdentifiers(
+    private ResourceObject searchBySecondaryIdentifiers(
             ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             OperationResult result)
@@ -191,14 +191,14 @@ public class ResourceObjectConverter {
                     .itemWithDef(secondaryIdDef, ShadowType.F_ATTRIBUTES, secondaryIdDef.getItemName())
                     .eq(secondaryIdentifierValue)
                     .build();
-            Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
+            Holder<ResourceObject> objectHolder = new Holder<>();
             UcfObjectHandler handler = (ucfObject, lResult) -> {
-                if (!shadowHolder.isEmpty()) {
+                if (!objectHolder.isEmpty()) {
                     throw new IllegalStateException(
                             String.format("More than one object found for secondary identifier %s (%s)",
                                     secondaryIdentifier, ctx.getExceptionDescription()));
                 }
-                shadowHolder.setValue(ucfObject.getResourceObject());
+                objectHolder.setValue(ResourceObject.from(ucfObject));
                 return true;
             };
             try {
@@ -213,7 +213,7 @@ public class ResourceObjectConverter {
                         UcfFetchErrorReportingMethod.EXCEPTION,
                         ctx.getUcfExecutionContext(),
                         result);
-                if (shadowHolder.isEmpty()) {
+                if (objectHolder.isEmpty()) {
                     // We could consider continuing with another secondary identifier, but let us keep the original behavior.
                     throw new ObjectNotFoundException(
                             String.format("No object found for secondary identifier %s (%s)",
@@ -222,11 +222,11 @@ public class ResourceObjectConverter {
                             null,
                             ctx.isAllowNotFound());
                 }
-                PrismObject<ShadowType> shadow = shadowHolder.getValue();
+                ResourceObject resourceObject = objectHolder.getValue();
                 // todo consider whether it is always necessary to fetch the entitlements
-                postProcessResourceObjectRead(ctx, shadow, true, result);
-                LOGGER.trace("Located resource object {}", shadow);
-                return shadow;
+                postProcessResourceObjectRead(ctx, resourceObject, true, result);
+                LOGGER.trace("Located resource object {}", resourceObject);
+                return resourceObject;
             } catch (GenericFrameworkException e) {
                 throw new GenericConnectorException(
                         String.format("Generic exception in connector while searching for object (%s): %s",
@@ -377,7 +377,7 @@ public class ResourceObjectConverter {
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         LOGGER.trace("Checking for add conflicts for {}", ShadowUtil.shortDumpShadowLazily(shadow));
-        PrismObject<ShadowType> existingObject;
+        UcfResourceObject existingObject;
         ConnectorInstance readConnector = null;
         try {
             ConnectorInstance createConnector = ctx.getConnector(CreateCapabilityType.class, result);
@@ -407,14 +407,14 @@ public class ResourceObjectConverter {
         } else {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Detected add conflict for {}, conflicting shadow: {}",
-                        ShadowUtil.shortDumpShadow(shadow), ShadowUtil.shortDumpShadow(existingObject));
+                        ShadowUtil.shortDumpShadow(shadow), existingObject.shortDump());
             }
             LOGGER.trace("Conflicting shadow:\n{}", existingObject.debugDumpLazily(1));
             throw new ObjectAlreadyExistsException(
                     String.format("Object %s already exists in the snapshot of %s as %s",
                             ShadowUtil.shortDumpShadow(shadow),
                             ctx.getResource(),
-                            ShadowUtil.shortDumpShadow(existingObject)));
+                            existingObject.shortDump()));
         }
     }
 
@@ -965,23 +965,25 @@ public class ResourceObjectConverter {
             // TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
             // but make sure currentShadow contains all required attributes
             LOGGER.trace("Fetching object because of READ+REPLACE mode");
-            PrismObject<ShadowType> fetchedShadow =
+            var fetchedResourceObject =
                     fetchResourceObject(
                             ctx, identifiers, attributesToReturn, asPrismObject(currentShadow), false, result);
-            operationsWave = convertToReplace(ctx, operationsWave, fetchedShadow, false);
+            operationsWave = convertToReplace(ctx, operationsWave, fetchedResourceObject, false);
         }
         UpdateCapabilityType updateCapability = ctx.getCapability(UpdateCapabilityType.class); // TODO what if it's disabled?
         if (updateCapability != null) {
             AttributeContentRequirementType attributeContentRequirement = updateCapability.getAttributeContentRequirement();
             if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
                 LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
-                PrismObject<ShadowType> fetchedShadow =
+                var fetched =
                         fetchResourceObject(
                                 ctx, identifiers, null, asPrismObject(currentShadow), false, result);
-                if (fetchedShadow == null) {
-                    throw new SystemException("Attribute content requirement set for resource " + ctx.toHumanReadableDescription() + ", but read of shadow returned null, identifiers: " + identifiers);
+                if (fetched == null) {
+                    throw new SystemException(
+                            "Attribute content requirement set for resource %s, but read of shadow returned null, identifiers: %s"
+                                    .formatted(ctx.toHumanReadableDescription(), identifiers));
                 }
-                operationsWave = convertToReplace(ctx, operationsWave, fetchedShadow, true);
+                operationsWave = convertToReplace(ctx, operationsWave, fetched, true);
             }
         }
         return operationsWave;
@@ -1011,7 +1013,7 @@ public class ResourceObjectConverter {
             currentShadow =
                     fetchResourceObject(
                             ctx, identifiers, attributesToReturn, asPrismObject(repoShadow), fetchEntitlements, parentResult)
-                            .asObjectable();
+                            .getBean();
         } catch (ObjectNotFoundException e) {
             // This may happen for semi-manual connectors that are not yet up to date.
             // No big deal. We will have to work without it.
@@ -1084,7 +1086,7 @@ public class ResourceObjectConverter {
     private Collection<Operation> convertToReplace(
             ProvisioningContext ctx,
             Collection<Operation> operations,
-            PrismObject<ShadowType> currentShadow,
+            ResourceObject current,
             boolean requireAllAttributes) throws SchemaException {
         List<Operation> retval = new ArrayList<>(operations.size());
         for (Operation operation : operations) {
@@ -1097,7 +1099,7 @@ public class ResourceObjectConverter {
                     if ((requireAllAttributes || isReadReplaceMode(ctx, rad, ctx.getObjectDefinition()))
                             && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
                         PropertyModificationOperation<?> newOp =
-                                convertToReplace(propertyDelta, currentShadow, rad.getMatchingRuleQName());
+                                convertToReplace(propertyDelta, current, rad.getMatchingRuleQName());
                         newOp.setMatchingRuleQName(((PropertyModificationOperation<?>) operation).getMatchingRuleQName());
                         retval.add(newOp);
                         continue;
@@ -1108,7 +1110,7 @@ public class ResourceObjectConverter {
             retval.add(operation);        // for yet-unprocessed operations
         }
         if (requireAllAttributes) {
-            for (ResourceAttribute<?> currentAttribute : ShadowUtil.getAttributes(currentShadow)) {
+            for (ResourceAttribute<?> currentAttribute : current.getAttributes()) {
                 if (!containsDelta(operations, currentAttribute.getElementName())) {
                     ResourceAttributeDefinition<?> rad =
                             ctx.findAttributeDefinitionRequired(currentAttribute.getElementName());
@@ -1141,16 +1143,16 @@ public class ResourceObjectConverter {
     }
 
     private <T> PropertyModificationOperation<T> convertToReplace(
-            PropertyDelta<T> propertyDelta, PrismObject<ShadowType> currentShadow, QName matchingRuleQName)
+            PropertyDelta<T> propertyDelta, ResourceObject resourceObject, QName matchingRuleQName)
             throws SchemaException {
         if (propertyDelta.isReplace()) {
             // this was probably checked before
             throw new IllegalStateException("PropertyDelta is both ADD/DELETE and REPLACE");
         }
         Collection<PrismPropertyValue<T>> currentValues = new ArrayList<>();
-        if (currentShadow != null) {
+        if (resourceObject != null) {
             // let's extract (parent-less) current values
-            PrismProperty<T> currentProperty = currentShadow.findProperty(propertyDelta.getPath());
+            PrismProperty<T> currentProperty = resourceObject.getPrismObject().findProperty(propertyDelta.getPath());
             if (currentProperty != null) {
                 for (PrismPropertyValue<T> currentValue : currentProperty.getValues()) {
                     currentValues.add(currentValue.clone());
@@ -1517,7 +1519,7 @@ public class ResourceObjectConverter {
     /**
      * @param repoShadow Used when read capability is "caching only"
      */
-    PrismObject<ShadowType> fetchResourceObject(
+    ResourceObject fetchResourceObject(
             ProvisioningContext ctx,
             @NotNull Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
@@ -1527,7 +1529,7 @@ public class ResourceObjectConverter {
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        PrismObject<ShadowType> resourceObject =
+        ResourceObject resourceObject =
                 resourceObjectReferenceResolver.fetchResourceObject(
                         ctx, identifiers, attributesToReturn, repoShadow, result);
         postProcessResourceObjectRead(ctx, resourceObject, fetchAssociations, result);
@@ -1653,18 +1655,17 @@ public class ResourceObjectConverter {
         UcfLiveSyncChangeListener localListener = (ucfChange, lParentResult) -> {
             int changeNumber = processed.getAndIncrement();
 
-            Task task = ctx.getTask();
             OperationResult lResult = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
                     .setMinor()
                     .addParam("number", changeNumber)
                     .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
-                    .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
+                    .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierValue())
                     .addArbitraryObjectAsParam("token", ucfChange.getToken()).build();
 
             try {
-                ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange,
-                        null, ResourceObjectConverter.this, ctx, attrsToReturn);
-                change.initialize(task, lResult);
+                ResourceObjectLiveSyncChange change =
+                        new ResourceObjectLiveSyncChange(ucfChange, ctx, attrsToReturn);
+                // Intentionally not initializing the change here. Let us be flexible and let the ultimate caller decide.
                 return outerListener.onChange(change, lResult);
             } catch (Throwable t) {
                 lResult.recordFatalError(t);
@@ -1718,8 +1719,8 @@ public class ResourceObjectConverter {
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
         UcfAsyncUpdateChangeListener innerListener = (ucfChange, listenerTask, listenerResult) -> {
-            ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(ucfChange, ResourceObjectConverter.this, ctx);
-            change.initialize(listenerTask, listenerResult);
+            ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(ucfChange, ctx);
+            // Intentionally not initializing the change here. Let us be flexible and let the ultimate caller decide.
             outerListener.onChange(change, listenerTask, listenerResult);
         };
         connector.listenForChanges(innerListener, ctx::canRun, parentResult);
@@ -1730,13 +1731,17 @@ public class ResourceObjectConverter {
     /**
      * Process simulated activation, credentials and other properties that are added to the object by midPoint.
      */
-    void postProcessResourceObjectRead(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject,
-            boolean fetchAssociations, OperationResult result) throws SchemaException, CommunicationException,
-            ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    void postProcessResourceObjectRead(
+            ProvisioningContext ctx,
+            ResourceObject resourceObject,
+            boolean fetchAssociations,
+            OperationResult result)
+            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         if (resourceObject == null) {
             return;
         }
-        ShadowType resourceObjectBean = resourceObject.asObjectable();
+        ShadowType resourceObjectBean = resourceObject.getBean();
 
         ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObjectBean, expressionFactory, result);
 

@@ -35,8 +35,8 @@ import static com.evolveum.midpoint.prism.impl.schema.SchemaProcessorUtil.*;
 public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
     @Override
-    public MutableComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
-            PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
+    public MutableComplexTypeDefinition createComplexTypeDefinition(
+            XSComplexType complexType, PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
         if (isResourceObject(annotation)) {
             return createObjectClassDefinition(complexType, annotation);
         }
@@ -147,17 +147,6 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
     }
 
     @Override
-    public <C extends Containerable> PrismContainerDefinition<C> createExtraDefinitionFromComplexType(XSComplexType complexType,
-            ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
-//        if (complexTypeDefinition instanceof ResourceObjectClassDefinition) {
-//            return createResourceAttributeContainerDefinition(complexType, (ResourceObjectClassDefinition)complexTypeDefinition,
-//                    prismContext, annotation);
-//        }
-
-        return super.createExtraDefinitionFromComplexType(complexType, complexTypeDefinition, prismContext, annotation);
-    }
-
-    @Override
     public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName,
             ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation,
             XSParticle elementParticle) throws SchemaException {
@@ -214,8 +203,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
             SchemaToDomProcessor schemaToDomProcessor) {
         super.addExtraPropertyAnnotations(definition, appinfo, schemaToDomProcessor);
 
-        if (definition instanceof ResourceAttributeDefinition) {
-            ResourceAttributeDefinition<?> rad = (ResourceAttributeDefinition<?>) definition;
+        if (definition instanceof ResourceAttributeDefinition<?> rad) {
             if (rad.getNativeAttributeName() != null) {
                 schemaToDomProcessor.addAnnotation(MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME, rad.getNativeAttributeName(), appinfo);
             }

@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationStat
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.RefreshShadowOperation;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
@@ -71,8 +69,8 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
     private final XMLGregorianCalendar now;
 
-    /** Result of "refresh-before-modify" operation (if executed). */
-    private RefreshShadowOperation refreshShadowOperation;
+    /** The "refresh-before-modify" operation (if executed). */
+    private ShadowRefreshOperation shadowRefreshOperation;
 
     /** modifications must have appropriate definitions */
     private ShadowModifyOperation(
@@ -115,7 +113,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            EncryptionException, ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException {
 
         Validate.notNull(repoShadow, "Object to modify must not be null.");
         Validate.notNull(modifications, "Object modification must not be null.");
@@ -192,7 +190,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            EncryptionException, ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException {
         ModifyOperationState opState = ModifyOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (ShadowUtil.isExists(repoShadow)) {
             ctx.applyAttributesDefinition(modifications);
@@ -211,7 +209,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             @NotNull List<PendingOperationType> pendingOperations,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, GenericFrameworkException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, EncryptionException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException,
             PolicyViolationException, ObjectAlreadyExistsException {
         ModifyOperationState opState = new ModifyOperationState(repoShadow);
         opState.setPropagatedPendingOperations(pendingOperations);
@@ -223,7 +221,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     private String execute(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            EncryptionException, ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException {
 
         if (!inRefreshOrPropagation && checkAndRecordPendingOperationBeforeExecution(result)) {
             return opState.getRepoShadowOid();
@@ -246,7 +244,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
                 if (wasRefreshOperationSuccessful()) {
                     executeModifyOperationDirectly(result);
                 } else {
-                    opState.markAsPostponed(refreshShadowOperation.getRefreshResult());
+                    opState.markAsPostponed(shadowRefreshOperation.getRetriedOperationsResult());
                 }
 
             } else {
@@ -263,15 +261,15 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
     private void refreshBeforeExecution(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException {
         ShadowType repoShadow = opState.getRepoShadowRequired();
         if (inRefreshOrPropagation || !ShadowsUtil.hasRetryableOperation(repoShadow)) {
             return;
         }
         LOGGER.trace("Refreshing shadow before executing the modification operation");
-        refreshShadowOperation =
-                ShadowsLocalBeans.get().refreshHelper.refreshShadow(repoShadow, options, ctx.getOperationContext(), ctx.getTask(), result);
-        ShadowType shadowAfterRefresh = refreshShadowOperation.getRefreshedShadow();
+        shadowRefreshOperation =
+                ShadowRefreshOperation.executeFull(repoShadow, options, ctx.getOperationContext(), ctx.getTask(), result);
+        ShadowType shadowAfterRefresh = shadowRefreshOperation.getShadow();
         if (shadowAfterRefresh == null) {
             LOGGER.trace("Shadow is gone. Nothing more to do");
             throw new ObjectNotFoundException(
@@ -282,24 +280,23 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     }
 
     private boolean wasRefreshOperationSuccessful() {
-        if (refreshShadowOperation == null) {
+        if (shadowRefreshOperation == null) {
             LOGGER.trace("Nothing refreshed, modify can continue.");
             return true;
         }
 
-        if (refreshShadowOperation.getExecutedDeltas() == null || refreshShadowOperation.getExecutedDeltas().isEmpty()) {
-            LOGGER.trace("No executed deltas after refresh. Continue with modify operation.");
+        if (shadowRefreshOperation.getRetriedOperations().isEmpty()) {
+            LOGGER.trace("No retried operations during refresh. Continue with modify operation.");
             return true;
         }
 
-        if (refreshShadowOperation.getRefreshedShadow() == null) {
+        if (shadowRefreshOperation.getShadow() == null) {
             LOGGER.trace("Shadow is gone. Probably it was deleted during refresh. Finishing modify operation now.");
             return false;
         }
 
-        Collection<ObjectDeltaOperation<ShadowType>> objectDeltaOperations = refreshShadowOperation.getExecutedDeltas();
-        for (ObjectDeltaOperation<ShadowType> shadowDelta : objectDeltaOperations) {
-            OperationResult result = shadowDelta.getExecutionResult();
+        for (ObjectDeltaOperation<ShadowType> retriedOdo : shadowRefreshOperation.getRetriedOperations()) {
+            OperationResult result = retriedOdo.getExecutionResult();
             if (result == null || !result.isSuccess()) {
                 LOGGER.trace("Refresh operation not successful. Current modify operation will be postponed.");
                 return false;

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 import java.util.Collection;
@@ -15,22 +14,23 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -93,31 +93,34 @@ class ShadowedObjectConstruction {
      */
     @NotNull private final ShadowType resultingShadowedObject;
 
-    @NotNull private final CommonBeans beans;
-
-    @NotNull private final ShadowsLocalBeans localBeans;
+    @NotNull private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowedObjectConstruction(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType repoShadow,
-            @NotNull ShadowType resourceObject,
-            @NotNull CommonBeans beans) {
+            @NotNull ShadowType resourceObject) {
         this.ctx = ctx;
         this.resourceObject = resourceObject;
         this.resourceObjectAttributes = ShadowUtil.getAttributesContainer(resourceObject);
         this.resourceObjectAssociations = resourceObject.asPrismObject().findContainer(ShadowType.F_ASSOCIATION);
         this.repoShadow = repoShadow;
         this.resultingShadowedObject = repoShadow.clone();
-        this.beans = beans;
-        this.localBeans = beans.shadowsFacade.getLocalBeans();
     }
 
-    static ShadowedObjectConstruction create(
-            ProvisioningContext ctx, ShadowType repoShadow, ShadowType resourceObject, CommonBeans commonBeans) {
-        return new ShadowedObjectConstruction(ctx, repoShadow, resourceObject, commonBeans);
+    /** Combines the repo shadow and resource object, as described in the class-level docs. */
+    @NotNull static ShadowType construct(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull ResourceObject resourceObject,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+
+        return new ShadowedObjectConstruction(ctx, repoShadow, resourceObject.getBean())
+                .construct(result);
     }
 
-    @NotNull ShadowType construct(OperationResult result)
+    private @NotNull ShadowType construct(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
@@ -185,7 +188,7 @@ class ShadowedObjectConstruction {
 
     private void setEffectiveProvisioningPolicy(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedObject, beans.expressionFactory, result);
+        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resultingShadowedObject, b.expressionFactory, result);
     }
 
     /**
@@ -290,7 +293,7 @@ class ShadowedObjectConstruction {
         ResourceAttributeContainer resultAttributes = resourceObjectAttributes.clone();
 
         ResourceObjectDefinition compositeObjectClassDef = computeCompositeObjectClassDefinition();
-        localBeans.accessChecker.filterGetAttributes(resultAttributes, compositeObjectClassDef, result);
+        b.accessChecker.filterGetAttributes(resultAttributes, compositeObjectClassDef, result);
 
         resultingShadowedObject.asPrismObject().add(resultAttributes);
     }
@@ -333,7 +336,7 @@ class ShadowedObjectConstruction {
             }
             if (doesAssociationMatch(rAssociationDef, entitlementRepoShadow)) {
                 LOGGER.trace("Association value matches. Repo shadow is: {}", entitlementRepoShadow);
-                associationValueBean.setShadowRef(createObjectRef(entitlementRepoShadow, beans.prismContext));
+                associationValueBean.setShadowRef(createObjectRef(entitlementRepoShadow));
                 if (ShadowUtil.isClassified(entitlementRepoShadow)) {
                     addMissingIdentifiers(identifierContainer, ctxEntitlement, entitlementRepoShadow);
                 } else {
@@ -380,26 +383,26 @@ class ShadowedObjectConstruction {
         Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
         PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
         if (providedResourceObject != null) {
-            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(
+            return ShadowAcquisition.acquireRepoShadow(
                     ctxEntitlement, providedResourceObject.asObjectable(), false, result);
         }
 
         try {
             ShadowType existingLiveRepoShadow =
-                    localBeans.shadowFinder.lookupLiveShadowByAllIds(ctxEntitlement, identifierContainer, result);
+                    b.shadowFinder.lookupLiveShadowByAllIds(ctxEntitlement, identifierContainer, result);
 
             if (existingLiveRepoShadow != null) {
                 return existingLiveRepoShadow;
             }
 
-            PrismObject<ShadowType> fetchedResourceObject = beans.resourceObjectConverter
+            ResourceObject fetchedResourceObject = b.resourceObjectConverter
                     .locateResourceObject(ctxEntitlement, entitlementIdentifiers, result);
 
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
             // might still be there, but it may be renamed
-            return localBeans.shadowAcquisitionHelper
-                    .acquireRepoShadow(ctxEntitlement, asObjectable(fetchedResourceObject), false, result);
+            return ShadowAcquisition.acquireRepoShadow(
+                    ctxEntitlement, fetchedResourceObject.getBean(), false, result);
 
         } catch (ObjectNotFoundException e) {
             // The entitlement to which we point is not there. Simply ignore this association value.

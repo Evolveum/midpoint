@@ -49,10 +49,10 @@ Connection options:
 === midpoint.home connection
 
 This type of connection initialises repository layer of midPoint and operates on top of the database as a new midPoint node.
-Mostly only one option is needed and that's specification of `midpoint.home` directory using `-m` option.
-This is not sufficient if `config.xml` uses datasource definition.
-Ninja then doesn't know how to connect to DB.
-For this case one have to use options to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
+For all commands that communicate with DB layer `midpoint.home` must be specified using `-m <path>` option.
+Ninja will try to read database connection information from `config.xml`.
+This will not work when there's only datasource definition in `config.xml` (no JDBC url/username/password).
+In such chase one have to specify URL (`-U`), username (`-u`) and password (`-p` or `-P`).
 These options can also be used to override JDBC URL, username and password specified in `config.xml`.
 
 With bash, you can provide `MIDPOINT_HOME` for the `ninja.sh` command with this shortcut:
@@ -62,23 +62,25 @@ With bash, you can provide `MIDPOINT_HOME` for the `ninja.sh` command with this 
 MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [command] [command options]
 ----
 
-If unbundled JDBC driver is used, it will not be picked up automatically from the midPoint home directory
-and you must point Ninja to it explicitly.
+=== JDBC Driver
+
+Only JDBC driver that is bundled is for PostgreSQL database.
+This means that for other databases, you must provide JDBC driver yourself.
+Most of the time JDBC driver is already present in `<midpoint>/lib` directory.
+However, it will not be picked up automatically and you must point Ninja to it explicitly.
 Example when using `java -jar`:
 
 [source,bash]
 ----
-java -Dloader.path=<jdbc_driver_jar_path> -jar ninja.jar [general options] [command] [command options]
+java -Dloader.path=<jdbc_driver_jar_path> -jar ninja.jar [general/connection options] [command] [command options]
 ----
 
 If the bundled scripts are used, you can specify the path to the driver with `-j` option, for example:
 
 [source,bash]
 ----
-<midpoint>/bin/ninja.sh -j <JDBC_DRIVER_JAR> [general options] [command] [command options]
+<midpoint>/bin/ninja.sh -j <jdbc_driver_jar_path> [general/connection options] [command] [command options]
 ----
-
-// TODO: mention python CLI
 
 == Supported operations
 

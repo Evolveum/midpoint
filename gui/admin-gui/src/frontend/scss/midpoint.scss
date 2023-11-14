@@ -556,6 +556,7 @@ li.dropdown.user.user-menu {
 
     & > .card-header {
       border-bottom-right-radius: valid-radius($border-radius);
+      border-bottom-left-radius: valid-radius($border-radius);
     }
   }
 
@@ -1958,7 +1959,21 @@ th.debug-list-buttons {
 .details-menu a,
 .details-menu a:hover,
 .nav-sidebar .nav-item > .nav-link,
-.nav-sidebar .nav-item > .nav-link:hover
+.nav-sidebar .nav-item > .nav-link:hover,
+div > a > div > i.fas
 {
+  @include smooth-transition(0.08s);
+}
+
+//Accessibility classes and overrides
+.btn:focus-visible, a:focus-visible, div[role="button"]:focus-visible, button:focus-visible, div[role="option"].simple-tile:focus:visible{
+  outline: 2px orange;
+  outline-style: auto;
+  border-radius: 1px;
+  outline-offset: 2px;
+  @include smooth-transition(0.08s);
+}
+div.show > a > div > i.fas {
+  rotate: -90deg;
   @include smooth-transition(0.08s);
 }

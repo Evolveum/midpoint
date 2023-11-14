@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * Basically, it only dispatches method calls to a set of helper classes, like {@link ShadowGetOperation},
  * {@link ShadowSearchLikeOperation}, {@link ShadowAddOperation}, {@link ShadowModifyOperation}, {@link ShadowDeleteOperation},
- * {@link ShadowRefreshHelper}, {@link ShadowOperationPropagationHelper}, and so on.
+ * {@link ShadowRefreshOperation}, {@link ShadowOperationPropagationHelper}, and so on.
  *
  * @author Radovan Semancik
  * @author Katarina Valalikova
@@ -51,7 +51,6 @@ public class ShadowsFacade {
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
     static final String OP_HANDLE_OBJECT = ShadowsFacade.class.getName() + ".handleObject";
 
-    @Autowired private ShadowRefreshHelper refreshHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private ShadowOperationPropagationHelper propagationHelper;
     @Autowired private ShadowCompareHelper compareHelper;
@@ -75,8 +74,7 @@ public class ShadowsFacade {
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         return ShadowGetOperation
-                .create(oid, repositoryShadow, identifiersOverride, options, context, task, result, localBeans)
-                .execute(result);
+                .execute(oid, repositoryShadow, identifiersOverride, options, context, task, result);
     }
 
     public String addResourceObject(
@@ -119,11 +117,11 @@ public class ShadowsFacade {
         return ShadowDeleteOperation.executeDirectly(repoShadow, options, scripts, context, task, result);
     }
 
-    @Nullable
-    public RefreshShadowOperation refreshShadow(ShadowType repoShadow, ProvisioningOperationOptions options,
-            ProvisioningOperationContext context, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
-        return refreshHelper.refreshShadow(repoShadow, options, context, task, result);
+    public void refreshShadow(ShadowType repoShadow, ProvisioningOperationOptions options,
+            ProvisioningOperationContext context, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, EncryptionException {
+        ShadowRefreshOperation.executeFull(repoShadow, options, context, task, result);
     }
 
     public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType repoShadow,
@@ -217,10 +215,5 @@ public class ShadowsFacade {
             OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         return compareHelper.compare(repositoryShadow, path, expectedValue, task, result);
-    }
-
-    // temporary
-    ShadowsLocalBeans getLocalBeans() {
-        return localBeans;
     }
 }

@@ -218,7 +218,14 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="consistency" type="tns:ResourceConsistencyType" minOccurs="0"/>
-                    <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0"/>
+                    <xsd:element name="caching" type="tns:ShadowCachingPolicyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of shadow caching at the resource level.
+                                Can be overridden at the level of object classes and types.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="synchronization" type="tns:SynchronizationType" minOccurs="0"/>
                     <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
                 </xsd:sequence>
@@ -969,6 +976,17 @@
                         If this element is not present at all then the native+configured capabilities
                         at the resource level are applied.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="caching" type="tns:ShadowCachingPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of shadow caching at the object class or object type level.
+                        It is merged with resource-level definition using standard merging algorithm.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="projection" type="tns:ProjectionPolicyType" minOccurs="0">
@@ -1979,6 +1997,17 @@
                                 <a:displayName>ResourceItemDefinitionType.storageStrategy</a:displayName>
                                 <a:since>4.0</a:since>
                                 <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="cached" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Overrides the default inclusion/exclusion of this item into shadow caching.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ResourceItemDefinitionType.caching</a:displayName>
+                                <a:since>4.9</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5876,4 +5905,108 @@
             <!-- inheritance options may be included later -->
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="ShadowCachingPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of a shadow caching policy.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CachingPolicyType">
+                <xsd:sequence>
+                    <xsd:element name="scope" type="tns:ShadowCachingScopeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Scope of the caching. The default is to cache mapped items, activation, and "protected" flag.
+                                Any exceptions can be marked by "cached" property of individual attributes and associations.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowCachingScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope of the shadow caching.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributes" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="mapped">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for attributes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="associations" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for associations.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for the activation information.
+                        The value of "mapped" is currently not supported here. (It is interpreted as "all".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ShadowItemsCachingScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope of the shadow caching for a category of items (e.g., attributes or associations).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No items of given kind will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="mapped">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Only mapped items of given kind, i.e., those that have any mapping defined right in the object type,
+                        either inbound or outbound, will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MAPPED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All items of given kind will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

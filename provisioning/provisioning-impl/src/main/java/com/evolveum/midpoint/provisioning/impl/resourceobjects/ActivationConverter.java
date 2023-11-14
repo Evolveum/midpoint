@@ -19,7 +19,6 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,9 +64,9 @@ class ActivationConverter {
     /**
      * Completes activation for fetched object by determining simulated values if necessary.
      */
-    void completeActivation(PrismObject<ShadowType> resourceObject, OperationResult result) throws ObjectNotFoundException,
+    void completeActivation(ResourceObject resourceObject, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ShadowType resourceObjectBean = resourceObject.asObjectable();
+        ShadowType resourceObjectBean = resourceObject.getBean();
 
         ActivationCapabilityType activationCapability = ctx.getCapability(ActivationCapabilityType.class);
 
@@ -97,12 +95,12 @@ class ActivationConverter {
     /**
      * Determines activation status for resource object. Uses either native or simulated value.
      */
-    private ActivationStatusType determineActivationStatus(PrismObject<ShadowType> resourceObject,
-            ActivationCapabilityType activationCapability, OperationResult result)
+    private ActivationStatusType determineActivationStatus(
+            ResourceObject resourceObject, ActivationCapabilityType activationCapability, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
-        ActivationType existingActivation = resourceObject.asObjectable().getActivation();
+        ActivationType existingActivation = resourceObject.getBean().getActivation();
         ActivationStatusType nativeValue = existingActivation != null ? existingActivation.getAdministrativeStatus() : null;
 
         ActivationStatusCapabilityType statusCapability = CapabilityUtil.getEnabledActivationStatusStrict(activationCapability);
@@ -141,12 +139,12 @@ class ActivationConverter {
     /**
      * Determines lockout status for resource object. Uses either native or simulated value.
      */
-    private LockoutStatusType determineLockoutStatus(PrismObject<ShadowType> resourceObject,
-            ActivationCapabilityType activationCapability, OperationResult result)
+    private LockoutStatusType determineLockoutStatus(
+            ResourceObject resourceObject, ActivationCapabilityType activationCapability, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
-        ActivationType existingActivation = resourceObject.asObjectable().getActivation();
+        ActivationType existingActivation = resourceObject.getBean().getActivation();
         LockoutStatusType nativeValue = existingActivation != null ? existingActivation.getLockoutStatus() : null;
 
         ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEnabledActivationLockoutStrict(activationCapability);
@@ -183,16 +181,16 @@ class ActivationConverter {
     }
 
     @Nullable
-    private Collection<Object> getSimulatingAttributeValues(PrismObject<ShadowType> resourceObject, QName attributeName) {
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+    private Collection<Object> getSimulatingAttributeValues(ResourceObject resourceObject, QName attributeName) {
+        ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
         ResourceAttribute<?> simulatingAttribute = attributesContainer != null ?
                 attributesContainer.findAttribute(attributeName) : null;
         return simulatingAttribute != null ?
                 simulatingAttribute.getRealValues(Object.class) : null;
     }
 
-    private void removeSimulatingAttribute(PrismObject<ShadowType> shadow, QName attributeName) {
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
+    private void removeSimulatingAttribute(ResourceObject resourceObject, QName attributeName) {
+        ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
         if (attributesContainer != null) {
             attributesContainer.removeProperty(ItemPath.create(attributeName));
         }
@@ -203,8 +201,7 @@ class ActivationConverter {
     /**
      * Transforms activation information when an object is being added.
      */
-    void transformActivationOnAdd(ShadowType shadow, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    void transformActivationOnAdd(ShadowType shadow, OperationResult result) throws SchemaException, CommunicationException {
         ActivationType activation = shadow.getActivation();
         if (activation == null) {
             return;
@@ -220,10 +217,9 @@ class ActivationConverter {
         }
     }
 
-    private void transformActivationStatusOnAdd(ShadowType shadow, ActivationCapabilityType activationCapability,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    private void transformActivationStatusOnAdd(
+            ShadowType shadow, ActivationCapabilityType activationCapability, OperationResult result)
+            throws SchemaException {
 
         ActivationStatusCapabilityType statusCapability = CapabilityUtil.getEnabledActivationStatusStrict(activationCapability);
         LOGGER.trace("Activation status capability:\n{}", statusCapability);
@@ -246,10 +242,9 @@ class ActivationConverter {
         }
     }
 
-    private void transformLockoutStatusOnAdd(ShadowType shadow, ActivationCapabilityType activationCapability,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    private void transformLockoutStatusOnAdd(
+            ShadowType shadow, ActivationCapabilityType activationCapability, OperationResult result)
+            throws SchemaException {
 
         ActivationLockoutStatusCapabilityType lockoutCapability =
                 CapabilityUtil.getEnabledActivationLockoutStrict(activationCapability);
@@ -280,8 +275,7 @@ class ActivationConverter {
      */
     @NotNull
     Collection<Operation> createActivationChangeOperations(ShadowType shadow, Collection<? extends ItemDelta<?, ?>> objectChange,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException {
 
         Collection<Operation> operations = new ArrayList<>();
         ResourceType resource = ctx.getResource();
@@ -300,10 +294,10 @@ class ActivationConverter {
         return operations;
     }
 
-    private void createActivationStatusChange(Collection<? extends ItemDelta<?, ?>> objectChange, ShadowType shadow,
+    private void createActivationStatusChange(
+            Collection<? extends ItemDelta<?, ?>> objectChange, ShadowType shadow,
             ActivationCapabilityType activationCapability, ResourceType resource, Collection<Operation> operations,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException {
         PropertyDelta<ActivationStatusType> propertyDelta =
                 findPropertyDelta(objectChange, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         if (propertyDelta == null) {
@@ -341,8 +335,7 @@ class ActivationConverter {
 
     private void createLockoutStatusChange(Collection<? extends ItemDelta<?, ?>> objectChange, ShadowType shadow,
             ActivationCapabilityType activationCapability, ResourceType resource, Collection<Operation> operations,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException {
         PropertyDelta<LockoutStatusType> propertyDelta =
                 findPropertyDelta(objectChange, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
         if (propertyDelta == null) {

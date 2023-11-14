@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.DeepCloneOperation;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -95,4 +97,8 @@ public interface ResourceObjectClassDefinition
     ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation);
 
     MutableResourceObjectClassDefinition toMutable();
+
+    /** Returns a definition with specified {@link BasicResourceInformation}; throws an exception in case of conflicts. */
+    @NotNull ResourceObjectClassDefinition attachTo(@NotNull BasicResourceInformation resourceInformation)
+            throws SchemaException, ConfigurationException;
 }

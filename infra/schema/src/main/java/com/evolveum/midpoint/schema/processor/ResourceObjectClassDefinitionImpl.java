@@ -15,21 +15,24 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.io.Serial;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * Default implementation of {@link ResourceObjectClassDefinition}.
@@ -42,7 +45,7 @@ public class ResourceObjectClassDefinitionImpl
         extends AbstractResourceObjectDefinitionImpl
         implements MutableResourceObjectClassDefinition {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     @NotNull private final QName objectClassName;
 
@@ -70,10 +73,15 @@ public class ResourceObjectClassDefinitionImpl
 
     private ResourceObjectClassDefinitionImpl(
             @NotNull LayerType layer,
-            @NotNull QName objectClassName,
+            @Nullable BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeDefinitionType definitionBean,
-            @Nullable ResourceObjectClassDefinition rawObjectClassDefinition) {
-        super(layer, definitionBean);
+            @NotNull QName objectClassName,
+            @Nullable ResourceObjectClassDefinition rawObjectClassDefinition)
+            throws SchemaException, ConfigurationException {
+        super(layer, basicResourceInformation, definitionBean);
+
+        Preconditions.checkArgument(rawObjectClassDefinition == null || basicResourceInformation != null,
+                "Basic resource information must be present for refined object class definition");
         this.objectClassName = objectClassName;
         this.rawObjectClassDefinition = rawObjectClassDefinition;
         if (rawObjectClassDefinition == null) {
@@ -85,24 +93,34 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     public static ResourceObjectClassDefinitionImpl raw(@NotNull QName objectClassName) {
-        return new ResourceObjectClassDefinitionImpl(
-                DEFAULT_LAYER,
-                objectClassName,
-                new ResourceObjectTypeDefinitionType(),
-                null);
+        try {
+            return new ResourceObjectClassDefinitionImpl(
+                    DEFAULT_LAYER,
+                    null,
+                    new ResourceObjectTypeDefinitionType(),
+                    objectClassName,
+                    null);
+        } catch (SchemaException | ConfigurationException e) {
+            // These exceptions can currently occur only when merging resource-level with object-level definitions.
+            // In this case, both are empty, so this cannot happen.
+            throw SystemException.unexpected(e, "when creating raw object class definition");
+        }
     }
 
     public static ResourceObjectClassDefinitionImpl refined(
-            @NotNull ResourceObjectClassDefinition raw, @Nullable ResourceObjectTypeDefinitionType definitionBean)
-            throws ConfigurationException {
+            @NotNull BasicResourceInformation basicResourceInformation,
+            @NotNull ResourceObjectClassDefinition rawObjectClassDefinition,
+            @Nullable ResourceObjectTypeDefinitionType definitionBean)
+            throws ConfigurationException, SchemaException {
         if (definitionBean != null) {
             checkDefinitionSanity(definitionBean);
         }
         return new ResourceObjectClassDefinitionImpl(
                 DEFAULT_LAYER,
-                raw.getObjectClassName(),
+                basicResourceInformation,
                 Objects.requireNonNullElseGet(definitionBean, ResourceObjectTypeDefinitionType::new),
-                raw);
+                rawObjectClassDefinition.getObjectClassName(),
+                rawObjectClassDefinition.attachTo(basicResourceInformation));
     }
 
     private static void checkDefinitionSanity(@NotNull ResourceObjectTypeDefinitionType bean) throws ConfigurationException {
@@ -305,14 +323,30 @@ public class ResourceObjectClassDefinitionImpl
     @NotNull
     @Override
     public ResourceObjectClassDefinitionImpl clone() {
-        return cloneInLayer(currentLayer);
+        try {
+            return clone(currentLayer, basicResourceInformation);
+        } catch (SchemaException | ConfigurationException e) {
+            // The data should be already checked for correctness, so this should not happen.
+            throw SystemException.unexpected(e, "when cloning");
+        }
     }
 
     @Override
     protected @NotNull ResourceObjectClassDefinitionImpl cloneInLayer(@NotNull LayerType layer) {
+        try {
+            return clone(layer, basicResourceInformation);
+        } catch (SchemaException | ConfigurationException e) {
+            // The data should be already checked for correctness, so this should not happen.
+            throw SystemException.unexpected(e, "when cloning");
+        }
+    }
+
+    private @NotNull ResourceObjectClassDefinitionImpl clone(
+            @NotNull LayerType newLayer, BasicResourceInformation newInformation) throws SchemaException, ConfigurationException {
         ResourceObjectClassDefinitionImpl clone =
-                new ResourceObjectClassDefinitionImpl(layer, objectClassName, definitionBean, rawObjectClassDefinition);
-        clone.copyDefinitionDataFrom(layer, this);
+                new ResourceObjectClassDefinitionImpl(
+                        newLayer, newInformation, definitionBean, objectClassName, rawObjectClassDefinition);
+        clone.copyDefinitionDataFrom(newLayer, this);
         return clone;
     }
 
@@ -554,6 +588,36 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+        return null;
+    }
+
+    @Override
+    public @Nullable ResourceObjectTypeDefinition getTypeDefinition() {
+        return null;
+    }
+
+    @Override
+    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
+        // Normally, object class definitions know nothing about kind/intent. This is the only exception.
+        return kind == ShadowKindType.ACCOUNT && isDefaultAccountDefinition();
+    }
+
+    @Override
+    public @NotNull ResourceObjectClassDefinition attachTo(@NotNull BasicResourceInformation newInformation)
+            throws SchemaException, ConfigurationException {
+        if (basicResourceInformation == null) {
+            return clone(currentLayer, newInformation);
+        } else {
+            stateCheck(
+                    basicResourceInformation.equals(newInformation),
+                    "Trying to attach %s (already attached to %s) to a different resource information of %s",
+                    this, basicResourceInformation, newInformation);
+            return this;
+        }
+    }
+
+    @Override
     public String toString() {
         ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
         if (rawDef != null) {
@@ -602,26 +666,5 @@ public class ResourceObjectClassDefinitionImpl
         DebugUtil.debugDumpWithLabelLn(sb, "default account definition", isDefaultAccountDefinition(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "native object class", getNativeObjectClass(), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "auxiliary", isAuxiliary(), indent + 1);
-    }
-
-    @Override
-    public String getResourceOid() {
-        return null; // TODO remove this
-    }
-
-    @Override
-    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
-        return null;
-    }
-
-    @Override
-    public @Nullable ResourceObjectTypeDefinition getTypeDefinition() {
-        return null;
-    }
-
-    @Override
-    public boolean isDefaultFor(@NotNull ShadowKindType kind) {
-        // Normally, object class definitions know nothing about kind/intent. This is the only exception.
-        return kind == ShadowKindType.ACCOUNT && isDefaultAccountDefinition();
     }
 }

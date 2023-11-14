@@ -29,7 +29,7 @@ public class ResourceSchemaFactory {
     private static final String USER_DATA_KEY_RAW_SCHEMA = ResourceSchema.class.getName() + ".rawSchema";
     private static final String USER_DATA_KEY_COMPLETE_SCHEMA = ResourceSchema.class.getName() + ".completeSchema";
 
-    public static ResourceSchema getCompleteSchema(@NotNull ResourceType resource)
+    public static CompleteResourceSchema getCompleteSchema(@NotNull ResourceType resource)
             throws SchemaException, ConfigurationException {
         return getCompleteSchema(resource.asPrismObject());
     }
@@ -37,14 +37,14 @@ public class ResourceSchemaFactory {
     /**
      * We assume that missing schema is a configuration (not schema) problem.
      */
-    public static @NotNull ResourceSchema getCompleteSchemaRequired(@NotNull ResourceType resource)
+    public static @NotNull CompleteResourceSchema getCompleteSchemaRequired(@NotNull ResourceType resource)
             throws ConfigurationException, SchemaException {
         return requireSchemaPresent(
                 getCompleteSchema(resource),
                 resource);
     }
 
-    private static @NotNull ResourceSchema requireSchemaPresent(ResourceSchema schema, @NotNull ResourceType resource)
+    private static <S extends ResourceSchema> @NotNull S requireSchemaPresent(S schema, @NotNull ResourceType resource)
             throws ConfigurationException {
         return MiscUtil.requireNonNull(
                 schema,
@@ -77,16 +77,16 @@ public class ResourceSchemaFactory {
      *
      * Returned schema is immutable.
      */
-    public static ResourceSchema getCompleteSchema(@NotNull PrismObject<ResourceType> resource)
+    public static CompleteResourceSchema getCompleteSchema(@NotNull PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
         Preconditions.checkNotNull(resource, "Resource must not be null");
 
-        ResourceSchema existingCompleteSchema = getExistingCompleteSchema(resource);
+        CompleteResourceSchema existingCompleteSchema = getExistingCompleteSchema(resource);
         if (existingCompleteSchema != null) {
             return existingCompleteSchema;
         } else {
             stateCheck(!resource.isImmutable(), "Trying to setup parsed schema on immutable resource: %s", resource);
-            ResourceSchema completeSchema = parseCompleteSchema(resource.asObjectable());
+            CompleteResourceSchema completeSchema = parseCompleteSchema(resource.asObjectable());
             if (completeSchema != null) {
                 completeSchema.freeze();
             }
@@ -95,14 +95,15 @@ public class ResourceSchemaFactory {
         }
     }
 
-    private static ResourceSchema getExistingCompleteSchema(PrismObject<ResourceType> resource) {
+    private static CompleteResourceSchema getExistingCompleteSchema(PrismObject<ResourceType> resource) {
         Object userDataEntry = resource.getUserData(USER_DATA_KEY_COMPLETE_SCHEMA);
         if (userDataEntry != null) {
-            if (userDataEntry instanceof ResourceSchema) {
-                return (ResourceSchema) userDataEntry;
+            if (userDataEntry instanceof CompleteResourceSchema completeResourceSchema) {
+                return completeResourceSchema;
             } else {
-                throw new IllegalStateException("Expected ResourceSchema under user data key " + USER_DATA_KEY_COMPLETE_SCHEMA +
-                        "in " + resource + ", but got " + userDataEntry.getClass());
+                throw new IllegalStateException(
+                        "Expected ResourceSchema under user data key %s in %s, but got %s".formatted(
+                                USER_DATA_KEY_COMPLETE_SCHEMA, resource, userDataEntry.getClass()));
             }
         } else {
             return null;
@@ -146,8 +147,6 @@ public class ResourceSchemaFactory {
 
         // Synchronization here is a workaround for MID-5648. We need to synchronize parsing here because of DOM access even
         // before DomToSchemaProcessor (where global synchronization is done) comes into play.
-        //
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (resourceXsdSchema) {
             Object cachedRawSchema = resource.getUserData(USER_DATA_KEY_RAW_SCHEMA);
             if (cachedRawSchema != null) {
@@ -184,7 +183,7 @@ public class ResourceSchemaFactory {
      * throughout the running system. Use {@link #getCompleteSchema(PrismObject)} instead.
      */
     @VisibleForTesting
-    public static ResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
+    public static CompleteResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         var rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         if (rawResourceSchema != null) {
             return new RefinedResourceSchemaParser(resource, rawResourceSchema)

@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,8 +142,7 @@ public class ShadowUpdater {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        List<ItemDelta<?, ?>> clonedModifications = new ArrayList<>();
-        clonedModifications.addAll(repoModifications);
+        List<ItemDelta<?, ?>> clonedModifications = new ArrayList<>(repoModifications);
 
         if (!clonedModifications.isEmpty()) {
             MetadataUtil.addModificationMetadataDeltas(clonedModifications, repoShadow);
@@ -309,8 +310,12 @@ public class ShadowUpdater {
             if (Objects.equals(conflictingShadowPrimaryIdentifierValue, potentialConflictingShadow.getPrimaryIdentifierValue())) {
                 // Whoohoo, the conflicting shadow has good identifier. And it is the same as ours.
                 // We really have two conflicting shadows here.
-                LOGGER.info("REPO CONFLICT: Found conflicting shadows that both claim the values of primaryIdentifierValue={}\n"
-                                + "Shadow with existing value:\n{}\nShadow that should have the same value:\n{}",
+                LOGGER.info("""
+                                REPO CONFLICT: Found conflicting shadows that both claim the values of primaryIdentifierValue={}
+                                Shadow with existing value:
+                                {}
+                                Shadow that should have the same value:
+                                {}""",
                         expectedPrimaryIdentifierValue, potentialConflictingShadow, repoShadow);
                 throw new SystemException("Duplicate shadow conflict with " + potentialConflictingShadow);
             }
@@ -380,6 +385,8 @@ public class ShadowUpdater {
      *
      * Retrieves index-only attributes from repo if needed.
      *
+     * Shadow must have its state set up!
+     *
      * @param currentResourceObject Current state of the resource object. Not shadowized yet.
      * @param resourceObjectDelta Delta coming from the resource (if known).
      * @return repository shadow as it should look like after the update
@@ -387,14 +394,13 @@ public class ShadowUpdater {
      */
     public @NotNull ShadowType updateShadowInRepository(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType currentResourceObject,
+            @NotNull ResourceObject currentResourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             @NotNull ShadowType repoShadow,
-            ShadowLifecycleStateType shadowState, // TODO ensure this is filled-in
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
-        LOGGER.trace("updateShadowInRepository starting; shadowState = {}", shadowState);
+        LOGGER.trace("updateShadowInRepository starting");
         if (resourceObjectDelta == null) {
             repoShadow = retrieveIndexOnlyAttributesIfNeeded(ctx, repoShadow, result);
         } else {
@@ -404,7 +410,7 @@ public class ShadowUpdater {
 
         ObjectDelta<ShadowType> computedShadowDelta =
                 shadowDeltaComputerAbsolute.computeShadowDelta(
-                        ctx, repoShadow, currentResourceObject, resourceObjectDelta, shadowState, true);
+                        ctx, repoShadow, currentResourceObject, resourceObjectDelta, true);
 
         if (!computedShadowDelta.isEmpty()) {
             LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, computedShadowDelta.debugDumpLazily(1));
@@ -450,8 +456,7 @@ public class ShadowUpdater {
                         .getObject(ShadowType.class, repoShadow.getOid(), options, result)
                         .asObjectable();
 
-        shadowCtx.applyAttributesDefinition(retrievedRepoShadow);
-        shadowCtx.updateShadowState(retrievedRepoShadow);
+        shadowCtx.adoptShadow(retrievedRepoShadow);
 
         LOGGER.trace("Full repo shadow:\n{}", retrievedRepoShadow.debugDumpLazily(1));
 

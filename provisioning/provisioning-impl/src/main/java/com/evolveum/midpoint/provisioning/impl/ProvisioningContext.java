@@ -14,6 +14,10 @@ import java.util.function.Supplier;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,6 +81,8 @@ public class ProvisioningContext {
      * Type of objects that are to be processed by the current operation.
      * If this is a bulk operation (like search or live sync), this also drives its scope - i.e. whether to
      * access the whole resource, an object class, or a object type.
+     *
+     * Note: the definition is always attached to the {@link #resource}.
      */
     @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
 
@@ -141,6 +147,7 @@ public class ProvisioningContext {
             @NotNull ProvisioningContextFactory contextFactory) {
         this.task = task;
         this.resource = resource;
+        ResourceObjectDefinition.assertAttached(resourceObjectDefinition);
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.wholeClass = wholeClass;
         this.contextFactory = contextFactory;
@@ -155,6 +162,7 @@ public class ProvisioningContext {
             Boolean wholeClass) {
         this.task = task;
         this.resource = originalCtx.resource;
+        ResourceObjectDefinition.assertAttached(resourceObjectDefinition);
         this.resourceObjectDefinition = resourceObjectDefinition;
         this.wholeClass = wholeClass;
         this.contextFactory = originalCtx.contextFactory;
@@ -330,13 +338,22 @@ public class ProvisioningContext {
     /**
      * Creates an exact copy of the context but with different task.
      */
-    public ProvisioningContext spawn(Task task) {
+    public @NotNull ProvisioningContext spawn(Task task) {
         // No need to bother the factory because no population resolution is needed
         return new ProvisioningContext(
                 this,
                 task,
                 resourceObjectDefinition,
                 wholeClass);
+    }
+
+    /** A convenience method for {@link #spawn(Task)} */
+    public @NotNull ProvisioningContext spawnIfNeeded(Task task) {
+        if (task == this.task) {
+            return this;
+        } else {
+            return spawn(task);
+        }
     }
 
     /**
@@ -465,19 +482,65 @@ public class ProvisioningContext {
         return ItemPath.create(components);
     }
 
-    public @NotNull CachingStrategyType getCachingStrategy() {
-        CachingPolicyType cachingPolicy = resource.getCaching();
-        CachingStrategyType explicitCachingStrategy = cachingPolicy != null ? cachingPolicy.getCachingStrategy() : null;
-        if (explicitCachingStrategy != null) {
-            return explicitCachingStrategy;
+    public boolean shouldStoreAttributeInShadow(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull ResourceAttributeDefinition<?> attrDef,
+            @NotNull Collection<? extends QName> associationValueAttrs) {
+        ItemName attrName = attrDef.getItemName();
+        if (objectDefinition.isIdentifier(attrName)) {
+            return true;
+        }
+        if (QNameUtil.matchAny(attrName, associationValueAttrs)) {
+            return true;
+        }
+        if (Boolean.FALSE.equals(getExplicitCachingStatus())) {
+            return false;
+        }
+        if (isReadCachingOnlyCapabilityPresent()) {
+            return true;
+        }
+        return attrDef.isEffectivelyCached(objectDefinition);
+    }
+
+    private Boolean getExplicitCachingStatus() {
+        if (resourceObjectDefinition != null) {
+            var objectLevel = resourceObjectDefinition.getEffectiveShadowCachingPolicy().getCachingStrategy();
+            if (objectLevel == CachingStrategyType.NONE) {
+                return false;
+            } else if (objectLevel == CachingStrategyType.PASSIVE) {
+                return true;
+            } else if (objectLevel != null) {
+                throw new AssertionError(objectLevel);
+            }
         } else {
-            ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
-            if (readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly())) {
-                return CachingStrategyType.PASSIVE;
-            } else {
-                return CachingStrategyType.NONE;
+            // No object definition, we must go to the resource level
+            ShadowCachingPolicyType resourceCaching = resource.getCaching();
+            var resourceLevel = resourceCaching != null ? resourceCaching.getCachingStrategy() : null;
+            if (resourceLevel == CachingStrategyType.NONE) {
+                return false;
+            } else if (resourceLevel == CachingStrategyType.PASSIVE) {
+                return true;
+            } else if (resourceLevel != null) {
+                throw new AssertionError(resourceLevel);
             }
         }
+
+        return null;
+    }
+
+    private boolean isReadCachingOnlyCapabilityPresent() {
+        ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
+        return readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly());
+    }
+
+    public boolean isCachingEnabled() {
+        return Objects.requireNonNullElseGet(
+                getExplicitCachingStatus(),
+                this::isReadCachingOnlyCapabilityPresent);
+    }
+
+    public boolean isReadCachingOnlyCapabilityDisabled() {
+        return isReadCachingOnlyCapabilityPresent() && !Boolean.FALSE.equals(getExplicitCachingStatus());
     }
 
     public String toHumanReadableDescription() {
@@ -599,6 +662,26 @@ public class ProvisioningContext {
     public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
         return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
+    }
+
+    /**
+     * Takes kind/intent/OC from the shadow, looks up the definition, and updates the shadow accordingly.
+     * Currently that means attribute definitions and shadow state.
+     */
+    public ProvisioningContext adoptShadow(
+            @NotNull ShadowType shadow, @Nullable ObjectDelta<ShadowType> delta)
+            throws SchemaException, ConfigurationException {
+        var shadowCtx = applyAttributesDefinition(shadow);
+        if (delta != null) {
+            shadowCtx.applyAttributesDefinition(delta);
+        }
+        shadowCtx.updateShadowState(shadow);
+        return shadowCtx;
+    }
+
+    /** Just a convenience method. */
+    public ProvisioningContext adoptShadow(@NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
+        return adoptShadow(shadow, null);
     }
 
     /**

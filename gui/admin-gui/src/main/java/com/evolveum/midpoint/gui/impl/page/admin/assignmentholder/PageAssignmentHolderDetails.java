@@ -203,6 +203,12 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             }
 
             @Override
+            protected void backPerformed(AjaxRequestTarget target) {
+                super.backPerformed(target);
+                onBackPerform(target);
+            }
+
+            @Override
             protected void addButtons(RepeatingView repeatingView) {
                 addAdditionalButtons(repeatingView);
             }
@@ -221,7 +227,9 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     protected void afterDeletePerformed(AjaxRequestTarget target) {
+    }
 
+    protected void onBackPerform(AjaxRequestTarget target) {
     }
 
     protected void addAdditionalButtons(RepeatingView repeatingView) {
@@ -391,7 +399,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
                 SerializableConsumer<AjaxRequestTarget> consumer =
-                        consumerTarget -> navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
+                        consumerTarget -> exitFromWizard();
                 checkDeltasExitPerformed(consumer, target);
             }
 
@@ -416,6 +424,10 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 return result;
             }
         };
+    }
+
+    protected void exitFromWizard() {
+        navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
     }
 
     protected void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {

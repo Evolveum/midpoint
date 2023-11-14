@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStrategyType;
@@ -35,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.normalizeAttributeDelta;
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.shouldStoreAttributeInShadow;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
@@ -55,7 +53,7 @@ class ShadowDeltaComputerRelative {
     private final Protector protector;
 
     // Needed only for computation of effectiveMarkRefs
-    private ShadowType repoShadow;
+    private final ShadowType repoShadow;
 
     ShadowDeltaComputerRelative(
             ProvisioningContext ctx, ShadowType repoShadow, Collection<? extends ItemDelta<?, ?>> allModifications, Protector protector) {
@@ -65,9 +63,9 @@ class ShadowDeltaComputerRelative {
         this.repoShadow = repoShadow;
     }
 
-    Collection<ItemDelta<?, ?>> computeShadowModifications() throws SchemaException, ConfigurationException {
+    Collection<ItemDelta<?, ?>> computeShadowModifications() throws SchemaException {
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
-        CachingStrategyType cachingStrategy = ctx.getCachingStrategy();
+        boolean cachingEnabled = ctx.isCachingEnabled(); // FIXME partial caching?
 
         // The former of these two (explicit name change) takes precedence over the latter.
         ItemDelta<?, ?> explicitNameChange = null; // Shadow name change requested explicitly by the client.
@@ -75,9 +73,12 @@ class ShadowDeltaComputerRelative {
 
         Collection<ItemDelta<?, ?>> resultingRepoModifications = new ArrayList<>();
 
+        Collection<? extends QName> associationValueAttributes = objectDefinition.getAssociationValueAttributes();
+
         for (ItemDelta<?, ?> modification : allModifications) {
             if (ShadowType.F_ATTRIBUTES.equivalent(modification.getParentPath())) {
                 QName attrName = modification.getElementName();
+                var attrDef = objectDefinition.findAttributeDefinitionRequired(attrName);
                 ItemDelta<?, ?> normalizedModification = normalizeAttributeDelta(modification, objectDefinition);
                 if (isNamingAttribute(attrName, objectDefinition)) {
                     // Naming attribute is changed -> the shadow name should change as well.
@@ -100,11 +101,11 @@ class ShadowDeltaComputerRelative {
                                     .replace(newValueNormalized)
                                     .asItemDelta());
                 }
-                if (shouldStoreAttributeInShadow(objectDefinition, attrName, cachingStrategy)) {
+                if (ctx.shouldStoreAttributeInShadow(objectDefinition, attrDef, associationValueAttributes)) {
                     resultingRepoModifications.add(normalizedModification);
                 }
             } else if (ShadowType.F_ACTIVATION.equivalent(modification.getParentPath())) {
-                if (ProvisioningUtil.shouldStoreActivationItemInShadow(modification.getElementName(), cachingStrategy)) {
+                if (ProvisioningUtil.shouldStoreActivationItemInShadow(modification.getElementName(), cachingEnabled)) {
                     resultingRepoModifications.add(modification);
                 }
             } else if (ShadowType.F_ACTIVATION.equivalent(modification.getPath())) {// should not occur, but for completeness...

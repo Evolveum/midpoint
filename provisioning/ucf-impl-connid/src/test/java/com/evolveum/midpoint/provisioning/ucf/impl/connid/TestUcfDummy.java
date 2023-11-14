@@ -350,8 +350,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         UcfObjectHandler handler = (ucfObject, result) -> {
             displayDumpable("Search: found", ucfObject);
-            checkUcfShadow(ucfObject.getResourceObject(), accountDefinition);
-            searchResults.add(ucfObject.getResourceObject());
+            checkUcfObject(ucfObject.getResourceObject(), accountDefinition);
+            searchResults.add(ucfObject.getPrismObject());
             return true;
         };
 
@@ -364,12 +364,14 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of search results", 1, searchResults.size());
     }
 
-    private void checkUcfShadow(PrismObject<ShadowType> shadow, ResourceObjectClassDefinition objectClassDefinition) {
-        assertNotNull("No objectClass in shadow " + shadow, shadow.asObjectable().getObjectClass());
-        assertEquals("Wrong objectClass in shadow " + shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-        assertNotNull("No attributes in shadow " + shadow, attributes);
-        assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
+    private void checkUcfObject(UcfResourceObject ucfResourceObject, ResourceObjectClassDefinition objectClassDefinition) {
+        var object = ucfResourceObject.getPrismObject();
+        ShadowType bean = object.asObjectable();
+        assertNotNull("No objectClass in shadow " + object, bean.getObjectClass());
+        assertEquals("Wrong objectClass in shadow " + object, objectClassDefinition.getTypeName(), bean.getObjectClass());
+        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(object);
+        assertNotNull("No attributes in shadow " + object, attributes);
+        assertFalse("Empty attributes in shadow " + object, attributes.isEmpty());
     }
 
     /** MID-8145 */
@@ -393,12 +395,12 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 new ResourceObjectIdentification(accountDefinition, List.of(uid), List.of(name));
 
         when("getting account by UID");
-        PrismObject<ShadowType> shadow = cc.fetchObject(identification, null, ctx, result);
+        var resourceObject = cc.fetchObject(identification, null, ctx, result);
 
         then("account is retrieved OK");
-        displayDumpable("shadow retrieved", shadow);
-        assertThat(shadow).as("shadow").isNotNull();
-        checkUcfShadow(shadow, accountDefinition);
+        displayDumpable("resourceObject retrieved", resourceObject);
+        assertThat(resourceObject).as("resourceObject").isNotNull();
+        checkUcfObject(resourceObject, accountDefinition);
     }
 
     @Test
@@ -447,9 +449,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         AssertJUnit.assertEquals(1, changes.size());
         UcfLiveSyncChange change = changes.get(0);
         assertNotNull("null change", change);
-        PrismObject<ShadowType> resourceObject = change.getResourceObject();
+        var resourceObject = change.getResourceObject();
         assertNotNull("null current resource object", resourceObject);
-        PrismAsserts.assertParentConsistency(resourceObject);
+        PrismAsserts.assertParentConsistency(resourceObject.getPrismObject());
         Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
         assertNotNull("null identifiers", identifiers);
         assertFalse("empty identifiers", identifiers.isEmpty());

@@ -41,7 +41,7 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
         this(DEFAULT_LAYER);
     }
 
-    private ResourceSchemaImpl(@NotNull LayerType currentLayer) {
+    ResourceSchemaImpl(@NotNull LayerType currentLayer) {
         super(MidPointConstants.NS_RI);
         this.currentLayer = currentLayer;
     }
@@ -89,7 +89,7 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ResourceSchemaImpl clone() {
-        ResourceSchemaImpl clone = new ResourceSchemaImpl(currentLayer);
+        ResourceSchemaImpl clone = createEmptyClone(currentLayer);
         super.copyContent(clone);
         return clone;
     }
@@ -115,12 +115,16 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResour
 
         assertNoDelayedDefinitionsOnClone();
 
-        ResourceSchemaImpl clone = new ResourceSchemaImpl(layer);
+        ResourceSchemaImpl clone = createEmptyClone(layer);
         copyAllDefinitionsImmutable(layer, clone);
         // TODO what about substitutions?
 
         clone.freeze();
         return clone;
+    }
+
+    @NotNull ResourceSchemaImpl createEmptyClone(@NotNull LayerType layer) {
+        return new ResourceSchemaImpl(layer);
     }
 
     /** This is just a reminder - here we should put any freezing calls to own properties, should there be any. */

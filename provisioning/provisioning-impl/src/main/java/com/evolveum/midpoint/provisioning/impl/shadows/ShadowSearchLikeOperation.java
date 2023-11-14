@@ -155,7 +155,7 @@ class ShadowSearchLikeOperation {
 
         ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult lResult) -> {
 
-            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
+            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, ctx);
             shadowedObjectFound.initialize(ctx.getTask(), lResult);
             ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
 
