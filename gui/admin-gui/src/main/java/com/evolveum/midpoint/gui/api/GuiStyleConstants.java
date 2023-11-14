@@ -177,7 +177,7 @@ public class GuiStyleConstants {
     public static final String CLASS_BADGE_ACTIVE = "badge-primary";
     public static final String CLASS_BADGE_PASSIVE = "badge-secondary";
 
-    public static final String DEFAULT_BG_COLOR = "#3c8dbc"; //blue-light theme
+    public static final String DEFAULT_BG_COLOR = "#357DA7"; //blue-light theme
 
     public static final String CLASS_PLUS_CIRCLE = "fa fa-plus-circle";
     public static final String CLASS_PLUS_CIRCLE_SUCCESS = CLASS_PLUS_CIRCLE + " text-success";

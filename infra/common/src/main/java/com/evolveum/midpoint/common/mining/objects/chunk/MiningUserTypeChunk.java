@@ -13,6 +13,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The `MiningUserTypeChunk` class represents a chunk of role analysis data for a specific user. It contains information
+ * about the users, roles, chunk name, frequency, and the role analysis operation mode.
+ */
 public class MiningUserTypeChunk implements Serializable {
 
     private final List<String> users;

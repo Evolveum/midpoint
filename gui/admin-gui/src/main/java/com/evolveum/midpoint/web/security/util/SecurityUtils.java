@@ -14,6 +14,7 @@ import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthenti
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -272,6 +273,18 @@ public class SecurityUtils {
     public static String getRegistrationUrl(SecurityPolicyType securityPolicy) {
         SelfRegistrationPolicyType selfRegistrationPolicy = SecurityPolicyUtil.getSelfRegistrationPolicy(securityPolicy);
         if (selfRegistrationPolicy == null || StringUtils.isBlank(selfRegistrationPolicy.getAdditionalAuthenticationSequence())) {
+            return "";
+        }
+        AuthenticationSequenceType invitationSequence =
+                securityPolicy
+                        .getAuthentication()
+                        .getSequence()
+                        .stream()
+                        .filter(s -> s.getChannel() != null && SchemaConstants.CHANNEL_INVITATION_URI.equals(s.getChannel().getChannelId()))
+                        .findAny()
+                        .orElse(null);
+        //only one kind of registration flow (either self registration or invitation) can be configured at once
+        if (invitationSequence != null) {
             return "";
         }
         return getAuthLinkUrl(selfRegistrationPolicy.getAdditionalAuthenticationSequence(), securityPolicy);

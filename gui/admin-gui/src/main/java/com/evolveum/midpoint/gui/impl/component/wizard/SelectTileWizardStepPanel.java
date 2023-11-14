@@ -5,6 +5,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -22,11 +23,13 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -42,6 +45,11 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
 
     private static final String ID_TITLE = "title";
     private static final String ID_ICON = "icon";
+
+    private static final String ID_BODY_FRAGMENT = "bodyFragment";
+
+    private static final String ID_BODY = "body";
+
     static final String ID_TABLE = "table";
 
     public SelectTileWizardStepPanel(ODM model) {
@@ -51,15 +59,20 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout();
+        add(createFragment(ID_BODY));
     }
 
-    private void initLayout() {
+    protected Fragment createFragment(String id) {
+        Fragment body = new Fragment(id, ID_BODY_FRAGMENT, SelectTileWizardStepPanel.this);
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", () -> getIcon()));
-        add(icon);
-        add(new Label(ID_TITLE, getTitle()));
+        body.add(icon);
+        body.add(new Label(ID_TITLE, getTitle()));
+        body.add(createTable(ID_TABLE));
+        return body;
     }
+
+    protected abstract SingleSelectTileTablePanel createTable(String idTable);
 
     protected String getIcon() {
         return "fa fa-circle";
@@ -88,12 +101,12 @@ public abstract class SelectTileWizardStepPanel<O extends ObjectType, ODM extend
     }
 
     protected TileTablePanel<TemplateTile<SelectableBean<O>>, SelectableBean<O>> getTable() {
-        return (TileTablePanel) get(ID_TABLE);
+        return (TileTablePanel) get(getPageBase().createComponentPath(ID_BODY, ID_TABLE));
     }
 
     @Override
     public String appendCssToWizard() {
-        return "mt-5 mx-auto col-11";
+        return "mt-5 mx-auto col-12";
     }
 
     @Override

@@ -7,14 +7,14 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="feedback-message card" wicket:id="detailsBox">
-        <div class="card-header">
-            <h3 class="card-title">
+    <div aria-labelledby="message" class="feedback-message card" wicket:id="detailsBox">
+        <div class="card-header" role="alert" aria-atomic="true">
+            <h3 class="card-title" id="message">
                 <i class="mr-2 fa " wicket:id="iconType"></i>
                 <span class="card-title" wicket:id="message"/>
             </h3>
             <div class="card-tools">
-                <div wicket:id="close" data-widget="remove" class="btn btn-tool">
+                <div wicket:id="close" role="button" tabindex="0" data-widget="remove" class="btn btn-tool">
                     <i class="fa fa-times"/>
                 </div>
             </div>

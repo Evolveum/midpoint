@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -18,11 +19,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -51,9 +57,38 @@ public class AccessApplicationRoleStepPanel
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        getTable().getViewToggleModel().setObject(ViewToggle.TILE);
+//        getTable().getTable().setShowAsCard(false);
         if (getTable().getTilesModel().getObject().size() == 0) {
             getPageBase().info(getPageBase().createStringResource("AccessApplicationRoleStepPanel.skip").getString());
         }
+    }
+
+    @Override
+    protected Fragment createFragment(String id) {
+        return super.createFragment(id);
+    }
+
+    @Override
+    public String appendCssToWizard() {
+        return "mt-5 mx-auto col-12";
+    }
+
+    @Override
+    protected List<IColumn<SelectableBean<RoleType>, String>> createColumns() {
+        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
+                new ColumnTypeDto<>("ObjectType.name",
+                        AbstractRoleType.F_NAME.getLocalPart(),
+                        SelectableBeanImpl.F_VALUE + ".name", false, true),
+                new ColumnTypeDto<>("AbstractRoleType.displayName",
+                        null,
+                        SelectableBeanImpl.F_VALUE + ".displayName", false, true),
+                new ColumnTypeDto<>("AbstractRoleType.description",
+                        null,
+                        SelectableBeanImpl.F_VALUE + ".description", false)
+
+        );
+        return ColumnUtils.createColumns(columnsDefs);
     }
 
     @Override

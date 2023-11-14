@@ -9,6 +9,11 @@ package com.evolveum.midpoint.common.mining.utils.values;
 
 import java.io.Serializable;
 
+/**
+ * Enumeration representing different sorting modes for role analysis.
+ * <p>
+ * This enum provides sorting modes for role analysis, including JACCARD, FREQUENCY, and NONE.
+ */
 public enum RoleAnalysisSortMode implements Serializable {
 
     JACCARD("JACCARD"),
